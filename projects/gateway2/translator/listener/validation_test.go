@@ -7,6 +7,7 @@ import (
 
 	"github.com/solo-io/gloo/projects/gateway2/reports"
 
+	translator_types "github.com/solo-io/gloo/projects/gateway2/translator/types"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -24,9 +25,8 @@ func TestValidate(t *testing.T) {
 	listeners := gateway.Spec.Listeners
 	report := reports.NewReportMap()
 	reporter := reports.NewReporter(&report)
-	gatewayReporter := reporter.Gateway(gateway)
 
-	validListeners := validateListeners(gateway.Spec.Listeners, gatewayReporter)
+	validListeners := validateListeners(&translator_types.ConsolidatedGateway{Gateway: gateway}, reporter)
 	g := NewWithT(t)
 	g.Expect(validListeners).To(HaveLen(1))
 
@@ -49,9 +49,8 @@ func TestSimpleGWNoHostname(t *testing.T) {
 	listeners := gateway.Spec.Listeners
 	report := reports.NewReportMap()
 	reporter := reports.NewReporter(&report)
-	gatewayReporter := reporter.Gateway(gateway)
 
-	validListeners := validateListeners(gateway.Spec.Listeners, gatewayReporter)
+	validListeners := validateListeners(&translator_types.ConsolidatedGateway{Gateway: gateway}, reporter)
 	g := NewWithT(t)
 	g.Expect(validListeners).To(HaveLen(1))
 
@@ -74,9 +73,8 @@ func TestSimpleGWDuplicateNoHostname(t *testing.T) {
 	listeners := gateway.Spec.Listeners
 	report := reports.NewReportMap()
 	reporter := reports.NewReporter(&report)
-	gatewayReporter := reporter.Gateway(gateway)
 
-	validListeners := validateListeners(gateway.Spec.Listeners, gatewayReporter)
+	validListeners := validateListeners(&translator_types.ConsolidatedGateway{Gateway: gateway}, reporter)
 	g := NewWithT(t)
 	g.Expect(validListeners).To(BeEmpty())
 
@@ -122,9 +120,8 @@ func TestSimpleListenerWithValidRouteKind(t *testing.T) {
 	listeners := gateway.Spec.Listeners
 	report := reports.NewReportMap()
 	reporter := reports.NewReporter(&report)
-	gatewayReporter := reporter.Gateway(gateway)
 
-	validListeners := validateListeners(gateway.Spec.Listeners, gatewayReporter)
+	validListeners := validateListeners(&translator_types.ConsolidatedGateway{Gateway: gateway}, reporter)
 	g := NewWithT(t)
 	g.Expect(validListeners).To(HaveLen(1))
 
@@ -147,9 +144,8 @@ func TestSimpleListenerWithInvalidRouteKind(t *testing.T) {
 	listeners := gateway.Spec.Listeners
 	report := reports.NewReportMap()
 	reporter := reports.NewReporter(&report)
-	gatewayReporter := reporter.Gateway(gateway)
 
-	validListeners := validateListeners(gateway.Spec.Listeners, gatewayReporter)
+	validListeners := validateListeners(&translator_types.ConsolidatedGateway{Gateway: gateway}, reporter)
 	g := NewWithT(t)
 	g.Expect(validListeners).To(BeEmpty())
 
@@ -174,9 +170,8 @@ func TestMultiListener(t *testing.T) {
 	listeners := gateway.Spec.Listeners
 	report := reports.NewReportMap()
 	reporter := reports.NewReporter(&report)
-	gatewayReporter := reporter.Gateway(gateway)
 
-	validListeners := validateListeners(gateway.Spec.Listeners, gatewayReporter)
+	validListeners := validateListeners(&translator_types.ConsolidatedGateway{Gateway: gateway}, reporter)
 	g := NewWithT(t)
 	g.Expect(validListeners).To(HaveLen(2))
 
@@ -208,9 +203,8 @@ func TestMultiListenerExplicitRoutes(t *testing.T) {
 	listeners := gateway.Spec.Listeners
 	report := reports.NewReportMap()
 	reporter := reports.NewReporter(&report)
-	gatewayReporter := reporter.Gateway(gateway)
 
-	validListeners := validateListeners(gateway.Spec.Listeners, gatewayReporter)
+	validListeners := validateListeners(&translator_types.ConsolidatedGateway{Gateway: gateway}, reporter)
 	g := NewWithT(t)
 	g.Expect(validListeners).To(HaveLen(2))
 
@@ -242,9 +236,8 @@ func TestMultiListenerWithInavlidRoute(t *testing.T) {
 	listeners := gateway.Spec.Listeners
 	report := reports.NewReportMap()
 	reporter := reports.NewReporter(&report)
-	gatewayReporter := reporter.Gateway(gateway)
 
-	validListeners := validateListeners(gateway.Spec.Listeners, gatewayReporter)
+	validListeners := validateListeners(&translator_types.ConsolidatedGateway{Gateway: gateway}, reporter)
 	g := NewWithT(t)
 	g.Expect(validListeners).To(HaveLen(1))
 
@@ -278,9 +271,8 @@ func TestProtocolConflict(t *testing.T) {
 	listeners := gateway.Spec.Listeners
 	report := reports.NewReportMap()
 	reporter := reports.NewReporter(&report)
-	gatewayReporter := reporter.Gateway(gateway)
 
-	validListeners := validateListeners(gateway.Spec.Listeners, gatewayReporter)
+	validListeners := validateListeners(&translator_types.ConsolidatedGateway{Gateway: gateway}, reporter)
 	g := NewWithT(t)
 	g.Expect(validListeners).To(BeEmpty())
 
@@ -326,9 +318,8 @@ func TestProtocolConflictInvalidRoutes(t *testing.T) {
 	listeners := gateway.Spec.Listeners
 	report := reports.NewReportMap()
 	reporter := reports.NewReporter(&report)
-	gatewayReporter := reporter.Gateway(gateway)
 
-	validListeners := validateListeners(gateway.Spec.Listeners, gatewayReporter)
+	validListeners := validateListeners(&translator_types.ConsolidatedGateway{Gateway: gateway}, reporter)
 	g := NewWithT(t)
 	g.Expect(validListeners).To(HaveLen(1))
 
@@ -362,9 +353,8 @@ func TestActualProtocolConflictInvalidRoutes(t *testing.T) {
 	listeners := gateway.Spec.Listeners
 	report := reports.NewReportMap()
 	reporter := reports.NewReporter(&report)
-	gatewayReporter := reporter.Gateway(gateway)
 
-	validListeners := validateListeners(gateway.Spec.Listeners, gatewayReporter)
+	validListeners := validateListeners(&translator_types.ConsolidatedGateway{Gateway: gateway}, reporter)
 	g := NewWithT(t)
 	g.Expect(validListeners).To(BeEmpty())
 
@@ -421,9 +411,8 @@ func TestHostnameConflict(t *testing.T) {
 	listeners := gateway.Spec.Listeners
 	report := reports.NewReportMap()
 	reporter := reports.NewReporter(&report)
-	gatewayReporter := reporter.Gateway(gateway)
 
-	validListeners := validateListeners(gateway.Spec.Listeners, gatewayReporter)
+	validListeners := validateListeners(&translator_types.ConsolidatedGateway{Gateway: gateway}, reporter)
 	g := NewWithT(t)
 	g.Expect(validListeners).To(BeEmpty())
 
@@ -469,9 +458,8 @@ func TestHostnameConflictWithInvalidRoute(t *testing.T) {
 	listeners := gateway.Spec.Listeners
 	report := reports.NewReportMap()
 	reporter := reports.NewReporter(&report)
-	gatewayReporter := reporter.Gateway(gateway)
 
-	validListeners := validateListeners(gateway.Spec.Listeners, gatewayReporter)
+	validListeners := validateListeners(&translator_types.ConsolidatedGateway{Gateway: gateway}, reporter)
 	g := NewWithT(t)
 	g.Expect(validListeners).To(HaveLen(1))
 
@@ -505,9 +493,8 @@ func TestActualHostnameConflictWithInvalidRoute(t *testing.T) {
 	listeners := gateway.Spec.Listeners
 	report := reports.NewReportMap()
 	reporter := reports.NewReporter(&report)
-	gatewayReporter := reporter.Gateway(gateway)
 
-	validListeners := validateListeners(gateway.Spec.Listeners, gatewayReporter)
+	validListeners := validateListeners(&translator_types.ConsolidatedGateway{Gateway: gateway}, reporter)
 	g := NewWithT(t)
 	g.Expect(validListeners).To(BeEmpty())
 
@@ -564,9 +551,8 @@ func TestHostnameConflictWithExtraGoodListener(t *testing.T) {
 	listeners := gateway.Spec.Listeners
 	report := reports.NewReportMap()
 	reporter := reports.NewReporter(&report)
-	gatewayReporter := reporter.Gateway(gateway)
 
-	validListeners := validateListeners(gateway.Spec.Listeners, gatewayReporter)
+	validListeners := validateListeners(&translator_types.ConsolidatedGateway{Gateway: gateway}, reporter)
 	g := NewWithT(t)
 	g.Expect(validListeners).To(HaveLen(1))
 
@@ -621,9 +607,8 @@ func TestValidTCPRouteListener(t *testing.T) {
 	listeners := gateway.Spec.Listeners
 	report := reports.NewReportMap()
 	reporter := reports.NewReporter(&report)
-	gatewayReporter := reporter.Gateway(gateway)
 
-	validListeners := validateListeners(gateway.Spec.Listeners, gatewayReporter)
+	validListeners := validateListeners(&translator_types.ConsolidatedGateway{Gateway: gateway}, reporter)
 	g := NewWithT(t)
 	g.Expect(validListeners).To(HaveLen(1))
 
@@ -646,9 +631,8 @@ func TestInvalidRouteKindOnTCPListener(t *testing.T) {
 	listeners := gateway.Spec.Listeners
 	report := reports.NewReportMap()
 	reporter := reports.NewReporter(&report)
-	gatewayReporter := reporter.Gateway(gateway)
 
-	validListeners := validateListeners(gateway.Spec.Listeners, gatewayReporter)
+	validListeners := validateListeners(&translator_types.ConsolidatedGateway{Gateway: gateway}, reporter)
 	g := NewWithT(t)
 	g.Expect(validListeners).To(BeEmpty())
 
@@ -673,9 +657,8 @@ func TestTCPProtocolConflict(t *testing.T) {
 	listeners := gateway.Spec.Listeners
 	report := reports.NewReportMap()
 	reporter := reports.NewReporter(&report)
-	gatewayReporter := reporter.Gateway(gateway)
 
-	validListeners := validateListeners(gateway.Spec.Listeners, gatewayReporter)
+	validListeners := validateListeners(&translator_types.ConsolidatedGateway{Gateway: gateway}, reporter)
 	g := NewWithT(t)
 	g.Expect(validListeners).To(BeEmpty())
 
@@ -721,9 +704,8 @@ func TestTCPHostnameConflict(t *testing.T) {
 	listeners := gateway.Spec.Listeners
 	report := reports.NewReportMap()
 	reporter := reports.NewReporter(&report)
-	gatewayReporter := reporter.Gateway(gateway)
 
-	validListeners := validateListeners(gateway.Spec.Listeners, gatewayReporter)
+	validListeners := validateListeners(&translator_types.ConsolidatedGateway{Gateway: gateway}, reporter)
 	g := NewWithT(t)
 	g.Expect(validListeners).To(BeEmpty())
 

@@ -41,98 +41,51 @@ func TranslateListeners(
 	routesForGw *query.RoutesForGwResult,
 	reporter reports.Reporter,
 ) []*v1.Listener {
-	validatedConsolidatedListeners := validateAllListeners(consolidatedGateway, reporter)
-	mergedListeners := mergeConsolidatedListeners(queries, consolidatedGateway.Gateway.Namespace, validatedConsolidatedListeners, consolidatedGateway, routesForGw, reporter)
+	validatedConsolidatedListeners := validateConsolidatedGateway(consolidatedGateway, reporter)
+	mergedListeners := mergeConsolidatedListeners(queries, validatedConsolidatedListeners, consolidatedGateway, routesForGw, reporter)
 	translatedListeners := mergedListeners.translateListeners(ctx, pluginRegistry, queries, reporter)
 	return translatedListeners
 }
 
 func mergeConsolidatedListeners(
 	queries query.GatewayQueries,
-	gatewayNamespace string,
-	consolidatedListeners *types.ConsolidatedListeners,
+	consolidatedListeners []types.ConsolidatedListener,
 	consolidatedGateway *types.ConsolidatedGateway,
 	routesForGw *query.RoutesForGwResult,
 	reporter reports.Reporter,
 ) *MergedListeners {
 	ml := &MergedListeners{
 		parentGw:         *consolidatedGateway.Gateway,
-		GatewayNamespace: gatewayNamespace,
+		GatewayNamespace: consolidatedGateway.Gateway.Namespace,
 		Queries:          queries,
 	}
 
-	mergeListeners(ml, consolidatedListeners.GatewayListeners, routesForGw, reporter.Gateway(consolidatedGateway.Gateway), nil)
-	mergeListenerSetListeners(ml, consolidatedListeners, consolidatedGateway, routesForGw, reporter)
-	return ml
-}
-
-func mergeListenerSetListeners(
-	mergedListeners *MergedListeners,
-	consolidatedListeners *types.ConsolidatedListeners,
-	consolidatedGateway *types.ConsolidatedGateway,
-	routesForGw *query.RoutesForGwResult,
-	reporter reports.Reporter,
-) {
-	const AttachedListenerSetsConditionType = "AttachedListenerSets"
-	if consolidatedGateway.AllowedListenerSets == nil {
-		reporter.Gateway(consolidatedGateway.Gateway).SetCondition(reports.GatewayCondition{
-			Type:   AttachedListenerSetsConditionType,
-			Status: metav1.ConditionUnknown,
-			Reason: gwv1.GatewayReasonNoResources,
-		})
-		return
-	}
-
-	initialListenerCount := len(mergedListeners.Listeners)
-	for _, ls := range consolidatedGateway.AllowedListenerSets {
-		mergeListeners(mergedListeners, consolidatedListeners.GetListenerSetListeners(ls), routesForGw, reporter.ListenerSet(ls), ls)
-	}
-
-	finalListenerCount := len(mergedListeners.Listeners)
-	if finalListenerCount > initialListenerCount {
-		reporter.Gateway(consolidatedGateway.Gateway).SetCondition(reports.GatewayCondition{
-			Type:   AttachedListenerSetsConditionType,
-			Status: metav1.ConditionTrue,
-			Reason: gwv1.GatewayReasonAccepted,
-		})
-	} else {
-		reporter.Gateway(consolidatedGateway.Gateway).SetCondition(reports.GatewayCondition{
-			Type:   AttachedListenerSetsConditionType,
-			Status: metav1.ConditionFalse,
-			Reason: gwv1.GatewayReasonNoResources,
-		})
-	}
-}
-
-func mergeListeners(
-	mergedListeners *MergedListeners,
-	listeners []gwv1.Listener,
-	routesForGw *query.RoutesForGwResult,
-	reporter reports.GatewayReporter,
-	parentListenerSet *gwxv1a1.XListenerSet,
-) {
-	for _, listener := range listeners {
+	for _, cl := range consolidatedListeners {
+		listener := cl.Listener
 		result, ok := routesForGw.ListenerResults[string(listener.Name)]
 		if !ok || result.Error != nil {
 			// TODO report
 			// TODO, if Error is not nil, this is a user-config error on selectors
 			// continue
 		}
-		if parentListenerSet != nil {
-			result, ok = routesForGw.ListenerResults[query.GenerateListenerSetListenerKey(parentListenerSet, string(listener.Name))]
+		if cl.ListenerSet != nil {
+			result, ok = routesForGw.ListenerResults[query.GenerateListenerSetListenerKey(cl.ListenerSet, string(listener.Name))]
 			if !ok || result.Error != nil {
 				// TODO report
 				// TODO, if Error is not nil, this is a user-config error on selectors
 				// continue
 			}
 		}
-		listenerReporter := reporter.Listener(&listener)
+		parentReporter := cl.GetParentReporter(reporter)
+		listenerReporter := parentReporter.Listener(listener)
 		var routes []*query.RouteInfo
 		if result != nil {
 			routes = result.Routes
 		}
-		mergedListeners.AppendListener(listener, routes, listenerReporter, parentListenerSet)
+		ml.AppendListener(*listener, routes, listenerReporter, cl.ListenerSet)
 	}
+
+	return ml
 }
 
 type MergedListeners struct {

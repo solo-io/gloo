@@ -3,6 +3,7 @@ package types
 import (
 	"fmt"
 
+	"github.com/solo-io/gloo/projects/gateway2/reports"
 	"github.com/solo-io/gloo/projects/gateway2/utils"
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
 	gwxv1a1 "sigs.k8s.io/gateway-api/apisx/v1alpha1"
@@ -12,40 +13,60 @@ type ConsolidatedGateway struct {
 	Gateway               *gwv1.Gateway
 	AllowedListenerSets   []*gwxv1a1.XListenerSet
 	DeniedListenerSets    []*gwxv1a1.XListenerSet
-	ListenerSetsListeners map[string][]gwv1.Listener
+	consolidatedListeners []ConsolidatedListener
+	listenerSetsListeners map[string][]gwv1.Listener
 }
 
 func (cgw *ConsolidatedGateway) GetListeners(ls *gwxv1a1.XListenerSet) []gwv1.Listener {
 
-	if cgw.ListenerSetsListeners == nil {
-		cgw.ListenerSetsListeners = make(map[string][]gwv1.Listener)
+	if cgw.listenerSetsListeners == nil {
+		cgw.listenerSetsListeners = make(map[string][]gwv1.Listener)
 	}
 
-	if listeners, ok := cgw.ListenerSetsListeners[generateListenerSetKey(ls)]; ok {
+	if listeners, ok := cgw.listenerSetsListeners[generateListenerSetKey(ls)]; ok {
 		return listeners
 	}
 
-	cgw.ListenerSetsListeners[generateListenerSetKey(ls)] = utils.ToListenerSlice(ls.Spec.Listeners)
-	return cgw.ListenerSetsListeners[generateListenerSetKey(ls)]
+	cgw.listenerSetsListeners[generateListenerSetKey(ls)] = utils.ToListenerSlice(ls.Spec.Listeners)
+	return cgw.listenerSetsListeners[generateListenerSetKey(ls)]
 }
 
-type ConsolidatedListeners struct {
-	GatewayListeners     []gwv1.Listener
-	ListenerSetListeners map[string][]gwv1.Listener
-}
-
-func (cl *ConsolidatedListeners) SetListenerSetListeners(ls *gwxv1a1.XListenerSet, listeners []gwv1.Listener) {
-	if cl.ListenerSetListeners == nil {
-		cl.ListenerSetListeners = make(map[string][]gwv1.Listener)
+func (cgw *ConsolidatedGateway) GetConsolidatedListeners() []ConsolidatedListener {
+	if cgw.consolidatedListeners == nil {
+		var consolidatedListeners []ConsolidatedListener
+		for _, listener := range cgw.Gateway.Spec.Listeners {
+			consolidatedListeners = append(consolidatedListeners, ConsolidatedListener{
+				Listener:    &listener,
+				Gateway:     cgw.Gateway,
+				ListenerSet: nil,
+			})
+		}
+		for _, ls := range cgw.AllowedListenerSets {
+			for _, listener := range cgw.GetListeners(ls) {
+				consolidatedListeners = append(consolidatedListeners, ConsolidatedListener{
+					Listener:    &listener,
+					Gateway:     cgw.Gateway,
+					ListenerSet: nil,
+				})
+			}
+		}
+		cgw.consolidatedListeners = consolidatedListeners
 	}
-	cl.ListenerSetListeners[generateListenerSetKey(ls)] = listeners
+	return cgw.consolidatedListeners
 }
 
-func (cl *ConsolidatedListeners) GetListenerSetListeners(ls *gwxv1a1.XListenerSet) []gwv1.Listener {
-	if cl.ListenerSetListeners == nil {
-		return nil
+type ConsolidatedListener struct {
+	Listener    *gwv1.Listener
+	Gateway     *gwv1.Gateway
+	ListenerSet *gwxv1a1.XListenerSet
+}
+
+func (cl ConsolidatedListener) GetParentReporter(reporter reports.Reporter) reports.GatewayReporter {
+	parentReporter := reporter.Gateway(cl.Gateway)
+	if cl.ListenerSet != nil {
+		parentReporter = reporter.ListenerSet(cl.ListenerSet)
 	}
-	return cl.ListenerSetListeners[generateListenerSetKey(ls)]
+	return parentReporter
 }
 
 func generateListenerSetKey(ls *gwxv1a1.XListenerSet) string {
