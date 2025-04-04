@@ -62,6 +62,9 @@ func (g *GatewayAPIOutput) convertGatewayAndVirtualServices(glooGateway *domain.
 	if err != nil {
 		return err
 	}
+	if len(gatewayVs) == 0 {
+		g.AddErrorFromWrapper(ERROR_TYPE_NO_REFERENCES, glooGateway, "gateway does not contain virtual services")
+	}
 	for _, vs := range gatewayVs {
 		proxyNames := glooGateway.Spec.ProxyNames
 		if len(proxyNames) == 0 {
@@ -95,9 +98,7 @@ func (g *GatewayAPIOutput) convertVirtualServiceListener(vs *domain.VirtualServi
 		ObjectMeta: v1.ObjectMeta{
 			Name:      listenerName,
 			Namespace: vs.Namespace,
-			Labels: map[string]string{
-				"proxy-name": gatewayName,
-			},
+			Labels:    vs.Labels,
 		},
 		Spec: apixv1a1.ListenerSetSpec{
 			ParentRef: apixv1a1.ParentGatewayReference{
@@ -129,6 +130,7 @@ func (g *GatewayAPIOutput) convertVirtualServiceListener(vs *domain.VirtualServi
 			tlsConfig := g.generateTLSConfiguration(vs)
 			if tlsConfig != nil {
 				entry.TLS = tlsConfig
+				entry.Protocol = gwv1.HTTPSProtocolType
 			}
 		}
 
@@ -148,7 +150,7 @@ func (g *GatewayAPIOutput) convertVirtualServiceListener(vs *domain.VirtualServi
 			if !exists {
 				vho, exists = g.edgeCache.VirtualHostOptions[domain.NameNamespaceIndex(delegateOption.Name, delegateOption.Namespace)]
 				if !exists {
-					g.AddErrorFromWrapper(ERROR_UNKNOWN_REFERENCE, vs, "references VirtualHostOption %s that does not exist", domain.NameNamespaceIndex(delegateOption.Name, delegateOption.Namespace))
+					g.AddErrorFromWrapper(ERROR_TYPE_UNKNOWN_REFERENCE, vs, "references VirtualHostOption %s that does not exist", domain.NameNamespaceIndex(delegateOption.Name, delegateOption.Namespace))
 					continue
 				}
 			}
@@ -433,7 +435,7 @@ func (g *GatewayAPIOutput) convertRouteOptions(
 			ref := options.GetExtauth().GetConfigRef()
 			ac, exists := g.edgeCache.AuthConfigs[domain.NameNamespaceIndex(ref.GetName(), ref.GetNamespace())]
 			if !exists {
-				g.AddErrorFromWrapper(ERROR_UNKNOWN_REFERENCE, wrapper, "did not find AuthConfig %s/%s for delegated route option reference", ref.GetName(), ref.GetNamespace())
+				g.AddErrorFromWrapper(ERROR_TYPE_UNKNOWN_REFERENCE, wrapper, "did not find AuthConfig %s/%s for delegated route option reference", ref.GetName(), ref.GetNamespace())
 			}
 			g.gatewayAPICache.AddAuthConfig(ac)
 		}
@@ -574,7 +576,7 @@ func (g *GatewayAPIOutput) convertRouteToRule(r *gloogwv1.Route, wrapper domain.
 			// grab that route option and add it to the cache
 			ro, exists := g.edgeCache.RouteOptions[domain.NameNamespaceIndex(delegateOptions.GetName(), delegateOptions.GetNamespace())]
 			if !exists {
-				g.AddErrorFromWrapper(ERROR_UNKNOWN_REFERENCE, wrapper, "did not find RouteOption %s/%s for delegated route option reference", delegateOptions.GetNamespace(), delegateOptions.GetName())
+				g.AddErrorFromWrapper(ERROR_TYPE_UNKNOWN_REFERENCE, wrapper, "did not find RouteOption %s/%s for delegated route option reference", delegateOptions.GetNamespace(), delegateOptions.GetName())
 			}
 			g.gatewayAPICache.AddRouteOption(ro)
 
@@ -583,7 +585,7 @@ func (g *GatewayAPIOutput) convertRouteToRule(r *gloogwv1.Route, wrapper domain.
 				ref := ro.Spec.GetOptions().GetExtauth().GetConfigRef()
 				ac, exists := g.edgeCache.AuthConfigs[domain.NameNamespaceIndex(ref.GetName(), ref.GetNamespace())]
 				if !exists {
-					g.AddErrorFromWrapper(ERROR_UNKNOWN_REFERENCE, ro, "did not find AuthConfig %s/%s for delegated route option reference", ref.GetName(), ref.GetNamespace())
+					g.AddErrorFromWrapper(ERROR_TYPE_UNKNOWN_REFERENCE, ro, "did not find AuthConfig %s/%s for delegated route option reference", ref.GetName(), ref.GetNamespace())
 				}
 				g.gatewayAPICache.AddAuthConfig(ac)
 			}
@@ -705,7 +707,7 @@ func (g *GatewayAPIOutput) generateBackendRefForDelegateAction(
 		}
 
 		for _, namespace := range selector.Namespaces {
-			if namespace != "*" {
+			if namespace == "*" {
 				namespace = "all"
 			}
 
@@ -795,7 +797,7 @@ func (g *GatewayAPIOutput) generateBackendRefForSingleUpstream(r *gloogwv1.Route
 
 	if up == nil {
 		// unknown reference to backend
-		g.AddErrorFromWrapper(ERROR_UNKNOWN_REFERENCE, wrapper, "upstream %s not found, referencing unknown upstream backend ref", upstream.GetName())
+		g.AddErrorFromWrapper(ERROR_TYPE_UNKNOWN_REFERENCE, wrapper, "upstream %s not found, referencing unknown upstream backend ref", upstream.GetName())
 
 		backendRef = gwv1.HTTPBackendRef{
 			BackendRef: gwv1.BackendRef{
