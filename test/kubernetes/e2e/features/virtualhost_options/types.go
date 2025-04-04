@@ -193,11 +193,4 @@ var (
 	// ports used by the listener set
 	lsPort1 = 8085
 	lsPort2 = 8086
-
-	// The keys in this map are the FQDNs of the gateway services
-	// The values are the ports on which the gateway services are listening
-	gatewayListenerPorts = map[string][]int{
-		proxyService1Fqdn: {gw1port1, gw1port2, lsPort1, lsPort2},
-		proxyService2Fqdn: {gw2port1, gw2port2},
-	}
 )

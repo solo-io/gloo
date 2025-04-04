@@ -24,16 +24,22 @@ spec:
 apiVersion: gateway.networking.x-k8s.io/v1alpha1
 kind: XListenerSet
 metadata:
-  name: second-workload-listeners
+  name: listener-set-1
 spec:
   parentRef:
     name: gw-1
     kind: Gateway
     group: gateway.networking.k8s.io
   listeners:
-  - name: second
+  - name: listener-1
     protocol: HTTP
     port: 8085
+    allowedRoutes:
+        namespaces:
+          from: Same
+  - name: listener-2
+    protocol: HTTP
+    port: 8086
     allowedRoutes:
         namespaces:
           from: Same
