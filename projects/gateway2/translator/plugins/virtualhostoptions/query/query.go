@@ -54,7 +54,7 @@ func NewQuery(c client.Client) VirtualHostOptionQueries {
 	return &virtualHostOptionQueries{c}
 }
 
-func (r *virtualHostOptionQueries) GetVirtualHostOptionsForListener(
+func (r *virtualHostOptionQueries) GetVirtualHostOptionsForListener0(
 	ctx context.Context,
 	listener *gwv1.Listener,
 	parentGw *gwv1.Gateway,
@@ -125,78 +125,123 @@ func buildWrapperType(
 	return policies
 }
 
-// type OptionsList interface {
-// 	client.ObjectList
-// }
+type OptionsList interface {
+	client.ObjectList
+}
 
-// func GetVirtualHostOptionsForListener2() ([]*solokubev1.VirtualHostOption, error) {
-// 	createList := func() *solokubev1.VirtualHostOptionList {
-// 		return &solokubev1.VirtualHostOptionList{}
-// 	}
-// 	return GetOptionsForListener[*solokubev1.VirtualHostOption](context.Background(), &gwv1.Listener{}, &gwv1.Gateway{}, nil, nil, createList)
-// }
+func (r *virtualHostOptionQueries) GetVirtualHostOptionsForListener(
+	ctx context.Context,
+	listener *gwv1.Listener,
+	parentGw *gwv1.Gateway,
+	parentListenerSet *apixv1a1.XListenerSet,
+) ([]*solokubev1.VirtualHostOption, error) {
+	createList := func() *solokubev1.VirtualHostOptionList {
+		return &solokubev1.VirtualHostOptionList{}
+	}
 
-// func GetOptionsForListener[T client.Object, T2 client.ObjectList](
-// 	ctx context.Context,
-// 	listener *gwv1.Listener,
-// 	parentGw *gwv1.Gateway,
-// 	parentListenerSet *apixv1a1.XListenerSet,
-// 	c client.Client,
-// 	createList func() T2,
-// ) ([]*solokubev1.VirtualHostOption, error) {
-// 	if parentGw.GetName() == "" || parentGw.GetNamespace() == "" {
-// 		return nil, eris.Errorf("parent gateway must have name and namespace; received name: %s, namespace: %s", parentGw.GetName(), parentGw.GetNamespace())
-// 	}
+	// Can't just do this in the function because we need to call `list.Items`
+	extractItems := func(list *solokubev1.VirtualHostOptionList) []*solokubev1.VirtualHostOption {
+		items := make([]*solokubev1.VirtualHostOption, len(list.Items))
+		for i, item := range list.Items {
+			items[i] = &item
+		}
+		return items
+	}
 
-// 	parentListenerSetName := ""
-// 	if parentListenerSet != nil {
-// 		parentListenerSetName = parentListenerSet.GetName()
-// 	}
+	wrapPolicy := func(item *solokubev1.VirtualHostOption) utils.PolicyWithSectionedTargetRefs[*solokubev1.VirtualHostOption] {
+		return vhostOptionPolicy{
+			obj: item,
+		}
+	}
 
-// 	nn := types.NamespacedName{
-// 		Namespace: parentGw.Namespace,
-// 		Name:      parentGw.Name,
-// 	}
+	return GetOptionsForListener(
+		context.Background(),
+		listener,
+		parentGw,
+		parentListenerSet,
+		r.c,
+		VirtualHostOptionTargetField,
+		createList,
+		extractItems,
+		wrapPolicy,
+	)
+}
 
-// 	nnListenerSet := types.NamespacedName{
-// 		Namespace: parentGw.Namespace,
-// 		Name:      parentListenerSetName,
-// 	}
+// Use to eliminate `extractItems` from `GetOptionsForListener`
+type ObjectListWithItems[T client.Object] interface {
+	client.ObjectList
+	GetItems() []T
+}
 
-// 	listGw := createList()
-// 	if err := c.List(
-// 		ctx,
-// 		listGw,
-// 		client.MatchingFieldsSelector{Selector: fields.OneTermEqualSelector(VirtualHostOptionTargetField, nn.String())},
-// 		client.InNamespace(parentGw.GetNamespace()),
-// 	); err != nil {
-// 		return nil, err
-// 	}
+func GetOptionsForListener[T client.Object, TList client.ObjectList](
+	ctx context.Context,
+	listener *gwv1.Listener,
+	parentGw *gwv1.Gateway,
+	parentListenerSet *apixv1a1.XListenerSet,
+	c client.Client,
+	optionTargetField string,
+	createList func() TList,
+	extractItems func(list TList) []T,
+	wrapPolicy func(item T) utils.PolicyWithSectionedTargetRefs[T],
+) ([]T, error) {
+	if parentGw.GetName() == "" || parentGw.GetNamespace() == "" {
+		return nil, eris.Errorf("parent gateway must have name and namespace; received name: %s, namespace: %s", parentGw.GetName(), parentGw.GetNamespace())
+	}
 
-// 	listListenerSet := createList()
-// 	if parentListenerSet != nil {
-// 		if err := c.List(
-// 			ctx,
-// 			listListenerSet,
-// 			client.MatchingFieldsSelector{Selector: fields.OneTermEqualSelector(VirtualHostOptionTargetField, nnListenerSet.String())},
-// 		); err != nil {
-// 			return nil, err
-// 		}
-// 	}
+	parentListenerSetName := ""
+	if parentListenerSet != nil {
+		parentListenerSetName = parentListenerSet.GetName()
+	}
 
-// 	allItems := []T{}
+	nn := types.NamespacedName{
+		Namespace: parentGw.Namespace,
+		Name:      parentGw.Name,
+	}
 
-// 	switch list := listGw.(type) {
-// 	case solokubev1.VirtualHostOptionList:
-// 		allItems = append(allItems, list.Items...)
-// 	}
+	nnListenerSet := types.NamespacedName{
+		Namespace: parentGw.Namespace,
+		Name:      parentListenerSetName,
+	}
 
-// 	allItems := append(listGw.Items, listListenerSet.Items...)
-// 	if len(allItems) == 0 {
-// 		return nil, nil
-// 	}
+	listGw := createList()
+	if err := c.List(
+		ctx,
+		listGw,
+		client.MatchingFieldsSelector{Selector: fields.OneTermEqualSelector(optionTargetField, nn.String())},
+		client.InNamespace(parentGw.GetNamespace()),
+	); err != nil {
+		return nil, err
+	}
 
-// 	policies := buildWrapperType(allItems)
-// 	orderedPolicies := utils.GetPrioritizedListenerPolicies(policies, listener, parentGw.Name, parentListenerSet)
-// 	return orderedPolicies, nil
-// }
+	listListenerSet := createList()
+	if parentListenerSet != nil {
+		if err := c.List(
+			ctx,
+			listListenerSet,
+			client.MatchingFieldsSelector{Selector: fields.OneTermEqualSelector(optionTargetField, nnListenerSet.String())},
+		); err != nil {
+			return nil, err
+		}
+	}
+
+	allItems := []T{}
+	allItems = append(allItems, extractItems(listGw)...)
+	allItems = append(allItems, extractItems(listListenerSet)...)
+
+	policies := buildWrapperGeneric(allItems, wrapPolicy)
+	orderedPolicies := utils.GetPrioritizedListenerPolicies(policies, listener, parentGw.Name, parentListenerSet)
+	return orderedPolicies, nil
+}
+
+func buildWrapperGeneric[T client.Object](
+	items []T,
+	wrapPolicy func(item T) utils.PolicyWithSectionedTargetRefs[T],
+) []utils.PolicyWithSectionedTargetRefs[T] {
+	policies := []utils.PolicyWithSectionedTargetRefs[T]{}
+	for i := range items {
+		item := items[i]
+		policy := wrapPolicy(item)
+		policies = append(policies, policy)
+	}
+	return policies
+}
