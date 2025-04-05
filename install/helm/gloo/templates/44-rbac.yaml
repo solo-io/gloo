@@ -18,6 +18,11 @@ rules:
   - referencegrants
   verbs: ["get", "list", "watch"]
 - apiGroups:
+  - "gateway.networking.x-k8s.io"
+  resources:
+  - xlistenersets
+  verbs: ["get", "list", "watch"]
+- apiGroups:
   - ""
   resources:
   - services
@@ -52,6 +57,11 @@ rules:
   - httproutes/status
   - tcproutes/status
   - tlsroutes/status
+  verbs: ["update", "patch"]
+- apiGroups:
+  - "gateway.networking.x-k8s.io"
+  resources:
+  - xlistenersets/status
   verbs: ["update", "patch"]
 - apiGroups:
   - apiextensions.k8s.io

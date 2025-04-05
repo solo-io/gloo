@@ -56,7 +56,16 @@ func (t *translator) TranslateProxy(
 
 	ctx = contextutils.WithLogger(ctx, "k8s-gateway-translator")
 	logger := contextutils.LoggerFrom(ctx)
-	routesForGw, err := t.queries.GetRoutesForGateway(ctx, gateway)
+
+	consolidatedGateway, err := t.queries.ConsolidateGateway(ctx, gateway)
+	if err != nil {
+		logger.Errorf("failed to consolidate gateway %s: %v", client.ObjectKeyFromObject(gateway), err)
+		// TODO: decide how/if to report this error on Gateway
+		// reporter.Gateway(gateway).Err(err.Error())
+		return nil
+	}
+
+	routesForGw, err := t.queries.GetRoutesForConsolidatedGateway(ctx, consolidatedGateway)
 	if err != nil {
 		logger.Errorf("failed to get routes for gateway %s: %v", client.ObjectKeyFromObject(gateway), err)
 		// TODO: decide how/if to report this error on Gateway
@@ -82,17 +91,28 @@ func (t *translator) TranslateProxy(
 		reporter.Gateway(gateway).Listener(&listener).SetAttachedRoutes(uint(availRoutes))
 	}
 
+	for _, ls := range consolidatedGateway.AllowedListenerSets {
+		for _, listener := range consolidatedGateway.GetListeners(ls) {
+			availRoutes := 0
+			if res, ok := routesForGw.ListenerResults[query.GenerateListenerSetListenerKey(ls, string(listener.Name))]; ok {
+				// TODO we've never checked if the ListenerResult has an error.. is it already on RouteErrors?
+				availRoutes = len(res.Routes)
+			}
+			reporter.ListenerSet(ls).Listener(&listener).SetAttachedRoutes(uint(availRoutes))
+		}
+	}
+
 	listeners := listener.TranslateListeners(
 		ctx,
 		t.queries,
 		t.pluginRegistry,
-		gateway,
+		consolidatedGateway,
 		routesForGw,
 		reporter,
 	)
 
 	return &v1.Proxy{
-		Metadata:  proxyMetadata(gateway, writeNamespace),
+		Metadata:  proxyMetadata(consolidatedGateway.Gateway, writeNamespace),
 		Listeners: listeners,
 	}
 }

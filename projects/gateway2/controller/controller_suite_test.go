@@ -18,6 +18,7 @@ import (
 	"github.com/solo-io/gloo/projects/gateway2/api/v1alpha1"
 	"github.com/solo-io/gloo/projects/gateway2/controller"
 	"github.com/solo-io/gloo/projects/gateway2/extensions"
+	"github.com/solo-io/gloo/projects/gateway2/query"
 	"github.com/solo-io/gloo/projects/gateway2/wellknown"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -33,6 +34,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 	api "sigs.k8s.io/gateway-api/apis/v1"
+	apixv1a1 "sigs.k8s.io/gateway-api/apisx/v1alpha1"
 )
 
 var (
@@ -127,6 +129,9 @@ var _ = BeforeSuite(func() {
 	}
 	err = controller.NewBaseGatewayController(ctx, cfg)
 	Expect(err).ToNot(HaveOccurred())
+
+	err = cfg.Mgr.GetFieldIndexer().IndexField(ctx, &apixv1a1.XListenerSet{}, query.ListenerSetTargetField, query.IndexerByObjType)
+	Expect(err).NotTo(HaveOccurred())
 
 	for class := range gwClasses {
 		err = k8sClient.Create(ctx, &api.GatewayClass{

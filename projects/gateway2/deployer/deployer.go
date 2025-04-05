@@ -13,6 +13,7 @@ import (
 	"github.com/solo-io/gloo/pkg/version"
 	"github.com/solo-io/gloo/projects/gateway2/api/v1alpha1"
 	"github.com/solo-io/gloo/projects/gateway2/helm"
+	"github.com/solo-io/gloo/projects/gateway2/query"
 	"github.com/solo-io/gloo/projects/gateway2/wellknown"
 	"golang.org/x/exp/slices"
 	"helm.sh/helm/v3/pkg/action"
@@ -48,7 +49,8 @@ type Deployer struct {
 	chart *chart.Chart
 	cli   client.Client
 
-	inputs *Inputs
+	inputs  *Inputs
+	queries query.GatewayQueries
 }
 
 type ControlPlaneInfo struct {
@@ -77,7 +79,7 @@ type Inputs struct {
 }
 
 // NewDeployer creates a new gateway deployer
-func NewDeployer(cli client.Client, inputs *Inputs) (*Deployer, error) {
+func NewDeployer(cli client.Client, inputs *Inputs, queries query.GatewayQueries) (*Deployer, error) {
 	if inputs == nil {
 		return nil, NilDeployerInputsErr
 	}
@@ -93,9 +95,10 @@ func NewDeployer(cli client.Client, inputs *Inputs) (*Deployer, error) {
 	}
 
 	return &Deployer{
-		cli:    cli,
-		chart:  helmChart,
-		inputs: inputs,
+		cli:     cli,
+		chart:   helmChart,
+		inputs:  inputs,
+		queries: queries,
 	}, nil
 }
 
@@ -273,13 +276,18 @@ func (d *Deployer) getGatewayClassFromGateway(ctx context.Context, gw *api.Gatew
 }
 
 func (d *Deployer) getValues(ctx context.Context, gw *api.Gateway, gwParam *v1alpha1.GatewayParameters) (*helmConfig, error) {
+	cgw, err := d.queries.ConsolidateGateway(ctx, gw)
+	if err != nil {
+		return nil, err
+	}
+
 	// construct the default values
 	vals := &helmConfig{
 		Gateway: &helmGateway{
 			Name:             &gw.Name,
 			GatewayName:      &gw.Name,
 			GatewayNamespace: &gw.Namespace,
-			Ports:            getPortsValues(gw, gwParam),
+			Ports:            getPortsValues(cgw, gwParam),
 			Xds: &helmXds{
 				// The xds host/port MUST map to the Service definition for the Control Plane
 				// This is the socket address that the Proxy will connect to on startup, to receive xds updates

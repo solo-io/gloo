@@ -45,11 +45,10 @@ func install(opts *options.Options, installOpts *Options) error {
 	if err := gwv1.Install(cli.Scheme()); err != nil {
 		return err
 	}
-
 	// TODO(npolshak): Need to support providing Istio Integration Enabled here to the cli options
 	dep, err := deployer.NewDeployer(cli, &deployer.Inputs{
 		ControllerName: "glooctl",
-	})
+	}, nil)
 	if err != nil {
 		return err
 	}

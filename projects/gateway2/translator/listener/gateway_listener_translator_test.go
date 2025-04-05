@@ -123,7 +123,7 @@ var _ = Describe("Translator TCPRoute Listener", func() {
 			}
 
 			By("Appending the TCP listener")
-			ml.AppendTcpListener(gwListener, routes, listenerReporter)
+			ml.AppendTcpListener(gwListener, routes, listenerReporter, nil)
 
 			By("Validating that the TCP listener is properly created with multiple backend references")
 			Expect(ml.Listeners).To(HaveLen(1))
@@ -159,7 +159,7 @@ var _ = Describe("Translator TCPRoute Listener", func() {
 			routes := []*query.RouteInfo{{Object: tcpRoute}}
 
 			By("Appending the TCP listener")
-			ml.AppendTcpListener(gwListener, routes, listenerReporter)
+			ml.AppendTcpListener(gwListener, routes, listenerReporter, nil)
 
 			By("Validating that no TCP listeners are created")
 			Expect(ml.Listeners).To(BeEmpty(), "Expected no listeners due to missing ParentRefs")
@@ -192,7 +192,7 @@ var _ = Describe("Translator TCPRoute Listener", func() {
 			}
 
 			By("Appending the TCP listener")
-			ml.AppendTcpListener(gwListener, routes, listenerReporter)
+			ml.AppendTcpListener(gwListener, routes, listenerReporter, nil)
 
 			By("Validating that a TCP listener is created with no TCPHosts")
 			Expect(ml.Listeners).To(HaveLen(1))
@@ -213,7 +213,7 @@ var _ = Describe("Translator TCPRoute Listener", func() {
 			}
 
 			By("Appending the TCP listener generates an error")
-			err := ml.AppendListener(badListener, nil, listenerReporter)
+			err := ml.AppendListener(badListener, nil, listenerReporter, nil)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("unsupported protocol"))
 
@@ -269,7 +269,7 @@ var _ = Describe("Translator TCPRoute Listener", func() {
 			}
 
 			By("Appending the TCP listener")
-			ml.AppendTcpListener(gwListener, routes, listenerReporter)
+			ml.AppendTcpListener(gwListener, routes, listenerReporter, nil)
 
 			By("Validating that one single destination TCP listener is created")
 			Expect(ml.Listeners).To(HaveLen(1)) // One valid listener
@@ -327,7 +327,7 @@ var _ = Describe("Translator TCPRoute Listener", func() {
 			}
 
 			By("Appending the TCP listener")
-			ml.AppendTcpListener(gwListener, routes, listenerReporter)
+			ml.AppendTcpListener(gwListener, routes, listenerReporter, nil)
 
 			By("Validating that one TCP listener is created with a single destination")
 			Expect(ml.Listeners).To(HaveLen(1))
@@ -397,7 +397,7 @@ var _ = Describe("Translator TCPRoute Listener", func() {
 			}
 
 			By("Appending the TCP listener")
-			ml.AppendTcpListener(gwListener, routes, listenerReporter)
+			ml.AppendTcpListener(gwListener, routes, listenerReporter, nil)
 
 			By("Validating that one TCP listener is created with multiple weighted destinations")
 			Expect(ml.Listeners).To(HaveLen(1))
@@ -490,7 +490,7 @@ var _ = Describe("Translator TCPRoute Listener", func() {
 		}
 
 		By("Appending the TCP listener")
-		ml.AppendTcpListener(gwListener, routes, listenerReporter)
+		ml.AppendTcpListener(gwListener, routes, listenerReporter, nil)
 
 		By("Validating that a TCP listener is created with no TCPHosts")
 		Expect(ml.Listeners).To(HaveLen(1))
@@ -561,7 +561,7 @@ var _ = Describe("Translator TCPRoute Listener", func() {
 		}
 
 		By("Appending the TCP listener")
-		ml.AppendTcpListener(gwListener, routes, listenerReporter)
+		ml.AppendTcpListener(gwListener, routes, listenerReporter, nil)
 
 		By("Validating that a TCP listener is created with TCPHosts")
 		Expect(ml.Listeners).To(HaveLen(1))
