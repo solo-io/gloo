@@ -77,7 +77,9 @@ func printMetrics(output *GatewayAPIOutput) {
 			var count float64
 			for _, t := range m.Metric {
 				_, _ = fmt.Fprintf(os.Stdout, "Gloo Config: Number of %s: %v\n", *t.Label[0].Value, *t.Counter.Value-1)
-				count += *t.Counter.Value - 1
+				if *t.Label[0].Value != "Unknown" {
+					count += *t.Counter.Value - 1
+				}
 			}
 			_, _ = fmt.Fprintf(os.Stdout, "Total Gloo Config: %v\n", count)
 		}
@@ -88,7 +90,9 @@ func printMetrics(output *GatewayAPIOutput) {
 			var count float64
 			for _, t := range m.Metric {
 				_, _ = fmt.Fprintf(os.Stdout, "Gateway API Config: Number of %s: %v\n", *t.Label[0].Value, *t.Counter.Value-1)
-				count += *t.Counter.Value - 1
+				if *t.Label[0].Value != "Unknown" {
+					count += *t.Counter.Value - 1
+				}
 			}
 			_, _ = fmt.Fprintf(os.Stdout, "Total Gateway API Config: %v\n", count)
 		}

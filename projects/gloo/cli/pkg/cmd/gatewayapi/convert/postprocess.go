@@ -15,11 +15,6 @@ import (
 
 func (g *GatewayAPIOutput) PostProcess(opts *Options) error {
 
-	// fix all the cel validation issue
-	if err := g.celValidationCorrections(); err != nil {
-		return err
-	}
-
 	// complete delegation
 	if err := g.finishDelegation(); err != nil {
 		return err
@@ -31,6 +26,11 @@ func (g *GatewayAPIOutput) PostProcess(opts *Options) error {
 	}
 	if opts.IncludeUnknownResources {
 		g.gatewayAPICache.YamlObjects = g.edgeCache.YamlObjects
+	}
+
+	// fix all the cel validation issues
+	if err := g.celValidationCorrections(); err != nil {
+		return err
 	}
 
 	return nil
@@ -45,7 +45,43 @@ func (g *GatewayAPIOutput) celValidationCorrections() error {
 
 	g.splitListenerSets()
 
+	g.splitHTTPRouteRules()
+
 	return nil
+}
+
+func (g *GatewayAPIOutput) splitHTTPRouteRules() {
+	var httpRoutesToDelete []string
+	var updatedHTTPRoutes []*domain.HTTPRouteWrapper
+	for httpRouteKey, httpRoute := range g.gatewayAPICache.HTTPRoutes {
+		if len(httpRoute.Spec.Rules) > 16 {
+			// listener set needs to be broken up into multiple
+			httpRoutesToDelete = append(httpRoutesToDelete, httpRouteKey)
+			entries := splitRules(httpRoute.Spec.Rules, 16)
+			g.AddErrorFromWrapper(ERROR_TYPE_CEL_VALIDATION_CORRECTION, httpRoute, "HTTPRoute contains too many route rules %d, splitting into %d new HTTPRoutes", len(httpRoute.Spec.Rules), len(entries))
+
+			// for each entry set we create a new XListenerSet
+			for i, entry := range entries {
+				// new XListenerSet
+				newHTTPRoute := httpRoute.DeepCopy()
+				newHTTPRoute.Spec.Rules = entry
+				newHTTPRoute.Name = fmt.Sprintf("%s-%d", httpRoute.Name, i)
+				updatedHTTPRoutes = append(updatedHTTPRoutes, &domain.HTTPRouteWrapper{
+					HTTPRoute:        newHTTPRoute,
+					OriginalFileName: httpRoute.OriginalFileName,
+				})
+			}
+		}
+	}
+	fmt.Printf("HTTPRoutes number of rules that required spliting: %d generated %d new routes\n", len(httpRoutesToDelete), len(updatedHTTPRoutes))
+
+	for _, httpRouteKey := range httpRoutesToDelete {
+		delete(g.gatewayAPICache.HTTPRoutes, httpRouteKey)
+	}
+
+	for _, httpRoute := range updatedHTTPRoutes {
+		g.gatewayAPICache.AddHTTPRoute(httpRoute)
+	}
 }
 
 func (g *GatewayAPIOutput) splitListenerSets() {
@@ -54,9 +90,9 @@ func (g *GatewayAPIOutput) splitListenerSets() {
 	for listenerSetKey, listenerSet := range g.gatewayAPICache.ListenerSets {
 		if len(listenerSet.Spec.Listeners) > 64 {
 			// listener set needs to be broken up into multiple
-			g.AddErrorFromWrapper(ERROR_TYPE_CEL_VALIDATION_CORRECTION, listenerSet, "ListenerSet contains too many listeners %d, splitting into multiple", len(listenerSet.Spec.Listeners))
 			listenerSetsToDelete = append(listenerSetsToDelete, listenerSetKey)
 			entries := splitListeners(listenerSet.Spec.Listeners, 64)
+			g.AddErrorFromWrapper(ERROR_TYPE_CEL_VALIDATION_CORRECTION, listenerSet, "ListenerSet contains too many listeners %d, splitting into %d new ListenerSet", len(listenerSet.Spec.Listeners), len(entries))
 
 			// for each entry set we create a new XListenerSet
 			for i, entry := range entries {
@@ -71,6 +107,8 @@ func (g *GatewayAPIOutput) splitListenerSets() {
 			}
 		}
 	}
+	fmt.Printf("ListenerSets number of listeners that required splitting: %d generated %d new listeners\n", len(listenerSetsToDelete), len(updatedListenerSets))
+
 	for _, listenerSetKey := range listenerSetsToDelete {
 		delete(g.gatewayAPICache.ListenerSets, listenerSetKey)
 	}
@@ -80,6 +118,14 @@ func (g *GatewayAPIOutput) splitListenerSets() {
 	}
 }
 
+func splitRules(slice []gwv1.HTTPRouteRule, maxLen int) [][]gwv1.HTTPRouteRule {
+	var result [][]gwv1.HTTPRouteRule
+	for maxLen < len(slice) {
+		slice, result = slice[maxLen:], append(result, slice[0:maxLen:maxLen])
+	}
+	result = append(result, slice)
+	return result
+}
 func splitListeners(slice []v1alpha1.ListenerEntry, maxLen int) [][]v1alpha1.ListenerEntry {
 	var result [][]v1alpha1.ListenerEntry
 	for maxLen < len(slice) {
@@ -123,7 +169,7 @@ func (g *GatewayAPIOutput) fixRewritesPerMatch() {
 			}
 		}
 		if len(updatedRules) > 0 {
-			g.AddErrorFromWrapper(ERROR_TYPE_CEL_VALIDATION_CORRECTION, httpRoute, "updating HTTPRoute URLRewrite rules (%d) to conform to one rule per match, total new rules %d", len(httpRoute.Spec.Rules), len(updatedRules))
+			g.AddErrorFromWrapper(ERROR_TYPE_CEL_VALIDATION_CORRECTION, httpRoute, "updating HTTPRoute URLRewrite rules %d to conform to one rule per match, total new rules %d", len(httpRoute.Spec.Rules), len(updatedRules))
 			httpRoute.Spec.Rules = updatedRules
 			updatedHTTPRoutes = append(updatedHTTPRoutes, httpRoute)
 		}

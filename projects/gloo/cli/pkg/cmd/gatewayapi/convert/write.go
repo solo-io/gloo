@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	v2 "k8s.io/api/core/v1"
@@ -33,6 +34,7 @@ func (g *GatewayAPIOutput) Write(opts *Options) error {
 
 	var err error
 	for _, r := range g.gatewayAPICache.Gateways {
+		r.ObjectMeta.SetResourceVersion("")
 		yml, err := yaml.Marshal(r.Gateway)
 		if err != nil {
 			return err
@@ -125,6 +127,15 @@ func (g *GatewayAPIOutput) Write(opts *Options) error {
 	}
 	for _, r := range g.gatewayAPICache.YamlObjects {
 		yml, err := yaml.Marshal(r.Object)
+		if err != nil {
+			return err
+		}
+		if err := writeObjectToFile(opts, r, yml); err != nil {
+			return err
+		}
+	}
+	for _, r := range g.gatewayAPICache.DirectResponses {
+		yml, err := yaml.Marshal(r.DirectResponse)
 		if err != nil {
 			return err
 		}
@@ -294,6 +305,17 @@ func removeNullYamlFields(yamlData []byte) string {
 	stringData = strings.ReplaceAll(stringData, "\n\n\n", "\n")
 	stringData = strings.ReplaceAll(stringData, "\n\n", "\n")
 	stringData = strings.ReplaceAll(stringData, "spec: {}\n", "")
+	stringData = strings.ReplaceAll(stringData, "    kubectl.kubernetes.io/last-applied-configuration: |\n", "")
 	stringData = strings.ReplaceAll(stringData, "  listeners: null\n", "")
+	var re = regexp.MustCompile(`\n      \{"apiVersion":.*`)
+	stringData = re.ReplaceAllString(stringData, "")
+	re = regexp.MustCompile(`\n  resourceVersion: .*`)
+	stringData = re.ReplaceAllString(stringData, "")
+	re = regexp.MustCompile(`\n  uid: .*`)
+	stringData = re.ReplaceAllString(stringData, "")
+	re = regexp.MustCompile(`\n  creationTimestamp: .*`)
+	stringData = re.ReplaceAllString(stringData, "")
+	re = regexp.MustCompile(`\n  generation: .*`)
+	stringData = re.ReplaceAllString(stringData, "")
 	return stringData
 }

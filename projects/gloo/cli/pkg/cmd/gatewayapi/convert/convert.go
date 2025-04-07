@@ -175,7 +175,7 @@ func (g *GatewayAPIOutput) convertVirtualServiceListener(vs *domain.VirtualServi
 		vho := &gatewaykube.VirtualHostOption{
 			TypeMeta: v1.TypeMeta{
 				Kind:       "VirtualHostOption",
-				APIVersion: gatewaykube.SchemeGroupVersion.Version,
+				APIVersion: gatewaykube.SchemeGroupVersion.String(),
 			},
 			ObjectMeta: v1.ObjectMeta{
 				Name:      listenerSet.Name,
@@ -183,6 +183,14 @@ func (g *GatewayAPIOutput) convertVirtualServiceListener(vs *domain.VirtualServi
 			},
 			Spec: gloogwv1.VirtualHostOption{
 				Options: vs.Spec.VirtualHost.Options,
+				TargetRefs: []*v3.PolicyTargetReferenceWithSectionName{
+					{
+						Group:     apixv1a1.GroupName,
+						Kind:      "XListenerSet",
+						Name:      listenerSet.Name,
+						Namespace: wrapperspb.String(listenerSet.Namespace),
+					},
+				},
 			},
 		}
 		g.gatewayAPICache.AddVirtualHostOption(&domain.VirtualHostOptionWrapper{
@@ -528,7 +536,11 @@ func (g *GatewayAPIOutput) convertRouteToRule(r *gloogwv1.Route, wrapper domain.
 		dr := convertDirectResponse(r.GetDirectResponseAction())
 		if dr != nil {
 			//TODO(nick) what if route name is nil?
-			drName := fmt.Sprintf("directresponse-%s", r.Name)
+			rName := r.Name
+			if rName == "" {
+				rName = RandStringRunes(6)
+			}
+			drName := fmt.Sprintf("directresponse-%s-%s", wrapper.GetName(), rName)
 			dr.Name = drName
 			dr.Namespace = wrapper.GetNamespace()
 			g.gatewayAPICache.AddDirectResponse(&domain.DirectResponseWrapper{
@@ -881,11 +893,20 @@ func (g *GatewayAPIOutput) convertMatch(m *matchers.Matcher, wrapper domain.Wrap
 					Name:  gwv1.HTTPHeaderName(h.Name),
 				})
 			} else {
-				hrm.Headers = append(hrm.Headers, gwv1.HTTPHeaderMatch{
-					Type:  ptr.To(gwv1.HeaderMatchExact),
-					Value: h.Value,
-					Name:  gwv1.HTTPHeaderName(h.Name),
-				})
+				if h.Value == "" {
+					// no header value set so any value is good
+					hrm.Headers = append(hrm.Headers, gwv1.HTTPHeaderMatch{
+						Type:  ptr.To(gwv1.HeaderMatchRegularExpression),
+						Value: "*",
+						Name:  gwv1.HTTPHeaderName(h.Name),
+					})
+				} else {
+					hrm.Headers = append(hrm.Headers, gwv1.HTTPHeaderMatch{
+						Type:  ptr.To(gwv1.HeaderMatchExact),
+						Value: h.Value,
+						Name:  gwv1.HTTPHeaderName(h.Name),
+					})
+				}
 			}
 		}
 
@@ -896,7 +917,7 @@ func (g *GatewayAPIOutput) convertMatch(m *matchers.Matcher, wrapper domain.Wrap
 		if len(m.Methods) > 1 {
 			g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "gateway API only supports 1 method match per rule and %d were detected")
 		}
-		hrm.Method = (*gwv1.HTTPMethod)(ptr.To(m.Methods[0]))
+		hrm.Method = (*gwv1.HTTPMethod)(ptr.To(strings.ToUpper(m.Methods[0])))
 	}
 
 	// query param matching
