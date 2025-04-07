@@ -31,9 +31,15 @@ spec:
     kind: Gateway
     group: gateway.networking.k8s.io
   listeners:
-  - name: second
+  - name: listener-1
     protocol: HTTP
     port: 8085
+    allowedRoutes:
+        namespaces:
+          from: Same
+  - name: listener-2
+    protocol: HTTP
+    port: 8086
     allowedRoutes:
         namespaces:
           from: Same

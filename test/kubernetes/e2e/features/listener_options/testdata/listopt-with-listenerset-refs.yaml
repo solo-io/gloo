@@ -1,0 +1,12 @@
+apiVersion: gateway.solo.io/v1
+kind: ListenerOption
+metadata:
+  name: header-manipulation-section
+spec:
+  targetRefs:
+  - group: gateway.networking.x-k8s.io
+    kind: XListenerSet
+    name: second-workload-listeners
+    sectionName: listener-2
+  options:
+    perConnectionBufferLimitBytes: 21000

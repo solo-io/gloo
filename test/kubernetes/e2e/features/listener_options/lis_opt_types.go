@@ -21,6 +21,8 @@ var (
 	}
 	basicLisOptManifest                   = filepath.Join(util.MustGetThisDir(), "testdata", "basic-lisopt.yaml")
 	lisOptWithSectionedTargetRefsManifest = filepath.Join(util.MustGetThisDir(), "testdata", "listopt-with-sectioned-target-refs.yaml")
+	lisOptWithListenerSetRefsManifest     = filepath.Join(util.MustGetThisDir(), "testdata", "listopt-with-listenerset-refs.yaml")
+
 	// When we apply the setup file, we expect resources to be created with this metadata
 	glooProxy1ObjectMeta = metav1.ObjectMeta{
 		Name:      "gloo-proxy-gw-1",
@@ -70,6 +72,8 @@ var (
 	// port 8082 is used by envoy's readiness probe
 	gw2port1 = 8083
 	gw2port2 = 8084
+	ls1port1 = 8085
+	ls1port2 = 8086
 
 	// The keys in this map are the FQDNs of the gateway services
 	// The values are the ports on which the gateway services are listening

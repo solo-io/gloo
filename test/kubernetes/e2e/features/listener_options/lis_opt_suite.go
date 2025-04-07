@@ -59,7 +59,7 @@ func (s *testingSuite) SetupSuite() {
 
 	s.manifests = map[string][]string{
 		"TestConfigureListenerOptions":                        {basicLisOptManifest},
-		"TestConfigureListenerOptionsWithSectionedTargetRefs": {lisOptWithSectionedTargetRefsManifest},
+		"TestConfigureListenerOptionsWithSectionedTargetRefs": {basicLisOptManifest, lisOptWithSectionedTargetRefsManifest, lisOptWithListenerSetRefsManifest},
 	}
 }
 
@@ -125,12 +125,14 @@ func (s *testingSuite) TestConfigureListenerOptionsWithSectionedTargetRefs() {
 	// Setup the expected buffer limits for each listener
 	bufferLimitsForListeners := map[string][]*bufferLimitForListener{
 		proxy1ServiceFqdn: {
-			{sectionName: "http", port: gw1port1, limit: 42000},
-			{sectionName: "other", port: gw1port2, limit: 0},
+			{sectionName: "http", port: gw1port1, limit: 32000},
+			{sectionName: "other", port: gw1port2, limit: 42000},
+			{sectionName: "listener-1", port: ls1port1, limit: 42000},
+			{sectionName: "listener-2", port: ls1port2, limit: 21000},
 		},
 		proxy2ServiceFqdn: {
 			{sectionName: "http", port: gw2port1, limit: 0},
-			{sectionName: "other", port: gw2port2, limit: 42000},
+			{sectionName: "other", port: gw2port2, limit: 32000},
 		},
 	}
 
