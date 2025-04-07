@@ -35,14 +35,14 @@ listeners:
     httpFilterChains:
     - matcher: {}
       virtualHostRefs:
-      - bar~bar_example_com
-      - bar~example_com
+      - default/bar-listenerset/bar~bar_example_com
+      - default/bar-listenerset/bar~example_com
     httpResources:
       virtualHosts:
-        bar~bar_example_com:
+        default/bar-listenerset/bar~bar_example_com:
           domains:
           - bar.example.com
-          name: bar~bar_example_com
+          name: default/bar-listenerset/bar~bar_example_com
           routes:
           - matchers:
             - headers:
@@ -69,10 +69,10 @@ listeners:
                   ref:
                     name: bar-svc
                     namespace: default
-        bar~example_com:
+        default/bar-listenerset/bar~example_com:
           domains:
           - example.com
-          name: bar~example_com
+          name: default/bar-listenerset/bar~example_com
           routes:
           - matchers:
             - prefix: /
@@ -91,21 +91,21 @@ listeners:
     sources:
     - resourceKind: gateway.networking.k8s.io/Gateway
       resourceRef:
-        name: bar
+        name: default/bar-listenerset/bar
         namespace: default
-  name: bar
+  name: default/bar-listenerset/bar
 - aggregateListener:
     httpFilterChains:
     - matcher: {}
       virtualHostRefs:
-      - foo~example_com
-      - foo~foo_example_com
+      - default/foo-listenerset/foo~example_com
+      - default/foo-listenerset/foo~foo_example_com
     httpResources:
       virtualHosts:
-        foo~example_com:
+        default/foo-listenerset/foo~example_com:
           domains:
           - example.com
-          name: foo~example_com
+          name: default/foo-listenerset/foo~example_com
           routes:
           - matchers:
             - prefix: /
@@ -118,10 +118,10 @@ listeners:
                   ref:
                     name: example-svc
                     namespace: default
-        foo~foo_example_com:
+        default/foo-listenerset/foo~foo_example_com:
           domains:
           - foo.example.com
-          name: foo~foo_example_com
+          name: default/foo-listenerset/foo~foo_example_com
           routes:
           - matchers:
             - prefix: /login
@@ -140,9 +140,9 @@ listeners:
     sources:
     - resourceKind: gateway.networking.k8s.io/Gateway
       resourceRef:
-        name: foo
+        name: default/foo-listenerset/foo
         namespace: default
-  name: foo
+  name: default/foo-listenerset/foo
 metadata:
   labels:
     created_by: gloo-kube-gateway-api
