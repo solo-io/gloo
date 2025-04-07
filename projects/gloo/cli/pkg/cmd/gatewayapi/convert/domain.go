@@ -12,11 +12,12 @@ import (
 type ErrorType string
 
 const (
-	ERROR_TYPE_UPDATE_OBJECT     ErrorType = "UPDATE_OBJECT"
-	ERROR_TYPE_NOT_SUPPORTED               = "NOT_SUPPORTED"
-	ERROR_TYPE_IGNORED                     = "IGNORED"
-	ERROR_TYPE_UNKNOWN_REFERENCE           = "UNKNOWN_REFERENCE"
-	ERROR_TYPE_NO_REFERENCES               = "NO_REFERENCES"
+	ERROR_TYPE_UPDATE_OBJECT             ErrorType = "UPDATE_OBJECT"
+	ERROR_TYPE_NOT_SUPPORTED                       = "NOT_SUPPORTED"
+	ERROR_TYPE_IGNORED                             = "IGNORED"
+	ERROR_TYPE_UNKNOWN_REFERENCE                   = "UNKNOWN_REFERENCE"
+	ERROR_TYPE_NO_REFERENCES                       = "NO_REFERENCES"
+	ERROR_TYPE_CEL_VALIDATION_CORRECTION           = "CEL_VALIDATION_CORRECTION"
 )
 
 type Options struct {

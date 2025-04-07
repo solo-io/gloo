@@ -2,6 +2,8 @@ package convert
 
 import (
 	"fmt"
+	"k8s.io/utils/ptr"
+	"sigs.k8s.io/gateway-api/apisx/v1alpha1"
 	"strings"
 
 	"github.com/golang/protobuf/proto"
@@ -11,6 +13,11 @@ import (
 )
 
 func (g *GatewayAPIOutput) PostProcess(opts *Options) error {
+
+	// fix all the cel validation issue
+	if err := g.celValidationCorrections(); err != nil {
+		return err
+	}
 
 	// complete delegation
 	if err := g.finishDelegation(); err != nil {
@@ -26,6 +33,104 @@ func (g *GatewayAPIOutput) PostProcess(opts *Options) error {
 	}
 
 	return nil
+}
+
+// This function fixes all the cel validation rules that are cumbersome.
+// All route rules with URL Rewrite need to be their own separate rules
+// ListenerSets can only have a max of 64 listeners
+func (g *GatewayAPIOutput) celValidationCorrections() error {
+	fmt.Printf("Fixing CEL validations...\n")
+	g.fixRewritesPerMatch()
+
+	g.splitListenerSets()
+
+	return nil
+}
+
+func (g *GatewayAPIOutput) splitListenerSets() {
+	var listenerSetsToDelete []string
+	var updatedListenerSets []*domain.ListenerSetWrapper
+	for listenerSetKey, listenerSet := range g.gatewayAPICache.ListenerSets {
+		if len(listenerSet.Spec.Listeners) > 64 {
+			// listener set needs to be broken up into multiple
+			g.AddErrorFromWrapper(ERROR_TYPE_CEL_VALIDATION_CORRECTION, listenerSet, "ListenerSet contains too many listeners %d, splitting into multiple", len(listenerSet.Spec.Listeners))
+			listenerSetsToDelete = append(listenerSetsToDelete, listenerSetKey)
+			entries := splitListeners(listenerSet.Spec.Listeners, 64)
+
+			// for each entry set we create a new XListenerSet
+			for i, entry := range entries {
+				// new XListenerSet
+				newListenerSet := listenerSet.DeepCopy()
+				newListenerSet.Spec.Listeners = entry
+				newListenerSet.Name = fmt.Sprintf("%s-%d", listenerSet.Name, i)
+				updatedListenerSets = append(updatedListenerSets, &domain.ListenerSetWrapper{
+					XListenerSet:     newListenerSet,
+					OriginalFileName: listenerSet.OriginalFileName,
+				})
+			}
+		}
+	}
+	for _, listenerSetKey := range listenerSetsToDelete {
+		delete(g.gatewayAPICache.ListenerSets, listenerSetKey)
+	}
+
+	for _, listenerSet := range updatedListenerSets {
+		g.gatewayAPICache.AddListenerSet(listenerSet)
+	}
+}
+
+func splitListeners(slice []v1alpha1.ListenerEntry, maxLen int) [][]v1alpha1.ListenerEntry {
+	var result [][]v1alpha1.ListenerEntry
+	for maxLen < len(slice) {
+		slice, result = slice[maxLen:], append(result, slice[0:maxLen:maxLen])
+	}
+	result = append(result, slice)
+	return result
+}
+
+func (g *GatewayAPIOutput) fixRewritesPerMatch() {
+	var updatedHTTPRoutes []*domain.HTTPRouteWrapper
+	for _, httpRoute := range g.gatewayAPICache.HTTPRoutes {
+		//
+		var updatedRules []gwv1.HTTPRouteRule
+		for _, rr := range httpRoute.Spec.Rules {
+			for _, filter := range rr.Filters {
+				if filter.Type == gwv1.HTTPRouteFilterURLRewrite {
+					// if there is more than one match then we need to split out the rules
+					if len(rr.Matches) > 1 {
+
+						// create new rules and add them to the updatedRules
+						var splitRules []gwv1.HTTPRouteRule
+						for i, match := range rr.Matches {
+							ruleName := ptr.To(gwv1.SectionName(fmt.Sprintf("%v-%d", rr.Name, i)))
+							if rr.Name == nil {
+								ruleName = nil
+							}
+							splitRules = append(splitRules, gwv1.HTTPRouteRule{
+								Name:               ruleName,
+								Matches:            []gwv1.HTTPRouteMatch{match},
+								Filters:            rr.Filters,
+								BackendRefs:        rr.BackendRefs,
+								Timeouts:           rr.Timeouts,
+								Retry:              rr.Retry,
+								SessionPersistence: rr.SessionPersistence,
+							})
+						}
+						updatedRules = append(updatedRules, splitRules...)
+					}
+				}
+			}
+		}
+		if len(updatedRules) > 0 {
+			g.AddErrorFromWrapper(ERROR_TYPE_CEL_VALIDATION_CORRECTION, httpRoute, "updating HTTPRoute URLRewrite rules (%d) to conform to one rule per match, total new rules %d", len(httpRoute.Spec.Rules), len(updatedRules))
+			httpRoute.Spec.Rules = updatedRules
+			updatedHTTPRoutes = append(updatedHTTPRoutes, httpRoute)
+		}
+	}
+	// update the routes
+	for _, httpRoute := range updatedHTTPRoutes {
+		g.gatewayAPICache.AddHTTPRoute(httpRoute)
+	}
 }
 
 func (g *GatewayAPIOutput) finishDelegation() error {
