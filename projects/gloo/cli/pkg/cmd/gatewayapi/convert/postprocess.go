@@ -2,9 +2,10 @@ package convert
 
 import (
 	"fmt"
+	"strings"
+
 	"k8s.io/utils/ptr"
 	"sigs.k8s.io/gateway-api/apisx/v1alpha1"
-	"strings"
 
 	"github.com/golang/protobuf/proto"
 	v1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
