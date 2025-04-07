@@ -1,0 +1,8 @@
+changelog:
+- type: DEPENDENCY_BUMP
+  description: Updated the Istio package to get some newer krt status helper functions.
+  dependencyOwner: istio
+  dependencyRepo: istio
+  dependencyTag: 28236eb839ed3d40b905460e4d9aad77ea5d35c9
+- type: NON_USER_FACING
+  description: Make sure to install Go tools before gettercheck is run.
