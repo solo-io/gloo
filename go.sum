@@ -4839,6 +4839,7 @@ sigs.k8s.io/controller-runtime v0.20.3 h1:I6Ln8JfQjHH7JbtCD2HCYHoIzajoRxPNuvhvcD
 sigs.k8s.io/controller-runtime v0.20.3/go.mod h1:xg2XB0K5ShQzAgsoujxuKN4LNXR2LfwwHsPj7Iaw+XY=
 sigs.k8s.io/controller-tools v0.17.2 h1:jNFOKps8WnaRKZU2R+4vRCHnXyJanVmXBWqkuUPFyFg=
 sigs.k8s.io/controller-tools v0.17.2/go.mod h1:4q5tZG2JniS5M5bkiXY2/potOiXyhoZVw/U48vLkXk0=
+sigs.k8s.io/gateway-api v1.2.1-0.20250319182233-e68481c526a7/go.mod h1:jXin3F66taaYeu7CP6Bsiv+4qBgwZSQ43uF6vZ8T6yw=
 sigs.k8s.io/gateway-api v1.3.0-rc.1.0.20250328231839-d923573c45ef h1:nJFHaZygDU4PPx9UhzxFF9qmlIMtO+PjRitN9mbkkag=
 sigs.k8s.io/gateway-api v1.3.0-rc.1.0.20250328231839-d923573c45ef/go.mod h1:BpnYu4FBl/UyfJdtZ+S9IKgQ1z8k0h5oap+BMja3Q/4=
 sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd/go.mod h1:B8JuhiUyNFVKdsE8h686QcCxMaH6HrOAZj4vswFpcB0=
