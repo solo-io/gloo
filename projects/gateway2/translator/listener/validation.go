@@ -13,6 +13,7 @@ import (
 
 const NormalizedHTTPSTLSType = "HTTPS/TLS"
 const DefaultHostname = "*"
+const AttachedListenerSetsConditionType = "AttachedListenerSets"
 
 type portProtocol struct {
 	hostnames map[gwv1.Hostname]int
@@ -237,7 +238,6 @@ func validateListeners(consolidatedGateway *types.ConsolidatedGateway, reporter 
 	}
 
 	// Add the final conditions on the Gateway
-	const AttachedListenerSetsConditionType = "AttachedListenerSets"
 	if consolidatedGateway.AllowedListenerSets == nil {
 		reporter.Gateway(consolidatedGateway.Gateway).SetCondition(reports.GatewayCondition{
 			Type:   AttachedListenerSetsConditionType,

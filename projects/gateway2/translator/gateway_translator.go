@@ -94,7 +94,7 @@ func (t *translator) TranslateProxy(
 	for _, ls := range consolidatedGateway.AllowedListenerSets {
 		for _, listener := range consolidatedGateway.GetListeners(ls) {
 			availRoutes := 0
-			if res, ok := routesForGw.ListenerResults[query.GenerateListenerSetListenerKey(ls, string(listener.Name))]; ok {
+			if res, ok := routesForGw.ListenerResults[query.GenerateListenerSetListenerKey(*ls, string(listener.Name))]; ok {
 				// TODO we've never checked if the ListenerResult has an error.. is it already on RouteErrors?
 				availRoutes = len(res.Routes)
 			}

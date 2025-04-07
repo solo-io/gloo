@@ -456,7 +456,7 @@ func (r *gatewayQueries) GetRoutesForConsolidatedGateway(ctx context.Context, cg
 		}
 
 		for routeName, route := range lsRoutes.ListenerResults {
-			routes.ListenerResults[GenerateListenerSetListenerKey(ls, routeName)] = route
+			routes.ListenerResults[GenerateListenerSetListenerKey(*ls, routeName)] = route
 		}
 		routes.RouteErrors = append(routes.RouteErrors, lsRoutes.RouteErrors...)
 	}
@@ -464,7 +464,7 @@ func (r *gatewayQueries) GetRoutesForConsolidatedGateway(ctx context.Context, cg
 	return routes, nil
 }
 
-func GenerateListenerSetListenerKey(ls Namespaced, listenerName string) string {
+func GenerateListenerSetListenerKey(ls apixv1a1.XListenerSet, listenerName string) string {
 	return fmt.Sprintf("%s/%s/%s", ls.GetNamespace(), ls.GetName(), listenerName)
 }
 
