@@ -423,7 +423,7 @@ jobs:
     # This way, if a developer wanted to run the job on-demand, they could
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.run-performance && inputs.branch == 'workflow_initiating_branch' }}
     # We use a larger runner to ensure the performance tests can complete, without running out of disk space
-    runs-on: ubuntu-20.04-8core
+    runs-on: ubuntu-24.04-8core-amd64
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
