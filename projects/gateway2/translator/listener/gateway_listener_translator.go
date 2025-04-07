@@ -76,15 +76,13 @@ func mergeConsolidatedListeners(
 				// continue
 			}
 		}
-		parentReporter := cl.GetParentReporter(reporter)
-		listenerReporter := parentReporter.Listener(listener)
+		listenerReporter := cl.GetParentReporter(reporter).Listener(listener)
 		var routes []*query.RouteInfo
 		if result != nil {
 			routes = result.Routes
 		}
 		ml.AppendListener(*listener, routes, listenerReporter, cl.ListenerSet)
 	}
-
 	return ml
 }
 

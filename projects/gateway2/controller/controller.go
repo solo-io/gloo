@@ -79,7 +79,6 @@ func NewBaseGatewayController(ctx context.Context, cfg GatewayConfig) error {
 		controllerBuilder.watchCustomResourceDefinitions,
 		controllerBuilder.watchGwClass,
 		controllerBuilder.watchGw,
-		controllerBuilder.watchListenerSets,
 		controllerBuilder.watchHttpRoute,
 		controllerBuilder.watchTcpRoute,
 		controllerBuilder.watchTlsRoute,
@@ -291,6 +290,20 @@ func (c *controllerBuilder) watchGw(ctx context.Context) error {
 			return reqs
 		}))
 
+	// We need to watch ListenerSets here since it needs to re-deploy the proxy deployment and service
+	// with the concatenated list of ports from the listenerset and gateway
+	if c.cfg.CRDs.Has(wellknown.XListenerSetKind) {
+		buildr.Watches(&apixv1a1.XListenerSet{}, handler.EnqueueRequestsFromMapFunc(
+			func(ctx context.Context, obj client.Object) []reconcile.Request {
+				ls := obj.(*apixv1a1.XListenerSet)
+				ns := resolveNs(ls.Spec.ParentRef.Namespace)
+				if ns == "" {
+					ns = ls.Namespace
+				}
+				return []reconcile.Request{reconcile.Request{NamespacedName: client.ObjectKey{Namespace: ns, Name: string(ls.Spec.ParentRef.Name)}}}
+			}))
+	}
+
 	for _, gvk := range gvks {
 		obj, err := c.cfg.Mgr.GetScheme().New(gvk)
 		if err != nil {
@@ -357,13 +370,6 @@ func (c *controllerBuilder) watchCustomResourceDefinitions(_ context.Context) er
 		)).
 		For(&apiextensionsv1.CustomResourceDefinition{}).
 		Complete(reconcile.Func(c.reconciler.ReconcileCustomResourceDefinitions))
-}
-
-func (c *controllerBuilder) watchListenerSets(_ context.Context) error {
-	return ctrl.NewControllerManagedBy(c.cfg.Mgr).
-		WithEventFilter(predicate.GenerationChangedPredicate{}).
-		For(&apixv1a1.XListenerSet{}).
-		Complete(reconcile.Func(c.reconciler.ReconcileListenerSets))
 }
 
 func (c *controllerBuilder) watchHttpRoute(_ context.Context) error {
@@ -485,12 +491,6 @@ type controllerReconciler struct {
 	cli    client.Client
 	scheme *runtime.Scheme
 	kick   func(ctx context.Context)
-}
-
-func (r *controllerReconciler) ReconcileListenerSets(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	// TODO: consider finding impacted gateways and queue them
-	r.kick(ctx)
-	return ctrl.Result{}, nil
 }
 
 func (r *controllerReconciler) ReconcileHttpListenerOptions(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
@@ -651,4 +651,12 @@ func (r *controllerReconciler) ReconcileGatewayClasses(ctx context.Context, req 
 	log.Info("updated gateway class status")
 
 	return ctrl.Result{}, nil
+}
+
+// resolveNs resolves the namespace from an optional Namespace field.
+func resolveNs(ns *apiv1.Namespace) string {
+	if ns == nil {
+		return ""
+	}
+	return string(*ns)
 }
