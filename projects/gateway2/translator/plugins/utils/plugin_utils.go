@@ -159,7 +159,7 @@ func GetPrioritizedListenerPolicies[T client.Object](
 	if parentListenerSet != nil {
 		parentListenerSetName = parentListenerSet.GetName()
 	}
-	fmt.Printf("GetPrioritizedListenerPolicies - listener: %s with parentGwName: %s and parentListenerSetName: %s\n", listener.Name, parentGwName, parentListenerSetName)
+
 	// gw - gateway, ls - listener set
 	var gwOptsWithSectionName, gwOptsWithoutSectionName, lsOptsWithSectionName, lsOptsWithoutSectionName []T
 	for i := range items {
@@ -185,10 +185,8 @@ func GetPrioritizedListenerPolicies[T client.Object](
 				if sectionName.GetValue() == string(listener.Name) {
 					switch {
 					case gwMatch:
-						fmt.Printf("GetPrioritizedListenerPolicies - appending to gwOptsWithSectionName\n")
 						gwOptsWithSectionName = append(gwOptsWithSectionName, item.GetObject())
 					case lsMatch:
-						fmt.Printf("GetPrioritizedListenerPolicies - appending to lsOptsWithSectionName\n")
 						lsOptsWithSectionName = append(lsOptsWithSectionName, item.GetObject())
 					}
 				}
@@ -200,10 +198,8 @@ func GetPrioritizedListenerPolicies[T client.Object](
 				// attach all matched items that do not have a section name and let the caller be discerning
 				switch {
 				case gwMatch:
-					fmt.Printf("GetPrioritizedListenerPolicies - appending to gwOptsWithoutSectionName\n")
 					gwOptsWithoutSectionName = append(gwOptsWithoutSectionName, item.GetObject())
 				case lsMatch:
-					fmt.Printf("GetPrioritizedListenerPolicies - appending to lsOptsWithoutSectionName\n")
 					lsOptsWithoutSectionName = append(lsOptsWithoutSectionName, item.GetObject())
 				}
 			}
@@ -272,6 +268,5 @@ func IndexTargetRefs[T policyTargetReference](targetRefs []T, namespace string, 
 		res = append(res, k)
 	}
 
-	fmt.Println("Indexed target refs:", res)
 	return res
 }
