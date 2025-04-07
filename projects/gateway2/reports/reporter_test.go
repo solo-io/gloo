@@ -519,7 +519,7 @@ var _ = Describe("Reporting Infrastructure", func() {
 
 			Expect(status).NotTo(BeNil())
 			Expect(status.Conditions).To(HaveLen(2))
-			Expect(status.Listeners).To(HaveLen(0))
+			Expect(status.Listeners).To(BeEmpty())
 		})
 	})
 
