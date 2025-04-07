@@ -100,7 +100,7 @@ func (s *testingSuite) TestConfirmSetup() {
 		},
 	}
 
-	s.testExpectedResponsesForManifests(nil, matchersForListeners)
+	s.testExpectedResponsesForManifests(nil, matchersForListeners, true)
 }
 
 // TestConfigureVirtualHostOptions tests the basic functionality of VirtualHostOptions using a single VHO
@@ -115,7 +115,7 @@ func (s *testingSuite) TestConfigureVirtualHostOptions() {
 		},
 	}
 
-	s.testExpectedResponsesForManifests(manifests, matchersForListeners)
+	s.testExpectedResponsesForManifests(manifests, matchersForListeners, true)
 }
 
 // TestConfigureVirtualHostOptions tests the basic functionality of VirtualHostOptions using a single VHO
@@ -139,7 +139,7 @@ func (s *testingSuite) TestConfigureVirtualHostOptionsMultipleTargetRefs() {
 		},
 	}
 
-	s.testExpectedResponsesForManifests(manifests, matchersForListeners)
+	s.testExpectedResponsesForManifests(manifests, matchersForListeners, true)
 }
 
 // TestConfigureVirtualHostOptions tests the basic functionality of VirtualHostOptions using a single VHO
@@ -162,7 +162,7 @@ func (s *testingSuite) TestConfigureVirtualHostListenerSetTargetRef() {
 		},
 	}
 
-	s.testExpectedResponsesForManifests(manifests, matchersForListeners)
+	s.testExpectedResponsesForManifests(manifests, matchersForListeners, true)
 }
 
 // TestConfigureVirtualHostOptions tests the basic functionality of VirtualHostOptions using a single VHO
@@ -186,7 +186,7 @@ func (s *testingSuite) TestConfigureVirtualHostListenerSetSectionedTargetRef() {
 		},
 	}
 
-	s.testExpectedResponsesForManifests(manifests, matchersForListeners)
+	s.testExpectedResponsesForManifests(manifests, matchersForListeners, true)
 }
 
 // This test should be updated to confirm statuses on conflicting VHOs once statuses are fixed
@@ -212,7 +212,8 @@ func (s *testingSuite) TestConfigureVirtualHostOptionsWithConflictingVHO() {
 		},
 	}
 
-	s.testExpectedResponsesForManifests(manifests, matchersForListeners)
+	// Skip validation for this test because the status is not accepted
+	s.testExpectedResponsesForManifests(manifests, matchersForListeners, false)
 }
 
 // TestConfigureInvalidVirtualHostOptions confirms that an invalid VirtualHostOption is rejected
@@ -545,7 +546,7 @@ func (s *testingSuite) getterForMeta(meta *metav1.ObjectMeta) helpers.InputResou
 
 // testExpectedResponsesForManifests tests is a utility function that applies a set of manifests and runs a set of curls with defined matchers
 // matchersForListeners is map of service fqdn to map of port to matcher
-func (s *testingSuite) testExpectedResponsesForManifests(manifests map[string]*metav1.ObjectMeta, matchersForListeners map[string]map[int]*matchers.HttpResponse) {
+func (s *testingSuite) testExpectedResponsesForManifests(manifests map[string]*metav1.ObjectMeta, matchersForListeners map[string]map[int]*matchers.HttpResponse, validateAcceptedStatus bool) {
 	s.T().Cleanup(func() {
 		for manifestFile := range manifests {
 			output, err := s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, manifestFile)
@@ -554,16 +555,17 @@ func (s *testingSuite) testExpectedResponsesForManifests(manifests map[string]*m
 	})
 
 	// Setup and validate the manifests
-	for manifestFile, _ := range manifests {
+	for manifestFile, manifestMeta := range manifests {
 		err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, manifestFile)
 		s.NoError(err, "can apply "+manifestFile)
 
-		// TODO: get this working for TestConfigureVirtualHostOptionsWithConflictingVHO where the status is not accepted
-		// s.testInstallation.AssertionsT(s.T()).EventuallyResourceStatusMatchesState(
-		// 	s.getterForMeta(manifestMeta),
-		// 	core.Status_Accepted,
-		// 	defaults.KubeGatewayReporter,
-		// )
+		if validateAcceptedStatus {
+			s.testInstallation.AssertionsT(s.T()).EventuallyResourceStatusMatchesState(
+				s.getterForMeta(manifestMeta),
+				core.Status_Accepted,
+				defaults.KubeGatewayReporter,
+			)
+		}
 	}
 
 	for host, ports := range matchersForListeners {
