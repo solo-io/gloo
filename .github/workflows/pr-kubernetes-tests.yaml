@@ -60,7 +60,7 @@ jobs:
         # 2025-03-24: 23m7s
         - cluster-name: 'cluster-one'
           go-test-args: '-v -timeout=25m'
-          go-test-run-regex: '^TestK8sGateway$$/^RouteDelegation$$|^TestGlooctlGlooGatewayEdgeGateway$$|^TestGlooctlK8sGateway$$|^TestK8sGateway$$/^HTTPTunnel$$'
+          go-test-run-regex: '^TestK8sGateway$$/^RouteDelegation$$|^TestGlooctlGlooGatewayEdgeGateway$$|^TestGlooctlK8sGateway$$|^TestK8sGateway$$/^HTTPTunnel$$|^TestListenerSet$$'
 
         # 2024-12-04: 23m
         # 2025-02-13: 30m30s
