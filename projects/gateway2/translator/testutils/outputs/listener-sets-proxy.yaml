@@ -3,6 +3,38 @@ listeners:
     httpFilterChains:
     - matcher: {}
       virtualHostRefs:
+      - http~example_com
+    httpResources:
+      virtualHosts:
+        http~example_com:
+          domains:
+          - example.com
+          name: http~example_com
+          routes:
+          - matchers:
+            - prefix: /
+            name: httproute-example-route-default-0-0
+            options: {}
+            routeAction:
+              single:
+                kube:
+                  port: 80
+                  ref:
+                    name: example-svc
+                    namespace: default
+  bindAddress: '::'
+  bindPort: 8080
+  metadataStatic:
+    sources:
+    - resourceKind: gateway.networking.k8s.io/Gateway
+      resourceRef:
+        name: http
+        namespace: default
+  name: http
+- aggregateListener:
+    httpFilterChains:
+    - matcher: {}
+      virtualHostRefs:
       - default/bar-listenerset/bar~bar_example_com
       - default/bar-listenerset/bar~example_com
     httpResources:
@@ -111,38 +143,6 @@ listeners:
         name: default/foo-listenerset/foo
         namespace: default
   name: default/foo-listenerset/foo
-- aggregateListener:
-    httpFilterChains:
-    - matcher: {}
-      virtualHostRefs:
-      - http~example_com
-    httpResources:
-      virtualHosts:
-        http~example_com:
-          domains:
-          - example.com
-          name: http~example_com
-          routes:
-          - matchers:
-            - prefix: /
-            name: httproute-example-route-default-0-0
-            options: {}
-            routeAction:
-              single:
-                kube:
-                  port: 80
-                  ref:
-                    name: example-svc
-                    namespace: default
-  bindAddress: '::'
-  bindPort: 8080
-  metadataStatic:
-    sources:
-    - resourceKind: gateway.networking.k8s.io/Gateway
-      resourceRef:
-        name: http
-        namespace: default
-  name: http
 metadata:
   labels:
     created_by: gloo-kube-gateway-api
