@@ -92,7 +92,6 @@ func (r *listenerOptionQueries) GetAttachedListenerOptions(
 
 	listListenerSet := &solokubev1.ListenerOptionList{}
 	if parentListenerSet != nil {
-		fmt.Printf("GetAttachedListenerOptions - listing listener set: %s\n", nnListenerSet.String())
 		if err := r.c.List(
 			ctx,
 			listListenerSet,
