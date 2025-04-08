@@ -54,7 +54,7 @@ glooctl gateway-api convert [flags]
       --combine-route-options                 Combine routeOptions that are exactly the same and share them among the HTTPRoutes
       --create-namespaces                     Create namespaces for the objects in a file
       --delete-output-dir                     Delete the output directory if it already exists
-      --gloo-control-plane string             Name of the Gloo control plane pod (default "g")
+      --gloo-control-plane string             Name of the Gloo control plane pod
   -n, --gloo-control-plane-namespace string   Namespace of the Gloo control plane pod (default "gloo-system")
   -h, --help                                  help for convert
       --include-unknown                       Copy unknown resources to output files (if files contain resources that are not Gloo APIs)
