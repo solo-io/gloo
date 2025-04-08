@@ -29,7 +29,6 @@ import (
 	corev1 "github.com/solo-io/skv2/pkg/api/core.skv2.solo.io/v1"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -235,11 +234,7 @@ var _ = Describe("VirtualHostOptions Plugin", func() {
 					types.NamespacedName{
 						Name:      "vho",
 						Namespace: "default",
-					}: &classicStatus{
-						subresourceStatus: map[string]*core.Status{},
-						virtualHostErrors: []*validation.VirtualHostReport_Error{},
-						warnings:          []string{},
-					},
+					}: newClassicStatus(),
 				},
 			}
 			plugin2 = &plugin{
@@ -247,11 +242,7 @@ var _ = Describe("VirtualHostOptions Plugin", func() {
 					types.NamespacedName{
 						Name:      "vho",
 						Namespace: "default",
-					}: &classicStatus{
-						subresourceStatus: map[string]*core.Status{},
-						virtualHostErrors: []*validation.VirtualHostReport_Error{},
-						warnings:          []string{},
-					},
+					}: newClassicStatus(),
 				},
 			}
 			plugin3 = &plugin{
@@ -259,11 +250,7 @@ var _ = Describe("VirtualHostOptions Plugin", func() {
 					types.NamespacedName{
 						Name:      "another-vho",
 						Namespace: "default",
-					}: &classicStatus{
-						subresourceStatus: map[string]*core.Status{},
-						virtualHostErrors: []*validation.VirtualHostReport_Error{},
-						warnings:          []string{},
-					},
+					}: newClassicStatus(),
 				},
 			}
 		})

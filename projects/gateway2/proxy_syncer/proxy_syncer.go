@@ -608,12 +608,12 @@ func (s *ProxySyncer) Start(ctx context.Context) error {
 					}
 				}
 
-				// create and init a new plugin registry
+				// create and init a new plugin registry with the latest reports
 				pluginRegistry := s.k8sGwExtensions.CreatePluginRegistry(ctx)
 				initStatusPlugins(ctx, proxiesWithReports, pluginRegistry)
 				// merge the snapshot plugins into the new plugin registry
 				mergeStatusPlugins(ctx, pluginRegistry, snapPlugins)
-				// apply the status plugins to the merged plugin registry
+				// apply the status plugins with all of the latest reports
 				applyStatusPlugins(ctx, proxiesWithReports, pluginRegistry)
 			}
 		}

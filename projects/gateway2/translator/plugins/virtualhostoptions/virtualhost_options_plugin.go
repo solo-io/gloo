@@ -56,6 +56,14 @@ type classicStatus struct {
 	warnings []string
 }
 
+func newClassicStatus() *classicStatus {
+	return &classicStatus{
+		subresourceStatus: map[string]*core.Status{},
+		virtualHostErrors: []*validation.VirtualHostReport_Error{},
+		warnings:          []string{},
+	}
+}
+
 // holds status structure for each VirtualHostOption we have processed and attached.
 // this is used because a VirtualHostOption is attached to a Gateway, but many VirtualHosts may be
 // translated out of a Gateway, so we need a single status object to contain the subresourceStatus
@@ -67,11 +75,7 @@ func (c *classicStatusCache) getOrCreateEntry(key types.NamespacedName) *classic
 		return cacheEntry
 	}
 
-	cacheEntry := &classicStatus{
-		subresourceStatus: map[string]*core.Status{},
-		virtualHostErrors: []*validation.VirtualHostReport_Error{},
-		warnings:          []string{},
-	}
+	cacheEntry := newClassicStatus()
 	(*c)[key] = cacheEntry
 	return cacheEntry
 }
@@ -174,11 +178,7 @@ func (p *plugin) InitStatusPlugin(ctx context.Context, statusCtx *plugins.Status
 		// for this specific proxy, get all the route errors and their associated RouteOption sources
 		virtualHostErrors := extractVirtualHostErrors(proxyWithReport.Reports.ProxyReport)
 		for vhKey := range virtualHostErrors {
-			cacheEntry := &classicStatus{
-				subresourceStatus: map[string]*core.Status{},
-				virtualHostErrors: []*validation.VirtualHostReport_Error{},
-				warnings:          []string{},
-			}
+			cacheEntry := newClassicStatus()
 			// init the cache
 			p.classicStatusCache[vhKey] = cacheEntry
 		}
@@ -195,15 +195,10 @@ func (p *plugin) MergeStatusPlugin(ctx context.Context, source any) error {
 		return nil
 	}
 
-	// merge the status cache
 	for key, sourceStatus := range sourceStatusPlugin.classicStatusCache {
 		destStatus, ok := p.classicStatusCache[key]
 		if !ok {
-			destStatus = &classicStatus{
-				subresourceStatus: map[string]*core.Status{},
-				virtualHostErrors: []*validation.VirtualHostReport_Error{},
-				warnings:          []string{},
-			}
+			destStatus = newClassicStatus()
 		}
 
 		destStatus.virtualHostErrors = append(destStatus.virtualHostErrors, sourceStatus.virtualHostErrors...)
@@ -214,7 +209,6 @@ func (p *plugin) MergeStatusPlugin(ctx context.Context, source any) error {
 			}
 		}
 
-		// update the cache
 		p.classicStatusCache[key] = destStatus
 	}
 
