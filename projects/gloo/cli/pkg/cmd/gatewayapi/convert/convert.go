@@ -44,6 +44,7 @@ func (g *GatewayAPIOutput) Convert() error {
 			g.gatewayAPICache.AddUpstream(upstream)
 		}
 	}
+
 	for _, settings := range g.edgeCache.Settings {
 		g.gatewayAPICache.AddSettings(settings)
 	}

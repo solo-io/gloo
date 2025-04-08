@@ -32,6 +32,8 @@ type Options struct {
 	IncludeUnknownResources bool
 	DeleteOutputDir         bool
 	CreateNamespaces        bool
+	ControlPlaneName        string
+	ControlPlaneNamespace   string
 }
 
 func (opts *Options) validate() error {
@@ -46,10 +48,16 @@ func (opts *Options) validate() error {
 	if opts.GlooSnapshotFile != "" {
 		count++
 	}
-	if count > 1 {
-		return fmt.Errorf("only one of 'input-file' or 'directory' or 'input-snapshot' can be specified")
+	if opts.ControlPlaneName != "" {
+		count++
+		if opts.ControlPlaneNamespace == "" {
+			return fmt.Errorf("pod namespace must be specified")
+		}
 	}
 
+	if count > 1 {
+		return fmt.Errorf("only one of 'input-file' or 'directory' or 'input-snapshot' or `gloo-pod-name` can be specified")
+	}
 	if !opts.DeleteOutputDir && folderExists(opts.OutputDir) {
 		return fmt.Errorf("output-dir already %s exists. It can be deleted with --delete-output-dir", opts.OutputDir)
 	}
@@ -63,6 +71,8 @@ func folderExists(path string) bool {
 	return info.IsDir()
 }
 func (o *Options) addToFlags(flags *pflag.FlagSet) {
+	flags.StringVar(&o.ControlPlaneName, "gloo-control-plane", "g", "Name of the Gloo control plane pod")
+	flags.StringVarP(&o.ControlPlaneNamespace, "gloo-control-plane-namespace", "n", "gloo-system", "Namespace of the Gloo control plane pod")
 	flags.StringVar(&o.InputFile, "input-file", "", "Convert single file to Gateway API")
 	flags.StringVar(&o.InputDir, "input-dir", "", "InputDir to read yaml/yml files recursively")
 	flags.StringVar(&o.GlooSnapshotFile, "input-snapshot", "", "Gloo input snapshot file location")

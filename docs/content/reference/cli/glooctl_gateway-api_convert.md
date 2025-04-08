@@ -19,6 +19,9 @@ glooctl gateway-api convert [flags]
 
 ```
 # This command converts Gloo Edge APIs to Gloo Gateway API yaml and places them in the '--output-dir' directory arranged by namespace.
+# To generate gateway api by getting snapshot directly from running Gloo pod. The 'output-dir'' must not exist
+  glooctl gateway-api convert --gloo-control-plane deploy/gloo --output-dir ./_output
+
 # To generate gateway api by a single kubernetes yaml file. The 'output-dir'' must not exist
   glooctl gateway-api convert --input-file gloo-yamls.yaml --output-dir ./_output
 
@@ -48,17 +51,19 @@ glooctl gateway-api convert [flags]
 ### Options
 
 ```
-      --combine-route-options           Combine routeOptions that are exactly the same and share them among the HTTPRoutes
-      --create-namespaces               Create namespaces for the objects in a file
-      --delete-output-dir               Delete the output directory if it already exists
-  -h, --help                            help for convert
-      --include-unknown                 Copy unknown resources to output files (if files contain resources that are not Gloo APIs)
-      --input-dir string                InputDir to read yaml/yml files recursively
-      --input-file string               Convert single file to Gateway API
-      --input-snapshot string           Gloo input snapshot file location
-      --output-dir string               Output directory to write Gateway API configurations, it must not exist before or can be deleted/recreated with --recreate-output-dir (default "./_output")
-      --print-stats                     Print stats about the conversion
-      --retain-input-folder-structure   When writing the output write the Gateway API configurations in the same folder structure they were read from (input-dir only)
+      --combine-route-options                 Combine routeOptions that are exactly the same and share them among the HTTPRoutes
+      --create-namespaces                     Create namespaces for the objects in a file
+      --delete-output-dir                     Delete the output directory if it already exists
+      --gloo-control-plane string             Name of the Gloo control plane pod (default "g")
+  -n, --gloo-control-plane-namespace string   Namespace of the Gloo control plane pod (default "gloo-system")
+  -h, --help                                  help for convert
+      --include-unknown                       Copy unknown resources to output files (if files contain resources that are not Gloo APIs)
+      --input-dir string                      InputDir to read yaml/yml files recursively
+      --input-file string                     Convert single file to Gateway API
+      --input-snapshot string                 Gloo input snapshot file location
+      --output-dir string                     Output directory to write Gateway API configurations, it must not exist before or can be deleted/recreated with --recreate-output-dir (default "./_output")
+      --print-stats                           Print stats about the conversion
+      --retain-input-folder-structure         When writing the output write the Gateway API configurations in the same folder structure they were read from (input-dir only)
 ```
 
 ### Options inherited from parent commands

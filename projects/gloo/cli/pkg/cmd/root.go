@@ -131,7 +131,7 @@ func CommandWithContext(ctx context.Context) *cobra.Command {
 			federation.RootCmd(opts),
 			plugin.RootCmd(opts),
 			istio.RootCmd(opts),
-			gatewayapi.RootCmd(),
+			gatewayapi.RootCmd(opts),
 			license.RootCmd(opts),
 			initpluginmanager.Command(context.Background()),
 			// TODO: re-enable this when it's working again

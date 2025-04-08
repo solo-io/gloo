@@ -1,11 +1,18 @@
 package convert
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
+
+	"github.com/solo-io/gloo/pkg/utils/envoyutils/admincli"
+	"github.com/solo-io/gloo/pkg/utils/kubeutils/kubectl"
+	"github.com/solo-io/gloo/pkg/utils/kubeutils/portforward"
+	"github.com/solo-io/gloo/pkg/utils/requestutils/curl"
+	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/options"
 
 	"github.com/spf13/cobra"
 )
@@ -15,13 +22,18 @@ const (
 	RandomSeed   = 1
 )
 
-func RootCmd() *cobra.Command {
-	opts := &Options{}
+func RootCmd(op *options.Options) *cobra.Command {
+	opts := &Options{
+		Options: op,
+	}
 	cmd := &cobra.Command{
 		Use:   "convert",
 		Short: "Convert Gloo Edge APIs to Gateway API",
 		Long:  "Convert Gloo Edge APIs to Gateway API by either providing kubernetes yaml files or a Gloo Gateway input snapshot",
 		Example: `# This command converts Gloo Edge APIs to Gloo Gateway API yaml and places them in the '--output-dir' directory arranged by namespace.
+# To generate gateway api by getting snapshot directly from running Gloo pod. The 'output-dir'' must not exist
+  glooctl gateway-api convert --gloo-control-plane deploy/gloo --output-dir ./_output
+
 # To generate gateway api by a single kubernetes yaml file. The 'output-dir'' must not exist
   glooctl gateway-api convert --input-file gloo-yamls.yaml --output-dir ./_output
 
@@ -110,10 +122,71 @@ func run(opts *Options) error {
 
 	return nil
 }
+func NewPortForwardedClient(ctx context.Context, kubectlCli *kubectl.Cli, proxySelector, namespace string) (*admincli.Client, func(), error) {
+	selector := portforward.WithResourceSelector(proxySelector, namespace)
+
+	// 1. Open a port-forward to the Kubernetes Deployment, so that we can query the Envoy Admin API directly
+	portForwarder, err := kubectlCli.StartPortForward(ctx,
+		selector,
+		portforward.WithRemotePort(9095))
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// 2. Close the port-forward when we're done accessing data
+	deferFunc := func() {
+		portForwarder.Close()
+		portForwarder.WaitForStop()
+	}
+
+	// 3. Create a CLI that connects to the Envoy Admin API
+	adminCli := admincli.NewClient().
+		WithCurlOptions(
+			curl.WithHostPort(portForwarder.Address()),
+		)
+
+	return adminCli, deferFunc, err
+}
+
+func fileAtPath(path string) *os.File {
+	f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
+	if err != nil {
+		fmt.Printf("unable to openfile: %f\n", err)
+	}
+	return f
+}
 
 func findFiles(opts *Options) ([]string, error) {
 	var files []string
-	if opts.InputDir != "" {
+	if opts.ControlPlaneName != "" {
+		// we need to download the file to the output dir and add it to the files list
+		if folderExists(opts.OutputDir) {
+			if !opts.DeleteOutputDir {
+				return nil, fmt.Errorf("output-dir %s already exists, not writing files", opts.OutputDir)
+			}
+			if err := os.RemoveAll(opts.OutputDir); err != nil {
+				return nil, err
+			}
+		}
+		if err := os.MkdirAll(opts.OutputDir, os.ModePerm); err != nil {
+			return nil, err
+		}
+
+		cli, shutdownFunc, err := NewPortForwardedClient(context.Background(), kubectl.NewCli().WithKubeContext(opts.Top.KubeContext), opts.ControlPlaneName, opts.ControlPlaneNamespace)
+		if err != nil {
+			return nil, err
+		}
+
+		defer shutdownFunc()
+		filePath := filepath.Join(opts.OutputDir, "gg-input.json")
+		inputSnapshotFile := fileAtPath(filePath)
+		err = cli.RequestPathCmd(context.Background(), "/snapshots/input").WithStdout(inputSnapshotFile).Run().Cause()
+		if err != nil {
+			return nil, fmt.Errorf("error getting gloo snapshot: %f\n", err)
+		}
+		files = append(files, filePath)
+
+	} else if opts.InputDir != "" {
 		fs, err := findYamlFiles(opts.InputDir)
 		if err != nil {
 			return nil, err
