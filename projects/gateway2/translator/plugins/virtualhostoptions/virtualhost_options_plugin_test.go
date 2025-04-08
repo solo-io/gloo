@@ -29,8 +29,10 @@ import (
 	corev1 "github.com/solo-io/skv2/pkg/api/core.skv2.solo.io/v1"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
 )
@@ -219,6 +221,117 @@ var _ = Describe("VirtualHostOptions Plugin", func() {
 				err := plugin.ApplyStatusPlugin(ctx, statusCtx)
 				Expect(err).To(MatchError(ContainSubstring(ReadingVirtualHostOptionErrStr)))
 			})
+		})
+	})
+
+	Describe("MergeStatusPlugin", func() {
+		var plugin1 *plugin
+		var plugin2 *plugin
+		var plugin3 *plugin
+
+		BeforeEach(func() {
+			plugin1 = &plugin{
+				classicStatusCache: classicStatusCache{
+					types.NamespacedName{
+						Name:      "vho",
+						Namespace: "default",
+					}: &classicStatus{
+						subresourceStatus: map[string]*core.Status{},
+						virtualHostErrors: []*validation.VirtualHostReport_Error{},
+						warnings:          []string{},
+					},
+				},
+			}
+			plugin2 = &plugin{
+				classicStatusCache: classicStatusCache{
+					types.NamespacedName{
+						Name:      "vho",
+						Namespace: "default",
+					}: &classicStatus{
+						subresourceStatus: map[string]*core.Status{},
+						virtualHostErrors: []*validation.VirtualHostReport_Error{},
+						warnings:          []string{},
+					},
+				},
+			}
+			plugin3 = &plugin{
+				classicStatusCache: classicStatusCache{
+					types.NamespacedName{
+						Name:      "another-vho",
+						Namespace: "default",
+					}: &classicStatus{
+						subresourceStatus: map[string]*core.Status{},
+						virtualHostErrors: []*validation.VirtualHostReport_Error{},
+						warnings:          []string{},
+					},
+				},
+			}
+		})
+
+		It("should merge clean status reports", func() {
+			err := plugin1.MergeStatusPlugin(context.Background(), plugin2)
+			Expect(err).To(BeNil())
+			err = plugin1.MergeStatusPlugin(context.Background(), plugin3)
+			Expect(err).To(BeNil())
+
+			Expect(plugin1.classicStatusCache).To(HaveLen(2))
+			Expect(plugin1.classicStatusCache[types.NamespacedName{
+				Name:      "vho",
+				Namespace: "default",
+			}].warnings).To(HaveLen(0), "should have no warnings")
+			Expect(plugin1.classicStatusCache[types.NamespacedName{
+				Name:      "another-vho",
+				Namespace: "default",
+			}].warnings).To(HaveLen(0), "should have no warnings")
+		})
+
+		It("should merge and clean and warning status report", func() {
+			plugin1.classicStatusCache[types.NamespacedName{
+				Name:      "vho",
+				Namespace: "default",
+			}].warnings = []string{"warning"}
+
+			err := plugin1.MergeStatusPlugin(context.Background(), plugin2)
+			Expect(err).To(BeNil())
+			err = plugin1.MergeStatusPlugin(context.Background(), plugin3)
+			Expect(err).To(BeNil())
+
+			Expect(plugin1.classicStatusCache).To(HaveLen(2))
+			Expect(plugin1.classicStatusCache[types.NamespacedName{
+				Name:      "vho",
+				Namespace: "default",
+			}].warnings).To(HaveLen(1), "should have one warning")
+			Expect(plugin1.classicStatusCache[types.NamespacedName{
+				Name:      "another-vho",
+				Namespace: "default",
+			}].warnings).To(HaveLen(0), "should have no warnings")
+		})
+
+		It("should merge two plugins with warnings", func() {
+			plugin1.classicStatusCache[types.NamespacedName{
+				Name:      "vho",
+				Namespace: "default",
+			}].warnings = []string{"warning"}
+
+			plugin2.classicStatusCache[types.NamespacedName{
+				Name:      "vho",
+				Namespace: "default",
+			}].warnings = []string{"another warning"}
+
+			err := plugin1.MergeStatusPlugin(context.Background(), plugin2)
+			Expect(err).To(BeNil())
+			err = plugin1.MergeStatusPlugin(context.Background(), plugin3)
+			Expect(err).To(BeNil())
+
+			Expect(plugin1.classicStatusCache).To(HaveLen(2))
+			Expect(plugin1.classicStatusCache[types.NamespacedName{
+				Name:      "vho",
+				Namespace: "default",
+			}].warnings).To(HaveLen(2), "should have two warnings")
+			Expect(plugin1.classicStatusCache[types.NamespacedName{
+				Name:      "another-vho",
+				Namespace: "default",
+			}].warnings).To(HaveLen(0), "should have no warnings")
 		})
 	})
 })
