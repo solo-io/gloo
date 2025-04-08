@@ -1,0 +1,110 @@
+---
+apiVersion: gateway.solo.io/v1
+kind: VirtualHostOption
+metadata:
+  name: remove-x-bar-header-2
+spec:
+  targetRefs:
+  - group: gateway.networking.k8s.io
+    kind: Gateway
+    name: gw-1
+  - group: gateway.networking.k8s.io
+    kind: Gateway
+    name: gw-2
+  options:
+    headerManipulation:
+      responseHeadersToRemove:
+        - "x-bar"
+---
+apiVersion: gateway.solo.io/v1
+kind: VirtualHostOption
+metadata:
+  name: remove-x-baz-header-2
+spec:
+  targetRefs:
+  - group: gateway.networking.k8s.io
+    kind: Gateway
+    name: gw-1
+  - group: gateway.networking.k8s.io  
+    kind: Gateway
+    name: gw-2
+  options:
+    headerManipulation:
+      responseHeadersToRemove:
+        - "x-baz"
+---
+apiVersion: gateway.solo.io/v1
+kind: VirtualHostOption
+metadata:
+  name: add-x-foo-header-2
+spec:
+  targetRefs:
+  - group: gateway.networking.k8s.io
+    kind: Gateway
+    name: gw-1
+    sectionName: http
+  - group: gateway.networking.k8s.io
+    kind: Gateway
+    name: gw-2
+    sectionName: http
+  options:
+    headerManipulation:
+      responseHeadersToAdd:
+      - header:
+          key: x-foo
+          value: foo
+---
+# ---
+# apiVersion: gateway.solo.io/v1
+# kind: RouteOption
+# metadata:
+#   name: header-manipulation-3
+# spec:
+#   options:
+#     headerManipulation:
+#       responseHeadersToAdd:
+#         - header:
+#             key: "x-bar-2"
+#             value: "bar-2"
+#           append: false 
+#         - header:
+#             key: "x-baz"
+#             value: "baz-2"
+#           append: false
+# ---
+# apiVersion: gateway.networking.k8s.io/v1
+# kind: HTTPRoute
+# metadata:
+#   name: example-route-3
+# spec:
+#   parentRefs:
+#     - name: gw-2
+#   hostnames:
+#     - "example.com"
+#   rules:
+#     - filters:
+#         - type: ExtensionRef
+#           extensionRef:
+#             group: gateway.solo.io
+#             kind: RouteOption
+#             name: header-manipulation-3
+#       backendRefs:
+#         - name: example-svc
+#           port: 8080
+# ---
+# apiVersion: gateway.solo.io/v1
+# kind: VirtualHostOption
+# metadata:
+#   name: remove-x-baz-header-2
+# spec:
+#   targetRefs:
+#   - group: gateway.networking.k8s.io
+#     kind: Gateway
+#     name: gw-1
+#   - group: gateway.networking.k8s.io
+#     kind: Gateway
+#     name: gw-2
+#   options:
+#     headerManipulation:
+#       responseHeadersToRemove:
+#         - "x-baz"

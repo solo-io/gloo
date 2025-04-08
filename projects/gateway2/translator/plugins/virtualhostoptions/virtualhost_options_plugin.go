@@ -186,7 +186,9 @@ func (p *plugin) InitStatusPlugin(ctx context.Context, statusCtx *plugins.Status
 	return nil
 }
 
-// MergeStatusPlugin merges the status of the current plugin with the status of another plugin.
+// MergeStatusPlugin merges the status of the source plugin in to the current plugin.
+// This is used late in the proxy sync process to report the status of the VHO when
+// it references multiple proxies/snapshots.
 func (p *plugin) MergeStatusPlugin(ctx context.Context, source any) error {
 	sourceStatusPlugin, ok := source.(*plugin)
 	if !ok {

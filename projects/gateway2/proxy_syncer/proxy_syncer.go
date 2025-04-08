@@ -595,12 +595,11 @@ func (s *ProxySyncer) Start(ctx context.Context) error {
 
 				snaps := s.mostXdsSnapshots.List()
 
-				fmt.Printf("num snaps %d\n", len(snaps))
-
 				for _, snapWrap := range snaps {
 					proxiesWithReports = append(proxiesWithReports, snapWrap.proxyWithReport)
 					snapPlugins = append(snapPlugins, snapWrap.pluginRegistry)
 
+					// init the snapshot status plugins
 					initStatusPlugins(ctx, proxiesWithReports, snapWrap.pluginRegistry)
 
 					err := s.proxyTranslator.syncStatus(ctx, snapWrap.proxyKey, snapWrap.fullReports)
@@ -609,30 +608,13 @@ func (s *ProxySyncer) Start(ctx context.Context) error {
 					}
 				}
 
-				// fmt.Printf("proxiesWithReports: %v\n", proxiesWithReports)
-
+				// create and init a new plugin registry
 				pluginRegistry := s.k8sGwExtensions.CreatePluginRegistry(ctx)
 				initStatusPlugins(ctx, proxiesWithReports, pluginRegistry)
+				// merge the snapshot plugins into the new plugin registry
 				mergeStatusPlugins(ctx, pluginRegistry, snapPlugins)
+				// apply the status plugins to the merged plugin registry
 				applyStatusPlugins(ctx, proxiesWithReports, pluginRegistry)
-
-				// snaps := s.mostXdsSnapshots.List()
-				// for _, snapWrap := range snaps {
-				// 	var proxiesWithReports []translatorutils.ProxyWithReports
-				// 	proxiesWithReports = append(proxiesWithReports, snapWrap.proxyWithReport)
-
-				// 	initStatusPlugins(ctx, proxiesWithReports, snapWrap.pluginRegistry)
-				// }
-				// for _, snapWrap := range snaps {
-				// 	err := s.proxyTranslator.syncStatus(ctx, snapWrap.proxyKey, snapWrap.fullReports)
-				// 	if err != nil {
-				// 		logger.Errorf("error while syncing proxy '%s': %s", snapWrap.proxyKey, err.Error())
-				// 	}
-
-				// 	var proxiesWithReports []translatorutils.ProxyWithReports
-				// 	proxiesWithReports = append(proxiesWithReports, snapWrap.proxyWithReport)
-				// 	applyStatusPlugins(ctx, proxiesWithReports, snapWrap.pluginRegistry)
-				// }
 			}
 		}
 	}()

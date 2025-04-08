@@ -270,19 +270,19 @@ var _ = Describe("VirtualHostOptions Plugin", func() {
 
 		It("should merge clean status reports", func() {
 			err := plugin1.MergeStatusPlugin(context.Background(), plugin2)
-			Expect(err).To(BeNil())
+			Expect(err).ToNot(HaveOccurred())
 			err = plugin1.MergeStatusPlugin(context.Background(), plugin3)
-			Expect(err).To(BeNil())
+			Expect(err).ToNot(HaveOccurred())
 
 			Expect(plugin1.classicStatusCache).To(HaveLen(2))
 			Expect(plugin1.classicStatusCache[types.NamespacedName{
 				Name:      "vho",
 				Namespace: "default",
-			}].warnings).To(HaveLen(0), "should have no warnings")
+			}].warnings).To(BeEmpty(), "should have no warnings")
 			Expect(plugin1.classicStatusCache[types.NamespacedName{
 				Name:      "another-vho",
 				Namespace: "default",
-			}].warnings).To(HaveLen(0), "should have no warnings")
+			}].warnings).To(BeEmpty(), "should have no warnings")
 		})
 
 		It("should merge and clean and warning status report", func() {
@@ -292,9 +292,9 @@ var _ = Describe("VirtualHostOptions Plugin", func() {
 			}].warnings = []string{"warning"}
 
 			err := plugin1.MergeStatusPlugin(context.Background(), plugin2)
-			Expect(err).To(BeNil())
+			Expect(err).ToNot(HaveOccurred())
 			err = plugin1.MergeStatusPlugin(context.Background(), plugin3)
-			Expect(err).To(BeNil())
+			Expect(err).ToNot(HaveOccurred())
 
 			Expect(plugin1.classicStatusCache).To(HaveLen(2))
 			Expect(plugin1.classicStatusCache[types.NamespacedName{
@@ -304,7 +304,7 @@ var _ = Describe("VirtualHostOptions Plugin", func() {
 			Expect(plugin1.classicStatusCache[types.NamespacedName{
 				Name:      "another-vho",
 				Namespace: "default",
-			}].warnings).To(HaveLen(0), "should have no warnings")
+			}].warnings).To(BeEmpty(), "should have no warnings")
 		})
 
 		It("should merge two plugins with warnings", func() {
@@ -319,9 +319,9 @@ var _ = Describe("VirtualHostOptions Plugin", func() {
 			}].warnings = []string{"another warning"}
 
 			err := plugin1.MergeStatusPlugin(context.Background(), plugin2)
-			Expect(err).To(BeNil())
+			Expect(err).ToNot(HaveOccurred())
 			err = plugin1.MergeStatusPlugin(context.Background(), plugin3)
-			Expect(err).To(BeNil())
+			Expect(err).ToNot(HaveOccurred())
 
 			Expect(plugin1.classicStatusCache).To(HaveLen(2))
 			Expect(plugin1.classicStatusCache[types.NamespacedName{
@@ -331,7 +331,7 @@ var _ = Describe("VirtualHostOptions Plugin", func() {
 			Expect(plugin1.classicStatusCache[types.NamespacedName{
 				Name:      "another-vho",
 				Namespace: "default",
-			}].warnings).To(HaveLen(0), "should have no warnings")
+			}].warnings).To(BeEmpty(), "should have no warnings")
 		})
 	})
 })

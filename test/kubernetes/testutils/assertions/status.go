@@ -31,6 +31,7 @@ func (p *Provider) EventuallyResourceStatusMatchesWarningReasons(getter helpers.
 		)
 
 		status, err := getResourceNamespacedStatus(getter)
+
 		g.Expect(err).NotTo(gomega.HaveOccurred(), "failed to get resource namespaced status")
 		g.Expect(status).ToNot(gomega.BeNil())
 		g.Expect(status).To(gomega.HaveValue(statusWarningsMatcher))
