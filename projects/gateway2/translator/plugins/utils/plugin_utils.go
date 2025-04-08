@@ -140,13 +140,17 @@ type PolicyWithSectionedTargetRefs[T client.Object] interface {
 // target a specific Listener and returns a slice of these policies (or a subset) resources.
 // The returned policy list is sorted by specificity in the order of
 //
-// 1. older with section name
+// ListenerSet targetRefs:
+//  1. older with section name
+//  2. newer with section name
+//  3. older without section name
+//  4. newer without section name
 //
-// 2. newer with section name
-//
-// 3. older without section name
-//
-// 4. newer without section name
+// Gateway targetRefs:
+//  1. older with section name
+//  2. newer with section name
+//  3. older without section name
+//  4. newer without section name
 //
 // This function will process all targetRefs for each policy
 func GetPrioritizedListenerPolicies[T client.Object](
@@ -179,7 +183,6 @@ func GetPrioritizedListenerPolicies[T client.Object](
 
 			sectionName := targetRef.GetSectionName()
 
-			// TODO: Defaults ?
 			if sectionName != nil && sectionName.GetValue() != "" {
 				// we have a section name, now check if it matches the specific listener provided
 				if sectionName.GetValue() == string(listener.Name) {
@@ -188,6 +191,10 @@ func GetPrioritizedListenerPolicies[T client.Object](
 						gwOptsWithSectionName = append(gwOptsWithSectionName, item.GetObject())
 					case lsMatch:
 						lsOptsWithSectionName = append(lsOptsWithSectionName, item.GetObject())
+					default:
+						// Given the current implementation of the targetRef, this can never happen
+						// panic to alert the developer if they are changing the targetRef match logic and forget to update this switch
+						panic(fmt.Sprintf("unhandled case when matching targetRef: %v", targetRef))
 					}
 				}
 			} else {
@@ -201,6 +208,10 @@ func GetPrioritizedListenerPolicies[T client.Object](
 					gwOptsWithoutSectionName = append(gwOptsWithoutSectionName, item.GetObject())
 				case lsMatch:
 					lsOptsWithoutSectionName = append(lsOptsWithoutSectionName, item.GetObject())
+				default:
+					// Given the current implementation of the targetRef, this can never happen
+					// panic to alert the developer if they are changing the targetRef match logic and forget to update this switch
+					panic(fmt.Sprintf("unhandled case when matching targetRef: %v", targetRef))
 				}
 			}
 		}

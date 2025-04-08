@@ -30,8 +30,6 @@ type HttpListenerOptionQueries interface {
 	//     - newer with section name
 	//     - older without section name
 	//     - newer without section name
-	//
-	//
 	// Note that currently, only HttpListenerOptions in the same namespace as the Gateway can be attached.
 	GetAttachedHttpListenerOptions(
 		ctx context.Context,
