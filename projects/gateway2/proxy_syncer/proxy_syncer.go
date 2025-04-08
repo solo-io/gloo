@@ -594,9 +594,14 @@ func (s *ProxySyncer) Start(ctx context.Context) error {
 				var snapPlugins []registry.PluginRegistry
 
 				snaps := s.mostXdsSnapshots.List()
+
+				fmt.Printf("num snaps %d\n", len(snaps))
+
 				for _, snapWrap := range snaps {
 					proxiesWithReports = append(proxiesWithReports, snapWrap.proxyWithReport)
 					snapPlugins = append(snapPlugins, snapWrap.pluginRegistry)
+
+					initStatusPlugins(ctx, proxiesWithReports, snapWrap.pluginRegistry)
 
 					err := s.proxyTranslator.syncStatus(ctx, snapWrap.proxyKey, snapWrap.fullReports)
 					if err != nil {
