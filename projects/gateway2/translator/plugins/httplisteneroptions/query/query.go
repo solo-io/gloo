@@ -72,19 +72,9 @@ func (q *queries) GetAttachedHttpListenerOptions(
 		return nil, fmt.Errorf("parent gateway must have name and namespace; received name: %s, namespace: %s", parentGw.GetName(), parentGw.GetNamespace())
 	}
 
-	parentListenerSetName := ""
-	if parentListenerSet != nil {
-		parentListenerSetName = parentListenerSet.GetName()
-	}
-
 	nn := types.NamespacedName{
 		Namespace: parentGw.Namespace,
 		Name:      parentGw.Name,
-	}
-
-	nnListenerSet := types.NamespacedName{
-		Namespace: parentGw.Namespace,
-		Name:      parentListenerSetName,
 	}
 
 	listGw := &solokubev1.HttpListenerOptionList{}
@@ -99,11 +89,16 @@ func (q *queries) GetAttachedHttpListenerOptions(
 
 	listListenerSet := &solokubev1.HttpListenerOptionList{}
 	if parentListenerSet != nil {
+		nnListenerSet := types.NamespacedName{
+			Namespace: parentListenerSet.GetNamespace(),
+			Name:      parentListenerSet.GetName(),
+		}
+
 		if err := q.c.List(
 			ctx,
 			listListenerSet,
 			client.MatchingFieldsSelector{Selector: fields.OneTermEqualSelector(HttpListenerOptionTargetField, nnListenerSet.String())},
-			client.InNamespace(parentGw.GetNamespace()),
+			client.InNamespace(parentListenerSet.GetNamespace()),
 		); err != nil {
 			return nil, err
 		}

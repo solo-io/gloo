@@ -64,19 +64,9 @@ func (r *virtualHostOptionQueries) GetVirtualHostOptionsForListener(
 		return nil, eris.Errorf("parent gateway must have name and namespace; received name: %s, namespace: %s", parentGw.GetName(), parentGw.GetNamespace())
 	}
 
-	parentListenerSetName := ""
-	if parentListenerSet != nil {
-		parentListenerSetName = parentListenerSet.GetName()
-	}
-
 	nn := types.NamespacedName{
 		Namespace: parentGw.Namespace,
 		Name:      parentGw.Name,
-	}
-
-	nnListenerSet := types.NamespacedName{
-		Namespace: parentGw.Namespace,
-		Name:      parentListenerSetName,
 	}
 
 	listGw := &solokubev1.VirtualHostOptionList{}
@@ -91,10 +81,15 @@ func (r *virtualHostOptionQueries) GetVirtualHostOptionsForListener(
 
 	listListenerSet := &solokubev1.VirtualHostOptionList{}
 	if parentListenerSet != nil {
+		nnListenerSet := types.NamespacedName{
+			Namespace: parentListenerSet.GetNamespace(),
+			Name:      parentListenerSet.GetName(),
+		}
 		if err := r.c.List(
 			ctx,
 			listListenerSet,
 			client.MatchingFieldsSelector{Selector: fields.OneTermEqualSelector(VirtualHostOptionTargetField, nnListenerSet.String())},
+			client.InNamespace(parentListenerSet.GetNamespace()),
 		); err != nil {
 			return nil, err
 		}

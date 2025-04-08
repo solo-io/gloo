@@ -76,162 +76,162 @@ var testCases = []testCase{
 	{
 		name: "Attach policy to gateway",
 		policies: []func() *OptionsDef{
-			policyRefGateway,
+			policyGateway,
 		},
 		matchedPolicies: []func() *OptionsDef{
-			policyRefGateway,
+			policyGateway,
 		},
 	},
 	{
 		name: "Attach policy to invalid namespace",
 		policies: []func() *OptionsDef{
-			policyRefInvalidNamespace,
+			policyInvalidNamespace,
 		},
 		matchedPolicies: []func() *OptionsDef{},
 	},
 	{
 		name: "Attach policy to gw with no namespace",
 		policies: []func() *OptionsDef{
-			policyRefGwNoNamespace,
-			policyRefInvalidNamespace,
+			policyGwNoNamespace,
+			policyInvalidNamespace,
 		},
 		applyListenerSet: true,
 		matchedPolicies: []func() *OptionsDef{
-			policyRefGwNoNamespace,
+			policyGwNoNamespace,
 		},
 	},
 	{
 		name: "Attach policy to gw with no namespace in targetRef",
 		policies: []func() *OptionsDef{
-			policyRefNoNamespaceInTargetRef,
+			policyNoNamespaceInTargetRef,
 		},
 		matchedPolicies: []func() *OptionsDef{},
 	},
 	{
 		name: "Attach policy to gw with section name",
 		policies: []func() *OptionsDef{
-			policyRefWithGwSectionName,
+			policyWithGwSectionName,
 		},
 		matchedPolicies: []func() *OptionsDef{
-			policyRefWithGwSectionName,
+			policyWithGwSectionName,
 		},
 	},
 	{
 		name: "Attach policy to gw with bad section name",
 		policies: []func() *OptionsDef{
-			policyRefWithBadGwSectionName,
+			policyWithBadGwSectionName,
 		},
 		matchedPolicies: []func() *OptionsDef{},
 	},
 	{
 		name: "One gw policy with section name and one gw policy without section name",
 		policies: []func() *OptionsDef{
-			policyRefGateway,
-			policyRefWithGwSectionName,
+			policyGateway,
+			policyWithGwSectionName,
 		},
 		matchedPolicies: []func() *OptionsDef{
-			policyRefWithGwSectionName,
-			policyRefGateway,
+			policyWithGwSectionName,
+			policyGateway,
 		},
 	},
 	{
 		name: "Attach policy to gw with bad section name",
 		policies: []func() *OptionsDef{
-			policyRefWithBadGwSectionName,
+			policyWithBadGwSectionName,
 		},
 		matchedPolicies: []func() *OptionsDef{},
 	},
 	{
 		name: "Attach policy to gw with bad section name and one gw policy without section name",
 		policies: []func() *OptionsDef{
-			policyRefGateway,
-			policyRefWithBadGwSectionName,
+			policyGateway,
+			policyWithBadGwSectionName,
 		},
 		matchedPolicies: []func() *OptionsDef{
-			policyRefGateway,
+			policyGateway,
 		},
 	},
 	{
 		name: "Attach policy with multiple target refs to gw",
 		policies: []func() *OptionsDef{
-			policyRefWithMultipleGwTargetRefs,
+			policyWithMultipleGwTargetRefs,
 		},
 		matchedPolicies: []func() *OptionsDef{
-			policyRefWithMultipleGwTargetRefs,
+			policyWithMultipleGwTargetRefs,
 		},
 	},
 	// With listenerSets
 	{
 		name: "Attach policy to listenerSet",
 		policies: []func() *OptionsDef{
-			policyRefInvalidNamespace,
-			policyRefListenerSet,
+			policyInvalidNamespace,
+			policyListenerSet,
 		},
 		applyListenerSet: true,
 		matchedPolicies: []func() *OptionsDef{
-			policyRefListenerSet,
+			policyListenerSet,
 		},
 	},
 	{
 		name: "Attach policy to listenerSet section name",
 		policies: []func() *OptionsDef{
-			policyRefInvalidNamespace,
-			policyRefWithLsSectionName,
+			policyInvalidNamespace,
+			policyWithLsSectionName,
 		},
 		applyListenerSet: true,
 		matchedPolicies: []func() *OptionsDef{
-			policyRefWithLsSectionName,
+			policyWithLsSectionName,
 		},
 	},
 	{
 		name: "Attach policy to listenerSet section name and one listenerSet policy without section name",
 		policies: []func() *OptionsDef{
-			policyRefListenerSet,
-			policyRefWithLsSectionName,
+			policyListenerSet,
+			policyWithLsSectionName,
 		},
 		applyListenerSet: true,
 		matchedPolicies: []func() *OptionsDef{
-			policyRefWithLsSectionName,
-			policyRefListenerSet,
+			policyWithLsSectionName,
+			policyListenerSet,
 		},
 	},
 	{
 		name: "Attach policy with multiple target refs to listenerSet ",
 		policies: []func() *OptionsDef{
-			policyRefWithMultipleLsTargetRefs,
+			policyWithMultipleLsTargetRefs,
 		},
 		applyListenerSet: true,
 		matchedPolicies: []func() *OptionsDef{
-			policyRefWithMultipleLsTargetRefs,
+			policyWithMultipleLsTargetRefs,
 		},
 	},
 	// ListenerSet and Gateway targetRefs
 	{
 		name: "Attach policy to listenerSet and gw",
 		policies: []func() *OptionsDef{
-			policyRefGateway,
-			policyRefListenerSet,
+			policyGateway,
+			policyListenerSet,
 		},
 		applyListenerSet: true,
 		matchedPolicies: []func() *OptionsDef{
-			policyRefListenerSet,
-			policyRefGateway,
+			policyListenerSet,
+			policyGateway,
 		},
 	},
 	{
 		name: "Attach policy to listenerSet and gw with and without section name",
 		policies: []func() *OptionsDef{
-			policyRefGateway,
-			policyRefListenerSet,
-			policyRefWithGwSectionName,
-			policyRefWithLsSectionName,
+			policyGateway,
+			policyListenerSet,
+			policyWithGwSectionName,
+			policyWithLsSectionName,
 		},
 		applyListenerSet: true,
 		matchedPolicies: []func() *OptionsDef{
-			policyRefWithLsSectionName,
-			policyRefListenerSet,
-			policyRefWithGwSectionName,
-			policyRefGateway,
+			policyWithLsSectionName,
+			policyListenerSet,
+			policyWithGwSectionName,
+			policyGateway,
 		},
 	},
 }
@@ -349,11 +349,11 @@ func defaultOptionsDef() *OptionsDef {
 	}
 }
 
-func policyRefGateway() *OptionsDef {
+func policyGateway() *OptionsDef {
 	return defaultOptionsDef()
 }
 
-func policyRefInvalidNamespace() *OptionsDef {
+func policyInvalidNamespace() *OptionsDef {
 	return &OptionsDef{
 		Name:       "bad" + gwPolicyName,
 		Namespace:  "not-" + defaultNamespace,
@@ -361,7 +361,7 @@ func policyRefInvalidNamespace() *OptionsDef {
 	}
 }
 
-func policyRefListenerSet() *OptionsDef {
+func policyListenerSet() *OptionsDef {
 	return &OptionsDef{
 		Name:       lsPolicyName,
 		Namespace:  defaultNamespace,
@@ -369,7 +369,7 @@ func policyRefListenerSet() *OptionsDef {
 	}
 }
 
-func policyRefGwNoNamespace() *OptionsDef {
+func policyGwNoNamespace() *OptionsDef {
 	return &OptionsDef{
 		Name:       gwPolicyNameNoNamespace,
 		Namespace:  defaultNamespace,
@@ -377,7 +377,7 @@ func policyRefGwNoNamespace() *OptionsDef {
 	}
 }
 
-func policyRefNoNamespaceInTargetRef() *OptionsDef {
+func policyNoNamespaceInTargetRef() *OptionsDef {
 	return &OptionsDef{
 		Name:       gwPolicyNameNoNamespace,
 		Namespace:  "not-" + defaultNamespace,
@@ -385,7 +385,7 @@ func policyRefNoNamespaceInTargetRef() *OptionsDef {
 	}
 }
 
-func policyRefWithGwSectionName() *OptionsDef {
+func policyWithGwSectionName() *OptionsDef {
 	return &OptionsDef{
 		Name:       gwPolicyName + "-with-section-name",
 		Namespace:  defaultNamespace,
@@ -393,7 +393,7 @@ func policyRefWithGwSectionName() *OptionsDef {
 	}
 }
 
-func policyRefWithLsSectionName() *OptionsDef {
+func policyWithLsSectionName() *OptionsDef {
 	return &OptionsDef{
 		Name:       lsPolicyName + "-with-section-name",
 		Namespace:  defaultNamespace,
@@ -401,7 +401,7 @@ func policyRefWithLsSectionName() *OptionsDef {
 	}
 }
 
-func policyRefWithBadGwSectionName() *OptionsDef {
+func policyWithBadGwSectionName() *OptionsDef {
 	return &OptionsDef{
 		Name:       gwPolicyName + "-with-section-name",
 		Namespace:  defaultNamespace,
@@ -409,7 +409,7 @@ func policyRefWithBadGwSectionName() *OptionsDef {
 	}
 }
 
-func policyRefWithMultipleGwTargetRefs() *OptionsDef {
+func policyWithMultipleGwTargetRefs() *OptionsDef {
 	return &OptionsDef{
 		Name:      gwPolicyName + "-with-multiple-target-refs",
 		Namespace: defaultNamespace,
@@ -420,7 +420,7 @@ func policyRefWithMultipleGwTargetRefs() *OptionsDef {
 	}
 }
 
-func policyRefWithMultipleLsTargetRefs() *OptionsDef {
+func policyWithMultipleLsTargetRefs() *OptionsDef {
 	return &OptionsDef{
 		Name:      lsPolicyName + "-with-multiple-target-refs",
 		Namespace: defaultNamespace,
