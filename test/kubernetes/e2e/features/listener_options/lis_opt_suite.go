@@ -127,8 +127,8 @@ func (s *testingSuite) TestConfigureListenerOptionsWithSectionedTargetRefs() {
 		proxy1ServiceFqdn: {
 			{sectionName: "http", port: gw1port1, limit: 32000},
 			{sectionName: "other", port: gw1port2, limit: 42000},
-			{sectionName: "listener-1", port: ls1port1, limit: 42000},
-			{sectionName: "listener-2", port: ls1port2, limit: 21000},
+			{sectionName: "default/listener-set-1/listener-1", port: ls1port1, limit: 42000},
+			{sectionName: "default/listener-set-1/listener-2", port: ls1port2, limit: 21000},
 		},
 		proxy2ServiceFqdn: {
 			{sectionName: "http", port: gw2port1, limit: 0},
