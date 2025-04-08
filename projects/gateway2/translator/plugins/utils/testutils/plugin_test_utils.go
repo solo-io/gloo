@@ -205,6 +205,35 @@ var testCases = []testCase{
 			policyRefWithMultipleLsTargetRefs,
 		},
 	},
+	// ListenerSet and Gateway targetRefs
+	{
+		name: "Attach policy to listenerSet and gw",
+		policies: []func() *OptionsDef{
+			policyRefGateway,
+			policyRefListenerSet,
+		},
+		applyListenerSet: true,
+		matchedPolicies: []func() *OptionsDef{
+			policyRefListenerSet,
+			policyRefGateway,
+		},
+	},
+	{
+		name: "Attach policy to listenerSet and gw with and without section name",
+		policies: []func() *OptionsDef{
+			policyRefGateway,
+			policyRefListenerSet,
+			policyRefWithGwSectionName,
+			policyRefWithLsSectionName,
+		},
+		applyListenerSet: true,
+		matchedPolicies: []func() *OptionsDef{
+			policyRefWithLsSectionName,
+			policyRefListenerSet,
+			policyRefWithGwSectionName,
+			policyRefGateway,
+		},
+	},
 }
 
 func TestListenerOptionPlugin(getOptions GetOptionsFunc, b OptionsBuilder) bool {
