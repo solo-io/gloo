@@ -333,6 +333,29 @@ func (p *Provider) EventuallyListenerSetStatus(
 	}, currentTimeout, pollingInterval).Should(gomega.Succeed())
 }
 
+func (p *Provider) EventuallyListenerSetAttachedRoutes(
+	ctx context.Context,
+	name string,
+	namespace string,
+	listener gwv1.SectionName,
+	routes int32,
+	timeout ...time.Duration,
+) {
+	ginkgo.GinkgoHelper()
+	currentTimeout, pollingInterval := helper.GetTimeouts(timeout...)
+	p.Gomega.Eventually(func(g gomega.Gomega) {
+		ls := &gwxv1a1.XListenerSet{}
+		err := p.clusterContext.Client.Get(ctx, types.NamespacedName{Name: name, Namespace: namespace}, ls)
+		g.Expect(err).NotTo(gomega.HaveOccurred(), fmt.Sprintf("failed to get listenerset %s/%s", namespace, name))
+
+		for _, expectedListener := range ls.Status.Listeners {
+			listenerStatus := getListener(ls.Status.Listeners, string(expectedListener.Name))
+			g.Expect(listenerStatus).NotTo(gomega.BeNil(), fmt.Sprintf("%v listener status not found for listener %s", expectedListener.Name, expectedListener.Name))
+			g.Expect(listenerStatus.AttachedRoutes).To(gomega.Equal(expectedListener.AttachedRoutes), fmt.Sprintf("%v AttachedRoutes is not %v for listener %s", expectedListener, expectedListener.AttachedRoutes, expectedListener.Name))
+		}
+	}, currentTimeout, pollingInterval).Should(gomega.Succeed())
+}
+
 func getListener(listeners []gwxv1a1.ListenerEntryStatus, name string) *gwxv1a1.ListenerEntryStatus {
 	for _, listener := range listeners {
 		if string(listener.Name) == name {

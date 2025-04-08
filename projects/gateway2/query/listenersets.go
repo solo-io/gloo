@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"k8s.io/apimachinery/pkg/api/meta"
+
 	"github.com/solo-io/gloo/projects/gateway2/utils"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
@@ -25,8 +27,14 @@ func (r *gatewayQueries) GetListenerSetsForGateway(ctx context.Context, gw *gwv1
 	}
 
 	listenerSetListTypes := &gwxv1a1.XListenerSetList{}
-
 	if err := r.client.List(ctx, listenerSetListTypes, client.MatchingFieldsSelector{Selector: fields.OneTermEqualSelector(ListenerSetTargetField, nns.String())}); err != nil {
+		// Ignore the error if the CRD is not installed
+		if _, ok := err.(*meta.NoKindMatchError); ok {
+			return &ListenerSetsForGwResult{
+				AllowedListenerSets: make([]*gwxv1a1.XListenerSet, 0),
+				DeniedListenerSets:  make([]*gwxv1a1.XListenerSet, 0),
+			}, nil
+		}
 		return nil, fmt.Errorf("failed to list listener sets: %w", err)
 	}
 
@@ -37,7 +45,6 @@ func (r *gatewayQueries) GetListenerSetsForGateway(ctx context.Context, gw *gwv1
 
 	ret := &ListenerSetsForGwResult{}
 	r.processListenerSets(ctx, gw, listenerSets, ret)
-
 	return ret, nil
 }
 
