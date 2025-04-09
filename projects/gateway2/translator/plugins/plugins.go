@@ -69,7 +69,7 @@ type ListenerContext struct {
 	// gw Listener being processed
 	GwListener *gwv1.Listener
 	// ListenerSet the listener belongs to. nil if directly listed in the gateway
-	ParentListenerSet *gwxv1a1.XListenerSet
+	ListenerSet *gwxv1a1.XListenerSet
 }
 type ListenerPlugin interface {
 	Plugin

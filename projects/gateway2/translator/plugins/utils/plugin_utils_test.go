@@ -224,7 +224,7 @@ func TestGetPrioritizedListenerPolicies(t *testing.T) {
 		Name: "http",
 	}
 
-	parentListenerSet := &apixv1a1.XListenerSet{
+	listenerSet := &apixv1a1.XListenerSet{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "ls-1",
 			Namespace: "default",
@@ -264,7 +264,7 @@ func TestGetPrioritizedListenerPolicies(t *testing.T) {
 	g.Expect(prioritizedPolicies).To(BeEquivalentTo([]client.Object{policy3.object, policy2.object, policy1.object, policy0.object}))
 
 	// With a parent listener set, the listener policies match and are prioritized
-	prioritizedPolicies = utils.GetPrioritizedListenerPolicies(policies, listener, "gw-1", parentListenerSet)
+	prioritizedPolicies = utils.GetPrioritizedListenerPolicies(policies, listener, "gw-1", listenerSet)
 	g.Expect(prioritizedPolicies).To(BeEquivalentTo([]client.Object{policy8.object, policy7.object, policy3.object, policy2.object, policy1.object, policy0.object}))
 }
 

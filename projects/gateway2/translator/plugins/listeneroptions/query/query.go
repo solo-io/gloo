@@ -32,7 +32,7 @@ type ListenerOptionQueries interface {
 	//     - newer without section name
 	//
 	// Note that currently, only ListenerOptions in the same namespace as the Gateway can be attached.
-	GetAttachedListenerOptions(ctx context.Context, listener *gwv1.Listener, parentGw *gwv1.Gateway, parentListenerSet *apixv1a1.XListenerSet) ([]*solokubev1.ListenerOption, error)
+	GetAttachedListenerOptions(ctx context.Context, listener *gwv1.Listener, parentGw *gwv1.Gateway, listenerSet *apixv1a1.XListenerSet) ([]*solokubev1.ListenerOption, error)
 }
 
 type listenerOptionQueries struct {
@@ -59,7 +59,7 @@ func (r *listenerOptionQueries) GetAttachedListenerOptions(
 	ctx context.Context,
 	listener *gwv1.Listener,
 	parentGw *gwv1.Gateway,
-	parentListenerSet *apixv1a1.XListenerSet,
+	listenerSet *apixv1a1.XListenerSet,
 ) ([]*solokubev1.ListenerOption, error) {
 	if parentGw.GetName() == "" || parentGw.GetNamespace() == "" {
 		return nil, fmt.Errorf("parent gateway must have name and namespace; received name: %s, namespace: %s", parentGw.GetName(), parentGw.GetNamespace())
@@ -82,17 +82,17 @@ func (r *listenerOptionQueries) GetAttachedListenerOptions(
 	}
 
 	listListenerSet := &solokubev1.ListenerOptionList{}
-	if parentListenerSet != nil {
+	if listenerSet != nil {
 		nngListenerSet := utils.NamespacedNameKind{
-			Namespace: parentListenerSet.GetNamespace(),
-			Name:      parentListenerSet.GetName(),
+			Namespace: listenerSet.GetNamespace(),
+			Name:      listenerSet.GetName(),
 			Kind:      wellknown.XListenerSetKind,
 		}
 		if err := r.c.List(
 			ctx,
 			listListenerSet,
 			client.MatchingFieldsSelector{Selector: fields.OneTermEqualSelector(ListenerOptionTargetField, nngListenerSet.String())},
-			client.InNamespace(parentListenerSet.GetNamespace()),
+			client.InNamespace(listenerSet.GetNamespace()),
 		); err != nil {
 			return nil, err
 		}
@@ -104,7 +104,7 @@ func (r *listenerOptionQueries) GetAttachedListenerOptions(
 	}
 
 	policies := buildWrapperType(allItems)
-	orderedPolicies := utils.GetPrioritizedListenerPolicies(policies, listener, parentGw.Name, parentListenerSet)
+	orderedPolicies := utils.GetPrioritizedListenerPolicies(policies, listener, parentGw.Name, listenerSet)
 	return orderedPolicies, nil
 }
 

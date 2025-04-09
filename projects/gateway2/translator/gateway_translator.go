@@ -6,6 +6,7 @@ import (
 
 	"github.com/solo-io/gloo/pkg/utils/statsutils"
 	"github.com/solo-io/gloo/projects/gateway2/translator/plugins/registry"
+	"github.com/solo-io/gloo/projects/gateway2/translator/types"
 	"github.com/solo-io/go-utils/contextutils"
 
 	"github.com/solo-io/gloo/projects/gateway2/query"
@@ -59,10 +60,8 @@ func (t *translator) TranslateProxy(
 
 	consolidatedGateway, err := t.queries.ConsolidateGateway(ctx, gateway)
 	if err != nil {
-		logger.Errorf("failed to consolidate gateway %s: %v", client.ObjectKeyFromObject(gateway), err)
-		// TODO: decide how/if to report this error on Gateway
-		// reporter.Gateway(gateway).Err(err.Error())
-		return nil
+		logger.Errorf("failed to consolidate gateway %s, proceeding with just the gateway: %v", client.ObjectKeyFromObject(gateway), err)
+		consolidatedGateway = &types.ConsolidatedGateway{Gateway: gateway}
 	}
 
 	routesForGw, err := t.queries.GetRoutesForConsolidatedGateway(ctx, consolidatedGateway)

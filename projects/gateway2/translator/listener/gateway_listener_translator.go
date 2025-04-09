@@ -97,18 +97,18 @@ func (ml *MergedListeners) AppendListener(
 	listener gwv1.Listener,
 	routes []*query.RouteInfo,
 	reporter reports.ListenerReporter,
-	parentListenerSet *gwxv1a1.XListenerSet,
+	listenerSet *gwxv1a1.XListenerSet,
 ) error {
 	switch listener.Protocol {
 	case gwv1.HTTPProtocolType:
-		ml.appendHttpListener(listener, routes, reporter, parentListenerSet)
+		ml.appendHttpListener(listener, routes, reporter, listenerSet)
 	case gwv1.HTTPSProtocolType:
-		ml.appendHttpsListener(listener, routes, reporter, parentListenerSet)
+		ml.appendHttpsListener(listener, routes, reporter, listenerSet)
 	// TODO default handling
 	case gwv1.TCPProtocolType:
-		ml.AppendTcpListener(listener, routes, reporter, parentListenerSet)
+		ml.AppendTcpListener(listener, routes, reporter, listenerSet)
 	case gwv1.TLSProtocolType:
-		ml.AppendTlsListener(listener, routes, reporter, parentListenerSet)
+		ml.AppendTlsListener(listener, routes, reporter, listenerSet)
 	default:
 		return eris.Errorf("unsupported protocol: %v", listener.Protocol)
 	}
@@ -120,7 +120,7 @@ func (ml *MergedListeners) appendHttpListener(
 	listener gwv1.Listener,
 	routesWithHosts []*query.RouteInfo,
 	reporter reports.ListenerReporter,
-	parentListenerSet *gwxv1a1.XListenerSet,
+	listenerSet *gwxv1a1.XListenerSet,
 ) {
 	parent := httpFilterChainParent{
 		gatewayListenerName: string(listener.Name),
@@ -130,7 +130,7 @@ func (ml *MergedListeners) appendHttpListener(
 	fc := &httpFilterChain{
 		parents: []httpFilterChainParent{parent},
 	}
-	listenerName := generateListenerName(listener, parentListenerSet)
+	listenerName := generateListenerName(listener, listenerSet)
 	finalPort := gwv1.PortNumber(ports.TranslatePort(uint16(listener.Port)))
 
 	for _, lis := range ml.Listeners {
@@ -149,13 +149,13 @@ func (ml *MergedListeners) appendHttpListener(
 
 	// create a new filter chain for the listener
 	ml.Listeners = append(ml.Listeners, &MergedListener{
-		name:              listenerName,
-		gatewayNamespace:  ml.GatewayNamespace,
-		port:              finalPort,
-		httpFilterChain:   fc,
-		listenerReporter:  reporter,
-		listener:          listener,
-		parentListenerSet: parentListenerSet,
+		name:             listenerName,
+		gatewayNamespace: ml.GatewayNamespace,
+		port:             finalPort,
+		httpFilterChain:  fc,
+		listenerReporter: reporter,
+		listener:         listener,
+		listenerSet:      listenerSet,
 	})
 }
 
@@ -163,7 +163,7 @@ func (ml *MergedListeners) appendHttpsListener(
 	listener gwv1.Listener,
 	routesWithHosts []*query.RouteInfo,
 	reporter reports.ListenerReporter,
-	parentListenerSet *gwxv1a1.XListenerSet,
+	listenerSet *gwxv1a1.XListenerSet,
 ) {
 	// create a new filter chain for the listener
 	// protocol:            listener.Protocol,
@@ -179,7 +179,7 @@ func (ml *MergedListeners) appendHttpsListener(
 	// during both lookup and when appending the listener.
 	finalPort := gwv1.PortNumber(ports.TranslatePort(uint16(listener.Port)))
 
-	listenerName := generateListenerName(listener, parentListenerSet)
+	listenerName := generateListenerName(listener, listenerSet)
 	for _, lis := range ml.Listeners {
 		if lis.port == finalPort {
 			// concatenate the names on the parent output listener
@@ -196,7 +196,7 @@ func (ml *MergedListeners) appendHttpsListener(
 		httpsFilterChains: []httpsFilterChain{mfc},
 		listenerReporter:  reporter,
 		listener:          listener,
-		parentListenerSet: parentListenerSet,
+		listenerSet:       listenerSet,
 	})
 }
 
@@ -204,7 +204,7 @@ func (ml *MergedListeners) AppendTcpListener(
 	listener gwv1.Listener,
 	routeInfos []*query.RouteInfo,
 	reporter reports.ListenerReporter,
-	parentListenerSet *gwxv1a1.XListenerSet,
+	listenerSet *gwxv1a1.XListenerSet,
 ) {
 	var validRouteInfos []*query.RouteInfo
 
@@ -240,7 +240,7 @@ func (ml *MergedListeners) AppendTcpListener(
 	fc := tcpFilterChain{
 		parents: []tcpFilterChainParent{parent},
 	}
-	listenerName := generateListenerName(listener, parentListenerSet)
+	listenerName := generateListenerName(listener, listenerSet)
 	finalPort := gwv1.PortNumber(ports.TranslatePort(uint16(listener.Port)))
 
 	for _, lis := range ml.Listeners {
@@ -254,13 +254,13 @@ func (ml *MergedListeners) AppendTcpListener(
 
 	// create a new filter chain for the listener
 	ml.Listeners = append(ml.Listeners, &MergedListener{
-		name:              listenerName,
-		gatewayNamespace:  ml.GatewayNamespace,
-		port:              finalPort,
-		TcpFilterChains:   []tcpFilterChain{fc},
-		listenerReporter:  reporter,
-		listener:          listener,
-		parentListenerSet: parentListenerSet,
+		name:             listenerName,
+		gatewayNamespace: ml.GatewayNamespace,
+		port:             finalPort,
+		TcpFilterChains:  []tcpFilterChain{fc},
+		listenerReporter: reporter,
+		listener:         listener,
+		listenerSet:      listenerSet,
 	})
 }
 
@@ -365,7 +365,7 @@ func (ml *MergedListeners) AppendTlsListener(
 	listener gwv1.Listener,
 	routeInfos []*query.RouteInfo,
 	reporter reports.ListenerReporter,
-	parentListenerSet *gwxv1a1.XListenerSet,
+	listenerSet *gwxv1a1.XListenerSet,
 ) {
 	var validRouteInfos []*query.RouteInfo
 
@@ -403,7 +403,7 @@ func (ml *MergedListeners) AppendTlsListener(
 		tls:       listener.TLS,
 		sniDomain: listener.Hostname,
 	}
-	listenerName := generateListenerName(listener, parentListenerSet)
+	listenerName := generateListenerName(listener, listenerSet)
 	finalPort := gwv1.PortNumber(ports.TranslatePort(uint16(listener.Port)))
 
 	for _, lis := range ml.Listeners {
@@ -417,13 +417,13 @@ func (ml *MergedListeners) AppendTlsListener(
 
 	// create a new filter chain for the listener
 	ml.Listeners = append(ml.Listeners, &MergedListener{
-		name:              listenerName,
-		gatewayNamespace:  ml.GatewayNamespace,
-		port:              finalPort,
-		TcpFilterChains:   []tcpFilterChain{fc},
-		listenerReporter:  reporter,
-		listener:          listener,
-		parentListenerSet: parentListenerSet,
+		name:             listenerName,
+		gatewayNamespace: ml.GatewayNamespace,
+		port:             finalPort,
+		TcpFilterChains:  []tcpFilterChain{fc},
+		listenerReporter: reporter,
+		listener:         listener,
+		listenerSet:      listenerSet,
 	})
 }
 
@@ -440,9 +440,9 @@ func (ml *MergedListeners) translateListeners(
 		// run listener plugins
 		for _, listenerPlugin := range pluginRegistry.GetListenerPlugins() {
 			err := listenerPlugin.ApplyListenerPlugin(ctx, &plugins.ListenerContext{
-				Gateway:           &ml.parentGw,
-				ParentListenerSet: mergedListener.parentListenerSet,
-				GwListener:        &mergedListener.listener,
+				Gateway:     &ml.parentGw,
+				ListenerSet: mergedListener.listenerSet,
+				GwListener:  &mergedListener.listener,
 			}, listener)
 			if err != nil {
 				contextutils.LoggerFrom(ctx).Errorf("error in ListenerPlugin: %v", err)
@@ -463,7 +463,7 @@ type MergedListener struct {
 	TcpFilterChains   []tcpFilterChain
 	listenerReporter  reports.ListenerReporter
 	listener          gwv1.Listener
-	parentListenerSet *gwxv1a1.XListenerSet
+	listenerSet       *gwxv1a1.XListenerSet
 
 	// TODO(policy via http listener options)
 }
@@ -947,10 +947,10 @@ func makeVhostName(
 	return utils.SanitizeForEnvoy(ctx, parentName+"~"+domain, "vHost")
 }
 
-func generateListenerName(listener gwv1.Listener, parentListenerSet *gwxv1a1.XListenerSet) string {
+func generateListenerName(listener gwv1.Listener, listenerSet *gwxv1a1.XListenerSet) string {
 	listenerName := string(listener.Name)
-	if parentListenerSet != nil {
-		listenerName = query.GenerateListenerSetListenerKey(*parentListenerSet, string(listener.Name))
+	if listenerSet != nil {
+		listenerName = query.GenerateListenerSetListenerKey(*listenerSet, string(listener.Name))
 	}
 	return listenerName
 }

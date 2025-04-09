@@ -38,32 +38,27 @@ func (r *gatewayQueries) GetListenerSetsForGateway(ctx context.Context, gw *gwv1
 		return nil, fmt.Errorf("failed to list listener sets: %w", err)
 	}
 
-	listenerSets := make([]*gwxv1a1.XListenerSet, len(listenerSetListTypes.Items))
-	for i, ls := range listenerSetListTypes.Items {
-		listenerSets[i] = &ls
-	}
-
 	ret := &ListenerSetsForGwResult{}
-	r.processListenerSets(ctx, gw, listenerSets, ret)
+	r.processListenerSets(ctx, gw, listenerSetListTypes.Items, ret)
 	return ret, nil
 }
 
-func (r *gatewayQueries) processListenerSets(ctx context.Context, gw *gwv1.Gateway, listenerSets []*gwxv1a1.XListenerSet, ret *ListenerSetsForGwResult) error {
+func (r *gatewayQueries) processListenerSets(ctx context.Context, gw *gwv1.Gateway, listenerSets []gwxv1a1.XListenerSet, ret *ListenerSetsForGwResult) error {
 	for _, ls := range listenerSets {
 		allowedNs, err := r.allowedListenerSets(gw)
 		if err != nil {
-			ret.DeniedListenerSets = append(ret.DeniedListenerSets, ls)
+			ret.DeniedListenerSets = append(ret.DeniedListenerSets, &ls)
 			continue
 		}
 
 		// Check if the namespace of the listenerSet is allowed by the gateway
 		// We return the denied list of ls to have their status set to rejected during validation
 		if !allowedNs(ls.GetNamespace()) {
-			ret.DeniedListenerSets = append(ret.DeniedListenerSets, ls)
+			ret.DeniedListenerSets = append(ret.DeniedListenerSets, &ls)
 			continue
 		}
 
-		ret.AllowedListenerSets = append(ret.AllowedListenerSets, ls)
+		ret.AllowedListenerSets = append(ret.AllowedListenerSets, &ls)
 	}
 
 	utils.SortByCreationTime(ret.AllowedListenerSets)
