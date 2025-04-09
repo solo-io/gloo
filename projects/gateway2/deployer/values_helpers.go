@@ -45,6 +45,7 @@ func sanitizePortName(name string) string {
 	doubleHyphen := regexp.MustCompile(`-{2,}`)
 	str = doubleHyphen.ReplaceAllString(str, "-")
 
+	// This is a kubernetes spec requirement.
 	maxPortNameLength := 15
 	if len(str) > maxPortNameLength {
 		str = str[:maxPortNameLength]

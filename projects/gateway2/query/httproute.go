@@ -409,9 +409,9 @@ func (r *gatewayQueries) GetRoutesForResource(ctx context.Context, resource clie
 	var routes []client.Object
 	// If a listenerset, initially populate it with the list of routes attached to the parent gateway
 	if ls, ok := resource.(*apixv1a1.XListenerSet); ok {
-		parentGwNNS := getParentGatewayRef(ls)
+		parentGwNns := getParentGatewayRef(ls)
 		for _, routeList := range routeListTypes {
-			if err := fetchRoutes(ctx, r, routeList, *parentGwNNS, &routes); err != nil {
+			if err := fetchRoutes(ctx, r, routeList, *parentGwNns, &routes); err != nil {
 				return nil, err
 			}
 		}
