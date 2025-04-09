@@ -5,9 +5,11 @@ import (
 	"errors"
 	"time"
 
+	"github.com/google/go-cmp/cmp"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/testing/protocmp"
 	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 	"istio.io/istio/pkg/kube/krt"
@@ -27,6 +29,7 @@ import (
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/faultinjection"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
+	glooutils "github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	corev1 "github.com/solo-io/skv2/pkg/api/core.skv2.solo.io/v1"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
@@ -92,7 +95,7 @@ var _ = Describe("RouteOptionsPlugin", func() {
 			plugin := NewPlugin(gwQueries, fakeClient, routeOptionCollection, statusReporter)
 
 			rtCtx := &plugins.RouteContext{
-				Route: &gwv1.HTTPRoute{},
+				HTTPRoute: &gwv1.HTTPRoute{},
 				Rule: &gwv1.HTTPRouteRule{
 					Filters: []gwv1.HTTPRouteFilter{{
 						Type: gwv1.HTTPRouteFilterExtensionRef,
@@ -137,9 +140,9 @@ var _ = Describe("RouteOptionsPlugin", func() {
 			parentRefReporter := reporter.Route(route).ParentRef(parentRef())
 
 			rtCtx := &plugins.RouteContext{
-				Route:    route,
-				Rule:     routeRuleWithExtRef(),
-				Reporter: parentRefReporter,
+				HTTPRoute: route,
+				Rule:      routeRuleWithExtRef(),
+				Reporter:  parentRefReporter,
 			}
 
 			outputRoute := &v1.Route{
@@ -163,7 +166,7 @@ var _ = Describe("RouteOptionsPlugin", func() {
 
 				ctx := context.Background()
 				routeCtx := &plugins.RouteContext{
-					Route: &gwv1.HTTPRoute{
+					HTTPRoute: &gwv1.HTTPRoute{
 						ObjectMeta: metav1.ObjectMeta{
 							Name:      "route",
 							Namespace: "default",
@@ -228,7 +231,7 @@ var _ = Describe("RouteOptionsPlugin", func() {
 
 				ctx := context.Background()
 				routeCtx := &plugins.RouteContext{
-					Route: &gwv1.HTTPRoute{
+					HTTPRoute: &gwv1.HTTPRoute{
 						ObjectMeta: metav1.ObjectMeta{
 							Name:      "route",
 							Namespace: "default",
@@ -307,7 +310,7 @@ var _ = Describe("RouteOptionsPlugin", func() {
 
 					ctx := context.Background()
 					routeCtx := &plugins.RouteContext{
-						Route: &gwv1.HTTPRoute{
+						HTTPRoute: &gwv1.HTTPRoute{
 							ObjectMeta: metav1.ObjectMeta{
 								Name:      "route",
 								Namespace: "default",
@@ -333,7 +336,7 @@ var _ = Describe("RouteOptionsPlugin", func() {
 					plugin := NewPlugin(gwQueries, fakeClient, routeOptionCollection, statusReporter)
 
 					rtCtx := &plugins.RouteContext{
-						Route: &gwv1.HTTPRoute{},
+						HTTPRoute: &gwv1.HTTPRoute{},
 						Rule: &gwv1.HTTPRouteRule{
 							Filters: []gwv1.HTTPRouteFilter{{
 								Type: gwv1.HTTPRouteFilterExtensionRef,
@@ -354,7 +357,6 @@ var _ = Describe("RouteOptionsPlugin", func() {
 					err := plugin.ApplyStatusPlugin(ctx, statusCtx)
 					Expect(err).To(MatchError(ContainSubstring(ReadingRouteOptionErrStr)))
 				})
-
 			})
 		})
 
@@ -368,7 +370,7 @@ var _ = Describe("RouteOptionsPlugin", func() {
 
 				ctx := context.Background()
 				routeCtx := &plugins.RouteContext{
-					Route: &gwv1.HTTPRoute{
+					HTTPRoute: &gwv1.HTTPRoute{
 						ObjectMeta: metav1.ObjectMeta{
 							Name:      "route",
 							Namespace: "default",
@@ -450,7 +452,7 @@ var _ = Describe("RouteOptionsPlugin", func() {
 
 				ctx := context.Background()
 				routeCtx := &plugins.RouteContext{
-					Route: &gwv1.HTTPRoute{
+					HTTPRoute: &gwv1.HTTPRoute{
 						ObjectMeta: metav1.ObjectMeta{
 							Name:      "route",
 							Namespace: "default",
@@ -512,7 +514,7 @@ var _ = Describe("RouteOptionsPlugin", func() {
 
 				ctx := context.Background()
 				routeCtx := &plugins.RouteContext{
-					Route: &gwv1.HTTPRoute{
+					HTTPRoute: &gwv1.HTTPRoute{
 						ObjectMeta: metav1.ObjectMeta{
 							Name:      "route",
 							Namespace: "default",
@@ -559,7 +561,7 @@ var _ = Describe("RouteOptionsPlugin", func() {
 
 				ctx := context.Background()
 				routeCtx := &plugins.RouteContext{
-					Route: &gwv1.HTTPRoute{
+					HTTPRoute: &gwv1.HTTPRoute{
 						ObjectMeta: metav1.ObjectMeta{
 							Name:      "route",
 							Namespace: "non-default",
@@ -606,7 +608,7 @@ var _ = Describe("RouteOptionsPlugin", func() {
 
 				ctx := context.Background()
 				routeCtx := &plugins.RouteContext{
-					Route: &gwv1.HTTPRoute{
+					HTTPRoute: &gwv1.HTTPRoute{
 						ObjectMeta: metav1.ObjectMeta{
 							Name:      "route",
 							Namespace: "default",
@@ -712,8 +714,8 @@ var _ = Describe("RouteOptionsPlugin", func() {
 
 			ctx := context.Background()
 			routeCtx := &plugins.RouteContext{
-				Route: routeWithFilter(),
-				Rule:  routeRuleWithExtRef(),
+				HTTPRoute: routeWithFilter(),
+				Rule:      routeRuleWithExtRef(),
 			}
 
 			outputRoute := &v1.Route{
@@ -733,6 +735,198 @@ var _ = Describe("RouteOptionsPlugin", func() {
 		})
 	})
 })
+
+var _ = DescribeTable("mergeOptionsForRoute",
+	func(route *gwv1.HTTPRoute, dst, src *v1.RouteOptions, expectedOptions *v1.RouteOptions, expectedResult glooutils.OptionsMergeResult) {
+		mergedOptions, result := mergeOptionsForRoute(context.TODO(), route, dst, src)
+		Expect(cmp.Diff(mergedOptions, expectedOptions, protocmp.Transform())).To(BeEmpty())
+		Expect(result).To(Equal(expectedResult))
+	},
+	Entry("prefer dst options by default",
+		&gwv1.HTTPRoute{},
+		&v1.RouteOptions{
+			Faults: &faultinjection.RouteFaults{
+				Abort: &faultinjection.RouteAbort{
+					HttpStatus: 500,
+				},
+			},
+		},
+		&v1.RouteOptions{
+			PrefixRewrite: &wrapperspb.StringValue{Value: "/prefix"},
+			// Faults will be ignored because it is set in dst
+			Faults: &faultinjection.RouteFaults{
+				Abort: &faultinjection.RouteAbort{
+					HttpStatus: 100,
+				},
+			},
+		},
+		&v1.RouteOptions{
+			Faults: &faultinjection.RouteFaults{
+				Abort: &faultinjection.RouteAbort{
+					HttpStatus: 500,
+				},
+			},
+			PrefixRewrite: &wrapperspb.StringValue{Value: "/prefix"},
+		},
+		glooutils.OptionsMergedPartial,
+	),
+	Entry("override dst options with annotation: full override",
+		&gwv1.HTTPRoute{
+			ObjectMeta: metav1.ObjectMeta{
+				Annotations: map[string]string{wellknown.PolicyOverrideAnnotation: "*"},
+			},
+		},
+		&v1.RouteOptions{
+			Faults: &faultinjection.RouteFaults{
+				Abort: &faultinjection.RouteAbort{
+					HttpStatus: 500,
+				},
+			},
+		},
+		&v1.RouteOptions{
+			PrefixRewrite: &wrapperspb.StringValue{Value: "/prefix"},
+			Faults: &faultinjection.RouteFaults{
+				Abort: &faultinjection.RouteAbort{
+					HttpStatus: 100,
+				},
+			},
+		},
+		&v1.RouteOptions{
+			Faults: &faultinjection.RouteFaults{
+				Abort: &faultinjection.RouteAbort{
+					HttpStatus: 100,
+				},
+			},
+			PrefixRewrite: &wrapperspb.StringValue{Value: "/prefix"},
+		},
+		glooutils.OptionsMergedFull,
+	),
+	Entry("override dst options with annotation: partial override",
+		&gwv1.HTTPRoute{
+			ObjectMeta: metav1.ObjectMeta{
+				Annotations: map[string]string{wellknown.PolicyOverrideAnnotation: "*"},
+			},
+		},
+		&v1.RouteOptions{
+			Faults: &faultinjection.RouteFaults{
+				Abort: &faultinjection.RouteAbort{
+					HttpStatus: 500,
+				},
+			},
+			Timeout: durationpb.New(5 * time.Second),
+		},
+		&v1.RouteOptions{
+			PrefixRewrite: &wrapperspb.StringValue{Value: "/prefix"},
+			Faults: &faultinjection.RouteFaults{
+				Abort: &faultinjection.RouteAbort{
+					HttpStatus: 100,
+				},
+			},
+		},
+		&v1.RouteOptions{
+			Faults: &faultinjection.RouteFaults{
+				Abort: &faultinjection.RouteAbort{
+					HttpStatus: 100,
+				},
+			},
+			PrefixRewrite: &wrapperspb.StringValue{Value: "/prefix"},
+			Timeout:       durationpb.New(5 * time.Second),
+		},
+		glooutils.OptionsMergedPartial,
+	),
+	Entry("override dst options with annotation: no override",
+		&gwv1.HTTPRoute{
+			ObjectMeta: metav1.ObjectMeta{
+				Annotations: map[string]string{wellknown.PolicyOverrideAnnotation: "*"},
+			},
+		},
+		&v1.RouteOptions{
+			Faults: &faultinjection.RouteFaults{
+				Abort: &faultinjection.RouteAbort{
+					HttpStatus: 500,
+				},
+			},
+		},
+		&v1.RouteOptions{},
+		&v1.RouteOptions{
+			Faults: &faultinjection.RouteFaults{
+				Abort: &faultinjection.RouteAbort{
+					HttpStatus: 500,
+				},
+			},
+		},
+		glooutils.OptionsMergedNone,
+	),
+	Entry("override dst options with annotation: specific fields",
+		&gwv1.HTTPRoute{
+			ObjectMeta: metav1.ObjectMeta{
+				Annotations: map[string]string{wellknown.PolicyOverrideAnnotation: "faults,timeout"},
+			},
+		},
+		&v1.RouteOptions{
+			Faults: &faultinjection.RouteFaults{
+				Abort: &faultinjection.RouteAbort{
+					HttpStatus: 500,
+				},
+			},
+			Timeout:       durationpb.New(5 * time.Second),
+			PrefixRewrite: &wrapperspb.StringValue{Value: "/dst"},
+		},
+		&v1.RouteOptions{
+			PrefixRewrite: &wrapperspb.StringValue{Value: "/src"},
+			Faults: &faultinjection.RouteFaults{
+				Abort: &faultinjection.RouteAbort{
+					HttpStatus: 100,
+				},
+			},
+			Timeout: durationpb.New(10 * time.Second),
+		},
+		&v1.RouteOptions{
+			Faults: &faultinjection.RouteFaults{
+				Abort: &faultinjection.RouteAbort{
+					HttpStatus: 100,
+				},
+			},
+			PrefixRewrite: &wrapperspb.StringValue{Value: "/dst"},
+			Timeout:       durationpb.New(10 * time.Second),
+		},
+		glooutils.OptionsMergedPartial, // PrefixRewrite is not overwritten
+	),
+	Entry("override and augment dst options with annotation: specific fields",
+		&gwv1.HTTPRoute{
+			ObjectMeta: metav1.ObjectMeta{
+				Annotations: map[string]string{wellknown.PolicyOverrideAnnotation: "faults,timeout"},
+			},
+		},
+		&v1.RouteOptions{
+			Faults: &faultinjection.RouteFaults{
+				Abort: &faultinjection.RouteAbort{
+					HttpStatus: 500,
+				},
+			},
+			Timeout: durationpb.New(5 * time.Second),
+		},
+		&v1.RouteOptions{
+			PrefixRewrite: &wrapperspb.StringValue{Value: "/src"},
+			Faults: &faultinjection.RouteFaults{
+				Abort: &faultinjection.RouteAbort{
+					HttpStatus: 100,
+				},
+			},
+			Timeout: durationpb.New(10 * time.Second),
+		},
+		&v1.RouteOptions{
+			Faults: &faultinjection.RouteFaults{
+				Abort: &faultinjection.RouteAbort{
+					HttpStatus: 100,
+				},
+			},
+			PrefixRewrite: &wrapperspb.StringValue{Value: "/src"},
+			Timeout:       durationpb.New(10 * time.Second),
+		},
+		glooutils.OptionsMergedFull,
+	),
+)
 
 func routeOption() *solokubev1.RouteOption {
 	return &solokubev1.RouteOption{

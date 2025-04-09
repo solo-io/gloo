@@ -53,6 +53,14 @@ func HaveOkResponseWithHeaders(headers map[string]interface{}) types.GomegaMatch
 	})
 }
 
+// HaveOKResponseWithJSONContains expects a 200 response with a body that contains the provided JSON
+func HaveOKResponseWithJSONContains(jsonBody []byte) types.GomegaMatcher {
+	return HaveHttpResponse(&HttpResponse{
+		StatusCode: http.StatusOK,
+		Body:       JSONContains(jsonBody),
+	})
+}
+
 // HttpResponse defines the set of properties that we can validate from an http.Response
 type HttpResponse struct {
 	// StatusCode is the expected status code for an http.Response
@@ -66,6 +74,9 @@ type HttpResponse struct {
 	// Each header can be of type: {string, GomegaMatcher}
 	// Optional: If not provided, does not perform header validation
 	Headers map[string]interface{}
+	// Protocol is the expected protocol of an http.Response
+	// Optional: If not provided, does not perform additional validation
+	Protocol string
 	// Custom is a generic matcher that can be applied to validate any other properties of an http.Response
 	// Optional: If not provided, does not perform additional validation
 	Custom types.GomegaMatcher
@@ -82,8 +93,8 @@ func (r *HttpResponse) String() string {
 		bodyString = fmt.Sprintf("%#v", bodyMatcher)
 	}
 
-	return fmt.Sprintf("HttpResponse{StatusCode: %d, Body: %s, Headers: %v, Custom: %v}",
-		r.StatusCode, bodyString, r.Headers, r.Custom)
+	return fmt.Sprintf("HttpResponse{StatusCode: %d, Body: %s, Headers: %v, Protocol: %s, Custom: %v}",
+		r.StatusCode, bodyString, r.Headers, r.Protocol, r.Custom)
 
 }
 
@@ -107,6 +118,9 @@ func HaveHttpResponse(expected *HttpResponse) types.GomegaMatcher {
 		partialResponseMatchers = append(partialResponseMatchers, &matchers.HaveHTTPBodyMatcher{
 			Expected: expected.Body,
 		})
+	}
+	if expected.Protocol != "" {
+		partialResponseMatchers = append(partialResponseMatchers, HaveProtocol(expected.Protocol))
 	}
 	for headerName, headerMatch := range expected.Headers {
 		partialResponseMatchers = append(partialResponseMatchers, &matchers.HaveHTTPHeaderWithValueMatcher{

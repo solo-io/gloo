@@ -92,7 +92,7 @@ message Upstream {
 
     enum ClusterProtocolSelection {
         // Cluster can only operate on one of the possible upstream protocols (HTTP1.1, HTTP2).
-        // If :ref:`http2_protocol_options <envoy_v3_api_field_config.cluster.v3.Cluster.http2_protocol_options>` are
+        // If http2_protocol_options are
         // present, HTTP2 will be used, otherwise HTTP1.1 will be used.
         USE_CONFIGURED_PROTOCOL = 0;
 
@@ -136,11 +136,13 @@ message Upstream {
     // This overrides any HCM :ref:`stream_error_on_invalid_http_messaging
     // <envoy_v3_api_field_extensions.filters.network.http_connection_manager.v3.HttpConnectionManager.stream_error_on_invalid_http_message>`
     //
-    // See `RFC7540, sec. 8.1 <https://datatracker.ietf.org/doc/html/rfc7540#section-8.1>`_ for details.
+    // See [RFC7540, sec. 8.1](https://datatracker.ietf.org/doc/html/rfc7540#section-8.1) for details.
     google.protobuf.BoolValue override_stream_error_on_invalid_http_message = 26;
 
-    // Tells envoy that the upstream is an HTTP proxy (e.g., another proxy in a DMZ) that supports HTTP Connect.
-    // This configuration sets the hostname used as part of the HTTP Connect request.
+    // Tells Envoy that the upstream is an HTTP proxy that supports [HTTP CONNECT method](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/CONNECT).
+    // The hostname is the destination of the tunnel established by the proxy.
+    // Some Envoy Command Operators (.e.g `%REQUESTED_SERVER_NAME%`) are supported allowing for dynamic destinations.
+    //
     // For example, setting to: host.com:443 and making a request routed to the upstream such as `curl <envoy>:<port>/v1`
     // would result in the following request:
     //
@@ -152,7 +154,7 @@ message Upstream {
     //    user-agent: curl/7.64.1
     //    accept: */*
     //
-    // Note: if setting this field to a hostname rather than IP:PORT, you may want to also set `host_rewrite` on the route
+    // Note: If setting this field to a hostname rather than IP:PORT, you may want to also set `host_rewrite` on the route
     google.protobuf.StringValue http_proxy_hostname = 21;
 
     // HttpConnectSslConfig contains the options necessary to configure envoy to originate TLS to an HTTP Connect proxy.
@@ -238,7 +240,7 @@ message PreconnectPolicy {
     // Indicates how many streams (rounded up) can be anticipated across a cluster for each
     // stream, useful for low QPS services. This is currently supported for a subset of
     // deterministic non-hash-based load-balancing algorithms (weighted round robin, random).
-    // Unlike ``per_upstream_preconnect_ratio`` this preconnects across the upstream instances in a
+    // Unlike `per_upstream_preconnect_ratio` this preconnects across the upstream instances in a
     // cluster, doing best effort predictions of what upstream would be picked next and
     // pre-establishing a connection.
     //

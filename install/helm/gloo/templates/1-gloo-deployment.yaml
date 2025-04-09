@@ -273,6 +273,14 @@ spec:
           - name: HEADER_SECRET_REF_NS_MATCHES_US
             value: "true"
         {{- end}}
+        {{- if .Values.global.glooMtls.enabled }}
+          - name: GLOO_MTLS_SDS_ENABLED
+            value: "true"
+        {{- end }}
+        {{- if .Values.gloo.clearStatusMetrics }}
+          - name: GLOO_CLEAR_STATUS_METRICS
+            value: "true"
+        {{- end }}
 {{- if not .Values.global.glooMtls.enabled }}
         readinessProbe:
           tcpSocket:

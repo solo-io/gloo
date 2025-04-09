@@ -2,9 +2,12 @@ package controller
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	corev1 "k8s.io/api/core/v1"
+	discoveryv1 "k8s.io/api/discovery/v1"
+	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
@@ -20,6 +23,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	apiv1 "sigs.k8s.io/gateway-api/apis/v1"
+	apiv1a2 "sigs.k8s.io/gateway-api/apis/v1alpha2"
 	apiv1beta1 "sigs.k8s.io/gateway-api/apis/v1beta1"
 
 	sologatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1/kube/apis/gateway.solo.io/v1"
@@ -53,6 +57,8 @@ type GatewayConfig struct {
 	Aws                     *deployer.AwsInfo
 
 	Extensions extensions.K8sGatewayExtensions
+	// CRDs defines the set of discovered Gateway API CRDs
+	CRDs sets.Set[string]
 }
 
 func NewBaseGatewayController(ctx context.Context, cfg GatewayConfig) error {
@@ -69,9 +75,12 @@ func NewBaseGatewayController(ctx context.Context, cfg GatewayConfig) error {
 	}
 
 	return run(ctx,
+		controllerBuilder.watchCustomResourceDefinitions,
 		controllerBuilder.watchGwClass,
 		controllerBuilder.watchGw,
 		controllerBuilder.watchHttpRoute,
+		controllerBuilder.watchTcpRoute,
+		controllerBuilder.watchTlsRoute,
 		controllerBuilder.watchReferenceGrant,
 		controllerBuilder.watchNamespaces,
 		controllerBuilder.watchHttpListenerOptions,
@@ -80,7 +89,7 @@ func NewBaseGatewayController(ctx context.Context, cfg GatewayConfig) error {
 		controllerBuilder.watchVirtualHostOptions,
 		controllerBuilder.watchUpstreams,
 		controllerBuilder.watchServices,
-		controllerBuilder.watchEndpoints,
+		controllerBuilder.watchEndpointSlices,
 		controllerBuilder.watchPods,
 		controllerBuilder.watchSecrets,
 		controllerBuilder.addIndexes,
@@ -109,9 +118,36 @@ type controllerBuilder struct {
 }
 
 func (c *controllerBuilder) addIndexes(ctx context.Context) error {
-	return query.IterateIndices(func(obj client.Object, field string, indexer client.IndexerFunc) error {
-		return c.cfg.Mgr.GetFieldIndexer().IndexField(ctx, obj, field, indexer)
-	})
+	var errs []error
+
+	// Index for HTTPRoute
+	if err := c.cfg.Mgr.GetFieldIndexer().IndexField(ctx, &apiv1.HTTPRoute{}, query.HttpRouteTargetField, query.IndexerByObjType); err != nil {
+		errs = append(errs, err)
+	}
+	// Index HTTPRoutes by the delegation.gateway.solo.io/label label value to lookup delegatee routes using the label
+	if err := c.cfg.Mgr.GetFieldIndexer().IndexField(ctx, &apiv1.HTTPRoute{}, query.HttpRouteDelegatedLabelSelector, query.IndexByHTTPRouteDelegationLabelSelector); err != nil {
+		errs = append(errs, err)
+	}
+
+	// Index for ReferenceGrant
+	if err := c.cfg.Mgr.GetFieldIndexer().IndexField(ctx, &apiv1beta1.ReferenceGrant{}, query.ReferenceGrantFromField, query.IndexerByObjType); err != nil {
+		errs = append(errs, err)
+	}
+
+	// Conditionally index for TCPRoute
+	if c.cfg.CRDs.Has(wellknown.TCPRouteCRDName) {
+		if err := c.cfg.Mgr.GetFieldIndexer().IndexField(ctx, &apiv1a2.TCPRoute{}, query.TcpRouteTargetField, query.IndexerByObjType); err != nil {
+			errs = append(errs, err)
+		}
+	}
+
+	if c.cfg.CRDs.Has(wellknown.TLSRouteCRDName) {
+		if err := c.cfg.Mgr.GetFieldIndexer().IndexField(ctx, &apiv1a2.TLSRoute{}, query.TlsRouteTargetField, query.IndexerByObjType); err != nil {
+			errs = append(errs, err)
+		}
+	}
+
+	return errors.Join(errs...)
 }
 
 func (c *controllerBuilder) addGwParamsIndexes(ctx context.Context) error {
@@ -159,6 +195,11 @@ func (c *controllerBuilder) addHttpLisOptIndexes(ctx context.Context) error {
 	})
 }
 
+func (c *controllerBuilder) shouldWatchSecrets() bool {
+	// watch for secrets if mtls is enabled
+	return c.cfg.ControlPlane.GlooMtlsEnabled
+}
+
 func (c *controllerBuilder) watchGw(ctx context.Context) error {
 	// setup a deployer
 	log := log.FromContext(ctx)
@@ -195,8 +236,31 @@ func (c *controllerBuilder) watchGw(ctx context.Context) error {
 			),
 		))
 
-	// watch for changes in GatewayParameters
 	cli := c.cfg.Mgr.GetClient()
+
+	// watch for secrets if needed
+	if c.shouldWatchSecrets() {
+		buildr.Watches(&corev1.Secret{}, handler.EnqueueRequestsFromMapFunc(
+			func(ctx context.Context, obj client.Object) []reconcile.Request {
+				var reqs []reconcile.Request
+				if obj.GetName() == wellknown.GlooMtlsCertName && obj.GetNamespace() == c.cfg.ControlPlane.Namespace {
+					var gwList apiv1.GatewayList
+					err := cli.List(ctx, &gwList, client.InNamespace(corev1.NamespaceAll))
+					if err != nil {
+						log.Error(err, "could not list Gateways", "namespace", corev1.NamespaceAll)
+						return reqs
+					}
+
+					for _, gw := range gwList.Items {
+						reqs = append(reqs, reconcile.Request{NamespacedName: client.ObjectKey{Namespace: gw.Namespace, Name: gw.Name}})
+					}
+					return reqs
+				}
+				return reqs
+			}))
+	}
+
+	// watch for changes in GatewayParameters
 	buildr.Watches(&v1alpha1.GatewayParameters{}, handler.EnqueueRequestsFromMapFunc(
 		func(ctx context.Context, obj client.Object) []reconcile.Request {
 			gwpName := obj.GetName()
@@ -226,7 +290,7 @@ func (c *controllerBuilder) watchGw(ctx context.Context) error {
 			return fmt.Errorf("object %T is not a client.Object", obj)
 		}
 		log.Info("watching gvk as gateway child", "gvk", gvk)
-		// unless its a service, we don't care about the status
+		// unless it's a service, we don't care about the status
 		var opts []builder.OwnsOption
 		if shouldIgnoreStatusChild(gvk) {
 			opts = append(opts, builder.WithPredicates(predicate.GenerationChangedPredicate{}))
@@ -267,11 +331,54 @@ func (c *controllerBuilder) watchGwClass(_ context.Context) error {
 		Complete(reconcile.Func(c.reconciler.ReconcileGatewayClasses))
 }
 
+func (c *controllerBuilder) watchCustomResourceDefinitions(_ context.Context) error {
+	return ctrl.NewControllerManagedBy(c.cfg.Mgr).
+		WithEventFilter(predicate.And(
+			predicate.GenerationChangedPredicate{},
+			predicate.NewPredicateFuncs(func(object client.Object) bool {
+				crd, ok := object.(*apiextensionsv1.CustomResourceDefinition)
+				if !ok {
+					return false
+				}
+				// Check if the CRD is one we care about
+				return c.cfg.CRDs.Has(crd.Name)
+			}),
+		)).
+		For(&apiextensionsv1.CustomResourceDefinition{}).
+		Complete(reconcile.Func(c.reconciler.ReconcileCustomResourceDefinitions))
+}
+
 func (c *controllerBuilder) watchHttpRoute(_ context.Context) error {
 	return ctrl.NewControllerManagedBy(c.cfg.Mgr).
-		WithEventFilter(predicate.GenerationChangedPredicate{}).
+		WithEventFilter(predicate.Or(predicate.GenerationChangedPredicate{}, predicate.AnnotationChangedPredicate{})).
 		For(&apiv1.HTTPRoute{}).
 		Complete(reconcile.Func(c.reconciler.ReconcileHttpRoutes))
+}
+
+func (c *controllerBuilder) watchTcpRoute(ctx context.Context) error {
+	if !c.cfg.CRDs.Has(wellknown.TCPRouteCRDName) {
+		log.FromContext(ctx).Info("TCPRoute type not registered in scheme; skipping TCPRoute controller setup")
+		return nil
+	}
+
+	// Proceed to set up the controller for TCPRoute
+	return ctrl.NewControllerManagedBy(c.cfg.Mgr).
+		WithEventFilter(predicate.GenerationChangedPredicate{}).
+		For(&apiv1a2.TCPRoute{}).
+		Complete(reconcile.Func(c.reconciler.ReconcileTcpRoutes))
+}
+
+func (c *controllerBuilder) watchTlsRoute(ctx context.Context) error {
+	if !c.cfg.CRDs.Has(wellknown.TLSRouteCRDName) {
+		log.FromContext(ctx).Info("TLSRoute type not registered in scheme; skipping TLSRoute controller setup")
+		return nil
+	}
+
+	// Proceed to set up the controller for TLSRoute
+	return ctrl.NewControllerManagedBy(c.cfg.Mgr).
+		WithEventFilter(predicate.GenerationChangedPredicate{}).
+		For(&apiv1a2.TLSRoute{}).
+		Complete(reconcile.Func(c.reconciler.ReconcileTlsRoutes))
 }
 
 func (c *controllerBuilder) watchReferenceGrant(_ context.Context) error {
@@ -344,10 +451,10 @@ func (c *controllerBuilder) watchPods(ctx context.Context) error {
 		Complete(reconcile.Func(c.reconciler.ReconcilePods))
 }
 
-func (c *controllerBuilder) watchEndpoints(ctx context.Context) error {
+func (c *controllerBuilder) watchEndpointSlices(ctx context.Context) error {
 	return ctrl.NewControllerManagedBy(c.cfg.Mgr).
-		For(&corev1.Endpoints{}).
-		Complete(reconcile.Func(c.reconciler.ReconcileEndpoints))
+		For(&discoveryv1.EndpointSlice{}).
+		Complete(reconcile.Func(c.reconciler.ReconcileEndpointSlices))
 }
 
 func (c *controllerBuilder) watchSecrets(ctx context.Context) error {
@@ -417,7 +524,7 @@ func (r *controllerReconciler) ReconcilePods(ctx context.Context, req ctrl.Reque
 	return ctrl.Result{}, nil
 }
 
-func (r *controllerReconciler) ReconcileEndpoints(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+func (r *controllerReconciler) ReconcileEndpointSlices(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	// eventually reconcile only effected listeners etc
 	r.kick(ctx)
 	return ctrl.Result{}, nil
@@ -436,7 +543,35 @@ func (r *controllerReconciler) ReconcileNamespaces(ctx context.Context, req ctrl
 	return ctrl.Result{}, nil
 }
 
+func (r *controllerReconciler) ReconcileCustomResourceDefinitions(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+	// For now, simply trigger the main reconciliation loop
+	r.kick(ctx)
+	return ctrl.Result{}, nil
+}
+
 func (r *controllerReconciler) ReconcileHttpRoutes(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+	// TODO: consider finding impacted gateways and queue them
+	// TODO: consider enabling this
+	//	// reconcile this specific route:
+	//	queries := query.NewData(r.cli, r.scheme)
+	//	httproute.TranslateGatewayHTTPRouteRules(queries, hr, nil)
+
+	r.kick(ctx)
+	return ctrl.Result{}, nil
+}
+
+func (r *controllerReconciler) ReconcileTcpRoutes(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+	// TODO: consider finding impacted gateways and queue them
+	// TODO: consider enabling this
+	//	// reconcile this specific route:
+	//	queries := query.NewData(r.cli, r.scheme)
+	//	httproute.TranslateGatewayHTTPRouteRules(queries, hr, nil)
+
+	r.kick(ctx)
+	return ctrl.Result{}, nil
+}
+
+func (r *controllerReconciler) ReconcileTlsRoutes(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	// TODO: consider finding impacted gateways and queue them
 	// TODO: consider enabling this
 	//	// reconcile this specific route:

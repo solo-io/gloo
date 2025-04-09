@@ -272,7 +272,7 @@ func getAndCheckDeployments(ctx context.Context, printer printers.P, opts *optio
 	if err != nil {
 		errMessage := "Gloo namespace does not exist"
 		fmt.Println(errMessage)
-		return nil, fmt.Errorf(errMessage)
+		return nil, errors.New(errMessage)
 	}
 	deployments, err := client.AppsV1().Deployments(opts.Metadata.GetNamespace()).List(ctx, metav1.ListOptions{})
 	if err != nil {
@@ -281,7 +281,7 @@ func getAndCheckDeployments(ctx context.Context, printer printers.P, opts *optio
 	if len(deployments.Items) == 0 {
 		errMessage := "Gloo is not installed"
 		fmt.Println(errMessage)
-		return nil, fmt.Errorf(errMessage)
+		return nil, errors.New(errMessage)
 	}
 	var multiErr *multierror.Error
 	var message string
@@ -391,7 +391,7 @@ func checkPods(ctx context.Context, printer printers.P, opts *options.Options) e
 			}
 
 			if errorToPrint != "" {
-				multiErr = multierror.Append(multiErr, fmt.Errorf(errorToPrint))
+				multiErr = multierror.Append(multiErr, errors.New(errorToPrint))
 			}
 		}
 	}
@@ -473,9 +473,6 @@ func checkUpstreamGroups(ctx context.Context, printer printers.P, _ *options.Opt
 		if err != nil {
 			multiErr = multierror.Append(multiErr, err)
 			continue
-		}
-		if err != nil {
-			return err
 		}
 		for _, upstreamGroup := range upstreamGroups {
 			if upstreamGroup.GetNamespacedStatuses() != nil {
@@ -709,11 +706,11 @@ func checkVirtualServices(ctx context.Context, printer printers.P, _ *options.Op
 					case core.Status_Rejected:
 						errMessage := fmt.Sprintf("Found rejected virtual service by '%s': %s ", reporter, renderMetadata(virtualService.GetMetadata()))
 						errMessage += fmt.Sprintf("(Reason: %s)", status.GetReason())
-						multiErr = multierror.Append(multiErr, fmt.Errorf(errMessage))
+						multiErr = multierror.Append(multiErr, errors.New(errMessage))
 					case core.Status_Warning:
 						errMessage := fmt.Sprintf("Found virtual service with warnings by '%s': %s ", reporter, renderMetadata(virtualService.GetMetadata()))
 						errMessage += fmt.Sprintf("(Reason: %s)", status.GetReason())
-						multiErr = multierror.Append(multiErr, fmt.Errorf(errMessage))
+						multiErr = multierror.Append(multiErr, errors.New(errMessage))
 					}
 				}
 			} else {
@@ -731,7 +728,7 @@ func checkVirtualServices(ctx context.Context, printer printers.P, _ *options.Op
 								errMessage := "Virtual service references unknown upstream: "
 								errMessage += fmt.Sprintf("(Virtual service: %s", renderMetadata(virtualService.GetMetadata()))
 								errMessage += fmt.Sprintf(" | Upstream: %s)", renderRef(us.GetUpstream()))
-								multiErr = multierror.Append(multiErr, fmt.Errorf(errMessage))
+								multiErr = multierror.Append(multiErr, errors.New(errMessage))
 							}
 						}
 					}
@@ -746,7 +743,7 @@ func checkVirtualServices(ctx context.Context, printer printers.P, _ *options.Op
 					errMessage := "Virtual service references unknown auth config:\n"
 					errMessage += fmt.Sprintf("  Virtual service: %s\n", renderMetadata(virtualService.GetMetadata()))
 					errMessage += fmt.Sprintf("  Auth Config: %s\n", renderRef(ref))
-					return fmt.Errorf(errMessage)
+					return errors.New(errMessage)
 				}
 				return nil
 			}
@@ -757,7 +754,7 @@ func checkVirtualServices(ctx context.Context, printer printers.P, _ *options.Op
 						errMessage := "Virtual service references unknown VirtualHostOption:\n"
 						errMessage += fmt.Sprintf("  Virtual service: %s\n", renderMetadata(virtualService.GetMetadata()))
 						errMessage += fmt.Sprintf("  VirtualHostOption: %s\n", renderRef(ref))
-						return fmt.Errorf(errMessage)
+						return errors.New(errMessage)
 					}
 				}
 				return nil
@@ -798,7 +795,7 @@ func checkVirtualServices(ctx context.Context, printer printers.P, _ *options.Op
 					errMessage := "Virtual service references unknown rate limit config:\n"
 					errMessage += fmt.Sprintf("  Virtual service: %s\n", renderMetadata(virtualService.GetMetadata()))
 					errMessage += fmt.Sprintf("  Rate Limit Config: %s\n", renderRef(resourceRef))
-					return fmt.Errorf(errMessage)
+					return errors.New(errMessage)
 				}
 				return nil
 			}
@@ -849,11 +846,11 @@ func checkGateways(ctx context.Context, printer printers.P, _ *options.Options, 
 					case core.Status_Rejected:
 						errMessage := fmt.Sprintf("Found rejected gateway by '%s': %s\n", reporter, renderMetadata(gateway.GetMetadata()))
 						errMessage += fmt.Sprintf("Reason: %s\n", status.GetReason())
-						multiErr = multierror.Append(multiErr, fmt.Errorf(errMessage))
+						multiErr = multierror.Append(multiErr, errors.New(errMessage))
 					case core.Status_Warning:
 						errMessage := fmt.Sprintf("Found gateway with warnings by '%s': %s\n", reporter, renderMetadata(gateway.GetMetadata()))
 						errMessage += fmt.Sprintf("Reason: %s\n", status.GetReason())
-						multiErr = multierror.Append(multiErr, fmt.Errorf(errMessage))
+						multiErr = multierror.Append(multiErr, errors.New(errMessage))
 					}
 				}
 			} else {
@@ -904,11 +901,11 @@ func checkProxies(ctx context.Context, printer printers.P, opts *options.Options
 					case core.Status_Rejected:
 						errMessage := fmt.Sprintf("Found rejected proxy by '%s': %s\n", reporter, renderMetadata(proxy.GetMetadata()))
 						errMessage += fmt.Sprintf("Reason: %s\n", status.GetReason())
-						multiErr = multierror.Append(multiErr, fmt.Errorf(errMessage))
+						multiErr = multierror.Append(multiErr, errors.New(errMessage))
 					case core.Status_Warning:
 						errMessage := fmt.Sprintf("Found proxy with warnings by '%s': %s\n", reporter, renderMetadata(proxy.GetMetadata()))
 						errMessage += fmt.Sprintf("Reason: %s\n", status.GetReason())
-						multiErr = multierror.Append(multiErr, fmt.Errorf(errMessage))
+						multiErr = multierror.Append(multiErr, errors.New(errMessage))
 					}
 				}
 			} else {
@@ -952,7 +949,7 @@ func checkSecrets(ctx context.Context, printer printers.P, _ *options.Options, n
 	client, err := helpers.GetSecretClient(ctx, namespaces)
 	if err != nil {
 		multiErr = multierror.Append(multiErr, err)
-		printer.AppendStatus("secrets", fmt.Sprintf("%v Errors!", multiErr.Len()))
+		printer.AppendStatus("Secrets", fmt.Sprintf("%v Errors!", multiErr.Len()))
 		return multiErr
 	}
 

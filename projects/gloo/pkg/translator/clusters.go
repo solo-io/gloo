@@ -1,14 +1,14 @@
 package translator
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 	"time"
 
-	"errors"
-
 	envoy_config_cluster_v3 "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
 	envoy_config_core_v3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
+	envoy_config_listener_v3 "github.com/envoyproxy/go-control-plane/envoy/config/listener/v3"
 	"github.com/envoyproxy/go-control-plane/pkg/wellknown"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/duration"
@@ -16,6 +16,8 @@ import (
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/rotisserie/eris"
 	"github.com/solo-io/gloo/pkg/utils/api_conversion"
+	"github.com/solo-io/gloo/pkg/utils/envutils"
+	"github.com/solo-io/gloo/projects/gloo/constants"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	v1_options "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/ssl"
@@ -37,7 +39,6 @@ func (t *translatorInstance) computeClusters(
 	upstreamRefKeyToEndpoints map[string][]*v1.Endpoint,
 	proxy *v1.Proxy,
 ) ([]*envoy_config_cluster_v3.Cluster, map[*envoy_config_cluster_v3.Cluster]*v1.Upstream) {
-
 	ctx, span := trace.StartSpan(params.Ctx, "gloo.translator.computeClusters")
 	defer span.End()
 	params.Ctx = contextutils.WithLogger(ctx, "compute_clusters")
@@ -70,28 +71,70 @@ func (t *translatorInstance) computeClusters(
 	return clusters, clusterToUpstreamMap
 }
 
-// This function is intented to be used when translating a single upstream outside of the context of a full snapshot.
-// This happens in GGv2 krt implementation.
+type ClusterResult struct {
+	Cluster *envoy_config_cluster_v3.Cluster
+
+	AdditionalClusters  []*envoy_config_cluster_v3.Cluster
+	AdditionalListeners []*envoy_config_listener_v3.Listener
+}
+
+// This function is intended to be used when translating a single upstream outside of the context of a full snapshot.
+// This happens in the kube gateway krt implementation.
 func (t *translatorInstance) TranslateCluster(
 	params plugins.Params,
 	upstream *v1.Upstream,
-) (*envoy_config_cluster_v3.Cluster, []error) {
+) (*ClusterResult, reporter.ResourceReports) {
 	t.lock.Lock()
 	defer t.lock.Unlock()
+
+	reports := reporter.ResourceReports{}
+
+	// prepare the normal upstream plugins for calling
 	for _, p := range t.pluginRegistry.GetUpstreamPlugins() {
 		p.Init(plugins.InitParams{Ctx: params.Ctx, Settings: t.settings})
 	}
+
+	// upstreams may create additional clusters and listeners, prepare
+	// the those plugins to be called
+	for _, p := range t.pluginRegistry.GetUpstreamGeneratedResourcesPlugins() {
+		p.Init(plugins.InitParams{Ctx: params.Ctx, Settings: t.settings})
+	}
+
 	// as we don't know if we have endpoints for this upstream,
-	// we will let the upstream plugins will set the cluster type
+	// we will let the upstream plugins set the cluster type
 	eds := false
-	c, err := t.computeCluster(params, upstream, eds)
+	c, errs := t.computeCluster(params, upstream, eds)
+	if errs != nil {
+		reports.AddErrors(upstream, errs...)
+		return nil, reports
+	}
+
 	if c != nil && c.GetEdsClusterConfig() != nil {
 		endpointClusterName, err2 := GetEndpointClusterName(c.GetName(), upstream)
 		if err2 == nil {
 			c.GetEdsClusterConfig().ServiceName = endpointClusterName
 		}
 	}
-	return c, err
+
+	clusterResult := &ClusterResult{
+		Cluster:             c,
+		AdditionalClusters:  []*envoy_config_cluster_v3.Cluster{},
+		AdditionalListeners: []*envoy_config_listener_v3.Listener{},
+	}
+
+	// call the upstream generated resources plugins
+	for _, p := range t.pluginRegistry.GetUpstreamGeneratedResourcesPlugins() {
+		additionalClusters, additionalListeners, err := p.UpstreamGeneratedResources(
+			params, upstream, c, reports)
+		if err != nil {
+			reports.AddError(upstream, err)
+			return nil, reports
+		}
+		clusterResult.AdditionalClusters = append(clusterResult.AdditionalClusters, additionalClusters...)
+		clusterResult.AdditionalListeners = append(clusterResult.AdditionalListeners, additionalListeners...)
+	}
+
+	return clusterResult, reports
 }
 
 func (t *translatorInstance) computeCluster(
@@ -148,7 +191,7 @@ func (t *translatorInstance) initializeCluster(
 		LbSubsetConfig:   createLbConfig(upstream),
 		HealthChecks:     hcConfig,
 		OutlierDetection: detectCfg,
-		//defaults to Cluster_USE_CONFIGURED_PROTOCOL
+		// defaults to Cluster_USE_CONFIGURED_PROTOCOL
 		ProtocolSelection: envoy_config_cluster_v3.Cluster_ClusterProtocolSelection(upstream.GetProtocolSelection()),
 		// this field can be overridden by plugins
 		ConnectTimeout:            ptypes.DurationProto(ClusterConnectionTimeout),
@@ -157,6 +200,10 @@ func (t *translatorInstance) initializeCluster(
 		RespectDnsTtl:             upstream.GetRespectDnsTtl().GetValue(),
 		DnsRefreshRate:            dnsRefreshRate,
 		PreconnectPolicy:          preconnect,
+	}
+	// for kube gateway, use new stats name format
+	if envutils.IsEnvTruthy(constants.GlooGatewayEnableK8sGwControllerEnv) {
+		out.AltStatName = UpstreamToClusterStatsName(upstream)
 	}
 
 	if sslConfig := upstream.GetSslConfig(); sslConfig != nil {
@@ -354,7 +401,6 @@ func getCircuitBreakers(cfgs ...*v1.CircuitBreakerConfig) *envoy_config_cluster_
 // it consumes an ordered list of preconnect policies
 // it returns the first non-nil policy
 func getPreconnectPolicy(cfgs ...*v1.PreconnectPolicy) (*envoy_config_cluster_v3.Cluster_PreconnectPolicy, error) {
-
 	// since we dont want strict reliance on envoy's current api
 	// but still able to map as closely as possible
 	// if not nil then convert the gloo configurations to envoy
@@ -380,7 +426,6 @@ func getPreconnectPolicy(cfgs ...*v1.PreconnectPolicy) (*envoy_config_cluster_v3
 			return nil, errors.New("invalid preconnect policy: " + strings.Join(eStrings, "; "))
 		}
 		return &envoy_config_cluster_v3.Cluster_PreconnectPolicy{
-
 			PerUpstreamPreconnectRatio: curConfig.GetPerUpstreamPreconnectRatio(),
 			PredictivePreconnectRatio:  curConfig.GetPredictivePreconnectRatio(),
 		}, nil
@@ -517,7 +562,6 @@ func validateRouteDestinationForValidLambdas(
 			}
 		}
 	}
-
 }
 
 // Apply defaults to UpstreamSslConfig

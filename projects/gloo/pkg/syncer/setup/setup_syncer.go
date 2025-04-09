@@ -338,11 +338,19 @@ func (s *setupSyncer) Setup(ctx context.Context, kubeCache kube.SharedCache, mem
 	var xdsPort int32
 	switch settings.GetConfigSource().(type) {
 	case *v1.Settings_KubernetesConfigSource:
-		xdsHost = GetControlPlaneXdsHost()
-		xdsPort, err = GetControlPlaneXdsPort(ctx, opts.KubeServiceClient)
+		glooService, err := GetControlPlaneService(ctx, writeNamespace, opts.KubeServiceClient)
 		if err != nil {
 			return err
 		}
+
+		xdsHost = GetControlPlaneXdsHost(glooService)
+		xdsPort, err = GetControlPlaneXdsPort(glooService)
+		if err != nil {
+			return err
+		}
+
+		logger := contextutils.LoggerFrom(ctx)
+		logger.Infof("using xds host %v and xds port %v", xdsHost, xdsPort)
 	}
 
 	// process grpcserver options to understand if any servers will need a restart
@@ -450,6 +458,7 @@ func (s *setupSyncer) Setup(ctx context.Context, kubeCache kube.SharedCache, mem
 	opts.KubeClient = clientset
 	opts.DevMode = settings.GetDevMode()
 	opts.Settings = settings
+	opts.KrtDebugger = s.setupOpts.KrtDebugger
 
 	opts.Consul.DnsServer = settings.GetConsul().GetDnsAddress()
 	if len(opts.Consul.DnsServer) == 0 {
@@ -903,7 +912,7 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 		EnableK8sGatewayIntegration: opts.GlooGateway.EnableK8sGatewayController,
 	})
 
-	startFuncs["admin-server"] = AdminServerStartFunc(snapshotHistory)
+	startFuncs["admin-server"] = AdminServerStartFunc(snapshotHistory, opts.KrtDebugger)
 
 	if opts.ProxyReconcileQueue != nil {
 		go runQueue(watchOpts.Ctx, opts.ProxyReconcileQueue, opts.WriteNamespace, proxyClient)
@@ -1374,15 +1383,15 @@ func runQueue(ctx context.Context, proxyReconcileQueue ggv2utils.AsyncQueue[gloo
 		// the proxy type key/value must stay in sync with the one defined in projects/gateway2/translator/gateway_translator.go
 		utils.ProxyTypeKey: utils.GatewayApiProxyValue,
 	}
+	ctx = contextutils.WithLogger(ctx, "proxyCache")
+	logger := contextutils.LoggerFrom(ctx)
+
 	proxyReconciler := gloov1.NewProxyReconciler(proxyClient, statusutils.NewNoOpStatusClient())
 	for {
 		proxyList, err := proxyReconcileQueue.Dequeue(ctx)
 		if err != nil {
 			return
 		}
-		ctx = contextutils.WithLogger(ctx, "proxyCache")
-		logger := contextutils.LoggerFrom(ctx)
-
 		// Proxy CR is located in the writeNamespace, which may be different from the originating Gateway CR
 		err = proxyReconciler.Reconcile(
 			writeNamespace,

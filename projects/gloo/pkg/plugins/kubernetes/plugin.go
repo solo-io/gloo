@@ -11,6 +11,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/client-go/kubernetes"
+	"knative.dev/pkg/network"
 
 	"github.com/solo-io/go-utils/contextutils"
 	corecache "github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/cache"
@@ -54,9 +55,10 @@ func (p *plugin) Resolve(u *v1.Upstream) (*url.URL, error) {
 	if !ok {
 		return nil, nil
 	}
-	return url.Parse(fmt.Sprintf("tcp://%v.%v.svc.cluster.local:%v",
+	return url.Parse(fmt.Sprintf("tcp://%v.%v.svc.%s:%v",
 		kubeSpec.Kube.GetServiceName(),
 		kubeSpec.Kube.GetServiceNamespace(),
+		network.GetClusterDomainName(),
 		kubeSpec.Kube.GetServicePort(),
 	))
 }
@@ -79,13 +81,12 @@ func (p *plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *cl
 	// in a future PR plugins will have access to krt context, so they can use fetch.
 	if p.svcCollection != nil {
 		// TODO: change this to fetch once we have krt context in plugins in a follow-up
-		if p.svcCollection.GetKey(krt.Key[*corev1.Service](krt.Named{
+		if p.svcCollection.GetKey(krt.Named{
 			Name:      kube.Kube.GetServiceName(),
 			Namespace: kube.Kube.GetServiceNamespace(),
-		}.ResourceName())) != nil {
+		}.ResourceName()) != nil {
 			return nil
 		}
-
 	} else {
 
 		lister := p.kubeCoreCache.NamespacedServiceLister(kube.Kube.GetServiceNamespace())

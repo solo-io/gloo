@@ -1,0 +1,20 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: envoy-gloo
+    dependencyTag: v1.33.0-patch2
+    issueLink: https://github.com/solo-io/solo-projects/issues/7787
+  - type: FIX
+    issueLink: https://github.com/kgateway-dev/kgateway/issues/10192
+    resolvesIssue: true
+    description: >-
+      Previously, Gloo did not provide any means to determine whether a request
+      to an AWS Lambda upstream was rate-limited. With this fix, if the AWS
+      Lambda upstream responds to Gloo with a HTTP 429, Gloo will return an
+      HTTP 500 response to the client and set the
+      `x-envoygloo-lambda-statuscode` and `x-envoygloo-lambda-statusreason`
+      headers. The `statuscode` header will be set to `429` to indicate the
+      value received from the Lambda upstream, and the `statusreason` header
+      will be set as described in the
+      [Lambda
+      documentation](https://docs.aws.amazon.com/lambda/latest/api/API_Invoke.html)).

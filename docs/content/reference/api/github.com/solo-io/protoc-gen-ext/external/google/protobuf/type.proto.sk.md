@@ -1,6 +1,6 @@
 
 ---
-title: "type.proto"
+title: "Type"
 weight: 5
 ---
 
@@ -40,7 +40,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
  
-#### Types:
+**Types:**
 
 
 - [Type](#type)
@@ -54,14 +54,14 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
  
 
-##### Enums:
+**Enums:**
 
 
 	- [Syntax](#syntax)
 
 
 
-##### Source File: [github.com/solo-io/protoc-gen-ext/external/google/protobuf/type.proto](https://github.com/solo-io/protoc-gen-ext/blob/main/external/google/protobuf/type.proto)
+**Source File: [github.com/solo-io/protoc-gen-ext/external/google/protobuf/type.proto](https://github.com/solo-io/protoc-gen-ext/blob/main/external/google/protobuf/type.proto)**
 
 
 

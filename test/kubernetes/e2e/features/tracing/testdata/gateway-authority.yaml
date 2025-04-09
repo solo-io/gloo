@@ -1,0 +1,27 @@
+# Avoid using the default gateway because we don't want to destroy it when this
+# test is over - that will break other tests that depend on the default gateway
+# existing.
+apiVersion: gateway.solo.io/v1
+kind: Gateway
+metadata:
+  labels:
+    app: gloo
+    app.kubernetes.io/name: gateway-proxy-tracing-authority
+  name: gateway-proxy-tracing-authority
+spec:
+  bindAddress: '::'
+  bindPort: 18082
+  proxyNames:
+    - gateway-proxy
+  httpGateway:
+    virtualServiceSelector:
+      gateway-type: tracing
+    options:
+      httpConnectionManagerSettings:
+        tracing:
+          openTelemetryConfig:
+            collectorUpstreamRef:
+              name: opentelemetry-collector
+              namespace: default
+            grpcService:
+              authority: test-authority

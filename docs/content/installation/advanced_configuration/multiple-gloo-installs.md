@@ -12,25 +12,66 @@ In this document, we will review how to deploy multiple instances of Gloo Gatewa
 
 ---
 
-## Scoping Gloo Gateway to specific namespaces
+## Scope Gloo Gateway to specific namespaces
 
-When using the default installation, Gloo Gateway will watch all namespaces for Kubernetes services and Gloo Gateway CRDs. This means that any Kubernetes service can be a destination for any VirtualService in the cluster.
+By default, Gloo Gateway watches all namespaces in a cluster for Kubernetes services and Gloo Gateway custom resources. However, if you have many namespaces, translation time might slow down due to the amount of resources that Gloo Gateway must attempt to process.
 
-Gloo Gateway can be configured to only watch specific namespaces, meaning Gloo Gateway will not see services and CRDs in any namespaces other than those provided in the {{< protobuf name="gloo.solo.io.Settings" display="watchNamespaces setting">}}.
+In this case, you might want to scope Gloo Gateway to watch only specific namespaces. Gloo Gateway can detect Kubernetes services and Gloo Gateway resources only in namespaces that you list, and cannot detect services and custom resources in any other namespaces. This setting can improve translation time by reducing the number of resources that Gloo Gateway attempts to process across all namespaces in your cluster.
 
-Additionally, Gloo reads configuration for the Gateway custom resource only in the namespace that the gateway controller is deployed by default. For Gateway configuration in other namespaces, such as to support multiple gateways, enable the {{< protobuf name="gloo.solo.io.Settings" display="GatewayOptions.readGatewaysFromAllNamespaces setting">}}. 
+Additionally, Gloo Gateway reads configuration for the Gateway custom resource only in the namespace that the gateway controller is deployed to by default. For Gateway configuration in other namespaces, such as to support multiple gateways, you can enable the `gateway.readGatewaysFromAllNamespaces` setting.
 
-By leveraging these options, we can install Gloo Gateway to as many namespaces we need, ensuring that the `watchNamespaces` do not overlap.
+### Specify namespaces to watch for Kuberenetes services and Gloo Gateway CRs
 
-{{% notice note %}}
-`watchNamespaces` can be shared between Gloo Gateway instances, so long as any Virtual Services are not written to a shared namespace. When this happens, both Gloo Gateway instances will attempt to apply the same routing config, which can cause domain conflicts.
-{{% /notice %}}
+To configure namespaces for Gloo Gateway to watch for Kubernetes services and Gloo Gateway CRs, you can use one of the following Helm settings:
+* `settings.watchNamespaces`: Create a static list of namespaces for Gloo Gateway to watch. This setting is recommended if you have a set of configuration namespaces that is unlikely to change often.
+* `settings.watchNamespaceSelectors.matchLabels` and `settings.watchNamespaceSelectors.matchExpressions`: Configure Gloo Gateway to watch namespaces based on a namespace selector, such as a label or an expression. This setting helps you dynamically determine the list of namespaces to watch, instead of using a static list of namespaces that you must update if you need to add or remove a namespace.
 
-Currently, installing Gloo Gateway with specific `watchNamespaces` requires installation via the Helm chart.
+For example, to dynamically watch namespaces that have the `gloo-translate: enabled` label, the `env: prod` label, or the `env: dev` label, your Helm settings might look like the following.
+```yaml
+...
+settings:
+  watchNamespaceSelectors:
+  - matchLabels:
+      gloo-translate: enabled
+  - matchExpressions:
+    - key: env
+      operator: In
+      values:
+        - prod
+        - dev
+```
+
+### Specify namespaces to watch for Gateway configuration
+
+To configure namespaces for Gloo Gateway to watch for the Gateway custom resource configuration, you can enable the `{{< protobuf name="gloo.solo.io.Settings" display="gateway.readGatewaysFromAllNamespaces">}}` setting. This setting allows Gloo Gateway to read Gateway configuration from any namespaces that are watched, such as the namespaces you specify in the `watchNamespaces` or `watchNamespaceSelectors` settings.
+
+```yaml
+...
+gloo:
+  gateway:
+    readGatewaysFromAllNamespaces: true
+```
+
+### Observability
+
+To help you monitor the namespaces that Gloo Gateway watches, you can use the following related logs and metrics.
+
+**Logs**: These debug-level logs in the `gloo` deployment indicate when the set of watched namespaces has changed.
+* `"received updated list of namespaces", zap.Any("namespaces", newSnapshot.Kubenamespaces)`
+* `"list of namespaces to watch", zap.Any("oldNamespacesToWatch", oldNamespacesToWatch), zap.Any("newNamespacesToWatch", newNamespacesToWatch), zap.Any("namespacesChanged", namespacesChanged)`
+
+**Metrics**: This metric indicates how many namespaces Gloo Gateway currently watches. You can use this metric in conjunction with the `gloo.solo.io/setups_run` metric, which indicates how often the control plane configuration reloads due to Settings configuration changes. These metrics can help you determine whether namespace cycling causes more control plane configuration reloads to run than necessary.
+* `gloo.solo.io/namespaces_watched`
 
 ---
 
-## Installing Namespace-Scoped Gloo Gateway with Helm
+## Install namespace-scoped Gloo Gateway with Helm
+
+By leveraging namespace scoping options, you can install Gloo Gateway to as many namespaces as needed without overlap.
+
+{{% notice note %}}
+`watchNamespaces` can be shared between Gloo Gateway instances, as long as any Virtual Services are not written to a shared namespace. When this happens, both Gloo Gateway instances will attempt to apply the same routing config, which can cause domain conflicts.
+{{% /notice %}}
 
 In this section we'll deploy Gloo Gateway twice, each instance to a different namespace, with two different Helm value files. 
 

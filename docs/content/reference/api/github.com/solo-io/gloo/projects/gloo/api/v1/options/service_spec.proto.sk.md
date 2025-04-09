@@ -1,6 +1,6 @@
 
 ---
-title: "service_spec.proto"
+title: "ServiceSpec"
 weight: 5
 ---
 
@@ -8,7 +8,7 @@ weight: 5
 
 
 ### Package: `options.gloo.solo.io` 
-#### Types:
+**Types:**
 
 
 - [ServiceSpec](#servicespec)
@@ -16,7 +16,7 @@ weight: 5
 
 
 
-##### Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/options/service_spec.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/options/service_spec.proto)
+**Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/options/service_spec.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/options/service_spec.proto)**
 
 
 

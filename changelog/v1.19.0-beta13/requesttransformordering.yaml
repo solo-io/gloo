@@ -1,0 +1,5 @@
+changelog:
+- type: FIX
+  issueLink: https://github.com/solo-io/solo-projects/issues/7882
+  resolvesIssue: false
+  description: Fixes a bug where the route ordering affects the deprecated aws requiretransform functionality.

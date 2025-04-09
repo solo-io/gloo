@@ -3,15 +3,22 @@ package tests
 import (
 	"github.com/solo-io/gloo/test/kubernetes/e2e"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/admin_server"
+	"github.com/solo-io/gloo/test/kubernetes/e2e/features/crd_categories"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/deployer"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/directresponse"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/headless_svc"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/http_listener_options"
+	"github.com/solo-io/gloo/test/kubernetes/e2e/features/http_tunnel"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/listener_options"
+	"github.com/solo-io/gloo/test/kubernetes/e2e/features/metrics"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/port_routing"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/route_delegation"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/route_options"
-	"github.com/solo-io/gloo/test/kubernetes/e2e/features/services"
+	"github.com/solo-io/gloo/test/kubernetes/e2e/features/server_tls"
+	"github.com/solo-io/gloo/test/kubernetes/e2e/features/services/httproute"
+	"github.com/solo-io/gloo/test/kubernetes/e2e/features/services/tcproute"
+	"github.com/solo-io/gloo/test/kubernetes/e2e/features/services/tlsroute"
+	"github.com/solo-io/gloo/test/kubernetes/e2e/features/tracing"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/upstreams"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/virtualhost_options"
 )
@@ -25,12 +32,19 @@ func KubeGatewaySuiteRunner() e2e.SuiteRunner {
 	kubeGatewaySuiteRunner.Register("RouteOptions", route_options.NewTestingSuite)
 	kubeGatewaySuiteRunner.Register("VirtualHostOptions", virtualhost_options.NewTestingSuite)
 	kubeGatewaySuiteRunner.Register("Upstreams", upstreams.NewTestingSuite)
-	kubeGatewaySuiteRunner.Register("Services", services.NewTestingSuite)
+	kubeGatewaySuiteRunner.Register("HTTPRouteServices", httproute.NewTestingSuite)
+	kubeGatewaySuiteRunner.Register("TCPRouteServices", tcproute.NewTestingSuite)
+	kubeGatewaySuiteRunner.Register("TLSRouteServices", tlsroute.NewTestingSuite)
 	kubeGatewaySuiteRunner.Register("HeadlessSvc", headless_svc.NewK8sGatewayHeadlessSvcSuite)
 	kubeGatewaySuiteRunner.Register("PortRouting", port_routing.NewK8sGatewayTestingSuite)
 	kubeGatewaySuiteRunner.Register("RouteDelegation", route_delegation.NewTestingSuite)
 	kubeGatewaySuiteRunner.Register("GlooAdminServer", admin_server.NewTestingSuite)
 	kubeGatewaySuiteRunner.Register("DirectResponse", directresponse.NewTestingSuite)
+	kubeGatewaySuiteRunner.Register("CRDCategories", crd_categories.NewTestingSuite)
+	kubeGatewaySuiteRunner.Register("Metrics", metrics.NewTestingSuite)
+	kubeGatewaySuiteRunner.Register("Tracing", tracing.NewK8sGatewayTestingSuite)
+	kubeGatewaySuiteRunner.Register("ServerTls", server_tls.NewK8sTestingSuite)
+	kubeGatewaySuiteRunner.Register("HTTPTunnel", http_tunnel.NewTestingSuite)
 
 	return kubeGatewaySuiteRunner
 }

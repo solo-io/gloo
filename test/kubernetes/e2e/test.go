@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
+	"path"
 	"path/filepath"
 	"runtime"
-	"strings"
 	"testing"
 	"time"
 
@@ -19,6 +19,12 @@ import (
 	"github.com/solo-io/gloo/test/kubernetes/testutils/helper"
 	testruntime "github.com/solo-io/gloo/test/kubernetes/testutils/runtime"
 	"github.com/solo-io/gloo/test/testutils"
+
+	state_dump_utils "github.com/solo-io/gloo/pkg/utils/statedumputils"
+)
+
+const (
+	defaultTearDown = true
 )
 
 // MustTestHelper returns the SoloTestHelper used for e2e tests
@@ -96,6 +102,12 @@ func CreateTestInstallationForCluster(
 			WithClusterContext(clusterContext).
 			WithGlooGatewayContext(glooGatewayContext),
 
+		AssertionsT: func(t *testing.T) *assertions.Provider {
+			return assertions.NewProvider(t).
+				WithClusterContext(clusterContext).
+				WithGlooGatewayContext(glooGatewayContext)
+		},
+
 		// GeneratedFiles contains the unique location where files generated during the execution
 		// of tests against this installation will be stored
 		// By creating a unique location, per TestInstallation and per Cluster.Name we guarantee isolation
@@ -127,7 +139,14 @@ type TestInstallation struct {
 	Actions *actions.Provider
 
 	// Assertions is the entity that creates assertions that can be executed by the Operator
+	//
+	// Deprecated: Use AssertionsT to scope the assertion to the current test and not the root suite.
+	// This avoids failure being triggered on the parent and T.Failed being set incorrectly in
+	// AfterTest handlers.
 	Assertions *assertions.Provider
+
+	// AssertionsT creates an assertion provider that is scoped to the provided test
+	AssertionsT func(*testing.T) *assertions.Provider
 
 	// GeneratedFiles is the collection of directories and files that this test installation _may_ create
 	GeneratedFiles GeneratedFiles
@@ -192,8 +211,13 @@ func (i *TestInstallation) InstallGlooGatewayWithTestHelper(ctx context.Context,
 	i.InstallGlooGateway(ctx, installFn)
 }
 
+func (i *TestInstallation) IsGatewayInstalled(ctx context.Context) bool {
+	return i.Assertions.CheckResourcesOk(ctx) == nil
+}
+
 func (i *TestInstallation) InstallGlooGateway(ctx context.Context, installFn func(ctx context.Context) error) {
-	if !testutils.ShouldSkipInstall() {
+
+	if !testutils.ShouldSkipInstall(i.IsGatewayInstalled(ctx)) {
 		err := installFn(ctx)
 		i.Assertions.Require.NoError(err)
 		i.Assertions.EventuallyInstallationSucceeded(ctx)
@@ -217,7 +241,7 @@ func (i *TestInstallation) UninstallGlooGatewayWithTestHelper(ctx context.Contex
 }
 
 func (i *TestInstallation) UninstallGlooGateway(ctx context.Context, uninstallFn func(ctx context.Context) error) {
-	if testutils.ShouldSkipInstall() {
+	if !testutils.ShouldTearDown(defaultTearDown) {
 		return
 	}
 	err := uninstallFn(ctx)
@@ -225,13 +249,19 @@ func (i *TestInstallation) UninstallGlooGateway(ctx context.Context, uninstallFn
 	i.Assertions.EventuallyUninstallationSucceeded(ctx)
 }
 
+type PreFailHandlerOption struct {
+	TestName string
+}
+
 // PreFailHandler is the function that is invoked if a test in the given TestInstallation fails
-func (i *TestInstallation) PreFailHandler(ctx context.Context) {
-	// This is a work in progress
+func (i *TestInstallation) PreFailHandler(ctx context.Context, options ...PreFailHandlerOption) {
 	// The idea here is we want to accumulate ALL information about this TestInstallation into a single directory
 	// That way we can upload it in CI, or inspect it locally
 
 	failureDir := i.GeneratedFiles.FailureDir
+	if len(options) > 0 && len(options[0].TestName) > 0 {
+		failureDir = path.Join(failureDir, options[0].TestName)
+	}
 	err := os.Mkdir(failureDir, os.ModePerm)
 	// We don't want to fail on the output directory already existing. This could occur
 	// if multiple tests running in the same cluster from the same installation namespace
@@ -240,80 +270,12 @@ func (i *TestInstallation) PreFailHandler(ctx context.Context) {
 		i.Assertions.Require.NoError(err)
 	}
 
-	glooLogFilePath := filepath.Join(failureDir, "gloo.log")
-	glooLogFile, err := os.OpenFile(glooLogFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, os.ModePerm)
-	i.Assertions.Require.NoError(err)
-	defer glooLogFile.Close()
-
-	glooLogsCmd := i.Actions.Kubectl().Command(ctx, "logs", "-n", i.Metadata.InstallNamespace, "deployments/gloo")
-	_ = glooLogsCmd.WithStdout(glooLogFile).WithStderr(glooLogFile).Run()
-
-	edgeGatewayLogFilePath := filepath.Join(failureDir, "edge_gateway.log")
-	edgeGatewayLogFile, err := os.OpenFile(edgeGatewayLogFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, os.ModePerm)
-	i.Assertions.Require.NoError(err)
-	defer edgeGatewayLogFile.Close()
-
-	kubeGatewayLogFilePath := filepath.Join(failureDir, "kube_gateway.log")
-	kubeGatewayLogFile, err := os.OpenFile(kubeGatewayLogFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, os.ModePerm)
-	i.Assertions.Require.NoError(err)
-	defer kubeGatewayLogFile.Close()
-
+	// The kubernetes/e2e tests may use multiple namespaces, so we need to dump all of them
 	namespaces, err := i.Actions.Kubectl().Namespaces(ctx)
 	i.Assertions.Require.NoError(err)
-	for _, n := range namespaces {
-		edgeGatewayLogFile.WriteString(fmt.Sprintf("Logs for edge gateway proxies in namespace %s\n", n))
-		edgeGatewayLogsCmd := i.Actions.Kubectl().Command(ctx, "logs", "--all-containers", "--namespace", n, "--prefix", "-l", "gloo=gateway-proxy")
-		_ = edgeGatewayLogsCmd.WithStdout(edgeGatewayLogFile).WithStderr(edgeGatewayLogFile).Run()
-		edgeGatewayLogFile.WriteString("----------------------------------------------------------------------------------------------------------\n")
 
-		kubeGatewayLogFile.WriteString(fmt.Sprintf("Logs for kube gateway proxies in namespace %s\n", n))
-		kubeGatewayLogsCmd := i.Actions.Kubectl().Command(ctx, "logs", "--all-containers", "--namespace", n, "--prefix", "-l", "gloo=kube-gateway")
-		_ = kubeGatewayLogsCmd.WithStdout(kubeGatewayLogFile).WithStderr(kubeGatewayLogFile).Run()
-		kubeGatewayLogFile.WriteString("----------------------------------------------------------------------------------------------------------\n")
-	}
-
-	clusterStateFilePath := filepath.Join(failureDir, "cluster_state.log")
-	clusterStateFile, err := os.OpenFile(clusterStateFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, os.ModePerm)
-	i.Assertions.Require.NoError(err)
-	defer clusterStateFile.Close()
-
-	kubectlGetAllCmd := i.Actions.Kubectl().Command(ctx, "get", "all", "-A", "-owide")
-	_ = kubectlGetAllCmd.WithStdout(clusterStateFile).WithStderr(clusterStateFile).Run()
-	clusterStateFile.WriteString("\n")
-
-	resourcesToGet := []string{
-		// Kubernetes resources
-		"secrets",
-		// Kube GW API resources
-		"gateways.gateway.networking.k8s.io",
-		"gatewayclasses.gateway.networking.k8s.io",
-		"httproutes.gateway.networking.k8s.io",
-		"referencegrants.gateway.networking.k8s.io",
-		// GG Kube GW resources
-		"gatewayparameters.gateway.gloo.solo.io",
-		"listeneroptions.gateway.solo.io",     // only implemented for kube gw as of now
-		"httplisteneroptions.gateway.solo.io", // only implemented for kube gw as of now
-		// GG Gloo resources
-		"graphqlapis.graphql.gloo.solo.io",
-		"proxies.gloo.solo.io",
-		"settings.gloo.solo.io",
-		"upstreamgroups.gloo.solo.io",
-		"upstreams.gloo.solo.io",
-		// GG Edge GW resources
-		"gateways.gateway.solo.io",
-		"httpgateways.gateway.solo.io",
-		"tcpgateways.gateway.solo.io",
-		"virtualservices.gateway.solo.io",
-		// Shared GW resources
-		"routeoptions.gateway.solo.io",
-		"virtualhostoptions.gateway.solo.io",
-		// Dataplane extensions resources
-		"authconfigs.enterprise.gloo.solo.io",
-		"ratelimitconfigs.ratelimit.solo.io",
-	}
-	kubectlGetResourcesCmd := i.Actions.Kubectl().Command(ctx, "get", strings.Join(resourcesToGet, ","), "-A", "-owide")
-	_ = kubectlGetResourcesCmd.WithStdout(clusterStateFile).WithStderr(clusterStateFile).Run()
-	clusterStateFile.WriteString("\n")
+	// Dump the logs and state of the cluster
+	state_dump_utils.StandardCIDumpOnFail(os.Stdout, failureDir, namespaces)()
 }
 
 // GeneratedFiles is a collection of files that are generated during the execution of a set of tests

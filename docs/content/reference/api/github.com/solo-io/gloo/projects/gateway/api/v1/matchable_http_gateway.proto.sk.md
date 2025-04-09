@@ -1,6 +1,6 @@
 
 ---
-title: "matchable_http_gateway.proto"
+title: "MatchableHttpGateway"
 weight: 5
 ---
 
@@ -8,7 +8,7 @@ weight: 5
 
 
 ### Package: `gateway.solo.io` 
-#### Types:
+**Types:**
 
 
 - [MatchableHttpGateway](#matchablehttpgateway) **Top-Level Resource**
@@ -17,7 +17,7 @@ weight: 5
 
 
 
-##### Source File: [github.com/solo-io/gloo/projects/gateway/api/v1/matchable_http_gateway.proto](https://github.com/solo-io/gloo/blob/main/projects/gateway/api/v1/matchable_http_gateway.proto)
+**Source File: [github.com/solo-io/gloo/projects/gateway/api/v1/matchable_http_gateway.proto](https://github.com/solo-io/gloo/blob/main/projects/gateway/api/v1/matchable_http_gateway.proto)**
 
 
 
@@ -66,7 +66,7 @@ and FilterChain configuration (MatchableHttpGateway CR)
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `sourcePrefixRanges` | [[]solo.io.envoy.config.core.v3.CidrRange](../../../../gloo/api/external/envoy/config/core/v3/address.proto.sk/#cidrrange) | CidrRange specifies an IP Address and a prefix length to construct the subnet mask for a CIDR range. See https://www.envoyproxy.io/docs/envoy/latest/api-v3/config/core/v3/address.proto#envoy-v3-api-msg-config-core-v3-cidrrange. |
+| `sourcePrefixRanges` | []solo.io.envoy.config.core.v3.CidrRange | CidrRange specifies an IP Address and a prefix length to construct the subnet mask for a CIDR range. See https://www.envoyproxy.io/docs/envoy/latest/api-v3/config/core/v3/address.proto#envoy-v3-api-msg-config-core-v3-cidrrange. |
 | `sslConfig` | [.gloo.solo.io.SslConfig](../../../../gloo/api/v1/ssl/ssl.proto.sk/#sslconfig) | Ssl configuration applied to the FilterChain: - FilterChainMatch: https://www.envoyproxy.io/docs/envoy/latest/api-v3/config/listener/v3/listener_components.proto#config-listener-v3-filterchainmatch) - TransportSocket: https://www.envoyproxy.io/docs/envoy/latest/api-v3/config/core/v3/base.proto#envoy-v3-api-msg-config-core-v3-transportsocket. |
 
 

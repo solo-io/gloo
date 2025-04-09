@@ -37,7 +37,6 @@ import (
 	. "github.com/solo-io/gloo/test/gomega"
 	"github.com/solo-io/gloo/test/services"
 	"github.com/solo-io/gloo/test/v1helpers"
-	glootest "github.com/solo-io/gloo/test/v1helpers/test_grpc_service/glootest/protos"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 )
 
@@ -186,7 +185,7 @@ var _ = Describe("Health Checks", func() {
 				Eventually(testRequest, 30, 1).Should(Equal(`{"str":"foo"}`))
 
 				Eventually(tu.C, DefaultEventuallyTimeout, DefaultEventuallyPollingInterval).Should(Receive(PointTo(MatchFields(IgnoreExtras, Fields{
-					"GRPCRequest": PointTo(Equal(glootest.TestRequest{Str: "foo"})),
+					"GRPCRequest": PointTo(MatchFields(IgnoreExtras, Fields{"Str": Equal("foo")})),
 				}))))
 			})
 		}
@@ -214,7 +213,7 @@ var _ = Describe("Health Checks", func() {
 			Eventually(testRequest, 30, 1).Should(Equal(`{"str":"foo"}`))
 
 			Eventually(tu.C, DefaultEventuallyTimeout, DefaultEventuallyPollingInterval).Should(Receive(PointTo(MatchFields(IgnoreExtras, Fields{
-				"GRPCRequest": PointTo(Equal(glootest.TestRequest{Str: "foo"})),
+				"GRPCRequest": PointTo(MatchFields(IgnoreExtras, Fields{"Str": Equal("foo")})),
 			}))))
 		})
 	})
@@ -294,7 +293,7 @@ var _ = Describe("Health Checks", func() {
 			_, err := testClients.UpstreamClient.Write(tu.Upstream, clients.WriteOpts{})
 			Expect(err).NotTo(HaveOccurred())
 
-			Eventually(func() error { return envoyInstance.DisablePanicMode() }, time.Second*5, time.Second/4).Should(BeNil())
+			Eventually(func() error { return envoyInstance.DisablePanicMode() }, time.Second*5, time.Second/4).Should(Succeed())
 
 			tu = v1helpers.NewTestGRPCUpstream(ctx, envoyInstance.LocalAddr(), 5)
 			_, err = testClients.UpstreamClient.Write(tu.Upstream, clients.WriteOpts{})

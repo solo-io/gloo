@@ -1,5 +1,16 @@
 # Unit Tests
 
+## Quick Start
+
+In the root of the Gloo repo:
+```bash
+# run all unit tests
+make run-tests
+
+# run specific unit tests
+TEST_PKG=./projects/gloo/pkg/plugins/headers/... make test
+```
+
 ## Expectations
 - Unit tests should be fully self-contained and not modify any global state
 - All packages and any exported functions with non-trivial logic require unit tests

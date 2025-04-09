@@ -64,15 +64,20 @@ func labeledRole(role string, labels map[string]string) string {
 	return fmt.Sprintf("%s%s%d", role, xds.KeyDelimiter, utils.HashLabels(labels))
 }
 
+// note: if `ns“ is empty, we assume the user doesn't want to use pod locality info, so we won't modify the role.
 func newUniqlyConnectedClient(node *envoy_config_core_v3.Node, ns string, labels map[string]string, locality PodLocality) UniqlyConnectedClient {
 	role := node.GetMetadata().GetFields()[xds.RoleKey].GetStringValue()
-	snapshotKey := labeledRole(role, labels)
+	resourceName := role
+	if ns != "" {
+		snapshotKey := labeledRole(role, labels)
+		resourceName = fmt.Sprintf("%s%s%s", snapshotKey, xds.KeyDelimiter, ns)
+	}
 	return UniqlyConnectedClient{
 		Role:         role,
 		Namespace:    ns,
 		Locality:     locality,
 		Labels:       labels,
-		resourceName: fmt.Sprintf("%s%s%s", snapshotKey, xds.KeyDelimiter, ns),
+		resourceName: resourceName,
 	}
 }
 
@@ -91,7 +96,8 @@ type callbacks struct {
 	collection atomic.Pointer[callbacksCollection]
 }
 
-type UniquelyConnectedClientsBulider func(ctx context.Context, augmentedPods krt.Collection[LocalityPod]) krt.Collection[UniqlyConnectedClient]
+// If augmentedPods is nil, we won't use the pod locality info, and all pods for the same gateway will receive the same config.
+type UniquelyConnectedClientsBulider func(ctx context.Context, handler *krt.DebugHandler, augmentedPods krt.Collection[LocalityPod]) krt.Collection[UniqlyConnectedClient]
 
 // THIS IS THE SET OF THINGS WE RUN TRANSLATION FOR
 // add returned callbacks to the xds server.
@@ -102,7 +108,7 @@ func NewUniquelyConnectedClients() (xdsserver.Callbacks, UniquelyConnectedClient
 }
 
 func buildCollection(callbacks *callbacks) UniquelyConnectedClientsBulider {
-	return func(ctx context.Context, augmentedPods krt.Collection[LocalityPod]) krt.Collection[UniqlyConnectedClient] {
+	return func(ctx context.Context, handler *krt.DebugHandler, augmentedPods krt.Collection[LocalityPod]) krt.Collection[UniqlyConnectedClient] {
 		trigger := krt.NewRecomputeTrigger(true)
 		col := &callbacksCollection{
 			logger:           contextutils.LoggerFrom(ctx).Desugar(),
@@ -121,6 +127,7 @@ func buildCollection(callbacks *callbacks) UniquelyConnectedClientsBulider {
 				return col.getClients()
 			},
 			krt.WithName("UniqueConnectedClients"),
+			krt.WithDebugging(handler),
 		)
 	}
 }
@@ -170,11 +177,12 @@ func (x *callbacksCollection) del(sid int64) *UniqlyConnectedClient {
 }
 
 func (x *callbacksCollection) add(sid int64, r *envoy_service_discovery_v3.DiscoveryRequest) (string, bool, error) {
-
 	var pod *LocalityPod
-	if r.GetNode() != nil {
+	// see if user wants to use pod locality info
+	usePod := x.augmentedPods != nil
+	if usePod && r.GetNode() != nil {
 		podRef := getRef(r.GetNode())
-		k := krt.Key[LocalityPod](krt.Named{Name: podRef.Name, Namespace: podRef.Namespace}.ResourceName())
+		k := krt.Named{Name: podRef.Name, Namespace: podRef.Namespace}.ResourceName()
 		pod = x.augmentedPods.GetKey(k)
 	}
 	addedNew := false
@@ -182,13 +190,22 @@ func (x *callbacksCollection) add(sid int64, r *envoy_service_discovery_v3.Disco
 	defer x.stateLock.Unlock()
 	c, ok := x.clients[sid]
 	if !ok {
-		if pod == nil {
-			// error if we can't get the pod
-			return "", false, fmt.Errorf("pod not found for node %v", r.GetNode())
+		var locality PodLocality
+		var ns string
+		var labels map[string]string
+		if usePod {
+			if pod == nil {
+				// we need to use the pod locality info, so it's an error if we can't get the pod
+				return "", false, fmt.Errorf("pod not found for node %v", r.GetNode())
+			} else {
+				locality = pod.Locality
+				ns = pod.Namespace
+				labels = pod.AugmentedLabels
+			}
 		}
-		x.logger.Debug("adding xds client", zap.Any("locality", pod.Locality), zap.String("ns", pod.Namespace), zap.Any("labels", pod.AugmentedLabels))
+		x.logger.Debug("adding xds client", zap.Any("locality", locality), zap.String("ns", ns), zap.Any("labels", labels))
 		// TODO: modify request to include the label that are relevant for the client?
-		ucc := newUniqlyConnectedClient(r.GetNode(), pod.Namespace, pod.AugmentedLabels, pod.Locality)
+		ucc := newUniqlyConnectedClient(r.GetNode(), ns, labels, locality)
 		c = newConnectedClient(ucc.resourceName)
 		x.clients[sid] = c
 		currentUnique := x.uniqClientsCount[ucc.resourceName]
@@ -199,7 +216,6 @@ func (x *callbacksCollection) add(sid int64, r *envoy_service_discovery_v3.Disco
 		}
 	}
 	return c.uniqueClientName, addedNew, nil
-
 }
 
 // OnStreamRequest is called once a request is received on a stream.
@@ -262,7 +278,6 @@ func (x *callbacks) OnStreamResponse(_ int64, _ *envoy_service_discovery_v3.Disc
 // OnFetchRequest is called for each Fetch request. Returning an error will end processing of the
 // request and respond with an error.
 func (x *callbacks) OnFetchRequest(ctx context.Context, r *envoy_service_discovery_v3.DiscoveryRequest) error {
-
 	role := r.GetNode().GetMetadata().GetFields()[xds.RoleKey].GetStringValue()
 	// as gloo-edge and ggv2 share a control plane, check that this collection only handles ggv2 clients
 	if !xds.IsKubeGatewayCacheKey(role) {
@@ -276,9 +291,14 @@ func (x *callbacks) OnFetchRequest(ctx context.Context, r *envoy_service_discove
 }
 
 func (x *callbacksCollection) fetchRequest(_ context.Context, r *envoy_service_discovery_v3.DiscoveryRequest) error {
+	// nothing special to do in a fetch request, as we don't need to maintain state
+	if x.augmentedPods == nil {
+		return nil
+	}
+
 	var pod *LocalityPod
 	podRef := getRef(r.GetNode())
-	k := krt.Key[LocalityPod](krt.Named{Name: podRef.Name, Namespace: podRef.Namespace}.ResourceName())
+	k := krt.Named{Name: podRef.Name, Namespace: podRef.Namespace}.ResourceName()
 	pod = x.augmentedPods.GetKey(k)
 	ucc := newUniqlyConnectedClient(r.GetNode(), pod.Namespace, pod.AugmentedLabels, pod.Locality)
 
@@ -303,16 +323,11 @@ func (x *callbacksCollection) fetchRequest(_ context.Context, r *envoy_service_d
 func (x *callbacks) OnFetchResponse(_ *envoy_service_discovery_v3.DiscoveryRequest, _ *envoy_service_discovery_v3.DiscoveryResponse) {
 }
 
-func (x *callbacksCollection) Synced() krt.Syncer {
-	return &simpleSyncer{}
-}
-
 // GetKey returns an object by its key, if present. Otherwise, nil is returned.
-
-func (x *callbacksCollection) GetKey(k krt.Key[UniqlyConnectedClient]) *UniqlyConnectedClient {
+func (x *callbacksCollection) GetKey(k string) *UniqlyConnectedClient {
 	x.stateLock.RLock()
 	defer x.stateLock.RUnlock()
-	u, ok := x.uniqClients[string(k)]
+	u, ok := x.uniqClients[k]
 	if ok {
 		return &u
 	}
@@ -324,13 +339,11 @@ func (x *callbacksCollection) GetKey(k krt.Key[UniqlyConnectedClient]) *UniqlyCo
 
 func (x *callbacksCollection) List() []UniqlyConnectedClient { return x.getClients() }
 
-type simpleSyncer struct{}
-
-func (s *simpleSyncer) WaitUntilSynced(stop <-chan struct{}) bool {
+func (s *callbacksCollection) WaitUntilSynced(stop <-chan struct{}) bool {
 	return true
 }
 
-func (s *simpleSyncer) HasSynced() bool {
+func (s *callbacksCollection) HasSynced() bool {
 	return true
 }
 

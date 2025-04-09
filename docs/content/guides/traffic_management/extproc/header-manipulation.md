@@ -10,11 +10,6 @@ Set up an external processing (ExtProc) server that manipulates request headers 
 External processing is an Enterprise-only feature.
 {{% /notice %}}
 
-{{% notice warning %}}
-Envoy's external processing filter is considered a work in progress and has an unknown security posture. Use caution when using this feature in production environments. For more information, see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/ext_proc_filter#external-processing).
-Note that as of Envoy 1.32, header manipulation via ExtProc does not support the [`append_action`](https://www.envoyproxy.io/docs/envoy/latest/api-v3/config/core/v3/base.proto#envoy-v3-api-msg-config-core-v3-headervalueoption) field.
-{{% /notice %}}
-
 1. Before you begin, install [Gloo Gateway Enterprise]({{% versioned_link_path fromRoot="/installation/enterprise/" %}}) in your cluster.
 
 2. Set up the ExtProc server. This example uses a prebuilt ExtProc server that manipulates request and response headers based on instructions that are sent in an `instructions` header.

@@ -31,7 +31,7 @@ You can configure a maximum payload size on a gateway (`perConnectionBufferLimit
 
 ## Route
 
-You can set buffer limits and other connection options with the [Buffer]({{< versioned_link_path fromRoot="/reference/api/github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/filters/http/buffer/v3/buffer.proto.sk/" >}}) settings in the options of a [Route]({{< versioned_link_path fromRoot="/reference/api/github.com/solo-io/gloo/projects/gateway/api/v1/virtual_service.proto.sk/#route" >}}) in a [RouteTable]({{< versioned_link_path fromRoot="/reference/api/github.com/solo-io/gloo/projects/gateway/api/v1/route_table.proto.sk/" >}}).
+You can set buffer limits and other connection options with the Buffer settings in the options of a [Route]({{< versioned_link_path fromRoot="/reference/api/github.com/solo-io/gloo/projects/gateway/api/v1/virtual_service.proto.sk/#route" >}}) in a [RouteTable]({{< versioned_link_path fromRoot="/reference/api/github.com/solo-io/gloo/projects/gateway/api/v1/route_table.proto.sk/" >}}).
 
 ```yaml
 apiVersion: gateway.solo.io/v1

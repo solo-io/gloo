@@ -1,0 +1,6 @@
+changelog:
+- type: HELM
+  issueLink: https://github.com/solo-io/gloo/issues/10690
+  resolvesIssue: false
+  description: Adds the new helm value `global.image.disableDigest` to disable adding the container image's hash digest. Defaults to false
+

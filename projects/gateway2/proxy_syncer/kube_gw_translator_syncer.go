@@ -7,6 +7,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
 	"istio.io/istio/pkg/kube/krt"
+	"istio.io/istio/pkg/ptr"
 
 	"github.com/solo-io/gloo/pkg/utils/settingsutil"
 	"github.com/solo-io/gloo/pkg/utils/statsutils"
@@ -51,7 +52,7 @@ func (s *ProxyTranslator) buildXdsSnapshot(
 	// the reason for this is because we need to set Upstream status even if no edge proxies are being translated
 	// here we Accept() upstreams in snap so we can report accepted status (without this we wouldn't report on positive case)
 	allReports.Accept(snap.Upstreams.AsInputResources()...)
-	ksettings := krt.FetchOne(kctx, s.settings.AsCollection())
+	ksettings := ptr.Flatten(krt.FetchOne(kctx, s.settings.AsCollection()))
 	settings := &ksettings.Spec
 
 	ctx = settingsutil.WithSettings(ctx, settings)
@@ -107,28 +108,17 @@ func (s *ProxyTranslator) syncXds(
 	// a default initial fetch timeout
 	snap.MakeConsistent()
 	s.xdsCache.SetSnapshot(proxyKey, snap)
-
 }
 
 func (s *ProxyTranslator) syncStatus(
 	ctx context.Context,
-	snap *xds.EnvoySnapshot,
 	proxyKey string,
 	reports reporter.ResourceReports,
 ) error {
 	ctx = contextutils.WithLogger(ctx, "kube-gateway-xds-syncer")
 	logger := contextutils.LoggerFrom(ctx)
-	logger.Infof("begin kube gw sync for proxy %s (%v listeners, %v clusters, %v routes, %v endpoints)",
-		proxyKey, len(snap.Listeners.Items), len(snap.Clusters.Items), len(snap.Routes.Items), len(snap.Endpoints.Items))
-	stopwatch := statsutils.NewTranslatorStopWatch("sync-xds-and-gloo-status")
-	stopwatch.Start()
-	defer func() {
-		duration := stopwatch.Stop(ctx)
-		logger.Infof("end kube gw sync for proxy %s in %s", proxyKey, duration.String())
-	}()
 
 	// TODO: only leaders should write status (https://github.com/solo-io/solo-projects/issues/6367)
-	logger.Debugf("gloo reports for proxy %s to be written", proxyKey)
 	if err := s.glooReporter.WriteReports(ctx, reports, nil); err != nil {
 		logger.Errorf("Failed writing gloo reports for proxy %s: %v", proxyKey, err)
 		return err

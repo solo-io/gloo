@@ -305,6 +305,9 @@ var _ = Describe("Gateway", func() {
 					Expect(service.Port).To(BeEquivalentTo(svc.Spec.Ports[0].Port))
 				}
 
+				// We have to sleep for a moment to avoid a race condition
+				time.Sleep(5 * time.Second)
+
 				// Make sure each virtual service's status metric is as expected:
 				Expect(gloohelpers.ReadMetricByLabel(vsMetric, "name", "vs1")).To(Equal(0))
 				Expect(gloohelpers.ReadMetricByLabel(vsMetric, "name", "vs2")).To(Equal(1))

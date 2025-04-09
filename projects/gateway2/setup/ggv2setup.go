@@ -2,10 +2,11 @@ package setup
 
 import (
 	"context"
-	"fmt"
-	"sort"
-
 	"errors"
+	"fmt"
+	"os"
+	"sort"
+	"strings"
 
 	"github.com/solo-io/gloo/pkg/utils/envutils"
 	"github.com/solo-io/gloo/pkg/utils/setuputils"
@@ -37,13 +38,15 @@ import (
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	schema "k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
 	ctrl "sigs.k8s.io/controller-runtime"
 )
 
 var (
-	settingsGVR = glookubev1.SchemeGroupVersion.WithResource("settings")
+	settingsGVR   = glookubev1.SchemeGroupVersion.WithResource("settings")
+	deploymentGVR = schema.GroupVersion{Group: "apps", Version: "v1"}.WithResource("deployments")
 )
 
 func createKubeClient(restConfig *rest.Config) (istiokube.Client, error) {
@@ -76,15 +79,19 @@ func getInitialSettings(ctx context.Context, c istiokube.Client, nns types.Names
 		return nil
 	}
 	return out
+}
 
+// checkGlooMtlsEnabled checks if gloo mtls is enabled by looking at the gloo deployment and checking if the sds container is present
+func checkGlooMtlsEnabled() bool {
+	return os.Getenv("GLOO_MTLS_SDS_ENABLED") == "true"
 }
 
 func StartGGv2(ctx context.Context,
 	setupOpts *bootstrap.SetupOpts,
 	uccBuilder krtcollections.UniquelyConnectedClientsBulider,
 	extensionsFactory extensions.K8sGatewayExtensionsFactory,
-	pluginRegistryFactory func(opts registry.PluginOpts) plugins.PluginRegistryFactory) error {
-
+	pluginRegistryFactory func(opts registry.PluginOpts) plugins.PluginRegistryFactory,
+) error {
 	restConfig := ctrl.GetConfigOrDie()
 
 	return StartGGv2WithConfig(ctx, setupOpts, restConfig, uccBuilder, extensionsFactory, pluginRegistryFactory, setuputils.SetupNamespaceName())
@@ -114,26 +121,35 @@ func StartGGv2WithConfig(ctx context.Context,
 	}
 
 	logger.Info("creating krt collections")
-	augmentedPods := krtcollections.NewPodsCollection(ctx, kubeClient)
+	augmentedPods := krtcollections.NewPodsCollection(ctx, kubeClient, setupOpts.KrtDebugger)
+
 	setting := proxy_syncer.SetupCollectionDynamic[glookubev1.Settings](
 		ctx,
 		kubeClient,
 		settingsGVR,
 		krt.WithName("GlooSettings"))
 
-	ucc := uccBuilder(ctx, augmentedPods)
+	augmentedPodsForUcc := augmentedPods
+	if envutils.IsEnvTruthy("DISABLE_POD_LOCALITY_XDS") {
+		augmentedPodsForUcc = nil
+	}
 
-	settingsSingle := krt.NewSingleton(func(ctx krt.HandlerContext) *glookubev1.Settings {
+	ucc := uccBuilder(ctx, setupOpts.KrtDebugger, augmentedPodsForUcc)
+
+	settingsSingle := krt.NewSingleton(func(ctx krt.HandlerContext) **glookubev1.Settings {
 		s := krt.FetchOne(ctx, setting,
 			krt.FilterObjectName(settingsNns))
 		if s != nil {
-			return *s
+			return s
 		}
 		return nil
 	}, krt.WithName("GlooSettingsSingleton"))
 
 	serviceClient := kclient.New[*corev1.Service](kubeClient)
 	services := krt.WrapClient(serviceClient, krt.WithName("Services"))
+
+	logger.Info("checking if gloo mtls is enabled")
+	glooMtls := checkGlooMtlsEnabled()
 
 	logger.Info("creating reporter")
 	kubeGwStatusReporter := NewGenericStatusReporter(kubeClient, defaults.KubeGatewayReporter)
@@ -158,17 +174,21 @@ func StartGGv2WithConfig(ctx context.Context,
 
 		InitialSettings: initialSettings,
 		Settings:        settingsSingle,
-		// Useful for development purposes; not currently tied to any user-facing API
-		Dev: false,
+		// Dev flag may be useful for development purposes; not currently tied to any user-facing API
+		Dev:             false,
+		GlooMtlsEnabled: glooMtls,
+		Debugger:        setupOpts.KrtDebugger,
 	})
 	if err != nil {
+		logger.Error("failed initializing controller: ", err)
 		return err
 	}
+
 	/// no collections after this point
 
 	logger.Info("waiting for cache sync")
 	kubeClient.RunAndWait(ctx.Done())
-	setting.Synced().WaitUntilSynced(ctx.Done())
+	setting.WaitUntilSynced(ctx.Done())
 
 	logger.Info("starting controller")
 	return c.Start(ctx)
@@ -213,7 +233,12 @@ func (g *genericStatusReporter) WriteReports(ctx context.Context, resourceErrs r
 	for resource, report := range resourceErrsCopy {
 
 		// check if resource is an internal upstream. if so skip it..
-		if kubernetes.IsKubeUpstream(resource.GetMetadata().GetName()) {
+		if kubernetes.IsFakeKubeUpstream(resource.GetMetadata().GetName()) {
+			continue
+		}
+		// check if resource is an internal upstream. Internal upstreams have ':' in their names so
+		// the cannot be written to the cluster. if so skip it..
+		if strings.IndexRune(resource.GetMetadata().GetName(), ':') >= 0 {
 			continue
 		}
 
@@ -223,7 +248,10 @@ func (g *genericStatusReporter) WriteReports(ctx context.Context, resourceErrs r
 		resourceStatus := g.statusClient.GetStatus(resource)
 
 		if status.Equal(resourceStatus) {
-			logger.Debugf("skipping report for %v as it has not changed", resource.GetMetadata().Ref())
+			// TODO: find a way to log this but it is noisy currently due to once per second status sync
+			// see: projects/gateway2/proxy_syncer/kube_gw_translator_syncer.go#syncStatus(...)
+			// and its call site in projects/gateway2/proxy_syncer/proxy_syncer.go
+			// logger.Debugf("skipping report for %v as it has not changed", resource.GetMetadata().Ref())
 			continue
 		}
 

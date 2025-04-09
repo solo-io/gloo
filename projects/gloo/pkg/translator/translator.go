@@ -46,12 +46,11 @@ type Translator interface {
 }
 type ClusterTranslator interface {
 	// Translate converts a Upstream CR into an xDS Snapshot
-	// Any errors or warnings that are encountered during translation are returned, along with the
-	// envoy cluster.
+	// Any errors that are encountered during translation are appended to the ResourceReports
 	TranslateCluster(
 		params plugins.Params,
 		upstream *v1.Upstream,
-	) (*envoy_config_cluster_v3.Cluster, []error)
+	) (*ClusterResult, reporter.ResourceReports)
 }
 
 var (
@@ -131,16 +130,21 @@ func (t *translatorInstance) Translate(
 	var endpoints []*envoy_config_endpoint_v3.ClusterLoadAssignment
 	clusters, endpoints = t.translateClusterSubsystemComponents(params, proxy, reports)
 	routeConfigs, listeners := t.translateListenerSubsystemComponents(params, proxy, proxyReport)
+
 	// run Resource Generator Plugins
 	for _, plugin := range t.pluginRegistry.GetResourceGeneratorPlugins() {
-		generatedClusters, generatedEndpoints, generatedRouteConfigs, generatedListeners, err := plugin.GeneratedResources(params, clusters, endpoints, routeConfigs, listeners)
-		if err != nil {
-			reports.AddError(proxy, err)
-		}
-		clusters = append(clusters, generatedClusters...)
-		endpoints = append(endpoints, generatedEndpoints...)
-		routeConfigs = append(routeConfigs, generatedRouteConfigs...)
-		listeners = append(listeners, generatedListeners...)
+		// GeneratedResources is deprecated and being replaced by UpstreamGeneratedResources
+		// The plan is to move the few remaining plugins in Gloo/EE to use the new
+		// interface. Once that is done and the new interface is called in the Gloo translation
+		// path, we can remove this code.
+		// During this transition period, gateway2 will call both interfaces and it's translator
+		// has (must have) checks that prevent duplicate resources from being added.
+		newClusters, newEndpoints, newRouteConfigs, newListeners := plugin.GeneratedResources(params, proxy,
+			clusters, endpoints, routeConfigs, listeners, reports)
+		clusters = append(clusters, newClusters...)
+		endpoints = append(endpoints, newEndpoints...)
+		routeConfigs = append(routeConfigs, newRouteConfigs...)
+		listeners = append(listeners, newListeners...)
 	}
 
 	xdsSnapshot := t.generateXDSSnapshot(params, clusters, endpoints, routeConfigs, listeners)
@@ -179,7 +183,7 @@ func (t *translatorInstance) translateClusterSubsystemComponents(params plugins.
 
 	upstreamRefKeyToEndpoints := createUpstreamToEndpointsMap(params.Snapshot.Upstreams, params.Snapshot.Endpoints)
 
-	// endpoints and listeners are shared between listeners
+	// endpoints and clusters are shared between listeners
 	logger.Debugf("computing envoy clusters for proxy: %v", proxy.GetMetadata().GetName())
 	clusters, clusterToUpstreamMap := t.computeClusters(params, reports, upstreamRefKeyToEndpoints, proxy)
 	logger.Debugf("computing envoy endpoints for proxy: %v", proxy.GetMetadata().GetName())
@@ -415,6 +419,8 @@ func GetEndpointClusterName(clusterName string, upstream *v1.Upstream) (string, 
 	if err != nil {
 		return "", err
 	}
+	//note: we add the upstream hash here because of
+	// https://github.com/envoyproxy/envoy/issues/13009
 	endpointClusterName := fmt.Sprintf("%s-%d", clusterName, hash)
 	return endpointClusterName, nil
 }

@@ -1,6 +1,8 @@
 package main
 
 import (
+	"os"
+
 	"github.com/solo-io/go-utils/log"
 	"github.com/solo-io/solo-kit/pkg/code-generator/cmd"
 	"github.com/solo-io/solo-kit/pkg/code-generator/docgen/options"
@@ -53,6 +55,11 @@ func main() {
 				DataDir: "/docs/data",
 				ApiDir:  "reference/api",
 			},
+			RenderOptions: &options.RenderOptions{
+				SkipLinksForPathPrefixes: []string{
+					"github.com/solo-io/gloo/projects/gloo/api/external",
+				},
+			},
 		},
 		ExternalImports: protoImports,
 		ValidationSchemaOptions: &schemagen.ValidationSchemaOptions{
@@ -81,5 +88,16 @@ func main() {
 	if err := cmd.Generate(generateOptions); err != nil {
 		log.Fatalf("generate failed!: %v", err)
 	}
+
+	err := removeExternalApiDocs()
+	if err != nil {
+		log.Fatalf("failed to remove external api docs: %v", err)
+	}
+
 	log.Printf("finished generating code for gloo")
+}
+
+func removeExternalApiDocs() error {
+	const externalApiDocsPath = "docs/content/reference/api/github.com/solo-io/gloo/projects/gloo/api/external"
+	return os.RemoveAll(externalApiDocsPath)
 }

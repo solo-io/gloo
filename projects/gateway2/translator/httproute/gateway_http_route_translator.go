@@ -16,6 +16,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/sets"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
 
 	"github.com/solo-io/gloo/projects/gateway2/query"
@@ -37,12 +38,18 @@ func TranslateGatewayHTTPRouteRules(
 	ctx context.Context,
 	pluginRegistry registry.PluginRegistry,
 	gwListener gwv1.Listener,
-	route *query.HTTPRouteInfo,
+	routeInfo *query.RouteInfo,
 	reporter reports.ParentRefReporter,
 	baseReporter reports.Reporter,
 ) []*v1.Route {
 	var finalRoutes []*v1.Route
 	routesVisited := sets.New[types.NamespacedName]()
+
+	// Only HTTPRoute types should be translated.
+	route, ok := routeInfo.Object.(*gwv1.HTTPRoute)
+	if !ok {
+		return finalRoutes
+	}
 
 	// Hostnames need to be explicitly passed to the plugins since they
 	// are required by delegatee (child) routes of delegated routes that
@@ -53,7 +60,7 @@ func TranslateGatewayHTTPRouteRules(
 	delegationChain := list.New()
 
 	translateGatewayHTTPRouteRulesUtil(
-		ctx, pluginRegistry, gwListener, route, reporter, baseReporter, &finalRoutes, routesVisited, hostnames, delegationChain)
+		ctx, pluginRegistry, gwListener, routeInfo, reporter, baseReporter, &finalRoutes, routesVisited, hostnames, delegationChain)
 	return finalRoutes
 }
 
@@ -63,7 +70,7 @@ func translateGatewayHTTPRouteRulesUtil(
 	ctx context.Context,
 	pluginRegistry registry.PluginRegistry,
 	gwListener gwv1.Listener,
-	route *query.HTTPRouteInfo,
+	routeInfo *query.RouteInfo,
 	reporter reports.ParentRefReporter,
 	baseReporter reports.Reporter,
 	outputs *[]*v1.Route,
@@ -71,6 +78,12 @@ func translateGatewayHTTPRouteRulesUtil(
 	hostnames []gwv1.Hostname,
 	delegationChain *list.List,
 ) {
+	// Only HTTPRoute types should be translated.
+	route, ok := routeInfo.Object.(*gwv1.HTTPRoute)
+	if !ok {
+		return
+	}
+
 	for ruleIdx, rule := range route.Spec.Rules {
 		rule := rule
 		if rule.Matches == nil {
@@ -83,7 +96,7 @@ func translateGatewayHTTPRouteRulesUtil(
 			ctx,
 			pluginRegistry,
 			gwListener,
-			route,
+			routeInfo,
 			rule,
 			ruleIdx,
 			reporter,
@@ -110,7 +123,7 @@ func translateGatewayHTTPRouteRule(
 	ctx context.Context,
 	pluginRegistry registry.PluginRegistry,
 	gwListener gwv1.Listener,
-	gwroute *query.HTTPRouteInfo,
+	gwroute *query.RouteInfo,
 	rule gwv1.HTTPRouteRule,
 	ruleIdx int,
 	reporter reports.ParentRefReporter,
@@ -121,6 +134,13 @@ func translateGatewayHTTPRouteRule(
 	delegationChain *list.List,
 ) []*v1.Route {
 	routes := make([]*v1.Route, len(rule.Matches))
+
+	// Only HTTPRoutes should be translated.
+	route, ok := gwroute.Object.(*gwv1.HTTPRoute)
+	if !ok {
+		return routes
+	}
+
 	for idx, match := range rule.Matches {
 		match := match // pike
 		// HTTPRoute names are being introduced to upstream as part of https://github.com/kubernetes-sigs/gateway-api/issues/995
@@ -156,7 +176,7 @@ func translateGatewayHTTPRouteRule(
 
 		rtCtx := &plugins.RouteContext{
 			Listener:        &gwListener,
-			Route:           &gwroute.HTTPRoute,
+			HTTPRoute:       route,
 			Hostnames:       hostnames,
 			DelegationChain: delegationChain,
 			Rule:            &rule,
@@ -290,7 +310,7 @@ func parsePath(path *gwv1.HTTPPathMatch) (gwv1.PathMatchType, string) {
 
 func setRouteAction(
 	ctx context.Context,
-	gwroute *query.HTTPRouteInfo,
+	gwroute *query.RouteInfo,
 	rule gwv1.HTTPRouteRule,
 	outputRoute *v1.Route,
 	reporter reports.ParentRefReporter,
@@ -309,7 +329,7 @@ func setRouteAction(
 	for _, backendRef := range backendRefs {
 		// If the backend is an HTTPRoute, it implies route delegation
 		// for which delegated routes are recursively flattened and translated
-		if backendref.RefIsHTTPRoute(backendRef.BackendObjectReference) {
+		if backendref.RefIsDelegatedHTTPRoute(backendRef.BackendObjectReference) {
 			delegates = true
 			// Flatten delegated HTTPRoute references
 			err := flattenDelegatedRoutes(
@@ -334,13 +354,6 @@ func setRouteAction(
 		clusterName := "blackhole_cluster"
 		ns := "blackhole_ns"
 
-		obj, err := gwroute.GetBackendForRef(backendRef.BackendObjectReference)
-		ptrClusterName := query.ProcessBackendRef(obj, err, reporter, backendRef.BackendObjectReference)
-		if ptrClusterName != nil {
-			clusterName = *ptrClusterName
-			ns = obj.GetNamespace()
-		}
-
 		var weight *wrappers.UInt32Value
 		if backendRef.Weight != nil {
 			weight = &wrappers.UInt32Value{
@@ -351,6 +364,27 @@ func setRouteAction(
 			weight = &wrappers.UInt32Value{
 				Value: 1,
 			}
+		}
+
+		obj, err := gwroute.GetBackendForRef(backendRef.BackendObjectReference)
+		if err == nil {
+			// Only apply backend plugin when the backend is resolved.
+			// If any backend plugin matches this ref, we don't need the standard
+			// reports or validation path.
+			if dest, ok := applyBackendPlugins(obj, backendRef.BackendObjectReference, pluginRegistry); ok {
+				weightedDestinations = append(weightedDestinations, &v1.WeightedDestination{
+					Destination: dest,
+					Weight:      weight,
+				})
+				continue
+			}
+		}
+
+		// only call ProcessBackendRef when the plugin didn't handle it
+		ptrClusterName := query.ProcessBackendRef(obj, err, reporter, backendRef.BackendObjectReference)
+		if ptrClusterName != nil {
+			clusterName = *ptrClusterName
+			ns = obj.GetNamespace()
 		}
 
 		var port uint32
@@ -386,7 +420,7 @@ func setRouteAction(
 			}
 			spec, err := makeDestinationSpec(upstream, backendRef.Filters)
 			if err != nil {
-				reporter.SetCondition(reports.HTTPRouteCondition{
+				reporter.SetCondition(reports.RouteCondition{
 					Type:    gwv1.RouteConditionResolvedRefs,
 					Status:  metav1.ConditionFalse,
 					Reason:  gwv1.RouteReasonBackendNotFound,
@@ -410,7 +444,7 @@ func setRouteAction(
 			})
 
 		default:
-			contextutils.LoggerFrom(ctx).Errorf("unsupported backend type for kind: %v and type: %v", *backendRef.BackendObjectReference.Kind, *backendRef.BackendObjectReference.Group)
+			contextutils.LoggerFrom(ctx).Errorf("unsupported backend type for kind: %v and type: %v", backendRef.BackendObjectReference.Kind, backendRef.BackendObjectReference.Group)
 		}
 	}
 
@@ -484,4 +518,17 @@ func makeDestinationSpec(upstream *gloov1.Upstream, filters []gwv1.HTTPRouteFilt
 		return nil, nonFunctionUpstreamWithParameterError
 	}
 	return nil, nil
+}
+
+func applyBackendPlugins(
+	obj client.Object,
+	backendRef gwv1.BackendObjectReference,
+	plugins registry.PluginRegistry,
+) (*v1.Destination, bool) {
+	for _, bp := range plugins.GetBackendPlugins() {
+		if dest, ok := bp.ApplyBackendPlugin(obj, backendRef); ok {
+			return dest, true
+		}
+	}
+	return nil, false
 }

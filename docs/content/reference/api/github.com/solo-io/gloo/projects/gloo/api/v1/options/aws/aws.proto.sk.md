@@ -1,6 +1,6 @@
 
 ---
-title: "aws.proto"
+title: "Aws"
 weight: 5
 ---
 
@@ -8,7 +8,7 @@ weight: 5
 
 
 ### Package: `aws.options.gloo.solo.io` 
-#### Types:
+**Types:**
 
 
 - [UpstreamSpec](#upstreamspec)
@@ -19,7 +19,7 @@ weight: 5
 
 
 
-##### Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/options/aws/aws.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/options/aws/aws.proto)
+**Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/options/aws/aws.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/options/aws/aws.proto)**
 
 
 

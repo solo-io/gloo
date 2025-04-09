@@ -1,11 +1,11 @@
 package tracing
 
 import (
-	v12 "github.com/census-instrumentation/opencensus-proto/gen-go/trace/v1"
 	envoy_config_core_v3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	envoy_config_route_v3 "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
 	envoytrace "github.com/envoyproxy/go-control-plane/envoy/config/trace/v3"
 	envoyhttp "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/http_connection_manager/v3"
+	envoy_type_metadata_v3 "github.com/envoyproxy/go-control-plane/envoy/type/metadata/v3"
 	envoytracing "github.com/envoyproxy/go-control-plane/envoy/type/tracing/v3"
 	envoy_type "github.com/envoyproxy/go-control-plane/envoy/type/v3"
 	"github.com/golang/protobuf/ptypes"
@@ -23,7 +23,6 @@ import (
 )
 
 var _ = Describe("Plugin", func() {
-
 	var (
 		plugin       plugins.Plugin
 		pluginParams plugins.Params
@@ -94,6 +93,34 @@ var _ = Describe("Plugin", func() {
 						Value: &wrappers.StringValue{Value: "bar"},
 					},
 				},
+				MetadataForTags: []*tracing.TracingTagMetadata{
+					{
+						Tag:  "envoy.metadata.foo",
+						Kind: tracing.TracingTagMetadata_REQUEST,
+						Value: &tracing.TracingTagMetadata_MetadataValue{
+							Namespace: "namespace",
+							Key:       "nested.key",
+						},
+					},
+					{
+						Tag:  "envoy.metadata.bar",
+						Kind: tracing.TracingTagMetadata_ENDPOINT,
+						Value: &tracing.TracingTagMetadata_MetadataValue{
+							Namespace: "namespace",
+							Key:       "nested.key",
+						},
+					},
+					{
+						Tag:          "envoy.metadata.baz",
+						Kind:         tracing.TracingTagMetadata_REQUEST,
+						DefaultValue: "default",
+						Value: &tracing.TracingTagMetadata_MetadataValue{
+							Namespace:            "namespace",
+							Key:                  "nested:key",
+							NestedFieldDelimiter: ":",
+						},
+					},
+				},
 				Verbose: &wrappers.BoolValue{Value: true},
 				TracePercentages: &tracing.TracePercentages{
 					ClientSamplePercentage:  &wrappers.FloatValue{Value: 10},
@@ -108,6 +135,7 @@ var _ = Describe("Plugin", func() {
 		Expect(err).NotTo(HaveOccurred())
 		expected := &envoyhttp.HttpConnectionManager{
 			Tracing: &envoyhttp.HttpConnectionManager_Tracing{
+				SpawnUpstreamSpan: &wrappers.BoolValue{Value: false},
 				CustomTags: []*envoytracing.CustomTag{
 					{
 						Tag: "header1",
@@ -150,6 +178,88 @@ var _ = Describe("Plugin", func() {
 							},
 						},
 					},
+					{
+						Tag: "envoy.metadata.foo",
+						Type: &envoytracing.CustomTag_Metadata_{
+							Metadata: &envoytracing.CustomTag_Metadata{
+								MetadataKey: &envoy_type_metadata_v3.MetadataKey{
+									Key: "namespace",
+									Path: []*envoy_type_metadata_v3.MetadataKey_PathSegment{
+										{
+											Segment: &envoy_type_metadata_v3.MetadataKey_PathSegment_Key{
+												Key: "nested",
+											},
+										},
+										{
+											Segment: &envoy_type_metadata_v3.MetadataKey_PathSegment_Key{
+												Key: "key",
+											},
+										},
+									},
+								},
+								Kind: &envoy_type_metadata_v3.MetadataKind{
+									Kind: &envoy_type_metadata_v3.MetadataKind_Request_{
+										Request: &envoy_type_metadata_v3.MetadataKind_Request{},
+									},
+								},
+							},
+						},
+					},
+					{
+						Tag: "envoy.metadata.bar",
+						Type: &envoytracing.CustomTag_Metadata_{
+							Metadata: &envoytracing.CustomTag_Metadata{
+								MetadataKey: &envoy_type_metadata_v3.MetadataKey{
+									Key: "namespace",
+									Path: []*envoy_type_metadata_v3.MetadataKey_PathSegment{
+										{
+											Segment: &envoy_type_metadata_v3.MetadataKey_PathSegment_Key{
+												Key: "nested",
+											},
+										},
+										{
+											Segment: &envoy_type_metadata_v3.MetadataKey_PathSegment_Key{
+												Key: "key",
+											},
+										},
+									},
+								},
+								Kind: &envoy_type_metadata_v3.MetadataKind{
+									Kind: &envoy_type_metadata_v3.MetadataKind_Host_{
+										Host: &envoy_type_metadata_v3.MetadataKind_Host{},
+									},
+								},
+							},
+						},
+					},
+					{
+						Tag: "envoy.metadata.baz",
+						Type: &envoytracing.CustomTag_Metadata_{
+							Metadata: &envoytracing.CustomTag_Metadata{
+								MetadataKey: &envoy_type_metadata_v3.MetadataKey{
+									Key: "namespace",
+									Path: []*envoy_type_metadata_v3.MetadataKey_PathSegment{
+										{
+											Segment: &envoy_type_metadata_v3.MetadataKey_PathSegment_Key{
+												Key: "nested",
+											},
+										},
+										{
+											Segment: &envoy_type_metadata_v3.MetadataKey_PathSegment_Key{
+												Key: "key",
+											},
+										},
+									},
+								},
+								DefaultValue: "default",
+								Kind: &envoy_type_metadata_v3.MetadataKind{
+									Kind: &envoy_type_metadata_v3.MetadataKind_Request_{
+										Request: &envoy_type_metadata_v3.MetadataKind_Request{},
+									},
+								},
+							},
+						},
+					},
 				},
 				ClientSampling:  &envoy_type.Percent{Value: 10},
 				RandomSampling:  &envoy_type.Percent{Value: 20},
@@ -171,18 +281,41 @@ var _ = Describe("Plugin", func() {
 		Expect(err).NotTo(HaveOccurred())
 		expected := &envoyhttp.HttpConnectionManager{
 			Tracing: &envoyhttp.HttpConnectionManager_Tracing{
-				ClientSampling:  &envoy_type.Percent{Value: 100},
-				RandomSampling:  &envoy_type.Percent{Value: 100},
-				OverallSampling: &envoy_type.Percent{Value: 100},
-				Verbose:         false,
-				Provider:        nil,
+				ClientSampling:    &envoy_type.Percent{Value: 100},
+				RandomSampling:    &envoy_type.Percent{Value: 100},
+				OverallSampling:   &envoy_type.Percent{Value: 100},
+				Verbose:           false,
+				Provider:          nil,
+				SpawnUpstreamSpan: &wrappers.BoolValue{Value: false},
+			},
+		}
+		Expect(cfg).To(Equal(expected))
+	})
+
+	It("should properly set spawn_upstream_span", func() {
+		cfg := &envoyhttp.HttpConnectionManager{}
+		hcmSettings = &hcm.HttpConnectionManagerSettings{
+			Tracing: &tracing.ListenerTracingSettings{
+				SpawnUpstreamSpan: true,
+			},
+		}
+
+		err := processHcmNetworkFilter(cfg)
+		Expect(err).NotTo(HaveOccurred())
+		expected := &envoyhttp.HttpConnectionManager{
+			Tracing: &envoyhttp.HttpConnectionManager_Tracing{
+				ClientSampling:    &envoy_type.Percent{Value: 100},
+				RandomSampling:    &envoy_type.Percent{Value: 100},
+				OverallSampling:   &envoy_type.Percent{Value: 100},
+				Verbose:           false,
+				Provider:          nil,
+				SpawnUpstreamSpan: &wrappers.BoolValue{Value: true},
 			},
 		}
 		Expect(cfg).To(Equal(expected))
 	})
 
 	Context("should handle tracing provider config", func() {
-
 		It("when provider config is nil", func() {
 			cfg := &envoyhttp.HttpConnectionManager{}
 			hcmSettings = &hcm.HttpConnectionManagerSettings{
@@ -576,170 +709,13 @@ var _ = Describe("Plugin", func() {
 			})
 		})
 
-		Describe("when opencensus provider config", func() {
-			It("translates the plugin correctly using OcagentAddress", func() {
-
-				expectedHttpAddress := "localhost:10000"
-				cfg := &envoyhttp.HttpConnectionManager{}
-				hcmSettings = &hcm.HttpConnectionManagerSettings{
-					Tracing: &tracing.ListenerTracingSettings{
-						ProviderConfig: &tracing.ListenerTracingSettings_OpenCensusConfig{
-							OpenCensusConfig: &envoytrace_gloo.OpenCensusConfig{
-								TraceConfig: &envoytrace_gloo.TraceConfig{
-									Sampler: &envoytrace_gloo.TraceConfig_ConstantSampler{
-										ConstantSampler: &envoytrace_gloo.ConstantSampler{
-											Decision: envoytrace_gloo.ConstantSampler_ALWAYS_ON,
-										},
-									},
-									MaxNumberOfAttributes:    5,
-									MaxNumberOfAnnotations:   10,
-									MaxNumberOfMessageEvents: 15,
-									MaxNumberOfLinks:         20,
-								},
-								OcagentExporterEnabled: true,
-								OcagentAddress: &envoytrace_gloo.OpenCensusConfig_HttpAddress{
-									HttpAddress: expectedHttpAddress,
-								},
-								IncomingTraceContext: nil,
-								OutgoingTraceContext: nil,
-							},
-						},
-					},
-				}
-				err := processHcmNetworkFilter(cfg)
-				Expect(err).NotTo(HaveOccurred())
-
-				expectedEnvoyConfig := &envoytrace.OpenCensusConfig{
-					TraceConfig: &v12.TraceConfig{
-						Sampler: &v12.TraceConfig_ConstantSampler{
-							ConstantSampler: &v12.ConstantSampler{
-								Decision: v12.ConstantSampler_ALWAYS_ON,
-							},
-						},
-						MaxNumberOfAttributes:    5,
-						MaxNumberOfAnnotations:   10,
-						MaxNumberOfMessageEvents: 15,
-						MaxNumberOfLinks:         20,
-					},
-					OcagentExporterEnabled: true,
-					OcagentAddress:         expectedHttpAddress,
-					OcagentGrpcService:     nil,
-					IncomingTraceContext:   nil,
-					OutgoingTraceContext:   nil,
-				}
-				expectedEnvoyConfigMarshalled, _ := ptypes.MarshalAny(expectedEnvoyConfig)
-				expectedEnvoyTracingProvider := &envoytrace.Tracing_Http{
-					Name: "envoy.tracers.opencensus",
-					ConfigType: &envoytrace.Tracing_Http_TypedConfig{
-						TypedConfig: expectedEnvoyConfigMarshalled,
-					},
-				}
-
-				Expect(cfg.Tracing.Provider.GetName()).To(Equal(expectedEnvoyTracingProvider.GetName()))
-				Expect(cfg.Tracing.Provider.GetTypedConfig()).To(Equal(expectedEnvoyTracingProvider.GetTypedConfig()))
-			})
-
-			It("translates the plugin correctly using OcagentGrpcService", func() {
-
-				sampleGrpcTargetUri := "sampleGrpcTargetUri"
-				sampleGrpcStatPrefix := "sampleGrpcStatPrefix"
-				cfg := &envoyhttp.HttpConnectionManager{}
-				hcmSettings = &hcm.HttpConnectionManagerSettings{
-					Tracing: &tracing.ListenerTracingSettings{
-						ProviderConfig: &tracing.ListenerTracingSettings_OpenCensusConfig{
-							OpenCensusConfig: &envoytrace_gloo.OpenCensusConfig{
-								TraceConfig: &envoytrace_gloo.TraceConfig{
-									Sampler: &envoytrace_gloo.TraceConfig_ConstantSampler{
-										ConstantSampler: &envoytrace_gloo.ConstantSampler{
-											Decision: envoytrace_gloo.ConstantSampler_ALWAYS_ON,
-										},
-									},
-									MaxNumberOfAttributes:    5,
-									MaxNumberOfAnnotations:   10,
-									MaxNumberOfMessageEvents: 15,
-									MaxNumberOfLinks:         20,
-								},
-								OcagentExporterEnabled: true,
-								OcagentAddress: &envoytrace_gloo.OpenCensusConfig_GrpcAddress{
-									GrpcAddress: &envoytrace_gloo.OpenCensusConfig_OcagentGrpcAddress{
-										TargetUri:  sampleGrpcTargetUri,
-										StatPrefix: sampleGrpcStatPrefix,
-									},
-								},
-								IncomingTraceContext: []envoytrace_gloo.OpenCensusConfig_TraceContext{
-									envoytrace_gloo.OpenCensusConfig_NONE,
-									envoytrace_gloo.OpenCensusConfig_TRACE_CONTEXT,
-									envoytrace_gloo.OpenCensusConfig_GRPC_TRACE_BIN,
-									envoytrace_gloo.OpenCensusConfig_CLOUD_TRACE_CONTEXT,
-									envoytrace_gloo.OpenCensusConfig_B3,
-								},
-								OutgoingTraceContext: []envoytrace_gloo.OpenCensusConfig_TraceContext{
-									envoytrace_gloo.OpenCensusConfig_B3,
-									envoytrace_gloo.OpenCensusConfig_CLOUD_TRACE_CONTEXT,
-									envoytrace_gloo.OpenCensusConfig_GRPC_TRACE_BIN,
-									envoytrace_gloo.OpenCensusConfig_TRACE_CONTEXT,
-									envoytrace_gloo.OpenCensusConfig_NONE,
-								},
-							},
-						},
-					},
-				}
-				err := processHcmNetworkFilter(cfg)
-				Expect(err).NotTo(HaveOccurred())
-
-				expectedEnvoyConfig := &envoytrace.OpenCensusConfig{
-					TraceConfig: &v12.TraceConfig{
-						Sampler: &v12.TraceConfig_ConstantSampler{
-							ConstantSampler: &v12.ConstantSampler{
-								Decision: v12.ConstantSampler_ALWAYS_ON,
-							},
-						},
-						MaxNumberOfAttributes:    5,
-						MaxNumberOfAnnotations:   10,
-						MaxNumberOfMessageEvents: 15,
-						MaxNumberOfLinks:         20,
-					},
-					OcagentExporterEnabled: true,
-					OcagentAddress:         "",
-					OcagentGrpcService: &envoy_config_core_v3.GrpcService{
-						TargetSpecifier: &envoy_config_core_v3.GrpcService_GoogleGrpc_{
-							GoogleGrpc: &envoy_config_core_v3.GrpcService_GoogleGrpc{
-								TargetUri:  sampleGrpcTargetUri,
-								StatPrefix: sampleGrpcStatPrefix,
-							},
-						},
-					},
-					IncomingTraceContext: []envoytrace.OpenCensusConfig_TraceContext{
-						envoytrace.OpenCensusConfig_NONE,
-						envoytrace.OpenCensusConfig_TRACE_CONTEXT,
-						envoytrace.OpenCensusConfig_GRPC_TRACE_BIN,
-						envoytrace.OpenCensusConfig_CLOUD_TRACE_CONTEXT,
-						envoytrace.OpenCensusConfig_B3,
-					},
-					OutgoingTraceContext: []envoytrace.OpenCensusConfig_TraceContext{
-						envoytrace.OpenCensusConfig_B3,
-						envoytrace.OpenCensusConfig_CLOUD_TRACE_CONTEXT,
-						envoytrace.OpenCensusConfig_GRPC_TRACE_BIN,
-						envoytrace.OpenCensusConfig_TRACE_CONTEXT,
-						envoytrace.OpenCensusConfig_NONE,
-					},
-				}
-				expectedEnvoyConfigMarshalled, _ := ptypes.MarshalAny(expectedEnvoyConfig)
-				expectedEnvoyTracingProvider := &envoytrace.Tracing_Http{
-					Name: "envoy.tracers.opencensus",
-					ConfigType: &envoytrace.Tracing_Http_TypedConfig{
-						TypedConfig: expectedEnvoyConfigMarshalled,
-					},
-				}
-
-				Expect(cfg.Tracing.Provider.GetName()).To(Equal(expectedEnvoyTracingProvider.GetName()))
-				Expect(cfg.Tracing.Provider.GetTypedConfig()).To(Equal(expectedEnvoyTracingProvider.GetTypedConfig()))
-			})
-		})
-
 		Describe("when opentelemetry provider config", func() {
+			const (
+				testClusterName = "test-cluster"
+				testAuthority   = "test-authority"
+			)
+
 			It("translates the plugin correctly", func() {
-				testClusterName := "test-cluster"
 				otelConfig := &envoytrace_gloo.OpenTelemetryConfig{
 					CollectorCluster: &envoytrace_gloo.OpenTelemetryConfig_ClusterName{
 						ClusterName: testClusterName,
@@ -777,8 +753,92 @@ var _ = Describe("Plugin", func() {
 				Expect(cfg.Tracing.Provider.GetName()).To(Equal(expectedEnvoyTracingProvider.GetName()))
 				Expect(cfg.Tracing.Provider.GetTypedConfig()).To(Equal(expectedEnvoyTracingProvider.GetTypedConfig()))
 			})
-		})
 
+			It("can override the service_name", func() {
+				otelConfig := &envoytrace_gloo.OpenTelemetryConfig{
+					CollectorCluster: &envoytrace_gloo.OpenTelemetryConfig_ClusterName{
+						ClusterName: testClusterName,
+					},
+					ServiceName: "custom-service-name",
+				}
+
+				cfg := &envoyhttp.HttpConnectionManager{}
+				hcmSettings = &hcm.HttpConnectionManagerSettings{
+					Tracing: &tracing.ListenerTracingSettings{
+						ProviderConfig: &tracing.ListenerTracingSettings_OpenTelemetryConfig{
+							OpenTelemetryConfig: otelConfig,
+						},
+					},
+				}
+				err := processHcmNetworkFilter(cfg)
+				Expect(err).NotTo(HaveOccurred())
+
+				expectedEnvoyConfig := &envoytrace.OpenTelemetryConfig{
+					GrpcService: &envoy_config_core_v3.GrpcService{
+						TargetSpecifier: &envoy_config_core_v3.GrpcService_EnvoyGrpc_{
+							EnvoyGrpc: &envoy_config_core_v3.GrpcService_EnvoyGrpc{
+								ClusterName: testClusterName,
+							},
+						},
+					},
+					ServiceName: "custom-service-name",
+				}
+				expectedEnvoyConfigMarshalled, _ := ptypes.MarshalAny(expectedEnvoyConfig)
+				expectedEnvoyTracingProvider := &envoytrace.Tracing_Http{
+					Name: "envoy.tracers.opentelemetry",
+					ConfigType: &envoytrace.Tracing_Http_TypedConfig{
+						TypedConfig: expectedEnvoyConfigMarshalled,
+					},
+				}
+				Expect(cfg.Tracing.Provider.GetName()).To(Equal(expectedEnvoyTracingProvider.GetName()))
+				Expect(cfg.Tracing.Provider.GetTypedConfig()).To(Equal(expectedEnvoyTracingProvider.GetTypedConfig()))
+			})
+
+			It("supports setting the grpc service's authority", func() {
+				otelConfig := &envoytrace_gloo.OpenTelemetryConfig{
+					CollectorCluster: &envoytrace_gloo.OpenTelemetryConfig_ClusterName{
+						ClusterName: testClusterName,
+					},
+					ServiceType: &envoytrace_gloo.OpenTelemetryConfig_GrpcService{
+						GrpcService: &envoytrace_gloo.GrpcService{
+							Authority: testAuthority,
+						},
+					},
+				}
+
+				cfg := &envoyhttp.HttpConnectionManager{}
+				hcmSettings = &hcm.HttpConnectionManagerSettings{
+					Tracing: &tracing.ListenerTracingSettings{
+						ProviderConfig: &tracing.ListenerTracingSettings_OpenTelemetryConfig{
+							OpenTelemetryConfig: otelConfig,
+						},
+					},
+				}
+				err := processHcmNetworkFilter(cfg)
+				Expect(err).NotTo(HaveOccurred())
+
+				expectedEnvoyConfig := &envoytrace.OpenTelemetryConfig{
+					GrpcService: &envoy_config_core_v3.GrpcService{
+						TargetSpecifier: &envoy_config_core_v3.GrpcService_EnvoyGrpc_{
+							EnvoyGrpc: &envoy_config_core_v3.GrpcService_EnvoyGrpc{
+								ClusterName: testClusterName,
+								Authority:   testAuthority,
+							},
+						},
+					},
+					ServiceName: "gateway",
+				}
+				expectedEnvoyConfigMarshalled, _ := ptypes.MarshalAny(expectedEnvoyConfig)
+				expectedEnvoyTracingProvider := &envoytrace.Tracing_Http{
+					Name: "envoy.tracers.opentelemetry",
+					ConfigType: &envoytrace.Tracing_Http_TypedConfig{
+						TypedConfig: expectedEnvoyConfigMarshalled,
+					},
+				}
+				Expect(cfg.Tracing.Provider.GetName()).To(Equal(expectedEnvoyTracingProvider.GetName()))
+				Expect(cfg.Tracing.Provider.GetTypedConfig()).To(Equal(expectedEnvoyTracingProvider.GetTypedConfig()))
+			})
+		})
 	})
 
 	It("should update routes properly", func() {
@@ -832,5 +892,4 @@ var _ = Describe("Plugin", func() {
 		Expect(outFull.Tracing.RandomSampling.Numerator / 10000).To(Equal(uint32(20)))
 		Expect(outFull.Tracing.OverallSampling.Numerator / 10000).To(Equal(uint32(30)))
 	})
-
 })

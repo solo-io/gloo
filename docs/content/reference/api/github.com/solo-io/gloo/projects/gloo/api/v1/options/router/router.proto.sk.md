@@ -1,6 +1,6 @@
 
 ---
-title: "router.proto"
+title: "Router"
 weight: 5
 ---
 
@@ -8,7 +8,7 @@ weight: 5
 
 
 ### Package: `gloo.solo.io` 
-#### Types:
+**Types:**
 
 
 - [Router](#router)
@@ -16,7 +16,7 @@ weight: 5
 
 
 
-##### Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/options/router/router.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/options/router/router.proto)
+**Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/options/router/router.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/options/router/router.proto)**
 
 
 

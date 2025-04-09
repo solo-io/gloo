@@ -8,6 +8,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
 
+	"github.com/solo-io/cue/cue/errors"
 	"github.com/solo-io/gloo/projects/gateway2/api/v1alpha1"
 	"github.com/solo-io/gloo/projects/gateway2/query"
 	"github.com/solo-io/gloo/projects/gateway2/reports"
@@ -42,21 +43,21 @@ func (p *plugin) ApplyRoutePlugin(
 	if len(filters) > 1 {
 		// we don't support multiple extension ref filters on a single route.
 		errMsg := fmt.Sprintf("multiple DirectResponse extension refs found. expected 1, found %d", len(filters))
-		routeCtx.Reporter.SetCondition(reports.HTTPRouteCondition{
+		routeCtx.Reporter.SetCondition(reports.RouteCondition{
 			Type:    gwv1.RouteConditionAccepted,
 			Status:  metav1.ConditionFalse,
 			Reason:  gwv1.RouteReasonIncompatibleFilters,
 			Message: errMsg,
 		})
 		outputRoute.Action = ErrorResponseAction()
-		return fmt.Errorf(errMsg)
+		return errors.New(errMsg)
 	}
 
 	// verify the DR reference is valid and get the DR object from the cluster.
-	dr, err := utils.GetExtensionRefObj[*v1alpha1.DirectResponse](ctx, routeCtx.Route, p.gwQueries, filters[0].ExtensionRef)
+	dr, err := utils.GetExtensionRefObj[*v1alpha1.DirectResponse](ctx, routeCtx.HTTPRoute, p.gwQueries, filters[0].ExtensionRef)
 	if err != nil {
 		outputRoute.Action = ErrorResponseAction()
-		routeCtx.Reporter.SetCondition(reports.HTTPRouteCondition{
+		routeCtx.Reporter.SetCondition(reports.RouteCondition{
 			Type:    gwv1.RouteConditionResolvedRefs,
 			Status:  metav1.ConditionFalse,
 			Reason:  gwv1.RouteReasonBackendNotFound,
@@ -71,14 +72,14 @@ func (p *plugin) ApplyRoutePlugin(
 		// so we'll return an error. note: the direct response plugin runs after other route plugins
 		// that modify the output route (e.g. the redirect plugin), so this should be a rare case.
 		errMsg := fmt.Sprintf("DirectResponse cannot be applied to route with existing action: %T", outputRoute.GetAction())
-		routeCtx.Reporter.SetCondition(reports.HTTPRouteCondition{
+		routeCtx.Reporter.SetCondition(reports.RouteCondition{
 			Type:    gwv1.RouteConditionAccepted,
 			Status:  metav1.ConditionFalse,
 			Reason:  gwv1.RouteReasonIncompatibleFilters,
 			Message: errMsg,
 		})
 		outputRoute.Action = ErrorResponseAction()
-		return fmt.Errorf(errMsg)
+		return errors.New(errMsg)
 	}
 
 	outputRoute.Action = &v1.Route_DirectResponseAction{

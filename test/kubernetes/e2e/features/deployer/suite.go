@@ -141,6 +141,10 @@ func (s *testingSuite) TestConfigureProxiesFromGatewayParameters() {
 	s.testInstallation.Assertions.Gomega.Expect(svc.GetAnnotations()).To(
 		gomega.HaveKeyWithValue("svc-anno-key", "svc-anno-val"))
 
+	// check that external traffic policy got passwed through from GatewayParameters to the Service
+	s.testInstallation.Assertions.Gomega.Expect(svc.Spec.ExternalTrafficPolicy).To(
+		gomega.Equal(corev1.ServiceExternalTrafficPolicyCluster))
+
 	// Update the Gateway to use the custom GatewayParameters
 	gwName := types.NamespacedName{Name: gw.Name, Namespace: gw.Namespace}
 	err = s.testInstallation.ClusterContext.Client.Get(s.ctx, gwName, gw)
@@ -181,6 +185,15 @@ func (s *testingSuite) TestProvisionResourcesUpdatedWithValidParameters() {
 	// the GatewayParameters modification should cause the deployer to re-run and update the
 	// deployment to have 2 replicas
 	s.testInstallation.Assertions.EventuallyRunningReplicas(s.ctx, proxyDeployment.ObjectMeta, gomega.Equal(2))
+
+	// modify the external traffic policy in the GatewayParameters
+	s.patchGatewayParameters(gwParamsDefault.ObjectMeta, func(parameters *v1alpha1.GatewayParameters) {
+		parameters.Spec.Kube.Service.ExternalTrafficPolicy = ptr.To(corev1.ServiceExternalTrafficPolicyLocal)
+	})
+
+	// the GatewayParameters modification should cause the deployer to re-run and update the
+	// service to have ExternalTrafficPolicy = Local
+	s.testInstallation.Assertions.EventuallyExternalTrafficPolicy(s.ctx, *proxyService, gomega.Equal(corev1.ServiceExternalTrafficPolicyLocal))
 }
 
 func (s *testingSuite) TestProvisionResourcesNotUpdatedWithInvalidParameters() {
@@ -318,7 +331,12 @@ func xdsClusterAssertion(testInstallation *e2e.TestInstallation) func(ctx contex
 				Namespace: testInstallation.Metadata.InstallNamespace,
 			})), "xds socket address points to gloo service, in installation namespace")
 
-			xdsPort, err := setup.GetNamespacedControlPlaneXdsPort(ctx, testInstallation.Metadata.InstallNamespace, testInstallation.ResourceClients.ServiceClient())
+			service, err := setup.GetControlPlaneService(ctx, testInstallation.Metadata.InstallNamespace,
+				testInstallation.ResourceClients.ServiceClient())
+			g.Expect(err).NotTo(gomega.HaveOccurred())
+			g.Expect(service).NotTo(gomega.BeNil())
+
+			xdsPort, err := setup.GetControlPlaneXdsPort(service)
 			g.Expect(err).NotTo(gomega.HaveOccurred())
 			g.Expect(xdsSocketAddress.GetPortValue()).To(gomega.Equal(uint32(xdsPort)), "xds socket port points to gloo service, in installation namespace")
 		}).
@@ -370,8 +388,8 @@ func awsStsClusterAssertion(testInstallation *e2e.TestInstallation) func(ctx con
 			g.Expect(socketAddr.GetAddress()).To(gomega.Equal(expectedStsUri))
 		}).
 			WithContext(ctx).
-			WithTimeout(time.Second * 10).
-			WithPolling(time.Millisecond * 200).
+			WithTimeout(time.Second * 30).
+			WithPolling(time.Second * 1).
 			Should(gomega.Succeed())
 	}
 }

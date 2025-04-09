@@ -1,6 +1,6 @@
 
 ---
-title: "status.proto"
+title: "Status"
 weight: 5
 ---
 
@@ -24,7 +24,7 @@ limitations under the License.
 
 
  
-#### Types:
+**Types:**
 
 
 - [Status](#status)
@@ -32,7 +32,7 @@ limitations under the License.
 
 
 
-##### Source File: [github.com/solo-io/solo-kit/api/external/google/rpc/status.proto](https://github.com/solo-io/solo-kit/blob/main/api/external/google/rpc/status.proto)
+**Source File: [github.com/solo-io/solo-kit/api/external/google/rpc/status.proto](https://github.com/solo-io/solo-kit/blob/main/api/external/google/rpc/status.proto)**
 
 
 

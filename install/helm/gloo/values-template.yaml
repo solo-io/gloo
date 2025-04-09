@@ -131,6 +131,9 @@ gateway:
   validation:
     enabled: true
     failurePolicy: "Ignore"
+    # This is the recommended setting because if it set to "Fail" modifications to core resources such as secrets and namespace that are defined
+    # in the validating webhook will be blocked if the Gloo Service is not available.
+    kubeCoreFailurePolicy: "Ignore"
     secretName: gateway-validation-certs
     alwaysAcceptResources: true
     allowWarnings: true
@@ -278,6 +281,7 @@ global:
   image:
     registry: quay.io/solo-io
     pullPolicy: IfNotPresent
+    disableDigest: false
   glooRbac:
     create: true
     namespaced: false

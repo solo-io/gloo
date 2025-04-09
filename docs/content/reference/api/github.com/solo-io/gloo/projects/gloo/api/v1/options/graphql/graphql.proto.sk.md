@@ -1,6 +1,6 @@
 
 ---
-title: "graphql.proto"
+title: "Graphql"
 weight: 5
 ---
 
@@ -8,7 +8,7 @@ weight: 5
 
 
 ### Package: `graphql.options.gloo.solo.io` 
-#### Types:
+**Types:**
 
 
 - [ServiceSpec](#servicespec)
@@ -17,7 +17,7 @@ weight: 5
 
 
 
-##### Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/options/graphql/graphql.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/options/graphql/graphql.proto)
+**Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/options/graphql/graphql.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/options/graphql/graphql.proto)**
 
 
 
@@ -27,6 +27,7 @@ weight: 5
 ### ServiceSpec
 
  
+Deprecated: The GraphQL feature of Gloo Gateway will be removed in a future release.
 Only supported in enterprise with the GraphQL addon. 
 This is the service spec describing GraphQL upstreams. This will usually be filled
 automatically via function discovery (if the upstream supports introspection).

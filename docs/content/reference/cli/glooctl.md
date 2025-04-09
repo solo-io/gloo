@@ -19,7 +19,7 @@ glooctl is the unified CLI for Gloo.
       --consul-address string      address of the Consul server. Use with --use-consul (default "127.0.0.1:8500")
       --consul-allow-stale-reads   Allows reading using Consul's stale consistency mode.
       --consul-datacenter string   Datacenter to use. If not provided, the default agent datacenter is used. Use with --use-consul
-      --consul-root-key string     key prefix for for Consul key-value storage. (default "gloo")
+      --consul-root-key string     key prefix for the Consul key-value storage. (default "gloo")
       --consul-scheme string       URI scheme for the Consul server. Use with --use-consul (default "http")
       --consul-token string        Token is used to provide a per-request ACL token which overrides the agent's default token. Use with --use-consul
   -h, --help                       help for glooctl
@@ -38,7 +38,7 @@ glooctl is the unified CLI for Gloo.
 * [glooctl completion](../glooctl_completion)	 - generate auto completion for your shell
 * [glooctl create](../glooctl_create)	 - Create a Gloo resource
 * [glooctl dashboard](../glooctl_dashboard)	 - Open Gloo dashboard
-* [glooctl debug](../glooctl_debug)	 - Debug a Gloo resource (requires Gloo running on Kubernetes)
+* [glooctl debug](../glooctl_debug)	 - Debug Gloo Gateway (requires Gloo running on Kubernetes)
 * [glooctl delete](../glooctl_delete)	 - Delete a Gloo resource
 * [glooctl demo](../glooctl_demo)	 - Demos (requires 4 tools to be installed and accessible via the PATH: glooctl, kubectl, docker, and kind.)
 * [glooctl edit](../glooctl_edit)	 - Edit a Gloo resource

@@ -17,9 +17,15 @@ listeners:
             matchers:
             - prefix: /
             options: {}
-            name: example-route-default-0-0
+            name: httproute-example-route-default-0-0
   bindAddress: '::'
   bindPort: 8080
+  metadataStatic:
+    sources:
+    - resourceKind: gateway.networking.k8s.io/Gateway
+      resourceRef:
+        name: http
+        namespace: default
   name: http
 metadata:
   labels:

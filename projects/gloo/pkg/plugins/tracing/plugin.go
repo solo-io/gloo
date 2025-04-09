@@ -1,9 +1,12 @@
 package tracing
 
 import (
+	"strings"
+
 	envoy_config_route_v3 "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
 	envoy_config_trace_v3 "github.com/envoyproxy/go-control-plane/envoy/config/trace/v3"
 	envoyhttp "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/http_connection_manager/v3"
+	envoy_type_metadata_v3 "github.com/envoyproxy/go-control-plane/envoy/type/metadata/v3"
 	envoytracing "github.com/envoyproxy/go-control-plane/envoy/type/tracing/v3"
 	envoy_type "github.com/envoyproxy/go-control-plane/envoy/type/v3"
 	"github.com/golang/protobuf/ptypes"
@@ -19,6 +22,9 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/pluginutils"
 	translatorutil "github.com/solo-io/gloo/projects/gloo/pkg/translator"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+	"google.golang.org/protobuf/types/known/anypb"
+	"google.golang.org/protobuf/types/known/wrapperspb"
+	"istio.io/istio/pkg/slices"
 )
 
 var (
@@ -49,7 +55,6 @@ func (p *plugin) Init(_ plugins.InitParams) {
 
 // Manage the tracing portion of the HCM settings
 func (p *plugin) ProcessHcmNetworkFilter(params plugins.Params, parent *v1.Listener, listener *v1.HttpListener, out *envoyhttp.HttpConnectionManager) error {
-
 	// only apply tracing config to the listener is using the HCM plugin
 	in := listener.GetOptions().GetHttpConnectionManagerSettings()
 	if in == nil {
@@ -86,7 +91,9 @@ func (p *plugin) ProcessHcmNetworkFilter(params plugins.Params, parent *v1.Liste
 		trCfg.RandomSampling = envoySimplePercent(oneHundredPercent)
 		trCfg.OverallSampling = envoySimplePercent(oneHundredPercent)
 	}
+	trCfg.SpawnUpstreamSpan = wrapperspb.Bool(tracingSettings.GetSpawnUpstreamSpan())
 	out.Tracing = trCfg
+
 	return nil
 }
 
@@ -127,6 +134,38 @@ func customTags(tracingSettings *tracing.ListenerTracingSettings) []*envoytracin
 		}
 		customTags = append(customTags, tag)
 	}
+	for _, metadataTag := range tracingSettings.GetMetadataForTags() {
+		keyDelimiter := "."
+		if metadataTag.GetValue().GetNestedFieldDelimiter() != "" {
+			keyDelimiter = metadataTag.GetValue().GetNestedFieldDelimiter()
+		}
+		tag := &envoytracing.CustomTag_Metadata{
+			MetadataKey: &envoy_type_metadata_v3.MetadataKey{
+				Key: metadataTag.GetValue().GetNamespace(),
+				Path: slices.Map(strings.Split(metadataTag.GetValue().GetKey(), keyDelimiter), func(key string) *envoy_type_metadata_v3.MetadataKey_PathSegment {
+					return &envoy_type_metadata_v3.MetadataKey_PathSegment{Segment: &envoy_type_metadata_v3.MetadataKey_PathSegment_Key{Key: key}}
+				}),
+			},
+			DefaultValue: metadataTag.GetDefaultValue(),
+		}
+		switch metadataTag.GetKind() {
+		case tracing.TracingTagMetadata_REQUEST:
+			tag.Kind = &envoy_type_metadata_v3.MetadataKind{
+				Kind: &envoy_type_metadata_v3.MetadataKind_Request_{Request: &envoy_type_metadata_v3.MetadataKind_Request{}},
+			}
+		case tracing.TracingTagMetadata_ENDPOINT:
+			tag.Kind = &envoy_type_metadata_v3.MetadataKind{
+				Kind: &envoy_type_metadata_v3.MetadataKind_Host_{Host: &envoy_type_metadata_v3.MetadataKind_Host{}},
+			}
+
+		}
+		customTags = append(customTags, &envoytracing.CustomTag{
+			Tag: metadataTag.GetTag(),
+			Type: &envoytracing.CustomTag_Metadata_{
+				Metadata: tag,
+			},
+		})
+	}
 
 	return customTags
 }
@@ -151,9 +190,6 @@ func processEnvoyTracingProvider(
 
 	case *tracing.ListenerTracingSettings_OpenTelemetryConfig:
 		return processEnvoyOpenTelemetryTracing(params, typed, parent)
-
-	case *tracing.ListenerTracingSettings_OpenCensusConfig:
-		return processEnvoyOpenCensusTracing(typed)
 
 	default:
 		return nil, errors.Errorf("Unsupported Tracing.ProviderConfiguration: %v", typed)
@@ -259,37 +295,25 @@ func processEnvoyOpenTelemetryTracing(
 		return nil, errors.Errorf("Unsupported Tracing.ProviderConfiguration: %v", collectorCluster)
 	}
 
-	serviceName := api_conversion.GetGatewayNameFromParent(params.Ctx, parent)
-	envoyConfig := api_conversion.ToEnvoyOpenTelemetryConfiguration(collectorClusterName, serviceName)
+	serviceName := openTelemetryTracingSettings.OpenTelemetryConfig.GetServiceName()
+	if serviceName == "" {
+		serviceName = api_conversion.GetGatewayNameFromParent(params.Ctx, parent)
+	}
 
-	marshalledEnvoyConfig, err := ptypes.MarshalAny(envoyConfig)
+	authority := ""
+	grpcService := openTelemetryTracingSettings.OpenTelemetryConfig.GetGrpcService()
+	if grpcService != nil {
+		authority = grpcService.GetAuthority()
+	}
+
+	envoyConfig := api_conversion.ToEnvoyOpenTelemetryConfiguration(collectorClusterName, serviceName, authority)
+	marshalledEnvoyConfig, err := anypb.New(envoyConfig)
 	if err != nil {
 		return nil, err
 	}
 
 	return &envoy_config_trace_v3.Tracing_Http{
 		Name: "envoy.tracers.opentelemetry",
-		ConfigType: &envoy_config_trace_v3.Tracing_Http_TypedConfig{
-			TypedConfig: marshalledEnvoyConfig,
-		},
-	}, nil
-}
-
-func processEnvoyOpenCensusTracing(
-	openCensusTracingSettings *tracing.ListenerTracingSettings_OpenCensusConfig,
-) (*envoy_config_trace_v3.Tracing_Http, error) {
-	envoyConfig, err := api_conversion.ToEnvoyOpenCensusConfiguration(openCensusTracingSettings.OpenCensusConfig)
-	if err != nil {
-		return nil, err
-	}
-
-	marshalledEnvoyConfig, err := ptypes.MarshalAny(envoyConfig)
-	if err != nil {
-		return nil, err
-	}
-
-	return &envoy_config_trace_v3.Tracing_Http{
-		Name: "envoy.tracers.opencensus",
 		ConfigType: &envoy_config_trace_v3.Tracing_Http_TypedConfig{
 			TypedConfig: marshalledEnvoyConfig,
 		},

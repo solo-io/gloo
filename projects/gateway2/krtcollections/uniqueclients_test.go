@@ -8,12 +8,14 @@ import (
 	corev3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	envoy_service_discovery_v3 "github.com/envoyproxy/go-control-plane/envoy/service/discovery/v3"
 	. "github.com/onsi/gomega"
+	"github.com/solo-io/gloo/projects/gateway2/krtcollections"
 	. "github.com/solo-io/gloo/projects/gateway2/krtcollections"
 	"github.com/solo-io/gloo/projects/gateway2/utils"
 	glooutils "github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	"github.com/solo-io/gloo/projects/gloo/pkg/xds"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/structpb"
+	"istio.io/istio/pkg/kube/krt"
 	"istio.io/istio/pkg/kube/krt/krttest"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -65,19 +67,39 @@ func TestUniqueClients(t *testing.T) {
 			},
 			result: sets.New(fmt.Sprintf("gloo-kube-gateway-api~best-proxy-role~%d~ns", utils.HashLabels(map[string]string{corev1.LabelTopologyRegion: "region", corev1.LabelTopologyZone: "zone", "a": "b"}))),
 		},
+		{
+			name:   "no-pods",
+			inputs: nil,
+			requests: []*envoy_service_discovery_v3.DiscoveryRequest{
+				{
+					Node: &corev3.Node{
+						Id: "podname.ns",
+						Metadata: &structpb.Struct{
+							Fields: map[string]*structpb.Value{
+								xds.RoleKey: structpb.NewStringValue(glooutils.GatewayApiProxyValue + "~best-proxy-role"),
+							},
+						},
+					},
+				},
+			},
+			result: sets.New(fmt.Sprintf(glooutils.GatewayApiProxyValue + "~best-proxy-role")),
+		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			g := NewWithT(t)
-			mock := krttest.NewMock(t, tc.inputs)
-			nodes := NewNodeMetadataCollection(krttest.GetMockCollection[*corev1.Node](mock))
-			pods := NewLocalityPodsCollection(nodes, krttest.GetMockCollection[*corev1.Pod](mock))
-			pods.Synced().WaitUntilSynced(context.Background().Done())
+			var pods krt.Collection[LocalityPod]
+			if tc.inputs != nil {
+				mock := krttest.NewMock(t, tc.inputs)
+				nodes := NewNodeMetadataCollection(krttest.GetMockCollection[*corev1.Node](mock))
+				pods = NewLocalityPodsCollection(nodes, krttest.GetMockCollection[*corev1.Pod](mock), nil)
+				pods.WaitUntilSynced(context.Background().Done())
+			}
 
 			cb, uccBuilder := NewUniquelyConnectedClients()
-			ucc := uccBuilder(context.Background(), pods)
-			ucc.Synced().WaitUntilSynced(context.Background().Done())
+			ucc := uccBuilder(context.Background(), nil, pods)
+			ucc.WaitUntilSynced(context.Background().Done())
 
 			// check fetch as well
 
@@ -95,24 +117,37 @@ func TestUniqueClients(t *testing.T) {
 				}
 			}
 
-			allUcc := ucc.List()
-			g.Expect(allUcc).To(HaveLen(len(tc.result)))
+			// propagating the event happens async
+			var allUcc []krtcollections.UniqlyConnectedClient
+			g.Eventually(func() []krtcollections.UniqlyConnectedClient {
+				allUcc = ucc.List()
+				return allUcc
+			}, "1s").Should(HaveLen(len(tc.result)))
+
 			names := sets.New[string]()
 			for _, uc := range allUcc {
 				names.Insert(uc.ResourceName())
 			}
 			g.Expect(fetchNames).To(Equal(tc.result))
 			g.Expect(names).To(Equal(tc.result))
+
+			// loop through i client
 			for i := range tc.requests {
+				// before calling OnStreamClosed we should still have n - i
+				// then we close the 10 connections we made for client `i`
 				for j := 0; j < 10; j++ {
 					g.Expect(ucc.List()).To(HaveLen(len(allUcc) - i))
 					cb.OnStreamClosed(int64(i*10 + j))
 				}
-				// make sure client removed only when all similar clients are removed.
-				g.Expect(ucc.List()).To(HaveLen(len(allUcc) - 1 - i))
-			}
 
+				// now we've called OnStreamClosed for all 10 connections
+				// so we should have n - i - 1 remaining UCCs
+				// propagating the event happens async so use Eventually
+				g.Eventually(func() []krtcollections.UniqlyConnectedClient {
+					allUcc = ucc.List()
+					return allUcc
+				}, "1s").Should(HaveLen(len(tc.result) - (i + 1)))
+			}
 		})
 	}
-
 }

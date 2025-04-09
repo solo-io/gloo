@@ -21,6 +21,7 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/csrf"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/deprecated_cipher_passthrough"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/dynamic_forward_proxy"
+	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/edsupstream"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/enterprise_warning"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/extauth"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/faultinjection"
@@ -148,6 +149,7 @@ func Plugins(opts PluginOpts) []plugins.Plugin {
 		deprecated_cipher_passthrough.NewPlugin(),
 		local_ratelimit.NewPlugin(),
 		istio_automtls.NewPlugin(opts.SidecarOnGatewayEnabled),
+		edsupstream.NewPlugin(),
 	)
 
 	if opts.KubeClient != nil || opts.SvcCollection != nil {
@@ -176,20 +178,21 @@ func GetPluginRegistryFactory(opts PluginOpts) plugins.PluginRegistryFactory {
 }
 
 type pluginRegistry struct {
-	plugins                      []plugins.Plugin
-	listenerPlugins              []plugins.ListenerPlugin
-	tcpFilterChainPlugins        []plugins.TcpFilterChainPlugin
-	networkFilterPlugins         []plugins.NetworkFilterPlugin
-	httpFilterPlugins            []plugins.HttpFilterPlugin
-	upstreamHttpFilterPlugins    []plugins.UpstreamHttpFilterPlugin
-	httpConnectionManagerPlugins []plugins.HttpConnectionManagerPlugin
-	virtualHostPlugins           []plugins.VirtualHostPlugin
-	resourceGeneratorPlugins     []plugins.ResourceGeneratorPlugin
-	upstreamPlugins              []plugins.UpstreamPlugin
-	endpointPlugins              []plugins.EndpointPlugin
-	routePlugins                 []plugins.RoutePlugin
-	routeActionPlugins           []plugins.RouteActionPlugin
-	weightedDestinationPlugins   []plugins.WeightedDestinationPlugin
+	plugins                           []plugins.Plugin
+	listenerPlugins                   []plugins.ListenerPlugin
+	tcpFilterChainPlugins             []plugins.TcpFilterChainPlugin
+	networkFilterPlugins              []plugins.NetworkFilterPlugin
+	httpFilterPlugins                 []plugins.HttpFilterPlugin
+	upstreamHttpFilterPlugins         []plugins.UpstreamHttpFilterPlugin
+	httpConnectionManagerPlugins      []plugins.HttpConnectionManagerPlugin
+	virtualHostPlugins                []plugins.VirtualHostPlugin
+	resourceGeneratorPlugins          []plugins.ResourceGeneratorPlugin
+	upstreamPlugins                   []plugins.UpstreamPlugin
+	upstreamGeneratedResourcesPlugins []plugins.UpstreamGeneratedResourcesPlugin
+	endpointPlugins                   []plugins.EndpointPlugin
+	routePlugins                      []plugins.RoutePlugin
+	routeActionPlugins                []plugins.RouteActionPlugin
+	weightedDestinationPlugins        []plugins.WeightedDestinationPlugin
 }
 
 // NewPluginRegistry creates a plugin registry and places all registered plugins
@@ -206,6 +209,7 @@ func NewPluginRegistry(registeredPlugins []plugins.Plugin) *pluginRegistry {
 	var virtualHostPlugins []plugins.VirtualHostPlugin
 	var resourceGeneratorPlugins []plugins.ResourceGeneratorPlugin
 	var upstreamPlugins []plugins.UpstreamPlugin
+	var upstreamGeneratedResourcesPlugins []plugins.UpstreamGeneratedResourcesPlugin
 	var endpointPlugins []plugins.EndpointPlugin
 	var routePlugins []plugins.RoutePlugin
 	var routeActionPlugins []plugins.RouteActionPlugin
@@ -263,6 +267,12 @@ func NewPluginRegistry(registeredPlugins []plugins.Plugin) *pluginRegistry {
 			upstreamPlugins = append(upstreamPlugins, upstreamPlugin)
 		}
 
+		upstreamGeneratedResourcesPlugin, ok := plugin.(plugins.UpstreamGeneratedResourcesPlugin)
+		if ok {
+			upstreamGeneratedResourcesPlugins = append(upstreamGeneratedResourcesPlugins,
+				upstreamGeneratedResourcesPlugin)
+		}
+
 		endpointPlugin, ok := plugin.(plugins.EndpointPlugin)
 		if ok {
 			endpointPlugins = append(endpointPlugins, endpointPlugin)
@@ -285,20 +295,21 @@ func NewPluginRegistry(registeredPlugins []plugins.Plugin) *pluginRegistry {
 	}
 
 	return &pluginRegistry{
-		plugins:                      allPlugins,
-		listenerPlugins:              listenerPlugins,
-		tcpFilterChainPlugins:        tcpFilterChainPlugins,
-		networkFilterPlugins:         networkFilterPlugins,
-		httpFilterPlugins:            httpFilterPlugins,
-		upstreamHttpFilterPlugins:    upstreamHttpFilterPlugins,
-		httpConnectionManagerPlugins: httpConnectionManagerPlugins,
-		virtualHostPlugins:           virtualHostPlugins,
-		resourceGeneratorPlugins:     resourceGeneratorPlugins,
-		upstreamPlugins:              upstreamPlugins,
-		endpointPlugins:              endpointPlugins,
-		routePlugins:                 routePlugins,
-		routeActionPlugins:           routeActionPlugins,
-		weightedDestinationPlugins:   weightedDestinationPlugins,
+		plugins:                           allPlugins,
+		listenerPlugins:                   listenerPlugins,
+		tcpFilterChainPlugins:             tcpFilterChainPlugins,
+		networkFilterPlugins:              networkFilterPlugins,
+		httpFilterPlugins:                 httpFilterPlugins,
+		upstreamHttpFilterPlugins:         upstreamHttpFilterPlugins,
+		httpConnectionManagerPlugins:      httpConnectionManagerPlugins,
+		virtualHostPlugins:                virtualHostPlugins,
+		resourceGeneratorPlugins:          resourceGeneratorPlugins,
+		upstreamPlugins:                   upstreamPlugins,
+		upstreamGeneratedResourcesPlugins: upstreamGeneratedResourcesPlugins,
+		endpointPlugins:                   endpointPlugins,
+		routePlugins:                      routePlugins,
+		routeActionPlugins:                routeActionPlugins,
+		weightedDestinationPlugins:        weightedDestinationPlugins,
 	}
 }
 
@@ -350,6 +361,12 @@ func (p *pluginRegistry) GetResourceGeneratorPlugins() []plugins.ResourceGenerat
 // GetUpstreamPlugins returns the plugins that were registered which act on Upstream.
 func (p *pluginRegistry) GetUpstreamPlugins() []plugins.UpstreamPlugin {
 	return p.upstreamPlugins
+}
+
+// GetUpstreamGeneratedResourcesPlugins returns the plugins that were registered which act
+// on Upstreams and create additional resources.
+func (p *pluginRegistry) GetUpstreamGeneratedResourcesPlugins() []plugins.UpstreamGeneratedResourcesPlugin {
+	return p.upstreamGeneratedResourcesPlugins
 }
 
 // GetEndpointPlugins returns the plugins that were registered which act on Endpoint.

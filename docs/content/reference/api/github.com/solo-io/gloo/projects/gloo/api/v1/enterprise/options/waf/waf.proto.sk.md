@@ -1,6 +1,6 @@
 
 ---
-title: "waf.proto"
+title: "Waf"
 weight: 5
 ---
 
@@ -8,7 +8,7 @@ weight: 5
 
 
 ### Package: `waf.options.gloo.solo.io` 
-#### Types:
+**Types:**
 
 
 - [Settings](#settings)
@@ -18,7 +18,7 @@ weight: 5
 
 
 
-##### Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/waf/waf.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/enterprise/options/waf/waf.proto)
+**Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/waf/waf.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/enterprise/options/waf/waf.proto)**
 
 
 
@@ -46,9 +46,9 @@ weight: 5
 | `disabled` | `bool` | Disable waf on this resource (if omitted defaults to false). If a route/virtual host is configured with WAF, you must explicitly disable its WAF, i.e., it will not inherit the disabled status of its parent. |
 | `customInterventionMessage` | `string` | Custom massage to display if an intervention occurs. |
 | `coreRuleSet` | [.waf.options.gloo.solo.io.CoreRuleSet](../waf.proto.sk/#coreruleset) | Add OWASP core rule set if nil will not be added. |
-| `ruleSets` | [[]envoy.config.filter.http.modsecurity.v2.RuleSet](../../../../../external/envoy/extensions/waf/waf.proto.sk/#ruleset) | Custom rule sets to add. Any subsequent changes to the rules in these files are not automatically updated. To update rules from files, version and update the file name. If you want dynamically updated rules, use the `configMapRuleSets` option instead. |
+| `ruleSets` | []envoy.config.filter.http.modsecurity.v2.RuleSet | Custom rule sets to add. Any subsequent changes to the rules in these files are not automatically updated. To update rules from files, version and update the file name. If you want dynamically updated rules, use the `configMapRuleSets` option instead. |
 | `configMapRuleSets` | [[]waf.options.gloo.solo.io.RuleSetFromConfigMap](../waf.proto.sk/#rulesetfromconfigmap) | Kubernetes configmaps with the rule sets that you want to use. The rules must be in the value of the key-value mappings in the `data` field of the configmap. Subsequent updates to the configmap values are dynamically updated in the configuration. |
-| `auditLogging` | [.envoy.config.filter.http.modsecurity.v2.AuditLogging](../../../../../external/envoy/extensions/waf/waf.proto.sk/#auditlogging) | Audit Log settings. |
+| `auditLogging` | .envoy.config.filter.http.modsecurity.v2.AuditLogging | Audit Log settings. |
 | `requestHeadersOnly` | `bool` | Only process request headers, not buffering the request body. |
 | `responseHeadersOnly` | `bool` | Only process response headers, not buffering the response body. |
 

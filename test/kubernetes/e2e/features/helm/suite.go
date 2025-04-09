@@ -1,18 +1,25 @@
 package helm
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
+	"io"
 	"os"
 	"path/filepath"
+	"slices"
 	"time"
 
+	"github.com/rotisserie/eris"
 	"github.com/stretchr/testify/suite"
 	v1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 
-	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/gateway"
+	"github.com/solo-io/gloo/pkg/utils/envoyutils/admincli"
+	"github.com/solo-io/gloo/pkg/utils/kubeutils/kubectl"
 	"github.com/solo-io/gloo/test/kubernetes/e2e"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/tests/base"
 	"github.com/solo-io/gloo/test/kubernetes/testutils/helper"
+
 	"github.com/solo-io/skv2/codegen/util"
 	"github.com/solo-io/solo-kit/pkg/code-generator/schemagen"
 )
@@ -26,7 +33,7 @@ type testingSuite struct {
 
 func NewTestingSuite(ctx context.Context, testInst *e2e.TestInstallation) suite.TestingSuite {
 	return &testingSuite{
-		base.NewBaseTestingSuite(ctx, testInst, e2e.MustTestHelper(ctx, testInst), base.SimpleTestCase{}, helmTestCases),
+		base.NewBaseTestingSuiteWithUpgrades(ctx, testInst, e2e.MustTestHelper(ctx, testInst), base.SimpleTestCase{}, helmTestCases),
 	}
 }
 
@@ -39,9 +46,16 @@ func (s *testingSuite) TestProductionRecommendations() {
 
 func (s *testingSuite) TestChangedConfigMapTriggersRollout() {
 	expectConfigDumpToContain := func(str string) {
-		dump, err := gateway.GetEnvoyAdminData(s.Ctx, "gateway-proxy", s.TestHelper.InstallNamespace, "/config_dump", 5*time.Second)
+		adminCli, shutdown, err := admincli.NewPortForwardedClient(s.Ctx, kubectl.NewCli(), "deployment/gateway-proxy", s.TestHelper.InstallNamespace)
 		s.NoError(err)
-		s.Contains(dump, str)
+		defer shutdown()
+
+		var b bytes.Buffer
+		dump := io.Writer(&b)
+		err = adminCli.ConfigDumpCmd(s.Ctx, nil).WithStdout(dump).Run().Cause()
+		s.NoError(err)
+
+		s.Contains(b.String(), str)
 	}
 
 	getChecksum := func() string {
@@ -71,14 +85,14 @@ func (s *testingSuite) TestApplyCRDs() {
 		if err != nil {
 			return err
 		}
-		if info.IsDir() {
+		if info.IsDir() || info.Name() == "README.md" {
 			return nil
 		}
 
-		// Parse the file, and extract the CRD
+		// Parse the file, and extract the CRD- will fail for any non-yaml files or files not containing a CRD
 		crd, err := schemagen.GetCRDFromFile(crdFile)
 		if err != nil {
-			return err
+			return eris.Wrap(err, "error getting CRD from "+crdFile)
 		}
 		crdsByFileName[crdFile] = crd
 
@@ -96,6 +110,20 @@ func (s *testingSuite) TestApplyCRDs() {
 		out, _, err := s.TestHelper.Execute(s.Ctx, "get", "crd", crd.GetName())
 		s.NoError(err)
 		s.Contains(out, crd.GetName())
+
+		// Ensure the CRD has the gloo-gateway category
+		out, _, err = s.TestHelper.Execute(s.Ctx, "get", "crd", crd.GetName(), "-o", "json")
+		s.NoError(err)
+
+		var crdJson v1.CustomResourceDefinition
+		s.NoError(json.Unmarshal([]byte(out), &crdJson))
+		s.Contains(crdJson.Spec.Names.Categories, CommonCRDCategory)
+
+		// Ensure the CRD has the solo-io category iff it's an enterprise CRD
+		s.Equal(
+			slices.Contains(enterpriseCRDs, crd.GetName()),
+			slices.Contains(crdJson.Spec.Names.Categories, enterpriseCRDCategory),
+		)
 	}
 }
 

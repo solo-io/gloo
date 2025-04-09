@@ -1,6 +1,6 @@
 
 ---
-title: "rest.proto"
+title: "Rest"
 weight: 5
 ---
 
@@ -8,7 +8,7 @@ weight: 5
 
 
 ### Package: `rest.options.gloo.solo.io` 
-#### Types:
+**Types:**
 
 
 - [ServiceSpec](#servicespec)
@@ -18,7 +18,7 @@ weight: 5
 
 
 
-##### Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/options/rest/rest.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/options/rest/rest.proto)
+**Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/options/rest/rest.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/options/rest/rest.proto)**
 
 
 
@@ -79,7 +79,7 @@ This is only for upstream with REST service spec
 | ----- | ---- | ----------- | 
 | `functionName` | `string` |  |
 | `parameters` | [.transformation.options.gloo.solo.io.Parameters](../../transformation/parameters.proto.sk/#parameters) |  |
-| `responseTransformation` | [.envoy.api.v2.filter.http.TransformationTemplate](../../../../external/envoy/extensions/transformation/transformation.proto.sk/#transformationtemplate) |  |
+| `responseTransformation` | .envoy.api.v2.filter.http.TransformationTemplate |  |
 
 
 

@@ -1,0 +1,12 @@
+changelog:
+  - type: FIX
+    description: |
+      Added the ability to control if resource status metrics are no longer reported after deletion.
+      If a resource was invalid and deleted, a status metric indicating a problem was left behind.
+      This could lead to confusion and false alarms.
+      
+      Setting `.Values.gloo.clearStatusMetrics` to `true` will result in metrics 
+      for deleted resources no longer being reported.
+      This may cause metric scraping to infrequently not see status metrics. 
+    issueLink: https://github.com/kgateway-dev/kgateway/issues/6938
+    resolvesIssue: false

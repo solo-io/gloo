@@ -270,7 +270,7 @@ var _ = Describe("AuthConfig", func() {
 				Expect(err).NotTo(HaveOccurred())
 				_, err = helpers.MustAuthConfigClient(ctx).Read("gloo-system", "default", clients.ReadOpts{})
 				Expect(err).NotTo(HaveOccurred())
-			})
+			}, nil)
 		})
 
 		It("should create ac with oidc auth", func() {
@@ -329,7 +329,7 @@ var _ = Describe("AuthConfig", func() {
 				}
 				Expect(*oidc).To(Equal(expected))
 
-			})
+			}, nil)
 		})
 
 		It("should create ac with apikey auth", func() {
@@ -384,7 +384,7 @@ var _ = Describe("AuthConfig", func() {
 				}
 				Expect(*apiKey).To(Equal(expected))
 
-			})
+			}, nil)
 		})
 
 		It("should create ac with OPA auth", func() {
@@ -426,7 +426,7 @@ var _ = Describe("AuthConfig", func() {
 				}
 				Expect(*opa).To(Equal(expected))
 
-			})
+			}, nil)
 		})
 
 	})

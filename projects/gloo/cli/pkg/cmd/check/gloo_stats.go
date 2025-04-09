@@ -2,6 +2,7 @@ package check
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -34,7 +35,7 @@ var (
 	customGlooDeploymentName = helpers.GlooDeploymentName
 )
 
-func ResourcesSyncedOverXds(stats, deploymentName string) bool {
+func ResourcesSyncedOverXds(printer printers.P, stats, deploymentName string) bool {
 	var outOfSyncResources []string
 	metrics := parseMetrics(stats, []string{glooeTotalEntites, glooeInSyncEntities}, deploymentName)
 	for metric, val := range metrics {
@@ -50,6 +51,12 @@ func ResourcesSyncedOverXds(stats, deploymentName string) bool {
 	if len(outOfSyncResources) > 0 {
 		fmt.Println(resourcesOutOfSyncMessage(outOfSyncResources))
 		return false
+	}
+
+	if len(metrics) == 0 {
+		printer.AppendStatus("xds metrics", "No xds metrics to check")
+	} else {
+		printer.AppendStatus("xds metrics", "OK")
 	}
 	return true
 }
@@ -69,6 +76,7 @@ func RateLimitIsConnected(stats string) bool {
 }
 
 func checkXdsMetrics(ctx context.Context, printer printers.P, opts *options.Options, deployments *appsv1.DeploymentList) error {
+	printer.AppendCheck("Checking xds metrics... ")
 	errMessage := "Problem while checking for gloo xds errors"
 	if deployments == nil {
 		fmt.Println("Skipping due to an error in checking deployments")
@@ -100,12 +108,12 @@ func checkXdsMetrics(ctx context.Context, printer printers.P, opts *options.Opti
 	if strings.TrimSpace(stats) == "" {
 		err := fmt.Sprint(errMessage+": could not find any metrics at", glooStatsPath, "endpoint of the "+customGlooDeploymentName+" deployment")
 		fmt.Println(err)
-		return fmt.Errorf(err)
+		return errors.New(err)
 	}
 
-	if !ResourcesSyncedOverXds(stats, customGlooDeploymentName) {
+	if !ResourcesSyncedOverXds(printer, stats, customGlooDeploymentName) {
 		fmt.Println(errMessage)
-		return fmt.Errorf(errMessage)
+		return errors.New(errMessage)
 	}
 
 	for _, deployment := range deployments.Items {

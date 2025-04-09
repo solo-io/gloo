@@ -1,6 +1,6 @@
 
 ---
-title: "local_ratelimit.proto"
+title: "LocalRatelimit"
 weight: 5
 ---
 
@@ -8,7 +8,7 @@ weight: 5
 
 
 ### Package: `local_ratelimit.options.gloo.solo.io` 
-#### Types:
+**Types:**
 
 
 - [TokenBucket](#tokenbucket)
@@ -17,7 +17,7 @@ weight: 5
 
 
 
-##### Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/options/local_ratelimit/local_ratelimit.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/options/local_ratelimit/local_ratelimit.proto)
+**Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/options/local_ratelimit/local_ratelimit.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/options/local_ratelimit/local_ratelimit.proto)**
 
 
 

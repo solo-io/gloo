@@ -15,7 +15,7 @@ listeners:
           - matchers:
             - exact: /a/1
             options: {}
-            name: route-a-a-0-0
+            name: httproute-route-a-a-0-0
             routeAction:
               single:
                 kube:
@@ -26,7 +26,7 @@ listeners:
           - matchers:
             - regex: /b/.*
             options: {}
-            name: route-b-b-0-0
+            name: httproute-route-b-b-0-0
             routeAction:
               single:
                 kube:
@@ -37,7 +37,7 @@ listeners:
           - matchers:
             - prefix: /
             options: {}
-            name: example-route-infra-0-0
+            name: httproute-example-route-infra-0-0
             routeAction:
               single:
                 kube:
@@ -48,6 +48,12 @@ listeners:
 
   bindAddress: '::'
   bindPort: 8080
+  metadataStatic:
+    sources:
+    - resourceKind: gateway.networking.k8s.io/Gateway
+      resourceRef:
+        name: http
+        namespace: infra
   name: http
 metadata:
   labels:

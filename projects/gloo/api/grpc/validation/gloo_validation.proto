@@ -171,6 +171,22 @@ message HttpListenerReport {
 
     // report for nested virtual hosts
     repeated VirtualHostReport virtual_host_reports = 2;
+
+    // warning types for the given listener
+    message Warning {
+        enum Type {
+            UnknownWarning = 0;
+            InvalidDestinationWarning = 1;
+        }
+
+        // the type of the warning
+        Type type = 1;
+        // any extra info as a string
+        string reason = 2;
+    }
+
+    // warnings on the config of listener
+    repeated Warning warnings = 3;
 }
 
 message VirtualHostReport {
@@ -251,6 +267,22 @@ message TcpListenerReport {
     // errors on top-level config of the listener
     repeated Error errors = 1;
     repeated TcpHostReport tcp_host_reports = 2;
+
+    // warning types for the given listener
+    message Warning {
+        enum Type {
+            UnknownWarning = 0;
+            InvalidDestinationWarning = 1;
+        }
+
+        // the type of the warning
+        Type type = 1;
+        // any extra info as a string
+        string reason = 2;
+    }
+
+    // warnings on the config of listener
+    repeated Warning warnings = 3;
 }
 
 message TcpHostReport {

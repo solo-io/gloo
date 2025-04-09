@@ -8,16 +8,22 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	"github.com/solo-io/gloo/projects/gateway2/query"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	apiv1 "sigs.k8s.io/gateway-api/apis/v1"
+	apiv1a2 "sigs.k8s.io/gateway-api/apis/v1alpha2"
 	apiv1beta1 "sigs.k8s.io/gateway-api/apis/v1beta1"
+
+	"github.com/solo-io/gloo/projects/gateway2/query"
+	"github.com/solo-io/gloo/projects/gateway2/wellknown"
 )
+
+//go:generate go run github.com/golang/mock/mockgen -destination mocks/mock_queries.go -package mocks github.com/solo-io/gloo/projects/gateway2/query GatewayQueries
 
 var _ = Describe("Query", func() {
 	var (
@@ -30,7 +36,7 @@ var _ = Describe("Query", func() {
 	}
 
 	BeforeEach(func() {
-		scheme = schemes.DefaultScheme()
+		scheme = schemes.GatewayScheme()
 		builder = fake.NewClientBuilder().WithScheme(scheme)
 		err := query.IterateIndices(func(o client.Object, f string, fun client.IndexerFunc) error {
 			builder.WithIndex(o, f, fun)
@@ -254,7 +260,7 @@ var _ = Describe("Query", func() {
 			Expect(routes.ListenerResults["foo"].Error).To(MatchError("selector must be set"))
 		})
 
-		It("should error when listeners allow route", func() {
+		It("should error when listeners do not allow route", func() {
 			gwWithListener := gw()
 			gwWithListener.Spec.Listeners = []apiv1.Listener{
 				{
@@ -287,7 +293,7 @@ var _ = Describe("Query", func() {
 			Expect(routes.RouteErrors[0].ParentRef).To(Equal(hr.Spec.ParentRefs[0]))
 		})
 
-		It("should NOT error when one listeners allows route", func() {
+		It("should NOT error when one listener allows route", func() {
 			gwWithListener := gw()
 			gwWithListener.Spec.Listeners = []apiv1.Listener{
 				{
@@ -540,6 +546,540 @@ var _ = Describe("Query", func() {
 				expectHostnamesToMatch("", nil)
 			})
 		})
+
+		It("should match TCPRoutes for Listener", func() {
+			gw := gw()
+			gw.Spec.Listeners = []apiv1.Listener{
+				{
+					Name:     "foo-tcp",
+					Protocol: apiv1.TCPProtocolType,
+				},
+			}
+
+			tcpRoute := tcpRoute("test-tcp-route", gw.Namespace)
+			tcpRoute.Spec = apiv1a2.TCPRouteSpec{
+				CommonRouteSpec: apiv1.CommonRouteSpec{
+					ParentRefs: []apiv1.ParentReference{
+						{
+							Name: apiv1.ObjectName(gw.Name),
+						},
+					},
+				},
+			}
+
+			fakeClient := builder.WithObjects(tcpRoute).Build()
+			gq := query.NewData(fakeClient, scheme)
+			routes, err := gq.GetRoutesForGateway(context.Background(), gw)
+
+			Expect(err).NotTo(HaveOccurred())
+			Expect(routes.ListenerResults[string(gw.Spec.Listeners[0].Name)].Routes).To(HaveLen(1))
+			Expect(routes.ListenerResults[string(gw.Spec.Listeners[0].Name)].Error).NotTo(HaveOccurred())
+		})
+
+		It("should get TCPRoutes in other namespace for listener", func() {
+			gw := gw()
+			gw.Spec.Listeners = []apiv1.Listener{
+				{
+					Name:     "foo-tcp",
+					Protocol: apiv1.TCPProtocolType,
+					AllowedRoutes: &apiv1.AllowedRoutes{
+						Namespaces: &apiv1.RouteNamespaces{
+							From: ptr.To(apiv1.NamespacesFromAll),
+						},
+					},
+				},
+			}
+
+			tcpRoute := tcpRoute("test-tcp-route", "other-ns")
+			tcpRoute.Spec = apiv1a2.TCPRouteSpec{
+				CommonRouteSpec: apiv1.CommonRouteSpec{
+					ParentRefs: []apiv1.ParentReference{
+						{
+							Name:      apiv1.ObjectName(gw.Name),
+							Namespace: ptr.To(apiv1.Namespace(gw.Namespace)),
+						},
+					},
+				},
+			}
+
+			fakeClient := builder.WithObjects(tcpRoute).Build()
+			gq := query.NewData(fakeClient, scheme)
+			routes, err := gq.GetRoutesForGateway(context.Background(), gw)
+
+			Expect(err).NotTo(HaveOccurred())
+			Expect(routes.ListenerResults["foo-tcp"].Error).NotTo(HaveOccurred())
+			Expect(routes.ListenerResults["foo-tcp"].Routes).To(HaveLen(1))
+		})
+
+		It("should error when listeners don't match TCPRoute", func() {
+			gw := gw()
+			gw.Spec.Listeners = []apiv1.Listener{
+				{
+					Name:     "foo-tcp",
+					Protocol: apiv1.TCPProtocolType,
+					Port:     8080,
+				},
+				{
+					Name:     "bar-tcp",
+					Protocol: apiv1.TCPProtocolType,
+					Port:     8081,
+				},
+			}
+
+			tcpRoute := tcpRoute("test-tcp-route", gw.Namespace)
+			var badPort apiv1.PortNumber = 9999
+			tcpRoute.Spec = apiv1a2.TCPRouteSpec{
+				CommonRouteSpec: apiv1.CommonRouteSpec{
+					ParentRefs: []apiv1.ParentReference{
+						{
+							Name: apiv1.ObjectName(gw.Name),
+							Port: &badPort,
+						},
+					},
+				},
+			}
+
+			fakeClient := builder.WithObjects(tcpRoute).Build()
+			gq := query.NewData(fakeClient, scheme)
+			routes, err := gq.GetRoutesForGateway(context.Background(), gw)
+
+			Expect(err).NotTo(HaveOccurred())
+			Expect(routes.RouteErrors).To(HaveLen(1))
+			Expect(routes.RouteErrors[0].Error.E).To(MatchError(query.ErrNoMatchingParent))
+			Expect(routes.RouteErrors[0].Error.Reason).To(Equal(apiv1.RouteReasonNoMatchingParent))
+			Expect(routes.RouteErrors[0].ParentRef).To(Equal(tcpRoute.Spec.ParentRefs[0]))
+		})
+
+		It("should error when listener does not allow TCPRoute kind", func() {
+			gw := gw()
+			gw.Spec.Listeners = []apiv1.Listener{
+				{
+					Name:     "foo-tcp",
+					Protocol: apiv1.TCPProtocolType,
+					AllowedRoutes: &apiv1.AllowedRoutes{
+						Kinds: []apiv1.RouteGroupKind{{Kind: "FakeKind"}},
+					},
+				},
+			}
+
+			tcpRoute := tcpRoute("test-tcp-route", gw.Namespace)
+			tcpRoute.Spec = apiv1a2.TCPRouteSpec{
+				CommonRouteSpec: apiv1.CommonRouteSpec{
+					ParentRefs: []apiv1.ParentReference{
+						{
+							Name: apiv1.ObjectName(gw.Name),
+						},
+					},
+				},
+			}
+
+			fakeClient := builder.WithObjects(tcpRoute).Build()
+			gq := query.NewData(fakeClient, scheme)
+
+			routes, err := gq.GetRoutesForGateway(context.Background(), gw)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(routes.RouteErrors).To(HaveLen(1))
+			Expect(routes.RouteErrors[0].Error.E).To(MatchError(query.ErrNotAllowedByListeners))
+		})
+
+		It("should allow TCPRoute for one listener", func() {
+			gw := gw()
+			gw.Spec.Listeners = []apiv1.Listener{
+				{
+					Name:     "foo-tcp",
+					Protocol: apiv1.TCPProtocolType,
+					AllowedRoutes: &apiv1.AllowedRoutes{
+						Kinds: []apiv1.RouteGroupKind{{Kind: wellknown.TCPRouteKind}},
+					},
+				},
+				{
+					Name:     "bar",
+					Protocol: apiv1.TCPProtocolType,
+					AllowedRoutes: &apiv1.AllowedRoutes{
+						Kinds: []apiv1.RouteGroupKind{{Kind: "FakeKind"}},
+					},
+				},
+			}
+
+			tcpRoute := tcpRoute("test-tcp-route", gw.Namespace)
+			tcpRoute.Spec = apiv1a2.TCPRouteSpec{
+				CommonRouteSpec: apiv1.CommonRouteSpec{
+					ParentRefs: []apiv1.ParentReference{
+						{
+							Name: apiv1.ObjectName(gw.Name),
+						},
+					},
+				},
+			}
+
+			fakeClient := builder.WithObjects(tcpRoute).Build()
+			gq := query.NewData(fakeClient, scheme)
+
+			routes, err := gq.GetRoutesForGateway(context.Background(), gw)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(routes.RouteErrors).To(BeEmpty())
+			Expect(routes.ListenerResults["foo-tcp"].Routes).To(HaveLen(1))
+			Expect(routes.ListenerResults["bar"].Routes).To(BeEmpty())
+		})
+
+		It("should get service from same namespace with TCPRoute", func() {
+			fakeClient := fake.NewFakeClient(svc("default"))
+
+			gq := query.NewData(fakeClient, scheme)
+			ref := &apiv1.BackendObjectReference{
+				Name: "foo",
+			}
+
+			fromTCPRoute := tcpRoute("test-tcp-route", "default")
+
+			backend, err := gq.GetBackendForRef(context.Background(), tofrom(fromTCPRoute), ref)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(backend).NotTo(BeNil())
+			Expect(backend.GetName()).To(Equal("foo"))
+			Expect(backend.GetNamespace()).To(Equal("default"))
+		})
+
+		It("should get service from different ns with TCPRoute if we have a ref grant", func() {
+			rg := refGrantForTCPRoute()
+			fakeClient := builder.WithObjects(svc("default2"), rg).Build()
+			gq := query.NewData(fakeClient, scheme)
+			ref := &apiv1.BackendObjectReference{
+				Name:      "foo",
+				Namespace: nsptr("default2"),
+			}
+
+			fromTCPRoute := tcpRoute("test-tcp-route", "default")
+
+			backend, err := gq.GetBackendForRef(context.Background(), tofrom(fromTCPRoute), ref)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(backend).NotTo(BeNil())
+			Expect(backend.GetName()).To(Equal("foo"))
+			Expect(backend.GetNamespace()).To(Equal("default2"))
+		})
+
+		It("should fail getting a service from different ns with TCPRoute when no ref grant", func() {
+			fakeClient := builder.WithObjects(svc("default2")).Build()
+			gq := query.NewData(fakeClient, scheme)
+			ref := &apiv1.BackendObjectReference{
+				Name:      "foo",
+				Namespace: nsptr("default2"),
+			}
+
+			fromTCPRoute := tcpRoute("test-tcp-route", "default")
+
+			backend, err := gq.GetBackendForRef(context.Background(), tofrom(fromTCPRoute), ref)
+			Expect(err).To(MatchError(query.ErrMissingReferenceGrant))
+			Expect(backend).To(BeNil())
+		})
+
+		It("should fail getting a service with TCPRoute when ref grant has wrong from", func() {
+			rg := &apiv1beta1.ReferenceGrant{
+				ObjectMeta: metav1.ObjectMeta{
+					Namespace: "default2",
+					Name:      "foo",
+				},
+				Spec: apiv1beta1.ReferenceGrantSpec{
+					From: []apiv1beta1.ReferenceGrantFrom{
+						{
+							Group:     apiv1.Group(apiv1a2.GroupName),
+							Kind:      apiv1.Kind("NotTCPRoute"),
+							Namespace: apiv1.Namespace("default"),
+						},
+						{
+							Group:     apiv1.Group(apiv1a2.GroupName),
+							Kind:      apiv1.Kind("TCPRoute"),
+							Namespace: apiv1.Namespace("default2"),
+						},
+					},
+					To: []apiv1beta1.ReferenceGrantTo{
+						{
+							Group: apiv1.Group("core"),
+							Kind:  apiv1.Kind("Service"),
+						},
+					},
+				},
+			}
+			fakeClient := builder.WithObjects(rg, svc("default2")).Build()
+
+			gq := query.NewData(fakeClient, scheme)
+			ref := &apiv1.BackendObjectReference{
+				Name:      "foo",
+				Namespace: nsptr("default2"),
+			}
+
+			fromTCPRoute := tcpRoute("test-tcp-route", "default")
+
+			backend, err := gq.GetBackendForRef(context.Background(), tofrom(fromTCPRoute), ref)
+			Expect(err).To(MatchError(query.ErrMissingReferenceGrant))
+			Expect(backend).To(BeNil())
+		})
+
+		It("should match TLSRoutes for Listener", func() {
+			gw := gw()
+			gw.Spec.Listeners = []apiv1.Listener{
+				{
+					Name:     "foo-tls",
+					Protocol: apiv1.TLSProtocolType,
+				},
+			}
+
+			tlsRoute := tlsRoute("test-tls-route", gw.Namespace)
+			tlsRoute.Spec = apiv1a2.TLSRouteSpec{
+				CommonRouteSpec: apiv1.CommonRouteSpec{
+					ParentRefs: []apiv1.ParentReference{
+						{
+							Name: apiv1.ObjectName(gw.Name),
+						},
+					},
+				},
+			}
+
+			fakeClient := builder.WithObjects(tlsRoute).Build()
+			gq := query.NewData(fakeClient, scheme)
+			routes, err := gq.GetRoutesForGateway(context.Background(), gw)
+
+			Expect(err).NotTo(HaveOccurred())
+			Expect(routes.ListenerResults[string(gw.Spec.Listeners[0].Name)].Routes).To(HaveLen(1))
+			Expect(routes.ListenerResults[string(gw.Spec.Listeners[0].Name)].Error).NotTo(HaveOccurred())
+		})
+
+		It("should get TLSRoutes in other namespace for listener", func() {
+			gw := gw()
+			gw.Spec.Listeners = []apiv1.Listener{
+				{
+					Name:     "foo-tls",
+					Protocol: apiv1.TLSProtocolType,
+					AllowedRoutes: &apiv1.AllowedRoutes{
+						Namespaces: &apiv1.RouteNamespaces{
+							From: ptr.To(apiv1.NamespacesFromAll),
+						},
+					},
+				},
+			}
+
+			tlsRoute := tlsRoute("test-tls-route", "other-ns")
+			tlsRoute.Spec = apiv1a2.TLSRouteSpec{
+				CommonRouteSpec: apiv1.CommonRouteSpec{
+					ParentRefs: []apiv1.ParentReference{
+						{
+							Name:      apiv1.ObjectName(gw.Name),
+							Namespace: ptr.To(apiv1.Namespace(gw.Namespace)),
+						},
+					},
+				},
+			}
+
+			fakeClient := builder.WithObjects(tlsRoute).Build()
+			gq := query.NewData(fakeClient, scheme)
+			routes, err := gq.GetRoutesForGateway(context.Background(), gw)
+
+			Expect(err).NotTo(HaveOccurred())
+			Expect(routes.ListenerResults["foo-tls"].Error).NotTo(HaveOccurred())
+			Expect(routes.ListenerResults["foo-tls"].Routes).To(HaveLen(1))
+		})
+
+		It("should error when listeners don't match TLSRoute", func() {
+			gw := gw()
+			gw.Spec.Listeners = []apiv1.Listener{
+				{
+					Name:     "foo-tls",
+					Protocol: apiv1.TLSProtocolType,
+					Port:     8080,
+				},
+				{
+					Name:     "bar-tls",
+					Protocol: apiv1.TLSProtocolType,
+					Port:     8081,
+				},
+			}
+
+			tlsRoute := tlsRoute("test-tls-route", gw.Namespace)
+			var badPort apiv1.PortNumber = 9999
+			tlsRoute.Spec = apiv1a2.TLSRouteSpec{
+				CommonRouteSpec: apiv1.CommonRouteSpec{
+					ParentRefs: []apiv1.ParentReference{
+						{
+							Name: apiv1.ObjectName(gw.Name),
+							Port: &badPort,
+						},
+					},
+				},
+			}
+
+			fakeClient := builder.WithObjects(tlsRoute).Build()
+			gq := query.NewData(fakeClient, scheme)
+			routes, err := gq.GetRoutesForGateway(context.Background(), gw)
+
+			Expect(err).NotTo(HaveOccurred())
+			Expect(routes.RouteErrors).To(HaveLen(1))
+			Expect(routes.RouteErrors[0].Error.E).To(MatchError(query.ErrNoMatchingParent))
+			Expect(routes.RouteErrors[0].Error.Reason).To(Equal(apiv1.RouteReasonNoMatchingParent))
+			Expect(routes.RouteErrors[0].ParentRef).To(Equal(tlsRoute.Spec.ParentRefs[0]))
+		})
+
+		It("should error when listener does not allow TLSRoute kind", func() {
+			gw := gw()
+			gw.Spec.Listeners = []apiv1.Listener{
+				{
+					Name:     "foo-tls",
+					Protocol: apiv1.TLSProtocolType,
+					AllowedRoutes: &apiv1.AllowedRoutes{
+						Kinds: []apiv1.RouteGroupKind{{Kind: "FakeKind"}},
+					},
+				},
+			}
+
+			tlsRoute := tlsRoute("test-tls-route", gw.Namespace)
+			tlsRoute.Spec = apiv1a2.TLSRouteSpec{
+				CommonRouteSpec: apiv1.CommonRouteSpec{
+					ParentRefs: []apiv1.ParentReference{
+						{
+							Name: apiv1.ObjectName(gw.Name),
+						},
+					},
+				},
+			}
+
+			fakeClient := builder.WithObjects(tlsRoute).Build()
+			gq := query.NewData(fakeClient, scheme)
+
+			routes, err := gq.GetRoutesForGateway(context.Background(), gw)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(routes.RouteErrors).To(HaveLen(1))
+			Expect(routes.RouteErrors[0].Error.E).To(MatchError(query.ErrNotAllowedByListeners))
+		})
+
+		It("should allow TLSRoute for one listener", func() {
+			gw := gw()
+			gw.Spec.Listeners = []apiv1.Listener{
+				{
+					Name:     "foo-tls",
+					Protocol: apiv1.TLSProtocolType,
+					AllowedRoutes: &apiv1.AllowedRoutes{
+						Kinds: []apiv1.RouteGroupKind{{Kind: wellknown.TLSRouteKind}},
+					},
+				},
+				{
+					Name:     "bar",
+					Protocol: apiv1.TLSProtocolType,
+					AllowedRoutes: &apiv1.AllowedRoutes{
+						Kinds: []apiv1.RouteGroupKind{{Kind: "FakeKind"}},
+					},
+				},
+			}
+
+			tlsRoute := tlsRoute("test-tls-route", gw.Namespace)
+			tlsRoute.Spec = apiv1a2.TLSRouteSpec{
+				CommonRouteSpec: apiv1.CommonRouteSpec{
+					ParentRefs: []apiv1.ParentReference{
+						{
+							Name: apiv1.ObjectName(gw.Name),
+						},
+					},
+				},
+			}
+
+			fakeClient := builder.WithObjects(tlsRoute).Build()
+			gq := query.NewData(fakeClient, scheme)
+
+			routes, err := gq.GetRoutesForGateway(context.Background(), gw)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(routes.RouteErrors).To(BeEmpty())
+			Expect(routes.ListenerResults["foo-tls"].Routes).To(HaveLen(1))
+			Expect(routes.ListenerResults["bar"].Routes).To(BeEmpty())
+		})
+
+		It("should get service from same namespace with TlSRoute", func() {
+			fakeClient := fake.NewFakeClient(svc("default"))
+
+			gq := query.NewData(fakeClient, scheme)
+			ref := &apiv1.BackendObjectReference{
+				Name: "foo",
+			}
+
+			fromTLSRoute := tlsRoute("test-tls-route", "default")
+
+			backend, err := gq.GetBackendForRef(context.Background(), tofrom(fromTLSRoute), ref)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(backend).NotTo(BeNil())
+			Expect(backend.GetName()).To(Equal("foo"))
+			Expect(backend.GetNamespace()).To(Equal("default"))
+		})
+
+		It("should get service from different ns with TLSRoute if we have a ref grant", func() {
+			rg := refGrantForTLSRoute()
+			fakeClient := builder.WithObjects(svc("default2"), rg).Build()
+			gq := query.NewData(fakeClient, scheme)
+			ref := &apiv1.BackendObjectReference{
+				Name:      "foo",
+				Namespace: nsptr("default2"),
+			}
+
+			fromTLSRoute := tlsRoute("test-tls-route", "default")
+
+			backend, err := gq.GetBackendForRef(context.Background(), tofrom(fromTLSRoute), ref)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(backend).NotTo(BeNil())
+			Expect(backend.GetName()).To(Equal("foo"))
+			Expect(backend.GetNamespace()).To(Equal("default2"))
+		})
+
+		It("should fail getting a service from different ns with TLSRoute when no ref grant", func() {
+			fakeClient := builder.WithObjects(svc("default2")).Build()
+			gq := query.NewData(fakeClient, scheme)
+			ref := &apiv1.BackendObjectReference{
+				Name:      "foo",
+				Namespace: nsptr("default2"),
+			}
+
+			fromTLSRoute := tlsRoute("test-tls-route", "default")
+
+			backend, err := gq.GetBackendForRef(context.Background(), tofrom(fromTLSRoute), ref)
+			Expect(err).To(MatchError(query.ErrMissingReferenceGrant))
+			Expect(backend).To(BeNil())
+		})
+
+		It("should fail getting a service with TLSRoute when ref grant has wrong from", func() {
+			rg := &apiv1beta1.ReferenceGrant{
+				ObjectMeta: metav1.ObjectMeta{
+					Namespace: "default2",
+					Name:      "foo",
+				},
+				Spec: apiv1beta1.ReferenceGrantSpec{
+					From: []apiv1beta1.ReferenceGrantFrom{
+						{
+							Group:     apiv1.Group(apiv1a2.GroupName),
+							Kind:      apiv1.Kind("NotTLSRoute"),
+							Namespace: apiv1.Namespace("default"),
+						},
+						{
+							Group:     apiv1.Group(apiv1a2.GroupName),
+							Kind:      apiv1.Kind("TLSRoute"),
+							Namespace: apiv1.Namespace("default2"),
+						},
+					},
+					To: []apiv1beta1.ReferenceGrantTo{
+						{
+							Group: apiv1.Group("core"),
+							Kind:  apiv1.Kind("Service"),
+						},
+					},
+				},
+			}
+			fakeClient := builder.WithObjects(rg, svc("default2")).Build()
+
+			gq := query.NewData(fakeClient, scheme)
+			ref := &apiv1.BackendObjectReference{
+				Name:      "foo",
+				Namespace: nsptr("default2"),
+			}
+
+			fromTLSRoute := tlsRoute("test-tls-route", "default")
+
+			backend, err := gq.GetBackendForRef(context.Background(), tofrom(fromTLSRoute), ref)
+			Expect(err).To(MatchError(query.ErrMissingReferenceGrant))
+			Expect(backend).To(BeNil())
+		})
 	})
 })
 
@@ -593,6 +1133,10 @@ func refGrant() *apiv1beta1.ReferenceGrant {
 
 func httpRoute() *apiv1.HTTPRoute {
 	return &apiv1.HTTPRoute{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       wellknown.HTTPRouteKind,
+			APIVersion: apiv1.GroupVersion.String(),
+		},
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: "default",
 			Name:      "test",
@@ -627,7 +1171,81 @@ func svc(ns string) *corev1.Service {
 	}
 }
 
+func tcpRoute(name, ns string) *apiv1a2.TCPRoute {
+	return &apiv1a2.TCPRoute{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       wellknown.TCPRouteKind,
+			APIVersion: apiv1a2.GroupVersion.String(),
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: ns,
+		},
+	}
+}
+
+func tlsRoute(name, ns string) *apiv1a2.TLSRoute {
+	return &apiv1a2.TLSRoute{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       wellknown.TLSRouteKind,
+			APIVersion: apiv1a2.GroupVersion.String(),
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: ns,
+		},
+	}
+}
+
 func nsptr(s string) *apiv1.Namespace {
 	var ns apiv1.Namespace = apiv1.Namespace(s)
 	return &ns
+}
+
+func refGrantForTCPRoute() *apiv1beta1.ReferenceGrant {
+	return &apiv1beta1.ReferenceGrant{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: "default2",
+			Name:      "foo",
+		},
+		Spec: apiv1beta1.ReferenceGrantSpec{
+			From: []apiv1beta1.ReferenceGrantFrom{
+				{
+					Group:     apiv1.Group(apiv1a2.GroupName),
+					Kind:      apiv1.Kind("TCPRoute"),
+					Namespace: apiv1.Namespace("default"),
+				},
+			},
+			To: []apiv1beta1.ReferenceGrantTo{
+				{
+					Group: apiv1.Group("core"),
+					Kind:  apiv1.Kind("Service"),
+				},
+			},
+		},
+	}
+}
+
+func refGrantForTLSRoute() *apiv1beta1.ReferenceGrant {
+	return &apiv1beta1.ReferenceGrant{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: "default2",
+			Name:      "foo",
+		},
+		Spec: apiv1beta1.ReferenceGrantSpec{
+			From: []apiv1beta1.ReferenceGrantFrom{
+				{
+					Group:     apiv1.Group(apiv1a2.GroupName),
+					Kind:      apiv1.Kind("TLSRoute"),
+					Namespace: apiv1.Namespace("default"),
+				},
+			},
+			To: []apiv1beta1.ReferenceGrantTo{
+				{
+					Group: apiv1.Group("core"),
+					Kind:  apiv1.Kind("Service"),
+				},
+			},
+		},
+	}
 }

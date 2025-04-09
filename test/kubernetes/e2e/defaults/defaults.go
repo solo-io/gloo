@@ -8,7 +8,24 @@ import (
 
 	"github.com/solo-io/gloo/pkg/utils/kubeutils/kubectl"
 	"github.com/solo-io/skv2/codegen/util"
+
+	_ "embed"
 )
+
+//go:embed testdata/curl_pod.yaml
+var CurlPodYaml []byte
+
+//go:embed testdata/http_echo.yaml
+var HttpEchoPodYaml []byte
+
+//go:embed testdata/tcp_echo.yaml
+var TcpEchoPodYaml []byte
+
+//go:embed testdata/nginx_pod.yaml
+var NginxPodYaml []byte
+
+//go:embed testdata/httpbin.yaml
+var HttpbinYaml []byte
 
 var (
 	CurlPodExecOpt = kubectl.PodExecOptions{
@@ -25,6 +42,8 @@ var (
 	}
 
 	CurlPodManifest = filepath.Join(util.MustGetThisDir(), "testdata", "curl_pod.yaml")
+
+	CurlPodLabelSelector = "app.kubernetes.io/name=curl"
 
 	HttpEchoPod = &corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{

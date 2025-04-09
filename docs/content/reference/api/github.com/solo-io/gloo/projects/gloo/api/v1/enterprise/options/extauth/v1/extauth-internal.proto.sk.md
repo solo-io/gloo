@@ -1,6 +1,6 @@
 
 ---
-title: "extauth-internal.proto"
+title: "ExtauthInternal"
 weight: 5
 ---
 
@@ -8,7 +8,7 @@ weight: 5
 
 
 ### Package: `enterprise.gloo.solo.io` 
-#### Types:
+**Types:**
 
 
 - [ExtAuthConfig](#extauthconfig)
@@ -45,6 +45,7 @@ weight: 5
 - [LdapConfig](#ldapconfig)
 - [LdapServiceAccountConfig](#ldapserviceaccountconfig)
 - [HmacAuthConfig](#hmacauthconfig)
+- [PortalAuthConfig](#portalauthconfig)
 - [InMemorySecretList](#inmemorysecretlist)
 - [Config](#config)
 - [ApiKeyCreateRequest](#apikeycreaterequest)
@@ -59,7 +60,7 @@ weight: 5
 
 
 
-##### Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth-internal.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth-internal.proto)
+**Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth-internal.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth-internal.proto)**
 
 
 
@@ -111,7 +112,7 @@ This way, you can enable distributed claims and caching for when users are membe
 | `clientId` | `string` | The client ID for the ExtAuthService app that is registered in MS Entra, to access the Microsoft Graph API to retrieve distributed claims. This app is NOT the app that you want to configure external auth for. |
 | `tenantId` | `string` | The tenant ID represents the MS Entra organization ID where the ExtAuthService app is registered. This tenant ID may or may not be the same as in the top level `OidcAuthorizationCodeConfig`, depending on how your Azure account is provisioned. |
 | `clientSecret` | `string` | The client secret of the ExtAuthService app that is registered with MS Entra to communicate with the MS Graph API. |
-| `claimsCachingOptions` | [.enterprise.gloo.solo.io.RedisOptions](../extauth.proto.sk/#redisoptions) | Redis connection details to cache MS Entera claims. This way, you avoid performance issues of accessing the Microsoft Graph API too many times. Note that this setting does NOT turn on Redis caching for the user session. To turn on Redis user session caching, use the `userSessionConfig` field. |
+| `claimsCachingOptions` | [.enterprise.gloo.solo.io.RedisOptions](../extauth.proto.sk/#redisoptions) | Redis connection details to cache MS Entra claims. This way, you avoid performance issues of accessing the Microsoft Graph API too many times. Note that this setting does NOT turn on Redis caching for the user session. To turn on Redis user session caching, use the `userSessionConfig` field. |
 
 
 
@@ -742,7 +743,7 @@ No-op, represents default OIDC behavior
 | `headerName` | `string` | (Optional) When receiving a request, the Gloo Edge Enterprise external auth server will look for an API key in a header with this name. This field is optional; if not provided it defaults to `api-key`. |
 | `headersFromKeyMetadata` | `map<string, string>` | Determines the key metadata that will be included as headers on the upstream request. Each entry represents a header to add: the key is the name of the header, and the value is the key that will be used to look up the data entry in the key metadata. |
 | `k8SSecretApikeyStorage` | [.enterprise.gloo.solo.io.K8sSecretApiKeyStorage](../extauth.proto.sk/#k8ssecretapikeystorage) |  Only one of `k8sSecretApikeyStorage`, `aerospikeApikeyStorage`, or `serverDefaultApikeyStorage` can be set. |
-| `aerospikeApikeyStorage` | [.enterprise.gloo.solo.io.AerospikeApiKeyStorage](../extauth.proto.sk/#aerospikeapikeystorage) |  Only one of `aerospikeApikeyStorage`, `k8sSecretApikeyStorage`, or `serverDefaultApikeyStorage` can be set. |
+| `aerospikeApikeyStorage` | [.enterprise.gloo.solo.io.AerospikeApiKeyStorage](../extauth.proto.sk/#aerospikeapikeystorage) | <b>Deprecated</b>: Support for Aerospike is deprecated and will be removed in a future release. Use of this feature is not recommended. Only one of `aerospikeApikeyStorage`, `k8sSecretApikeyStorage`, or `serverDefaultApikeyStorage` can be set. |
 | `serverDefaultApikeyStorage` | [.enterprise.gloo.solo.io.ServerDefaultApiKeyStorage](../extauth.proto.sk/#serverdefaultapikeystorage) |  Only one of `serverDefaultApikeyStorage`, `k8sSecretApikeyStorage`, or `aerospikeApikeyStorage` can be set. |
 | `skipMetadataValidation` | `bool` | API key metadata may contain data is is invalid for a header, such as a newline. By default, this data will be validated in the data plane and mitigated in a way that provides a consistent experience for the user and visibility for the operator. This validation comes with a performance cost, and can be disabled by setting this field to `true`. |
 
@@ -886,6 +887,32 @@ This way, you can use extra capabilities such as bundling or caching.
 
 
 ---
+### PortalAuthConfig
+
+ 
+This API is only supported for Gloo Gateway Portal.
+
+```yaml
+"url": string
+"apiKeyHeader": string
+"redisOptions": .enterprise.gloo.solo.io.RedisOptions
+"cacheDuration": .google.protobuf.Duration
+"requestTimeout": .google.protobuf.Duration
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+| `url` | `string` | The portal web server url used to validate credentials generated by the portal for the backing service(s). |
+| `apiKeyHeader` | `string` |  |
+| `redisOptions` | [.enterprise.gloo.solo.io.RedisOptions](../extauth.proto.sk/#redisoptions) | Options to connect to redis. If not provided, data will be cached in memory. |
+| `cacheDuration` | [.google.protobuf.Duration](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/duration) | The frequency at which the validated credential data should be refreshed by quering the portal web server. Defaults to 60s. |
+| `requestTimeout` | [.google.protobuf.Duration](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/duration) | Timeout for the portal web server to respond. Defaults to 200ms. |
+
+
+
+
+---
 ### InMemorySecretList
 
 
@@ -922,25 +949,27 @@ This way, you can use extra capabilities such as bundling or caching.
 "passThroughAuth": .enterprise.gloo.solo.io.PassThroughAuth
 "hmacAuth": .enterprise.gloo.solo.io.ExtAuthConfig.HmacAuthConfig
 "opaServerAuth": .enterprise.gloo.solo.io.ExtAuthConfig.OpaServerAuthConfig
+"portalAuth": .enterprise.gloo.solo.io.ExtAuthConfig.PortalAuthConfig
 
 ```
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
 | `name` | [.google.protobuf.StringValue](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/string-value) | optional: used when defining complex boolean logic, if `boolean_expr` is defined below. Also used in logging. If omitted, an automatically generated name will be used (e.g. config_0, of the pattern 'config_$INDEX_IN_CHAIN'). In the case of plugin auth, this field is ignored in favor of the name assigned on the plugin config itself. |
-| `oauth` | [.enterprise.gloo.solo.io.ExtAuthConfig.OAuthConfig](../extauth-internal.proto.sk/#oauthconfig) |  Only one of `oauth`, `oauth2`, `basicAuth`, `basicAuthInternal`, `apiKeyAuth`, `pluginAuth`, `opaAuth`, `ldap`, `ldapInternal`, `jwt`, `passThroughAuth`, `hmacAuth`, or `opaServerAuth` can be set. |
-| `oauth2` | [.enterprise.gloo.solo.io.ExtAuthConfig.OAuth2Config](../extauth-internal.proto.sk/#oauth2config) |  Only one of `oauth2`, `oauth`, `basicAuth`, `basicAuthInternal`, `apiKeyAuth`, `pluginAuth`, `opaAuth`, `ldap`, `ldapInternal`, `jwt`, `passThroughAuth`, `hmacAuth`, or `opaServerAuth` can be set. |
-| `basicAuth` | [.enterprise.gloo.solo.io.BasicAuth](../extauth.proto.sk/#basicauth) |  Only one of `basicAuth`, `oauth`, `oauth2`, `basicAuthInternal`, `apiKeyAuth`, `pluginAuth`, `opaAuth`, `ldap`, `ldapInternal`, `jwt`, `passThroughAuth`, `hmacAuth`, or `opaServerAuth` can be set. |
-| `basicAuthInternal` | [.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal](../extauth-internal.proto.sk/#basicauthinternal) |  Only one of `basicAuthInternal`, `oauth`, `oauth2`, `basicAuth`, `apiKeyAuth`, `pluginAuth`, `opaAuth`, `ldap`, `ldapInternal`, `jwt`, `passThroughAuth`, `hmacAuth`, or `opaServerAuth` can be set. |
-| `apiKeyAuth` | [.enterprise.gloo.solo.io.ExtAuthConfig.ApiKeyAuthConfig](../extauth-internal.proto.sk/#apikeyauthconfig) |  Only one of `apiKeyAuth`, `oauth`, `oauth2`, `basicAuth`, `basicAuthInternal`, `pluginAuth`, `opaAuth`, `ldap`, `ldapInternal`, `jwt`, `passThroughAuth`, `hmacAuth`, or `opaServerAuth` can be set. |
-| `pluginAuth` | [.enterprise.gloo.solo.io.AuthPlugin](../extauth.proto.sk/#authplugin) |  Only one of `pluginAuth`, `oauth`, `oauth2`, `basicAuth`, `basicAuthInternal`, `apiKeyAuth`, `opaAuth`, `ldap`, `ldapInternal`, `jwt`, `passThroughAuth`, `hmacAuth`, or `opaServerAuth` can be set. |
-| `opaAuth` | [.enterprise.gloo.solo.io.ExtAuthConfig.OpaAuthConfig](../extauth-internal.proto.sk/#opaauthconfig) |  Only one of `opaAuth`, `oauth`, `oauth2`, `basicAuth`, `basicAuthInternal`, `apiKeyAuth`, `pluginAuth`, `ldap`, `ldapInternal`, `jwt`, `passThroughAuth`, `hmacAuth`, or `opaServerAuth` can be set. |
-| `ldap` | [.enterprise.gloo.solo.io.Ldap](../extauth.proto.sk/#ldap) |  Only one of `ldap`, `oauth`, `oauth2`, `basicAuth`, `basicAuthInternal`, `apiKeyAuth`, `pluginAuth`, `opaAuth`, `ldapInternal`, `jwt`, `passThroughAuth`, `hmacAuth`, or `opaServerAuth` can be set. |
-| `ldapInternal` | [.enterprise.gloo.solo.io.ExtAuthConfig.LdapConfig](../extauth-internal.proto.sk/#ldapconfig) | Used for LDAP configurations that need service account credentials saved in a secret. Only one of `ldapInternal`, `oauth`, `oauth2`, `basicAuth`, `basicAuthInternal`, `apiKeyAuth`, `pluginAuth`, `opaAuth`, `ldap`, `jwt`, `passThroughAuth`, `hmacAuth`, or `opaServerAuth` can be set. |
-| `jwt` | [.google.protobuf.Empty](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/empty) | This is a "dummy" extauth service which can be used to support multiple auth mechanisms with JWT authentication. If Jwt authentication is to be used in the [boolean expression](https://docs.solo.io/gloo-edge/latest/reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth.proto.sk/#authconfig) in an AuthConfig, you can use this auth config type to include Jwt as an Auth config. In addition, `allow_missing_or_failed_jwt` must be set on the Virtual Host or Route that uses JWT auth or else the JWT filter will short circuit this behaviour. Only one of `jwt`, `oauth`, `oauth2`, `basicAuth`, `basicAuthInternal`, `apiKeyAuth`, `pluginAuth`, `opaAuth`, `ldap`, `ldapInternal`, `passThroughAuth`, `hmacAuth`, or `opaServerAuth` can be set. |
-| `passThroughAuth` | [.enterprise.gloo.solo.io.PassThroughAuth](../extauth.proto.sk/#passthroughauth) |  Only one of `passThroughAuth`, `oauth`, `oauth2`, `basicAuth`, `basicAuthInternal`, `apiKeyAuth`, `pluginAuth`, `opaAuth`, `ldap`, `ldapInternal`, `jwt`, `hmacAuth`, or `opaServerAuth` can be set. |
-| `hmacAuth` | [.enterprise.gloo.solo.io.ExtAuthConfig.HmacAuthConfig](../extauth-internal.proto.sk/#hmacauthconfig) |  Only one of `hmacAuth`, `oauth`, `oauth2`, `basicAuth`, `basicAuthInternal`, `apiKeyAuth`, `pluginAuth`, `opaAuth`, `ldap`, `ldapInternal`, `jwt`, `passThroughAuth`, or `opaServerAuth` can be set. |
-| `opaServerAuth` | [.enterprise.gloo.solo.io.ExtAuthConfig.OpaServerAuthConfig](../extauth-internal.proto.sk/#opaserverauthconfig) |  Only one of `opaServerAuth`, `oauth`, `oauth2`, `basicAuth`, `basicAuthInternal`, `apiKeyAuth`, `pluginAuth`, `opaAuth`, `ldap`, `ldapInternal`, `jwt`, `passThroughAuth`, or `hmacAuth` can be set. |
+| `oauth` | [.enterprise.gloo.solo.io.ExtAuthConfig.OAuthConfig](../extauth-internal.proto.sk/#oauthconfig) |  Only one of `oauth`, `oauth2`, `basicAuth`, `basicAuthInternal`, `apiKeyAuth`, `pluginAuth`, `opaAuth`, `ldap`, `ldapInternal`, `jwt`, `passThroughAuth`, `hmacAuth`, `opaServerAuth`, or `portalAuth` can be set. |
+| `oauth2` | [.enterprise.gloo.solo.io.ExtAuthConfig.OAuth2Config](../extauth-internal.proto.sk/#oauth2config) |  Only one of `oauth2`, `oauth`, `basicAuth`, `basicAuthInternal`, `apiKeyAuth`, `pluginAuth`, `opaAuth`, `ldap`, `ldapInternal`, `jwt`, `passThroughAuth`, `hmacAuth`, `opaServerAuth`, or `portalAuth` can be set. |
+| `basicAuth` | [.enterprise.gloo.solo.io.BasicAuth](../extauth.proto.sk/#basicauth) |  Only one of `basicAuth`, `oauth`, `oauth2`, `basicAuthInternal`, `apiKeyAuth`, `pluginAuth`, `opaAuth`, `ldap`, `ldapInternal`, `jwt`, `passThroughAuth`, `hmacAuth`, `opaServerAuth`, or `portalAuth` can be set. |
+| `basicAuthInternal` | [.enterprise.gloo.solo.io.ExtAuthConfig.BasicAuthInternal](../extauth-internal.proto.sk/#basicauthinternal) |  Only one of `basicAuthInternal`, `oauth`, `oauth2`, `basicAuth`, `apiKeyAuth`, `pluginAuth`, `opaAuth`, `ldap`, `ldapInternal`, `jwt`, `passThroughAuth`, `hmacAuth`, `opaServerAuth`, or `portalAuth` can be set. |
+| `apiKeyAuth` | [.enterprise.gloo.solo.io.ExtAuthConfig.ApiKeyAuthConfig](../extauth-internal.proto.sk/#apikeyauthconfig) |  Only one of `apiKeyAuth`, `oauth`, `oauth2`, `basicAuth`, `basicAuthInternal`, `pluginAuth`, `opaAuth`, `ldap`, `ldapInternal`, `jwt`, `passThroughAuth`, `hmacAuth`, `opaServerAuth`, or `portalAuth` can be set. |
+| `pluginAuth` | [.enterprise.gloo.solo.io.AuthPlugin](../extauth.proto.sk/#authplugin) |  Only one of `pluginAuth`, `oauth`, `oauth2`, `basicAuth`, `basicAuthInternal`, `apiKeyAuth`, `opaAuth`, `ldap`, `ldapInternal`, `jwt`, `passThroughAuth`, `hmacAuth`, `opaServerAuth`, or `portalAuth` can be set. |
+| `opaAuth` | [.enterprise.gloo.solo.io.ExtAuthConfig.OpaAuthConfig](../extauth-internal.proto.sk/#opaauthconfig) |  Only one of `opaAuth`, `oauth`, `oauth2`, `basicAuth`, `basicAuthInternal`, `apiKeyAuth`, `pluginAuth`, `ldap`, `ldapInternal`, `jwt`, `passThroughAuth`, `hmacAuth`, `opaServerAuth`, or `portalAuth` can be set. |
+| `ldap` | [.enterprise.gloo.solo.io.Ldap](../extauth.proto.sk/#ldap) |  Only one of `ldap`, `oauth`, `oauth2`, `basicAuth`, `basicAuthInternal`, `apiKeyAuth`, `pluginAuth`, `opaAuth`, `ldapInternal`, `jwt`, `passThroughAuth`, `hmacAuth`, `opaServerAuth`, or `portalAuth` can be set. |
+| `ldapInternal` | [.enterprise.gloo.solo.io.ExtAuthConfig.LdapConfig](../extauth-internal.proto.sk/#ldapconfig) | Used for LDAP configurations that need service account credentials saved in a secret. Only one of `ldapInternal`, `oauth`, `oauth2`, `basicAuth`, `basicAuthInternal`, `apiKeyAuth`, `pluginAuth`, `opaAuth`, `ldap`, `jwt`, `passThroughAuth`, `hmacAuth`, `opaServerAuth`, or `portalAuth` can be set. |
+| `jwt` | [.google.protobuf.Empty](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/empty) | This is a "dummy" extauth service which can be used to support multiple auth mechanisms with JWT authentication. If Jwt authentication is to be used in the [boolean expression](https://docs.solo.io/gloo-edge/latest/reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth.proto.sk/#authconfig) in an AuthConfig, you can use this auth config type to include Jwt as an Auth config. In addition, `allow_missing_or_failed_jwt` must be set on the Virtual Host or Route that uses JWT auth or else the JWT filter will short circuit this behaviour. Only one of `jwt`, `oauth`, `oauth2`, `basicAuth`, `basicAuthInternal`, `apiKeyAuth`, `pluginAuth`, `opaAuth`, `ldap`, `ldapInternal`, `passThroughAuth`, `hmacAuth`, `opaServerAuth`, or `portalAuth` can be set. |
+| `passThroughAuth` | [.enterprise.gloo.solo.io.PassThroughAuth](../extauth.proto.sk/#passthroughauth) |  Only one of `passThroughAuth`, `oauth`, `oauth2`, `basicAuth`, `basicAuthInternal`, `apiKeyAuth`, `pluginAuth`, `opaAuth`, `ldap`, `ldapInternal`, `jwt`, `hmacAuth`, `opaServerAuth`, or `portalAuth` can be set. |
+| `hmacAuth` | [.enterprise.gloo.solo.io.ExtAuthConfig.HmacAuthConfig](../extauth-internal.proto.sk/#hmacauthconfig) |  Only one of `hmacAuth`, `oauth`, `oauth2`, `basicAuth`, `basicAuthInternal`, `apiKeyAuth`, `pluginAuth`, `opaAuth`, `ldap`, `ldapInternal`, `jwt`, `passThroughAuth`, `opaServerAuth`, or `portalAuth` can be set. |
+| `opaServerAuth` | [.enterprise.gloo.solo.io.ExtAuthConfig.OpaServerAuthConfig](../extauth-internal.proto.sk/#opaserverauthconfig) |  Only one of `opaServerAuth`, `oauth`, `oauth2`, `basicAuth`, `basicAuthInternal`, `apiKeyAuth`, `pluginAuth`, `opaAuth`, `ldap`, `ldapInternal`, `jwt`, `passThroughAuth`, `hmacAuth`, or `portalAuth` can be set. |
+| `portalAuth` | [.enterprise.gloo.solo.io.ExtAuthConfig.PortalAuthConfig](../extauth-internal.proto.sk/#portalauthconfig) |  Only one of `portalAuth`, `oauth`, `oauth2`, `basicAuth`, `basicAuthInternal`, `apiKeyAuth`, `pluginAuth`, `opaAuth`, `ldap`, `ldapInternal`, `jwt`, `passThroughAuth`, `hmacAuth`, or `opaServerAuth` can be set. |
 
 
 

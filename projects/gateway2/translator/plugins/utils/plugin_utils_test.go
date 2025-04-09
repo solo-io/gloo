@@ -3,18 +3,23 @@ package utils_test
 import (
 	"context"
 	"errors"
+	"sort"
 	"testing"
+	"time"
 
 	. "github.com/onsi/gomega"
+	"google.golang.org/protobuf/types/known/wrapperspb"
 
 	sologatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	solokubev1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1/kube/apis/gateway.solo.io/v1"
 	"github.com/solo-io/gloo/projects/gateway2/translator/plugins"
 	"github.com/solo-io/gloo/projects/gateway2/translator/plugins/utils"
 	"github.com/solo-io/gloo/projects/gateway2/translator/testutils"
+	"github.com/solo-io/gloo/projects/gateway2/wellknown"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/faultinjection"
 
+	skv2corev1 "github.com/solo-io/skv2/pkg/api/core.skv2.solo.io/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -34,7 +39,7 @@ func TestExtensionRef(t *testing.T) {
 	filters := utils.FindExtensionRefFilters(rtCtx.Rule, gk)
 	g.Expect(filters).ToNot(BeEmpty())
 
-	routeOption, err := utils.GetExtensionRefObj[*solokubev1.RouteOption](context.Background(), rtCtx.Route, queries, filters[0].ExtensionRef)
+	routeOption, err := utils.GetExtensionRefObj[*solokubev1.RouteOption](context.Background(), rtCtx.HTTPRoute, queries, filters[0].ExtensionRef)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(routeOption.Spec.GetOptions().GetFaults().GetAbort().GetPercentage()).To(BeEquivalentTo(1))
 }
@@ -52,11 +57,11 @@ func TestMultipleExtensionRef(t *testing.T) {
 	filters := utils.FindExtensionRefFilters(rtCtx.Rule, gk)
 	g.Expect(filters).ToNot(BeEmpty())
 
-	routeOption1, err := utils.GetExtensionRefObj[*solokubev1.RouteOption](context.Background(), rtCtx.Route, queries, filters[0].ExtensionRef)
+	routeOption1, err := utils.GetExtensionRefObj[*solokubev1.RouteOption](context.Background(), rtCtx.HTTPRoute, queries, filters[0].ExtensionRef)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(routeOption1.Spec.GetOptions().GetFaults().GetAbort().GetPercentage()).To(BeEquivalentTo(1))
 
-	routeOption2, err := utils.GetExtensionRefObj[*solokubev1.RouteOption](context.Background(), rtCtx.Route, queries, filters[1].ExtensionRef)
+	routeOption2, err := utils.GetExtensionRefObj[*solokubev1.RouteOption](context.Background(), rtCtx.HTTPRoute, queries, filters[1].ExtensionRef)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(routeOption2.Spec.GetOptions().GetFaults().GetAbort().GetPercentage()).To(BeEquivalentTo(2))
 }
@@ -74,7 +79,7 @@ func TestExtensionRefWrongObject(t *testing.T) {
 	filters := utils.FindExtensionRefFilters(rtCtx.Rule, gk)
 	g.Expect(filters).ToNot(BeEmpty())
 
-	_, err := utils.GetExtensionRefObj[*solokubev1.VirtualHostOption](context.Background(), rtCtx.Route, queries, filters[0].ExtensionRef)
+	_, err := utils.GetExtensionRefObj[*solokubev1.VirtualHostOption](context.Background(), rtCtx.HTTPRoute, queries, filters[0].ExtensionRef)
 	g.Expect(err).To(HaveOccurred())
 	g.Expect(errors.Is(err, utils.ErrTypesNotEqual)).To(BeTrue())
 }
@@ -117,7 +122,7 @@ func routeOption2() *solokubev1.RouteOption {
 
 func routeContext() plugins.RouteContext {
 	return plugins.RouteContext{
-		Route: &gwv1.HTTPRoute{},
+		HTTPRoute: &gwv1.HTTPRoute{},
 		Rule: &gwv1.HTTPRouteRule{
 			Filters: []gwv1.HTTPRouteFilter{
 				{
@@ -135,7 +140,7 @@ func routeContext() plugins.RouteContext {
 
 func routeContextMultipleFilters() plugins.RouteContext {
 	return plugins.RouteContext{
-		Route: &gwv1.HTTPRoute{},
+		HTTPRoute: &gwv1.HTTPRoute{},
 		Rule: &gwv1.HTTPRouteRule{
 			Filters: []gwv1.HTTPRouteFilter{
 				{
@@ -157,4 +162,121 @@ func routeContextMultipleFilters() plugins.RouteContext {
 			},
 		},
 	}
+}
+
+type mockPolicy struct {
+	targetRefs []*skv2corev1.PolicyTargetReferenceWithSectionName
+	object     client.Object
+}
+
+func (m *mockPolicy) GetTargetRefs() []*skv2corev1.PolicyTargetReferenceWithSectionName {
+	return m.targetRefs
+}
+
+func (m *mockPolicy) GetObject() client.Object {
+	return m.object
+}
+
+// basePolicyForGw returns a mock policy that matches the given gateway name
+func basePolicyForGw(gwName string) *mockPolicy {
+	return &mockPolicy{
+		targetRefs: []*skv2corev1.PolicyTargetReferenceWithSectionName{
+			{Name: gwName},
+		},
+		object: &gwv1.HTTPRoute{},
+	}
+}
+
+func (p *mockPolicy) withSectionName(sectionName string) *mockPolicy {
+	p.targetRefs[0].SectionName = &wrapperspb.StringValue{
+		Value: sectionName,
+	}
+	return p
+}
+
+func (p *mockPolicy) withCreationTimestamp(creationTimestamp time.Time) *mockPolicy {
+	p.object.SetCreationTimestamp(metav1.NewTime(creationTimestamp))
+	return p
+}
+
+func TestGetPrioritizedListenerPolicies(t *testing.T) {
+	g := NewWithT(t)
+
+	listener := &gwv1.Listener{
+		Name: "http",
+	}
+
+	// seven policies:
+	//   five matching the gateway name:
+	//     one with no section name - should be fourth in the output
+	//     one with no section name but older - should be third in the output
+	//     one with section name "http" - should match and be second in the output
+	//     one with section name "http" but older  - should match and be first in the output
+	//     one targeting a different section name - should not match
+	//   two that don't match the listener name:
+	//     one with section name "http" - should not match
+	//     one without section name - should not match
+
+	// Matches on gateway name, no section name, newer than policy1
+	policy0 := basePolicyForGw("gw-1").withCreationTimestamp(time.Now())
+	policy1 := basePolicyForGw("gw-1").withCreationTimestamp(time.Now().Add(-1 * time.Hour))
+	policy2 := basePolicyForGw("gw-1").withSectionName("http").withCreationTimestamp(time.Now())
+	policy3 := basePolicyForGw("gw-1").withSectionName("http").withCreationTimestamp(time.Now().Add(-1 * time.Hour))
+	policy4 := basePolicyForGw("gw-1").withSectionName("not-http")
+	policy5 := basePolicyForGw("gw-2")
+	policy6 := basePolicyForGw("gw-2").withSectionName("http")
+
+	policies := []utils.PolicyWithSectionedTargetRefs[client.Object]{policy0, policy1, policy2, policy3, policy4, policy5, policy6}
+
+	prioritizedPolicies := utils.GetPrioritizedListenerPoliciesAllTargetRefs(policies, listener, "gw-1")
+
+	g.Expect(prioritizedPolicies).To(BeEquivalentTo([]client.Object{policy3.object, policy2.object, policy1.object, policy0.object}))
+}
+
+func TestIndexTargetRefs(t *testing.T) {
+	g := NewWithT(t)
+
+	targetRefs := []*skv2corev1.PolicyTargetReferenceWithSectionName{
+		{
+			Name:  "gw-1",
+			Group: gwv1.GroupName,
+			Kind:  wellknown.GatewayKind,
+		},
+		{
+			Name:        "gw-1",
+			Group:       gwv1.GroupName,
+			Kind:        wellknown.GatewayKind,
+			SectionName: &wrapperspb.StringValue{Value: "http"},
+		},
+		{
+			Name:  "gw-2",
+			Group: gwv1.GroupName,
+			Kind:  wellknown.GatewayKind,
+		},
+		{
+			Name:        "gw-2",
+			Group:       gwv1.GroupName,
+			Kind:        wellknown.GatewayKind,
+			SectionName: &wrapperspb.StringValue{Value: "http"},
+		},
+		// no match on Group
+		{
+			Name:  "gw-3",
+			Group: gwv1.GroupName + "-no-match",
+			Kind:  wellknown.GatewayKind,
+		},
+		// no match on Kind
+		{
+			Name:  "gw-3",
+			Group: gwv1.GroupName,
+			Kind:  wellknown.HTTPRouteKind,
+		},
+	}
+
+	indices := utils.IndexTargetRefs(targetRefs, "default", wellknown.GatewayKind)
+	expected := []string{"default/gw-1", "default/gw-2"}
+
+	sort.Strings(expected)
+	sort.Strings(indices)
+	g.Expect(indices).To(Equal(expected))
 }

@@ -365,6 +365,9 @@ apis:
   enterprise.gloo.solo.io.PlainOAuth2:
     relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth.proto.sk/#PlainOAuth2
     package: enterprise.gloo.solo.io
+  enterprise.gloo.solo.io.PortalAuth:
+    relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth.proto.sk/#PortalAuth
+    package: enterprise.gloo.solo.io
   enterprise.gloo.solo.io.RedisOptions:
     relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth.proto.sk/#RedisOptions
     package: enterprise.gloo.solo.io
@@ -1262,6 +1265,9 @@ apis:
   header_validation.options.gloo.solo.io.HeaderValidationSettings:
     relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/options/header_validation/header_validation.proto.sk/#HeaderValidationSettings
     package: header_validation.options.gloo.solo.io
+  headers.options.gloo.solo.io.EarlyHeaderManipulation:
+    relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/options/headers/headers.proto.sk/#EarlyHeaderManipulation
+    package: headers.options.gloo.solo.io
   headers.options.gloo.solo.io.HeaderManipulation:
     relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/options/headers/headers.proto.sk/#HeaderManipulation
     package: headers.options.gloo.solo.io
@@ -1817,6 +1823,9 @@ apis:
   solo.io.envoy.config.trace.v3.DatadogRemoteConfig:
     relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/external/envoy/config/trace/v3/datadog.proto.sk/#DatadogRemoteConfig
     package: solo.io.envoy.config.trace.v3
+  solo.io.envoy.config.trace.v3.GrpcService:
+    relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/external/envoy/config/trace/v3/opentelemetry.proto.sk/#GrpcService
+    package: solo.io.envoy.config.trace.v3
   solo.io.envoy.config.trace.v3.OpenCensusConfig:
     relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/external/envoy/config/trace/v3/opencensus.proto.sk/#OpenCensusConfig
     package: solo.io.envoy.config.trace.v3
@@ -2062,6 +2071,9 @@ apis:
     package: tracing.options.gloo.solo.io
   tracing.options.gloo.solo.io.TracingTagLiteral:
     relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/options/tracing/tracing.proto.sk/#TracingTagLiteral
+    package: tracing.options.gloo.solo.io
+  tracing.options.gloo.solo.io.TracingTagMetadata:
+    relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/options/tracing/tracing.proto.sk/#TracingTagMetadata
     package: tracing.options.gloo.solo.io
   transformation.options.gloo.solo.io.Extraction:
     relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/options/transformation/transformation.proto.sk/#Extraction

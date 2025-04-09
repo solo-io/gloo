@@ -18,6 +18,6 @@ var _ = Describe("GetBoolInput", func() {
 			err := GetBoolInput("test msg", &val)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(val).To(BeTrue())
-		})
+		}, nil)
 	})
 })

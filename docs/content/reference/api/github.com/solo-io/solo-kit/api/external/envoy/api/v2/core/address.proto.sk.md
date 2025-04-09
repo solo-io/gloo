@@ -1,6 +1,6 @@
 
 ---
-title: "address.proto"
+title: "Address"
 weight: 5
 ---
 
@@ -8,7 +8,7 @@ weight: 5
 
 
 ### Package: `solo.io.envoy.api.v2.core` 
-#### Types:
+**Types:**
 
 
 - [Pipe](#pipe)
@@ -22,7 +22,7 @@ weight: 5
 
 
 
-##### Source File: [github.com/solo-io/solo-kit/api/external/envoy/api/v2/core/address.proto](https://github.com/solo-io/solo-kit/blob/main/api/external/envoy/api/v2/core/address.proto)
+**Source File: [github.com/solo-io/solo-kit/api/external/envoy/api/v2/core/address.proto](https://github.com/solo-io/solo-kit/blob/main/api/external/envoy/api/v2/core/address.proto)**
 
 
 

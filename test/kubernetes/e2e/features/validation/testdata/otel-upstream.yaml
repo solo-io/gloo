@@ -1,0 +1,12 @@
+apiVersion: gloo.solo.io/v1
+kind: Upstream
+metadata:
+  name: opentelemetry-collector
+spec:
+  # REQUIRED FOR OPENTELEMETRY COLLECTION
+  useHttp2: true
+  kube:
+    # selector:
+    serviceName: otel-collector
+    serviceNamespace: gloo-system
+    servicePort: 4317

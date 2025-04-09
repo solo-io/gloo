@@ -13,11 +13,6 @@ import (
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
 )
 
-// inheritMatcherAnnotation is the annotation used on an child HTTPRoute that
-// participates in a delegation chain to indicate that child route should inherit
-// the route matcher from the parent route.
-const inheritMatcherAnnotation = "delegation.gateway.solo.io/inherit-parent-matcher"
-
 // filterDelegatedChildren filters the referenced children and their rules based
 // on parent matchers, filters their hostnames, and applies parent matcher
 // inheritance
@@ -39,15 +34,20 @@ const inheritMatcherAnnotation = "delegation.gateway.solo.io/inherit-parent-matc
 func filterDelegatedChildren(
 	parentRef types.NamespacedName,
 	parentMatch gwv1.HTTPRouteMatch,
-	children []*query.HTTPRouteInfo,
-) []*query.HTTPRouteInfo {
+	children []*query.RouteInfo,
+) []*query.RouteInfo {
 	// Select the child routes that match the parent
-	var selected []*query.HTTPRouteInfo
-	for _, child := range children {
+	var selected []*query.RouteInfo
+	for _, c := range children {
 		// make a copy; multiple parents can delegate to the same child so we can't modify a shared reference
-		child := child.Clone()
+		clone := c.Clone()
 
-		inheritMatcher := shouldInheritMatcher(&child.HTTPRoute)
+		child, ok := clone.Object.(*gwv1.HTTPRoute)
+		if !ok {
+			continue
+		}
+
+		inheritMatcher := shouldInheritMatcher(child)
 
 		// Check if the child route has a prefix that matches the parent.
 		// Only rules matching the parent prefix are considered.
@@ -91,7 +91,8 @@ func filterDelegatedChildren(
 		}
 		if len(validRules) > 0 {
 			child.Spec.Rules = validRules
-			selected = append(selected, child)
+			clone.Object = child
+			selected = append(selected, clone)
 		}
 	}
 
@@ -178,7 +179,7 @@ func isDelegatedRouteMatch(
 // shouldInheritMatcher returns true if the route indicates that it should inherit
 // its parent's matcher.
 func shouldInheritMatcher(route *gwv1.HTTPRoute) bool {
-	val, ok := route.Annotations[inheritMatcherAnnotation]
+	val, ok := route.Annotations[wellknown.InheritMatcherAnnotation]
 	if !ok {
 		return false
 	}

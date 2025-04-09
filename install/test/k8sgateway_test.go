@@ -3,6 +3,8 @@ package test
 import (
 	"fmt"
 
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/solo-io/gloo/install/utils/kuberesource"
@@ -15,6 +17,8 @@ import (
 	. "github.com/solo-io/k8s-utils/manifesttestutils"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
+	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/utils/pointer"
 )
 
 var _ = Describe("Kubernetes Gateway API integration", func() {
@@ -151,6 +155,7 @@ var _ = Describe("Kubernetes Gateway API integration", func() {
 						fmt.Sprintf("kubeGateway.gatewayParameters.glooGateway.envoyContainer.resources.limits.cpu=%s", envoyLimits["cpu"].ToUnstructured()),
 						"kubeGateway.gatewayParameters.glooGateway.proxyDeployment.replicas=5",
 						"kubeGateway.gatewayParameters.glooGateway.service.type=ClusterIP",
+						"kubeGateway.gatewayParameters.glooGateway.service.externalTrafficPolicy=Local",
 						"kubeGateway.gatewayParameters.glooGateway.service.extraLabels.svclabel1=x",
 						"kubeGateway.gatewayParameters.glooGateway.service.extraAnnotations.svcanno1=y",
 						"kubeGateway.gatewayParameters.glooGateway.serviceAccount.extraLabels.label1=a",
@@ -244,6 +249,7 @@ var _ = Describe("Kubernetes Gateway API integration", func() {
 					Expect(gwpKube.GetSdsContainer().GetResources().Limits).To(matchers.ContainMapElements(sdsLimits))
 
 					Expect(*gwpKube.GetService().GetType()).To(Equal(corev1.ServiceTypeClusterIP))
+					Expect(gwpKube.GetService().GetExternalTrafficPolicy()).To(HaveValue(Equal(corev1.ServiceExternalTrafficPolicyLocal)))
 					Expect(gwpKube.GetService().GetExtraLabels()).To(matchers.ContainMapElements(map[string]string{"svclabel1": "x"}))
 					Expect(gwpKube.GetService().GetExtraAnnotations()).To(matchers.ContainMapElements(map[string]string{"svcanno1": "y"}))
 
@@ -280,6 +286,7 @@ var _ = Describe("Kubernetes Gateway API integration", func() {
 						"kubeGateway.gatewayParameters.glooGateway.envoyContainer.image.pullPolicy=Always",
 						"kubeGateway.gatewayParameters.glooGateway.proxyDeployment.replicas=5",
 						"kubeGateway.gatewayParameters.glooGateway.service.type=ClusterIP",
+						"kubeGateway.gatewayParameters.glooGateway.service.externalTrafficPolicy=Local",
 						"kubeGateway.gatewayParameters.glooGateway.service.extraLabels.svclabel1=a",
 						"kubeGateway.gatewayParameters.glooGateway.service.extraAnnotations.svcanno1=b",
 						"kubeGateway.gatewayParameters.glooGateway.serviceAccount.extraLabels.label1=a",
@@ -322,6 +329,7 @@ var _ = Describe("Kubernetes Gateway API integration", func() {
 					Expect(*gwpKube.GetSdsContainer().GetBootstrap().GetLogLevel()).To(Equal("debug"))
 
 					Expect(*gwpKube.GetService().GetType()).To(Equal(corev1.ServiceTypeClusterIP))
+					Expect(gwpKube.GetService().GetExternalTrafficPolicy()).To(HaveValue(Equal(corev1.ServiceExternalTrafficPolicyLocal)))
 					Expect(gwpKube.GetService().GetExtraLabels()).To(matchers.ContainMapElements(map[string]string{"svclabel1": "a"}))
 					Expect(gwpKube.GetService().GetExtraAnnotations()).To(matchers.ContainMapElements(map[string]string{"svcanno1": "b"}))
 
@@ -354,6 +362,225 @@ var _ = Describe("Kubernetes Gateway API integration", func() {
 					Entry("locally undefined, globally false", false, "global.securitySettings.floatingUserId=false"),
 					Entry("locally undefined, globally undefined", false),
 				)
+			})
+
+			Context("probes and graceful shutdown", func() {
+				When("nothing is specified", func() {
+					It("does not render probes and graceful shutdown", func() {
+						gwp := getDefaultGatewayParameters(testManifest)
+
+						gwpPT := gwp.Spec.Kube.PodTemplate
+						Expect(gwpPT).ToNot(BeNil())
+
+						Expect(gwpPT.LivenessProbe).To(BeNil())
+						Expect(gwpPT.ReadinessProbe).To(BeNil())
+						Expect(gwpPT.GracefulShutdown).To(BeNil())
+						Expect(gwpPT.TerminationGracePeriodSeconds).To(BeNil())
+					})
+				})
+
+				When("probes are enabled", func() {
+					BeforeEach(func() {
+						extraValuesArgs := []string{
+							"kubeGateway.gatewayParameters.glooGateway.podTemplate.probes=true",
+						}
+
+						valuesArgs = append(valuesArgs, extraValuesArgs...)
+					})
+
+					It("sets the default values of the probes", func() {
+						gwp := getDefaultGatewayParameters(testManifest)
+						gwpPT := gwp.Spec.Kube.PodTemplate
+						Expect(*gwpPT.ReadinessProbe).To(BeEquivalentTo(corev1.Probe{
+							ProbeHandler: corev1.ProbeHandler{
+								HTTPGet: &corev1.HTTPGetAction{
+									Scheme: "HTTP",
+									Port: intstr.IntOrString{
+										IntVal: 8082,
+									},
+									Path: "/envoy-hc",
+								},
+							},
+							InitialDelaySeconds: 5,
+							PeriodSeconds:       5,
+							FailureThreshold:    2,
+						}))
+						// There is no default liveness probe
+						Expect(gwpPT.LivenessProbe).To(BeNil())
+					})
+				})
+
+				When("custom probes are defined", func() {
+					BeforeEach(func() {
+						extraValuesArgs := []string{
+							"kubeGateway.gatewayParameters.glooGateway.podTemplate.probes=true",
+							"kubeGateway.gatewayParameters.glooGateway.podTemplate.customReadinessProbe.httpGet.scheme=HTTP",
+							"kubeGateway.gatewayParameters.glooGateway.podTemplate.customReadinessProbe.httpGet.port=9090",
+							"kubeGateway.gatewayParameters.glooGateway.podTemplate.customReadinessProbe.httpGet.path=/custom-readiness",
+							"kubeGateway.gatewayParameters.glooGateway.podTemplate.customReadinessProbe.failureThreshold=1",
+							"kubeGateway.gatewayParameters.glooGateway.podTemplate.customReadinessProbe.initialDelaySeconds=2",
+							"kubeGateway.gatewayParameters.glooGateway.podTemplate.customReadinessProbe.periodSeconds=3",
+							"kubeGateway.gatewayParameters.glooGateway.podTemplate.customLivenessProbe.exec.command[0]=wget",
+							"kubeGateway.gatewayParameters.glooGateway.podTemplate.customLivenessProbe.exec.command[1]=-O",
+							"kubeGateway.gatewayParameters.glooGateway.podTemplate.customLivenessProbe.exec.command[2]=/dev/null",
+							"kubeGateway.gatewayParameters.glooGateway.podTemplate.customLivenessProbe.exec.command[3]=127.0.0.1:9090/custom-liveness",
+							"kubeGateway.gatewayParameters.glooGateway.podTemplate.customLivenessProbe.failureThreshold=4",
+							"kubeGateway.gatewayParameters.glooGateway.podTemplate.customLivenessProbe.initialDelaySeconds=5",
+							"kubeGateway.gatewayParameters.glooGateway.podTemplate.customLivenessProbe.periodSeconds=6",
+						}
+
+						valuesArgs = append(valuesArgs, extraValuesArgs...)
+					})
+
+					It("sets the custom values of the probes", func() {
+						gwp := getDefaultGatewayParameters(testManifest)
+						gwpPT := gwp.Spec.Kube.PodTemplate
+						Expect(*gwpPT.ReadinessProbe).To(BeEquivalentTo(corev1.Probe{
+							ProbeHandler: corev1.ProbeHandler{
+								HTTPGet: &corev1.HTTPGetAction{
+									Scheme: "HTTP",
+									Port: intstr.IntOrString{
+										IntVal: 9090,
+									},
+									Path: "/custom-readiness",
+								},
+							},
+							FailureThreshold:    1,
+							InitialDelaySeconds: 2,
+							PeriodSeconds:       3,
+						}))
+						Expect(*gwpPT.LivenessProbe).To(BeEquivalentTo(corev1.Probe{
+							ProbeHandler: corev1.ProbeHandler{
+								Exec: &corev1.ExecAction{
+									Command: []string{
+										"wget",
+										"-O",
+										"/dev/null",
+										"127.0.0.1:9090/custom-liveness",
+									},
+								},
+							},
+							FailureThreshold:    4,
+							InitialDelaySeconds: 5,
+							PeriodSeconds:       6,
+						}))
+					})
+				})
+
+				When("gracefulShutdown and terminationGracePeriod is enabled", func() {
+					BeforeEach(func() {
+						extraValuesArgs := []string{
+							"kubeGateway.gatewayParameters.glooGateway.podTemplate.terminationGracePeriodSeconds=7",
+							"kubeGateway.gatewayParameters.glooGateway.podTemplate.gracefulShutdown.enabled=true",
+							"kubeGateway.gatewayParameters.glooGateway.podTemplate.gracefulShutdown.sleepTimeSeconds=5",
+						}
+
+						valuesArgs = append(valuesArgs, extraValuesArgs...)
+					})
+
+					It("sets the custom values", func() {
+						gwp := getDefaultGatewayParameters(testManifest)
+						gwpPT := gwp.Spec.Kube.PodTemplate
+						Expect(*gwpPT.TerminationGracePeriodSeconds).To(Equal(7))
+						Expect(*gwpPT.GracefulShutdown).To(BeEquivalentTo(v1alpha1.GracefulShutdownSpec{
+							Enabled:          pointer.Bool(true),
+							SleepTimeSeconds: pointer.Int(5),
+						}))
+					})
+				})
+			})
+
+			Context("distroless and fips", func() {
+				DescribeTable("Uses the correct image for the sds-ee container", func(variant string, expectedImage string) {
+					extraValueArgs := []string{
+						"kubeGateway.gatewayParameters.glooGateway.sdsContainer.image.registry=my-sds-reg",
+						"kubeGateway.gatewayParameters.glooGateway.sdsContainer.image.tag=my-sds-tag",
+						"kubeGateway.gatewayParameters.glooGateway.sdsContainer.image.repository=sds-ee",
+						"global.image.variant=" + variant,
+					}
+					valuesArgs = append(valuesArgs, extraValueArgs...)
+					// Updated values so need to re-render
+					prepareHelmManifest(namespace, glootestutils.HelmValues{ValuesArgs: valuesArgs})
+
+					gwp := getDefaultGatewayParameters(testManifest)
+					gwpKube := gwp.Spec.Kube
+					Expect(gwpKube).ToNot(BeNil())
+					sdsContainer := gwpKube.SdsContainer.Image
+					image := fmt.Sprintf("%s/%s:%s", *sdsContainer.Registry, *sdsContainer.Repository, *sdsContainer.Tag)
+					Expect(image).To(Equal(expectedImage))
+				},
+					Entry("No variant specified", "", "my-sds-reg/sds-ee:my-sds-tag"),
+					Entry("Standard variant", "standard", "my-sds-reg/sds-ee:my-sds-tag"),
+					Entry("Fips variant", "fips", "my-sds-reg/sds-ee-fips:my-sds-tag"),
+					Entry("Distroless variant", "distroless", "my-sds-reg/sds-ee:my-sds-tag-distroless"),
+					Entry("Fips-Distroless variant", "fips-distroless", "my-sds-reg/sds-ee-fips:my-sds-tag-distroless"))
+
+				DescribeTable("Uses the correct image for the gloo-ee-envoy-wrapper container", func(variant string, expectedImage string) {
+					extraValueArgs := []string{
+						"kubeGateway.gatewayParameters.glooGateway.envoyContainer.image.registry=my-gloo-ee-envoy-wrapper-reg",
+						"kubeGateway.gatewayParameters.glooGateway.envoyContainer.image.tag=my-gloo-ee-envoy-wrapper-tag",
+						"kubeGateway.gatewayParameters.glooGateway.envoyContainer.image.repository=gloo-ee-envoy-wrapper",
+						"global.image.variant=" + variant,
+					}
+					valuesArgs = append(valuesArgs, extraValueArgs...)
+					// Updated values so need to re-render
+					prepareHelmManifest(namespace, glootestutils.HelmValues{ValuesArgs: valuesArgs})
+
+					gwp := getDefaultGatewayParameters(testManifest)
+					gwpKube := gwp.Spec.Kube
+					Expect(gwpKube).ToNot(BeNil())
+					envoyContainer := gwpKube.EnvoyContainer.Image
+					image := fmt.Sprintf("%s/%s:%s", *envoyContainer.Registry, *envoyContainer.Repository, *envoyContainer.Tag)
+					Expect(image).To(Equal(expectedImage))
+				},
+					Entry("No variant specified", "", "my-gloo-ee-envoy-wrapper-reg/gloo-ee-envoy-wrapper:my-gloo-ee-envoy-wrapper-tag"),
+					Entry("Standard variant", "standard", "my-gloo-ee-envoy-wrapper-reg/gloo-ee-envoy-wrapper:my-gloo-ee-envoy-wrapper-tag"),
+					Entry("Fips variant", "fips", "my-gloo-ee-envoy-wrapper-reg/gloo-ee-envoy-wrapper-fips:my-gloo-ee-envoy-wrapper-tag"),
+					Entry("Distroless variant", "distroless", "my-gloo-ee-envoy-wrapper-reg/gloo-ee-envoy-wrapper:my-gloo-ee-envoy-wrapper-tag-distroless"),
+					Entry("Fips-Distroless variant", "fips-distroless", "my-gloo-ee-envoy-wrapper-reg/gloo-ee-envoy-wrapper-fips:my-gloo-ee-envoy-wrapper-tag-distroless"))
+
+			})
+
+			// for managing tests for strategies such as tsc, affinity e.t.c
+			Context("override deployment strategy", func() {
+				When("no pod topology spread constraints are specified", func() {
+					It("does not render pod tsc", func() {
+						gwp := getDefaultGatewayParameters(testManifest)
+
+						gwpPT := gwp.Spec.Kube.PodTemplate
+						Expect(gwpPT).ToNot(BeNil())
+
+						Expect(gwpPT.TopologySpreadConstraints).To(BeNil())
+					})
+				})
+
+				When("pod tsc are defined", func() {
+					BeforeEach(func() {
+						extraValuesArgs := []string{
+							"kubeGateway.gatewayParameters.glooGateway.podTemplate.topologySpreadConstraints[0].maxSkew=1",
+							"kubeGateway.gatewayParameters.glooGateway.podTemplate.topologySpreadConstraints[0].topologyKey=kubernetes.io/hostname",
+							"kubeGateway.gatewayParameters.glooGateway.podTemplate.topologySpreadConstraints[0].whenUnsatisfiable=DoNotSchedule",
+							"kubeGateway.gatewayParameters.glooGateway.podTemplate.topologySpreadConstraints[0].labelSelector.matchLabels.pod-label=default",
+						}
+
+						valuesArgs = append(valuesArgs, extraValuesArgs...)
+					})
+
+					It("given tsc configuration is rendered", func() {
+						gwp := getDefaultGatewayParameters(testManifest)
+						gwpPT := gwp.Spec.Kube.PodTemplate
+						Expect(gwpPT.TopologySpreadConstraints).To(BeEquivalentTo([]corev1.TopologySpreadConstraint{
+							{
+								MaxSkew:           1,
+								TopologyKey:       "kubernetes.io/hostname",
+								WhenUnsatisfiable: corev1.DoNotSchedule,
+								LabelSelector: &metav1.LabelSelector{
+									MatchLabels: map[string]string{"pod-label": "default"},
+								},
+							},
+						}))
+					})
+				})
 			})
 		})
 

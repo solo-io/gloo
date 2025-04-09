@@ -1,0 +1,9 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >-
+      Fix the e2e 1.18.x nightly tests. Previously, the tests were attempting to checkout the 1.18.x branch
+      which doesn't exist. Now, the tests are using the v1.18.x tag and are consistent with the rest of the
+      1.18.x nightly tests (e.g. regression tests).
+
+      skipCI-kube-tests:true
+      skipCI-docs-build:true

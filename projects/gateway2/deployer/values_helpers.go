@@ -10,6 +10,7 @@ import (
 	"github.com/solo-io/gloo/projects/gateway2/api/v1alpha1"
 	"github.com/solo-io/gloo/projects/gateway2/ports"
 	"golang.org/x/exp/slices"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/utils/ptr"
 	api "sigs.k8s.io/gateway-api/apis/v1"
 )
@@ -24,7 +25,7 @@ var ComponentLogLevelEmptyError = func(key string, value string) error {
 // Extract the listener ports from a Gateway. These will be used to populate:
 // 1. the ports exposed on the envoy container
 // 2. the ports exposed on the proxy service
-func getPortsValues(gw *api.Gateway) []helmPort {
+func getPortsValues(gw *api.Gateway, gwp *v1alpha1.GatewayParameters) []helmPort {
 	gwPorts := []helmPort{}
 	for _, l := range gw.Spec.Listeners {
 		listenerPort := uint16(l.Port)
@@ -38,11 +39,23 @@ func getPortsValues(gw *api.Gateway) []helmPort {
 		portName := string(l.Name)
 		protocol := "TCP"
 
+		// Search for static NodePort set from the GatewayParameters spec
+		// If not found the default value of `nil` will not render anything.
+		var nodePort *uint16 = nil
+		if gwp.Spec.GetKube().GetService().GetType() != nil && *(gwp.Spec.GetKube().GetService().GetType()) == corev1.ServiceTypeNodePort {
+			if idx := slices.IndexFunc(gwp.Spec.GetKube().GetService().GetPorts(), func(p *v1alpha1.Port) bool {
+				return p.GetPort() == uint16(listenerPort)
+			}); idx != -1 {
+				nodePort = ptr.To(uint16(*gwp.Spec.GetKube().GetService().GetPorts()[idx].GetNodePort()))
+			}
+		}
+
 		gwPorts = append(gwPorts, helmPort{
 			Port:       &listenerPort,
 			TargetPort: &targetPort,
 			Name:       &portName,
 			Protocol:   &protocol,
+			NodePort:   nodePort,
 		})
 	}
 	return gwPorts
@@ -77,11 +90,16 @@ func getServiceValues(svcConfig *v1alpha1.Service) *helmService {
 	if svcConfig.GetType() != nil {
 		svcType = ptr.To(string(*svcConfig.GetType()))
 	}
+	var svcExternalTrafficPolicy *string
+	if svcConfig.GetExternalTrafficPolicy() != nil {
+		svcExternalTrafficPolicy = ptr.To(string(*svcConfig.GetExternalTrafficPolicy()))
+	}
 	return &helmService{
-		Type:             svcType,
-		ClusterIP:        svcConfig.GetClusterIP(),
-		ExtraAnnotations: svcConfig.GetExtraAnnotations(),
-		ExtraLabels:      svcConfig.GetExtraLabels(),
+		Type:                  svcType,
+		ClusterIP:             svcConfig.GetClusterIP(),
+		ExtraAnnotations:      svcConfig.GetExtraAnnotations(),
+		ExtraLabels:           svcConfig.GetExtraLabels(),
+		ExternalTrafficPolicy: svcExternalTrafficPolicy,
 	}
 }
 
@@ -217,10 +235,18 @@ func getAIExtensionValues(config *v1alpha1.AiExtension) (*helmAIExtension, error
 
 	// If we don't do this check, a byte array containing the characters "null" will be rendered
 	// This will not be marshallable by the component so instead we render nothing.
-	var byt []byte
+	var statsByt []byte
 	if config.GetStats() != nil {
 		var err error
-		byt, err = json.Marshal(config.GetStats())
+		statsByt, err = json.Marshal(config.GetStats())
+		if err != nil {
+			return nil, err
+		}
+	}
+	var tracingByt []byte
+	if config.GetTracing() != nil {
+		var err error
+		tracingByt, err = json.Marshal(config.GetTracing())
 		if err != nil {
 			return nil, err
 		}
@@ -233,6 +259,7 @@ func getAIExtensionValues(config *v1alpha1.AiExtension) (*helmAIExtension, error
 		Resources:       config.GetResources(),
 		Env:             config.GetEnv(),
 		Ports:           config.GetPorts(),
-		Stats:           byt,
+		Stats:           statsByt,
+		Tracing:         tracingByt,
 	}, nil
 }

@@ -41,7 +41,7 @@ listeners:
                     value: extref
               hostRewrite: foo.com
               prefixRewrite: /anything/rewrite
-            name: example-default-0-0
+            name: httproute-example-default-0-0
             routeAction:
               single:
                 kube:
@@ -51,6 +51,12 @@ listeners:
                     namespace: default
   bindAddress: '::'
   bindPort: 8080
+  metadataStatic:
+    sources:
+    - resourceKind: gateway.networking.k8s.io/Gateway
+      resourceRef:
+        name: http
+        namespace: default
   name: http
 metadata:
   labels:

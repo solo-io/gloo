@@ -7,7 +7,7 @@ description: Filter, monitor, and block potentially harmful HTTP traffic.
 Filter, monitor, and block potentially harmful HTTP traffic with a Web Application Firewall (WAF) policy.
 
 {{% notice note %}}
-The WAF feature was introduced with **Gloo Gateway Enterprise**, release 0.18.23. If you are using an earlier version, this tutorial will not work.
+{{< readfile file="static/content/enterprise_only_feature_disclaimer" markdown="true">}}
 {{% /notice %}}
 
 ## About web application firewalls
@@ -21,13 +21,12 @@ In this section, you can learn about the following WAF topics:
 
 ### ModSecurity rule sets {#about-rule-sets}
 
-Gloo supports the popular Web Application Firewall framework and ruleset [ModSecurity](https://www.github.com/SpiderLabs/ModSecurity) **version 3.0.4**. ModSecurity uses a simple rules language to interpret and process incoming HTTP traffic. Because it is open source, ModSecurity is a flexible, cross-platform solution that incorporates transparent security practices to protect apps against a range web attacks. 
+Gloo supports the popular Web Application Firewall framework and ruleset [ModSecurity](https://www.github.com/SpiderLabs/ModSecurity) **version 3.2.1**. ModSecurity uses a simple rules language to interpret and process incoming HTTP traffic. Because it is open source, ModSecurity is a flexible, cross-platform solution that incorporates transparent security practices to protect apps against a range web attacks. 
 
 You have several options for using ModSecurity to write WAF policies:
 * Use publicly available rule sets that provide a generic set of detection rules to protect against the most common security threats. For example, the [OWASP Core Rule Set](https://github.com/coreruleset/coreruleset) is an open source project that protects apps against a wide range of attacks, including the "OWASP Top Ten."
 * Write your own custom rules by following the [ModSecurity rules language](https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual-(v3.x)). For examples, see [Configure WAF policies](#configure-waf-policies).
 
-For more information, see the [Gloo API docs]({{% versioned_link_path fromRoot="/reference/api/github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/waf/waf.proto.sk/" %}}).
 
 ### Understand the WAF API {#about-api}
 
@@ -35,7 +34,7 @@ The WAF filter supports a list of `RuleSet` objects which are loaded into the Mo
 
 You can disable each rule set on a route independently of other rule sets. Rule sets are applied on top of each other in order. This order means that later rule sets overwrite any conflicting rules in previous rule sets. For more fine-grained control, you can add a custom `rule_str`, which is applied after any files of rule sets.
 
-Review the following `RuleSet` API example and explanation. For more information, see the [Gloo API docs]({{% versioned_link_path fromRoot="/reference/api/github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/waf/waf.proto.sk/" %}}).
+Review the following `RuleSet`
 
 ```proto
 message ModSecurity {
@@ -429,7 +428,7 @@ of envoy's access logging. This means that directives that configure the audit e
 This is **intentional** - to make sure that ModSecurity doesn't degrade
 envoy performance. While the way we emit the logs is different, you have _all the features_ that 
 ModSecurity audit-logging provides:
-- You can use the `action` property of the [audit logging configuration]({{% versioned_link_path fromRoot="/reference/api/github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/waf/waf.proto.sk/#auditlogging" %}}) instead of [SecAuditEngine](https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual-%28v2.x%29#SecAuditEngine) to choose when to log.
+- You can use the `action` property of the audit logging configuration instead of [SecAuditEngine](https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual-%28v2.x%29#SecAuditEngine) to choose when to log.
 - You can still use the [SecAuditLogParts](https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual-%28v2.x%29#SecAuditLogParts), 
 [SecAuditLogRelevantStatus](https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual-%28v2.x%29#SecAuditLogRelevantStatus) and (assuming action is RELEVANT_ONLY) `noauditlog` features of ModSecurity.
 - The format of the log is controlled by [SecAuditLogFormat](https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual-%28v2.x%29#SecAuditLogFormat).
@@ -451,8 +450,7 @@ is better for your specific use-case.
 
 Let's see this in action!
 
-To enable audit logging, edit the [auditLogging]({{% versioned_link_path fromRoot="/reference/api/github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/waf/waf.proto.sk/#auditlogging" %}}) field in your 
-[WAF settings]({{% versioned_link_path fromRoot="/reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/waf/waf.proto.sk/#settings" %}}).
+To enable audit logging, edit the auditLogging field in your WAF settings.
 
 For example, lets edit our `VirtualService` with some
 rules and audit logging:
@@ -512,7 +510,7 @@ kubectl -n gloo-system logs deploy/gateway-proxy
 
 and you should see the following output:
 ```json
-{"transaction":{"request":{"http_version":1.1,"body":"","headers":{":path":"/api/pets/1","x-forwarded-proto":"http","accept":"*/*","host":"172.17.0.2:32608","user-agent":"scammer",":authority":"172.17.0.2:32608",":method":"GET","x-request-id":"a91986b2-5928-427e-a557-15f5cbeec104"},"uri":"/api/pets/1","method":"GET"},"host_port":0,"host_ip":"","unique_id":"158879653826.189180","client_ip":"10.244.0.1","time_stamp":"Wed May  6 20:22:18 2020","messages":[{"message":"blocked scammer","details":{"maturity":"0","match":"Matched \"Operator `Rx' with parameter `scammer' against variable `REQUEST_HEADERS:user-agent' (Value: `scammer' )","reference":"o0,7v133,7","lineNumber":"7","ruleId":"107","severity":"0","file":"\u003c\u003creference missing or not informed\u003e\u003e","ver":"","rev":"","data":"","tags":[],"accuracy":"0"}}],"client_port":48839,"producer":{"secrules_engine":"Enabled","modsecurity":"ModSecurity v3.0.4 (Linux)","components":[],"connector":"envoy v0.1.0"},"response":{"http_code":200,"headers":{}},"server_id":"4ce9d7cf1298296878f1ae2e9d40de00b290a3a4"}}
+{"transaction":{"request":{"http_version":1.1,"body":"","headers":{":path":"/api/pets/1","x-forwarded-proto":"http","accept":"*/*","host":"172.17.0.2:32608","user-agent":"scammer",":authority":"172.17.0.2:32608",":method":"GET","x-request-id":"a91986b2-5928-427e-a557-15f5cbeec104"},"uri":"/api/pets/1","method":"GET"},"host_port":0,"host_ip":"","unique_id":"158879653826.189180","client_ip":"10.244.0.1","time_stamp":"Wed May  6 20:22:18 2020","messages":[{"message":"blocked scammer","details":{"maturity":"0","match":"Matched \"Operator `Rx' with parameter `scammer' against variable `REQUEST_HEADERS:user-agent' (Value: `scammer' )","reference":"o0,7v133,7","lineNumber":"7","ruleId":"107","severity":"0","file":"\u003c\u003creference missing or not informed\u003e\u003e","ver":"","rev":"","data":"","tags":[],"accuracy":"0"}}],"client_port":48839,"producer":{"secrules_engine":"Enabled","modsecurity":"ModSecurity v3.2.1 (Linux)","components":[],"connector":"envoy v0.1.0"},"response":{"http_code":200,"headers":{}},"server_id":"4ce9d7cf1298296878f1ae2e9d40de00b290a3a4"}}
 ```
 
 {{% notice tip %}}

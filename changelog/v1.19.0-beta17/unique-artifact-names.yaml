@@ -1,0 +1,6 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >-
+      Append run ID and job ID to CI artifact uploads to ensure uniqueness
+    issueLink: https://github.com/solo-io/solo-projects/issues/8064
+    resolvesIssue: false

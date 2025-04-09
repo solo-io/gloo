@@ -1,6 +1,6 @@
 
 ---
-title: "gloo_validation.proto"
+title: "GlooValidation"
 weight: 5
 ---
 
@@ -8,7 +8,7 @@ weight: 5
 
 
 ### Package: `gloo.solo.io` 
-#### Types:
+**Types:**
 
 
 - [GlooValidationServiceRequest](#gloovalidationservicerequest)
@@ -28,6 +28,8 @@ weight: 5
 - [HttpListenerReport](#httplistenerreport)
 - [Error](#error)
 - [Type](#type)
+- [Warning](#warning)
+- [Type](#type)
 - [VirtualHostReport](#virtualhostreport)
 - [Error](#error)
 - [Type](#type)
@@ -38,6 +40,8 @@ weight: 5
 - [Type](#type)
 - [TcpListenerReport](#tcplistenerreport)
 - [Error](#error)
+- [Type](#type)
+- [Warning](#warning)
 - [Type](#type)
 - [TcpHostReport](#tcphostreport)
 - [Error](#error)
@@ -51,7 +55,7 @@ weight: 5
 
 
 
-##### Source File: [github.com/solo-io/gloo/projects/gloo/api/grpc/validation/gloo_validation.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/grpc/validation/gloo_validation.proto)
+**Source File: [github.com/solo-io/gloo/projects/gloo/api/grpc/validation/gloo_validation.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/grpc/validation/gloo_validation.proto)**
 
 
 
@@ -329,6 +333,7 @@ warning types for the given listener config
 ```yaml
 "errors": []gloo.solo.io.HttpListenerReport.Error
 "virtualHostReports": []gloo.solo.io.VirtualHostReport
+"warnings": []gloo.solo.io.HttpListenerReport.Warning
 
 ```
 
@@ -336,6 +341,7 @@ warning types for the given listener config
 | ----- | ---- | ----------- | 
 | `errors` | [[]gloo.solo.io.HttpListenerReport.Error](../gloo_validation.proto.sk/#error) |  |
 | `virtualHostReports` | [[]gloo.solo.io.VirtualHostReport](../gloo_validation.proto.sk/#virtualhostreport) | report for nested virtual hosts. |
+| `warnings` | [[]gloo.solo.io.HttpListenerReport.Warning](../gloo_validation.proto.sk/#warning) | warnings on the config of listener. |
 
 
 
@@ -370,6 +376,39 @@ error types for top-level http listener config
 | Name | Description |
 | ----- | ----------- | 
 | `ProcessingError` |  |
+
+
+
+
+---
+### Warning
+
+ 
+warning types for the given listener
+
+```yaml
+"type": .gloo.solo.io.HttpListenerReport.Warning.Type
+"reason": string
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+| `type` | [.gloo.solo.io.HttpListenerReport.Warning.Type](../gloo_validation.proto.sk/#type) | the type of the warning. |
+| `reason` | `string` | any extra info as a string. |
+
+
+
+
+---
+### Type
+
+
+
+| Name | Description |
+| ----- | ----------- | 
+| `UnknownWarning` |  |
+| `InvalidDestinationWarning` |  |
 
 
 
@@ -524,6 +563,7 @@ warning types for the given route config
 ```yaml
 "errors": []gloo.solo.io.TcpListenerReport.Error
 "tcpHostReports": []gloo.solo.io.TcpHostReport
+"warnings": []gloo.solo.io.TcpListenerReport.Warning
 
 ```
 
@@ -531,6 +571,7 @@ warning types for the given route config
 | ----- | ---- | ----------- | 
 | `errors` | [[]gloo.solo.io.TcpListenerReport.Error](../gloo_validation.proto.sk/#error) | errors on top-level config of the listener. |
 | `tcpHostReports` | [[]gloo.solo.io.TcpHostReport](../gloo_validation.proto.sk/#tcphostreport) |  |
+| `warnings` | [[]gloo.solo.io.TcpListenerReport.Warning](../gloo_validation.proto.sk/#warning) | warnings on the config of listener. |
 
 
 
@@ -566,6 +607,39 @@ error types for top-level tcp listener config
 | `BindPortNotUniqueError` |  |
 | `SSLConfigError` |  |
 | `ProcessingError` |  |
+
+
+
+
+---
+### Warning
+
+ 
+warning types for the given listener
+
+```yaml
+"type": .gloo.solo.io.TcpListenerReport.Warning.Type
+"reason": string
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+| `type` | [.gloo.solo.io.TcpListenerReport.Warning.Type](../gloo_validation.proto.sk/#type) | the type of the warning. |
+| `reason` | `string` | any extra info as a string. |
+
+
+
+
+---
+### Type
+
+
+
+| Name | Description |
+| ----- | ----------- | 
+| `UnknownWarning` |  |
+| `InvalidDestinationWarning` |  |
 
 
 

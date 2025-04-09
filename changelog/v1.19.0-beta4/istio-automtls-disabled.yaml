@@ -1,0 +1,7 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/gloo/issues/10575
+    resolvesIssue: true
+    description: |
+      When a workload has the label `security.istio.io/tlsMode: disabled`
+      we will no longer attempt to send mTLS to that workload.

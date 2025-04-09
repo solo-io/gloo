@@ -229,7 +229,7 @@ func (p *plugin) ApplyStatusPlugin(ctx context.Context, statusCtx *plugins.Statu
 	var multierr *multierror.Error
 	for vhOptKey, status := range p.classicStatusCache {
 		// get the obj by namespacedName
-		maybeVhOptObj := p.virtualHostOptionCollection.GetKey(krt.Key[*solokubev1.VirtualHostOption](krt.Named{Namespace: vhOptKey.Namespace, Name: vhOptKey.Name}.ResourceName()))
+		maybeVhOptObj := p.virtualHostOptionCollection.GetKey(krt.Named{Namespace: vhOptKey.Namespace, Name: vhOptKey.Name}.ResourceName())
 		if maybeVhOptObj == nil {
 			err := errors.New("VirtualHostOption not found")
 			multierr = multierror.Append(multierr, eris.Wrapf(err, "%s %s in namespace %s", ReadingVirtualHostOptionErrStr, vhOptKey.Name, vhOptKey.Namespace))
@@ -241,6 +241,7 @@ func (p *plugin) ApplyStatusPlugin(ctx context.Context, statusCtx *plugins.Statu
 		vhOptObj.Spec.GetMetadata().Name = vhOptObj.GetName()
 		vhOptObj.Spec.GetMetadata().Namespace = vhOptObj.GetNamespace()
 		vhOptObjSk := &vhOptObj.Spec
+		vhOptObjSk.NamespacedStatuses = &vhOptObj.Status
 
 		// mark this object to be processed
 		virtualHostOptionReport.Accept(vhOptObjSk)

@@ -177,6 +177,29 @@ var _ = Describe("Helm Test", func() {
 				})
 			})
 
+			It("should disableDigests if specified", func() {
+				shaTest := "sha256:1234123412341234123412341234213412341234123412341234123412341234"
+				prepareMakefile(namespace, glootestutils.HelmValues{
+					ValuesArgs: []string{
+						"gloo.deployment.image.digest=" + shaTest,
+						"global.image.disableDigest=true",
+					},
+				})
+				testManifest.SelectResources(func(resource *unstructured.Unstructured) bool {
+					return resource.GetKind() == "Deployment" && resource.GetName() == "gloo"
+				}).ExpectAll(func(deployment *unstructured.Unstructured) {
+					deploymentObject, err := kuberesource.ConvertUnstructured(deployment)
+					ExpectWithOffset(1, err).NotTo(HaveOccurred(), "Failed to render manifest")
+					structuredDeployment, ok := deploymentObject.(*appsv1.Deployment)
+					Expect(ok).To(BeTrue(), fmt.Sprintf("Deployment %+v should be able to cast to a structured deployment", deployment))
+
+					containers := structuredDeployment.Spec.Template.Spec.Containers
+					Expect(containers).To(HaveLen(1), "should have exactly 1 container")
+					image := containers[0].Image
+					Expect(image).ToNot(ContainSubstring(shaTest), "should not have sha digest in image")
+				})
+			})
+
 			It("should have all resources marked with a namespace", func() {
 				prepareMakefile(namespace, glootestutils.HelmValues{
 					ValuesArgs: []string{
@@ -2839,7 +2862,7 @@ spec:
 							// This annotation was introduced to resolve https://github.com/solo-io/gloo/issues/8392
 							// It triggers a new rollout of the gateway proxy if the config map it uses changes
 							// As of PR 8733, changing the values of the deployment spec doesn't change the gateway-proxy config map, so it is safe to hardcode the checksum in the tests
-							"checksum/gateway-proxy-envoy-config": "27068cd033014d38f6c77522484e957ab25fa1be34a900a1f5241b8f7d62f525",
+							"checksum/gateway-proxy-envoy-config": "655c76a411d3b9c6035c22ef4432e6a67140bd1c759eaeadd2e72009313a5503",
 						}
 						deploy.Spec.Template.Spec.Volumes = []corev1.Volume{{
 							Name: "envoy-config",
@@ -3661,7 +3684,7 @@ spec:
 						})
 						// Since changing the value of gatewayProxies.gatewayProxy.readConfig changes the gateway-proxy-envoy-config configmap, we need to update the checksum on the deployment as well.
 						// This also doubles as a check to validate that changes in the configmap change the checksum annotation on the deployment which will trigger a rollout.
-						gatewayProxyDeployment.Spec.Template.Annotations["checksum/gateway-proxy-envoy-config"] = "3e431b3dbb3fa7e31cedf9594474ad19e6ecc0e5a7bba59b99cf044d51546eaa"
+						gatewayProxyDeployment.Spec.Template.Annotations["checksum/gateway-proxy-envoy-config"] = "eed6c21fb5769def1b22999826a731539c0cbd2c1baef9139c0c52c86022ce7e"
 
 						testManifest.ExpectDeploymentAppsV1(gatewayProxyDeployment)
 					})
@@ -6321,7 +6344,7 @@ metadata:
 								a = getFieldFromUnstructured(u, append(prefixPath, "spec", "parallelism")...)
 								Expect(a).To(Equal(int64(PARALLELISM)))
 								a = getFieldFromUnstructured(u, append(prefixPath, "spec", "manualSelector")...)
-								Expect(a).To(Equal(MANUAL_SELECTOR))
+								Expect(a).To(BeTrue())
 								return true
 							}
 							return false

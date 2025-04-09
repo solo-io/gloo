@@ -1,0 +1,6 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >-
+      Replace deprecated distutils in the glooctl install script with packaging.version
+      skipCI-kube-tests:true
+      skipCI-docs-build:true

@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
 
 	envoy_config_cluster_v3 "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
 	envoy_config_endpoint_v3 "github.com/envoyproxy/go-control-plane/envoy/config/endpoint/v3"
@@ -179,12 +180,30 @@ type VirtualHostPlugin interface {
 // ResourceGeneratorPlugin modifies a set of xDS resources before they are persisted as a Snapshot
 type ResourceGeneratorPlugin interface {
 	Plugin
-	GeneratedResources(params Params,
+	// Deprecated: Implement with krt-safe methods (e.g. UpstreamGeneratedResources) instead.
+	GeneratedResources(
+		params Params,
+		proxy *v1.Proxy,
 		inClusters []*envoy_config_cluster_v3.Cluster,
 		inEndpoints []*envoy_config_endpoint_v3.ClusterLoadAssignment,
 		inRouteConfigurations []*envoy_config_route_v3.RouteConfiguration,
 		inListeners []*envoy_config_listener_v3.Listener,
-	) ([]*envoy_config_cluster_v3.Cluster, []*envoy_config_endpoint_v3.ClusterLoadAssignment, []*envoy_config_route_v3.RouteConfiguration, []*envoy_config_listener_v3.Listener, error)
+		reports reporter.ResourceReports,
+	) ([]*envoy_config_cluster_v3.Cluster, []*envoy_config_endpoint_v3.ClusterLoadAssignment, []*envoy_config_route_v3.RouteConfiguration, []*envoy_config_listener_v3.Listener)
+}
+
+// UpstreamGeneratedResourcesPlugin creates additional xDS resources based on an upstream
+// before they are persisted as a Snapshot. This plugin intended to be used by Gloo/Edge
+// and krt based translation and not break the lifecycle differences between listeners and
+// clusters.
+type UpstreamGeneratedResourcesPlugin interface {
+	Plugin
+	UpstreamGeneratedResources(
+		params Params,
+		upstream *v1.Upstream,
+		inCluster *envoy_config_cluster_v3.Cluster,
+		reports reporter.ResourceReports,
+	) ([]*envoy_config_cluster_v3.Cluster, []*envoy_config_listener_v3.Listener, error)
 }
 
 // A PluginRegistry is used to provide Plugins to relevant translators
@@ -202,6 +221,7 @@ type PluginRegistry interface {
 	GetVirtualHostPlugins() []VirtualHostPlugin
 	GetResourceGeneratorPlugins() []ResourceGeneratorPlugin
 	GetUpstreamPlugins() []UpstreamPlugin
+	GetUpstreamGeneratedResourcesPlugins() []UpstreamGeneratedResourcesPlugin
 	GetEndpointPlugins() []EndpointPlugin
 	GetRoutePlugins() []RoutePlugin
 	GetRouteActionPlugins() []RouteActionPlugin

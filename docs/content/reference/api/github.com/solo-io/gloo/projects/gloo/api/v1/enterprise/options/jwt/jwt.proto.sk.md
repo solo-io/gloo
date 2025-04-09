@@ -1,6 +1,6 @@
 
 ---
-title: "jwt.proto"
+title: "Jwt"
 weight: 5
 ---
 
@@ -8,7 +8,7 @@ weight: 5
 
 
 ### Package: `jwt.options.gloo.solo.io` 
-#### Types:
+**Types:**
 
 
 - [JwtStagedVhostExtension](#jwtstagedvhostextension)
@@ -28,7 +28,7 @@ weight: 5
 
 
 
-##### Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/jwt/jwt.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/enterprise/options/jwt/jwt.proto)
+**Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/jwt/jwt.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/enterprise/options/jwt/jwt.proto)**
 
 
 
@@ -156,6 +156,7 @@ weight: 5
 "keepToken": bool
 "claimsToHeaders": []jwt.options.gloo.solo.io.ClaimToHeader
 "clockSkewSeconds": .google.protobuf.UInt32Value
+"attachFailedStatusToMetadata": string
 
 ```
 
@@ -168,6 +169,7 @@ weight: 5
 | `keepToken` | `bool` | Should the token forwarded upstream. if false, the header containing the token will be removed. |
 | `claimsToHeaders` | [[]jwt.options.gloo.solo.io.ClaimToHeader](../jwt.proto.sk/#claimtoheader) | What claims should be copied to upstream headers. |
 | `clockSkewSeconds` | [.google.protobuf.UInt32Value](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/u-int-32-value) | Optional: ClockSkewSeconds is used to verify time constraints, such as `exp` and `npf`. Default is 60s. |
+| `attachFailedStatusToMetadata` | `string` | Optional: When this field is set, the specified value is used as the key in DynamicMetadata to store the JWT failure status code and message under that key. If the value is empty (i.e., ""), it is ignored. This field is particularly useful when logging the failure status. For example, if the value of `attach_failed_status_to_metadata` is 'custom_auth_failure_status' then the failure status can be accessed in the access log as '%DYNAMIC_METADATA(envoy.filters.http.jwt_authn:custom_auth_failure_status)' Note: status code and message can be individually accessed as '%DYNAMIC_METADATA(envoy.filters.http.jwt_authn:custom_auth_failure_status.code)' and '%DYNAMIC_METADATA(envoy.filters.http.jwt_authn:custom_auth_failure_status.message)' respectively. |
 
 
 
@@ -207,9 +209,9 @@ weight: 5
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
 | `url` | `string` | The url used when accessing the upstream for Json Web Key Set. This is used to set the host and path in the request. |
-| `upstreamRef` | [.core.solo.io.ResourceRef](../../../../../../../../../solo-kit/api/v1/ref.proto.sk/#resourceref) | The Upstream representing the Json Web Key Set server. |
+| `upstreamRef` | [.core.solo.io.ResourceRef](../../../../../../../../../solo-kit/api/v1/ref.proto.sk/#resourceref) | The Upstream representing the Json Web Key Set server Note: Setting this to an upstream using an HTTP tunnel (`httpProxyHostname`) requires also using that upstream in a route. |
 | `cacheDuration` | [.google.protobuf.Duration](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/duration) | Duration after which the cached JWKS should be expired. If not specified, default cache duration is 5 minutes. |
-| `asyncFetch` | [.solo.io.envoy.extensions.filters.http.jwt_authn.v3.JwksAsyncFetch](../../../../../external/envoy/extensions/filters/http/jwt_authn/v3/config.proto.sk/#jwksasyncfetch) | Fetch Jwks asynchronously in the main thread before the listener is activated. Fetched Jwks can be used by all worker threads. If this feature is not enabled: * The Jwks is fetched on-demand when the requests come. During the fetching, first few requests are paused until the Jwks is fetched. * Each worker thread fetches its own Jwks since Jwks cache is per worker thread. If this feature is enabled: * Fetched Jwks is done in the main thread before the listener is activated. Its fetched Jwks can be used by all worker threads. Each worker thread doesn't need to fetch its own. * Jwks is ready when the requests come, not need to wait for the Jwks fetching. |
+| `asyncFetch` | .solo.io.envoy.extensions.filters.http.jwt_authn.v3.JwksAsyncFetch | Fetch Jwks asynchronously in the main thread before the listener is activated. Fetched Jwks can be used by all worker threads. If this feature is not enabled: * The Jwks is fetched on-demand when the requests come. During the fetching, first few requests are paused until the Jwks is fetched. * Each worker thread fetches its own Jwks since Jwks cache is per worker thread. If this feature is enabled: * Fetched Jwks is done in the main thread before the listener is activated. Its fetched Jwks can be used by all worker threads. Each worker thread doesn't need to fetch its own. * Jwks is ready when the requests come, not need to wait for the Jwks fetching. |
 
 
 

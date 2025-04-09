@@ -75,7 +75,17 @@ func AdvancePort(p *uint32) uint32 {
 // AdvancePortSafeListen returns a port that is safe to use in parallel tests
 // It relies on pinging the port to see if it is in use
 func AdvancePortSafeListen(p *uint32, retryOptions ...retry.Option) uint32 {
-	return MustAdvancePortSafe(p, portInUseListen, retryOptions...)
+	errIfPortInUse := func(proposedPort uint32) error {
+		if err := portInDenyList(proposedPort); err != nil {
+			return err
+		}
+		if err := portInUseListen(proposedPort); err != nil {
+			return err
+		}
+		return nil
+	}
+
+	return MustAdvancePortSafe(p, errIfPortInUse, retryOptions...)
 }
 
 func portInUseListen(proposedPort uint32) error {
@@ -87,4 +97,17 @@ func portInUseListen(proposedPort uint32) error {
 
 	// Port should available if the listener closes without an error
 	return ln.Close()
+}
+
+var denyListPorts = map[uint32]struct{}{
+	// See gloo/pkg/servers/admin/server.go
+	// See https://github.com/solo-io/solo-projects/issues/7307 for more details
+	9095: {},
+}
+
+func portInDenyList(proposedPort uint32) error {
+	if _, ok := denyListPorts[proposedPort]; ok {
+		return eris.Errorf("port %d is in deny list", proposedPort)
+	}
+	return nil
 }
