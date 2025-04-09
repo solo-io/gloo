@@ -110,9 +110,9 @@ require (
 	golang.org/x/mod v0.23.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20250324211829-b45e905df463
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250324211829-b45e905df463
-	istio.io/api v1.25.0-alpha.0.0.20250401070747-f55d9659dc27
-	istio.io/client-go v1.25.0-alpha.0.0.20250401071445-73edf716803d
-	istio.io/istio v0.0.0-20250409134216-fbce7507f674
+	istio.io/api v1.25.0-alpha.0.0.20250409131518-217805b13757
+	istio.io/client-go v1.25.0-alpha.0.0.20250409132024-f1ac01623436
+	istio.io/istio v0.0.0-20250409144430-afad1ce6b9fd
 	sigs.k8s.io/controller-tools v0.17.2
 	sigs.k8s.io/structured-merge-diff/v4 v4.6.0
 )

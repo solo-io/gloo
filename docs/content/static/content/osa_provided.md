@@ -9,8 +9,8 @@ Name|Version|License
 [xds/go](https://github.com/cncf/xds)|v0.0.0-20250121191232-2f005788dc42|Apache License 2.0
 [cratonica/2goarray](https://github.com/cratonica/2goarray)|v0.0.0-20190331194516-514510793eaa|MIT License
 [envoyproxy/go-control-plane](https://github.com/envoyproxy/go-control-plane)|v0.13.5-0.20250123154839-2a6715911fec|Apache License 2.0
-[go-control-plane/contrib](https://github.com/envoyproxy/go-control-plane)|v1.32.5-0.20250328202736-d2aa792b145a|Apache License 2.0
-[go-control-plane/envoy](https://github.com/envoyproxy/go-control-plane)|v1.32.5-0.20250328202736-d2aa792b145a|Apache License 2.0
+[go-control-plane/contrib](https://github.com/envoyproxy/go-control-plane)|v1.32.5-0.20250405152605-3d52a2c138ee|Apache License 2.0
+[go-control-plane/envoy](https://github.com/envoyproxy/go-control-plane)|v1.32.5-0.20250405152605-3d52a2c138ee|Apache License 2.0
 [go-control-plane/ratelimit](https://github.com/envoyproxy/go-control-plane)|v0.1.0|Apache License 2.0
 [envoyproxy/protoc-gen-validate](https://github.com/envoyproxy/protoc-gen-validate)|v1.2.1|Apache License 2.0
 [form3tech-oss/jwt-go](https://github.com/form3tech-oss/jwt-go)|v3.2.5+incompatible|MIT License
@@ -71,7 +71,7 @@ Name|Version|License
 [helm/v3](https://helm.sh/helm/v3)|v3.17.1|Apache License 2.0
 [istio.io/api](https://istio.io/api)|v1.25.0-alpha.0.0.20250401070747-f55d9659dc27|Apache License 2.0
 [istio.io/client-go](https://istio.io/client-go)|v1.25.0-alpha.0.0.20250401071445-73edf716803d|Apache License 2.0
-[istio.io/istio](https://istio.io/istio)|v0.0.0-20250408162715-a246798e7751|Apache License 2.0
+[istio.io/istio](https://istio.io/istio)|v0.0.0-20250409134216-fbce7507f674|Apache License 2.0
 [k8s.io/api](https://k8s.io/api)|v0.32.2|Apache License 2.0
 [k8s.io/apiextensions-apiserver](https://k8s.io/apiextensions-apiserver)|v0.32.2|Apache License 2.0
 [k8s.io/apimachinery](https://k8s.io/apimachinery)|v0.32.2|Apache License 2.0
