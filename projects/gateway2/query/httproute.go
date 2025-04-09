@@ -434,10 +434,6 @@ func (r *gatewayQueries) GetRoutesForResource(ctx context.Context, resource clie
 	return ret, nil
 }
 
-func (r *gatewayQueries) GetRoutesForGateway(ctx context.Context, gw *gwv1.Gateway) (*RoutesForGwResult, error) {
-	return r.GetRoutesForResource(ctx, gw)
-}
-
 func (r *gatewayQueries) GetRoutesForListenerSet(ctx context.Context, ls *apixv1a1.XListenerSet) (*RoutesForGwResult, error) {
 	return r.GetRoutesForResource(ctx, ls)
 }

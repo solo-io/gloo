@@ -127,8 +127,6 @@ type GatewayQueries interface {
 
 	GetLocalObjRef(ctx context.Context, from From, localObjRef apiv1.LocalObjectReference) (client.Object, error)
 
-	// GetRoutesForGateway finds the top level xRoutes attached to the provided Gateway
-	GetRoutesForGateway(ctx context.Context, gw *apiv1.Gateway) (*RoutesForGwResult, error)
 	// GetRouteChain resolves backends and delegated routes for a the provided xRoute object
 	GetRouteChain(ctx context.Context, obj client.Object, hostnames []string, parentRef apiv1.ParentReference) *RouteInfo
 
