@@ -141,7 +141,8 @@ update_go_mod() {
     local module="sigs.k8s.io/gateway-api"
     if grep -q "$module" go.mod; then
         current_version=$(grep "$module" go.mod | awk '{print $2}')
-        if [ "$current_version" != "$CONFORMANCE_VERSION" ]; then
+        # Use pattern matching to check if the current version is a prefix of the conformance version as we're currently using an rc version
+        if [[ "$current_version" != ${CONFORMANCE_VERSION}* ]]; then
             echo "Updating $module from $current_version to $CONFORMANCE_VERSION..."
             go get "$module@$CONFORMANCE_VERSION"
             go mod tidy
