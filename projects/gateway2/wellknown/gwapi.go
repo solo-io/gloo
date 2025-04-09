@@ -8,11 +8,13 @@ import (
 	apiv1 "sigs.k8s.io/gateway-api/apis/v1"
 	apiv1alpha2 "sigs.k8s.io/gateway-api/apis/v1alpha2"
 	apiv1beta1 "sigs.k8s.io/gateway-api/apis/v1beta1"
+	apixv1a1 "sigs.k8s.io/gateway-api/apisx/v1alpha1"
 )
 
 const (
 	// Group string for Gateway API resources
-	GatewayGroup = apiv1.GroupName
+	GatewayGroup      = apiv1.GroupName
+	XListenerSetGroup = apixv1a1.GroupName
 
 	// Kind string for k8s service
 	ServiceKind = "Service"
@@ -110,5 +112,11 @@ var (
 		ObjectMeta: metav1.ObjectMeta{
 			Name: TCPRouteCRDName,
 		},
+	}
+
+	XListenerSetGVK = schema.GroupVersionKind{
+		Group:   XListenerSetGroup,
+		Version: apixv1a1.GroupVersion.Version,
+		Kind:    XListenerSetKind,
 	}
 )

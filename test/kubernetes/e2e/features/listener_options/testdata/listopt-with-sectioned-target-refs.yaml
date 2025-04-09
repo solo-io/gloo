@@ -13,4 +13,4 @@ spec:
     name: gw-2
     sectionName: other
   options:
-    perConnectionBufferLimitBytes: 42000
+    perConnectionBufferLimitBytes: 32000

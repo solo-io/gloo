@@ -12,8 +12,8 @@ require (
 	github.com/aws/aws-sdk-go v1.34.9
 	github.com/cncf/xds/go v0.0.0-20250121191232-2f005788dc42
 	github.com/cratonica/2goarray v0.0.0-20190331194516-514510793eaa
-	github.com/envoyproxy/go-control-plane/contrib v1.32.5-0.20250328202736-d2aa792b145a
-	github.com/envoyproxy/go-control-plane/envoy v1.32.5-0.20250328202736-d2aa792b145a
+	github.com/envoyproxy/go-control-plane/contrib v1.32.5-0.20250405152605-3d52a2c138ee
+	github.com/envoyproxy/go-control-plane/envoy v1.32.5-0.20250405152605-3d52a2c138ee
 	github.com/envoyproxy/go-control-plane/ratelimit v0.1.0
 	github.com/envoyproxy/protoc-gen-validate v1.2.1
 	github.com/form3tech-oss/jwt-go v3.2.5+incompatible
@@ -112,7 +112,7 @@ require (
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250324211829-b45e905df463
 	istio.io/api v1.25.0-alpha.0.0.20250401070747-f55d9659dc27
 	istio.io/client-go v1.25.0-alpha.0.0.20250401071445-73edf716803d
-	istio.io/istio v0.0.0-20250407193952-f32ed0430389
+	istio.io/istio v0.0.0-20250409134216-fbce7507f674
 	sigs.k8s.io/controller-tools v0.17.2
 	sigs.k8s.io/structured-merge-diff/v4 v4.6.0
 )

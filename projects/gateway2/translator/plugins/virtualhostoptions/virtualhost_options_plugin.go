@@ -105,7 +105,7 @@ func (p *plugin) ApplyListenerPlugin(
 
 	// attachedOption represents the VirtualHostOptions targeting the Gateway on which this listener resides, and/or
 	// the VirtualHostOptions which specifies this listener in section name
-	attachedOptions, err := p.vhOptQueries.GetVirtualHostOptionsForListener(ctx, listenerCtx.GwListener, listenerCtx.Gateway)
+	attachedOptions, err := p.vhOptQueries.GetVirtualHostOptionsForListener(ctx, listenerCtx.GwListener, listenerCtx.Gateway, listenerCtx.ParentListenerSet)
 	if err != nil {
 		return err
 	}
