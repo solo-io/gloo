@@ -7,9 +7,9 @@ import (
 
 	solokubev1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1/kube/apis/gateway.solo.io/v1"
 	"github.com/solo-io/gloo/projects/gateway2/translator/plugins/utils"
+	"github.com/solo-io/gloo/projects/gateway2/wellknown"
 	skv2corev1 "github.com/solo-io/skv2/pkg/api/core.skv2.solo.io/v1"
 	"k8s.io/apimachinery/pkg/fields"
-	"k8s.io/apimachinery/pkg/types"
 
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
@@ -72,16 +72,17 @@ func (q *queries) GetAttachedHttpListenerOptions(
 		return nil, fmt.Errorf("parent gateway must have name and namespace; received name: %s, namespace: %s", parentGw.GetName(), parentGw.GetNamespace())
 	}
 
-	nn := types.NamespacedName{
+	nng := utils.NamespacedNameKind{
 		Namespace: parentGw.Namespace,
 		Name:      parentGw.Name,
+		Kind:      wellknown.GatewayKind,
 	}
 
 	listGw := &solokubev1.HttpListenerOptionList{}
 	if err := q.c.List(
 		ctx,
 		listGw,
-		client.MatchingFieldsSelector{Selector: fields.OneTermEqualSelector(HttpListenerOptionTargetField, nn.String())},
+		client.MatchingFieldsSelector{Selector: fields.OneTermEqualSelector(HttpListenerOptionTargetField, nng.String())},
 		client.InNamespace(parentGw.GetNamespace()),
 	); err != nil {
 		return nil, err
@@ -89,15 +90,16 @@ func (q *queries) GetAttachedHttpListenerOptions(
 
 	listListenerSet := &solokubev1.HttpListenerOptionList{}
 	if parentListenerSet != nil {
-		nnListenerSet := types.NamespacedName{
+		nngListenerSet := utils.NamespacedNameKind{
 			Namespace: parentListenerSet.GetNamespace(),
 			Name:      parentListenerSet.GetName(),
+			Kind:      wellknown.XListenerSetKind,
 		}
 
 		if err := q.c.List(
 			ctx,
 			listListenerSet,
-			client.MatchingFieldsSelector{Selector: fields.OneTermEqualSelector(HttpListenerOptionTargetField, nnListenerSet.String())},
+			client.MatchingFieldsSelector{Selector: fields.OneTermEqualSelector(HttpListenerOptionTargetField, nngListenerSet.String())},
 			client.InNamespace(parentListenerSet.GetNamespace()),
 		); err != nil {
 			return nil, err
