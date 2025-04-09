@@ -602,6 +602,8 @@ func (s *ProxySyncer) Start(ctx context.Context) error {
 					// init the snapshot status plugins
 					initStatusPlugins(ctx, proxiesWithReports, &snapWrap.pluginRegistry)
 
+					// sync the proxy status (which is different than the status of other
+					// resources handled by plugins)
 					err := s.proxyTranslator.syncStatus(ctx, snapWrap.proxyKey, snapWrap.fullReports)
 					if err != nil {
 						logger.Errorf("error while syncing proxy '%s': %s", snapWrap.proxyKey, err.Error())
