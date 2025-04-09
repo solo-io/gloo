@@ -31,7 +31,7 @@ type VirtualHostOptionQueries interface {
 	//     - newer without section name
 	//
 	// Note that currently, only VirtualHostOptions in the same namespace as the Gateway can be attached.
-	GetVirtualHostOptionsForListener(ctx context.Context, listener *gwv1.Listener, parentGw *gwv1.Gateway, listenerSet *apixv1a1.XListenerSet) ([]*solokubev1.VirtualHostOption, error)
+	GetVirtualHostOptionsForListener(ctx context.Context, listener *gwv1.Listener, parentGw *gwv1.Gateway, parentListenerSet *apixv1a1.XListenerSet) ([]*solokubev1.VirtualHostOption, error)
 }
 
 type virtualHostOptionQueries struct {
@@ -58,7 +58,7 @@ func (r *virtualHostOptionQueries) GetVirtualHostOptionsForListener(
 	ctx context.Context,
 	listener *gwv1.Listener,
 	parentGw *gwv1.Gateway,
-	listenerSet *apixv1a1.XListenerSet,
+	parentListenerSet *apixv1a1.XListenerSet,
 ) ([]*solokubev1.VirtualHostOption, error) {
 	if parentGw.GetName() == "" || parentGw.GetNamespace() == "" {
 		return nil, eris.Errorf("parent gateway must have name and namespace; received name: %s, namespace: %s", parentGw.GetName(), parentGw.GetNamespace())
@@ -83,10 +83,10 @@ func (r *virtualHostOptionQueries) GetVirtualHostOptionsForListener(
 	}
 
 	listListenerSet := &solokubev1.VirtualHostOptionList{}
-	if listenerSet != nil {
+	if parentListenerSet != nil {
 		nngListenerSet := utils.NamespacedNameKind{
-			Namespace: listenerSet.GetNamespace(),
-			Name:      listenerSet.GetName(),
+			Namespace: parentListenerSet.GetNamespace(),
+			Name:      parentListenerSet.GetName(),
 			Kind:      wellknown.XListenerSetKind,
 		}
 
@@ -96,7 +96,7 @@ func (r *virtualHostOptionQueries) GetVirtualHostOptionsForListener(
 			client.MatchingFieldsSelector{Selector: fields.AndSelectors(
 				fields.OneTermEqualSelector(VirtualHostOptionTargetField, nngListenerSet.String()),
 			)},
-			client.InNamespace(listenerSet.GetNamespace()),
+			client.InNamespace(parentListenerSet.GetNamespace()),
 		); err != nil {
 			return nil, err
 		}
@@ -108,7 +108,7 @@ func (r *virtualHostOptionQueries) GetVirtualHostOptionsForListener(
 	}
 
 	policies := buildWrapperType(allItems)
-	orderedPolicies := utils.GetPrioritizedListenerPolicies(policies, listener, parentGw.Name, listenerSet)
+	orderedPolicies := utils.GetPrioritizedListenerPolicies(policies, listener, parentGw.Name, parentListenerSet)
 	return orderedPolicies, nil
 }
 

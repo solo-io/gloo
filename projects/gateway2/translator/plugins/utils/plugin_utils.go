@@ -158,11 +158,11 @@ func GetPrioritizedListenerPolicies[T client.Object](
 	items []PolicyWithSectionedTargetRefs[T],
 	listener *gwv1.Listener,
 	parentGwName string,
-	listenerSet *apixv1a1.XListenerSet,
+	parentListenerSet *apixv1a1.XListenerSet,
 ) []T {
-	listenerSetName := ""
-	if listenerSet != nil {
-		listenerSetName = listenerSet.GetName()
+	parentListenerSetName := ""
+	if parentListenerSet != nil {
+		parentListenerSetName = parentListenerSet.GetName()
 	}
 
 	// gw - gateway, ls - listener set
@@ -175,7 +175,7 @@ func GetPrioritizedListenerPolicies[T client.Object](
 		for _, targetRef := range item.GetTargetRefs() {
 			// Check that this is the right gw
 			gwMatch := (targetRef.GetGroup() == gwv1.GroupName && targetRef.GetKind() == wellknown.GatewayKind && targetRef.GetName() == parentGwName)
-			lsMatch := (targetRef.GetGroup() == apixv1a1.GroupName && targetRef.GetKind() == wellknown.XListenerSetKind && targetRef.GetName() == listenerSetName)
+			lsMatch := (targetRef.GetGroup() == apixv1a1.GroupName && targetRef.GetKind() == wellknown.XListenerSetKind && targetRef.GetName() == parentListenerSetName)
 			targetRefMatch := gwMatch || lsMatch
 
 			if !targetRefMatch {

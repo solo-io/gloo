@@ -35,7 +35,7 @@ type HttpListenerOptionQueries interface {
 		ctx context.Context,
 		listener *gwv1.Listener,
 		parentGw *gwv1.Gateway,
-		listenerSet *apixv1a1.XListenerSet,
+		parentListenerSet *apixv1a1.XListenerSet,
 	) ([]*solokubev1.HttpListenerOption, error)
 }
 
@@ -63,7 +63,7 @@ func (q *queries) GetAttachedHttpListenerOptions(
 	ctx context.Context,
 	listener *gwv1.Listener,
 	parentGw *gwv1.Gateway,
-	listenerSet *apixv1a1.XListenerSet,
+	parentListenerSet *apixv1a1.XListenerSet,
 ) ([]*solokubev1.HttpListenerOption, error) {
 	if parentGw == nil {
 		return nil, errors.New("nil parent gateway")
@@ -89,10 +89,10 @@ func (q *queries) GetAttachedHttpListenerOptions(
 	}
 
 	listListenerSet := &solokubev1.HttpListenerOptionList{}
-	if listenerSet != nil {
+	if parentListenerSet != nil {
 		nngListenerSet := utils.NamespacedNameKind{
-			Namespace: listenerSet.GetNamespace(),
-			Name:      listenerSet.GetName(),
+			Namespace: parentListenerSet.GetNamespace(),
+			Name:      parentListenerSet.GetName(),
 			Kind:      wellknown.XListenerSetKind,
 		}
 
@@ -100,7 +100,7 @@ func (q *queries) GetAttachedHttpListenerOptions(
 			ctx,
 			listListenerSet,
 			client.MatchingFieldsSelector{Selector: fields.OneTermEqualSelector(HttpListenerOptionTargetField, nngListenerSet.String())},
-			client.InNamespace(listenerSet.GetNamespace()),
+			client.InNamespace(parentListenerSet.GetNamespace()),
 		); err != nil {
 			return nil, err
 		}
@@ -112,7 +112,7 @@ func (q *queries) GetAttachedHttpListenerOptions(
 	}
 
 	policies := buildWrapperType(allItems)
-	orderedPolicies := utils.GetPrioritizedListenerPolicies(policies, listener, parentGw.Name, listenerSet)
+	orderedPolicies := utils.GetPrioritizedListenerPolicies(policies, listener, parentGw.Name, parentListenerSet)
 	return orderedPolicies, nil
 }
 
