@@ -316,7 +316,7 @@ func indexTargetRefs[T policyTargetReference](targetRefs []T, namespace string, 
 
 }
 
-// IndexTargetRefsNnk indexes a list of policy target references by namespace and name.
+// IndexTargetRefsNnk indexes a list of policy target references by namespace, name, and kind.
 // The kinds parameter is a list of GroupVersionKinds that are allowed to be indexed, though version is ignored.
 func IndexTargetRefsNnk[T policyTargetReference](targetRefs []T, namespace string, gvks []schema.GroupVersionKind) []string {
 	return indexTargetRefs(targetRefs, namespace, gvks, indexTargetRefsNnk[T])

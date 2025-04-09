@@ -268,10 +268,8 @@ func TestGetPrioritizedListenerPolicies(t *testing.T) {
 	g.Expect(prioritizedPolicies).To(BeEquivalentTo([]client.Object{policy8.object, policy7.object, policy3.object, policy2.object, policy1.object, policy0.object}))
 }
 
-func TestIndexTargetRefs(t *testing.T) {
-	g := NewWithT(t)
-
-	targetRefs := []*skv2corev1.PolicyTargetReferenceWithSectionName{
+func targetRefs() []*skv2corev1.PolicyTargetReferenceWithSectionName {
+	return []*skv2corev1.PolicyTargetReferenceWithSectionName{
 		{
 			Name:  "gw-1",
 			Group: gwv1.GroupName,
@@ -312,9 +310,28 @@ func TestIndexTargetRefs(t *testing.T) {
 			Kind:  wellknown.HTTPRouteKind,
 		},
 	}
+}
+
+func TestIndexTargetRefsNns(t *testing.T) {
+	g := NewWithT(t)
+
+	targetRefs := targetRefs()
+
+	indices := utils.IndexTargetRefsNns(targetRefs, "default", utils.ListenerTargetRefGVKs)
+	expected := []string{"default/gw-1", "default/gw-2", "default/ls-1"}
+
+	sort.Strings(expected)
+	sort.Strings(indices)
+	g.Expect(indices).To(Equal(expected))
+}
+
+func TestIndexTargetRefsNnk(t *testing.T) {
+	g := NewWithT(t)
+
+	targetRefs := targetRefs()
 
 	indices := utils.IndexTargetRefsNnk(targetRefs, "default", utils.ListenerTargetRefGVKs)
-	expected := []string{"default/gw-1", "default/gw-2", "default/ls-1"}
+	expected := []string{"default/gw-1/Gateway", "default/gw-2/Gateway", "default/ls-1/XListenerSet"}
 
 	sort.Strings(expected)
 	sort.Strings(indices)
