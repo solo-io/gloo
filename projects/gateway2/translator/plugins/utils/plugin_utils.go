@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/solo-io/gloo/projects/gateway2/query"
 	"github.com/solo-io/gloo/projects/gateway2/translator/plugins"
@@ -13,7 +14,6 @@ import (
 	skv2corev1 "github.com/solo-io/skv2/pkg/api/core.skv2.solo.io/v1"
 	wrapperspb "google.golang.org/protobuf/types/known/wrapperspb"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
 	apixv1a1 "sigs.k8s.io/gateway-api/apisx/v1alpha1"
@@ -239,6 +239,18 @@ type policyTargetReference interface {
 	GetName() string
 }
 
+type NamespacedNameKind struct {
+	Name      string
+	Namespace string
+	Kind      string
+}
+
+const NamespacedNameKindSeparator = '/'
+
+func (n NamespacedNameKind) String() string {
+	return strings.Join([]string{n.Namespace, n.Name, n.Kind}, string(NamespacedNameKindSeparator))
+}
+
 // IndexTargetRefs indexes a list of policy target references by namespace and name.
 // The kinds parameter is a list of GroupVersionKinds that are allowed to be indexed, though version is ignored.
 func IndexTargetRefs[T policyTargetReference](targetRefs []T, namespace string, gvks []schema.GroupVersionKind) []string {
@@ -267,12 +279,14 @@ func IndexTargetRefs[T policyTargetReference](targetRefs []T, namespace string, 
 		if ns == "" {
 			ns = namespace
 		}
-		targetNN := types.NamespacedName{
+
+		targetNng := NamespacedNameKind{
 			Namespace: ns,
 			Name:      targetRef.GetName(),
+			Kind:      targetRef.GetKind(),
 		}
 
-		foundNns[targetNN.String()] = struct{}{}
+		foundNns[targetNng.String()] = struct{}{}
 	}
 
 	for k := range foundNns {

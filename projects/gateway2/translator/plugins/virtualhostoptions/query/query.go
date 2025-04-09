@@ -6,9 +6,9 @@ import (
 	"github.com/rotisserie/eris"
 	solokubev1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1/kube/apis/gateway.solo.io/v1"
 	"github.com/solo-io/gloo/projects/gateway2/translator/plugins/utils"
+	"github.com/solo-io/gloo/projects/gateway2/wellknown"
 	skv2corev1 "github.com/solo-io/skv2/pkg/api/core.skv2.solo.io/v1"
 	"k8s.io/apimachinery/pkg/fields"
-	"k8s.io/apimachinery/pkg/types"
 	apixv1a1 "sigs.k8s.io/gateway-api/apisx/v1alpha1"
 
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -64,16 +64,19 @@ func (r *virtualHostOptionQueries) GetVirtualHostOptionsForListener(
 		return nil, eris.Errorf("parent gateway must have name and namespace; received name: %s, namespace: %s", parentGw.GetName(), parentGw.GetNamespace())
 	}
 
-	nn := types.NamespacedName{
+	nng := utils.NamespacedNameKind{
 		Namespace: parentGw.Namespace,
 		Name:      parentGw.Name,
+		Kind:      wellknown.GatewayKind,
 	}
 
 	listGw := &solokubev1.VirtualHostOptionList{}
 	if err := r.c.List(
 		ctx,
 		listGw,
-		client.MatchingFieldsSelector{Selector: fields.OneTermEqualSelector(VirtualHostOptionTargetField, nn.String())},
+		client.MatchingFieldsSelector{Selector: fields.AndSelectors(
+			fields.OneTermEqualSelector(VirtualHostOptionTargetField, nng.String()),
+		)},
 		client.InNamespace(parentGw.GetNamespace()),
 	); err != nil {
 		return nil, err
@@ -81,14 +84,18 @@ func (r *virtualHostOptionQueries) GetVirtualHostOptionsForListener(
 
 	listListenerSet := &solokubev1.VirtualHostOptionList{}
 	if parentListenerSet != nil {
-		nnListenerSet := types.NamespacedName{
+		nngListenerSet := utils.NamespacedNameKind{
 			Namespace: parentListenerSet.GetNamespace(),
 			Name:      parentListenerSet.GetName(),
+			Kind:      wellknown.XListenerSetKind,
 		}
+
 		if err := r.c.List(
 			ctx,
 			listListenerSet,
-			client.MatchingFieldsSelector{Selector: fields.OneTermEqualSelector(VirtualHostOptionTargetField, nnListenerSet.String())},
+			client.MatchingFieldsSelector{Selector: fields.AndSelectors(
+				fields.OneTermEqualSelector(VirtualHostOptionTargetField, nngListenerSet.String()),
+			)},
 			client.InNamespace(parentListenerSet.GetNamespace()),
 		); err != nil {
 			return nil, err
