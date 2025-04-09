@@ -16,7 +16,7 @@ import (
 	gwxv1a1 "sigs.k8s.io/gateway-api/apisx/v1alpha1"
 )
 
-// TestK8sGateway is the function which executes a series of tests against a given installation
+// TestListenerSet is the function which executes a series of tests against a given installation
 func TestListenerSet(t *testing.T) {
 	ctx := context.Background()
 	installNs, nsEnvPredefined := envutils.LookupOrDefault(testutils.InstallNamespace, "ls-test")
