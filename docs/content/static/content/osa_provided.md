@@ -66,7 +66,7 @@ Name|Version|License
 [googleapis/api](https://google.golang.org/genproto/googleapis/api)|v0.0.0-20250122153221-138b5a5a4fd4|Apache License 2.0
 [googleapis/rpc](https://google.golang.org/genproto/googleapis/rpc)|v0.0.0-20250122153221-138b5a5a4fd4|Apache License 2.0
 [google.golang.org/grpc](https://google.golang.org/grpc)|v1.71.0|Apache License 2.0
-[google.golang.org/protobuf](https://google.golang.org/protobuf)|v1.36.5|BSD 3-clause "New" or "Revised" License
+[google.golang.org/protobuf](https://google.golang.org/protobuf)|v1.36.6|BSD 3-clause "New" or "Revised" License
 [AlecAivazis/survey.v1](https://gopkg.in/AlecAivazis/survey.v1)|v1.8.7|MIT License
 [helm/v3](https://helm.sh/helm/v3)|v3.17.0|Apache License 2.0
 [istio.io/api](https://istio.io/api)|v1.25.0-alpha.0.0.20250210220544-0b64afd2de85|Apache License 2.0
