@@ -600,7 +600,7 @@ func (s *ProxySyncer) Start(ctx context.Context) error {
 					snapPlugins = append(snapPlugins, snapWrap.pluginRegistry)
 
 					// init the snapshot status plugins
-					initStatusPlugins(ctx, proxiesWithReports, snapWrap.pluginRegistry)
+					initStatusPlugins(ctx, proxiesWithReports, &snapWrap.pluginRegistry)
 
 					err := s.proxyTranslator.syncStatus(ctx, snapWrap.proxyKey, snapWrap.fullReports)
 					if err != nil {
@@ -610,11 +610,11 @@ func (s *ProxySyncer) Start(ctx context.Context) error {
 
 				// create and init a new plugin registry with the latest reports
 				pluginRegistry := s.k8sGwExtensions.CreatePluginRegistry(ctx)
-				initStatusPlugins(ctx, proxiesWithReports, pluginRegistry)
+				initStatusPlugins(ctx, proxiesWithReports, &pluginRegistry)
 				// merge the snapshot plugins into the new plugin registry
-				mergeStatusPlugins(ctx, pluginRegistry, snapPlugins)
+				mergeStatusPlugins(ctx, &pluginRegistry, snapPlugins)
 				// apply the status plugins with all of the latest reports
-				applyStatusPlugins(ctx, proxiesWithReports, pluginRegistry)
+				applyStatusPlugins(ctx, proxiesWithReports, &pluginRegistry)
 			}
 		}
 	}()
@@ -849,7 +849,7 @@ func SetupCollectionDynamic[T any](
 func applyStatusPlugins(
 	ctx context.Context,
 	proxiesWithReports []translatorutils.ProxyWithReports,
-	registry registry.PluginRegistry,
+	registry *registry.PluginRegistry,
 ) {
 	ctx = contextutils.WithLogger(ctx, "k8sGatewayStatusPlugins")
 	logger := contextutils.LoggerFrom(ctx)
@@ -868,7 +868,7 @@ func applyStatusPlugins(
 
 func mergeStatusPlugins(
 	ctx context.Context,
-	dest registry.PluginRegistry,
+	dest *registry.PluginRegistry,
 	sources []registry.PluginRegistry,
 ) {
 	ctx = contextutils.WithLogger(ctx, "k8sGatewayStatusPlugins")
@@ -893,7 +893,7 @@ func mergeStatusPlugins(
 func initStatusPlugins(
 	ctx context.Context,
 	proxiesWithReports []translatorutils.ProxyWithReports,
-	registry registry.PluginRegistry,
+	registry *registry.PluginRegistry,
 ) {
 	ctx = contextutils.WithLogger(ctx, "k8sGatewayStatusPlugins")
 	logger := contextutils.LoggerFrom(ctx)
