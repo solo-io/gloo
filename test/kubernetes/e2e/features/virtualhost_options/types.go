@@ -30,6 +30,8 @@ var (
 	manifestVhoMultipleTargetRefs            = filepath.Join(util.MustGetThisDir(), "testdata", "vho-multiple-target-refs.yaml")
 	manifestVhoListenerSetTargetRef          = filepath.Join(util.MustGetThisDir(), "testdata", "vho-listener-set-target-ref.yaml")
 	manifestVhoListenerSetSectionedTargetRef = filepath.Join(util.MustGetThisDir(), "testdata", "vho-listener-set-sectioned-target-ref.yaml")
+	manifestVhoMultipleGatewayWarnings       = filepath.Join(util.MustGetThisDir(), "testdata", "vho-multiple-gateway-warnings.yaml")
+
 	// When we apply the setup file, we expect resources to be created with this metadata
 	glooProxyObjectMeta1 = metav1.ObjectMeta{
 		Name:      "gloo-proxy-gw-1",

@@ -37,6 +37,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
 )
@@ -732,6 +733,111 @@ var _ = Describe("RouteOptionsPlugin", func() {
 				},
 			}
 			Expect(proto.Equal(outputRoute.GetOptions(), expectedOptions)).To(BeTrue())
+		})
+	})
+
+	Describe("MergeStatusPlugin", func() {
+		var plugin1 *plugin
+		var plugin2 *plugin
+		var plugin3 *plugin
+
+		BeforeEach(func() {
+			plugin1 = &plugin{
+				legacyStatusCache: legacyStatusCache{
+					types.NamespacedName{
+						Name:      "ro",
+						Namespace: "default",
+					}: newLegacyStatus(),
+				},
+			}
+			plugin2 = &plugin{
+				legacyStatusCache: legacyStatusCache{
+					types.NamespacedName{
+						Name:      "ro",
+						Namespace: "default",
+					}: newLegacyStatus(),
+				},
+			}
+			plugin3 = &plugin{
+				legacyStatusCache: legacyStatusCache{
+					types.NamespacedName{
+						Name:      "another-ro",
+						Namespace: "default",
+					}: newLegacyStatus(),
+				},
+			}
+		})
+
+		It("should merge clean status reports", func() {
+			err := plugin1.MergeStatusPlugin(context.Background(), plugin2)
+			Expect(err).ToNot(HaveOccurred())
+			err = plugin1.MergeStatusPlugin(context.Background(), plugin3)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(plugin1.legacyStatusCache).To(HaveLen(2))
+			Expect(plugin1.legacyStatusCache[types.NamespacedName{
+				Name:      "ro",
+				Namespace: "default",
+			}].routeErrors).To(BeEmpty(), "should have no route errors")
+			Expect(plugin1.legacyStatusCache[types.NamespacedName{
+				Name:      "another-ro",
+				Namespace: "default",
+			}].routeErrors).To(BeEmpty(), "should have no route errors")
+		})
+
+		It("should merge and clean and error status report", func() {
+			plugin1.legacyStatusCache[types.NamespacedName{
+				Name:      "ro",
+				Namespace: "default",
+			}].routeErrors = []*validation.RouteReport_Error{
+				{Reason: "error"},
+			}
+
+			err := plugin1.MergeStatusPlugin(context.Background(), plugin2)
+			Expect(err).ToNot(HaveOccurred())
+			err = plugin1.MergeStatusPlugin(context.Background(), plugin3)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(plugin1.legacyStatusCache).To(HaveLen(2))
+			Expect(plugin1.legacyStatusCache[types.NamespacedName{
+				Name:      "ro",
+				Namespace: "default",
+			}].routeErrors).To(HaveLen(1), "should have one route error")
+			Expect(plugin1.legacyStatusCache[types.NamespacedName{
+				Name:      "another-ro",
+				Namespace: "default",
+			}].routeErrors).To(BeEmpty(), "should have no route errors")
+		})
+
+		It("should merge two plugins with route errors", func() {
+			plugin1.legacyStatusCache[types.NamespacedName{
+				Name:      "ro",
+				Namespace: "default",
+			}].routeErrors = []*validation.RouteReport_Error{
+				{Reason: "error"},
+			}
+
+			plugin2.legacyStatusCache[types.NamespacedName{
+				Name:      "ro",
+				Namespace: "default",
+			}].routeErrors = []*validation.RouteReport_Error{
+				{Reason: "another error"},
+			}
+
+			err := plugin1.MergeStatusPlugin(context.Background(), plugin2)
+			Expect(err).ToNot(HaveOccurred())
+			err = plugin1.MergeStatusPlugin(context.Background(), plugin3)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(plugin1.legacyStatusCache).To(HaveLen(2))
+			Expect(plugin1.legacyStatusCache[types.NamespacedName{
+				Name:      "ro",
+				Namespace: "default",
+			}].routeErrors).To(HaveLen(2), "should have two route errors")
+			Expect(plugin1.legacyStatusCache[types.NamespacedName{
+				Name:      "another-ro",
+				Namespace: "default",
+			}].routeErrors).To(BeEmpty(), "should have no route errors")
 		})
 	})
 })

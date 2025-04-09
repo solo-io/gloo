@@ -114,6 +114,10 @@ type StatusPlugin interface {
 		ctx context.Context,
 		statusCtx *StatusContext,
 	) error
+	MergeStatusPlugin(
+		ctx context.Context,
+		sources any,
+	) error
 	ApplyStatusPlugin(
 		ctx context.Context,
 		statusCtx *StatusContext,

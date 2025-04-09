@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"maps"
+	"reflect"
 	"slices"
 	"time"
 
@@ -598,23 +599,34 @@ func (s *ProxySyncer) Start(ctx context.Context) error {
 				logger.Debug("context done, stopping proxy syncer")
 				return
 			case <-timer.C:
-				snaps := s.mostXdsSnapshots.List()
-				for _, snapWrap := range snaps {
-					var proxiesWithReports []translatorutils.ProxyWithReports
-					proxiesWithReports = append(proxiesWithReports, snapWrap.proxyWithReport)
+				// build a list of reports to feed the status plugins
+				var proxiesWithReports []translatorutils.ProxyWithReports
+				var snapPlugins []registry.PluginRegistry
 
-					initStatusPlugins(ctx, proxiesWithReports, snapWrap.pluginRegistry)
-				}
+				snaps := s.mostXdsSnapshots.List()
+
 				for _, snapWrap := range snaps {
+					proxiesWithReports = append(proxiesWithReports, snapWrap.proxyWithReport)
+					snapPlugins = append(snapPlugins, snapWrap.pluginRegistry)
+
+					// init the snapshot status plugins
+					initStatusPlugins(ctx, proxiesWithReports, &snapWrap.pluginRegistry)
+
+					// sync the proxy status (which is different than the status of other
+					// resources handled by plugins)
 					err := s.proxyTranslator.syncStatus(ctx, snapWrap.proxyKey, snapWrap.fullReports)
 					if err != nil {
 						logger.Errorf("error while syncing proxy '%s': %s", snapWrap.proxyKey, err.Error())
 					}
-
-					var proxiesWithReports []translatorutils.ProxyWithReports
-					proxiesWithReports = append(proxiesWithReports, snapWrap.proxyWithReport)
-					applyStatusPlugins(ctx, proxiesWithReports, snapWrap.pluginRegistry)
 				}
+
+				// create and init a new plugin registry with the latest reports
+				pluginRegistry := s.k8sGwExtensions.CreatePluginRegistry(ctx)
+				initStatusPlugins(ctx, proxiesWithReports, &pluginRegistry)
+				// merge the snapshot plugins into the new plugin registry
+				mergeStatusPlugins(ctx, &pluginRegistry, snapPlugins)
+				// apply the status plugins with all of the latest reports
+				applyStatusPlugins(ctx, proxiesWithReports, &pluginRegistry)
 			}
 		}
 	}()
@@ -850,7 +862,7 @@ func SetupCollectionDynamic[T any](
 func applyStatusPlugins(
 	ctx context.Context,
 	proxiesWithReports []translatorutils.ProxyWithReports,
-	registry registry.PluginRegistry,
+	registry *registry.PluginRegistry,
 ) {
 	ctx = contextutils.WithLogger(ctx, "k8sGatewayStatusPlugins")
 	logger := contextutils.LoggerFrom(ctx)
@@ -867,10 +879,34 @@ func applyStatusPlugins(
 	}
 }
 
+func mergeStatusPlugins(
+	ctx context.Context,
+	dest *registry.PluginRegistry,
+	sources []registry.PluginRegistry,
+) {
+	ctx = contextutils.WithLogger(ctx, "k8sGatewayStatusPlugins")
+	logger := contextutils.LoggerFrom(ctx)
+
+	for _, destPlugin := range dest.GetStatusPlugins() {
+		for _, source := range sources {
+			for _, sourcePlugin := range source.GetStatusPlugins() {
+				if reflect.TypeOf(destPlugin) == reflect.TypeOf(sourcePlugin) {
+					// merge the status plugin
+					err := destPlugin.MergeStatusPlugin(ctx, sourcePlugin)
+					if err != nil {
+						logger.Errorf("Error merging status plugin: %v", err)
+						continue
+					}
+				}
+			}
+		}
+	}
+}
+
 func initStatusPlugins(
 	ctx context.Context,
 	proxiesWithReports []translatorutils.ProxyWithReports,
-	registry registry.PluginRegistry,
+	registry *registry.PluginRegistry,
 ) {
 	ctx = contextutils.WithLogger(ctx, "k8sGatewayStatusPlugins")
 	logger := contextutils.LoggerFrom(ctx)
