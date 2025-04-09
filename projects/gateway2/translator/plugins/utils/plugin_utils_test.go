@@ -313,7 +313,7 @@ func TestIndexTargetRefs(t *testing.T) {
 		},
 	}
 
-	indices := utils.IndexTargetRefs(targetRefs, "default", utils.ListenerTargetRefGVKs)
+	indices := utils.IndexTargetRefsNnk(targetRefs, "default", utils.ListenerTargetRefGVKs)
 	expected := []string{"default/gw-1", "default/gw-2", "default/ls-1"}
 
 	sort.Strings(expected)

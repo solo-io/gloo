@@ -24,5 +24,5 @@ func routeOptionTargetRefIndexer(obj client.Object) []string {
 		panic(fmt.Sprintf("wrong type %T provided to indexer. expected gateway.solo.io.RouteOption", obj))
 	}
 
-	return utils.IndexTargetRefs(rtOpt.Spec.GetTargetRefs(), rtOpt.GetNamespace(), []schema.GroupVersionKind{wellknown.HTTPRouteGVK})
+	return utils.IndexTargetRefsNns(rtOpt.Spec.GetTargetRefs(), rtOpt.GetNamespace(), []schema.GroupVersionKind{wellknown.HTTPRouteGVK})
 }

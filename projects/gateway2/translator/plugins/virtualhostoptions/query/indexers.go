@@ -22,5 +22,5 @@ func virtualHostOptionTargetRefIndexer(obj client.Object) []string {
 		panic(fmt.Sprintf("wrong type %T provided to indexer. expected gateway.solo.io.VirtualHostOption", obj))
 	}
 
-	return utils.IndexTargetRefs(vhOpt.Spec.GetTargetRefs(), vhOpt.GetNamespace(), utils.ListenerTargetRefGVKs)
+	return utils.IndexTargetRefsNnk(vhOpt.Spec.GetTargetRefs(), vhOpt.GetNamespace(), utils.ListenerTargetRefGVKs)
 }

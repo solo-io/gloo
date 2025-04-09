@@ -22,6 +22,6 @@ func listenerOptionTargetRefIndexer(obj client.Object) []string {
 		panic(fmt.Sprintf("wrong type %T provided to indexer. expected gateway.solo.io.ListenerOption", obj))
 	}
 
-	return utils.IndexTargetRefs(lisOpt.Spec.GetTargetRefs(), lisOpt.GetNamespace(), utils.ListenerTargetRefGVKs)
+	return utils.IndexTargetRefsNnk(lisOpt.Spec.GetTargetRefs(), lisOpt.GetNamespace(), utils.ListenerTargetRefGVKs)
 
 }
