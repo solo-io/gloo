@@ -64,50 +64,11 @@ func IndexerByObjType(obj client.Object) []string {
 
 	switch resource := obj.(type) {
 	case *gwv1.HTTPRoute:
-		for _, pRef := range resource.Spec.ParentRefs {
-			if !(isGateway(pRef) || isListenerSet(pRef)) {
-				continue
-			}
-			ns := resolveNs(pRef.Namespace)
-			if ns == "" {
-				ns = resource.Namespace
-			}
-			nns := types.NamespacedName{
-				Namespace: ns,
-				Name:      string(pRef.Name),
-			}
-			results = append(results, nns.String())
-		}
+		results = append(results, fetchIndices(resource.Namespace, resource.Spec.ParentRefs)...)
 	case *gwv1a2.TCPRoute:
-		for _, pRef := range resource.Spec.ParentRefs {
-			if !(isGateway(pRef) || isListenerSet(pRef)) {
-				continue
-			}
-			ns := resolveNs(pRef.Namespace)
-			if ns == "" {
-				ns = resource.Namespace
-			}
-			nns := types.NamespacedName{
-				Namespace: ns,
-				Name:      string(pRef.Name),
-			}
-			results = append(results, nns.String())
-		}
+		results = append(results, fetchIndices(resource.Namespace, resource.Spec.ParentRefs)...)
 	case *gwv1a2.TLSRoute:
-		for _, pRef := range resource.Spec.ParentRefs {
-			if !(isGateway(pRef) || isListenerSet(pRef)) {
-				continue
-			}
-			ns := resolveNs(pRef.Namespace)
-			if ns == "" {
-				ns = resource.Namespace
-			}
-			nns := types.NamespacedName{
-				Namespace: ns,
-				Name:      string(pRef.Name),
-			}
-			results = append(results, nns.String())
-		}
+		results = append(results, fetchIndices(resource.Namespace, resource.Spec.ParentRefs)...)
 	case *gwxv1a1.XListenerSet:
 		if resource.Spec.ParentRef.Group != nil && *resource.Spec.ParentRef.Group != gwv1a2.GroupName {
 			break
@@ -136,6 +97,25 @@ func IndexerByObjType(obj client.Object) []string {
 		return results
 	}
 
+	return results
+}
+
+func fetchIndices(namespace string, parentRefs []gwv1.ParentReference) []string {
+	var results []string
+	for _, pRef := range parentRefs {
+		if !(isGateway(pRef) || isListenerSet(pRef)) {
+			continue
+		}
+		ns := resolveNs(pRef.Namespace)
+		if ns == "" {
+			ns = namespace
+		}
+		nns := types.NamespacedName{
+			Namespace: ns,
+			Name:      string(pRef.Name),
+		}
+		results = append(results, nns.String())
+	}
 	return results
 }
 

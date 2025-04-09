@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+	"slices"
 
 	"github.com/solo-io/gloo/projects/gateway2/reports"
 	"github.com/solo-io/gloo/projects/gateway2/utils"
@@ -25,6 +26,11 @@ func (cgw *ConsolidatedGateway) GetListeners(ls *gwxv1a1.XListenerSet) []gwv1.Li
 
 	if listeners, ok := cgw.listenerSetsListeners[generateListenerSetKey(ls)]; ok {
 		return listeners
+	}
+
+	if !slices.Contains(cgw.AllowedListenerSets, ls) {
+		cgw.listenerSetsListeners[generateListenerSetKey(ls)] = nil
+		return nil
 	}
 
 	cgw.listenerSetsListeners[generateListenerSetKey(ls)] = utils.ToListenerSlice(ls.Spec.Listeners)
