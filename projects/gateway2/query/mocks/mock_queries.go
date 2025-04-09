@@ -128,21 +128,6 @@ func (mr *MockGatewayQueriesMockRecorder) GetRoutesForConsolidatedGateway(arg0, 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRoutesForConsolidatedGateway", reflect.TypeOf((*MockGatewayQueries)(nil).GetRoutesForConsolidatedGateway), arg0, arg1)
 }
 
-// GetRoutesForGateway mocks base method.
-func (m *MockGatewayQueries) GetRoutesForGateway(arg0 context.Context, arg1 *v1.Gateway) (*query.RoutesForGwResult, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetRoutesForGateway", arg0, arg1)
-	ret0, _ := ret[0].(*query.RoutesForGwResult)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetRoutesForGateway indicates an expected call of GetRoutesForGateway.
-func (mr *MockGatewayQueriesMockRecorder) GetRoutesForGateway(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRoutesForGateway", reflect.TypeOf((*MockGatewayQueries)(nil).GetRoutesForGateway), arg0, arg1)
-}
-
 // GetRoutesForListenerSet mocks base method.
 func (m *MockGatewayQueries) GetRoutesForListenerSet(arg0 context.Context, arg1 *v1alpha1.XListenerSet) (*query.RoutesForGwResult, error) {
 	m.ctrl.T.Helper()
