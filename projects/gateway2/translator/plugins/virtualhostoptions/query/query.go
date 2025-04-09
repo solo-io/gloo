@@ -64,7 +64,7 @@ func (r *virtualHostOptionQueries) GetVirtualHostOptionsForListener(
 		return nil, eris.Errorf("parent gateway must have name and namespace; received name: %s, namespace: %s", parentGw.GetName(), parentGw.GetNamespace())
 	}
 
-	nng := utils.NamespacedNameKind{
+	nnk := utils.NamespacedNameKind{
 		Namespace: parentGw.Namespace,
 		Name:      parentGw.Name,
 		Kind:      wellknown.GatewayKind,
@@ -75,7 +75,7 @@ func (r *virtualHostOptionQueries) GetVirtualHostOptionsForListener(
 		ctx,
 		listGw,
 		client.MatchingFieldsSelector{Selector: fields.AndSelectors(
-			fields.OneTermEqualSelector(VirtualHostOptionTargetField, nng.String()),
+			fields.OneTermEqualSelector(VirtualHostOptionTargetField, nnk.String()),
 		)},
 		client.InNamespace(parentGw.GetNamespace()),
 	); err != nil {
@@ -84,7 +84,7 @@ func (r *virtualHostOptionQueries) GetVirtualHostOptionsForListener(
 
 	listListenerSet := &solokubev1.VirtualHostOptionList{}
 	if parentListenerSet != nil {
-		nngListenerSet := utils.NamespacedNameKind{
+		nnkListenerSet := utils.NamespacedNameKind{
 			Namespace: parentListenerSet.GetNamespace(),
 			Name:      parentListenerSet.GetName(),
 			Kind:      wellknown.XListenerSetKind,
@@ -94,7 +94,7 @@ func (r *virtualHostOptionQueries) GetVirtualHostOptionsForListener(
 			ctx,
 			listListenerSet,
 			client.MatchingFieldsSelector{Selector: fields.AndSelectors(
-				fields.OneTermEqualSelector(VirtualHostOptionTargetField, nngListenerSet.String()),
+				fields.OneTermEqualSelector(VirtualHostOptionTargetField, nnkListenerSet.String()),
 			)},
 			client.InNamespace(parentListenerSet.GetNamespace()),
 		); err != nil {

@@ -72,7 +72,7 @@ func (q *queries) GetAttachedHttpListenerOptions(
 		return nil, fmt.Errorf("parent gateway must have name and namespace; received name: %s, namespace: %s", parentGw.GetName(), parentGw.GetNamespace())
 	}
 
-	nng := utils.NamespacedNameKind{
+	nnk := utils.NamespacedNameKind{
 		Namespace: parentGw.Namespace,
 		Name:      parentGw.Name,
 		Kind:      wellknown.GatewayKind,
@@ -82,7 +82,7 @@ func (q *queries) GetAttachedHttpListenerOptions(
 	if err := q.c.List(
 		ctx,
 		listGw,
-		client.MatchingFieldsSelector{Selector: fields.OneTermEqualSelector(HttpListenerOptionTargetField, nng.String())},
+		client.MatchingFieldsSelector{Selector: fields.OneTermEqualSelector(HttpListenerOptionTargetField, nnk.String())},
 		client.InNamespace(parentGw.GetNamespace()),
 	); err != nil {
 		return nil, err
@@ -90,7 +90,7 @@ func (q *queries) GetAttachedHttpListenerOptions(
 
 	listListenerSet := &solokubev1.HttpListenerOptionList{}
 	if parentListenerSet != nil {
-		nngListenerSet := utils.NamespacedNameKind{
+		nnkListenerSet := utils.NamespacedNameKind{
 			Namespace: parentListenerSet.GetNamespace(),
 			Name:      parentListenerSet.GetName(),
 			Kind:      wellknown.XListenerSetKind,
@@ -99,7 +99,7 @@ func (q *queries) GetAttachedHttpListenerOptions(
 		if err := q.c.List(
 			ctx,
 			listListenerSet,
-			client.MatchingFieldsSelector{Selector: fields.OneTermEqualSelector(HttpListenerOptionTargetField, nngListenerSet.String())},
+			client.MatchingFieldsSelector{Selector: fields.OneTermEqualSelector(HttpListenerOptionTargetField, nnkListenerSet.String())},
 			client.InNamespace(parentListenerSet.GetNamespace()),
 		); err != nil {
 			return nil, err
