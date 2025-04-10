@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/rotisserie/eris"
 	"github.com/solo-io/gloo/projects/gateway2/query"
 	"github.com/solo-io/gloo/projects/gateway2/translator/plugins"
 	"github.com/solo-io/gloo/projects/gateway2/utils"
@@ -13,6 +14,7 @@ import (
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	skv2corev1 "github.com/solo-io/skv2/pkg/api/core.skv2.solo.io/v1"
 	wrapperspb "google.golang.org/protobuf/types/known/wrapperspb"
+	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -326,4 +328,79 @@ func IndexTargetRefsNnk[T policyTargetReference](targetRefs []T, namespace strin
 // The kinds parameter is a list of GroupVersionKinds that are allowed to be indexed, though version is ignored.
 func IndexTargetRefsNns[T policyTargetReference](targetRefs []T, namespace string, gvks []schema.GroupVersionKind) []string {
 	return indexTargetRefs(targetRefs, namespace, gvks, indexTargetRefsNns[T])
+}
+
+// Use to eliminate `extractItems` from `GetOptionsForListener`
+// type ObjectListWithItems[T client.Object] interface {
+// 	client.ObjectList
+// 	GetItems() []T
+// }
+
+func GetOptionsForListener[T client.Object, TList client.ObjectList](
+	ctx context.Context,
+	listener *gwv1.Listener,
+	parentGw *gwv1.Gateway,
+	parentListenerSet *apixv1a1.XListenerSet,
+	c client.Client,
+	optionTargetField string,
+	createList func() TList,
+	extractItems func(list TList) []T,
+	wrapPolicy func(item T) PolicyWithSectionedTargetRefs[T],
+) ([]T, error) {
+	if parentGw.GetName() == "" || parentGw.GetNamespace() == "" {
+		return nil, eris.Errorf("parent gateway must have name and namespace; received name: %s, namespace: %s", parentGw.GetName(), parentGw.GetNamespace())
+	}
+
+	nnk := NamespacedNameKind{
+		Namespace: parentGw.Namespace,
+		Name:      parentGw.Name,
+		Kind:      wellknown.GatewayKind,
+	}
+
+	listGw := createList()
+	if err := c.List(
+		ctx,
+		listGw,
+		client.MatchingFieldsSelector{Selector: fields.OneTermEqualSelector(optionTargetField, nnk.String())},
+		client.InNamespace(parentGw.GetNamespace()),
+	); err != nil {
+		return nil, err
+	}
+
+	listListenerSet := createList()
+	if parentListenerSet != nil {
+		nnkListenerSet := NamespacedNameKind{
+			Namespace: parentListenerSet.GetNamespace(),
+			Name:      parentListenerSet.GetName(),
+			Kind:      wellknown.XListenerSetKind,
+		}
+		if err := c.List(
+			ctx,
+			listListenerSet,
+			client.MatchingFieldsSelector{Selector: fields.OneTermEqualSelector(optionTargetField, nnkListenerSet.String())},
+		); err != nil {
+			return nil, err
+		}
+	}
+
+	allItems := []T{}
+	allItems = append(allItems, extractItems(listGw)...)
+	allItems = append(allItems, extractItems(listListenerSet)...)
+
+	policies := buildWrapperGeneric(allItems, wrapPolicy)
+	orderedPolicies := GetPrioritizedListenerPolicies(policies, listener, parentGw.Name, parentListenerSet)
+	return orderedPolicies, nil
+}
+
+func buildWrapperGeneric[T client.Object](
+	items []T,
+	wrapPolicy func(item T) PolicyWithSectionedTargetRefs[T],
+) []PolicyWithSectionedTargetRefs[T] {
+	policies := []PolicyWithSectionedTargetRefs[T]{}
+	for i := range items {
+		item := items[i]
+		policy := wrapPolicy(item)
+		policies = append(policies, policy)
+	}
+	return policies
 }
