@@ -30,11 +30,10 @@ func NewTestingSuite(ctx context.Context, testInst *e2e.TestInstallation) suite.
 	}
 }
 
-func (s *testingSuite) getListenerSet(namespacedName types.NamespacedName) *gwxv1a1.XListenerSet {
-	ls := &gwxv1a1.XListenerSet{}
-	err := s.TestInstallation.ClusterContext.Client.Get(s.Ctx, namespacedName, ls)
-	s.NoError(err)
-	return ls
+func (s *testingSuite) SetupSuite() {
+	if !RequiredCrdExists(s.TestInstallation) {
+		s.T().Skip("Skipping as the XListenerSet CRD is not installed")
+	}
 }
 
 func (s *testingSuite) TestValidListenerSet() {
