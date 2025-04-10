@@ -76,7 +76,7 @@ func IndexerByObjType(obj client.Object) []string {
 		if resource.Spec.ParentRef.Kind != nil && *resource.Spec.ParentRef.Kind != wellknown.GatewayKind {
 			break
 		}
-		ns := resolveNs(resource.Spec.ParentRef.Namespace)
+		ns := ResolveNamespace(resource.Spec.ParentRef.Namespace)
 		if ns == "" {
 			ns = resource.Namespace
 		}
@@ -106,7 +106,7 @@ func fetchIndices(namespace string, parentRefs []gwv1.ParentReference) []string 
 		if !(isGateway(pRef) || isListenerSet(pRef)) {
 			continue
 		}
-		ns := resolveNs(pRef.Namespace)
+		ns := ResolveNamespace(pRef.Namespace)
 		if ns == "" {
 			ns = namespace
 		}
@@ -128,10 +128,10 @@ func IndexByHTTPRouteDelegationLabelSelector(obj client.Object) []string {
 	return []string{value}
 }
 
-// resolveNs resolves the namespace from an optional Namespace field.
-func resolveNs(ns *gwv1.Namespace) string {
-	if ns == nil {
+// ResolveNamespace resolves the namespace from an optional Namespace field.
+func ResolveNamespace(namespace *gwv1.Namespace) string {
+	if namespace == nil {
 		return ""
 	}
-	return string(*ns)
+	return string(*namespace)
 }

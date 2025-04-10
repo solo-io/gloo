@@ -296,7 +296,7 @@ func (c *controllerBuilder) watchGw(ctx context.Context) error {
 		buildr.Watches(&apixv1a1.XListenerSet{}, handler.EnqueueRequestsFromMapFunc(
 			func(ctx context.Context, obj client.Object) []reconcile.Request {
 				ls := obj.(*apixv1a1.XListenerSet)
-				ns := resolveNs(ls.Spec.ParentRef.Namespace)
+				ns := query.ResolveNamespace(ls.Spec.ParentRef.Namespace)
 				if ns == "" {
 					ns = ls.Namespace
 				}
@@ -651,12 +651,4 @@ func (r *controllerReconciler) ReconcileGatewayClasses(ctx context.Context, req 
 	log.Info("updated gateway class status")
 
 	return ctrl.Result{}, nil
-}
-
-// resolveNs resolves the namespace from an optional Namespace field.
-func resolveNs(ns *apiv1.Namespace) string {
-	if ns == nil {
-		return ""
-	}
-	return string(*ns)
 }

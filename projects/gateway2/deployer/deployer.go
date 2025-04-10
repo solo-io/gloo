@@ -14,6 +14,7 @@ import (
 	"github.com/solo-io/gloo/projects/gateway2/api/v1alpha1"
 	"github.com/solo-io/gloo/projects/gateway2/helm"
 	"github.com/solo-io/gloo/projects/gateway2/query"
+	translator_types "github.com/solo-io/gloo/projects/gateway2/translator/types"
 	"github.com/solo-io/gloo/projects/gateway2/wellknown"
 	"golang.org/x/exp/slices"
 	"helm.sh/helm/v3/pkg/action"
@@ -276,9 +277,12 @@ func (d *Deployer) getGatewayClassFromGateway(ctx context.Context, gw *api.Gatew
 }
 
 func (d *Deployer) getValues(ctx context.Context, gw *api.Gateway, gwParam *v1alpha1.GatewayParameters) (*helmConfig, error) {
+	logger := log.FromContext(ctx)
+
 	cgw, err := d.queries.ConsolidateGateway(ctx, gw)
 	if err != nil {
-		return nil, err
+		logger.V(1).Error(err, fmt.Sprintf("failed to consolidate gateway %s, proceeding with just the gateway", client.ObjectKeyFromObject(gw)))
+		cgw = &translator_types.ConsolidatedGateway{Gateway: gw}
 	}
 
 	// construct the default values
