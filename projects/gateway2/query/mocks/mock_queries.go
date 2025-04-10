@@ -13,7 +13,6 @@ import (
 	types "github.com/solo-io/gloo/projects/gateway2/translator/types"
 	client "sigs.k8s.io/controller-runtime/pkg/client"
 	v1 "sigs.k8s.io/gateway-api/apis/v1"
-	v1alpha1 "sigs.k8s.io/gateway-api/apisx/v1alpha1"
 )
 
 // MockGatewayQueries is a mock of GatewayQueries interface.
@@ -69,21 +68,6 @@ func (mr *MockGatewayQueriesMockRecorder) GetBackendForRef(arg0, arg1, arg2 inte
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBackendForRef", reflect.TypeOf((*MockGatewayQueries)(nil).GetBackendForRef), arg0, arg1, arg2)
 }
 
-// GetListenerSetsForGateway mocks base method.
-func (m *MockGatewayQueries) GetListenerSetsForGateway(arg0 context.Context, arg1 *v1.Gateway) (*query.ListenerSetsForGwResult, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetListenerSetsForGateway", arg0, arg1)
-	ret0, _ := ret[0].(*query.ListenerSetsForGwResult)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetListenerSetsForGateway indicates an expected call of GetListenerSetsForGateway.
-func (mr *MockGatewayQueriesMockRecorder) GetListenerSetsForGateway(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetListenerSetsForGateway", reflect.TypeOf((*MockGatewayQueries)(nil).GetListenerSetsForGateway), arg0, arg1)
-}
-
 // GetLocalObjRef mocks base method.
 func (m *MockGatewayQueries) GetLocalObjRef(arg0 context.Context, arg1 query.From, arg2 v1.LocalObjectReference) (client.Object, error) {
 	m.ctrl.T.Helper()
@@ -126,21 +110,6 @@ func (m *MockGatewayQueries) GetRoutesForConsolidatedGateway(arg0 context.Contex
 func (mr *MockGatewayQueriesMockRecorder) GetRoutesForConsolidatedGateway(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRoutesForConsolidatedGateway", reflect.TypeOf((*MockGatewayQueries)(nil).GetRoutesForConsolidatedGateway), arg0, arg1)
-}
-
-// GetRoutesForListenerSet mocks base method.
-func (m *MockGatewayQueries) GetRoutesForListenerSet(arg0 context.Context, arg1 *v1alpha1.XListenerSet) (*query.RoutesForGwResult, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetRoutesForListenerSet", arg0, arg1)
-	ret0, _ := ret[0].(*query.RoutesForGwResult)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetRoutesForListenerSet indicates an expected call of GetRoutesForListenerSet.
-func (mr *MockGatewayQueriesMockRecorder) GetRoutesForListenerSet(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRoutesForListenerSet", reflect.TypeOf((*MockGatewayQueries)(nil).GetRoutesForListenerSet), arg0, arg1)
 }
 
 // GetSecretForRef mocks base method.

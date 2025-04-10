@@ -60,8 +60,8 @@ func (t *translator) TranslateProxy(
 
 	consolidatedGateway, err := t.queries.ConsolidateGateway(ctx, gateway)
 	if err != nil {
-		logger.Errorf("failed to consolidate gateway %s, proceeding with just the gateway: %v", client.ObjectKeyFromObject(gateway), err)
-		consolidatedGateway = &types.ConsolidatedGateway{Gateway: gateway}
+		logger.Errorf("failed to consolidate gateway %s : %v", client.ObjectKeyFromObject(gateway), err)
+		return nil
 	}
 
 	routesForGw, err := t.queries.GetRoutesForConsolidatedGateway(ctx, consolidatedGateway)
