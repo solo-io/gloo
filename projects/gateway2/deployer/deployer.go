@@ -280,7 +280,7 @@ func (d *Deployer) getValues(ctx context.Context, gw *api.Gateway, gwParam *v1al
 
 	cgw, err := d.queries.ConsolidateGateway(ctx, gw)
 	if err != nil {
-		logger.V(1).Error(err, fmt.Sprintf("failed to consolidate gateway %s : %v", client.ObjectKeyFromObject(gw)), err)
+		logger.V(1).Error(err, fmt.Sprintf("failed to consolidate gateway %s : %v", client.ObjectKeyFromObject(gw), err))
 		return nil, err
 	}
 
