@@ -401,8 +401,14 @@ apis:
   envoy.api.v2.Resource:
     relativepath: reference/api/github.com/solo-io/solo-kit/api/external/envoy/api/v2/discovery.proto.sk/#Resource
     package: envoy.api.v2
+  envoy.api.v2.filter.http.AiTransformation:
+    relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/transformation/transformation.proto.sk/#AiTransformation
+    package: envoy.api.v2.filter.http
   envoy.api.v2.filter.http.Extraction:
     relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/transformation/transformation.proto.sk/#Extraction
+    package: envoy.api.v2.filter.http
+  envoy.api.v2.filter.http.FieldDefault:
+    relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/transformation/transformation.proto.sk/#FieldDefault
     package: envoy.api.v2.filter.http
   envoy.api.v2.filter.http.FilterTransformations:
     relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/transformation/transformation.proto.sk/#FilterTransformations
@@ -421,6 +427,9 @@ apis:
     package: envoy.api.v2.filter.http
   envoy.api.v2.filter.http.Passthrough:
     relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/transformation/transformation.proto.sk/#Passthrough
+    package: envoy.api.v2.filter.http
+  envoy.api.v2.filter.http.PromptEnrichment:
+    relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/transformation/transformation.proto.sk/#PromptEnrichment
     package: envoy.api.v2.filter.http
   envoy.api.v2.filter.http.ResponseMatcher:
     relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/transformation/transformation.proto.sk/#ResponseMatcher
@@ -560,20 +569,11 @@ apis:
   envoy.config.filter.http.transformation_ee.v2.Action:
     relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/transformation_ee/transformation.proto.sk/#Action
     package: envoy.config.filter.http.transformation_ee.v2
-  envoy.config.filter.http.transformation_ee.v2.AiTransformation:
-    relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/transformation_ee/transformation.proto.sk/#AiTransformation
-    package: envoy.config.filter.http.transformation_ee.v2
   envoy.config.filter.http.transformation_ee.v2.DlpTransformation:
     relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/transformation_ee/transformation.proto.sk/#DlpTransformation
     package: envoy.config.filter.http.transformation_ee.v2
-  envoy.config.filter.http.transformation_ee.v2.FieldDefault:
-    relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/transformation_ee/transformation.proto.sk/#FieldDefault
-    package: envoy.config.filter.http.transformation_ee.v2
   envoy.config.filter.http.transformation_ee.v2.FilterTransformations:
     relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/transformation_ee/transformation.proto.sk/#FilterTransformations
-    package: envoy.config.filter.http.transformation_ee.v2
-  envoy.config.filter.http.transformation_ee.v2.PromptEnrichment:
-    relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/transformation_ee/transformation.proto.sk/#PromptEnrichment
     package: envoy.config.filter.http.transformation_ee.v2
   envoy.config.filter.http.transformation_ee.v2.RegexAction:
     relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/transformation_ee/transformation.proto.sk/#RegexAction
