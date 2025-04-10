@@ -29,7 +29,7 @@ func TestListenerSet(t *testing.T) {
 		},
 	)
 
-	if !listenerset.ListenerSetCrdExists(s.testInstallation) {
+	if !listenerset.ListenerSetCrdExists(testInstallation) {
 		t.Skip("Skipping as the XListenerSet CRD is not installed")
 	}
 
