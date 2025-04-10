@@ -446,6 +446,9 @@ spec:
                                       type: integer
                                     upstreamSslConfig:
                                       properties:
+                                        acceptUntrusted:
+                                          nullable: true
+                                          type: boolean
                                         allowRenegotiation:
                                           nullable: true
                                           type: boolean
@@ -453,6 +456,14 @@ spec:
                                           items:
                                             type: string
                                           type: array
+                                        maxVerifyDepth:
+                                          maximum: 4294967295
+                                          minimum: 0
+                                          nullable: true
+                                          type: integer
+                                        onlyVerifyLeafCertCrl:
+                                          nullable: true
+                                          type: boolean
                                         parameters:
                                           properties:
                                             cipherSuites:
@@ -733,6 +744,9 @@ spec:
                 type: array
               httpConnectSslConfig:
                 properties:
+                  acceptUntrusted:
+                    nullable: true
+                    type: boolean
                   allowRenegotiation:
                     nullable: true
                     type: boolean
@@ -740,6 +754,14 @@ spec:
                     items:
                       type: string
                     type: array
+                  maxVerifyDepth:
+                    maximum: 4294967295
+                    minimum: 0
+                    nullable: true
+                    type: integer
+                  onlyVerifyLeafCertCrl:
+                    nullable: true
+                    type: boolean
                   parameters:
                     properties:
                       cipherSuites:
@@ -1351,6 +1373,9 @@ spec:
                 type: boolean
               sslConfig:
                 properties:
+                  acceptUntrusted:
+                    nullable: true
+                    type: boolean
                   allowRenegotiation:
                     nullable: true
                     type: boolean
@@ -1358,6 +1383,14 @@ spec:
                     items:
                       type: string
                     type: array
+                  maxVerifyDepth:
+                    maximum: 4294967295
+                    minimum: 0
+                    nullable: true
+                    type: integer
+                  onlyVerifyLeafCertCrl:
+                    nullable: true
+                    type: boolean
                   parameters:
                     properties:
                       cipherSuites:

@@ -123,6 +123,36 @@ func (m *SslConfig) Equal(that interface{}) bool {
 		return false
 	}
 
+	if h, ok := interface{}(m.GetAcceptUntrusted()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetAcceptUntrusted()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetAcceptUntrusted(), target.GetAcceptUntrusted()) {
+			return false
+		}
+	}
+
+	if h, ok := interface{}(m.GetOnlyVerifyLeafCertCrl()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetOnlyVerifyLeafCertCrl()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetOnlyVerifyLeafCertCrl(), target.GetOnlyVerifyLeafCertCrl()) {
+			return false
+		}
+	}
+
+	if h, ok := interface{}(m.GetMaxVerifyDepth()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetMaxVerifyDepth()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetMaxVerifyDepth(), target.GetMaxVerifyDepth()) {
+			return false
+		}
+	}
+
 	switch m.SslSecrets.(type) {
 
 	case *SslConfig_SecretRef:
@@ -283,6 +313,36 @@ func (m *UpstreamSslConfig) Equal(that interface{}) bool {
 		}
 	} else {
 		if !proto.Equal(m.GetAllowRenegotiation(), target.GetAllowRenegotiation()) {
+			return false
+		}
+	}
+
+	if h, ok := interface{}(m.GetAcceptUntrusted()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetAcceptUntrusted()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetAcceptUntrusted(), target.GetAcceptUntrusted()) {
+			return false
+		}
+	}
+
+	if h, ok := interface{}(m.GetOnlyVerifyLeafCertCrl()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetOnlyVerifyLeafCertCrl()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetOnlyVerifyLeafCertCrl(), target.GetOnlyVerifyLeafCertCrl()) {
+			return false
+		}
+	}
+
+	if h, ok := interface{}(m.GetMaxVerifyDepth()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetMaxVerifyDepth()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetMaxVerifyDepth(), target.GetMaxVerifyDepth()) {
 			return false
 		}
 	}

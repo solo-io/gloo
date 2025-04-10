@@ -10,10 +10,11 @@ import (
 	envoymatcher "github.com/envoyproxy/go-control-plane/envoy/type/matcher/v3"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/rotisserie/eris"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+
 	"github.com/solo-io/gloo/projects/gloo/constants"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/ssl"
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 )
 
 //go:generate mockgen -destination mocks/mock_ssl.go github.com/solo-io/gloo/projects/gloo/pkg/utils SslConfigTranslator
@@ -122,6 +123,9 @@ type CertSource interface {
 	GetVerifySubjectAltName() []string
 	GetParameters() *ssl.SslParameters
 	GetAlpnProtocols() []string
+	GetAcceptUntrusted() *wrappers.BoolValue
+	GetOnlyVerifyLeafCertCrl() *wrappers.BoolValue
+	GetMaxVerifyDepth() *wrappers.UInt32Value
 }
 
 // stringDataSourceGenerator returns a function that returns an Envoy data source that uses the given string as the data source.
@@ -387,11 +391,19 @@ func (s *sslConfigTranslator) ResolveCommonSslConfig(cs CertSource, secrets v1.S
 		if len(sanList) != 0 {
 			validationCtx.ValidationContext.MatchSubjectAltNames = sanList
 		}
+		if cs.GetAcceptUntrusted() != nil {
+			validationCtx.ValidationContext.TrustChainVerification = envoyauth.CertificateValidationContext_ACCEPT_UNTRUSTED
+		}
+		if cs.GetOnlyVerifyLeafCertCrl() != nil {
+			validationCtx.ValidationContext.OnlyVerifyLeafCertCrl = true
+		}
+		if cs.GetMaxVerifyDepth() != nil {
+			validationCtx.ValidationContext.MaxVerifyDepth = cs.GetMaxVerifyDepth()
+		}
 		tlsContext.ValidationContextType = validationCtx
 
 	} else if len(sanList) != 0 {
 		return nil, RootCaMustBeProvidedError
-
 	}
 
 	var err error

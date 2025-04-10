@@ -48,6 +48,9 @@ SslConfig contains the options necessary to configure a virtual host or listener
 "disableTlsSessionResumption": .google.protobuf.BoolValue
 "transportSocketConnectTimeout": .google.protobuf.Duration
 "ocspStaplePolicy": .gloo.solo.io.SslConfig.OcspStaplePolicy
+"acceptUntrusted": .google.protobuf.BoolValue
+"onlyVerifyLeafCertCrl": .google.protobuf.BoolValue
+"maxVerifyDepth": .google.protobuf.UInt32Value
 
 ```
 
@@ -64,6 +67,9 @@ SslConfig contains the options necessary to configure a virtual host or listener
 | `disableTlsSessionResumption` | [.google.protobuf.BoolValue](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/bool-value) | If set to true, the TLS session resumption will be deactivated, note that it deactivates only the tickets based tls session resumption (not the cache). |
 | `transportSocketConnectTimeout` | [.google.protobuf.Duration](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/duration) | If present and nonzero, the amount of time to allow incoming connections to complete any transport socket negotiations. If this expires before the transport reports connection establishment, the connection is summarily closed. |
 | `ocspStaplePolicy` | [.gloo.solo.io.SslConfig.OcspStaplePolicy](../ssl.proto.sk/#ocspstaplepolicy) | The OCSP staple policy to use for this listener. Defaults to `LENIENT_STAPLING`. https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/transport_sockets/tls/v3/tls.proto#enum-extensions-transport-sockets-tls-v3-downstreamtlscontext-ocspstaplepolicy. |
+| `acceptUntrusted` | [.google.protobuf.BoolValue](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/bool-value) | Connections where the certificate fails verification will be permitted. |
+| `onlyVerifyLeafCertCrl` | [.google.protobuf.BoolValue](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/bool-value) | If this option is set to true, only the certificate at the end of the certificate chain will be subject to validation by CRL. |
+| `maxVerifyDepth` | [.google.protobuf.UInt32Value](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/u-int-32-value) | Defines maximum depth of a certificate chain accepted in verification, the default limit is 100, though this can be system-dependent. This number does not include the leaf but includes the trust anchor, so a depth of 1 allows the leaf and one CA certificate. If a trusted issuer appears in the chain, but in a depth larger than configured, the certificate validation will fail. This matches the semantics of SSL_CTX_set_verify_depth in OpenSSL 1.0.x and older versions of BoringSSL. It differs from SSL_CTX_set_verify_depth in OpenSSL 1.1.x and newer versions of BoringSSL in that the trust anchor is included. Trusted issues are specified by setting trusted_ca. |
 
 
 
@@ -121,6 +127,9 @@ SslConfig contains the options necessary to configure an upstream to use TLS ori
 "parameters": .gloo.solo.io.SslParameters
 "alpnProtocols": []string
 "allowRenegotiation": .google.protobuf.BoolValue
+"acceptUntrusted": .google.protobuf.BoolValue
+"onlyVerifyLeafCertCrl": .google.protobuf.BoolValue
+"maxVerifyDepth": .google.protobuf.UInt32Value
 
 ```
 
@@ -134,6 +143,9 @@ SslConfig contains the options necessary to configure an upstream to use TLS ori
 | `parameters` | [.gloo.solo.io.SslParameters](../ssl.proto.sk/#sslparameters) |  |
 | `alpnProtocols` | `[]string` | Set Application Level Protocol Negotiation. If empty, it is not set. |
 | `allowRenegotiation` | [.google.protobuf.BoolValue](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/bool-value) | Allow Tls renegotiation, the default value is false. TLS renegotiation is considered insecure and shouldn’t be used unless absolutely necessary. |
+| `acceptUntrusted` | [.google.protobuf.BoolValue](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/bool-value) | Connections where the certificate fails verification will be permitted. |
+| `onlyVerifyLeafCertCrl` | [.google.protobuf.BoolValue](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/bool-value) | If this option is set to true, only the certificate at the end of the certificate chain will be subject to validation by CRL. |
+| `maxVerifyDepth` | [.google.protobuf.UInt32Value](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/u-int-32-value) | Defines maximum depth of a certificate chain accepted in verification, the default limit is 100, though this can be system-dependent. This number does not include the leaf but includes the trust anchor, so a depth of 1 allows the leaf and one CA certificate. If a trusted issuer appears in the chain, but in a depth larger than configured, the certificate validation will fail. This matches the semantics of SSL_CTX_set_verify_depth in OpenSSL 1.0.x and older versions of BoringSSL. It differs from SSL_CTX_set_verify_depth in OpenSSL 1.1.x and newer versions of BoringSSL in that the trust anchor is included. Trusted issues are specified by setting trusted_ca. |
 
 
 

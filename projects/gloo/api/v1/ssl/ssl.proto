@@ -67,6 +67,20 @@ message SslConfig {
     // Defaults to `LENIENT_STAPLING`.
     // https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/transport_sockets/tls/v3/tls.proto#enum-extensions-transport-sockets-tls-v3-downstreamtlscontext-ocspstaplepolicy
     OcspStaplePolicy ocsp_staple_policy = 11;
+
+    // Connections where the certificate fails verification will be permitted.
+    google.protobuf.BoolValue accept_untrusted = 12;
+
+    // If this option is set to true, only the certificate at the end of the certificate chain will be subject to validation by CRL.
+    google.protobuf.BoolValue only_verify_leaf_cert_crl = 13;
+
+    // Defines maximum depth of a certificate chain accepted in verification, the default limit is 100, though this can be system-dependent.
+    // This number does not include the leaf but includes the trust anchor, so a depth of 1 allows the leaf and one CA certificate.
+    // If a trusted issuer appears in the chain, but in a depth larger than configured, the certificate validation will fail.
+    // This matches the semantics of SSL_CTX_set_verify_depth in OpenSSL 1.0.x and older versions of BoringSSL.
+    // It differs from SSL_CTX_set_verify_depth in OpenSSL 1.1.x and newer versions of BoringSSL in that the trust anchor is included.
+    // Trusted issues are specified by setting trusted_ca
+    google.protobuf.UInt32Value max_verify_depth = 14;
 }
 
 // SSLFiles reference paths to certificates which can be read by the proxy off of its local filesystem
@@ -108,6 +122,20 @@ message UpstreamSslConfig {
     // Allow Tls renegotiation, the default value is false.
     // TLS renegotiation is considered insecure and shouldn’t be used unless absolutely necessary.
     google.protobuf.BoolValue allow_renegotiation = 10;
+
+    // Connections where the certificate fails verification will be permitted.
+    google.protobuf.BoolValue accept_untrusted = 12;
+
+    // If this option is set to true, only the certificate at the end of the certificate chain will be subject to validation by CRL.
+    google.protobuf.BoolValue only_verify_leaf_cert_crl = 13;
+
+    // Defines maximum depth of a certificate chain accepted in verification, the default limit is 100, though this can be system-dependent.
+    // This number does not include the leaf but includes the trust anchor, so a depth of 1 allows the leaf and one CA certificate.
+    // If a trusted issuer appears in the chain, but in a depth larger than configured, the certificate validation will fail.
+    // This matches the semantics of SSL_CTX_set_verify_depth in OpenSSL 1.0.x and older versions of BoringSSL.
+    // It differs from SSL_CTX_set_verify_depth in OpenSSL 1.1.x and newer versions of BoringSSL in that the trust anchor is included.
+    // Trusted issues are specified by setting trusted_ca
+    google.protobuf.UInt32Value max_verify_depth = 14;
 }
 
 message SDSConfig {

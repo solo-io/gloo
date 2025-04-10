@@ -92,6 +92,24 @@ func (m *SslConfig) Clone() proto.Message {
 
 	target.OcspStaplePolicy = m.GetOcspStaplePolicy()
 
+	if h, ok := interface{}(m.GetAcceptUntrusted()).(clone.Cloner); ok {
+		target.AcceptUntrusted = h.Clone().(*github_com_golang_protobuf_ptypes_wrappers.BoolValue)
+	} else {
+		target.AcceptUntrusted = proto.Clone(m.GetAcceptUntrusted()).(*github_com_golang_protobuf_ptypes_wrappers.BoolValue)
+	}
+
+	if h, ok := interface{}(m.GetOnlyVerifyLeafCertCrl()).(clone.Cloner); ok {
+		target.OnlyVerifyLeafCertCrl = h.Clone().(*github_com_golang_protobuf_ptypes_wrappers.BoolValue)
+	} else {
+		target.OnlyVerifyLeafCertCrl = proto.Clone(m.GetOnlyVerifyLeafCertCrl()).(*github_com_golang_protobuf_ptypes_wrappers.BoolValue)
+	}
+
+	if h, ok := interface{}(m.GetMaxVerifyDepth()).(clone.Cloner); ok {
+		target.MaxVerifyDepth = h.Clone().(*github_com_golang_protobuf_ptypes_wrappers.UInt32Value)
+	} else {
+		target.MaxVerifyDepth = proto.Clone(m.GetMaxVerifyDepth()).(*github_com_golang_protobuf_ptypes_wrappers.UInt32Value)
+	}
+
 	switch m.SslSecrets.(type) {
 
 	case *SslConfig_SecretRef:
@@ -192,6 +210,24 @@ func (m *UpstreamSslConfig) Clone() proto.Message {
 		target.AllowRenegotiation = h.Clone().(*github_com_golang_protobuf_ptypes_wrappers.BoolValue)
 	} else {
 		target.AllowRenegotiation = proto.Clone(m.GetAllowRenegotiation()).(*github_com_golang_protobuf_ptypes_wrappers.BoolValue)
+	}
+
+	if h, ok := interface{}(m.GetAcceptUntrusted()).(clone.Cloner); ok {
+		target.AcceptUntrusted = h.Clone().(*github_com_golang_protobuf_ptypes_wrappers.BoolValue)
+	} else {
+		target.AcceptUntrusted = proto.Clone(m.GetAcceptUntrusted()).(*github_com_golang_protobuf_ptypes_wrappers.BoolValue)
+	}
+
+	if h, ok := interface{}(m.GetOnlyVerifyLeafCertCrl()).(clone.Cloner); ok {
+		target.OnlyVerifyLeafCertCrl = h.Clone().(*github_com_golang_protobuf_ptypes_wrappers.BoolValue)
+	} else {
+		target.OnlyVerifyLeafCertCrl = proto.Clone(m.GetOnlyVerifyLeafCertCrl()).(*github_com_golang_protobuf_ptypes_wrappers.BoolValue)
+	}
+
+	if h, ok := interface{}(m.GetMaxVerifyDepth()).(clone.Cloner); ok {
+		target.MaxVerifyDepth = h.Clone().(*github_com_golang_protobuf_ptypes_wrappers.UInt32Value)
+	} else {
+		target.MaxVerifyDepth = proto.Clone(m.GetMaxVerifyDepth()).(*github_com_golang_protobuf_ptypes_wrappers.UInt32Value)
 	}
 
 	switch m.SslSecrets.(type) {

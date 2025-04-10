@@ -147,6 +147,66 @@ func (m *SslConfig) Hash(hasher hash.Hash64) (uint64, error) {
 		return 0, err
 	}
 
+	if h, ok := interface{}(m.GetAcceptUntrusted()).(safe_hasher.SafeHasher); ok {
+		if _, err = hasher.Write([]byte("AcceptUntrusted")); err != nil {
+			return 0, err
+		}
+		if _, err = h.Hash(hasher); err != nil {
+			return 0, err
+		}
+	} else {
+		if fieldValue, err := hashstructure.Hash(m.GetAcceptUntrusted(), nil); err != nil {
+			return 0, err
+		} else {
+			if _, err = hasher.Write([]byte("AcceptUntrusted")); err != nil {
+				return 0, err
+			}
+			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
+				return 0, err
+			}
+		}
+	}
+
+	if h, ok := interface{}(m.GetOnlyVerifyLeafCertCrl()).(safe_hasher.SafeHasher); ok {
+		if _, err = hasher.Write([]byte("OnlyVerifyLeafCertCrl")); err != nil {
+			return 0, err
+		}
+		if _, err = h.Hash(hasher); err != nil {
+			return 0, err
+		}
+	} else {
+		if fieldValue, err := hashstructure.Hash(m.GetOnlyVerifyLeafCertCrl(), nil); err != nil {
+			return 0, err
+		} else {
+			if _, err = hasher.Write([]byte("OnlyVerifyLeafCertCrl")); err != nil {
+				return 0, err
+			}
+			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
+				return 0, err
+			}
+		}
+	}
+
+	if h, ok := interface{}(m.GetMaxVerifyDepth()).(safe_hasher.SafeHasher); ok {
+		if _, err = hasher.Write([]byte("MaxVerifyDepth")); err != nil {
+			return 0, err
+		}
+		if _, err = h.Hash(hasher); err != nil {
+			return 0, err
+		}
+	} else {
+		if fieldValue, err := hashstructure.Hash(m.GetMaxVerifyDepth(), nil); err != nil {
+			return 0, err
+		} else {
+			if _, err = hasher.Write([]byte("MaxVerifyDepth")); err != nil {
+				return 0, err
+			}
+			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
+				return 0, err
+			}
+		}
+	}
+
 	switch m.SslSecrets.(type) {
 
 	case *SslConfig_SecretRef:
@@ -317,6 +377,66 @@ func (m *UpstreamSslConfig) Hash(hasher hash.Hash64) (uint64, error) {
 			return 0, err
 		} else {
 			if _, err = hasher.Write([]byte("AllowRenegotiation")); err != nil {
+				return 0, err
+			}
+			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
+				return 0, err
+			}
+		}
+	}
+
+	if h, ok := interface{}(m.GetAcceptUntrusted()).(safe_hasher.SafeHasher); ok {
+		if _, err = hasher.Write([]byte("AcceptUntrusted")); err != nil {
+			return 0, err
+		}
+		if _, err = h.Hash(hasher); err != nil {
+			return 0, err
+		}
+	} else {
+		if fieldValue, err := hashstructure.Hash(m.GetAcceptUntrusted(), nil); err != nil {
+			return 0, err
+		} else {
+			if _, err = hasher.Write([]byte("AcceptUntrusted")); err != nil {
+				return 0, err
+			}
+			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
+				return 0, err
+			}
+		}
+	}
+
+	if h, ok := interface{}(m.GetOnlyVerifyLeafCertCrl()).(safe_hasher.SafeHasher); ok {
+		if _, err = hasher.Write([]byte("OnlyVerifyLeafCertCrl")); err != nil {
+			return 0, err
+		}
+		if _, err = h.Hash(hasher); err != nil {
+			return 0, err
+		}
+	} else {
+		if fieldValue, err := hashstructure.Hash(m.GetOnlyVerifyLeafCertCrl(), nil); err != nil {
+			return 0, err
+		} else {
+			if _, err = hasher.Write([]byte("OnlyVerifyLeafCertCrl")); err != nil {
+				return 0, err
+			}
+			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
+				return 0, err
+			}
+		}
+	}
+
+	if h, ok := interface{}(m.GetMaxVerifyDepth()).(safe_hasher.SafeHasher); ok {
+		if _, err = hasher.Write([]byte("MaxVerifyDepth")); err != nil {
+			return 0, err
+		}
+		if _, err = h.Hash(hasher); err != nil {
+			return 0, err
+		}
+	} else {
+		if fieldValue, err := hashstructure.Hash(m.GetMaxVerifyDepth(), nil); err != nil {
+			return 0, err
+		} else {
+			if _, err = hasher.Write([]byte("MaxVerifyDepth")); err != nil {
 				return 0, err
 			}
 			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {

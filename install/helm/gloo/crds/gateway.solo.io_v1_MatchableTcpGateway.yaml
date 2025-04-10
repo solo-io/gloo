@@ -43,6 +43,9 @@ spec:
                     type: array
                   sslConfig:
                     properties:
+                      acceptUntrusted:
+                        nullable: true
+                        type: boolean
                       alpnProtocols:
                         items:
                           type: string
@@ -50,10 +53,18 @@ spec:
                       disableTlsSessionResumption:
                         nullable: true
                         type: boolean
+                      maxVerifyDepth:
+                        maximum: 4294967295
+                        minimum: 0
+                        nullable: true
+                        type: integer
                       ocspStaplePolicy:
                         type: string
                         x-kubernetes-int-or-string: true
                       oneWayTls:
+                        nullable: true
+                        type: boolean
+                      onlyVerifyLeafCertCrl:
                         nullable: true
                         type: boolean
                       parameters:
@@ -1631,6 +1642,9 @@ spec:
                           type: string
                         sslConfig:
                           properties:
+                            acceptUntrusted:
+                              nullable: true
+                              type: boolean
                             alpnProtocols:
                               items:
                                 type: string
@@ -1638,10 +1652,18 @@ spec:
                             disableTlsSessionResumption:
                               nullable: true
                               type: boolean
+                            maxVerifyDepth:
+                              maximum: 4294967295
+                              minimum: 0
+                              nullable: true
+                              type: integer
                             ocspStaplePolicy:
                               type: string
                               x-kubernetes-int-or-string: true
                             oneWayTls:
+                              nullable: true
+                              type: boolean
+                            onlyVerifyLeafCertCrl:
                               nullable: true
                               type: boolean
                             parameters:
