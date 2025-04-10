@@ -21,12 +21,13 @@ var (
 		e2edefaults.CurlPodManifest,
 	}
 
-	manifestVhoRemoveXBar         = filepath.Join(util.MustGetThisDir(), "testdata", "vho-remove-x-bar.yaml")
-	manifestVhoSectionAddXFoo     = filepath.Join(util.MustGetThisDir(), "testdata", "vho-section-add-x-foo.yaml")
-	manifestVhoRemoveXBaz         = filepath.Join(util.MustGetThisDir(), "testdata", "vho-remove-x-baz.yaml")
-	manifestVhoWebhookReject      = filepath.Join(util.MustGetThisDir(), "testdata", "vho-webhook-reject.yaml")
-	manifestVhoMergeRemoveXBaz    = filepath.Join(util.MustGetThisDir(), "testdata", "vho-merge-remove-x-baz.yaml")
-	manifestVhoMultipleTargetRefs = filepath.Join(util.MustGetThisDir(), "testdata", "vho-multiple-target-refs.yaml")
+	manifestVhoRemoveXBar              = filepath.Join(util.MustGetThisDir(), "testdata", "vho-remove-x-bar.yaml")
+	manifestVhoSectionAddXFoo          = filepath.Join(util.MustGetThisDir(), "testdata", "vho-section-add-x-foo.yaml")
+	manifestVhoRemoveXBaz              = filepath.Join(util.MustGetThisDir(), "testdata", "vho-remove-x-baz.yaml")
+	manifestVhoWebhookReject           = filepath.Join(util.MustGetThisDir(), "testdata", "vho-webhook-reject.yaml")
+	manifestVhoMergeRemoveXBaz         = filepath.Join(util.MustGetThisDir(), "testdata", "vho-merge-remove-x-baz.yaml")
+	manifestVhoMultipleTargetRefs      = filepath.Join(util.MustGetThisDir(), "testdata", "vho-multiple-target-refs.yaml")
+	manifestVhoMultipleGatewayWarnings = filepath.Join(util.MustGetThisDir(), "testdata", "vho-multiple-gateway-warnings.yaml")
 
 	// When we apply the setup file, we expect resources to be created with this metadata
 	// When we apply the setup file, we expect resources to be created with this metadata
