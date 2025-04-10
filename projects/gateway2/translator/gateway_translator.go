@@ -81,25 +81,7 @@ func (t *translator) TranslateProxy(
 		})
 	}
 
-	for _, listener := range gateway.Spec.Listeners {
-		availRoutes := 0
-		if res, ok := routesForGw.ListenerResults[string(listener.Name)]; ok {
-			// TODO we've never checked if the ListenerResult has an error.. is it already on RouteErrors?
-			availRoutes = len(res.Routes)
-		}
-		reporter.Gateway(gateway).Listener(&listener).SetAttachedRoutes(uint(availRoutes))
-	}
-
-	for _, ls := range consolidatedGateway.AllowedListenerSets {
-		for _, listener := range consolidatedGateway.GetListeners(ls) {
-			availRoutes := 0
-			if res, ok := routesForGw.ListenerResults[query.GenerateListenerSetListenerKey(*ls, string(listener.Name))]; ok {
-				// TODO we've never checked if the ListenerResult has an error.. is it already on RouteErrors?
-				availRoutes = len(res.Routes)
-			}
-			reporter.ListenerSet(ls).Listener(&listener).SetAttachedRoutes(uint(availRoutes))
-		}
-	}
+	setAttachedRoutes(*consolidatedGateway, routesForGw, reporter)
 
 	listeners := listener.TranslateListeners(
 		ctx,
@@ -132,5 +114,19 @@ func proxyMetadata(gateway *gwv1.Gateway, writeNamespace string) *core.Metadata 
 			utils.ProxyTypeKey:        utils.GatewayApiProxyValue,
 			utils.GatewayNamespaceKey: gateway.GetNamespace(),
 		},
+	}
+}
+
+func setAttachedRoutes(consolidatedGateway types.ConsolidatedGateway, routesForGw *query.RoutesForGwResult, reporter reports.Reporter) {
+	for _, cl := range consolidatedGateway.GetConsolidatedListeners() {
+		listener := cl.Listener
+		parentReporter := cl.GetParentReporter(reporter)
+
+		availRoutes := 0
+		if res := routesForGw.GetListenerResult(cl.GetParent(), string(listener.Name)); res != nil {
+			// TODO we've never checked if the ListenerResult has an error.. is it already on RouteErrors?
+			availRoutes = len(res.Routes)
+		}
+		parentReporter.Listener(listener).SetAttachedRoutes(uint(availRoutes))
 	}
 }

@@ -27,16 +27,20 @@ var ComponentLogLevelEmptyError = func(key string, value string) error {
 // 1. the ports exposed on the envoy container
 // 2. the ports exposed on the proxy service
 func getPortsValues(cgw *types.ConsolidatedGateway, gwp *v1alpha1.GatewayParameters) []helmPort {
-	gwPorts := []helmPort{}
-	for _, l := range cgw.Gateway.Spec.Listeners {
-		gwPorts = appendPortValue(gwPorts, uint16(l.Port), string(l.Name), gwp)
-	}
-	for i, ls := range cgw.AllowedListenerSets {
-		for _, l := range ls.Spec.Listeners {
-			gwPorts = appendPortValue(gwPorts, uint16(l.Port), fmt.Sprintf("%d-%s", i, l.Name), gwp)
+	gwPorts := map[uint16]helmPort{}
+	for i, cl := range cgw.GetConsolidatedListeners() {
+		listener := cl.Listener
+		portName := string(listener.Name)
+		if cl.ListenerSet != nil {
+			portName = fmt.Sprintf("%d-%s", i, listener.Name)
 		}
+		appendPortValue(gwPorts, uint16(listener.Port), portName, gwp)
 	}
-	return gwPorts
+	finalPorts := make([]helmPort, 0, len(gwPorts))
+	for _, gwPort := range gwPorts {
+		finalPorts = append(finalPorts, *&gwPort)
+	}
+	return finalPorts
 }
 
 func sanitizePortName(name string) string {
@@ -53,10 +57,10 @@ func sanitizePortName(name string) string {
 	return str
 }
 
-func appendPortValue(gwPorts []helmPort, port uint16, name string, gwp *v1alpha1.GatewayParameters) []helmPort {
+func appendPortValue(gwPorts map[uint16]helmPort, port uint16, name string, gwp *v1alpha1.GatewayParameters) {
 	// only process this port if we haven't already processed a listener with the same port
-	if slices.IndexFunc(gwPorts, func(p helmPort) bool { return *p.Port == port }) != -1 {
-		return gwPorts
+	if _, ok := gwPorts[port]; !ok {
+		return
 	}
 
 	targetPort := ports.TranslatePort(port)
@@ -74,13 +78,13 @@ func appendPortValue(gwPorts []helmPort, port uint16, name string, gwp *v1alpha1
 		}
 	}
 
-	return append(gwPorts, helmPort{
+	gwPorts[port] = helmPort{
 		Port:       &port,
 		TargetPort: &targetPort,
 		Name:       &portName,
 		Protocol:   &protocol,
 		NodePort:   nodePort,
-	})
+	}
 }
 
 // TODO: Removing until autoscaling is re-added.

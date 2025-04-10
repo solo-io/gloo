@@ -8,7 +8,7 @@ import (
 )
 
 func (r *gatewayQueries) ConsolidateGateway(ctx context.Context, gateway *gwv1.Gateway) (*types.ConsolidatedGateway, error) {
-	ls, err := r.GetListenerSetsForGateway(ctx, gateway)
+	ls, err := r.getListenerSetsForGateway(ctx, gateway)
 	if err != nil {
 		return nil, err
 	}

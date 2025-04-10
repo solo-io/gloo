@@ -130,12 +130,6 @@ type GatewayQueries interface {
 	// GetRouteChain resolves backends and delegated routes for a the provided xRoute object
 	GetRouteChain(ctx context.Context, obj client.Object, hostnames []string, parentRef apiv1.ParentReference) *RouteInfo
 
-	// GetListenerSetsForGateway returns the list of listener sets mapped to the given gateway
-	// It consists of the list of allowed listener sets and denied listener sets (based on the value of allowedListeners)
-	GetListenerSetsForGateway(ctx context.Context, gw *apiv1.Gateway) (*ListenerSetsForGwResult, error)
-	// GetRoutesForListenerSet finds the top level xRoutes attached to the provided ListenerSet.
-	// It also includes the routes mapped to the parent gateway
-	GetRoutesForListenerSet(ctx context.Context, ls *apixv1alpha1.XListenerSet) (*RoutesForGwResult, error)
 	// GetRoutesForConsolidatedGateway finds the top level xRoutes attached to the provided Gateway and associated ListenerSet
 	GetRoutesForConsolidatedGateway(ctx context.Context, cgw *translator_types.ConsolidatedGateway) (*RoutesForGwResult, error)
 
@@ -144,9 +138,32 @@ type GatewayQueries interface {
 }
 
 type RoutesForGwResult struct {
-	// key is listener name
-	ListenerResults map[string]*ListenerResult
+	// key is <parent.Namespace/parent.Name/listener.Name>
+	listenerResults map[string]*ListenerResult
 	RouteErrors     []*RouteError
+}
+
+func (r *RoutesForGwResult) GetListenerResult(parent client.Object, listenerName string) *ListenerResult {
+	return r.listenerResults[GenerateRouteKey(parent, listenerName)]
+}
+
+func (r *RoutesForGwResult) GetListenerResults(yield func(string, *ListenerResult) bool) {
+	for k, v := range r.listenerResults {
+		if !yield(k, v) {
+			return
+		}
+	}
+}
+
+func (r *RoutesForGwResult) setListenerResult(parent client.Object, listenerName string, result *ListenerResult) {
+	r.listenerResults[GenerateRouteKey(parent, listenerName)] = result
+}
+
+func (r *RoutesForGwResult) merge(r2 *RoutesForGwResult) {
+	for k, v := range r2.listenerResults {
+		r.listenerResults[k] = v
+	}
+	r.RouteErrors = append(r.RouteErrors, r2.RouteErrors...)
 }
 
 type ListenerResult struct {
@@ -193,7 +210,7 @@ func NewData(
 // NewRoutesForGwResult creates and returns a new RoutesForGwResult with initialized fields.
 func NewRoutesForGwResult() *RoutesForGwResult {
 	return &RoutesForGwResult{
-		ListenerResults: make(map[string]*ListenerResult),
+		listenerResults: make(map[string]*ListenerResult),
 		RouteErrors:     []*RouteError{},
 	}
 }

@@ -20,7 +20,7 @@ type ListenerSetsForGwResult struct {
 	DeniedListenerSets  []*gwxv1a1.XListenerSet
 }
 
-func (r *gatewayQueries) GetListenerSetsForGateway(ctx context.Context, gw *gwv1.Gateway) (*ListenerSetsForGwResult, error) {
+func (r *gatewayQueries) getListenerSetsForGateway(ctx context.Context, gw *gwv1.Gateway) (*ListenerSetsForGwResult, error) {
 	nns := types.NamespacedName{
 		Namespace: gw.Namespace,
 		Name:      gw.Name,

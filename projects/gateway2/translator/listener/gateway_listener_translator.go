@@ -62,21 +62,14 @@ func mergeConsolidatedListeners(
 
 	for _, cl := range consolidatedListeners {
 		listener := cl.Listener
-		result, ok := routesForGw.ListenerResults[string(listener.Name)]
-		if !ok || result.Error != nil {
+		result := routesForGw.GetListenerResult(cl.GetParent(), string(listener.Name))
+		listenerReporter := cl.GetParentReporter(reporter).Listener(listener)
+
+		if result == nil || result.Error != nil {
 			// TODO report
 			// TODO, if Error is not nil, this is a user-config error on selectors
 			// continue
 		}
-		if cl.ListenerSet != nil {
-			result, ok = routesForGw.ListenerResults[query.GenerateListenerSetListenerKey(*cl.ListenerSet, string(listener.Name))]
-			if !ok || result.Error != nil {
-				// TODO report
-				// TODO, if Error is not nil, this is a user-config error on selectors
-				// continue
-			}
-		}
-		listenerReporter := cl.GetParentReporter(reporter).Listener(listener)
 		var routes []*query.RouteInfo
 		if result != nil {
 			routes = result.Routes
@@ -950,7 +943,7 @@ func makeVhostName(
 func generateListenerName(listener gwv1.Listener, listenerSet *gwxv1a1.XListenerSet) string {
 	listenerName := string(listener.Name)
 	if listenerSet != nil {
-		listenerName = query.GenerateListenerSetListenerKey(*listenerSet, string(listener.Name))
+		listenerName = query.GenerateRouteKey(listenerSet, string(listener.Name))
 	}
 	return listenerName
 }

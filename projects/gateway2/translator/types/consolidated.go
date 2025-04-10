@@ -6,6 +6,7 @@ import (
 
 	"github.com/solo-io/gloo/projects/gateway2/reports"
 	"github.com/solo-io/gloo/projects/gateway2/utils"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
 	gwxv1a1 "sigs.k8s.io/gateway-api/apisx/v1alpha1"
 )
@@ -73,6 +74,13 @@ func (cl ConsolidatedListener) GetParentReporter(reporter reports.Reporter) repo
 		parentReporter = reporter.ListenerSet(cl.ListenerSet)
 	}
 	return parentReporter
+}
+
+func (cl ConsolidatedListener) GetParent() client.Object {
+	if cl.ListenerSet != nil {
+		return cl.ListenerSet
+	}
+	return cl.Gateway
 }
 
 func generateListenerSetKey(ls *gwxv1a1.XListenerSet) string {
