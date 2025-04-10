@@ -315,7 +315,7 @@ func (s *testingSuite) TestConfigureVirtualHostOptionsWithSectionNameManualSetup
 		s.getterForMeta(&vhoRemoveXBaz),
 		[]string{
 			"VirtualHostOption 'default/remove-x-baz-header' not attached to listener 'other' on Gateway 'default/gw-1' due to conflict with more specific or older VirtualHostOptions 'default/remove-x-bar-header'",
-			"VirtualHostOption 'default/remove-x-baz-header' not attached to listener 'http' on Gateway 'default/gw-1' due to conflict with more specific or older VirtualHostOptions 'default/add-x-foo-header'",
+			"VirtualHostOption 'default/remove-x-baz-header' not attached to listener 'http' on Gateway 'default/gw-1' due to conflict with more specific or older VirtualHostOptions 'default/add-x-foo-header-section'",
 		},
 		defaults.KubeGatewayReporter,
 	)
