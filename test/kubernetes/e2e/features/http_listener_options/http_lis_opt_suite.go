@@ -5,12 +5,12 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
-	"github.com/solo-io/gloo/pkg/utils/envutils"
 	"github.com/solo-io/gloo/pkg/utils/kubeutils"
 	"github.com/solo-io/gloo/pkg/utils/requestutils/curl"
 	"github.com/solo-io/gloo/test/gomega/matchers"
 	"github.com/solo-io/gloo/test/kubernetes/e2e"
 	testdefaults "github.com/solo-io/gloo/test/kubernetes/e2e/defaults"
+	"github.com/solo-io/gloo/test/kubernetes/testutils/helper"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -35,8 +35,10 @@ func NewTestingSuite(
 	}
 }
 
-func useListenerSet() bool {
-	return envutils.IsEnvTruthy("USE_LISTENER_SET")
+func (s *testingSuite) useListenerSet() bool {
+	exists, err := helper.XListenerSetCrdExists(s.testInstallation.ClusterContext.RestConfig)
+	s.Require().NoError(err)
+	return exists
 }
 
 func (s *testingSuite) SetupSuite() {
@@ -44,7 +46,7 @@ func (s *testingSuite) SetupSuite() {
 	err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, setupManifest)
 	s.NoError(err, "can apply "+setupManifest)
 
-	if useListenerSet() {
+	if s.useListenerSet() {
 		err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, listenerSetManifest)
 		s.NoError(err, "can apply "+listenerSetManifest)
 	}
@@ -131,7 +133,7 @@ func (s *testingSuite) TestConfigureHttpListenerOptionsWithSection() {
 		},
 	}
 
-	if useListenerSet() {
+	if s.useListenerSet() {
 		matchersForListeners[proxyService1Fqdn][lsPort1] = expectedResponseWithoutServer
 		matchersForListeners[proxyService1Fqdn][lsPort2] = expectedResponseWithoutServer
 	}
@@ -152,7 +154,7 @@ func (s *testingSuite) TestConfigureNotAttachedHttpListenerOptions() {
 			gw2port2: expectedResponseWithServer("envoy"),
 		},
 	}
-	if useListenerSet() {
+	if s.useListenerSet() {
 		matchersForListeners[proxyService1Fqdn][lsPort1] = expectedResponseWithServer("envoy")
 		matchersForListeners[proxyService1Fqdn][lsPort2] = expectedResponseWithServer("envoy")
 	}
@@ -161,7 +163,7 @@ func (s *testingSuite) TestConfigureNotAttachedHttpListenerOptions() {
 }
 
 func (s *testingSuite) TestConfigureHttpListenerOptionsWithListenerSetsAndSection() {
-	if !useListenerSet() {
+	if !s.useListenerSet() {
 		s.T().Skip("XListenerset resources are not supported in for this version of Istio, skipping test")
 	}
 

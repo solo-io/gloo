@@ -12,12 +12,16 @@ import (
 	"github.com/google/go-github/v32/github"
 	. "github.com/onsi/gomega"
 	errors "github.com/rotisserie/eris"
+	glooschemes "github.com/solo-io/gloo/pkg/schemes"
+	"github.com/solo-io/gloo/projects/gateway2/wellknown"
 	"github.com/solo-io/gloo/test/testutils"
 	"github.com/solo-io/gloo/test/testutils/version"
 	"github.com/solo-io/go-utils/changelogutils"
 	"github.com/solo-io/go-utils/githubutils"
 	"github.com/solo-io/go-utils/versionutils"
 	"github.com/solo-io/skv2/codegen/util"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/client-go/rest"
 )
 
 // Deprecated; if this is needed create a resource yaml for it.
@@ -144,4 +148,19 @@ func getLatestReleasedPatchVersion(ctx context.Context, client *github.Client, r
 		return nil, errors.Wrapf(err, "error parsing release name")
 	}
 	return v, nil
+}
+
+func IsCrdExists(rc *rest.Config, gvk schema.GroupVersionKind) (bool, error) {
+	resourceExists, err := glooschemes.CRDExists(rc, gvk.Group, gvk.Version, gvk.Kind)
+	if err != nil {
+		return false, err
+	}
+	if resourceExists {
+		return true, nil
+	}
+	return false, nil
+}
+
+func XListenerSetCrdExists(rc *rest.Config) (bool, error) {
+	return IsCrdExists(rc, wellknown.XListenerSetGVK)
 }
