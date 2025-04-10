@@ -60,7 +60,7 @@ jobs:
   end_to_end_tests_on_demand:
     name: End-to-End (branch=${{ github.ref_name }}, cluster=${{ matrix.test.cluster-name }}, version=${{ matrix.version-files.label }} )
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.run-kubernetes-end-to-end && inputs.branch == 'workflow_initiating_branch' }}
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     timeout-minutes: 180
     strategy:
       # Since we are running these on a schedule, there is no value in failing fast
@@ -122,7 +122,7 @@ jobs:
   end_to_end_tests_main:
     name: End-to-End (branch=main, cluster=${{ matrix.test.cluster-name }}, version=${{ matrix.version-files.label }} )
     if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-kubernetes-end-to-end && inputs.branch == 'main') || github.event.schedule == '0 5 * * *' }}
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     timeout-minutes: 180
     strategy:
       # Since we are running these on a schedule, there is no value in failing fast
@@ -185,7 +185,7 @@ jobs:
   end_to_end_tests_18:
     name: End-to-End (branch=v1.18.x, cluster=${{ matrix.test.cluster-name }}, version=${{ matrix.version-files.label }} )
     if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-kubernetes-end-to-end && inputs.branch == 'v1.18.x') || github.event.schedule == '0 6 * * 1' }}
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     timeout-minutes: 180
     strategy:
       # Since we are running these on a schedule, there is no value in failing fast
@@ -247,7 +247,7 @@ jobs:
   end_to_end_tests_17:
     name: End-to-End (branch=v1.17.x, cluster=${{ matrix.test.cluster-name }}, version=${{ matrix.version-files.label }} )
     if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-kubernetes-end-to-end && inputs.branch == 'v1.17.x') || github.event.schedule == '0 7 * * 1' }}
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     timeout-minutes: 150
     strategy:
       # Since we are running these on a schedule, there is no value in failing fast
@@ -308,7 +308,7 @@ jobs:
   regression_tests_on_demand:
     name: on demand regression tests
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.run-regression && inputs.branch == 'workflow_initiating_branch' }}
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     timeout-minutes: 60
     strategy:
       fail-fast: false
@@ -327,7 +327,7 @@ jobs:
   regression_tests_main:
     name: main regression tests
     if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-regression && inputs.branch == 'main') || github.event.schedule == '0 5 * * *' }}
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     timeout-minutes: 60
     # Previously, there was an environment variable, RELEASED_VERSION="LATEST" set.  This made use of some internal code:
     #       https://github.com/solo-io/gloo/blob/main/test/kube2e/util.go#L229-L241
@@ -356,7 +356,7 @@ jobs:
   regression_tests_18:
     name: v1.18.x regression tests
     if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-regression && inputs.branch == 'v1.18.x') || github.event.schedule == '0 6 * * 1' }}
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     timeout-minutes: 60
     # Previously, there was an environment variable, RELEASED_VERSION="LATEST" set.  This made use of some internal code:
     #       https://github.com/solo-io/gloo/blob/main/test/kube2e/util.go#L229-L241
@@ -385,7 +385,7 @@ jobs:
   regression_tests_17:
     name: v1.17.x regression tests
     if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-regression && inputs.branch == 'v1.17.x') || github.event.schedule == '0 7 * * 1' }}
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     timeout-minutes: 60
     strategy:
       fail-fast: false
@@ -403,7 +403,7 @@ jobs:
   regression_tests_16:
     name: v1.16.x regression tests
     if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-regression && inputs.branch == 'v1.16.x') || github.event.schedule == '0 8 * * 1' }}
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     timeout-minutes: 60
     strategy:
       fail-fast: false
@@ -437,7 +437,7 @@ jobs:
     # Instead of false, we would want to define: env.ENABLE_PERFORMANCE_TESTS == 'true'
     # Due to https://github.com/actions/runner/issues/1189#issuecomment-880110759, we cannot use env variables in job.if
     if: ${{ false && ((github.event_name == 'workflow_dispatch' && inputs.run-performance && inputs.branch == 'main') || github.event.schedule == '0 5 * * *') }}
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
@@ -451,7 +451,7 @@ jobs:
     # Instead of false, we would want to define: env.ENABLE_PERFORMANCE_TESTS == 'true'
     # Due to https://github.com/actions/runner/issues/1189#issuecomment-880110759, we cannot use env variables in job.if
     if: ${{ false && ((github.event_name == 'workflow_dispatch' && inputs.run-performance && inputs.branch == 'v1.18.x') || github.event.schedule == '0 6 * * 1') }}
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
@@ -465,7 +465,7 @@ jobs:
     # Instead of false, we would want to define: env.ENABLE_PERFORMANCE_TESTS == 'true'
     # Due to https://github.com/actions/runner/issues/1189#issuecomment-880110759, we cannot use env variables in job.if
     if: ${{ false && ((github.event_name == 'workflow_dispatch' && inputs.run-performance && inputs.branch == 'v1.17.x') || github.event.schedule == '0 7 * * 1') }}
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
@@ -479,7 +479,7 @@ jobs:
     # Instead of false, we would want to define: env.ENABLE_PERFORMANCE_TESTS == 'true'
     # Due to https://github.com/actions/runner/issues/1189#issuecomment-880110759, we cannot use env variables in job.if
     if: ${{ false && ((github.event_name == 'workflow_dispatch' && inputs.run-performance && inputs.branch == 'v1.16.x') || github.event.schedule == '0 8 * * 1') }}
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
@@ -491,7 +491,7 @@ jobs:
   kube_gateway_api_conformance_tests_main:
     name: Conformance (branch=main, type=Kubernetes Gateway API, version=${{matrix.kube-version.node}} )
     if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-conformance && inputs.branch == 'main') || github.event.schedule == '0 5 * * *' }}
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     timeout-minutes: 60
     strategy:
       fail-fast: false
@@ -509,7 +509,7 @@ jobs:
   kube_gateway_api_conformance_tests_18:
     name: Conformance (branch=v1.18.x, type=Kubernetes Gateway API, version=${{matrix.kube-version.node}} )
     if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-conformance && inputs.branch == 'v1.18.x') || github.event.schedule == '0 6 * * 1' }}
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     timeout-minutes: 60
     strategy:
       fail-fast: false
@@ -528,7 +528,7 @@ jobs:
   kube_gateway_api_conformance_tests_17:
     name: Conformance (branch=v1.17.x, type=Kubernetes Gateway API, version=${{matrix.kube-version.node}} )
     if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-conformance && inputs.branch == 'v1.17.x') || github.event.schedule == '0 7 * * 1' }}
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     timeout-minutes: 60
     strategy:
       fail-fast: false
@@ -544,7 +544,7 @@ jobs:
       - uses: ./.github/workflows/composite-actions/kube-gateway-api-conformance-tests
 
   publish_results:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     timeout-minutes: 5
     if: ${{ always() }}
     needs:
