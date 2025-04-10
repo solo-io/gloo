@@ -1083,7 +1083,7 @@ var _ = Describe("Query", func() {
 			Expect(backend).To(BeNil())
 		})
 
-		FIt("should get http routes for a consolidated gateway", func() {
+		It("should get http routes for a consolidated gateway", func() {
 			gwWithListener := gw()
 			gwWithListener.Spec.Listeners = []apiv1.Listener{
 				{
