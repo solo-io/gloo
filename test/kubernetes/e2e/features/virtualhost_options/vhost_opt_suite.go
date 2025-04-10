@@ -15,6 +15,7 @@ import (
 	"github.com/solo-io/gloo/test/helpers"
 	"github.com/solo-io/gloo/test/kubernetes/e2e"
 	testdefaults "github.com/solo-io/gloo/test/kubernetes/e2e/defaults"
+	"github.com/solo-io/gloo/test/kubernetes/e2e/features/listenerset"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
@@ -48,6 +49,11 @@ func (s *testingSuite) SetupSuite() {
 		s.NoError(err, "can apply "+manifest)
 	}
 
+	if listenerset.RequiredCrdExists(s.testInstallation) {
+		err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, manifestListenerSetup)
+		s.NoError(err, "can apply "+manifestListenerSetup)
+	}
+
 	s.testInstallation.AssertionsT(s.T()).EventuallyObjectsExist(s.ctx, proxyService1,
 		proxyDeployment1, proxyService2, proxyDeployment2, exampleSvc, nginxPod, testdefaults.CurlPod)
 
@@ -77,6 +83,12 @@ func (s *testingSuite) TearDownSuite() {
 		s.NoError(err, "can delete "+manifest)
 		s.testInstallation.AssertionsT(s.T()).ExpectObjectDeleted(manifest, err, output)
 	}
+
+	if listenerset.RequiredCrdExists(s.testInstallation) {
+		output, err := s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, manifestListenerSetup)
+		s.NoError(err, "can delete "+manifestListenerSetup)
+		s.testInstallation.AssertionsT(s.T()).ExpectObjectDeleted(manifestListenerSetup, err, output)
+	}
 }
 
 // TestConfirmSetup tests that the setup is correct
@@ -91,13 +103,16 @@ func (s *testingSuite) TestConfirmSetup() {
 		proxyService1Fqdn: {
 			gw1port1: defaultResponseGw1,
 			gw1port2: defaultResponseGw1,
-			lsPort1:  defaultResponseGw1,
-			lsPort2:  defaultResponseGw1,
 		},
 		proxyService2Fqdn: {
 			gw2port1: defaultResponseGw2,
 			gw2port2: defaultResponseGw2,
 		},
+	}
+
+	if listenerset.RequiredCrdExists(s.testInstallation) {
+		matchersForListeners[proxyService1Fqdn][lsPort1] = defaultResponseGw1
+		matchersForListeners[proxyService1Fqdn][lsPort2] = defaultResponseGw1
 	}
 
 	s.testExpectedResponsesForManifests(nil, matchersForListeners, true)
@@ -130,13 +145,16 @@ func (s *testingSuite) TestConfigureVirtualHostOptionsMultipleTargetRefs() {
 		proxyService1Fqdn: {
 			gw1port1: expectedResponseWithXFoo("foo"),
 			gw1port2: expectedResponseWithoutXFoo,
-			lsPort1:  expectedResponseWithoutXFoo,
-			lsPort2:  expectedResponseWithoutXFoo,
 		},
 		proxyService2Fqdn: {
 			gw2port1: expectedResponseWithoutXFoo,
 			gw2port2: expectedResponseWithXFoo("foo"),
 		},
+	}
+
+	if listenerset.RequiredCrdExists(s.testInstallation) {
+		matchersForListeners[proxyService1Fqdn][lsPort1] = expectedResponseWithoutXFoo
+		matchersForListeners[proxyService1Fqdn][lsPort2] = expectedResponseWithoutXFoo
 	}
 
 	s.testExpectedResponsesForManifests(manifests, matchersForListeners, true)
@@ -145,6 +163,10 @@ func (s *testingSuite) TestConfigureVirtualHostOptionsMultipleTargetRefs() {
 // TestConfigureVirtualHostOptions tests the basic functionality of VirtualHostOptions using a single VHO
 // and multiple target refs. This test also indirectly validates targetRefs with sectionName.
 func (s *testingSuite) TestConfigureVirtualHostListenerSetTargetRef() {
+	if !listenerset.RequiredCrdExists(s.testInstallation) {
+		s.T().Skip("Skipping as the XListenerSet CRD is not installed")
+	}
+
 	manifests := map[string]*metav1.ObjectMeta{
 		manifestVhoListenerSetTargetRef: &vhoListenerSetTargetRef,
 	}
@@ -168,6 +190,10 @@ func (s *testingSuite) TestConfigureVirtualHostListenerSetTargetRef() {
 // TestConfigureVirtualHostOptions tests the basic functionality of VirtualHostOptions using a single VHO
 // and multiple target refs. This test also indirectly validates targetRefs with sectionName.
 func (s *testingSuite) TestConfigureVirtualHostListenerSetSectionedTargetRef() {
+	if !listenerset.RequiredCrdExists(s.testInstallation) {
+		s.T().Skip("Skipping as the XListenerSet CRD is not installed")
+	}
+
 	manifests := map[string]*metav1.ObjectMeta{
 		manifestVhoListenerSetSectionedTargetRef: &vhoListenerSetSectionedTargetRef,
 	}
@@ -185,13 +211,16 @@ func (s *testingSuite) TestConfigureVirtualHostListenerSetSectionedTargetRef() {
 			gw2port2: expectedResponseWithoutXFoo,
 		},
 	}
-
 	s.testExpectedResponsesForManifests(manifests, matchersForListeners, true)
 }
 
 // This test should be updated to confirm statuses on conflicting VHOs once statuses are fixed
 // this may involve updating testExpectedResponsesForManifests to allow either
 func (s *testingSuite) TestConfigureVirtualHostOptionsWithConflictingVHO() {
+	if !listenerset.RequiredCrdExists(s.testInstallation) {
+		s.T().Skip("Skipping as the XListenerSet CRD is not installed")
+	}
+
 	manifests := map[string]*metav1.ObjectMeta{
 		manifestVhoSectionAddXFoo:                &vhoSectionAddXFoo,
 		manifestVhoGwAddXFoo:                     &vhoGwAddXFoo,
@@ -315,7 +344,7 @@ func (s *testingSuite) TestConfigureVirtualHostOptionsWithSectionNameManualSetup
 		s.getterForMeta(&vhoRemoveXBaz),
 		[]string{
 			"VirtualHostOption 'default/remove-x-baz-header' not attached to listener 'other' on Gateway 'default/gw-1' due to conflict with more specific or older VirtualHostOptions 'default/remove-x-bar-header'",
-			"VirtualHostOption 'default/remove-x-baz-header' not attached to listener 'http' on Gateway 'default/gw-1' due to conflict with more specific or older VirtualHostOptions 'default/add-x-foo-header'",
+			"VirtualHostOption 'default/remove-x-baz-header' not attached to listener 'http' on Gateway 'default/gw-1' due to conflict with more specific or older VirtualHostOptions 'default/add-x-foo-header-section'",
 		},
 		defaults.KubeGatewayReporter,
 	)

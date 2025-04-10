@@ -3,9 +3,11 @@ package listenerset
 import (
 	"context"
 
+	glooschemes "github.com/solo-io/gloo/pkg/schemes"
 	"github.com/solo-io/gloo/pkg/utils/kubeutils"
 	"github.com/solo-io/gloo/pkg/utils/requestutils/curl"
 	"github.com/solo-io/gloo/projects/gateway2/translator/listener"
+	"github.com/solo-io/gloo/projects/gateway2/wellknown"
 	"github.com/solo-io/gloo/test/kubernetes/e2e"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/defaults"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/tests/base"
@@ -28,11 +30,10 @@ func NewTestingSuite(ctx context.Context, testInst *e2e.TestInstallation) suite.
 	}
 }
 
-func (s *testingSuite) getListenerSet(namespacedName types.NamespacedName) *gwxv1a1.XListenerSet {
-	ls := &gwxv1a1.XListenerSet{}
-	err := s.TestInstallation.ClusterContext.Client.Get(s.Ctx, namespacedName, ls)
-	s.NoError(err)
-	return ls
+func (s *testingSuite) SetupSuite() {
+	if !RequiredCrdExists(s.TestInstallation) {
+		s.T().Skip("Skipping as the XListenerSet CRD is not installed")
+	}
 }
 
 func (s *testingSuite) TestValidListenerSet() {
@@ -221,4 +222,10 @@ func (s *testingSuite) expectListenerSetUnknown(namespacedName types.NamespacedN
 				},
 			},
 		})
+}
+
+func RequiredCrdExists(testInstallation *e2e.TestInstallation) bool {
+	xListenerSetExists, err := glooschemes.CRDExists(testInstallation.ClusterContext.RestConfig, gwxv1a1.GroupVersion.Group, gwxv1a1.GroupVersion.Version, wellknown.XListenerSetKind)
+	testInstallation.Assertions.Assert.NoError(err)
+	return xListenerSetExists
 }

@@ -13,8 +13,19 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+const (
+	gw1port1 = 8080
+	gw1port2 = 8081
+	// port 8082 is used by envoy's readiness probe
+	gw2port1 = 8083
+	gw2port2 = 8084
+	lsPort1  = 8085
+	lsPort2  = 8086
+)
+
 var (
 	setupManifest                         = filepath.Join(util.MustGetThisDir(), "testdata", "setup.yaml")
+	listenerSetManifest                   = filepath.Join(util.MustGetThisDir(), "testdata", "listener-set.yaml")
 	gatewayManifest                       = filepath.Join(util.MustGetThisDir(), "testdata", "gateway.yaml")
 	basicLisOptManifest                   = filepath.Join(util.MustGetThisDir(), "testdata", "basic-http-lis-opt.yaml")
 	notAttachedLisOptManifest             = filepath.Join(util.MustGetThisDir(), "testdata", "not-attached-http-lis-opt.yaml")
@@ -81,12 +92,4 @@ var (
 		),
 		Body: gomega.ContainSubstring("Welcome to nginx!"),
 	}
-
-	gw1port1 = 8080
-	gw1port2 = 8081
-	// port 8082 is used by envoy's readiness probe
-	gw2port1 = 8083
-	gw2port2 = 8084
-	lsPort1  = 8085
-	lsPort2  = 8086
 )
