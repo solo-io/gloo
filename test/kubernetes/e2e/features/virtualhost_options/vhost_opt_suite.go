@@ -49,7 +49,7 @@ func (s *testingSuite) SetupSuite() {
 		s.NoError(err, "can apply "+manifest)
 	}
 
-	if listenerset.ListenerSetCrdExists(s.testInstallation) {
+	if listenerset.RequiredCrdExists(s.testInstallation) {
 		err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, manifestListenerSetup)
 		s.NoError(err, "can apply "+manifestListenerSetup)
 	}
@@ -84,7 +84,7 @@ func (s *testingSuite) TearDownSuite() {
 		s.testInstallation.AssertionsT(s.T()).ExpectObjectDeleted(manifest, err, output)
 	}
 
-	if listenerset.ListenerSetCrdExists(s.testInstallation) {
+	if listenerset.RequiredCrdExists(s.testInstallation) {
 		output, err := s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, manifestListenerSetup)
 		s.NoError(err, "can delete "+manifestListenerSetup)
 		s.testInstallation.AssertionsT(s.T()).ExpectObjectDeleted(manifestListenerSetup, err, output)
@@ -110,7 +110,7 @@ func (s *testingSuite) TestConfirmSetup() {
 		},
 	}
 
-	if listenerset.ListenerSetCrdExists(s.testInstallation) {
+	if listenerset.RequiredCrdExists(s.testInstallation) {
 		matchersForListeners[proxyService1Fqdn][lsPort1] = defaultResponseGw1
 		matchersForListeners[proxyService1Fqdn][lsPort2] = defaultResponseGw1
 	}
@@ -152,7 +152,7 @@ func (s *testingSuite) TestConfigureVirtualHostOptionsMultipleTargetRefs() {
 		},
 	}
 
-	if listenerset.ListenerSetCrdExists(s.testInstallation) {
+	if listenerset.RequiredCrdExists(s.testInstallation) {
 		matchersForListeners[proxyService1Fqdn][lsPort1] = expectedResponseWithoutXFoo
 		matchersForListeners[proxyService1Fqdn][lsPort2] = expectedResponseWithoutXFoo
 	}
@@ -163,7 +163,7 @@ func (s *testingSuite) TestConfigureVirtualHostOptionsMultipleTargetRefs() {
 // TestConfigureVirtualHostOptions tests the basic functionality of VirtualHostOptions using a single VHO
 // and multiple target refs. This test also indirectly validates targetRefs with sectionName.
 func (s *testingSuite) TestConfigureVirtualHostListenerSetTargetRef() {
-	if !listenerset.ListenerSetCrdExists(s.testInstallation) {
+	if !listenerset.RequiredCrdExists(s.testInstallation) {
 		s.T().Skip("Skipping as the XListenerSet CRD is not installed")
 	}
 
@@ -190,7 +190,7 @@ func (s *testingSuite) TestConfigureVirtualHostListenerSetTargetRef() {
 // TestConfigureVirtualHostOptions tests the basic functionality of VirtualHostOptions using a single VHO
 // and multiple target refs. This test also indirectly validates targetRefs with sectionName.
 func (s *testingSuite) TestConfigureVirtualHostListenerSetSectionedTargetRef() {
-	if !listenerset.ListenerSetCrdExists(s.testInstallation) {
+	if !listenerset.RequiredCrdExists(s.testInstallation) {
 		s.T().Skip("Skipping as the XListenerSet CRD is not installed")
 	}
 
@@ -217,7 +217,7 @@ func (s *testingSuite) TestConfigureVirtualHostListenerSetSectionedTargetRef() {
 // This test should be updated to confirm statuses on conflicting VHOs once statuses are fixed
 // this may involve updating testExpectedResponsesForManifests to allow either
 func (s *testingSuite) TestConfigureVirtualHostOptionsWithConflictingVHO() {
-	if !listenerset.ListenerSetCrdExists(s.testInstallation) {
+	if !listenerset.RequiredCrdExists(s.testInstallation) {
 		s.T().Skip("Skipping as the XListenerSet CRD is not installed")
 	}
 

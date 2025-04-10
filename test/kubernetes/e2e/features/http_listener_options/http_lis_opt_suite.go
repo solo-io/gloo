@@ -40,7 +40,7 @@ func (s *testingSuite) SetupSuite() {
 	err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, setupManifest)
 	s.NoError(err, "can apply "+setupManifest)
 
-	if listenerset.ListenerSetCrdExists(s.testInstallation) {
+	if listenerset.RequiredCrdExists(s.testInstallation) {
 		err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, listenerSetManifest)
 		s.NoError(err, "can apply "+listenerSetManifest)
 	}
@@ -127,7 +127,7 @@ func (s *testingSuite) TestConfigureHttpListenerOptionsWithSection() {
 		},
 	}
 
-	if listenerset.ListenerSetCrdExists(s.testInstallation) {
+	if listenerset.RequiredCrdExists(s.testInstallation) {
 		matchersForListeners[proxyService1Fqdn][lsPort1] = expectedResponseWithoutServer
 		matchersForListeners[proxyService1Fqdn][lsPort2] = expectedResponseWithoutServer
 	}
@@ -148,7 +148,7 @@ func (s *testingSuite) TestConfigureNotAttachedHttpListenerOptions() {
 			gw2port2: expectedResponseWithServer("envoy"),
 		},
 	}
-	if listenerset.ListenerSetCrdExists(s.testInstallation) {
+	if listenerset.RequiredCrdExists(s.testInstallation) {
 		matchersForListeners[proxyService1Fqdn][lsPort1] = expectedResponseWithServer("envoy")
 		matchersForListeners[proxyService1Fqdn][lsPort2] = expectedResponseWithServer("envoy")
 	}
@@ -157,7 +157,7 @@ func (s *testingSuite) TestConfigureNotAttachedHttpListenerOptions() {
 }
 
 func (s *testingSuite) TestConfigureHttpListenerOptionsWithListenerSetsAndSection() {
-	if !listenerset.ListenerSetCrdExists(s.testInstallation) {
+	if !listenerset.RequiredCrdExists(s.testInstallation) {
 		s.T().Skip("Skipping as the XListenerSet CRD is not installed")
 	}
 

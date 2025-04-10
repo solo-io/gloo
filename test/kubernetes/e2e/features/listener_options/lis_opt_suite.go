@@ -44,7 +44,7 @@ func (s *testingSuite) SetupSuite() {
 		s.NoError(err, "can apply "+manifest)
 	}
 
-	if listenerset.ListenerSetCrdExists(s.testInstallation) {
+	if listenerset.RequiredCrdExists(s.testInstallation) {
 		err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, listenerSetManifest)
 		s.NoError(err, "can apply "+listenerSetManifest)
 	}
@@ -76,7 +76,7 @@ func (s *testingSuite) TearDownSuite() {
 		s.testInstallation.AssertionsT(s.T()).ExpectObjectDeleted(manifest, err, output)
 	}
 
-	if listenerset.ListenerSetCrdExists(s.testInstallation) {
+	if listenerset.RequiredCrdExists(s.testInstallation) {
 		output, err := s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, listenerSetManifest)
 		s.NoError(err, "can delete "+listenerSetManifest)
 		s.testInstallation.AssertionsT(s.T()).ExpectObjectDeleted(listenerSetManifest, err, output)
@@ -145,7 +145,7 @@ func (s *testingSuite) TestConfigureListenerOptionsWithSectionedTargetRefs() {
 		},
 	}
 
-	if listenerset.ListenerSetCrdExists(s.testInstallation) {
+	if listenerset.RequiredCrdExists(s.testInstallation) {
 		bufferLimitsForListeners[proxy1ServiceFqdn] = append(bufferLimitsForListeners[proxy1ServiceFqdn], &bufferLimitForListener{sectionName: "default/gw-1/listener-1", port: ls1port1, limit: 42000})
 		bufferLimitsForListeners[proxy1ServiceFqdn] = append(bufferLimitsForListeners[proxy1ServiceFqdn], &bufferLimitForListener{sectionName: "default/gw-1/listener-2", port: ls1port2, limit: 21000})
 	}

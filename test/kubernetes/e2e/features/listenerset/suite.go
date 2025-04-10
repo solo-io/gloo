@@ -225,7 +225,7 @@ func (s *testingSuite) expectListenerSetUnknown(namespacedName types.NamespacedN
 		})
 }
 
-func ListenerSetCrdExists(testInstallation *e2e.TestInstallation) bool {
+func RequiredCrdExists(testInstallation *e2e.TestInstallation) bool {
 	xListenerSetExists, err := glooschemes.CRDExists(testInstallation.ClusterContext.RestConfig, gwxv1a1.GroupVersion.Group, gwxv1a1.GroupVersion.Version, wellknown.XListenerSetKind)
 	testInstallation.Assertions.Assert.NoError(err)
 	return xListenerSetExists
