@@ -15,6 +15,7 @@ import (
 	"github.com/solo-io/gloo/test/helpers"
 	"github.com/solo-io/gloo/test/kubernetes/e2e"
 	testdefaults "github.com/solo-io/gloo/test/kubernetes/e2e/defaults"
+	"github.com/solo-io/gloo/test/kubernetes/e2e/features/listenerset"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
@@ -48,6 +49,11 @@ func (s *testingSuite) SetupSuite() {
 		s.NoError(err, "can apply "+manifest)
 	}
 
+	if listenerset.RequiredCrdExists(s.testInstallation) {
+		err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, manifestListenerSetup)
+		s.NoError(err, "can apply "+manifestListenerSetup)
+	}
+
 	s.testInstallation.AssertionsT(s.T()).EventuallyObjectsExist(s.ctx, proxyService1,
 		proxyDeployment1, proxyService2, proxyDeployment2, exampleSvc, nginxPod, testdefaults.CurlPod)
 
@@ -77,112 +83,166 @@ func (s *testingSuite) TearDownSuite() {
 		s.NoError(err, "can delete "+manifest)
 		s.testInstallation.AssertionsT(s.T()).ExpectObjectDeleted(manifest, err, output)
 	}
+
+	if listenerset.RequiredCrdExists(s.testInstallation) {
+		output, err := s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, manifestListenerSetup)
+		s.NoError(err, "can delete "+manifestListenerSetup)
+		s.testInstallation.AssertionsT(s.T()).ExpectObjectDeleted(manifestListenerSetup, err, output)
+	}
 }
 
 // TestConfirmSetup tests that the setup is correct
 //
 // The default state should have two gateways, each with two listeners.
 // The first gateway, gw-1, on ports 8080 and 8081, and the headers x-bar and x-baz should be added to the response
+// A ListenerSet which has listeners on ports 8085 and 8086, is attched to gw-1 and should have the same headers as gw-1
 // The second gateway, gw-2, on ports 8083 and 8084, and the headers x-bar-2 and x-baz-2 should be added to the response
 func (s *testingSuite) TestConfirmSetup() {
 
-	// Each gateway has different headers
-	responsesForGws := map[string]*matchers.HttpResponse{
-		proxyService1Fqdn: defaultResponseGw1,
-		proxyService2Fqdn: defaultResponseGw2,
+	matchersForListeners := map[string]map[int]*matchers.HttpResponse{
+		proxyService1Fqdn: {
+			gw1port1: defaultResponseGw1,
+			gw1port2: defaultResponseGw1,
+		},
+		proxyService2Fqdn: {
+			gw2port1: defaultResponseGw2,
+			gw2port2: defaultResponseGw2,
+		},
 	}
 
-	// Test each listener on each gateway
-	for host, ports := range gatewayListenerPorts {
-		for _, port := range ports {
-			s.testInstallation.AssertionsT(s.T()).AssertEventualCurlResponse(
-				s.ctx,
-				testdefaults.CurlPodExecOpt,
-				[]curl.Option{
-					curl.WithHost(host),
-					curl.WithHostHeader("example.com"),
-					curl.WithPort(port),
-				},
-				responsesForGws[host],
-			)
-		}
+	if listenerset.RequiredCrdExists(s.testInstallation) {
+		matchersForListeners[proxyService1Fqdn][lsPort1] = defaultResponseGw1
+		matchersForListeners[proxyService1Fqdn][lsPort2] = defaultResponseGw1
 	}
+
+	s.testExpectedResponsesForManifests(nil, matchersForListeners, true)
 }
 
 // TestConfigureVirtualHostOptions tests the basic functionality of VirtualHostOptions using a single VHO
 func (s *testingSuite) TestConfigureVirtualHostOptions() {
-	s.T().Cleanup(func() {
-		output, err := s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, manifestVhoRemoveXBar)
-		s.testInstallation.AssertionsT(s.T()).ExpectObjectDeleted(manifestVhoRemoveXBar, err, output)
-	})
+	manifests := map[string]*metav1.ObjectMeta{
+		manifestVhoRemoveXBar: &vhoRemoveXBar,
+	}
 
-	err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, manifestVhoRemoveXBar)
-	s.NoError(err, "can apply "+manifestVhoRemoveXBar)
-
-	// Check status is accepted on VirtualHostOption
-	s.testInstallation.AssertionsT(s.T()).EventuallyResourceStatusMatchesState(
-		s.getterForMeta(&vhoRemoveXBar),
-		core.Status_Accepted,
-		defaults.KubeGatewayReporter,
-	)
-
-	// Check healthy response with no x-bar header
-	s.testInstallation.AssertionsT(s.T()).AssertEventualCurlResponse(
-		s.ctx,
-		testdefaults.CurlPodExecOpt,
-		[]curl.Option{
-			curl.WithHost(kubeutils.ServiceFQDN(proxyService1.ObjectMeta)),
-			curl.WithHostHeader("example.com"),
+	matchersForListeners := map[string]map[int]*matchers.HttpResponse{
+		proxyService1Fqdn: {
+			gw1port1: expectedResponseWithoutXBar,
 		},
-		expectedResponseWithoutXBar)
+	}
+
+	s.testExpectedResponsesForManifests(manifests, matchersForListeners, true)
 }
 
 // TestConfigureVirtualHostOptions tests the basic functionality of VirtualHostOptions using a single VHO
 // and multiple target refs. This test also indirectly validates targetRefs with sectionName.
 func (s *testingSuite) TestConfigureVirtualHostOptionsMultipleTargetRefs() {
-	s.T().Cleanup(func() {
-		output, err := s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, manifestVhoMultipleTargetRefs)
-		s.testInstallation.AssertionsT(s.T()).ExpectObjectDeleted(manifestVhoMultipleTargetRefs, err, output)
-	})
 
-	err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, manifestVhoMultipleTargetRefs)
-	s.NoError(err, "can apply "+manifestVhoMultipleTargetRefs)
+	manifests := map[string]*metav1.ObjectMeta{
+		manifestVhoMultipleTargetRefs: &vhoMultipleTargetRefs,
+	}
 
-	// Check status is accepted on VirtualHostOption
-	s.testInstallation.AssertionsT(s.T()).EventuallyResourceStatusMatchesState(
-		s.getterForMeta(&vhoMultipleTargetRefs),
-		core.Status_Accepted,
-		defaults.KubeGatewayReporter,
-	)
-
-	// Setup the matchers for requests to the different listeners
 	matchersForListeners := map[string]map[int]*matchers.HttpResponse{
 		proxyService1Fqdn: {
-			gw1port1: expectedResponseWithXFoo,
+			gw1port1: expectedResponseWithXFoo("foo"),
 			gw1port2: expectedResponseWithoutXFoo,
 		},
 		proxyService2Fqdn: {
 			gw2port1: expectedResponseWithoutXFoo,
-			gw2port2: expectedResponseWithXFoo,
+			gw2port2: expectedResponseWithXFoo("foo"),
 		},
 	}
 
-	// Curl each listener a for which a matcher is defined
-	for host, ports := range matchersForListeners {
-		for port, matcher := range ports {
-			s.testInstallation.AssertionsT(s.T()).AssertEventualCurlResponse(
-				s.ctx,
-				testdefaults.CurlPodExecOpt,
-				[]curl.Option{
-					curl.WithHost(host),
-					curl.WithHostHeader("example.com"),
-					curl.WithPort(port),
-				},
-				matcher,
-			)
-		}
+	if listenerset.RequiredCrdExists(s.testInstallation) {
+		matchersForListeners[proxyService1Fqdn][lsPort1] = expectedResponseWithoutXFoo
+		matchersForListeners[proxyService1Fqdn][lsPort2] = expectedResponseWithoutXFoo
 	}
 
+	s.testExpectedResponsesForManifests(manifests, matchersForListeners, true)
+}
+
+// TestConfigureVirtualHostOptions tests the basic functionality of VirtualHostOptions using a single VHO
+// and multiple target refs. This test also indirectly validates targetRefs with sectionName.
+func (s *testingSuite) TestConfigureVirtualHostListenerSetTargetRef() {
+	if !listenerset.RequiredCrdExists(s.testInstallation) {
+		s.T().Skip("Skipping as the XListenerSet CRD is not installed")
+	}
+
+	manifests := map[string]*metav1.ObjectMeta{
+		manifestVhoListenerSetTargetRef: &vhoListenerSetTargetRef,
+	}
+
+	matchersForListeners := map[string]map[int]*matchers.HttpResponse{
+		proxyService1Fqdn: {
+			gw1port1: expectedResponseWithoutXFoo,
+			gw1port2: expectedResponseWithoutXFoo,
+			lsPort1:  expectedResponseWithXFoo("foo-lis"),
+			lsPort2:  expectedResponseWithXFoo("foo-lis"),
+		},
+		proxyService2Fqdn: {
+			gw2port1: expectedResponseWithoutXFoo,
+			gw2port2: expectedResponseWithoutXFoo,
+		},
+	}
+
+	s.testExpectedResponsesForManifests(manifests, matchersForListeners, true)
+}
+
+// TestConfigureVirtualHostOptions tests the basic functionality of VirtualHostOptions using a single VHO
+// and multiple target refs. This test also indirectly validates targetRefs with sectionName.
+func (s *testingSuite) TestConfigureVirtualHostListenerSetSectionedTargetRef() {
+	if !listenerset.RequiredCrdExists(s.testInstallation) {
+		s.T().Skip("Skipping as the XListenerSet CRD is not installed")
+	}
+
+	manifests := map[string]*metav1.ObjectMeta{
+		manifestVhoListenerSetSectionedTargetRef: &vhoListenerSetSectionedTargetRef,
+	}
+
+	// Setup the matchers for requests to the different listeners
+	matchersForListeners := map[string]map[int]*matchers.HttpResponse{
+		proxyService1Fqdn: {
+			gw1port1: expectedResponseWithoutXFoo,
+			gw1port2: expectedResponseWithoutXFoo,
+			lsPort1:  expectedResponseWithXFoo("foo-lis-sec"),
+			lsPort2:  expectedResponseWithoutXFoo,
+		},
+		proxyService2Fqdn: {
+			gw2port1: expectedResponseWithoutXFoo,
+			gw2port2: expectedResponseWithoutXFoo,
+		},
+	}
+	s.testExpectedResponsesForManifests(manifests, matchersForListeners, true)
+}
+
+// This test should be updated to confirm statuses on conflicting VHOs once statuses are fixed
+// this may involve updating testExpectedResponsesForManifests to allow either
+func (s *testingSuite) TestConfigureVirtualHostOptionsWithConflictingVHO() {
+	if !listenerset.RequiredCrdExists(s.testInstallation) {
+		s.T().Skip("Skipping as the XListenerSet CRD is not installed")
+	}
+
+	manifests := map[string]*metav1.ObjectMeta{
+		manifestVhoSectionAddXFoo:                &vhoSectionAddXFoo,
+		manifestVhoGwAddXFoo:                     &vhoGwAddXFoo,
+		manifestVhoListenerSetTargetRef:          &vhoListenerSetTargetRef,
+		manifestVhoListenerSetSectionedTargetRef: &vhoListenerSetSectionedTargetRef,
+	}
+
+	matchersForListeners := map[string]map[int]*matchers.HttpResponse{
+		proxyService1Fqdn: {
+			gw1port1: expectedResponseWithXFoo("foo-http"),
+			gw1port2: expectedResponseWithXFoo("foo"),
+			lsPort1:  expectedResponseWithXFoo("foo-lis-sec"),
+			lsPort2:  expectedResponseWithXFoo("foo-lis"),
+		},
+		proxyService2Fqdn: {
+			gw2port1: expectedResponseWithoutXFoo,
+			gw2port2: expectedResponseWithoutXFoo,
+		},
+	}
+
+	// Skip validation for this test because the status is not accepted
+	s.testExpectedResponsesForManifests(manifests, matchersForListeners, false)
 }
 
 // TestConfigureInvalidVirtualHostOptions confirms that an invalid VirtualHostOption is rejected
@@ -284,7 +344,7 @@ func (s *testingSuite) TestConfigureVirtualHostOptionsWithSectionNameManualSetup
 		s.getterForMeta(&vhoRemoveXBaz),
 		[]string{
 			"VirtualHostOption 'default/remove-x-baz-header' not attached to listener 'other' on Gateway 'default/gw-1' due to conflict with more specific or older VirtualHostOptions 'default/remove-x-bar-header'",
-			"VirtualHostOption 'default/remove-x-baz-header' not attached to listener 'http' on Gateway 'default/gw-1' due to conflict with more specific or older VirtualHostOptions 'default/add-x-foo-header'",
+			"VirtualHostOption 'default/remove-x-baz-header' not attached to listener 'http' on Gateway 'default/gw-1' due to conflict with more specific or older VirtualHostOptions 'default/add-x-foo-header-section'",
 		},
 		defaults.KubeGatewayReporter,
 	)
@@ -610,5 +670,45 @@ func (s *testingSuite) getterForMeta(meta *metav1.ObjectMeta) helpers.InputResou
 	return func() (resources.InputResource, error) {
 		return s.testInstallation.ResourceClients.VirtualHostOptionClient().Read(meta.GetNamespace(),
 			meta.GetName(), clients.ReadOpts{})
+	}
+}
+
+// testExpectedResponsesForManifests tests is a utility function that applies a set of manifests and runs a set of curls with defined matchers
+// matchersForListeners is map of service fqdn to map of port to matcher
+func (s *testingSuite) testExpectedResponsesForManifests(manifests map[string]*metav1.ObjectMeta, matchersForListeners map[string]map[int]*matchers.HttpResponse, validateAcceptedStatus bool) {
+	s.T().Cleanup(func() {
+		for manifestFile := range manifests {
+			output, err := s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, manifestFile)
+			s.testInstallation.AssertionsT(s.T()).ExpectObjectDeleted(manifestFile, err, output)
+		}
+	})
+
+	// Setup and validate the manifests
+	for manifestFile, manifestMeta := range manifests {
+		err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, manifestFile)
+		s.NoError(err, "can apply "+manifestFile)
+
+		if validateAcceptedStatus {
+			s.testInstallation.AssertionsT(s.T()).EventuallyResourceStatusMatchesState(
+				s.getterForMeta(manifestMeta),
+				core.Status_Accepted,
+				defaults.KubeGatewayReporter,
+			)
+		}
+	}
+
+	for host, ports := range matchersForListeners {
+		for port, matcher := range ports {
+			s.testInstallation.AssertionsT(s.T()).AssertEventualCurlResponse(
+				s.ctx,
+				testdefaults.CurlPodExecOpt,
+				[]curl.Option{
+					curl.WithHost(host),
+					curl.WithHostHeader("example.com"),
+					curl.WithPort(port),
+				},
+				matcher,
+			)
+		}
 	}
 }

@@ -3,6 +3,8 @@ package translator_test
 import (
 	"context"
 	"fmt"
+	"slices"
+	"strings"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
@@ -51,6 +53,15 @@ func CompareProxy(expectedFile string, actualProxy *v1.Proxy) (string, error) {
 	if err != nil {
 		return "", err
 	}
+
+	// Sort the listeners so the comparison is deterministic
+	slices.SortFunc(expectedProxy.Listeners, func(a, b *v1.Listener) int {
+		return strings.Compare(string(a.Name), string(b.Name))
+	})
+	slices.SortFunc(actualProxy.Listeners, func(a, b *v1.Listener) int {
+		return strings.Compare(string(a.Name), string(b.Name))
+	})
+
 	return cmp.Diff(expectedProxy, actualProxy, protocmp.Transform(), cmpopts.EquateNaNs()), nil
 }
 

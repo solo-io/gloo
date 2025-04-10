@@ -1,7 +1,7 @@
 apiVersion: gateway.solo.io/v1
 kind: VirtualHostOption
 metadata:
-  name: add-x-foo-header
+  name: add-x-foo-header-section
 spec:
   targetRefs:
   - group: gateway.networking.k8s.io
@@ -13,4 +13,4 @@ spec:
       responseHeadersToAdd:
       - header:
           key: x-foo
-          value: foo
+          value: foo-http

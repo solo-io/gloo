@@ -6,6 +6,7 @@ import (
 
 	"github.com/solo-io/gloo/pkg/utils/statsutils"
 	"github.com/solo-io/gloo/projects/gateway2/translator/plugins/registry"
+	"github.com/solo-io/gloo/projects/gateway2/translator/types"
 	"github.com/solo-io/go-utils/contextutils"
 
 	"github.com/solo-io/gloo/projects/gateway2/query"
@@ -56,7 +57,14 @@ func (t *translator) TranslateProxy(
 
 	ctx = contextutils.WithLogger(ctx, "k8s-gateway-translator")
 	logger := contextutils.LoggerFrom(ctx)
-	routesForGw, err := t.queries.GetRoutesForGateway(ctx, gateway)
+
+	consolidatedGateway, err := t.queries.ConsolidateGateway(ctx, gateway)
+	if err != nil {
+		logger.Errorf("failed to consolidate gateway %s : %v", client.ObjectKeyFromObject(gateway), err)
+		return nil
+	}
+
+	routesForGw, err := t.queries.GetRoutesForConsolidatedGateway(ctx, consolidatedGateway)
 	if err != nil {
 		logger.Errorf("failed to get routes for gateway %s: %v", client.ObjectKeyFromObject(gateway), err)
 		// TODO: decide how/if to report this error on Gateway
@@ -73,26 +81,19 @@ func (t *translator) TranslateProxy(
 		})
 	}
 
-	for _, listener := range gateway.Spec.Listeners {
-		availRoutes := 0
-		if res, ok := routesForGw.ListenerResults[string(listener.Name)]; ok {
-			// TODO we've never checked if the ListenerResult has an error.. is it already on RouteErrors?
-			availRoutes = len(res.Routes)
-		}
-		reporter.Gateway(gateway).Listener(&listener).SetAttachedRoutes(uint(availRoutes))
-	}
+	setAttachedRoutes(*consolidatedGateway, routesForGw, reporter)
 
 	listeners := listener.TranslateListeners(
 		ctx,
 		t.queries,
 		t.pluginRegistry,
-		gateway,
+		consolidatedGateway,
 		routesForGw,
 		reporter,
 	)
 
 	return &v1.Proxy{
-		Metadata:  proxyMetadata(gateway, writeNamespace),
+		Metadata:  proxyMetadata(consolidatedGateway.Gateway, writeNamespace),
 		Listeners: listeners,
 	}
 }
@@ -113,5 +114,19 @@ func proxyMetadata(gateway *gwv1.Gateway, writeNamespace string) *core.Metadata 
 			utils.ProxyTypeKey:        utils.GatewayApiProxyValue,
 			utils.GatewayNamespaceKey: gateway.GetNamespace(),
 		},
+	}
+}
+
+func setAttachedRoutes(consolidatedGateway types.ConsolidatedGateway, routesForGw *query.RoutesForGwResult, reporter reports.Reporter) {
+	for _, cl := range consolidatedGateway.GetConsolidatedListeners() {
+		listener := cl.Listener
+		parentReporter := cl.GetParentReporter(reporter)
+
+		availRoutes := 0
+		if res := routesForGw.GetListenerResult(cl.GetParent(), string(listener.Name)); res != nil {
+			// TODO we've never checked if the ListenerResult has an error.. is it already on RouteErrors?
+			availRoutes = len(res.Routes)
+		}
+		parentReporter.Listener(listener).SetAttachedRoutes(uint(availRoutes))
 	}
 }
