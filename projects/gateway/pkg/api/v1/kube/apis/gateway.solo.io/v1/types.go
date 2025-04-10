@@ -509,14 +509,6 @@ type VirtualHostOptionList struct {
 	Items       []VirtualHostOption `json:"items" protobuf:"bytes,2,rep,name=items"`
 }
 
-func (o *VirtualHostOptionList) GetItems() []api.VirtualHostOption {
-	items := make([]api.VirtualHostOption, len(o.Items))
-	for i, item := range o.Items {
-		items[i] = item.Spec
-	}
-	return items
-}
-
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 // +resourceName=virtualservices
 // +genclient
