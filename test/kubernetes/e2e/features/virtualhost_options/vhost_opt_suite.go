@@ -8,6 +8,7 @@ import (
 	"github.com/onsi/gomega/gstruct"
 	"github.com/stretchr/testify/suite"
 
+	"github.com/solo-io/gloo/pkg/utils/envutils"
 	"github.com/solo-io/gloo/pkg/utils/kubeutils"
 	"github.com/solo-io/gloo/pkg/utils/requestutils/curl"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
@@ -20,6 +21,10 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
+
+func useListenerSet() bool {
+	return envutils.IsEnvTruthy("USE_LISTENER_SET")
+}
 
 var _ e2e.NewSuiteFunc = NewTestingSuite
 
@@ -46,6 +51,11 @@ func (s *testingSuite) SetupSuite() {
 	for _, manifest := range setupManifests {
 		err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, manifest)
 		s.NoError(err, "can apply "+manifest)
+	}
+
+	if useListenerSet() {
+		err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, manifestListenerSetup)
+		s.NoError(err, "can apply "+manifestListenerSetup)
 	}
 
 	s.testInstallation.AssertionsT(s.T()).EventuallyObjectsExist(s.ctx, proxyService1,
@@ -77,6 +87,12 @@ func (s *testingSuite) TearDownSuite() {
 		s.NoError(err, "can delete "+manifest)
 		s.testInstallation.AssertionsT(s.T()).ExpectObjectDeleted(manifest, err, output)
 	}
+
+	if useListenerSet() {
+		output, err := s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, manifestListenerSetup)
+		s.NoError(err, "can delete "+manifestListenerSetup)
+		s.testInstallation.AssertionsT(s.T()).ExpectObjectDeleted(manifestListenerSetup, err, output)
+	}
 }
 
 // TestConfirmSetup tests that the setup is correct
@@ -91,13 +107,16 @@ func (s *testingSuite) TestConfirmSetup() {
 		proxyService1Fqdn: {
 			gw1port1: defaultResponseGw1,
 			gw1port2: defaultResponseGw1,
-			lsPort1:  defaultResponseGw1,
-			lsPort2:  defaultResponseGw1,
 		},
 		proxyService2Fqdn: {
 			gw2port1: defaultResponseGw2,
 			gw2port2: defaultResponseGw2,
 		},
+	}
+
+	if useListenerSet() {
+		matchersForListeners[proxyService1Fqdn][lsPort1] = defaultResponseGw1
+		matchersForListeners[proxyService1Fqdn][lsPort2] = defaultResponseGw1
 	}
 
 	s.testExpectedResponsesForManifests(nil, matchersForListeners, true)
@@ -145,6 +164,10 @@ func (s *testingSuite) TestConfigureVirtualHostOptionsMultipleTargetRefs() {
 // TestConfigureVirtualHostOptions tests the basic functionality of VirtualHostOptions using a single VHO
 // and multiple target refs. This test also indirectly validates targetRefs with sectionName.
 func (s *testingSuite) TestConfigureVirtualHostListenerSetTargetRef() {
+	if !useListenerSet() {
+		s.T().Skip("skipping test for listener set")
+	}
+
 	manifests := map[string]*metav1.ObjectMeta{
 		manifestVhoListenerSetTargetRef: &vhoListenerSetTargetRef,
 	}
@@ -177,13 +200,16 @@ func (s *testingSuite) TestConfigureVirtualHostListenerSetSectionedTargetRef() {
 		proxyService1Fqdn: {
 			gw1port1: expectedResponseWithoutXFoo,
 			gw1port2: expectedResponseWithoutXFoo,
-			lsPort1:  expectedResponseWithXFoo("foo-lis-sec"),
-			lsPort2:  expectedResponseWithoutXFoo,
 		},
 		proxyService2Fqdn: {
 			gw2port1: expectedResponseWithoutXFoo,
 			gw2port2: expectedResponseWithoutXFoo,
 		},
+	}
+
+	if useListenerSet() {
+		matchersForListeners[proxyService1Fqdn][lsPort1] = expectedResponseWithXFoo("foo-lis-sec")
+		matchersForListeners[proxyService1Fqdn][lsPort2] = expectedResponseWithoutXFoo
 	}
 
 	s.testExpectedResponsesForManifests(manifests, matchersForListeners, true)
@@ -192,6 +218,10 @@ func (s *testingSuite) TestConfigureVirtualHostListenerSetSectionedTargetRef() {
 // This test should be updated to confirm statuses on conflicting VHOs once statuses are fixed
 // this may involve updating testExpectedResponsesForManifests to allow either
 func (s *testingSuite) TestConfigureVirtualHostOptionsWithConflictingVHO() {
+	if !useListenerSet() {
+		s.T().Skip("skipping test for listener set")
+	}
+
 	manifests := map[string]*metav1.ObjectMeta{
 		manifestVhoSectionAddXFoo:                &vhoSectionAddXFoo,
 		manifestVhoGwAddXFoo:                     &vhoGwAddXFoo,
