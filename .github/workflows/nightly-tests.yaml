@@ -210,7 +210,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: 1.18.x
+          ref: v1.18.x
       # The dotenv action is used to load key-value pairs from files.
       # In this case, the file is specified in the matrix and will contain the versions of the tools to use
       - name: Dotenv Action
