@@ -1,8 +1,0 @@
-changelog:
-- type: NEW_FEATURE
-  issueLink: https://github.com/solo-io/solo-projects/issues/7886
-  resolvesIssue: false
-  description: >-
-    Allows a kubernetes gateway to have more than 64 listeners by implementing ListenerSets defined in https://gateway-api.sigs.k8s.io/geps/gep-1713.
-    Listener Sets can define their own listeners and be mapped to a parent gateway via their parentRef. The kubernetes gateway will have the merged list of all listeners from itself and attached ListenerSets.
-    This is an experimental feature and requires the `xlistenersets.gateway.networking.x-k8s.io` CRD to be present.
