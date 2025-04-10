@@ -28,13 +28,13 @@ var ComponentLogLevelEmptyError = func(key string, value string) error {
 // 2. the ports exposed on the proxy service
 func getPortsValues(cgw *types.ConsolidatedGateway, gwp *v1alpha1.GatewayParameters) []helmPort {
 	gwPorts := []helmPort{}
-	for _, l := range cgw.Gateway.Spec.Listeners {
-		gwPorts = appendPortValue(gwPorts, uint16(l.Port), string(l.Name), gwp)
-	}
-	for i, ls := range cgw.AllowedListenerSets {
-		for _, l := range ls.Spec.Listeners {
-			gwPorts = appendPortValue(gwPorts, uint16(l.Port), fmt.Sprintf("%d-%s", i, l.Name), gwp)
+	for i, cl := range cgw.GetConsolidatedListeners() {
+		listener := cl.Listener
+		portName := string(listener.Name)
+		if cl.ListenerSet != nil {
+			portName = fmt.Sprintf("%d-%s", i, listener.Name)
 		}
+		gwPorts = appendPortValue(gwPorts, uint16(listener.Port), portName, gwp)
 	}
 	return gwPorts
 }
