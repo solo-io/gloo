@@ -89,11 +89,11 @@ func (s *BaseTestingSuite) SetupSuite() {
 
 	// Ensure the resources exist
 	if s.Setup.Resources != nil {
-		s.TestInstallation.Assertions.EventuallyObjectsExist(s.Ctx, s.Setup.Resources...)
+		s.TestInstallation.AssertionsT(s.T()).EventuallyObjectsExist(s.Ctx, s.Setup.Resources...)
 
 		for _, resource := range s.Setup.Resources {
 			if pod, ok := resource.(*corev1.Pod); ok {
-				s.TestInstallation.Assertions.EventuallyPodsRunning(s.Ctx, pod.Namespace, metav1.ListOptions{
+				s.TestInstallation.AssertionsT(s.T()).EventuallyPodsRunning(s.Ctx, pod.Namespace, metav1.ListOptions{
 					LabelSelector: fmt.Sprintf("app.kubernetes.io/name=%s", pod.Name),
 				})
 			}
@@ -112,7 +112,7 @@ func (s *BaseTestingSuite) SetupSuite() {
 			"--reuse-values",
 			"--values", s.Setup.UpgradeValues,
 		}...))
-		s.TestInstallation.Assertions.Require.NoError(err)
+		s.TestInstallation.AssertionsT(s.T()).Require.NoError(err)
 	}
 }
 
@@ -125,7 +125,7 @@ func (s *BaseTestingSuite) TearDownSuite() {
 		// Revet the upgrade applied before this test. This way we are sure that any changes
 		// made are undone and we go back to a clean state
 		err := s.Setup.Rollback()
-		s.TestInstallation.Assertions.Require.NoError(err)
+		s.TestInstallation.AssertionsT(s.T()).Require.NoError(err)
 	}
 
 	// Delete the setup manifest
@@ -140,7 +140,7 @@ func (s *BaseTestingSuite) TearDownSuite() {
 		}
 
 		if s.Setup.Resources != nil {
-			s.TestInstallation.Assertions.EventuallyObjectsNotExist(s.Ctx, s.Setup.Resources...)
+			s.TestInstallation.AssertionsT(s.T()).EventuallyObjectsNotExist(s.Ctx, s.Setup.Resources...)
 		}
 	}
 }
@@ -168,7 +168,7 @@ func (s *BaseTestingSuite) BeforeTest(suiteName, testName string) {
 			"--reuse-values",
 			"--values", testCase.UpgradeValues,
 		}...))
-		s.TestInstallation.Assertions.Require.NoError(err)
+		s.TestInstallation.AssertionsT(s.T()).Require.NoError(err)
 	}
 
 	for _, manifest := range testCase.Manifests {
@@ -177,11 +177,11 @@ func (s *BaseTestingSuite) BeforeTest(suiteName, testName string) {
 			return err
 		}, 10*time.Second, 1*time.Second).Should(gomega.Succeed(), "can apply "+manifest)
 	}
-	s.TestInstallation.Assertions.EventuallyObjectsExist(s.Ctx, testCase.Resources...)
+	s.TestInstallation.AssertionsT(s.T()).EventuallyObjectsExist(s.Ctx, testCase.Resources...)
 
 	for _, resource := range testCase.Resources {
 		if pod, ok := resource.(*corev1.Pod); ok {
-			s.TestInstallation.Assertions.EventuallyPodsRunning(s.Ctx, pod.Namespace, metav1.ListOptions{
+			s.TestInstallation.AssertionsT(s.T()).EventuallyPodsRunning(s.Ctx, pod.Namespace, metav1.ListOptions{
 				LabelSelector: fmt.Sprintf("app.kubernetes.io/name=%s", pod.Name),
 			})
 		}
@@ -208,7 +208,7 @@ func (s *BaseTestingSuite) AfterTest(suiteName, testName string) {
 		// Revet the upgrade applied before this test. This way we are sure that any changes
 		// made are undone and we go back to a clean state
 		err := testCase.Rollback()
-		s.TestInstallation.Assertions.Require.NoError(err)
+		s.TestInstallation.AssertionsT(s.T()).Require.NoError(err)
 	}
 
 	// Delete them in reverse to avoid validation issues
@@ -223,12 +223,12 @@ func (s *BaseTestingSuite) AfterTest(suiteName, testName string) {
 		}
 	}
 
-	s.TestInstallation.Assertions.EventuallyObjectsNotExist(s.Ctx, testCase.Resources...)
+	s.TestInstallation.AssertionsT(s.T()).EventuallyObjectsNotExist(s.Ctx, testCase.Resources...)
 }
 
 func (s *BaseTestingSuite) GetKubectlOutput(command ...string) string {
 	out, _, err := s.TestInstallation.Actions.Kubectl().Execute(s.Ctx, command...)
-	s.TestInstallation.Assertions.Require.NoError(err)
+	s.TestInstallation.AssertionsT(s.T()).Require.NoError(err)
 
 	return out
 }
@@ -238,5 +238,5 @@ func (s *BaseTestingSuite) UpgradeWithCustomValuesFile(valuesFile string) {
 		// Do not reuse the existing values as we need to install the new chart with the new version of the images
 		"--values", valuesFile,
 	}...))
-	s.TestInstallation.Assertions.Require.NoError(err)
+	s.TestInstallation.AssertionsT(s.T()).Require.NoError(err)
 }

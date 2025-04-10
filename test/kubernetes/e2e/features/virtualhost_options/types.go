@@ -15,20 +15,37 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+const (
+	// Port numbers and mappings match the ports in the setup.yaml file
+	gw1port1 = 8080
+	gw1port2 = 8081
+	// port 8082 is used by envoy's readiness probe
+	gw2port1 = 8083
+	gw2port2 = 8084
+
+	// ports used by the listener set
+	lsPort1 = 8085
+	lsPort2 = 8086
+)
+
 var (
 	setupManifests = []string{
 		filepath.Join(util.MustGetThisDir(), "testdata", "setup.yaml"),
 		e2edefaults.CurlPodManifest,
 	}
 
-	manifestVhoRemoveXBar         = filepath.Join(util.MustGetThisDir(), "testdata", "vho-remove-x-bar.yaml")
-	manifestVhoSectionAddXFoo     = filepath.Join(util.MustGetThisDir(), "testdata", "vho-section-add-x-foo.yaml")
-	manifestVhoRemoveXBaz         = filepath.Join(util.MustGetThisDir(), "testdata", "vho-remove-x-baz.yaml")
-	manifestVhoWebhookReject      = filepath.Join(util.MustGetThisDir(), "testdata", "vho-webhook-reject.yaml")
-	manifestVhoMergeRemoveXBaz    = filepath.Join(util.MustGetThisDir(), "testdata", "vho-merge-remove-x-baz.yaml")
-	manifestVhoMultipleTargetRefs = filepath.Join(util.MustGetThisDir(), "testdata", "vho-multiple-target-refs.yaml")
+	manifestListenerSetup                    = filepath.Join(util.MustGetThisDir(), "testdata", "listenerset.yaml")
+	manifestVhoRemoveXBar                    = filepath.Join(util.MustGetThisDir(), "testdata", "vho-remove-x-bar.yaml")
+	manifestVhoSectionAddXFoo                = filepath.Join(util.MustGetThisDir(), "testdata", "vho-section-add-x-foo.yaml")
+	manifestVhoGwAddXFoo                     = filepath.Join(util.MustGetThisDir(), "testdata", "vho-gw-add-x-foo.yaml")
+	manifestVhoRemoveXBaz                    = filepath.Join(util.MustGetThisDir(), "testdata", "vho-remove-x-baz.yaml")
+	manifestVhoWebhookReject                 = filepath.Join(util.MustGetThisDir(), "testdata", "vho-webhook-reject.yaml")
+	manifestVhoMergeRemoveXBaz               = filepath.Join(util.MustGetThisDir(), "testdata", "vho-merge-remove-x-baz.yaml")
+	manifestVhoMultipleTargetRefs            = filepath.Join(util.MustGetThisDir(), "testdata", "vho-multiple-target-refs.yaml")
+	manifestVhoListenerSetTargetRef          = filepath.Join(util.MustGetThisDir(), "testdata", "vho-listener-set-target-ref.yaml")
+	manifestVhoListenerSetSectionedTargetRef = filepath.Join(util.MustGetThisDir(), "testdata", "vho-listener-set-sectioned-target-ref.yaml")
+	manifestVhoMultipleGatewayWarnings       = filepath.Join(util.MustGetThisDir(), "testdata", "vho-multiple-gateway-warnings.yaml")
 
-	// When we apply the setup file, we expect resources to be created with this metadata
 	// When we apply the setup file, we expect resources to be created with this metadata
 	glooProxyObjectMeta1 = metav1.ObjectMeta{
 		Name:      "gloo-proxy-gw-1",
@@ -84,7 +101,12 @@ var (
 	}
 	// VHO to add a x-foo header in a section
 	vhoSectionAddXFoo = metav1.ObjectMeta{
-		Name:      "add-x-foo-header",
+		Name:      "add-x-foo-header-section",
+		Namespace: "default",
+	}
+	// VHO to add a x-foo header to a gateway
+	vhoGwAddXFoo = metav1.ObjectMeta{
+		Name:      "add-x-foo-header-gw",
 		Namespace: "default",
 	}
 	// VHO that should be rejected by the validating webhook
@@ -95,6 +117,16 @@ var (
 	// VHO to add a x-foo header with multiple target refs
 	vhoMultipleTargetRefs = metav1.ObjectMeta{
 		Name:      "add-x-foo-header-multiple-target-refs",
+		Namespace: "default",
+	}
+	// VHO to add a x-foo header with multiple target refs
+	vhoListenerSetTargetRef = metav1.ObjectMeta{
+		Name:      "add-x-foo-header-listener-set-target-ref",
+		Namespace: "default",
+	}
+	// VHO to add a x-foo header with multiple target refs
+	vhoListenerSetSectionedTargetRef = metav1.ObjectMeta{
+		Name:      "add-x-foo-header-listener-set-sectioned-target-ref",
 		Namespace: "default",
 	}
 
@@ -149,15 +181,6 @@ var (
 		Body: gstruct.Ignore(),
 	}
 
-	// Expects default response with x-foo header
-	expectedResponseWithXFoo = &matchers.HttpResponse{
-		StatusCode: http.StatusOK,
-		Headers: map[string]interface{}{
-			"x-foo": gomega.Equal("foo"),
-		},
-		Body: gstruct.Ignore(),
-	}
-
 	expectedResponseWithoutXFoo = &matchers.HttpResponse{
 		StatusCode: http.StatusOK,
 		Custom: gomega.And(
@@ -166,17 +189,13 @@ var (
 		Body: gstruct.Ignore(),
 	}
 
-	// Port numbers and mappings match the ports in the setup.yaml file
-	gw1port1 = 8080
-	gw1port2 = 8081
-	// port 8082 is used by envoy's readiness probe
-	gw2port1 = 8083
-	gw2port2 = 8084
-
-	// The keys in this map are the FQDNs of the gateway services
-	// The values are the ports on which the gateway services are listening
-	gatewayListenerPorts = map[string][]int{
-		proxyService1Fqdn: {gw1port1, gw1port2},
-		proxyService2Fqdn: {gw2port1, gw2port2},
+	expectedResponseWithXFoo = func(val string) *matchers.HttpResponse {
+		return &matchers.HttpResponse{
+			StatusCode: http.StatusOK,
+			Headers: map[string]interface{}{
+				"x-foo": gomega.Equal(val),
+			},
+			Body: gstruct.Ignore(),
+		}
 	}
 )

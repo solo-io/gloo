@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"strings"
 
+	translator_types "github.com/solo-io/gloo/projects/gateway2/translator/types"
+	"github.com/solo-io/gloo/projects/gateway2/wellknown"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
@@ -16,8 +18,7 @@ import (
 	apiv1 "sigs.k8s.io/gateway-api/apis/v1"
 	apiv1alpha2 "sigs.k8s.io/gateway-api/apis/v1alpha2"
 	apiv1beta1 "sigs.k8s.io/gateway-api/apis/v1beta1"
-
-	"github.com/solo-io/gloo/projects/gateway2/wellknown"
+	apixv1alpha1 "sigs.k8s.io/gateway-api/apisx/v1alpha1"
 )
 
 var (
@@ -126,16 +127,43 @@ type GatewayQueries interface {
 
 	GetLocalObjRef(ctx context.Context, from From, localObjRef apiv1.LocalObjectReference) (client.Object, error)
 
-	// GetRoutesForGateway finds the top level xRoutes attached to the provided Gateway
-	GetRoutesForGateway(ctx context.Context, gw *apiv1.Gateway) (*RoutesForGwResult, error)
 	// GetRouteChain resolves backends and delegated routes for a the provided xRoute object
 	GetRouteChain(ctx context.Context, obj client.Object, hostnames []string, parentRef apiv1.ParentReference) *RouteInfo
+
+	// GetRoutesForConsolidatedGateway finds the top level xRoutes attached to the provided Gateway and associated ListenerSet
+	GetRoutesForConsolidatedGateway(ctx context.Context, cgw *translator_types.ConsolidatedGateway) (*RoutesForGwResult, error)
+
+	// ConsolidateGateway returns the consolidated gateway that includes the list of listener sets mapped to it
+	ConsolidateGateway(ctx context.Context, gateway *apiv1.Gateway) (*translator_types.ConsolidatedGateway, error)
 }
 
 type RoutesForGwResult struct {
-	// key is listener name
-	ListenerResults map[string]*ListenerResult
+	// key is <parent.Namespace/parent.Name/listener.Name>
+	listenerResults map[string]*ListenerResult
 	RouteErrors     []*RouteError
+}
+
+func (r *RoutesForGwResult) GetListenerResult(parent client.Object, listenerName string) *ListenerResult {
+	return r.listenerResults[GenerateRouteKey(parent, listenerName)]
+}
+
+func (r *RoutesForGwResult) GetListenerResults(yield func(string, *ListenerResult) bool) {
+	for k, v := range r.listenerResults {
+		if !yield(k, v) {
+			return
+		}
+	}
+}
+
+func (r *RoutesForGwResult) setListenerResult(parent client.Object, listenerName string, result *ListenerResult) {
+	r.listenerResults[GenerateRouteKey(parent, listenerName)] = result
+}
+
+func (r *RoutesForGwResult) merge(r2 *RoutesForGwResult) {
+	for k, v := range r2.listenerResults {
+		r.listenerResults[k] = v
+	}
+	r.RouteErrors = append(r.RouteErrors, r2.RouteErrors...)
 }
 
 type ListenerResult struct {
@@ -182,7 +210,7 @@ func NewData(
 // NewRoutesForGwResult creates and returns a new RoutesForGwResult with initialized fields.
 func NewRoutesForGwResult() *RoutesForGwResult {
 	return &RoutesForGwResult{
-		ListenerResults: make(map[string]*ListenerResult),
+		listenerResults: make(map[string]*ListenerResult),
 		RouteErrors:     []*RouteError{},
 	}
 }
@@ -217,31 +245,32 @@ func parentRefMatchListener(ref *apiv1.ParentReference, l *apiv1.Listener) bool 
 	return true
 }
 
-// getParentRefsForGw extracts the ParentReferences from the provided object for the provided Gateway.
+// getParentRefsForResource extracts the ParentReferences from the provided object for the provided resource.
+// The resource must either be a Gateway or a ListenerSet
 // Supported object types are:
 //
 //   - HTTPRoute
 //   - TCPRoute
 //   - TLSRoute
-func getParentRefsForGw(gw *apiv1.Gateway, obj client.Object) []apiv1.ParentReference {
+func getParentRefsForResource(gw client.Object, obj client.Object) []apiv1.ParentReference {
 	var ret []apiv1.ParentReference
 
 	switch route := obj.(type) {
 	case *apiv1.HTTPRoute:
 		for _, pRef := range route.Spec.ParentRefs {
-			if isParentRefForGw(&pRef, gw, route.Namespace) {
+			if isParentRefForResource(&pRef, gw, route.Namespace) {
 				ret = append(ret, pRef)
 			}
 		}
 	case *apiv1alpha2.TCPRoute:
 		for _, pRef := range route.Spec.ParentRefs {
-			if isParentRefForGw(&pRef, gw, route.Namespace) {
+			if isParentRefForResource(&pRef, gw, route.Namespace) {
 				ret = append(ret, pRef)
 			}
 		}
 	case *apiv1alpha2.TLSRoute:
 		for _, pRef := range route.Spec.ParentRefs {
-			if isParentRefForGw(&pRef, gw, route.Namespace) {
+			if isParentRefForResource(&pRef, gw, route.Namespace) {
 				ret = append(ret, pRef)
 			}
 		}
@@ -273,6 +302,62 @@ func isParentRefForGw(pRef *apiv1.ParentReference, gw *apiv1.Gateway, defaultNs 
 	}
 
 	return ns == gw.Namespace && string(pRef.Name) == gw.Name
+}
+
+func getParentGatewayRef(ls *apixv1alpha1.XListenerSet) *types.NamespacedName {
+	ns := ls.Namespace
+	if ls.Spec.ParentRef.Namespace != nil && *ls.Spec.ParentRef.Namespace != "" {
+		ns = string(*ls.Spec.ParentRef.Namespace)
+	}
+
+	return &types.NamespacedName{
+		Namespace: ns,
+		Name:      string(ls.Spec.ParentRef.Name),
+	}
+}
+
+// isParentRefForResource checks if a ParentReference is associated with the provided resource.
+// The resource must either be a Gateway or a ListenerSet
+func isParentRefForResource(pRef *apiv1.ParentReference, resource client.Object, defaultNs string) bool {
+	if resource == nil || pRef == nil {
+		return false
+	}
+
+	ret := false
+	switch typed := resource.(type) {
+	case *apiv1.Gateway:
+		ret = isParentRefForGw(pRef, typed, defaultNs)
+	case *apixv1alpha1.XListenerSet:
+		// Check if the route belongs to the parent gateway. If so accept it
+		parentRef := getParentGatewayRef(typed)
+		parentGW := &apiv1.Gateway{
+			ObjectMeta: metav1.ObjectMeta{
+				Namespace: parentRef.Namespace,
+				Name:      parentRef.Name,
+			},
+		}
+		ret = isParentRefForGw(pRef, parentGW, defaultNs)
+
+		// Maybe it was just attached to the listener set and not the gateway
+		if !ret {
+			if pRef.Group != nil && *pRef.Group != apixv1alpha1.GroupName {
+				return false
+			}
+			if pRef.Kind != nil && *pRef.Kind != wellknown.XListenerSetKind {
+				return false
+			}
+
+			ns := defaultNs
+			if pRef.Namespace != nil {
+				ns = string(*pRef.Namespace)
+			}
+			ret = ns == typed.Namespace && string(pRef.Name) == typed.Name
+		}
+	default:
+		return false
+	}
+
+	return ret
 }
 
 func hostnameIntersect(l *apiv1.Listener, routeHostnames []apiv1.Hostname) (bool, []string) {
@@ -436,6 +521,12 @@ func SameNamespace(ns string) func(string) bool {
 func AllNamespace() func(string) bool {
 	return func(s string) bool {
 		return true
+	}
+}
+
+func NoNamespace() func(string) bool {
+	return func(s string) bool {
+		return false
 	}
 }
 

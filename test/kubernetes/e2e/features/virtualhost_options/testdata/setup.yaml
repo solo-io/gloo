@@ -9,6 +9,9 @@ metadata:
   name: gw-1
 spec:
   gatewayClassName: gloo-gateway
+  allowedListeners:
+    namespaces:
+      from: Same
   listeners:
     - protocol: HTTP
       port: 8080
@@ -42,6 +45,46 @@ spec:
       allowedRoutes:
         namespaces:
           from: Same
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: example-route
+spec:
+  parentRefs:
+    - name: gw-1
+  hostnames:
+    - "example.com"
+  rules:
+    - filters:
+        - type: ExtensionRef
+          extensionRef:
+            group: gateway.solo.io
+            kind: RouteOption
+            name: header-manipulation
+      backendRefs:
+        - name: example-svc
+          port: 8080
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: example-route-2
+spec:
+  parentRefs:
+    - name: gw-2
+  hostnames:
+    - "example.com"
+  rules:
+    - filters:
+        - type: ExtensionRef
+          extensionRef:
+            group: gateway.solo.io
+            kind: RouteOption
+            name: header-manipulation-2
+      backendRefs:
+        - name: example-svc
+          port: 8080
 ---
 apiVersion: gateway.solo.io/v1
 kind: RouteOption
@@ -77,26 +120,6 @@ spec:
             value: "baz-2"
           append: false
 ---
-apiVersion: gateway.networking.k8s.io/v1
-kind: HTTPRoute
-metadata:
-  name: example-route
-spec:
-  parentRefs:
-    - name: gw-1
-  hostnames:
-    - "example.com"
-  rules:
-    - filters:
-        - type: ExtensionRef
-          extensionRef:
-            group: gateway.solo.io
-            kind: RouteOption
-            name: header-manipulation
-      backendRefs:
-        - name: example-svc
-          port: 8080
----
 apiVersion: v1
 kind: Service
 metadata:
@@ -122,25 +145,3 @@ spec:
       ports:
         - containerPort: 80
           name: http-web-svc
-
----
-apiVersion: gateway.networking.k8s.io/v1
-kind: HTTPRoute
-metadata:
-  name: example-route-2
-spec:
-  parentRefs:
-    - name: gw-2
-  hostnames:
-    - "example.com"
-  rules:
-    - filters:
-        - type: ExtensionRef
-          extensionRef:
-            group: gateway.solo.io
-            kind: RouteOption
-            name: header-manipulation-2
-      backendRefs:
-        - name: example-svc
-          port: 8080
----

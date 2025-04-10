@@ -12,6 +12,7 @@ import (
 	"github.com/solo-io/gloo/pkg/utils/requestutils/curl"
 	"github.com/solo-io/gloo/test/kubernetes/e2e"
 	testdefaults "github.com/solo-io/gloo/test/kubernetes/e2e/defaults"
+	"github.com/solo-io/gloo/test/kubernetes/e2e/features/listenerset"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -42,8 +43,12 @@ func (s *testingSuite) SetupSuite() {
 		err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, manifest)
 		s.NoError(err, "can apply "+manifest)
 	}
-	s.testInstallation.AssertionsT(s.T()).EventuallyObjectsExist(s.ctx, proxy1Service, proxy1Deployment, exampleSvc, nginxPod, testdefaults.CurlPod)
-	// Check that test resources are running
+
+	if listenerset.RequiredCrdExists(s.testInstallation) {
+		err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, listenerSetManifest)
+		s.NoError(err, "can apply "+listenerSetManifest)
+	}
+
 	s.testInstallation.AssertionsT(s.T()).EventuallyPodsRunning(s.ctx, nginxPod.ObjectMeta.GetNamespace(), metav1.ListOptions{
 		LabelSelector: "app.kubernetes.io/name=nginx",
 	})
@@ -59,7 +64,7 @@ func (s *testingSuite) SetupSuite() {
 
 	s.manifests = map[string][]string{
 		"TestConfigureListenerOptions":                        {basicLisOptManifest},
-		"TestConfigureListenerOptionsWithSectionedTargetRefs": {lisOptWithSectionedTargetRefsManifest},
+		"TestConfigureListenerOptionsWithSectionedTargetRefs": {basicLisOptManifest, lisOptWithSectionedTargetRefsManifest, lisOptWithListenerSetRefsManifest},
 	}
 }
 
@@ -69,6 +74,12 @@ func (s *testingSuite) TearDownSuite() {
 		output, err := s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, manifest)
 		s.NoError(err, "can delete "+manifest)
 		s.testInstallation.AssertionsT(s.T()).ExpectObjectDeleted(manifest, err, output)
+	}
+
+	if listenerset.RequiredCrdExists(s.testInstallation) {
+		output, err := s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, listenerSetManifest)
+		s.NoError(err, "can delete "+listenerSetManifest)
+		s.testInstallation.AssertionsT(s.T()).ExpectObjectDeleted(listenerSetManifest, err, output)
 	}
 }
 
@@ -125,13 +136,18 @@ func (s *testingSuite) TestConfigureListenerOptionsWithSectionedTargetRefs() {
 	// Setup the expected buffer limits for each listener
 	bufferLimitsForListeners := map[string][]*bufferLimitForListener{
 		proxy1ServiceFqdn: {
-			{sectionName: "http", port: gw1port1, limit: 42000},
-			{sectionName: "other", port: gw1port2, limit: 0},
+			{sectionName: "http", port: gw1port1, limit: 32000},
+			{sectionName: "other", port: gw1port2, limit: 42000},
 		},
 		proxy2ServiceFqdn: {
 			{sectionName: "http", port: gw2port1, limit: 0},
-			{sectionName: "other", port: gw2port2, limit: 42000},
+			{sectionName: "other", port: gw2port2, limit: 32000},
 		},
+	}
+
+	if listenerset.RequiredCrdExists(s.testInstallation) {
+		bufferLimitsForListeners[proxy1ServiceFqdn] = append(bufferLimitsForListeners[proxy1ServiceFqdn], &bufferLimitForListener{sectionName: "default/gw-1/listener-1", port: ls1port1, limit: 42000})
+		bufferLimitsForListeners[proxy1ServiceFqdn] = append(bufferLimitsForListeners[proxy1ServiceFqdn], &bufferLimitForListener{sectionName: "default/gw-1/listener-2", port: ls1port2, limit: 21000})
 	}
 
 	objectMetaForListener := map[string]metav1.ObjectMeta{
