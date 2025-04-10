@@ -1,0 +1,23 @@
+apiVersion: gateway.networking.x-k8s.io/v1alpha1
+kind: XListenerSet
+metadata:
+  # This is a bad name for a listener set, but we want to test naming collisions
+  name: gw-1
+spec:
+  parentRef:
+    name: gw-1
+    kind: Gateway
+    group: gateway.networking.k8s.io
+  listeners:
+  - name: listener-1
+    protocol: HTTP
+    port: 8085
+    allowedRoutes:
+        namespaces:
+          from: Same
+  - name: listener-2
+    protocol: HTTP
+    port: 8086
+    allowedRoutes:
+        namespaces:
+          from: Same

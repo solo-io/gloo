@@ -14,11 +14,23 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+const (
+	// Port numbers and mappings match the ports in the setup.yaml file
+	gw1port1 = 8080
+	gw1port2 = 8081
+	// port 8082 is used by envoy's readiness probe
+	gw2port1 = 8083
+	gw2port2 = 8084
+	ls1port1 = 8085
+	ls1port2 = 8086
+)
+
 var (
 	setupManifests = []string{
 		filepath.Join(util.MustGetThisDir(), "testdata", "setup.yaml"),
 		e2edefaults.CurlPodManifest,
 	}
+	listenerSetManifest                   = filepath.Join(util.MustGetThisDir(), "testdata", "listener-set.yaml")
 	basicLisOptManifest                   = filepath.Join(util.MustGetThisDir(), "testdata", "basic-lisopt.yaml")
 	lisOptWithSectionedTargetRefsManifest = filepath.Join(util.MustGetThisDir(), "testdata", "listopt-with-sectioned-target-refs.yaml")
 	lisOptWithListenerSetRefsManifest     = filepath.Join(util.MustGetThisDir(), "testdata", "listopt-with-listenerset-refs.yaml")
@@ -64,21 +76,5 @@ var (
 	expectedHealthyResponse = &matchers.HttpResponse{
 		StatusCode: http.StatusOK,
 		Body:       gomega.ContainSubstring("Welcome to nginx!"),
-	}
-
-	// Port numbers and mappings match the ports in the setup.yaml file
-	gw1port1 = 8080
-	gw1port2 = 8081
-	// port 8082 is used by envoy's readiness probe
-	gw2port1 = 8083
-	gw2port2 = 8084
-	ls1port1 = 8085
-	ls1port2 = 8086
-
-	// The keys in this map are the FQDNs of the gateway services
-	// The values are the ports on which the gateway services are listening
-	gatewayListenerPorts = map[string][]int{
-		proxy1ServiceFqdn: {gw1port1, gw1port2},
-		proxy2ServiceFqdn: {gw2port1, gw2port2},
 	}
 )

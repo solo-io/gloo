@@ -10,6 +10,7 @@ import (
 	"github.com/solo-io/gloo/test/gomega/matchers"
 	"github.com/solo-io/gloo/test/kubernetes/e2e"
 	testdefaults "github.com/solo-io/gloo/test/kubernetes/e2e/defaults"
+	"github.com/solo-io/gloo/test/kubernetes/e2e/features/listenerset"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -38,6 +39,12 @@ func (s *testingSuite) SetupSuite() {
 	// Check that the common setup manifest is applied
 	err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, setupManifest)
 	s.NoError(err, "can apply "+setupManifest)
+
+	if listenerset.ListenerSetCrdExists(s.testInstallation) {
+		err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, listenerSetManifest)
+		s.NoError(err, "can apply "+listenerSetManifest)
+	}
+
 	s.testInstallation.AssertionsT(s.T()).EventuallyObjectsExist(s.ctx, exampleSvc, nginxPod)
 	// Check that test app is running
 	s.testInstallation.AssertionsT(s.T()).EventuallyPodsRunning(s.ctx, nginxPod.ObjectMeta.GetNamespace(), metav1.ListOptions{
@@ -113,13 +120,16 @@ func (s *testingSuite) TestConfigureHttpListenerOptionsWithSection() {
 		proxyService1Fqdn: {
 			gw1port1: defaultExpectedResponseWithServer,
 			gw1port2: expectedResponseWithoutServer,
-			lsPort1:  expectedResponseWithoutServer,
-			lsPort2:  expectedResponseWithoutServer,
 		},
 		proxyService2Fqdn: {
 			gw2port1: expectedResponseWithoutServer,
 			gw2port2: defaultExpectedResponseWithServer,
 		},
+	}
+
+	if listenerset.ListenerSetCrdExists(s.testInstallation) {
+		matchersForListeners[proxyService1Fqdn][lsPort1] = expectedResponseWithoutServer
+		matchersForListeners[proxyService1Fqdn][lsPort2] = expectedResponseWithoutServer
 	}
 
 	s.testExpectedResponses(matchersForListeners)
@@ -132,19 +142,24 @@ func (s *testingSuite) TestConfigureNotAttachedHttpListenerOptions() {
 		proxyService1Fqdn: {
 			gw1port1: expectedResponseWithServer("envoy"),
 			gw1port2: expectedResponseWithServer("envoy"),
-			lsPort1:  expectedResponseWithServer("envoy"),
-			lsPort2:  expectedResponseWithServer("envoy"),
 		},
 		proxyService2Fqdn: {
 			gw2port1: expectedResponseWithServer("envoy"),
 			gw2port2: expectedResponseWithServer("envoy"),
 		},
 	}
+	if listenerset.ListenerSetCrdExists(s.testInstallation) {
+		matchersForListeners[proxyService1Fqdn][lsPort1] = expectedResponseWithServer("envoy")
+		matchersForListeners[proxyService1Fqdn][lsPort2] = expectedResponseWithServer("envoy")
+	}
 
 	s.testExpectedResponses(matchersForListeners)
 }
 
 func (s *testingSuite) TestConfigureHttpListenerOptionsWithListenerSetsAndSection() {
+	if !listenerset.ListenerSetCrdExists(s.testInstallation) {
+		s.T().Skip("Skipping as the XListenerSet CRD is not installed")
+	}
 
 	// Expected server strings are based on the HttpListenerOption manifests
 	matchersForListeners := map[string]map[int]*matchers.HttpResponse{

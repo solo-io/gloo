@@ -15,12 +15,26 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+const (
+	// Port numbers and mappings match the ports in the setup.yaml file
+	gw1port1 = 8080
+	gw1port2 = 8081
+	// port 8082 is used by envoy's readiness probe
+	gw2port1 = 8083
+	gw2port2 = 8084
+
+	// ports used by the listener set
+	lsPort1 = 8085
+	lsPort2 = 8086
+)
+
 var (
 	setupManifests = []string{
 		filepath.Join(util.MustGetThisDir(), "testdata", "setup.yaml"),
 		e2edefaults.CurlPodManifest,
 	}
 
+	manifestListenerSetup                    = filepath.Join(util.MustGetThisDir(), "testdata", "listenerset.yaml")
 	manifestVhoRemoveXBar                    = filepath.Join(util.MustGetThisDir(), "testdata", "vho-remove-x-bar.yaml")
 	manifestVhoSectionAddXFoo                = filepath.Join(util.MustGetThisDir(), "testdata", "vho-section-add-x-foo.yaml")
 	manifestVhoGwAddXFoo                     = filepath.Join(util.MustGetThisDir(), "testdata", "vho-gw-add-x-foo.yaml")
@@ -184,15 +198,4 @@ var (
 			Body: gstruct.Ignore(),
 		}
 	}
-
-	// Port numbers and mappings match the ports in the setup.yaml file
-	gw1port1 = 8080
-	gw1port2 = 8081
-	// port 8082 is used by envoy's readiness probe
-	gw2port1 = 8083
-	gw2port2 = 8084
-
-	// ports used by the listener set
-	lsPort1 = 8085
-	lsPort2 = 8086
 )

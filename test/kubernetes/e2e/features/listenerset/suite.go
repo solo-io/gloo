@@ -3,9 +3,11 @@ package listenerset
 import (
 	"context"
 
+	glooschemes "github.com/solo-io/gloo/pkg/schemes"
 	"github.com/solo-io/gloo/pkg/utils/kubeutils"
 	"github.com/solo-io/gloo/pkg/utils/requestutils/curl"
 	"github.com/solo-io/gloo/projects/gateway2/translator/listener"
+	"github.com/solo-io/gloo/projects/gateway2/wellknown"
 	"github.com/solo-io/gloo/test/kubernetes/e2e"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/defaults"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/tests/base"
@@ -221,4 +223,10 @@ func (s *testingSuite) expectListenerSetUnknown(namespacedName types.NamespacedN
 				},
 			},
 		})
+}
+
+func ListenerSetCrdExists(testInstallation *e2e.TestInstallation) bool {
+	xListenerSetExists, err := glooschemes.CRDExists(testInstallation.ClusterContext.RestConfig, gwxv1a1.GroupVersion.Group, gwxv1a1.GroupVersion.Version, wellknown.XListenerSetKind)
+	testInstallation.Assertions.Assert.NoError(err)
+	return xListenerSetExists
 }
