@@ -8,9 +8,9 @@ import (
 
 	"github.com/solo-io/gloo/pkg/utils/envutils"
 	"github.com/solo-io/gloo/test/kubernetes/e2e"
+	"github.com/solo-io/gloo/test/kubernetes/e2e/features/listenerset"
 	. "github.com/solo-io/gloo/test/kubernetes/e2e/tests"
 	"github.com/solo-io/gloo/test/kubernetes/testutils/gloogateway"
-	"github.com/solo-io/gloo/test/kubernetes/testutils/helper"
 	"github.com/solo-io/gloo/test/testutils"
 )
 
@@ -29,9 +29,7 @@ func TestListenerSet(t *testing.T) {
 		},
 	)
 
-	xListenerSetExists, err := helper.XListenerSetCrdExists(testInstallation.ClusterContext.RestConfig)
-	testInstallation.AssertionsT(t).Assert.NoError(err)
-	if !xListenerSetExists {
+	if !listenerset.ListenerSetCrdExists(s.testInstallation) {
 		t.Skip("Skipping as the XListenerSet CRD is not installed")
 	}
 

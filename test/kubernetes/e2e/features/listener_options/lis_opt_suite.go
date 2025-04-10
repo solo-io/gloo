@@ -12,7 +12,7 @@ import (
 	"github.com/solo-io/gloo/pkg/utils/requestutils/curl"
 	"github.com/solo-io/gloo/test/kubernetes/e2e"
 	testdefaults "github.com/solo-io/gloo/test/kubernetes/e2e/defaults"
-	"github.com/solo-io/gloo/test/kubernetes/testutils/helper"
+	"github.com/solo-io/gloo/test/kubernetes/e2e/features/listenerset"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -37,12 +37,6 @@ func NewTestingSuite(
 	}
 }
 
-func (s *testingSuite) useListenerSet() bool {
-	exists, err := helper.XListenerSetCrdExists(s.testInstallation.ClusterContext.RestConfig)
-	s.Require().NoError(err)
-	return exists
-}
-
 func (s *testingSuite) SetupSuite() {
 	// Check that the common setup manifest is applied
 	for _, manifest := range setupManifests {
@@ -50,7 +44,7 @@ func (s *testingSuite) SetupSuite() {
 		s.NoError(err, "can apply "+manifest)
 	}
 
-	if s.useListenerSet() {
+	if listenerset.ListenerSetCrdExists(s.testInstallation) {
 		err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, listenerSetManifest)
 		s.NoError(err, "can apply "+listenerSetManifest)
 	}
@@ -82,7 +76,7 @@ func (s *testingSuite) TearDownSuite() {
 		s.testInstallation.AssertionsT(s.T()).ExpectObjectDeleted(manifest, err, output)
 	}
 
-	if s.useListenerSet() {
+	if listenerset.ListenerSetCrdExists(s.testInstallation) {
 		output, err := s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, listenerSetManifest)
 		s.NoError(err, "can delete "+listenerSetManifest)
 		s.testInstallation.AssertionsT(s.T()).ExpectObjectDeleted(listenerSetManifest, err, output)
@@ -151,7 +145,7 @@ func (s *testingSuite) TestConfigureListenerOptionsWithSectionedTargetRefs() {
 		},
 	}
 
-	if s.useListenerSet() {
+	if listenerset.ListenerSetCrdExists(s.testInstallation) {
 		bufferLimitsForListeners[proxy1ServiceFqdn] = append(bufferLimitsForListeners[proxy1ServiceFqdn], &bufferLimitForListener{sectionName: "default/gw-1/listener-1", port: ls1port1, limit: 42000})
 		bufferLimitsForListeners[proxy1ServiceFqdn] = append(bufferLimitsForListeners[proxy1ServiceFqdn], &bufferLimitForListener{sectionName: "default/gw-1/listener-2", port: ls1port2, limit: 21000})
 	}
