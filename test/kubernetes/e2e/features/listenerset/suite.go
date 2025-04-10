@@ -34,6 +34,8 @@ func (s *testingSuite) SetupSuite() {
 	if !RequiredCrdExists(s.TestInstallation) {
 		s.T().Skip("Skipping as the XListenerSet CRD is not installed")
 	}
+
+	s.BaseTestingSuite.SetupSuite()
 }
 
 func (s *testingSuite) TestValidListenerSet() {
