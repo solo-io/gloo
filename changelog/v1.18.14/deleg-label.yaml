@@ -1,0 +1,9 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/solo-projects/issues/8070
+    resolvesIssue: false
+    description: |
+      gateway2/delegation: enable wildcard namespace for label selection
+
+      Allows specifying a wildcard value when using the label selector
+      API to delegate routes.

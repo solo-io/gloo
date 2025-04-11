@@ -1,5 +1,7 @@
 package wellknown
 
+import "github.com/solo-io/gloo/pkg/utils/envutils"
+
 const (
 	// RouteDelegationLabelSelector is the label used to select delegated HTTPRoutes
 	RouteDelegationLabelSelector = "delegation.gateway.solo.io/label"
@@ -13,3 +15,7 @@ const (
 	// all (wildcard *) or specific fields (comma separated field names) in RouteOptions inherited from the parent route.
 	PolicyOverrideAnnotation = "delegation.gateway.solo.io/enable-policy-overrides"
 )
+
+// RouteDelegationLabelSelectorWildcard wildcards the namespace to select delegatee routes by label
+// Note: this must be a valid RFC 1123 DNS label
+var RouteDelegationLabelSelectorWildcardNamespace = envutils.GetOrDefault("DELEGATION_WILDCARD_NAMESPACE", "all", false)

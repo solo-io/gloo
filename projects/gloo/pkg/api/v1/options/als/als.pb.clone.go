@@ -174,6 +174,15 @@ func (m *GrpcService) Clone() proto.Message {
 		}
 	}
 
+	if m.GetFilterStateObjectsToLog() != nil {
+		target.FilterStateObjectsToLog = make([]string, len(m.GetFilterStateObjectsToLog()))
+		for idx, v := range m.GetFilterStateObjectsToLog() {
+
+			target.FilterStateObjectsToLog[idx] = v
+
+		}
+	}
+
 	switch m.ServiceRef.(type) {
 
 	case *GrpcService_StaticClusterName:

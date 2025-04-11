@@ -1,0 +1,7 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/solo-projects/issues/7923
+    resolvesIssue: false
+    description: >-
+      Add support for setting filter state from the grpc access log with the 
+      gatewayProxies.gatewayProxy.gatewaySettings.accessLoggingService.accessLog.grpcService.filterStateObjectsToLog helm value
