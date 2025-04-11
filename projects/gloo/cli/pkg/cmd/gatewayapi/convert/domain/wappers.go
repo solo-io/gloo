@@ -95,6 +95,18 @@ func (w *VirtualHostOptionWrapper) GetOriginalFileName() string {
 	return w.OriginalFileName
 }
 
+type GatewayParametersWrapper struct {
+	*v1alpha1.GatewayParameters
+	OriginalFileName string
+}
+
+func (w *GatewayParametersWrapper) NameIndex() string {
+	return fmt.Sprintf("%s/%s", w.Namespace, w.Name)
+}
+func (w *GatewayParametersWrapper) GetOriginalFileName() string {
+	return w.OriginalFileName
+}
+
 type ListenerOptionWrapper struct {
 	*gatewaykube.ListenerOption
 	OriginalFileName string

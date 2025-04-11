@@ -22,7 +22,7 @@ import (
 
 func (g *GatewayAPIOutput) Convert() error {
 
-	for _, gateway := range g.edgeCache.Gateways {
+	for _, gateway := range g.edgeCache.GlooGateways {
 		// We only translate virtual services for ones that match a gateway selector
 		// TODO in the future we could blindly convert VS and not attach it to anything
 		err := g.convertGatewayAndVirtualServices(gateway)

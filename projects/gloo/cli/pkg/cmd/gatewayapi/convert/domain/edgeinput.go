@@ -7,7 +7,6 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 
 	"github.com/solo-io/gloo/projects/gateway/pkg/translator"
-	"sigs.k8s.io/yaml"
 )
 
 type GlooEdgeCache struct {
@@ -17,11 +16,51 @@ type GlooEdgeCache struct {
 	RouteOptions        map[string]*RouteOptionWrapper
 	ListenerOptions     map[string]*ListenerOptionWrapper
 	HTTPListenerOptions map[string]*HTTPListenerOptionWrapper
-	VirtualHostOptions  map[string]*VirtualHostOptionWrapper
 	Upstreams           map[string]*UpstreamWrapper
 	VirtualServices     map[string]*VirtualServiceWrapper
-	Gateways            map[string]*GlooGatewayWrapper
+	GlooGateways        map[string]*GlooGatewayWrapper
 	AuthConfigs         map[string]*AuthConfigWrapper
+
+	//Gateway API Configs
+	HTTPRoutes         map[string]*HTTPRouteWrapper
+	DirectResponses    map[string]*DirectResponseWrapper
+	ListenerSets       map[string]*ListenerSetWrapper
+	VirtualHostOptions map[string]*VirtualHostOptionWrapper
+	Gateways           map[string]*GatewayWrapper
+	GatewayParameters  map[string]*GatewayParametersWrapper
+}
+
+func (g *GlooEdgeCache) AddGatewayParameters(w *GatewayParametersWrapper) {
+	if g.GatewayParameters == nil {
+		g.GatewayParameters = make(map[string]*GatewayParametersWrapper)
+	}
+	g.GatewayParameters[w.NameIndex()] = w
+}
+func (g *GlooEdgeCache) AddGateway(route *GatewayWrapper) {
+	if g.Gateways == nil {
+		g.Gateways = make(map[string]*GatewayWrapper)
+	}
+	g.Gateways[route.NameIndex()] = route
+}
+func (g *GlooEdgeCache) AddHTTPRoute(route *HTTPRouteWrapper) {
+	if g.HTTPRoutes == nil {
+		g.HTTPRoutes = make(map[string]*HTTPRouteWrapper)
+	}
+	g.HTTPRoutes[route.NameIndex()] = route
+}
+
+func (g *GlooEdgeCache) AddListenerSet(l *ListenerSetWrapper) {
+	if g.ListenerSets == nil {
+		g.ListenerSets = make(map[string]*ListenerSetWrapper)
+	}
+	g.ListenerSets[l.NameIndex()] = l
+}
+
+func (g *GlooEdgeCache) AddDirectResponse(d *DirectResponseWrapper) {
+	if g.DirectResponses == nil {
+		g.DirectResponses = make(map[string]*DirectResponseWrapper)
+	}
+	g.DirectResponses[d.NameIndex()] = d
 }
 
 func (g *GlooEdgeCache) GetVirtualServices(name, namespace string) []*VirtualServiceWrapper {
@@ -136,10 +175,10 @@ func (g *GlooEdgeCache) AddVirtualService(v *VirtualServiceWrapper) {
 	g.VirtualServices[v.NameIndex()] = v
 }
 func (g *GlooEdgeCache) AddGlooGateway(w *GlooGatewayWrapper) {
-	if g.Gateways == nil {
-		g.Gateways = map[string]*GlooGatewayWrapper{}
+	if g.GlooGateways == nil {
+		g.GlooGateways = map[string]*GlooGatewayWrapper{}
 	}
-	g.Gateways[w.NameIndex()] = w
+	g.GlooGateways[w.NameIndex()] = w
 }
 func (g *GlooEdgeCache) AddAuthConfig(a *AuthConfigWrapper) {
 	if g.AuthConfigs == nil {
@@ -154,80 +193,4 @@ func NameNamespaceIndex(name string, namespace string) string {
 
 func (g *GlooEdgeCache) GetUpstream(name string, namespace string) *UpstreamWrapper {
 	return g.Upstreams[NameNamespaceIndex(name, namespace)]
-}
-
-func (g *GlooEdgeCache) ToString() (string, error) {
-	output := ""
-
-	for _, y := range g.YamlObjects {
-		output += "\n---\n" + y.Yaml + "\n"
-	}
-
-	for _, op := range g.Upstreams {
-		m, err := yaml.Marshal(op.Upstream)
-		if err != nil {
-			return "", err
-		}
-
-		output += "\n---\n" + string(m)
-	}
-
-	for _, op := range g.RouteTables {
-		m, err := yaml.Marshal(op.RouteTable)
-		if err != nil {
-			return "", err
-		}
-
-		output += "\n---\n" + string(m)
-	}
-	for _, op := range g.VirtualServices {
-		m, err := yaml.Marshal(op.VirtualService)
-		if err != nil {
-			return "", err
-		}
-
-		output += "\n---\n" + string(m)
-	}
-	for _, op := range g.RouteOptions {
-		m, err := yaml.Marshal(op.RouteOption)
-		if err != nil {
-			return "", err
-		}
-
-		output += "\n---\n" + string(m)
-	}
-	for _, op := range g.AuthConfigs {
-		m, err := yaml.Marshal(op.AuthConfig)
-		if err != nil {
-			return "", err
-		}
-
-		output += "\n---\n" + string(m)
-	}
-
-	for _, op := range g.VirtualHostOptions {
-		m, err := yaml.Marshal(op.VirtualHostOption)
-		if err != nil {
-			return "", err
-		}
-
-		output += "\n---\n" + string(m)
-	}
-
-	// need to remove a few values
-	//  creationTimestamp: null
-	// status: {}
-	// status:
-	// parents: null
-	output = strings.ReplaceAll(output, "  creationTimestamp: null\n", "")
-	output = strings.ReplaceAll(output, "status:\n", "")
-	output = strings.ReplaceAll(output, "parents: null\n", "")
-	output = strings.ReplaceAll(output, "status: {}\n", "")
-	output = strings.ReplaceAll(output, "\n\n\n", "\n")
-	output = strings.ReplaceAll(output, "\n\n", "\n")
-	output = strings.ReplaceAll(output, "spec: {}\n", "")
-
-	// TODO remove leading and trailing ---
-	// log.Printf("%s", output)
-	return output, nil
 }
