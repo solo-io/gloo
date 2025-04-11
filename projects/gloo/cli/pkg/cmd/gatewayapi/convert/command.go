@@ -30,7 +30,7 @@ func RootCmd(op *options.Options) *cobra.Command {
 		Use:   "convert",
 		Short: "Convert Gloo Edge APIs to Gateway API",
 		Long:  "Convert Gloo Edge APIs to Gateway APIs by either providing Kubernetes YAML files or a Gloo Gateway input snapshot.",
-		Example: `# This command converts Gloo Edge APIs to Gloo Gateway API yaml and places them in the '--output-dir' directory arranged by namespace.
+		Example: `# This command converts Gloo Edge APIs to Kubernetes Gateway API YAML files and places them in the '--output-dir' directory, grouped by namespace.
 # To generate gateway api by getting snapshot directly from running Gloo pod. The 'output-dir'' must not exist
   glooctl gateway-api convert --gloo-control-plane deploy/gloo --output-dir ./_output
 
