@@ -108,14 +108,16 @@ func (s *testingSuite) TestConfigureVirtualHostOptionsMultipleTargetRefs() {
 		manifestVhoMultipleTargetRefs: &vhoMultipleTargetRefs,
 	}
 
-	err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, manifestListenerSetup)
-	s.NoError(err, "can apply "+manifestListenerSetup)
+	if listenerset.RequiredCrdExists(s.testInstallation) {
+		err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, manifestListenerSetup)
+		s.NoError(err, "can apply "+manifestListenerSetup)
 
-	s.T().Cleanup(func() {
-		output, err := s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, manifestListenerSetup)
-		s.NoError(err, "can delete "+manifestListenerSetup)
-		s.testInstallation.AssertionsT(s.T()).ExpectObjectDeleted(manifestListenerSetup, err, output)
-	})
+		s.T().Cleanup(func() {
+			output, err := s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, manifestListenerSetup)
+			s.NoError(err, "can delete "+manifestListenerSetup)
+			s.testInstallation.AssertionsT(s.T()).ExpectObjectDeleted(manifestListenerSetup, err, output)
+		})
+	}
 
 	matchersForListeners := map[string]map[int]*matchers.HttpResponse{
 		proxyService1Fqdn: {

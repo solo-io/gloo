@@ -262,14 +262,9 @@ func (m *HaveNamespacedStatusesMatcher) Match(actual interface{}) (success bool,
 	}
 
 	for ns, matcher := range m.namespacedStatusesMatchers {
-		statuses := val.GetStatuses()
-		if statuses == nil {
-			return false, eris.Errorf("have status for namespace %s, found no statuses", ns)
-		}
-
-		actualStatus, ok := statuses[ns]
+		actualStatus, ok := val.GetStatuses()[ns]
 		if !ok {
-			return false, eris.Errorf("have statuses for namespace %s, found statuses %v", ns, statuses)
+			return false, eris.Errorf("have matcher for namespace %s which is not found", ns)
 		}
 		if actualStatus == nil {
 			return false, eris.New("got nil status")
