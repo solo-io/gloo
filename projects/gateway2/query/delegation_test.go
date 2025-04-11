@@ -3,7 +3,6 @@ package query
 import (
 	"testing"
 
-	"github.com/solo-io/gloo/projects/gateway2/wellknown"
 	"github.com/stretchr/testify/assert"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/utils/ptr"
@@ -446,16 +445,6 @@ func TestIsDelegatedRouteMatch(t *testing.T) {
 					},
 				},
 			},
-			parentRef: types.NamespacedName{Namespace: "default", Name: "parent"},
-			childNs:   "child",
-			parentRefs: []gwv1.ParentReference{
-				{
-					Group:     ptr.To[gwv1.Group](gwv1.Group(wellknown.GatewayGroup)),
-					Kind:      ptr.To[gwv1.Kind](gwv1.Kind(wellknown.HTTPRouteKind)),
-					Name:      "parent",
-					Namespace: ptr.To[gwv1.Namespace](gwv1.Namespace("default")),
-				},
-			},
 			expected: true,
 		},
 		{
@@ -530,15 +519,6 @@ func TestIsDelegatedRouteMatch(t *testing.T) {
 					},
 				},
 			},
-			parentRef: types.NamespacedName{Namespace: "default", Name: "parent"},
-			childNs:   "default",
-			parentRefs: []gwv1.ParentReference{
-				{
-					Group: ptr.To[gwv1.Group](gwv1.Group(wellknown.GatewayGroup)),
-					Kind:  ptr.To[gwv1.Kind](gwv1.Kind(wellknown.HTTPRouteKind)),
-					Name:  "parent",
-				},
-			},
 			expected: true,
 		},
 	}
@@ -546,7 +526,7 @@ func TestIsDelegatedRouteMatch(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			a := assert.New(t)
-			actual := isDelegatedRouteMatch(tc.parent, tc.parentRef, tc.child, tc.childNs, tc.parentRefs)
+			actual := isDelegatedRouteMatch(tc.parent, tc.child)
 
 			a.Equal(tc.expected, actual)
 		})
