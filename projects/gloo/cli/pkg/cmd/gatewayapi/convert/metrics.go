@@ -73,12 +73,12 @@ func printMetrics(output *GatewayAPIOutput) {
 	metrics, _ := prometheus.DefaultGatherer.Gather()
 	fmt.Fprintf(os.Stdout, "-------------------------------------\n")
 	for _, m := range metrics {
-		if *m.Name == "gloo_config_count" {
+		if *m.GetName() == "gloo_config_count" {
 			var count float64
-			for _, t := range m.Metric {
-				_, _ = fmt.Fprintf(os.Stdout, "Gloo Config: Number of %s: %v\n", *t.Label[0].Value, *t.Counter.Value-1)
-				if *t.Label[0].Value != "Unknown" {
-					count += *t.Counter.Value - 1
+			for _, t := range m.GetMetric() {
+				_, _ = fmt.Fprintf(os.Stdout, "Gloo Config: Number of %s: %v\n", *t.GetLabel()[0].GetValue(), *t.GetCounter().GetValue()-1)
+				if *t.GetLabel()[0].GetValue() != "Unknown" {
+					count += *t.GetCounter().GetValue() - 1
 				}
 			}
 			_, _ = fmt.Fprintf(os.Stdout, "Total Gloo Config: %v\n", count)
@@ -86,12 +86,12 @@ func printMetrics(output *GatewayAPIOutput) {
 	}
 	fmt.Fprintf(os.Stdout, "-------------------------------------\n")
 	for _, m := range metrics {
-		if *m.Name == "gatewayapi_config_count" {
+		if *m.GetName() == "gatewayapi_config_count" {
 			var count float64
-			for _, t := range m.Metric {
-				_, _ = fmt.Fprintf(os.Stdout, "Gateway API Config: Number of %s: %v\n", *t.Label[0].Value, *t.Counter.Value-1)
-				if *t.Label[0].Value != "Unknown" {
-					count += *t.Counter.Value - 1
+			for _, t := range m.GetMetric() {
+				_, _ = fmt.Fprintf(os.Stdout, "Gateway API Config: Number of %s: %v\n", *t.GetLabel()[0].GetValue(), *t.GetCounter().GetValue()-1)
+				if *t.GetLabel()[0].GetValue() != "Unknown" {
+					count += *t.GetCounter().GetValue() - 1
 				}
 			}
 			_, _ = fmt.Fprintf(os.Stdout, "Total Gateway API Config: %v\n", count)
@@ -99,8 +99,8 @@ func printMetrics(output *GatewayAPIOutput) {
 	}
 	fmt.Fprintf(os.Stdout, "-------------------------------------\n")
 	for _, m := range metrics {
-		if *m.Name == "files_evaluated" {
-			_, _ = fmt.Fprintf(os.Stdout, "Files evaluated: %v\n", *m.Metric[0].Counter.Value)
+		if *m.GetName() == "files_evaluated" {
+			_, _ = fmt.Fprintf(os.Stdout, "Files evaluated: %v\n", *m.GetMetric()[0].GetCounter().GetValue())
 		}
 	}
 }

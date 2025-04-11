@@ -72,7 +72,7 @@ func (g *GatewayAPIOutput) PreProcess(splitMatchers bool) error {
 func (g *GatewayAPIOutput) splitRouteMatchers() error {
 	for _, rt := range g.edgeCache.RouteTables {
 		var newRoutes []*gatewayv1.Route
-		for _, route := range rt.Spec.Routes {
+		for _, route := range rt.Spec.GetRoutes() {
 			editedRoute := generateRoutesForMethodMatchers(route)
 			newRoutes = append(newRoutes, editedRoute)
 		}
@@ -85,15 +85,15 @@ func (g *GatewayAPIOutput) splitRouteMatchers() error {
 
 func generateRoutesForMethodMatchers(route *gatewayv1.Route) *gatewayv1.Route {
 	var newMatchers []*matchers.Matcher
-	for _, m := range route.Matchers {
-		if len(m.Methods) > 1 {
+	for _, m := range route.GetMatchers() {
+		if len(m.GetMethods()) > 1 {
 			// for each method we need to split out the matchers
-			for _, method := range m.Methods {
+			for _, method := range m.GetMethods() {
 				newMatcher := &matchers.Matcher{
-					PathSpecifier:   m.PathSpecifier,
-					CaseSensitive:   m.CaseSensitive,
-					Headers:         m.Headers,
-					QueryParameters: m.QueryParameters,
+					PathSpecifier:   m.GetPathSpecifier(),
+					CaseSensitive:   m.GetCaseSensitive(),
+					Headers:         m.GetHeaders(),
+					QueryParameters: m.GetQueryParameters(),
 					Methods:         []string{method},
 				}
 				newMatchers = append(newMatchers, newMatcher)

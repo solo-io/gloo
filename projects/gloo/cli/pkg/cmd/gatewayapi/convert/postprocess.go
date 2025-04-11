@@ -185,7 +185,7 @@ func (g *GatewayAPIOutput) finishDelegation() error {
 	// for all edge routetables we need to go and update labels on the httproutes to support delegation
 	updatedHTTPRoutes := map[string]*domain.HTTPRouteWrapper{}
 	for _, rtt := range g.edgeCache.RouteTables {
-		routesToUpdate := g.processRouteForDelegation(rtt.Spec.Routes)
+		routesToUpdate := g.processRouteForDelegation(rtt.Spec.GetRoutes())
 
 		for _, r := range routesToUpdate {
 			// check to see if we already matched on this httproute
@@ -202,7 +202,7 @@ func (g *GatewayAPIOutput) finishDelegation() error {
 		}
 	}
 	for _, vs := range g.edgeCache.VirtualServices {
-		routesToUpdate := g.processRouteForDelegation(vs.Spec.VirtualHost.Routes)
+		routesToUpdate := g.processRouteForDelegation(vs.Spec.GetVirtualHost().GetRoutes())
 
 		for _, r := range routesToUpdate {
 			// check to see if we already matched on this httproute
@@ -264,9 +264,9 @@ func (g *GatewayAPIOutput) processRouteForDelegation(routes []*v1.Route) []*doma
 func routeMatchSelector(route *domain.HTTPRouteWrapper, selector *v1.RouteTableSelector) (string, bool) {
 
 	//check namespace first
-	if namespaceMatch(route.Namespace, selector.Namespaces) {
+	if namespaceMatch(route.Namespace, selector.GetNamespaces()) {
 		// check to see if any of the labels match the selector
-		for k, v := range selector.Labels {
+		for k, v := range selector.GetLabels() {
 			// see if the route has the label key in the selector
 			value, match := route.Labels[k]
 			if match {
