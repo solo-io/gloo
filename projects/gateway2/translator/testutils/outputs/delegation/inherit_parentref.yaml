@@ -44,12 +44,6 @@ listeners:
                     namespace: infra
   bindAddress: '::'
   bindPort: 8080
-  metadataStatic:
-    sources:
-    - resourceKind: gateway.networking.k8s.io/Gateway
-      resourceRef:
-        name: http
-        namespace: infra
   name: http
 metadata:
   labels:
