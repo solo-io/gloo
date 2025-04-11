@@ -71,7 +71,10 @@ func printMetrics(output *GatewayAPIOutput) {
 	gatewayAPIConfigMetrics.WithLabelValues("Unknown").Add(float64(len(output.gatewayAPICache.YamlObjects)))
 
 	metrics, _ := prometheus.DefaultGatherer.Gather()
-	fmt.Fprintf(os.Stdout, "-------------------------------------\n")
+	_, err := fmt.Fprintf(os.Stdout, "-------------------------------------\n")
+	if err != nil {
+		return
+	}
 	for _, m := range metrics {
 		if *m.GetName() == "gloo_config_count" {
 			var count float64
@@ -84,7 +87,10 @@ func printMetrics(output *GatewayAPIOutput) {
 			_, _ = fmt.Fprintf(os.Stdout, "Total Gloo Config: %v\n", count)
 		}
 	}
-	fmt.Fprintf(os.Stdout, "-------------------------------------\n")
+	_, err = fmt.Fprintf(os.Stdout, "-------------------------------------\n")
+	if err != nil {
+		return
+	}
 	for _, m := range metrics {
 		if *m.GetName() == "gatewayapi_config_count" {
 			var count float64
@@ -97,7 +103,10 @@ func printMetrics(output *GatewayAPIOutput) {
 			_, _ = fmt.Fprintf(os.Stdout, "Total Gateway API Config: %v\n", count)
 		}
 	}
-	fmt.Fprintf(os.Stdout, "-------------------------------------\n")
+	_, err = fmt.Fprintf(os.Stdout, "-------------------------------------\n")
+	if err != nil {
+		return
+	}
 	for _, m := range metrics {
 		if *m.GetName() == "files_evaluated" {
 			_, _ = fmt.Fprintf(os.Stdout, "Files evaluated: %v\n", *m.GetMetric()[0].GetCounter().GetValue())
