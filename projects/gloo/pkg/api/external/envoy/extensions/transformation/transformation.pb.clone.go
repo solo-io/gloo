@@ -21,6 +21,8 @@ import (
 
 	google_golang_org_protobuf_types_known_emptypb "google.golang.org/protobuf/types/known/emptypb"
 
+	google_golang_org_protobuf_types_known_structpb "google.golang.org/protobuf/types/known/structpb"
+
 	google_golang_org_protobuf_types_known_wrapperspb "google.golang.org/protobuf/types/known/wrapperspb"
 )
 
@@ -226,6 +228,18 @@ func (m *Transformation) Clone() proto.Message {
 		} else {
 			target.TransformationType = &Transformation_TransformerConfig{
 				TransformerConfig: proto.Clone(m.GetTransformerConfig()).(*github_com_solo_io_gloo_projects_gloo_pkg_api_external_envoy_config_core_v3.TypedExtensionConfig),
+			}
+		}
+
+	case *Transformation_AiTransformation:
+
+		if h, ok := interface{}(m.GetAiTransformation()).(clone.Cloner); ok {
+			target.TransformationType = &Transformation_AiTransformation{
+				AiTransformation: h.Clone().(*AiTransformation),
+			}
+		} else {
+			target.TransformationType = &Transformation_AiTransformation{
+				AiTransformation: proto.Clone(m.GetAiTransformation()).(*AiTransformation),
 			}
 		}
 
@@ -490,6 +504,96 @@ func (m *HeaderBodyTransform) Clone() proto.Message {
 }
 
 // Clone function
+func (m *FieldDefault) Clone() proto.Message {
+	var target *FieldDefault
+	if m == nil {
+		return target
+	}
+	target = &FieldDefault{}
+
+	target.Field = m.GetField()
+
+	if h, ok := interface{}(m.GetValue()).(clone.Cloner); ok {
+		target.Value = h.Clone().(*google_golang_org_protobuf_types_known_structpb.Value)
+	} else {
+		target.Value = proto.Clone(m.GetValue()).(*google_golang_org_protobuf_types_known_structpb.Value)
+	}
+
+	target.Override = m.GetOverride()
+
+	return target
+}
+
+// Clone function
+func (m *PromptEnrichment) Clone() proto.Message {
+	var target *PromptEnrichment
+	if m == nil {
+		return target
+	}
+	target = &PromptEnrichment{}
+
+	if m.GetPrepend() != nil {
+		target.Prepend = make([]*PromptEnrichment_Message, len(m.GetPrepend()))
+		for idx, v := range m.GetPrepend() {
+
+			if h, ok := interface{}(v).(clone.Cloner); ok {
+				target.Prepend[idx] = h.Clone().(*PromptEnrichment_Message)
+			} else {
+				target.Prepend[idx] = proto.Clone(v).(*PromptEnrichment_Message)
+			}
+
+		}
+	}
+
+	if m.GetAppend() != nil {
+		target.Append = make([]*PromptEnrichment_Message, len(m.GetAppend()))
+		for idx, v := range m.GetAppend() {
+
+			if h, ok := interface{}(v).(clone.Cloner); ok {
+				target.Append[idx] = h.Clone().(*PromptEnrichment_Message)
+			} else {
+				target.Append[idx] = proto.Clone(v).(*PromptEnrichment_Message)
+			}
+
+		}
+	}
+
+	return target
+}
+
+// Clone function
+func (m *AiTransformation) Clone() proto.Message {
+	var target *AiTransformation
+	if m == nil {
+		return target
+	}
+	target = &AiTransformation{}
+
+	target.EnableChatStreaming = m.GetEnableChatStreaming()
+
+	if m.GetFieldDefaults() != nil {
+		target.FieldDefaults = make([]*FieldDefault, len(m.GetFieldDefaults()))
+		for idx, v := range m.GetFieldDefaults() {
+
+			if h, ok := interface{}(v).(clone.Cloner); ok {
+				target.FieldDefaults[idx] = h.Clone().(*FieldDefault)
+			} else {
+				target.FieldDefaults[idx] = proto.Clone(v).(*FieldDefault)
+			}
+
+		}
+	}
+
+	if h, ok := interface{}(m.GetPromptEnrichment()).(clone.Cloner); ok {
+		target.PromptEnrichment = h.Clone().(*PromptEnrichment)
+	} else {
+		target.PromptEnrichment = proto.Clone(m.GetPromptEnrichment()).(*PromptEnrichment)
+	}
+
+	return target
+}
+
+// Clone function
 func (m *TransformationRule_Transformations) Clone() proto.Message {
 	var target *TransformationRule_Transformations
 	if m == nil {
@@ -689,6 +793,21 @@ func (m *MergeJsonKeys_OverridableTemplate) Clone() proto.Message {
 	}
 
 	target.OverrideEmpty = m.GetOverrideEmpty()
+
+	return target
+}
+
+// Clone function
+func (m *PromptEnrichment_Message) Clone() proto.Message {
+	var target *PromptEnrichment_Message
+	if m == nil {
+		return target
+	}
+	target = &PromptEnrichment_Message{}
+
+	target.Role = m.GetRole()
+
+	target.Content = m.GetContent()
 
 	return target
 }

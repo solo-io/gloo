@@ -555,6 +555,8 @@ func (m *UpstreamSpec_VertexAI) Clone() proto.Message {
 
 	target.Publisher = m.GetPublisher()
 
+	target.JsonSchema = m.GetJsonSchema()
+
 	switch m.AuthTokenSource.(type) {
 
 	case *UpstreamSpec_VertexAI_AuthToken:
