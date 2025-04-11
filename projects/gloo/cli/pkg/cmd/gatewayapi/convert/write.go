@@ -7,7 +7,7 @@ import (
 	"regexp"
 	"strings"
 
-	v2 "k8s.io/api/core/v1"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/gatewayapi/convert/domain"
@@ -223,7 +223,7 @@ func (g *GatewayAPIOutput) createNamespaces(dir string) error {
 	defer f.Close()
 	for namespace := range namespaces {
 		// create a namespace object
-		ns := v2.Namespace{
+		ns := corev1.Namespace{
 			TypeMeta: metav1.TypeMeta{
 				Kind:       "Namespace",
 				APIVersion: "v1",

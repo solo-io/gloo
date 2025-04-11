@@ -42,7 +42,7 @@ glooctl gateway-api convert [flags]
   glooctl gateway-api convert --input-snapshot gg-input.json --output-dir ./_output
 
 # For all commands you can print stats about the migration such as number of configs
-  glooctl gateway-api convert --input-file gloo-yamls.yaml --output-dir ./_output --print-stats
+glooctl gateway-api convert --input-file gloo-yamls.yaml --output-dir ./_output --print-stats
 
 # If the yaml files contain non Gloo API yaml they can be retained by adding '--include-unknown'
   glooctl gateway-api convert --input-file gloo-yamls.yaml --output-dir ./_output --include-unknown

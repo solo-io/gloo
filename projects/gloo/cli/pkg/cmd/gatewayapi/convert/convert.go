@@ -14,7 +14,7 @@ import (
 	glookube "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/kube/apis/gloo.solo.io/v1"
 	v3 "github.com/solo-io/skv2/pkg/api/core.skv2.solo.io/v1"
 	"google.golang.org/protobuf/types/known/wrapperspb"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/utils/ptr"
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
 	apixv1a1 "sigs.k8s.io/gateway-api/apisx/v1alpha1"
@@ -92,11 +92,11 @@ func (g *GatewayAPIOutput) convertVirtualServiceListener(vs *domain.VirtualServi
 
 	// for each VirtualService generate a listener set given the gateway port
 	listenerSet := &apixv1a1.XListenerSet{
-		TypeMeta: v1.TypeMeta{
+		TypeMeta: metav1.TypeMeta{
 			Kind:       "XListenerSet",
 			APIVersion: apixv1a1.GroupVersion.String(),
 		},
-		ObjectMeta: v1.ObjectMeta{
+		ObjectMeta: metav1.ObjectMeta{
 			Name:      listenerName,
 			Namespace: vs.Namespace,
 			Labels:    vs.Labels,
@@ -174,11 +174,11 @@ func (g *GatewayAPIOutput) convertVirtualServiceListener(vs *domain.VirtualServi
 	if vs.Spec.VirtualHost.Options != nil {
 		// create a separate virtualhost option and link it
 		vho := &gatewaykube.VirtualHostOption{
-			TypeMeta: v1.TypeMeta{
+			TypeMeta: metav1.TypeMeta{
 				Kind:       "VirtualHostOption",
 				APIVersion: gatewaykube.SchemeGroupVersion.String(),
 			},
-			ObjectMeta: v1.ObjectMeta{
+			ObjectMeta: metav1.ObjectMeta{
 				Name:      listenerSet.Name,
 				Namespace: listenerSet.Namespace,
 			},
@@ -259,11 +259,11 @@ func (g *GatewayAPIOutput) generateGatewaysFromProxyNames(glooGateway *domain.Gl
 		if existingGw == nil {
 			// create a new gateway
 			gwGateway := &gwv1.Gateway{
-				TypeMeta: v1.TypeMeta{
+				TypeMeta: metav1.TypeMeta{
 					Kind:       "Gateway",
 					APIVersion: gwv1.GroupVersion.String(),
 				},
-				ObjectMeta: v1.ObjectMeta{
+				ObjectMeta: metav1.ObjectMeta{
 					Name:      proxyName,
 					Namespace: glooGateway.Gateway.Namespace,
 					Labels:    glooGateway.Gateway.Labels,
@@ -295,11 +295,11 @@ func (g *GatewayAPIOutput) generateGatewaysFromProxyNames(glooGateway *domain.Gl
 func (g *GatewayAPIOutput) convertListenerOptions(glooGateway *domain.GlooGatewayWrapper, proxyName string) {
 	options := glooGateway.Spec.GetOptions()
 	listenerOption := &gatewaykube.ListenerOption{
-		TypeMeta: v1.TypeMeta{
+		TypeMeta: metav1.TypeMeta{
 			Kind:       "ListenerOption",
 			APIVersion: gatewaykube.SchemeGroupVersion.String(),
 		},
-		ObjectMeta: v1.ObjectMeta{
+		ObjectMeta: metav1.ObjectMeta{
 			Name:      glooGateway.Name,
 			Namespace: glooGateway.Namespace,
 			Labels:    glooGateway.Gateway.Labels,
@@ -325,11 +325,11 @@ func (g *GatewayAPIOutput) convertListenerOptions(glooGateway *domain.GlooGatewa
 func (g *GatewayAPIOutput) convertHTTPListenerOptions(glooGateway *domain.GlooGatewayWrapper, proxyName string) {
 	options := glooGateway.Spec.GetHttpGateway().GetOptions()
 	listenerOption := &gatewaykube.HttpListenerOption{
-		TypeMeta: v1.TypeMeta{
+		TypeMeta: metav1.TypeMeta{
 			Kind:       "HttpListenerOption",
 			APIVersion: gatewaykube.SchemeGroupVersion.String(),
 		},
-		ObjectMeta: v1.ObjectMeta{
+		ObjectMeta: metav1.ObjectMeta{
 			Name:      glooGateway.Name,
 			Namespace: glooGateway.Namespace,
 			Labels:    glooGateway.Gateway.Labels,
@@ -355,11 +355,11 @@ func (g *GatewayAPIOutput) convertHTTPListenerOptions(glooGateway *domain.GlooGa
 func (g *GatewayAPIOutput) convertVirtualServiceHTTPRoutes(vs *domain.VirtualServiceWrapper, glooGateway *domain.GlooGatewayWrapper, listenerName string) error {
 
 	hr := &gwv1.HTTPRoute{
-		TypeMeta: v1.TypeMeta{
+		TypeMeta: metav1.TypeMeta{
 			Kind:       "HTTPRoute",
 			APIVersion: gwv1.GroupVersion.String(),
 		},
-		ObjectMeta: v1.ObjectMeta{
+		ObjectMeta: metav1.ObjectMeta{
 			Name:      vs.Name,
 			Namespace: vs.Namespace,
 			Labels:    vs.Labels,
@@ -413,11 +413,11 @@ func (g *GatewayAPIOutput) convertRouteOptions(
 	// converts options to RouteOptions but we need to this for everything except prefixrewrite
 	if isRouteOptionsSet(options) {
 		ro = &gatewaykube.RouteOption{
-			TypeMeta: v1.TypeMeta{
+			TypeMeta: metav1.TypeMeta{
 				Kind:       "RouteOption",
 				APIVersion: gatewaykube.SchemeGroupVersion.String(),
 			},
-			ObjectMeta: v1.ObjectMeta{
+			ObjectMeta: metav1.ObjectMeta{
 				Name:      associationName,
 				Namespace: wrapper.GetNamespace(),
 			},
@@ -678,11 +678,11 @@ func convertDirectResponse(action *gloov1.DirectResponseAction) *v1alpha1.Direct
 		return nil
 	}
 	dr := &v1alpha1.DirectResponse{
-		TypeMeta: v1.TypeMeta{
+		TypeMeta: metav1.TypeMeta{
 			Kind:       "DirectResponse",
 			APIVersion: v1alpha1.GroupVersion.String(),
 		},
-		ObjectMeta: v1.ObjectMeta{},
+		ObjectMeta: metav1.ObjectMeta{},
 		Spec: v1alpha1.DirectResponseSpec{
 			StatusCode: action.Status,
 			Body:       action.Body,
@@ -967,11 +967,11 @@ func (g *GatewayAPIOutput) convertMatch(m *matchers.Matcher, wrapper domain.Wrap
 func (g *GatewayAPIOutput) convertRouteTableToHTTPRoute(rt *domain.RouteTableWrapper) error {
 
 	hr := &gwv1.HTTPRoute{
-		TypeMeta: v1.TypeMeta{
+		TypeMeta: metav1.TypeMeta{
 			Kind:       "HTTPRoute",
 			APIVersion: gwv1.GroupVersion.String(),
 		},
-		ObjectMeta: v1.ObjectMeta{
+		ObjectMeta: metav1.ObjectMeta{
 			Name:      rt.Name,
 			Namespace: rt.Namespace,
 			Labels:    rt.Labels,
