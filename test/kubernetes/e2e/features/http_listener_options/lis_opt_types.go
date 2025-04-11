@@ -36,29 +36,6 @@ var (
 		}
 	}
 
-	testCases = map[string]*base.TestCase{
-		"TestConfigureHttpListenerOptions": {
-			SimpleTestCase: base.SimpleTestCase{
-				Manifests: []string{basicLisOptManifest},
-			},
-		},
-		"TestConfigureNotAttachedHttpListenerOptions": {
-			SimpleTestCase: base.SimpleTestCase{
-				Manifests: []string{notAttachedLisOptManifest},
-			},
-		},
-		"TestConfigureHttpListenerOptionsWithSection": {
-			SimpleTestCase: base.SimpleTestCase{
-				Manifests: []string{basicLisOptSectionManifest},
-			},
-		},
-		"TestConfigureHttpListenerOptionsWithListenerSetsAndSection": {
-			SimpleTestCase: base.SimpleTestCase{
-				Manifests: []string{basicLisOptManifest, basicLisOptSectionManifest, basicLisOptListenerSetSectionManifest, basicLisOptListenerSetManifest},
-			},
-		},
-	}
-
 	commonSetupManifests = []string{
 		filepath.Join(util.MustGetThisDir(), "testdata", "setup.yaml"),
 		defaults.CurlPodManifest,
@@ -121,6 +98,29 @@ var (
 			gomega.Not(matchers.ContainHeaders(http.Header{"server": {"should-not-attach"}})),
 		),
 		Body: gomega.ContainSubstring("Welcome to nginx!"),
+	}
+
+	testCases = map[string]*base.TestCase{
+		"TestConfigureHttpListenerOptions": {
+			SimpleTestCase: base.SimpleTestCase{
+				Manifests: []string{basicLisOptManifest},
+			},
+		},
+		"TestConfigureNotAttachedHttpListenerOptions": {
+			SimpleTestCase: base.SimpleTestCase{
+				Manifests: []string{notAttachedLisOptManifest},
+			},
+		},
+		"TestConfigureHttpListenerOptionsWithSection": {
+			SimpleTestCase: base.SimpleTestCase{
+				Manifests: []string{basicLisOptSectionManifest},
+			},
+		},
+		"TestConfigureHttpListenerOptionsWithListenerSetsAndSection": {
+			SimpleTestCase: base.SimpleTestCase{
+				Manifests: []string{basicLisOptManifest, basicLisOptSectionManifest, basicLisOptListenerSetSectionManifest, basicLisOptListenerSetManifest},
+			},
+		},
 	}
 )
 

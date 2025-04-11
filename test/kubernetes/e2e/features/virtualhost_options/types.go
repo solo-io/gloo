@@ -41,62 +41,6 @@ var (
 		}
 	}
 
-	testCases = map[string]*base.TestCase{
-		"TestConfirmSetup": {},
-		"TestConfigureVirtualHostOptions": {
-			SimpleTestCase: base.SimpleTestCase{
-				Manifests: []string{manifestVhoRemoveXBar},
-			},
-		},
-		"TestConfigureVirtualHostOptionsMultipleTargetRefs": {
-			SimpleTestCase: base.SimpleTestCase{
-				Manifests: []string{manifestVhoMultipleTargetRefs},
-			},
-		},
-		"TestConfigureVirtualHostOptionsListenerSetTargetRef": {
-			SimpleTestCase: base.SimpleTestCase{
-				Manifests: []string{manifestVhoListenerSetTargetRef},
-			},
-		},
-		"TestConfigureVirtualHostOptionsListenerSetSectionedTargetRef": {
-			SimpleTestCase: base.SimpleTestCase{
-				Manifests: []string{manifestVhoListenerSetSectionedTargetRef},
-			},
-		},
-		"TestConfigureVirtualHostOptionsWithConflictingVHO": {
-			SimpleTestCase: base.SimpleTestCase{
-				Manifests: []string{manifestVhoSectionAddXFoo, manifestVhoGwAddXFoo, manifestVhoListenerSetTargetRef, manifestVhoListenerSetSectionedTargetRef},
-			},
-		},
-		"TestConfigureInvalidVirtualHostOptions": {
-			SimpleTestCase: base.SimpleTestCase{
-				Manifests: []string{manifestVhoRemoveXBar, manifestVhoWebhookReject},
-			},
-		},
-		"TestConfigureVirtualHostOptionsWithSectionNameManualSetup": {
-			// "Manual setup" so let the test handle it.
-		},
-		"TestMultipleVirtualHostOptionsSetup": {
-			SimpleTestCase: base.SimpleTestCase{
-				Manifests: []string{manifestVhoRemoveXBar, manifestVhoRemoveXBaz},
-			},
-		},
-		"TestConfigureVirtualHostOptionsWarningMultipleGatewaysSetup": {
-			SimpleTestCase: base.SimpleTestCase{
-				Manifests: []string{manifestVhoMultipleGatewayWarnings},
-			},
-		},
-		"TestDeletingConflictingVirtualHostOptions": {
-			SimpleTestCase: base.SimpleTestCase{
-				Manifests: []string{manifestVhoRemoveXBaz},
-			},
-		},
-		"TestOptionsMerge": {
-			SimpleTestCase: base.SimpleTestCase{
-				Manifests: []string{manifestVhoRemoveXBar, manifestVhoMergeRemoveXBaz},
-			},
-		},
-	}
 	commonSetupManifests = []string{
 		filepath.Join(util.MustGetThisDir(), "testdata", "setup.yaml"),
 		e2edefaults.CurlPodManifest,
@@ -147,12 +91,6 @@ var (
 			Namespace: "default",
 		},
 	}
-	exampleSvc = &corev1.Service{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "example-svc",
-			Namespace: "default",
-		},
-	}
 
 	// VHO to add a x-foo header
 	vhoRemoveXBar = metav1.ObjectMeta{
@@ -174,29 +112,10 @@ var (
 		Name:      "add-x-foo-header-section",
 		Namespace: "default",
 	}
-	// VHO to add a x-foo header to a gateway
-	vhoGwAddXFoo = metav1.ObjectMeta{
-		Name:      "add-x-foo-header-gw",
-		Namespace: "default",
-	}
+
 	// VHO that should be rejected by the validating webhook
 	vhoWebhookReject = metav1.ObjectMeta{
 		Name:      "bad-retries",
-		Namespace: "default",
-	}
-	// VHO to add a x-foo header with multiple target refs
-	vhoMultipleTargetRefs = metav1.ObjectMeta{
-		Name:      "add-x-foo-header-multiple-target-refs",
-		Namespace: "default",
-	}
-	// VHO to add a x-foo header with multiple target refs
-	vhoListenerSetTargetRef = metav1.ObjectMeta{
-		Name:      "add-x-foo-header-listener-set-target-ref",
-		Namespace: "default",
-	}
-	// VHO to add a x-foo header with multiple target refs
-	vhoListenerSetSectionedTargetRef = metav1.ObjectMeta{
-		Name:      "add-x-foo-header-listener-set-sectioned-target-ref",
 		Namespace: "default",
 	}
 
@@ -267,6 +186,63 @@ var (
 			},
 			Body: gstruct.Ignore(),
 		}
+	}
+
+	testCases = map[string]*base.TestCase{
+		"TestConfirmSetup": {},
+		"TestConfigureVirtualHostOptions": {
+			SimpleTestCase: base.SimpleTestCase{
+				Manifests: []string{manifestVhoRemoveXBar},
+			},
+		},
+		"TestConfigureVirtualHostOptionsMultipleTargetRefs": {
+			SimpleTestCase: base.SimpleTestCase{
+				Manifests: []string{manifestVhoMultipleTargetRefs},
+			},
+		},
+		"TestConfigureVirtualHostListenerSetTargetRef": {
+			SimpleTestCase: base.SimpleTestCase{
+				Manifests: []string{manifestVhoListenerSetTargetRef},
+			},
+		},
+		"TestConfigureVirtualHostListenerSetSectionedTargetRef": {
+			SimpleTestCase: base.SimpleTestCase{
+				Manifests: []string{manifestVhoListenerSetSectionedTargetRef},
+			},
+		},
+		"TestConfigureVirtualHostOptionsWithConflictingVHO": {
+			SimpleTestCase: base.SimpleTestCase{
+				Manifests: []string{manifestVhoSectionAddXFoo, manifestVhoGwAddXFoo, manifestVhoListenerSetTargetRef, manifestVhoListenerSetSectionedTargetRef},
+			},
+		},
+		"TestConfigureInvalidVirtualHostOptions": {
+			SimpleTestCase: base.SimpleTestCase{
+				Manifests: []string{manifestVhoRemoveXBar, manifestVhoWebhookReject},
+			},
+		},
+		"TestConfigureVirtualHostOptionsWithSectionNameManualSetup": {
+			// "Manual setup" so let the test handle it.
+		},
+		"TestMultipleVirtualHostOptionsSetup": {
+			SimpleTestCase: base.SimpleTestCase{
+				Manifests: []string{manifestVhoRemoveXBar, manifestVhoRemoveXBaz},
+			},
+		},
+		"TestConfigureVirtualHostOptionsWarningMultipleGatewaysSetup": {
+			SimpleTestCase: base.SimpleTestCase{
+				Manifests: []string{manifestVhoMultipleGatewayWarnings},
+			},
+		},
+		"TestDeletingConflictingVirtualHostOptions": {
+			SimpleTestCase: base.SimpleTestCase{
+				Manifests: []string{manifestVhoRemoveXBaz},
+			},
+		},
+		"TestOptionsMerge": {
+			SimpleTestCase: base.SimpleTestCase{
+				Manifests: []string{manifestVhoRemoveXBar, manifestVhoMergeRemoveXBaz},
+			},
+		},
 	}
 )
 

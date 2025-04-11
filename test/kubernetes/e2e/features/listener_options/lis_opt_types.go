@@ -38,19 +38,6 @@ var (
 		}
 	}
 
-	testCases = map[string]*base.TestCase{
-		"TestConfigureListenerOptions": {
-			SimpleTestCase: base.SimpleTestCase{
-				Manifests: []string{basicLisOptManifest},
-			},
-		},
-		"TestConfigureListenerOptionsWithSectionedTargetRefs": {
-			SimpleTestCase: base.SimpleTestCase{
-				Manifests: []string{basicLisOptManifest, lisOptWithSectionedTargetRefsManifest, lisOptWithListenerSetRefsManifest},
-			},
-		},
-	}
-
 	commonSetupManifests = []string{
 		filepath.Join(util.MustGetThisDir(), "testdata", "setup.yaml"),
 		e2edefaults.CurlPodManifest,
@@ -103,6 +90,19 @@ var (
 	expectedHealthyResponse = &matchers.HttpResponse{
 		StatusCode: http.StatusOK,
 		Body:       gomega.ContainSubstring("Welcome to nginx!"),
+	}
+
+	testCases = map[string]*base.TestCase{
+		"TestConfigureListenerOptions": {
+			SimpleTestCase: base.SimpleTestCase{
+				Manifests: []string{basicLisOptManifest},
+			},
+		},
+		"TestConfigureListenerOptionsWithSectionedTargetRefs": {
+			SimpleTestCase: base.SimpleTestCase{
+				Manifests: []string{basicLisOptManifest, lisOptWithSectionedTargetRefsManifest, lisOptWithListenerSetRefsManifest},
+			},
+		},
 	}
 )
 
