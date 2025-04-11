@@ -8,11 +8,14 @@ import (
 	"github.com/solo-io/gloo/pkg/utils/kubeutils"
 	"github.com/solo-io/gloo/test/gomega/matchers"
 	"github.com/solo-io/gloo/test/kubernetes/e2e"
+	"github.com/solo-io/gloo/test/kubernetes/e2e/defaults"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/listenerset"
+	"github.com/solo-io/gloo/test/kubernetes/e2e/tests/base"
 	"github.com/solo-io/skv2/codegen/util"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 const (
@@ -26,8 +29,39 @@ const (
 )
 
 var (
+	setup = func(ti *e2e.TestInstallation) base.SimpleTestCase {
+		return base.SimpleTestCase{
+			Manifests: setupManifests(ti),
+			Resources: []client.Object{proxy1Service, proxy1Deployment, proxy2Service, proxy2Deployment, nginxPod, defaults.CurlPod},
+		}
+	}
+
+	testCases = map[string]*base.TestCase{
+		"TestConfigureHttpListenerOptions": {
+			SimpleTestCase: base.SimpleTestCase{
+				Manifests: []string{basicLisOptManifest},
+			},
+		},
+		"TestConfigureNotAttachedHttpListenerOptions": {
+			SimpleTestCase: base.SimpleTestCase{
+				Manifests: []string{notAttachedLisOptManifest},
+			},
+		},
+		"TestConfigureHttpListenerOptionsWithSection": {
+			SimpleTestCase: base.SimpleTestCase{
+				Manifests: []string{basicLisOptSectionManifest},
+			},
+		},
+		"TestConfigureHttpListenerOptionsWithListenerSetsAndSection": {
+			SimpleTestCase: base.SimpleTestCase{
+				Manifests: []string{basicLisOptManifest, basicLisOptSectionManifest, basicLisOptListenerSetSectionManifest, basicLisOptListenerSetManifest},
+			},
+		},
+	}
+
 	commonSetupManifests = []string{
 		filepath.Join(util.MustGetThisDir(), "testdata", "setup.yaml"),
+		defaults.CurlPodManifest,
 	}
 	gw1NoListenerSetManifest              = filepath.Join(util.MustGetThisDir(), "testdata", "gw1-no-listenerset.yaml")
 	gw1ListenerSetManifest                = filepath.Join(util.MustGetThisDir(), "testdata", "gw1-listenerset.yaml")
@@ -44,26 +78,16 @@ var (
 		Name:      "gloo-proxy-gw-1",
 		Namespace: "default",
 	}
-	proxy1Service    = &corev1.Service{ObjectMeta: glooProxy1ObjectMeta}
-	proxy1Deployment = &appsv1.Deployment{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "gloo-proxy-gw-1",
-			Namespace: "default",
-		},
-	}
+	proxy1Service     = &corev1.Service{ObjectMeta: glooProxy1ObjectMeta}
+	proxy1Deployment  = &appsv1.Deployment{ObjectMeta: glooProxy1ObjectMeta}
 	proxyService1Fqdn = kubeutils.ServiceFQDN(proxy1Service.ObjectMeta)
 
 	glooProxy2ObjectMeta = metav1.ObjectMeta{
 		Name:      "gloo-proxy-gw-2",
 		Namespace: "default",
 	}
-	proxy2Service    = &corev1.Service{ObjectMeta: glooProxy2ObjectMeta}
-	proxy2Deployment = &appsv1.Deployment{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "gloo-proxy-gw-2",
-			Namespace: "default",
-		},
-	}
+	proxy2Service     = &corev1.Service{ObjectMeta: glooProxy2ObjectMeta}
+	proxy2Deployment  = &appsv1.Deployment{ObjectMeta: glooProxy2ObjectMeta}
 	proxyService2Fqdn = kubeutils.ServiceFQDN(proxy2Service.ObjectMeta)
 
 	nginxPod = &corev1.Pod{
