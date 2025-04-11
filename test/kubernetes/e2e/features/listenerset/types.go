@@ -64,7 +64,7 @@ var (
 	// TestValidListenerSet
 	validListenerSet = types.NamespacedName{
 		Name:      "valid-ls",
-		Namespace: "default",
+		Namespace: "allowed-ns",
 	}
 
 	// TestInvalidListenerSetNotAllowed
