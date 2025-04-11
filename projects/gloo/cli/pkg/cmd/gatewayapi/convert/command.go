@@ -43,7 +43,7 @@ func RootCmd(op *options.Options) *cobra.Command {
 # To generate Gateway API YAML files from a single Kubernetes YAML file, but place all the output configurations in to the same file. 
   glooctl gateway-api convert --input-file gloo-yamls.yaml --output-dir ./_output --retain-input-folder-structure
 
-# To load a bunch of `*.yaml` or `*.yml` files in nested directories. You can also use the `--retain-input-folder-structure` option to keep the original file structure, which can be helpful in CI/CD pipelines.
+# To load a bunch of '*.yaml' or '*.yml' files in nested directories. You can also use the '--retain-input-folder-structure' option to keep the original file structure, which can be helpful in CI/CD pipelines.
   glooctl gateway-api convert --input-dir ./gloo-configs --output-dir ./_output --retain-input-folder-structure
 
 To download a Gloo Gateway snapshot from a running 'gloo' pod (verison 1.17+) and generate Gateway API YAML files from that snapshot. 
