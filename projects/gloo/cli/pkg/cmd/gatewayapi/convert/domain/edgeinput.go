@@ -148,7 +148,7 @@ func (g *GlooEdgeCache) AddAuthConfig(a *AuthConfigWrapper) {
 	g.AuthConfigs[a.NameIndex()] = a
 }
 
-func NameNamespaceIndex(name string, namespace string) string {
+func NamespaceNameIndex(name string, namespace string) string {
 	return fmt.Sprintf("%s/%s", namespace, name)
 }
 
