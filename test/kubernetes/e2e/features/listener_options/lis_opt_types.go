@@ -46,7 +46,7 @@ var (
 		},
 		"TestConfigureListenerOptionsWithSectionedTargetRefs": {
 			SimpleTestCase: base.SimpleTestCase{
-				Manifests: []string{basicLisOptManifest, lisOptWithSectionedTargetRefsManifest},
+				Manifests: []string{basicLisOptManifest, lisOptWithSectionedTargetRefsManifest, lisOptWithListenerSetRefsManifest},
 			},
 		},
 	}
