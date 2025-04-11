@@ -1,7 +1,0 @@
-changelog:
-  - type: NON_USER_FACING
-    description: >-
-      Update vm runner image for nightly perf tests as Ubuntu-20.04 will be EOL soon.
-
-      skipCI-docs-build:true
-      skipCI-kube-tests:true
