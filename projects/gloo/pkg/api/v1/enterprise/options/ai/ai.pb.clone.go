@@ -170,6 +170,18 @@ func (m *UpstreamSpec) Clone() proto.Message {
 			}
 		}
 
+	case *UpstreamSpec_Bedrock_:
+
+		if h, ok := interface{}(m.GetBedrock()).(clone.Cloner); ok {
+			target.Llm = &UpstreamSpec_Bedrock_{
+				Bedrock: h.Clone().(*UpstreamSpec_Bedrock),
+			}
+		} else {
+			target.Llm = &UpstreamSpec_Bedrock_{
+				Bedrock: proto.Clone(m.GetBedrock()).(*UpstreamSpec_Bedrock),
+			}
+		}
+
 	}
 
 	return target
@@ -629,6 +641,73 @@ func (m *UpstreamSpec_Anthropic) Clone() proto.Message {
 }
 
 // Clone function
+func (m *UpstreamSpec_Bedrock) Clone() proto.Message {
+	var target *UpstreamSpec_Bedrock
+	if m == nil {
+		return target
+	}
+	target = &UpstreamSpec_Bedrock{}
+
+	if h, ok := interface{}(m.GetCredentialProvider()).(clone.Cloner); ok {
+		target.CredentialProvider = h.Clone().(*UpstreamSpec_AwsCredentialProvider)
+	} else {
+		target.CredentialProvider = proto.Clone(m.GetCredentialProvider()).(*UpstreamSpec_AwsCredentialProvider)
+	}
+
+	if h, ok := interface{}(m.GetCustomHost()).(clone.Cloner); ok {
+		target.CustomHost = h.Clone().(*UpstreamSpec_CustomHost)
+	} else {
+		target.CustomHost = proto.Clone(m.GetCustomHost()).(*UpstreamSpec_CustomHost)
+	}
+
+	target.Model = m.GetModel()
+
+	target.Region = m.GetRegion()
+
+	return target
+}
+
+// Clone function
+func (m *UpstreamSpec_AwsCredentialProvider) Clone() proto.Message {
+	var target *UpstreamSpec_AwsCredentialProvider
+	if m == nil {
+		return target
+	}
+	target = &UpstreamSpec_AwsCredentialProvider{}
+
+	if h, ok := interface{}(m.GetSecretRef()).(clone.Cloner); ok {
+		target.SecretRef = h.Clone().(*github_com_solo_io_solo_kit_pkg_api_v1_resources_core.ResourceRef)
+	} else {
+		target.SecretRef = proto.Clone(m.GetSecretRef()).(*github_com_solo_io_solo_kit_pkg_api_v1_resources_core.ResourceRef)
+	}
+
+	if h, ok := interface{}(m.GetInline()).(clone.Cloner); ok {
+		target.Inline = h.Clone().(*UpstreamSpec_AWSInline)
+	} else {
+		target.Inline = proto.Clone(m.GetInline()).(*UpstreamSpec_AWSInline)
+	}
+
+	return target
+}
+
+// Clone function
+func (m *UpstreamSpec_AWSInline) Clone() proto.Message {
+	var target *UpstreamSpec_AWSInline
+	if m == nil {
+		return target
+	}
+	target = &UpstreamSpec_AWSInline{}
+
+	target.AccessKeyId = m.GetAccessKeyId()
+
+	target.SecretAccessKey = m.GetSecretAccessKey()
+
+	target.SessionToken = m.GetSessionToken()
+
+	return target
+}
+
+// Clone function
 func (m *UpstreamSpec_MultiPool) Clone() proto.Message {
 	var target *UpstreamSpec_MultiPool
 	if m == nil {
@@ -731,6 +810,18 @@ func (m *UpstreamSpec_MultiPool_Backend) Clone() proto.Message {
 		} else {
 			target.Llm = &UpstreamSpec_MultiPool_Backend_VertexAi{
 				VertexAi: proto.Clone(m.GetVertexAi()).(*UpstreamSpec_VertexAI),
+			}
+		}
+
+	case *UpstreamSpec_MultiPool_Backend_Bedrock:
+
+		if h, ok := interface{}(m.GetBedrock()).(clone.Cloner); ok {
+			target.Llm = &UpstreamSpec_MultiPool_Backend_Bedrock{
+				Bedrock: h.Clone().(*UpstreamSpec_Bedrock),
+			}
+		} else {
+			target.Llm = &UpstreamSpec_MultiPool_Backend_Bedrock{
+				Bedrock: proto.Clone(m.GetBedrock()).(*UpstreamSpec_Bedrock),
 			}
 		}
 

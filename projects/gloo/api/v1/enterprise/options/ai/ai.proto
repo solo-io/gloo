@@ -208,6 +208,67 @@ message UpstreamSpec {
     string model = 4;
   }
 
+  // Settings for the Bedrock LLM provider
+  message Bedrock {
+    // The authorization config used to access authenticated AWS Bedrock services.
+    AwsCredentialProvider credential_provider = 1;
+    // Optional: Send requests to a custom host and port, such as to proxy the request,
+    // or to use a different backend that is API-compliant with the upstream version.
+    // Note: For AWS Bedrock, if custom_host is set, host_rewrite will be used to override the Host header before signing the request
+    CustomHost custom_host = 2;
+    // Optional: Sets the model-id name.
+    // If unset, the model name is taken from the request.
+    string model = 3;
+    // Required: region string.
+    //
+    // When signing_algorithm is set to ``AWS_SIGV4`` the region is a standard AWS `region <https://docs.aws.amazon.com/general/latest/gr/rande.html>`_ string for the service
+    // hosting the HTTP endpoint.
+    //
+    // Example: us-west-2
+    //
+    // When signing_algorithm is set to ``AWS_SIGV4A`` the region is used as a region set.
+    //
+    // A region set is a comma separated list of AWS regions, such as ``us-east-1,us-east-2`` or wildcard ``*``
+    // or even region strings containing wildcards such as ``us-east-*``
+    //
+    // Example: '*'
+    //
+    // By configuring a region set, a SigV4A signed request can be sent to multiple regions, rather than being
+    // valid for only a single region destination.
+    string region = 4;
+
+    // NOTE:
+    // Default signing algorithm is AWS_SIGV4. Only need to change to AWS_SIGV4A if targeting multiple regions. Not needed for Bedrock.
+    // service_name will always be set to 'bedrock' no matter which model is called
+    // TODO: add future support for match_excluded_headers for more control over what gets signed
+
+  }
+
+  // AwsCredentialProvider provider for signing the request.
+  message AwsCredentialProvider {
+    // Store the ``AWS_ACCESS_KEY_ID``, ``AWS_SECRET_ACCESS_KEY``, and the optional ``AWS_SESSION_TOKEN`` in a Kubernetes secret in
+    // the same namespace as the Upstream. Then, refer to the secret in the Upstream configuration.
+    core.solo.io.ResourceRef secret_ref = 1;
+
+    // Uses inlined AWS credentials for``AWS_ACCESS_KEY_ID``, ``AWS_SECRET_ACCESS_KEY``, and the optional ``AWS_SESSION_TOKEN``.
+    AWSInline inline = 2;
+
+    // TODO: add support for AssumeRoleWithWebIdentityCredentialProvider, CredentialsFileCredentialProvider
+  }
+
+  // Configuration to use an inline AWS credential. This is an equivalent to setting the well-known
+  // environment variables ``AWS_ACCESS_KEY_ID``, ``AWS_SECRET_ACCESS_KEY``, and the optional ``AWS_SESSION_TOKEN``.
+  message AWSInline {
+    // The AWS access key ID, identifies the user/account
+    string access_key_id = 1;
+
+    // The AWS secret access key, used to sign the request
+    string secret_access_key = 2;
+
+    // The AWS session token. This is optional. Only needed when using temporary credentials (like from STS or an assumed role)
+    string session_token = 3;
+  }
+
   // Configure backends for multiple hosts or models from the same provider in one Upstream resource.
   // This method can be useful for creating one logical endpoint that is backed
   // by multiple hosts or models.
@@ -254,6 +315,8 @@ message UpstreamSpec {
         Gemini gemini = 5;
         // Configure a [Vertex AI](https://cloud.google.com/vertex-ai/docs) backend.
         VertexAI vertex_ai = 6;
+        // Configure a [Bedrock](https://aws.amazon.com/bedrock/) backend.
+        Bedrock bedrock = 7;
       }
     }
 
@@ -282,6 +345,8 @@ message UpstreamSpec {
     Gemini gemini = 6;
     // Configure a [Vertex AI](https://cloud.google.com/vertex-ai/docs) backend.
     VertexAI vertex_ai = 7;
+    // Configure a [Bedrock](https://aws.amazon.com/bedrock/) backend.
+    Bedrock bedrock = 8;
   }
 }
 
