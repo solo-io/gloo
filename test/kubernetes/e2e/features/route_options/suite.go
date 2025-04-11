@@ -97,6 +97,10 @@ func (s *testingSuite) BeforeTest(suiteName, testName string) {
 }
 
 func (s *testingSuite) AfterTest(suiteName, testName string) {
+	if s.T().Failed() {
+		s.testInstallation.PreFailHandler(s.ctx, e2e.PreFailHandlerOption{TestName: testName})
+	}
+
 	manifests, ok := s.manifests[testName]
 	if !ok {
 		s.FailNow("no manifests found for " + testName)

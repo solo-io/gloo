@@ -63,9 +63,9 @@ func (s *portRoutingTestingSuite) SetupSuite() {
 	s.NoError(err, "can apply setup manifest")
 	err = s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, setupK8sManifest)
 	s.NoError(err, "can apply setup k8s gateway manifest")
-	s.testInstallation.Assertions.EventuallyObjectsExist(s.ctx, proxyService, proxyDeployment)
+	s.testInstallation.AssertionsT(s.T()).EventuallyObjectsExist(s.ctx, proxyService, proxyDeployment)
 	// Check that test resources are running
-	s.testInstallation.Assertions.EventuallyPodsRunning(s.ctx, proxyDeployment.ObjectMeta.GetNamespace(),
+	s.testInstallation.AssertionsT(s.T()).EventuallyPodsRunning(s.ctx, proxyDeployment.ObjectMeta.GetNamespace(),
 		metav1.ListOptions{LabelSelector: "app.kubernetes.io/name=gloo-proxy-gw"}, time.Minute*2)
 }
 
@@ -74,7 +74,7 @@ func (s *portRoutingTestingSuite) TearDownSuite() {
 	s.NoError(err, "can delete setup manifest")
 	err = s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, setupK8sManifest)
 	s.NoError(err, "can delete setup k8s gateway manifest")
-	s.testInstallation.Assertions.EventuallyObjectsNotExist(s.ctx, proxyService, proxyDeployment)
+	s.testInstallation.AssertionsT(s.T()).EventuallyObjectsNotExist(s.ctx, proxyService, proxyDeployment)
 }
 
 func (s *portRoutingTestingSuite) BeforeTest(suiteName, testName string) {
@@ -90,6 +90,10 @@ func (s *portRoutingTestingSuite) BeforeTest(suiteName, testName string) {
 }
 
 func (s *portRoutingTestingSuite) AfterTest(suiteName, testName string) {
+	if s.T().Failed() {
+		s.testInstallation.PreFailHandler(s.ctx, e2e.PreFailHandlerOption{TestName: testName})
+	}
+
 	manifests, ok := s.manifests[testName]
 	if !ok {
 		s.FailNow("no manifests found for " + testName)
@@ -102,7 +106,7 @@ func (s *portRoutingTestingSuite) AfterTest(suiteName, testName string) {
 }
 
 func (s *portRoutingTestingSuite) TestInvalidPortAndValidTargetport() {
-	s.testInstallation.Assertions.AssertEventualCurlResponse(
+	s.testInstallation.AssertionsT(s.T()).AssertEventualCurlResponse(
 		s.ctx,
 		curlPodExecOpt,
 		[]curl.Option{
@@ -113,7 +117,7 @@ func (s *portRoutingTestingSuite) TestInvalidPortAndValidTargetport() {
 }
 
 func (s *portRoutingTestingSuite) TestMatchPortAndTargetport() {
-	s.testInstallation.Assertions.AssertEventualCurlResponse(
+	s.testInstallation.AssertionsT(s.T()).AssertEventualCurlResponse(
 		s.ctx,
 		curlPodExecOpt,
 		[]curl.Option{
@@ -124,7 +128,7 @@ func (s *portRoutingTestingSuite) TestMatchPortAndTargetport() {
 }
 
 func (s *portRoutingTestingSuite) TestMatchPodPortWithoutTargetport() {
-	s.testInstallation.Assertions.AssertEventualCurlResponse(
+	s.testInstallation.AssertionsT(s.T()).AssertEventualCurlResponse(
 		s.ctx,
 		curlPodExecOpt,
 		[]curl.Option{
@@ -135,7 +139,7 @@ func (s *portRoutingTestingSuite) TestMatchPodPortWithoutTargetport() {
 }
 
 func (s *portRoutingTestingSuite) TestInvalidPortWithoutTargetport() {
-	s.testInstallation.Assertions.AssertEventualCurlResponse(
+	s.testInstallation.AssertionsT(s.T()).AssertEventualCurlResponse(
 		s.ctx,
 		curlPodExecOpt,
 		[]curl.Option{
@@ -146,7 +150,7 @@ func (s *portRoutingTestingSuite) TestInvalidPortWithoutTargetport() {
 }
 
 func (s *portRoutingTestingSuite) TestInvalidPortAndInvalidTargetport() {
-	s.testInstallation.Assertions.AssertEventualCurlResponse(
+	s.testInstallation.AssertionsT(s.T()).AssertEventualCurlResponse(
 		s.ctx,
 		curlPodExecOpt,
 		[]curl.Option{

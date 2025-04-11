@@ -49,11 +49,6 @@ func (s *testingSuite) SetupSuite() {
 		s.NoError(err, "can apply "+manifest)
 	}
 
-	if listenerset.RequiredCrdExists(s.testInstallation) {
-		err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, manifestListenerSetup)
-		s.NoError(err, "can apply "+manifestListenerSetup)
-	}
-
 	s.testInstallation.AssertionsT(s.T()).EventuallyObjectsExist(s.ctx, proxyService1,
 		proxyDeployment1, proxyService2, proxyDeployment2, exampleSvc, nginxPod, testdefaults.CurlPod)
 
@@ -76,6 +71,12 @@ func (s *testingSuite) SetupSuite() {
 		})
 }
 
+func (s *testingSuite) AfterTest(suiteName, testName string) {
+	if s.T().Failed() {
+		s.testInstallation.PreFailHandler(s.ctx, e2e.PreFailHandlerOption{TestName: testName})
+	}
+}
+
 func (s *testingSuite) TearDownSuite() {
 	// Check that the common setup manifest is deleted
 	for _, manifest := range setupManifests {
@@ -83,39 +84,6 @@ func (s *testingSuite) TearDownSuite() {
 		s.NoError(err, "can delete "+manifest)
 		s.testInstallation.AssertionsT(s.T()).ExpectObjectDeleted(manifest, err, output)
 	}
-
-	if listenerset.RequiredCrdExists(s.testInstallation) {
-		output, err := s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, manifestListenerSetup)
-		s.NoError(err, "can delete "+manifestListenerSetup)
-		s.testInstallation.AssertionsT(s.T()).ExpectObjectDeleted(manifestListenerSetup, err, output)
-	}
-}
-
-// TestConfirmSetup tests that the setup is correct
-//
-// The default state should have two gateways, each with two listeners.
-// The first gateway, gw-1, on ports 8080 and 8081, and the headers x-bar and x-baz should be added to the response
-// A ListenerSet which has listeners on ports 8085 and 8086, is attched to gw-1 and should have the same headers as gw-1
-// The second gateway, gw-2, on ports 8083 and 8084, and the headers x-bar-2 and x-baz-2 should be added to the response
-func (s *testingSuite) TestConfirmSetup() {
-
-	matchersForListeners := map[string]map[int]*matchers.HttpResponse{
-		proxyService1Fqdn: {
-			gw1port1: defaultResponseGw1,
-			gw1port2: defaultResponseGw1,
-		},
-		proxyService2Fqdn: {
-			gw2port1: defaultResponseGw2,
-			gw2port2: defaultResponseGw2,
-		},
-	}
-
-	if listenerset.RequiredCrdExists(s.testInstallation) {
-		matchersForListeners[proxyService1Fqdn][lsPort1] = defaultResponseGw1
-		matchersForListeners[proxyService1Fqdn][lsPort2] = defaultResponseGw1
-	}
-
-	s.testExpectedResponsesForManifests(nil, matchersForListeners, true)
 }
 
 // TestConfigureVirtualHostOptions tests the basic functionality of VirtualHostOptions using a single VHO
@@ -136,10 +104,18 @@ func (s *testingSuite) TestConfigureVirtualHostOptions() {
 // TestConfigureVirtualHostOptions tests the basic functionality of VirtualHostOptions using a single VHO
 // and multiple target refs. This test also indirectly validates targetRefs with sectionName.
 func (s *testingSuite) TestConfigureVirtualHostOptionsMultipleTargetRefs() {
-
 	manifests := map[string]*metav1.ObjectMeta{
 		manifestVhoMultipleTargetRefs: &vhoMultipleTargetRefs,
 	}
+
+	err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, manifestListenerSetup)
+	s.NoError(err, "can apply "+manifestListenerSetup)
+
+	s.T().Cleanup(func() {
+		output, err := s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, manifestListenerSetup)
+		s.NoError(err, "can delete "+manifestListenerSetup)
+		s.testInstallation.AssertionsT(s.T()).ExpectObjectDeleted(manifestListenerSetup, err, output)
+	})
 
 	matchersForListeners := map[string]map[int]*matchers.HttpResponse{
 		proxyService1Fqdn: {
@@ -166,6 +142,15 @@ func (s *testingSuite) TestConfigureVirtualHostListenerSetTargetRef() {
 	if !listenerset.RequiredCrdExists(s.testInstallation) {
 		s.T().Skip("Skipping as the XListenerSet CRD is not installed")
 	}
+
+	err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, manifestListenerSetup)
+	s.NoError(err, "can apply "+manifestListenerSetup)
+
+	s.T().Cleanup(func() {
+		output, err := s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, manifestListenerSetup)
+		s.NoError(err, "can delete "+manifestListenerSetup)
+		s.testInstallation.AssertionsT(s.T()).ExpectObjectDeleted(manifestListenerSetup, err, output)
+	})
 
 	manifests := map[string]*metav1.ObjectMeta{
 		manifestVhoListenerSetTargetRef: &vhoListenerSetTargetRef,
@@ -194,6 +179,15 @@ func (s *testingSuite) TestConfigureVirtualHostListenerSetSectionedTargetRef() {
 		s.T().Skip("Skipping as the XListenerSet CRD is not installed")
 	}
 
+	err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, manifestListenerSetup)
+	s.NoError(err, "can apply "+manifestListenerSetup)
+
+	s.T().Cleanup(func() {
+		output, err := s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, manifestListenerSetup)
+		s.NoError(err, "can delete "+manifestListenerSetup)
+		s.testInstallation.AssertionsT(s.T()).ExpectObjectDeleted(manifestListenerSetup, err, output)
+	})
+
 	manifests := map[string]*metav1.ObjectMeta{
 		manifestVhoListenerSetSectionedTargetRef: &vhoListenerSetSectionedTargetRef,
 	}
@@ -220,6 +214,15 @@ func (s *testingSuite) TestConfigureVirtualHostOptionsWithConflictingVHO() {
 	if !listenerset.RequiredCrdExists(s.testInstallation) {
 		s.T().Skip("Skipping as the XListenerSet CRD is not installed")
 	}
+
+	err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, manifestListenerSetup)
+	s.NoError(err, "can apply "+manifestListenerSetup)
+
+	s.T().Cleanup(func() {
+		output, err := s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, manifestListenerSetup)
+		s.NoError(err, "can delete "+manifestListenerSetup)
+		s.testInstallation.AssertionsT(s.T()).ExpectObjectDeleted(manifestListenerSetup, err, output)
+	})
 
 	manifests := map[string]*metav1.ObjectMeta{
 		manifestVhoSectionAddXFoo:                &vhoSectionAddXFoo,
@@ -485,7 +488,6 @@ func (s *testingSuite) TestConfigureVirtualHostOptionsWarningMultipleGatewaysSet
 			"VirtualHostOption 'default/remove-x-baz-header-2' not attached to listener 'http' on Gateway 'default/gw-2' due to conflict with more specific or older VirtualHostOptions 'default/add-x-foo-header-2'",
 			"VirtualHostOption 'default/remove-x-baz-header-2' not attached to listener 'other' on Gateway 'default/gw-2' due to conflict with more specific or older VirtualHostOptions 'default/remove-x-bar-header-2'",
 		},
-
 		defaults.KubeGatewayReporter,
 	)
 

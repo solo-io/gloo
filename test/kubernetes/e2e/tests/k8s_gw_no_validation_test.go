@@ -41,9 +41,6 @@ func TestK8sGatewayNoValidation(t *testing.T) {
 		if !nsEnvPredefined {
 			os.Unsetenv(testutils.InstallNamespace)
 		}
-		if t.Failed() {
-			testInstallation.PreFailHandler(ctx)
-		}
 
 		testInstallation.UninstallGlooGatewayWithTestHelper(ctx, testHelper)
 	})
