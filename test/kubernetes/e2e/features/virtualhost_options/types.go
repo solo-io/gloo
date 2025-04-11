@@ -9,12 +9,15 @@ import (
 	"github.com/solo-io/gloo/pkg/utils/kubeutils"
 	"github.com/solo-io/gloo/test/gomega/matchers"
 	"github.com/solo-io/gloo/test/kubernetes/e2e"
+	"github.com/solo-io/gloo/test/kubernetes/e2e/defaults"
 	e2edefaults "github.com/solo-io/gloo/test/kubernetes/e2e/defaults"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/listenerset"
+	"github.com/solo-io/gloo/test/kubernetes/e2e/tests/base"
 	"github.com/solo-io/skv2/codegen/util"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 const (
@@ -31,6 +34,69 @@ const (
 )
 
 var (
+	setup = func(ti *e2e.TestInstallation) base.SimpleTestCase {
+		return base.SimpleTestCase{
+			Manifests: setupManifests(ti),
+			Resources: []client.Object{proxy1Service, proxy1Deployment, proxy2Service, proxy2Deployment, nginxPod, defaults.CurlPod},
+		}
+	}
+
+	testCases = map[string]*base.TestCase{
+		"TestConfirmSetup": {},
+		"TestConfigureVirtualHostOptions": {
+			SimpleTestCase: base.SimpleTestCase{
+				Manifests: []string{manifestVhoRemoveXBar},
+			},
+		},
+		"TestConfigureVirtualHostOptionsMultipleTargetRefs": {
+			SimpleTestCase: base.SimpleTestCase{
+				Manifests: []string{manifestVhoMultipleTargetRefs},
+			},
+		},
+		"TestConfigureVirtualHostOptionsListenerSetTargetRef": {
+			SimpleTestCase: base.SimpleTestCase{
+				Manifests: []string{manifestVhoListenerSetTargetRef},
+			},
+		},
+		"TestConfigureVirtualHostOptionsListenerSetSectionedTargetRef": {
+			SimpleTestCase: base.SimpleTestCase{
+				Manifests: []string{manifestVhoListenerSetSectionedTargetRef},
+			},
+		},
+		"TestConfigureVirtualHostOptionsWithConflictingVHO": {
+			SimpleTestCase: base.SimpleTestCase{
+				Manifests: []string{manifestVhoSectionAddXFoo, manifestVhoGwAddXFoo, manifestVhoListenerSetTargetRef, manifestVhoListenerSetSectionedTargetRef},
+			},
+		},
+		"TestConfigureInvalidVirtualHostOptions": {
+			SimpleTestCase: base.SimpleTestCase{
+				Manifests: []string{manifestVhoRemoveXBar, manifestVhoWebhookReject},
+			},
+		},
+		"TestConfigureVirtualHostOptionsWithSectionNameManualSetup": {
+			// "Manual setup" so let the test handle it.
+		},
+		"TestMultipleVirtualHostOptionsSetup": {
+			SimpleTestCase: base.SimpleTestCase{
+				Manifests: []string{manifestVhoRemoveXBar, manifestVhoRemoveXBaz},
+			},
+		},
+		"TestConfigureVirtualHostOptionsWarningMultipleGatewaysSetup": {
+			SimpleTestCase: base.SimpleTestCase{
+				Manifests: []string{manifestVhoMultipleGatewayWarnings},
+			},
+		},
+		"TestDeletingConflictingVirtualHostOptions": {
+			SimpleTestCase: base.SimpleTestCase{
+				Manifests: []string{manifestVhoRemoveXBaz},
+			},
+		},
+		"TestOptionsMerge": {
+			SimpleTestCase: base.SimpleTestCase{
+				Manifests: []string{manifestVhoRemoveXBar, manifestVhoMergeRemoveXBaz},
+			},
+		},
+	}
 	commonSetupManifests = []string{
 		filepath.Join(util.MustGetThisDir(), "testdata", "setup.yaml"),
 		e2edefaults.CurlPodManifest,
@@ -51,25 +117,25 @@ var (
 	manifestVhoMultipleGatewayWarnings       = filepath.Join(util.MustGetThisDir(), "testdata", "vho-multiple-gateway-warnings.yaml")
 
 	// When we apply the setup file, we expect resources to be created with this metadata
-	glooProxyObjectMeta1 = metav1.ObjectMeta{
+	glooProxy1ObjectMeta = metav1.ObjectMeta{
 		Name:      "gloo-proxy-gw-1",
 		Namespace: "default",
 	}
-	proxyService1     = &corev1.Service{ObjectMeta: glooProxyObjectMeta1}
-	proxyService1Fqdn = kubeutils.ServiceFQDN(proxyService1.ObjectMeta)
-	proxyDeployment1  = &appsv1.Deployment{
+	proxy1Service     = &corev1.Service{ObjectMeta: glooProxy1ObjectMeta}
+	proxy1ServiceFqdn = kubeutils.ServiceFQDN(proxy1Service.ObjectMeta)
+	proxy1Deployment  = &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "gloo-proxy-gw-1",
 			Namespace: "default",
 		},
 	}
-	glooProxyObjectMeta2 = metav1.ObjectMeta{
+	glooProxy2ObjectMeta = metav1.ObjectMeta{
 		Name:      "gloo-proxy-gw-2",
 		Namespace: "default",
 	}
-	proxyService2     = &corev1.Service{ObjectMeta: glooProxyObjectMeta2}
-	proxyService2Fqdn = kubeutils.ServiceFQDN(proxyService2.ObjectMeta)
-	proxyDeployment2  = &appsv1.Deployment{
+	proxy2Service     = &corev1.Service{ObjectMeta: glooProxy2ObjectMeta}
+	proxy2ServiceFqdn = kubeutils.ServiceFQDN(proxy2Service.ObjectMeta)
+	proxy2Deployment  = &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "gloo-proxy-gw-2",
 			Namespace: "default",
