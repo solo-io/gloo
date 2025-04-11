@@ -189,7 +189,7 @@ func (g *GatewayAPIOutput) finishDelegation() error {
 
 		for _, r := range routesToUpdate {
 			// check to see if we already matched on this httproute
-			updatedHTTPRoute, found := updatedHTTPRoutes[domain.NameNamespaceIndex(r.Name, r.Namespace)]
+			updatedHTTPRoute, found := updatedHTTPRoutes[domain.NamespaceNameIndex(r.Namespace, r.Name)]
 
 			if found {
 				delegateValue := updatedHTTPRoute.Labels["delegation.gateway.solo.io/label"]
@@ -198,7 +198,7 @@ func (g *GatewayAPIOutput) finishDelegation() error {
 					continue
 				}
 			}
-			updatedHTTPRoutes[domain.NameNamespaceIndex(r.Name, r.Namespace)] = r
+			updatedHTTPRoutes[domain.NamespaceNameIndex(r.Namespace, r.Name)] = r
 		}
 	}
 	for _, vs := range g.edgeCache.VirtualServices {
@@ -206,7 +206,7 @@ func (g *GatewayAPIOutput) finishDelegation() error {
 
 		for _, r := range routesToUpdate {
 			// check to see if we already matched on this httproute
-			updatedHTTPRoute, found := updatedHTTPRoutes[domain.NameNamespaceIndex(r.Name, r.Namespace)]
+			updatedHTTPRoute, found := updatedHTTPRoutes[domain.NamespaceNameIndex(r.Namespace, r.Name)]
 
 			if found {
 				delegateValue := updatedHTTPRoute.Labels["delegation.gateway.solo.io/label"]
@@ -215,7 +215,7 @@ func (g *GatewayAPIOutput) finishDelegation() error {
 					continue
 				}
 			}
-			updatedHTTPRoutes[domain.NameNamespaceIndex(r.Name, r.Namespace)] = r
+			updatedHTTPRoutes[domain.NamespaceNameIndex(r.Namespace, r.Name)] = r
 		}
 
 	}

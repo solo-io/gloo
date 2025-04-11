@@ -32,7 +32,7 @@ func (g *GatewayAPICache) GetGateway(name string, namespace string) *GatewayWrap
 	if g.Gateways == nil {
 		return nil
 	}
-	return g.Gateways[NameNamespaceIndex(name, namespace)]
+	return g.Gateways[NamespaceNameIndex(namespace, name)]
 }
 func (g *GatewayAPICache) AddGateway(gw *GatewayWrapper) {
 	if g.Gateways == nil {

@@ -45,7 +45,7 @@ func (g *GlooEdgeCache) GetVirtualServices(name, namespace string) []*VirtualSer
 			}
 		}
 	} else {
-		vs := g.VirtualServices[NameNamespaceIndex(namespace, name)]
+		vs := g.VirtualServices[NamespaceNameIndex(namespace, name)]
 		if vs != nil {
 			response = append(response, vs)
 		}
@@ -148,12 +148,12 @@ func (g *GlooEdgeCache) AddAuthConfig(a *AuthConfigWrapper) {
 	g.AuthConfigs[a.NameIndex()] = a
 }
 
-func NamespaceNameIndex(name string, namespace string) string {
+func NamespaceNameIndex(namespace string, name string) string {
 	return fmt.Sprintf("%s/%s", namespace, name)
 }
 
-func (g *GlooEdgeCache) GetUpstream(name string, namespace string) *UpstreamWrapper {
-	return g.Upstreams[NameNamespaceIndex(name, namespace)]
+func (g *GlooEdgeCache) GetUpstream(namespace string, name string) *UpstreamWrapper {
+	return g.Upstreams[NamespaceNameIndex(namespace, name)]
 }
 
 func (g *GlooEdgeCache) ToString() (string, error) {

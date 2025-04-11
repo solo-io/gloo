@@ -147,11 +147,11 @@ func (g *GatewayAPIOutput) convertVirtualServiceListener(vs *domain.VirtualServi
 		delegateOptions := vs.Spec.GetVirtualHost().GetOptionsConfigRefs().GetDelegateOptions()
 		for _, delegateOption := range delegateOptions {
 			// check to see if this already exists in gatewayAPI cache, if not move it over from edge cache
-			vho, exists := g.gatewayAPICache.VirtualHostOptions[domain.NameNamespaceIndex(delegateOption.GetName(), delegateOption.GetNamespace())]
+			vho, exists := g.gatewayAPICache.VirtualHostOptions[domain.NamespaceNameIndex(delegateOption.GetNamespace(), delegateOption.GetName())]
 			if !exists {
-				vho, exists = g.edgeCache.VirtualHostOptions[domain.NameNamespaceIndex(delegateOption.GetName(), delegateOption.GetNamespace())]
+				vho, exists = g.edgeCache.VirtualHostOptions[domain.NamespaceNameIndex(delegateOption.GetNamespace(), delegateOption.GetName())]
 				if !exists {
-					g.AddErrorFromWrapper(ERROR_TYPE_UNKNOWN_REFERENCE, vs, "references VirtualHostOption %s that does not exist", domain.NameNamespaceIndex(delegateOption.GetName(), delegateOption.GetNamespace()))
+					g.AddErrorFromWrapper(ERROR_TYPE_UNKNOWN_REFERENCE, vs, "references VirtualHostOption %s that does not exist", domain.NamespaceNameIndex(delegateOption.GetNamespace(), delegateOption.GetName()))
 					continue
 				}
 			}
@@ -442,7 +442,7 @@ func (g *GatewayAPIOutput) convertRouteOptions(
 		if options.GetExtauth() != nil && options.GetExtauth().GetConfigRef() != nil {
 			// we need to copy over the auth config ref if it exists
 			ref := options.GetExtauth().GetConfigRef()
-			ac, exists := g.edgeCache.AuthConfigs[domain.NameNamespaceIndex(ref.GetName(), ref.GetNamespace())]
+			ac, exists := g.edgeCache.AuthConfigs[domain.NamespaceNameIndex(ref.GetNamespace(), ref.GetName())]
 			if !exists {
 				g.AddErrorFromWrapper(ERROR_TYPE_UNKNOWN_REFERENCE, wrapper, "did not find AuthConfig %s/%s for delegated route option reference", ref.GetName(), ref.GetNamespace())
 			}
@@ -587,7 +587,7 @@ func (g *GatewayAPIOutput) convertRouteToRule(r *gloogwv1.Route, wrapper domain.
 				},
 			})
 			// grab that route option and add it to the cache
-			ro, exists := g.edgeCache.RouteOptions[domain.NameNamespaceIndex(delegateOptions.GetName(), delegateOptions.GetNamespace())]
+			ro, exists := g.edgeCache.RouteOptions[domain.NamespaceNameIndex(delegateOptions.GetNamespace(), delegateOptions.GetName())]
 			if !exists {
 				g.AddErrorFromWrapper(ERROR_TYPE_UNKNOWN_REFERENCE, wrapper, "did not find RouteOption %s/%s for delegated route option reference", delegateOptions.GetNamespace(), delegateOptions.GetName())
 			}
@@ -596,7 +596,7 @@ func (g *GatewayAPIOutput) convertRouteToRule(r *gloogwv1.Route, wrapper domain.
 			if ro.Spec.GetOptions() != nil && ro.Spec.GetOptions().GetExtauth() != nil && ro.Spec.GetOptions().GetExtauth().GetConfigRef() != nil {
 				// we need to copy over the auth config ref if it exists
 				ref := ro.Spec.GetOptions().GetExtauth().GetConfigRef()
-				ac, exists := g.edgeCache.AuthConfigs[domain.NameNamespaceIndex(ref.GetName(), ref.GetNamespace())]
+				ac, exists := g.edgeCache.AuthConfigs[domain.NamespaceNameIndex(ref.GetNamespace(), ref.GetName())]
 				if !exists {
 					g.AddErrorFromWrapper(ERROR_TYPE_UNKNOWN_REFERENCE, ro, "did not find AuthConfig %s/%s for delegated route option reference", ref.GetName(), ref.GetNamespace())
 				}
@@ -806,7 +806,7 @@ func (g *GatewayAPIOutput) generateBackendRefForSingleUpstream(r *gloogwv1.Route
 		upstreamNs = wrapper.GetNamespace()
 	}
 
-	up = g.edgeCache.GetUpstream(upstream.GetName(), upstreamNs)
+	up = g.edgeCache.GetUpstream(upstreamNs, upstream.GetName())
 
 	if up == nil {
 		// unknown reference to backend
