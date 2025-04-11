@@ -39,14 +39,9 @@ func NewTestingSuite(
 
 func (s *testingSuite) SetupSuite() {
 	// Check that the common setup manifest is applied
-	for _, manifest := range setupManifests {
+	for _, manifest := range setupManifests(s.testInstallation) {
 		err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, manifest)
 		s.NoError(err, "can apply "+manifest)
-	}
-
-	if listenerset.RequiredCrdExists(s.testInstallation) {
-		err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, listenerSetManifest)
-		s.NoError(err, "can apply "+listenerSetManifest)
 	}
 
 	s.testInstallation.AssertionsT(s.T()).EventuallyPodsRunning(s.ctx, nginxPod.ObjectMeta.GetNamespace(), metav1.ListOptions{
@@ -70,16 +65,10 @@ func (s *testingSuite) SetupSuite() {
 
 func (s *testingSuite) TearDownSuite() {
 	// Check that the common setup manifest is deleted
-	for _, manifest := range setupManifests {
+	for _, manifest := range setupManifests(s.testInstallation) {
 		output, err := s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, manifest)
 		s.NoError(err, "can delete "+manifest)
 		s.testInstallation.AssertionsT(s.T()).ExpectObjectDeleted(manifest, err, output)
-	}
-
-	if listenerset.RequiredCrdExists(s.testInstallation) {
-		output, err := s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, listenerSetManifest)
-		s.NoError(err, "can delete "+listenerSetManifest)
-		s.testInstallation.AssertionsT(s.T()).ExpectObjectDeleted(listenerSetManifest, err, output)
 	}
 }
 

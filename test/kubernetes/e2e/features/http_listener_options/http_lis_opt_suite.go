@@ -37,12 +37,9 @@ func NewTestingSuite(
 
 func (s *testingSuite) SetupSuite() {
 	// Check that the common setup manifest is applied
-	err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, setupManifest)
-	s.NoError(err, "can apply "+setupManifest)
-
-	if listenerset.RequiredCrdExists(s.testInstallation) {
-		err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, listenerSetManifest)
-		s.NoError(err, "can apply "+listenerSetManifest)
+	for _, manifest := range setupManifests(s.testInstallation) {
+		err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, manifest)
+		s.NoError(err, "can apply "+manifest)
 	}
 
 	s.testInstallation.AssertionsT(s.T()).EventuallyObjectsExist(s.ctx, exampleSvc, nginxPod)
@@ -57,6 +54,10 @@ func (s *testingSuite) SetupSuite() {
 	s.testInstallation.AssertionsT(s.T()).EventuallyPodsRunning(s.ctx, proxy1Deployment.ObjectMeta.GetNamespace(), metav1.ListOptions{
 		LabelSelector: "app.kubernetes.io/name=gloo-proxy-gw-1",
 	})
+	s.testInstallation.AssertionsT(s.T()).EventuallyObjectsExist(s.ctx, proxy1Service, proxy1Deployment)
+	s.testInstallation.AssertionsT(s.T()).EventuallyPodsRunning(s.ctx, proxy2Deployment.ObjectMeta.GetNamespace(), metav1.ListOptions{
+		LabelSelector: "app.kubernetes.io/name=gloo-proxy-gw-2",
+	})
 
 	// include gateway manifests for the tests, so we recreate it for each test run
 	s.manifests = map[string][]string{
@@ -69,12 +70,18 @@ func (s *testingSuite) SetupSuite() {
 
 func (s *testingSuite) TearDownSuite() {
 	// Check that the common setup manifest is deleted
-	output, err := s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, setupManifest)
-	s.testInstallation.AssertionsT(s.T()).ExpectObjectDeleted(setupManifest, err, output)
+	for _, manifest := range setupManifests(s.testInstallation) {
+		output, err := s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, manifest)
+		s.testInstallation.AssertionsT(s.T()).ExpectObjectDeleted(manifest, err, output)
+	}
 
 	s.testInstallation.AssertionsT(s.T()).EventuallyObjectsNotExist(s.ctx, proxy1Service, proxy1Deployment)
 	s.testInstallation.AssertionsT(s.T()).EventuallyPodsNotExist(s.ctx, proxy1Deployment.ObjectMeta.GetNamespace(), metav1.ListOptions{
 		LabelSelector: "app.kubernetes.io/name=gloo-proxy-gw-1",
+	})
+	s.testInstallation.AssertionsT(s.T()).EventuallyObjectsNotExist(s.ctx, proxy2Service, proxy2Deployment)
+	s.testInstallation.AssertionsT(s.T()).EventuallyPodsNotExist(s.ctx, proxy2Deployment.ObjectMeta.GetNamespace(), metav1.ListOptions{
+		LabelSelector: "app.kubernetes.io/name=gloo-proxy-gw-2",
 	})
 }
 

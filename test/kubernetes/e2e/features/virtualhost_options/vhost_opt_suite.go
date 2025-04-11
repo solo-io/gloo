@@ -44,14 +44,9 @@ func NewTestingSuite(ctx context.Context, testInst *e2e.TestInstallation) suite.
 
 func (s *testingSuite) SetupSuite() {
 	// Check that the common setup manifest is applied
-	for _, manifest := range setupManifests {
+	for _, manifest := range setupManifests(s.testInstallation) {
 		err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, manifest)
 		s.NoError(err, "can apply "+manifest)
-	}
-
-	if listenerset.RequiredCrdExists(s.testInstallation) {
-		err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, manifestListenerSetup)
-		s.NoError(err, "can apply "+manifestListenerSetup)
 	}
 
 	s.testInstallation.AssertionsT(s.T()).EventuallyObjectsExist(s.ctx, proxyService1,
@@ -78,17 +73,12 @@ func (s *testingSuite) SetupSuite() {
 
 func (s *testingSuite) TearDownSuite() {
 	// Check that the common setup manifest is deleted
-	for _, manifest := range setupManifests {
+	for _, manifest := range setupManifests(s.testInstallation) {
 		output, err := s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, manifest)
 		s.NoError(err, "can delete "+manifest)
 		s.testInstallation.AssertionsT(s.T()).ExpectObjectDeleted(manifest, err, output)
 	}
 
-	if listenerset.RequiredCrdExists(s.testInstallation) {
-		output, err := s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, manifestListenerSetup)
-		s.NoError(err, "can delete "+manifestListenerSetup)
-		s.testInstallation.AssertionsT(s.T()).ExpectObjectDeleted(manifestListenerSetup, err, output)
-	}
 }
 
 // TestConfirmSetup tests that the setup is correct

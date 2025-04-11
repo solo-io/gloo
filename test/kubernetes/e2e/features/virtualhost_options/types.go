@@ -8,7 +8,9 @@ import (
 	"github.com/onsi/gomega/gstruct"
 	"github.com/solo-io/gloo/pkg/utils/kubeutils"
 	"github.com/solo-io/gloo/test/gomega/matchers"
+	"github.com/solo-io/gloo/test/kubernetes/e2e"
 	e2edefaults "github.com/solo-io/gloo/test/kubernetes/e2e/defaults"
+	"github.com/solo-io/gloo/test/kubernetes/e2e/features/listenerset"
 	"github.com/solo-io/skv2/codegen/util"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -29,11 +31,13 @@ const (
 )
 
 var (
-	setupManifests = []string{
+	commonSetupManifests = []string{
 		filepath.Join(util.MustGetThisDir(), "testdata", "setup.yaml"),
 		e2edefaults.CurlPodManifest,
 	}
 
+	manifestGw1NoListenerSet                 = filepath.Join(util.MustGetThisDir(), "testdata", "gw1-no-listenerset.yaml")
+	manifestGw1ListenerSet                   = filepath.Join(util.MustGetThisDir(), "testdata", "gw1-listenerset.yaml")
 	manifestListenerSetup                    = filepath.Join(util.MustGetThisDir(), "testdata", "listenerset.yaml")
 	manifestVhoRemoveXBar                    = filepath.Join(util.MustGetThisDir(), "testdata", "vho-remove-x-bar.yaml")
 	manifestVhoSectionAddXFoo                = filepath.Join(util.MustGetThisDir(), "testdata", "vho-section-add-x-foo.yaml")
@@ -199,3 +203,13 @@ var (
 		}
 	}
 )
+
+func setupManifests(ti *e2e.TestInstallation) []string {
+	manifests := commonSetupManifests
+	if listenerset.RequiredCrdExists(ti) {
+		manifests = append(manifests, manifestGw1ListenerSet, manifestListenerSetup)
+	} else {
+		manifests = append(manifests, manifestGw1NoListenerSet)
+	}
+	return manifests
+}
