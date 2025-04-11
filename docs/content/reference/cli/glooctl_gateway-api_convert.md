@@ -9,7 +9,7 @@ Convert Gloo Edge APIs to Gateway API
 
 ### Synopsis
 
-Convert Gloo Edge APIs to Gateway API by either providing kubernetes yaml files or a Gloo Gateway input snapshot
+Convert Gloo Edge APIs to Gateway APIs by either providing Kubernetes YAML files or a Gloo Gateway input snapshot.
 
 ```
 glooctl gateway-api convert [flags]
