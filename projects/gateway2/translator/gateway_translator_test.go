@@ -367,6 +367,16 @@ var _ = DescribeTable("Basic GatewayTranslator Tests",
 			Name:      "example-gateway",
 		},
 	}),
+	Entry(
+		"listener sets",
+		translatorTestCase{
+			inputFile:  "listener-sets",
+			outputFile: "listener-sets-proxy.yaml",
+			gwNN: types.NamespacedName{
+				Namespace: "default",
+				Name:      "example-gateway",
+			},
+		}),
 )
 
 var _ = DescribeTable("Route Delegation translator",
