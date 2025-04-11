@@ -19,7 +19,7 @@ glooctl gateway-api convert [flags]
 
 ```
 # This command converts Gloo Edge APIs to Kubernetes Gateway API YAML files and places them in the '--output-dir' directory, grouped by namespace.
-# To generate gateway api by getting snapshot directly from running Gloo pod. The 'output-dir'' must not exist
+# Example command to generate Gateway API YAML files from a Gloo Gateway snapshot that is retrieved from a running 'gloo' pod. The 'output-dir' must not exist.
   glooctl gateway-api convert --gloo-control-plane deploy/gloo --output-dir ./_output
 
 # To generate gateway api by a single kubernetes yaml file. The 'output-dir'' must not exist
