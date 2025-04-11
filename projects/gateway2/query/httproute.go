@@ -16,8 +16,11 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
 	gwv1a2 "sigs.k8s.io/gateway-api/apis/v1alpha2"
+	gwxv1a1 "sigs.k8s.io/gateway-api/apisx/v1alpha1"
 
 	"github.com/solo-io/gloo/projects/gateway2/translator/backendref"
+	translator_types "github.com/solo-io/gloo/projects/gateway2/translator/types"
+	"github.com/solo-io/gloo/projects/gateway2/utils"
 	"github.com/solo-io/gloo/projects/gateway2/wellknown"
 )
 
@@ -145,7 +148,7 @@ func (r *gatewayQueries) GetRouteChain(
 	}
 }
 
-func (r *gatewayQueries) allowedRoutes(gw *gwv1.Gateway, l *gwv1.Listener) (func(string) bool, []metav1.GroupKind, error) {
+func (r *gatewayQueries) allowedRoutes(resource client.Object, l *gwv1.Listener) (func(string) bool, []metav1.GroupKind, error) {
 	var allowedKinds []metav1.GroupKind
 
 	// Determine the allowed route kinds based on the listener's protocol
@@ -165,7 +168,7 @@ func (r *gatewayQueries) allowedRoutes(gw *gwv1.Gateway, l *gwv1.Listener) (func
 		allowedKinds = []metav1.GroupKind{{Kind: wellknown.HTTPRouteKind, Group: gwv1.GroupName}}
 	}
 
-	allowedNs := SameNamespace(gw.Namespace)
+	allowedNs := SameNamespace(resource.GetNamespace())
 	if ar := l.AllowedRoutes; ar != nil {
 		// Override the allowed route kinds if specified in AllowedRoutes
 		if ar.Kinds != nil {
@@ -374,10 +377,10 @@ func (r *gatewayQueries) fetchChildRoutes(
 	return refChildren, nil
 }
 
-func (r *gatewayQueries) GetRoutesForGateway(ctx context.Context, gw *gwv1.Gateway) (*RoutesForGwResult, error) {
+func (r *gatewayQueries) getRoutesForResource(ctx context.Context, resource client.Object) (*RoutesForGwResult, error) {
 	nns := types.NamespacedName{
-		Namespace: gw.Namespace,
-		Name:      gw.Name,
+		Namespace: resource.GetNamespace(),
+		Name:      resource.GetName(),
 	}
 
 	// List of route types to process based on installed CRDs
@@ -404,6 +407,16 @@ func (r *gatewayQueries) GetRoutesForGateway(ctx context.Context, gw *gwv1.Gatew
 	}
 
 	var routes []client.Object
+	// If a listenerset, initially populate it with the list of routes attached to the parent gateway
+	if ls, ok := resource.(*gwxv1a1.XListenerSet); ok {
+		parentGwNns := getParentGatewayRef(ls)
+		for _, routeList := range routeListTypes {
+			if err := fetchRoutes(ctx, r, routeList, *parentGwNns, &routes); err != nil {
+				return nil, err
+			}
+		}
+	}
+
 	for _, routeList := range routeListTypes {
 		if err := fetchRoutes(ctx, r, routeList, nns, &routes); err != nil {
 			return nil, err
@@ -413,12 +426,37 @@ func (r *gatewayQueries) GetRoutesForGateway(ctx context.Context, gw *gwv1.Gatew
 	// Process each route
 	ret := NewRoutesForGwResult()
 	for _, route := range routes {
-		if err := r.processRoute(ctx, gw, route, ret); err != nil {
+		if err := r.processRoute(ctx, resource, route, ret); err != nil {
 			return nil, err
 		}
 	}
 
 	return ret, nil
+}
+
+func (r *gatewayQueries) GetRoutesForConsolidatedGateway(ctx context.Context, cgw *translator_types.ConsolidatedGateway) (*RoutesForGwResult, error) {
+	routes, err := r.getRoutesForResource(ctx, cgw.Gateway)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, ls := range cgw.AllowedListenerSets {
+		lsRoutes, err := r.getRoutesForResource(ctx, ls)
+		if err != nil {
+			return nil, err
+		}
+
+		routes.merge(lsRoutes)
+	}
+
+	return routes, nil
+}
+
+func GenerateRouteKey(parent client.Object, listenerName string) string {
+	if _, ok := parent.(*gwv1.Gateway); ok {
+		return listenerName
+	}
+	return fmt.Sprintf("%s/%s/%s", parent.GetNamespace(), parent.GetName(), listenerName)
 }
 
 func (r *gatewayQueries) wildcardNamespaceExists(ctx context.Context) (bool, error) {
@@ -473,23 +511,41 @@ func fetchRoutes(ctx context.Context, r *gatewayQueries, routeList client.Object
 	return nil
 }
 
-func (r *gatewayQueries) processRoute(ctx context.Context, gw *gwv1.Gateway, route client.Object, ret *RoutesForGwResult) error {
-	refs := getParentRefsForGw(gw, route)
+func getListeners(resource client.Object) ([]gwv1.Listener, error) {
+	var listeners []gwv1.Listener
+	switch typed := resource.(type) {
+	case *gwv1.Gateway:
+		listeners = typed.Spec.Listeners
+	case *gwxv1a1.XListenerSet:
+		listeners = utils.ToListenerSlice(typed.Spec.Listeners)
+	default:
+		return nil, fmt.Errorf("unknown type")
+	}
+	return listeners, nil
+}
+
+func (r *gatewayQueries) processRoute(ctx context.Context, resource client.Object, route client.Object, ret *RoutesForGwResult) error {
+	refs := getParentRefsForResource(resource, route)
 	routeKind := route.GetObjectKind().GroupVersionKind().Kind
+
+	listeners, err := getListeners(resource)
+	if err != nil {
+		return err
+	}
 
 	for _, ref := range refs {
 		anyRoutesAllowed := false
 		anyListenerMatched := false
 		anyHostsMatch := false
 
-		for _, l := range gw.Spec.Listeners {
-			lr := ret.ListenerResults[string(l.Name)]
+		for _, l := range listeners {
+			lr := ret.GetListenerResult(resource, string(l.Name))
 			if lr == nil {
 				lr = &ListenerResult{}
-				ret.ListenerResults[string(l.Name)] = lr
+				ret.setListenerResult(resource, string(l.Name), lr)
 			}
 
-			allowedNs, allowedKinds, err := r.allowedRoutes(gw, &l)
+			allowedNs, allowedKinds, err := r.allowedRoutes(resource, &l)
 			if err != nil {
 				lr.Error = err
 				continue

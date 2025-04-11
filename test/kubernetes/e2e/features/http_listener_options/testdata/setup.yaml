@@ -4,6 +4,9 @@ metadata:
   name: gw-1
 spec:
   gatewayClassName: gloo-gateway
+  allowedListeners:
+    namespaces:
+      from: Same
   listeners:
     - protocol: HTTP
       port: 8080

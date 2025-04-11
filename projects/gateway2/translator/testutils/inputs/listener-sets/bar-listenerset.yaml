@@ -1,0 +1,16 @@
+apiVersion: gateway.networking.x-k8s.io/v1alpha1
+kind: XListenerSet
+metadata:
+  name: bar-listenerset
+spec:
+  parentRef:
+    name: example-gateway
+    kind: Gateway
+    group: gateway.networking.k8s.io
+  listeners:
+  - name: bar
+    protocol: HTTP
+    port: 8082
+    allowedRoutes:
+        namespaces:
+          from: All

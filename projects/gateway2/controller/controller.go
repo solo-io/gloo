@@ -25,6 +25,7 @@ import (
 	apiv1 "sigs.k8s.io/gateway-api/apis/v1"
 	apiv1a2 "sigs.k8s.io/gateway-api/apis/v1alpha2"
 	apiv1beta1 "sigs.k8s.io/gateway-api/apis/v1beta1"
+	apixv1a1 "sigs.k8s.io/gateway-api/apisx/v1alpha1"
 
 	sologatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1/kube/apis/gateway.solo.io/v1"
 	"github.com/solo-io/gloo/projects/gateway2/api/v1alpha1"
@@ -147,6 +148,12 @@ func (c *controllerBuilder) addIndexes(ctx context.Context) error {
 		}
 	}
 
+	if c.cfg.CRDs.Has(wellknown.XListenerSetKind) {
+		if err := c.cfg.Mgr.GetFieldIndexer().IndexField(ctx, &apixv1a1.XListenerSet{}, query.ListenerSetTargetField, query.IndexerByObjType); err != nil {
+			errs = append(errs, err)
+		}
+	}
+
 	return errors.Join(errs...)
 }
 
@@ -211,7 +218,10 @@ func (c *controllerBuilder) watchGw(ctx context.Context) error {
 		IstioIntegrationEnabled: c.cfg.IstioIntegrationEnabled,
 		ControlPlane:            c.cfg.ControlPlane,
 		Aws:                     c.cfg.Aws,
-	})
+	}, query.NewData(
+		c.cfg.Mgr.GetClient(),
+		c.cfg.Mgr.GetScheme(),
+	))
 	if err != nil {
 		return err
 	}
@@ -279,6 +289,20 @@ func (c *controllerBuilder) watchGw(ctx context.Context) error {
 			}
 			return reqs
 		}))
+
+	// We need to watch ListenerSets here since it needs to re-deploy the proxy deployment and service
+	// with the concatenated list of ports from the listenerset and gateway
+	if c.cfg.CRDs.Has(wellknown.XListenerSetKind) {
+		buildr.Watches(&apixv1a1.XListenerSet{}, handler.EnqueueRequestsFromMapFunc(
+			func(ctx context.Context, obj client.Object) []reconcile.Request {
+				ls := obj.(*apixv1a1.XListenerSet)
+				ns := query.ResolveNamespace(ls.Spec.ParentRef.Namespace)
+				if ns == "" {
+					ns = ls.Namespace
+				}
+				return []reconcile.Request{reconcile.Request{NamespacedName: client.ObjectKey{Namespace: ns, Name: string(ls.Spec.ParentRef.Name)}}}
+			}))
+	}
 
 	for _, gvk := range gvks {
 		obj, err := c.cfg.Mgr.GetScheme().New(gvk)

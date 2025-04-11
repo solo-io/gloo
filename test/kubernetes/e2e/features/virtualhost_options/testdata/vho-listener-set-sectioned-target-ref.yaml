@@ -1,0 +1,16 @@
+apiVersion: gateway.solo.io/v1
+kind: VirtualHostOption
+metadata:
+  name: add-x-foo-header-listener-set-sectioned-target-ref
+spec:
+  targetRefs:
+  - group: gateway.networking.x-k8s.io
+    kind: XListenerSet
+    name: gw-1
+    sectionName: listener-1
+  options:
+    headerManipulation:
+      responseHeadersToAdd:
+      - header:
+          key: x-foo
+          value: foo-lis-sec
