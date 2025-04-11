@@ -1,0 +1,7 @@
+changelog:
+- type: FIX
+  issueLink: https://github.com/solo-io/solo-projects/issues/8163
+  resolvesIssue: false
+  description: >-
+    Fixed a bug in route delegation where the `parentRefs` field on child HTTPRoutes
+    were not being respected when parent matcher inheritance was enabled.
