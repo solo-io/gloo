@@ -3,7 +3,9 @@ package deployer
 import (
 	"encoding/json"
 	"fmt"
+	"maps"
 	"regexp"
+	"slices"
 	"sort"
 	"strings"
 
@@ -11,7 +13,6 @@ import (
 	"github.com/solo-io/gloo/projects/gateway2/api/v1alpha1"
 	"github.com/solo-io/gloo/projects/gateway2/ports"
 	"github.com/solo-io/gloo/projects/gateway2/translator/types"
-	"golang.org/x/exp/slices"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/utils/ptr"
 )
@@ -27,16 +28,21 @@ var ComponentLogLevelEmptyError = func(key string, value string) error {
 // 1. the ports exposed on the envoy container
 // 2. the ports exposed on the proxy service
 func getPortsValues(cgw *types.ConsolidatedGateway, gwp *v1alpha1.GatewayParameters) []helmPort {
-	gwPorts := []helmPort{}
+	gwPorts := map[uint16]*helmPort{}
 	for i, cl := range cgw.GetConsolidatedListeners() {
 		listener := cl.Listener
 		portName := string(listener.Name)
 		if cl.ListenerSet != nil {
+			// This ensures a unique name per port even if a GW and LS have listeners with the same name
 			portName = fmt.Sprintf("%d-%s", i, listener.Name)
 		}
-		gwPorts = appendPortValue(gwPorts, uint16(listener.Port), portName, gwp)
+		appendPortValue(gwPorts, uint16(listener.Port), portName, gwp)
 	}
-	return gwPorts
+	finalPorts := make([]helmPort, len(gwPorts))
+	for i, port := range slices.Sorted(maps.Keys(gwPorts)) {
+		finalPorts[i] = *gwPorts[port]
+	}
+	return finalPorts
 }
 
 func sanitizePortName(name string) string {
@@ -53,10 +59,10 @@ func sanitizePortName(name string) string {
 	return str
 }
 
-func appendPortValue(gwPorts []helmPort, port uint16, name string, gwp *v1alpha1.GatewayParameters) []helmPort {
+func appendPortValue(gwPorts map[uint16]*helmPort, port uint16, name string, gwp *v1alpha1.GatewayParameters) {
 	// only process this port if we haven't already processed a listener with the same port
-	if slices.IndexFunc(gwPorts, func(p helmPort) bool { return *p.Port == port }) != -1 {
-		return gwPorts
+	if _, ok := gwPorts[port]; ok {
+		return
 	}
 
 	targetPort := ports.TranslatePort(port)
@@ -74,13 +80,13 @@ func appendPortValue(gwPorts []helmPort, port uint16, name string, gwp *v1alpha1
 		}
 	}
 
-	return append(gwPorts, helmPort{
+	gwPorts[port] = &helmPort{
 		Port:       &port,
 		TargetPort: &targetPort,
 		Name:       &portName,
 		Protocol:   &protocol,
 		NodePort:   nodePort,
-	})
+	}
 }
 
 // TODO: Removing until autoscaling is re-added.

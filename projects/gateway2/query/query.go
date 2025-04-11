@@ -138,7 +138,8 @@ type GatewayQueries interface {
 }
 
 type RoutesForGwResult struct {
-	// key is <parent.Namespace/parent.Name/listener.Name>
+	// This is not exposed to ensure the right key is always generated via the getter and setter
+	// key is generated via GenerateRouteKey() : <parent.Namespace/parent.Name/listener.Name>
 	listenerResults map[string]*ListenerResult
 	RouteErrors     []*RouteError
 }
