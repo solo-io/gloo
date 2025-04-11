@@ -76,12 +76,14 @@ func printMetrics(output *GatewayAPIOutput) {
 		return
 	}
 	for _, m := range metrics {
-		if *m.GetName() == "gloo_config_count" {
+		if m.GetName() == "gloo_config_count" {
 			var count float64
 			for _, t := range m.GetMetric() {
-				_, _ = fmt.Fprintf(os.Stdout, "Gloo Config: Number of %s: %v\n", *t.GetLabel()[0].GetValue(), *t.GetCounter().GetValue()-1)
-				if *t.GetLabel()[0].GetValue() != "Unknown" {
-					count += *t.GetCounter().GetValue() - 1
+				if t.GetLabel()[0] != nil && t.GetCounter() != nil {
+					_, _ = fmt.Fprintf(os.Stdout, "Gloo Config: Number of %s: %v\n", t.GetLabel()[0].GetValue(), t.GetCounter().GetValue()-1)
+					if t.GetLabel()[0].GetValue() != "Unknown" {
+						count += t.GetCounter().GetValue() - 1
+					}
 				}
 			}
 			_, _ = fmt.Fprintf(os.Stdout, "Total Gloo Config: %v\n", count)
@@ -92,12 +94,14 @@ func printMetrics(output *GatewayAPIOutput) {
 		return
 	}
 	for _, m := range metrics {
-		if *m.GetName() == "gatewayapi_config_count" {
+		if m.GetName() == "gatewayapi_config_count" {
 			var count float64
 			for _, t := range m.GetMetric() {
-				_, _ = fmt.Fprintf(os.Stdout, "Gateway API Config: Number of %s: %v\n", *t.GetLabel()[0].GetValue(), *t.GetCounter().GetValue()-1)
-				if *t.GetLabel()[0].GetValue() != "Unknown" {
-					count += *t.GetCounter().GetValue() - 1
+				if t.GetLabel()[0] != nil && t.GetCounter() != nil {
+					_, _ = fmt.Fprintf(os.Stdout, "Gateway API Config: Number of %s: %v\n", t.GetLabel()[0].GetValue(), t.GetCounter().GetValue()-1)
+					if t.GetLabel()[0].GetValue() != "Unknown" {
+						count += t.GetCounter().GetValue() - 1
+					}
 				}
 			}
 			_, _ = fmt.Fprintf(os.Stdout, "Total Gateway API Config: %v\n", count)
@@ -108,8 +112,10 @@ func printMetrics(output *GatewayAPIOutput) {
 		return
 	}
 	for _, m := range metrics {
-		if *m.GetName() == "files_evaluated" {
-			_, _ = fmt.Fprintf(os.Stdout, "Files evaluated: %v\n", *m.GetMetric()[0].GetCounter().GetValue())
+		if m.GetName() == "files_evaluated" {
+			if m.GetMetric()[0] != nil && m.GetMetric()[0].GetCounter() != nil {
+				_, _ = fmt.Fprintf(os.Stdout, "Files evaluated: %v\n", m.GetMetric()[0].GetCounter().GetValue())
+			}
 		}
 	}
 }
