@@ -37,7 +37,7 @@ func RootCmd(op *options.Options) *cobra.Command {
 # Generate Gateway API YAML files from a single Kubernetes YAML file. The 'output-dir' must not exist.
   glooctl gateway-api convert --input-file gloo-yamls.yaml --output-dir ./_output
 
-# To delete and recreate the content in the `output-dir`, add the `delete-output-dir` option.
+# To delete and recreate the content in the 'output-dir', add the 'delete-output-dir'' option.
   glooctl gateway-api convert --input-file gloo-yamls.yaml --output-dir ./_output --delete-output-dir
 
 # To generate gateway api by a single kubernetes yaml file but place all the output configurations in the same file.
