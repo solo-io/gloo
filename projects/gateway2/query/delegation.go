@@ -78,6 +78,11 @@ func (r *gatewayQueries) GetDelegatedRoutes(
 	// Select the child routes that match the parent
 	var selected []gwv1.HTTPRoute
 	for _, child := range children {
+		// Check if the child route is allowed to be delegated to by the parent
+		if !isAllowedParent(parentRef, child.Namespace, child.Spec.ParentRefs) {
+			continue
+		}
+
 		inheritMatcher := shouldInheritMatcher(child)
 
 		// Check if the child route has a prefix that matches the parent.
@@ -109,7 +114,7 @@ func (r *gatewayQueries) GetDelegatedRoutes(
 
 				// Non-inherited matcher delegation requires matching child matcher to parent matcher
 				// to delegate from the parent route to the child.
-				if ok := isDelegatedRouteMatch(parentMatch, parentRef, match, child.Namespace, child.Spec.ParentRefs); ok {
+				if ok := isDelegatedRouteMatch(parentMatch, match); ok {
 					validMatches = append(validMatches, match)
 				}
 			}
@@ -131,34 +136,44 @@ func (r *gatewayQueries) GetDelegatedRoutes(
 	return selected, nil
 }
 
-func isDelegatedRouteMatch(
-	parent gwv1.HTTPRouteMatch,
+// isAllowedParent returns whether the parent specified by `parentRef` is allowed to delegate
+// to the child.
+//   - `childNs` is the namespace of the child route.
+//   - `childParentRefs` is the list of parent references on the child route. If this is empty, then
+//     there are no restrictions on which parents can delegate to this child. If it is not empty,
+//     then `parentRef` must be in this list in order for the parent to delegate to the child.
+func isAllowedParent(
 	parentRef types.NamespacedName,
-	child gwv1.HTTPRouteMatch,
 	childNs string,
-	parentRefs []gwv1.ParentReference,
+	childParentRefs []gwv1.ParentReference,
 ) bool {
-	// If the child has parentRefs set, validate that it matches the parent route
-	if len(parentRefs) > 0 {
-		matched := false
-		for _, ref := range parentRefs {
-			refNs := childNs
-			if ref.Namespace != nil {
-				refNs = string(*ref.Namespace)
-			}
-			if ref.Group != nil && *ref.Group == wellknown.GatewayGroup &&
-				ref.Kind != nil && *ref.Kind == wellknown.HTTPRouteKind &&
-				string(ref.Name) == parentRef.Name &&
-				refNs == parentRef.Namespace {
-				matched = true
-				break
-			}
-		}
-		if !matched {
-			return false
-		}
+	// no explicit parentRefs, so any parent is allowed
+	if len(childParentRefs) == 0 {
+		return true
 	}
 
+	// validate that the child's parentRefs contains the specified parentRef
+	for _, ref := range childParentRefs {
+		// default to the child's namespace if not specified
+		refNs := childNs
+		if ref.Namespace != nil {
+			refNs = string(*ref.Namespace)
+		}
+		// check if the ref matches the desired parentRef
+		if ref.Group != nil && *ref.Group == wellknown.GatewayGroup &&
+			ref.Kind != nil && *ref.Kind == wellknown.HTTPRouteKind &&
+			string(ref.Name) == parentRef.Name &&
+			refNs == parentRef.Namespace {
+			return true
+		}
+	}
+	return false
+}
+
+func isDelegatedRouteMatch(
+	parent gwv1.HTTPRouteMatch,
+	child gwv1.HTTPRouteMatch,
+) bool {
 	// Validate path
 	if parent.Path == nil || parent.Path.Type == nil || *parent.Path.Type != gwv1.PathMatchPathPrefix {
 		return false
