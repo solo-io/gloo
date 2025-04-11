@@ -22,7 +22,7 @@ glooctl gateway-api convert [flags]
 # Example command to generate Gateway API YAML files from a Gloo Gateway snapshot that is retrieved from a running 'gloo' pod. The 'output-dir' must not exist.
   glooctl gateway-api convert --gloo-control-plane deploy/gloo --output-dir ./_output
 
-# To generate gateway api by a single kubernetes yaml file. The 'output-dir'' must not exist
+# Generate Gateway API YAML files from a single Kubernetes YAML file. The 'output-dir' must not exist.
   glooctl gateway-api convert --input-file gloo-yamls.yaml --output-dir ./_output
 
 # To delete and recreate the output dir add 'delete-output-dir'
