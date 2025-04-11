@@ -40,7 +40,7 @@ func RootCmd(op *options.Options) *cobra.Command {
 # To delete and recreate the content in the 'output-dir', add the 'delete-output-dir'' option.
   glooctl gateway-api convert --input-file gloo-yamls.yaml --output-dir ./_output --delete-output-dir
 
-# To generate gateway api by a single kubernetes yaml file but place all the output configurations in the same file.
+# To generate Gateway API YAML files from a single Kubernetes YAML file, but place all the output configurations in to the same file. 
   glooctl gateway-api convert --input-file gloo-yamls.yaml --output-dir ./_output --retain-input-folder-structure
 
 # To load a bunch of `*.yaml` or `*.yml` files in nested directories. You can also use the `--retain-input-folder-structure` option to keep the original file structure, which can be helpful in CI/CD pipelines.
