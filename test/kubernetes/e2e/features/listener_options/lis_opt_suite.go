@@ -13,6 +13,7 @@ import (
 	"github.com/solo-io/gloo/test/kubernetes/e2e"
 	testdefaults "github.com/solo-io/gloo/test/kubernetes/e2e/defaults"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/listenerset"
+	"github.com/solo-io/gloo/test/kubernetes/e2e/tests/base"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -20,11 +21,7 @@ var _ e2e.NewSuiteFunc = NewTestingSuite
 
 // testingSuite is the entire Suite of tests for the "ListenerOptions" feature
 type testingSuite struct {
-	suite.Suite
-	ctx              context.Context
-	testInstallation *e2e.TestInstallation
-	// maps test name to a list of manifests to apply before the test
-	manifests map[string][]string
+	*base.BaseTestingSuite
 }
 
 func NewTestingSuite(
@@ -32,74 +29,14 @@ func NewTestingSuite(
 	testInst *e2e.TestInstallation,
 ) suite.TestingSuite {
 	return &testingSuite{
-		ctx:              ctx,
-		testInstallation: testInst,
-	}
-}
-
-func (s *testingSuite) SetupSuite() {
-	// Check that the common setup manifest is applied
-	for _, manifest := range setupManifests(s.testInstallation) {
-		err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, manifest)
-		s.NoError(err, "can apply "+manifest)
-	}
-
-	s.testInstallation.AssertionsT(s.T()).EventuallyPodsRunning(s.ctx, nginxPod.ObjectMeta.GetNamespace(), metav1.ListOptions{
-		LabelSelector: "app.kubernetes.io/name=nginx",
-	})
-	s.testInstallation.AssertionsT(s.T()).EventuallyPodsRunning(s.ctx, testdefaults.CurlPod.GetNamespace(), metav1.ListOptions{
-		LabelSelector: "app.kubernetes.io/name=curl",
-	})
-	s.testInstallation.AssertionsT(s.T()).EventuallyPodsRunning(s.ctx, proxy1Deployment.ObjectMeta.GetNamespace(), metav1.ListOptions{
-		LabelSelector: "app.kubernetes.io/name=gloo-proxy-gw-1",
-	})
-	s.testInstallation.AssertionsT(s.T()).EventuallyPodsRunning(s.ctx, proxy2Deployment.ObjectMeta.GetNamespace(), metav1.ListOptions{
-		LabelSelector: "app.kubernetes.io/name=gloo-proxy-gw-2",
-	})
-
-	s.manifests = map[string][]string{
-		"TestConfigureListenerOptions":                        {basicLisOptManifest},
-		"TestConfigureListenerOptionsWithSectionedTargetRefs": {basicLisOptManifest, lisOptWithSectionedTargetRefsManifest, lisOptWithListenerSetRefsManifest},
-	}
-}
-
-func (s *testingSuite) TearDownSuite() {
-	// Check that the common setup manifest is deleted
-	for _, manifest := range setupManifests(s.testInstallation) {
-		output, err := s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, manifest)
-		s.NoError(err, "can delete "+manifest)
-		s.testInstallation.AssertionsT(s.T()).ExpectObjectDeleted(manifest, err, output)
-	}
-}
-
-func (s *testingSuite) BeforeTest(suiteName, testName string) {
-	manifests, ok := s.manifests[testName]
-	if !ok {
-		s.FailNow("no manifests found for %s, manifest map contents: %v", testName, s.manifests)
-	}
-
-	for _, manifest := range manifests {
-		err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, manifest)
-		s.Assert().NoError(err, "can apply manifest "+manifest)
-	}
-}
-
-func (s *testingSuite) AfterTest(suiteName, testName string) {
-	manifests, ok := s.manifests[testName]
-	if !ok {
-		s.FailNow("no manifests found for " + testName)
-	}
-
-	for _, manifest := range manifests {
-		output, err := s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, manifest)
-		s.testInstallation.AssertionsT(s.T()).ExpectObjectDeleted(manifest, err, output)
+		base.NewBaseTestingSuite(ctx, testInst, setup(testInst), testCases),
 	}
 }
 
 func (s *testingSuite) TestConfigureListenerOptions() {
 	// Check healthy response
-	s.testInstallation.AssertionsT(s.T()).AssertEventualCurlResponse(
-		s.ctx,
+	s.TestInstallation.AssertionsT(s.T()).AssertEventualCurlResponse(
+		s.Ctx,
 		testdefaults.CurlPodExecOpt,
 		[]curl.Option{
 			curl.WithHost(proxy1ServiceFqdn),
@@ -108,10 +45,10 @@ func (s *testingSuite) TestConfigureListenerOptions() {
 		expectedHealthyResponse)
 
 	// Check the buffer limit is set on the Listener via Envoy config dump
-	s.testInstallation.AssertionsT(s.T()).AssertEnvoyAdminApi(
-		s.ctx,
+	s.TestInstallation.AssertionsT(s.T()).AssertEnvoyAdminApi(
+		s.Ctx,
 		proxy1Deployment.ObjectMeta,
-		listenerBufferLimitAssertion(s.testInstallation, s.T()),
+		listenerBufferLimitAssertion(s.TestInstallation, s.T()),
 	)
 }
 
@@ -134,7 +71,7 @@ func (s *testingSuite) TestConfigureListenerOptionsWithSectionedTargetRefs() {
 		},
 	}
 
-	if listenerset.RequiredCrdExists(s.testInstallation) {
+	if listenerset.RequiredCrdExists(s.TestInstallation) {
 		bufferLimitsForListeners[proxy1ServiceFqdn] = append(bufferLimitsForListeners[proxy1ServiceFqdn], &bufferLimitForListener{sectionName: "default/gw-1/listener-1", port: ls1port1, limit: 42000})
 		bufferLimitsForListeners[proxy1ServiceFqdn] = append(bufferLimitsForListeners[proxy1ServiceFqdn], &bufferLimitForListener{sectionName: "default/gw-1/listener-2", port: ls1port2, limit: 21000})
 	}
@@ -147,8 +84,8 @@ func (s *testingSuite) TestConfigureListenerOptionsWithSectionedTargetRefs() {
 	// Curl each listener for which a matcher is defined
 	for host, limits := range bufferLimitsForListeners {
 		for _, limit := range limits {
-			s.testInstallation.AssertionsT(s.T()).AssertEventualCurlResponse(
-				s.ctx,
+			s.TestInstallation.AssertionsT(s.T()).AssertEventualCurlResponse(
+				s.Ctx,
 				testdefaults.CurlPodExecOpt,
 				[]curl.Option{
 					curl.WithHost(host),
@@ -159,10 +96,10 @@ func (s *testingSuite) TestConfigureListenerOptionsWithSectionedTargetRefs() {
 			)
 
 			// Check the buffer limit is set on the Listener via Envoy config dump
-			s.testInstallation.AssertionsT(s.T()).AssertEnvoyAdminApi(
-				s.ctx,
+			s.TestInstallation.AssertionsT(s.T()).AssertEnvoyAdminApi(
+				s.Ctx,
 				objectMetaForListener[host],
-				listenerBufferLimitAssertionForSection(s.testInstallation, s.T(), limit.sectionName, limit.limit),
+				listenerBufferLimitAssertionForSection(s.TestInstallation, s.T(), limit.sectionName, limit.limit),
 			)
 		}
 	}
