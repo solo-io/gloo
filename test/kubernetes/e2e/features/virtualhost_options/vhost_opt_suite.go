@@ -169,6 +169,27 @@ func (s *testingSuite) TestConfigureVirtualHostOptionsWithConflictingVHO() {
 
 // TestConfigureInvalidVirtualHostOptions confirms that an invalid VirtualHostOption is rejected
 func (s *testingSuite) TestConfigureInvalidVirtualHostOptions() {
+	s.T().Cleanup(func() {
+		output, err := s.TestInstallation.Actions.Kubectl().DeleteFileWithOutput(s.Ctx, manifestVhoRemoveXBar)
+		s.TestInstallation.AssertionsT(s.T()).ExpectObjectDeleted(manifestVhoRemoveXBar, err, output)
+
+		output, err = s.TestInstallation.Actions.Kubectl().DeleteFileWithOutput(s.Ctx, manifestVhoWebhookReject)
+		s.TestInstallation.AssertionsT(s.T()).ExpectObjectDeleted(manifestVhoWebhookReject, err, output)
+	})
+
+	err := s.TestInstallation.Actions.Kubectl().ApplyFile(s.Ctx, manifestVhoRemoveXBar)
+	s.NoError(err, "can apply "+manifestVhoRemoveXBar)
+
+	// Check status is accepted on VirtualHostOption
+	s.TestInstallation.AssertionsT(s.T()).EventuallyResourceStatusMatchesState(
+		s.getterForMeta(&vhoRemoveXBar),
+		core.Status_Accepted,
+		defaults.KubeGatewayReporter,
+	)
+
+	output, err := s.TestInstallation.Actions.Kubectl().ApplyFileWithOutput(s.Ctx, manifestVhoWebhookReject)
+	s.TestInstallation.AssertionsT(s.T()).ExpectObjectAdmitted(manifestVhoWebhookReject, err, output,
+		"Validating *v1.VirtualHostOption failed")
 
 	if !s.TestInstallation.Metadata.ValidationAlwaysAccept {
 		s.TestInstallation.AssertionsT(s.T()).ExpectGlooObjectNotExist(

@@ -216,12 +216,10 @@ var (
 			},
 		},
 		"TestConfigureInvalidVirtualHostOptions": {
-			SimpleTestCase: base.SimpleTestCase{
-				Manifests: []string{manifestVhoRemoveXBar, manifestVhoWebhookReject},
-			},
+			// Has custom logic for applyingn invalid resources, so handle setup/cleanup in the test
 		},
 		"TestConfigureVirtualHostOptionsWithSectionNameManualSetup": {
-			// "Manual setup" so let the test handle it.
+			// "Manual setup", so handle setup/cleanup in the test
 		},
 		"TestMultipleVirtualHostOptionsSetup": {
 			SimpleTestCase: base.SimpleTestCase{
