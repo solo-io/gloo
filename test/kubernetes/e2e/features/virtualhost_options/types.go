@@ -216,7 +216,7 @@ var (
 			},
 		},
 		"TestConfigureInvalidVirtualHostOptions": {
-			// Has custom logic for applyingn invalid resources, so handle setup/cleanup in the test
+			// Has custom logic for applying and deleting invalid resources, so handle setup/cleanup in the test
 		},
 		"TestConfigureVirtualHostOptionsWithSectionNameManualSetup": {
 			// "Manual setup", so handle setup/cleanup in the test
@@ -233,7 +233,7 @@ var (
 		},
 		"TestDeletingConflictingVirtualHostOptions": {
 			SimpleTestCase: base.SimpleTestCase{
-				Manifests: []string{manifestVhoRemoveXBaz},
+				// This test has custom logic for applying and deleting resources, so handle setup/cleanup in the test
 			},
 		},
 		"TestOptionsMerge": {
