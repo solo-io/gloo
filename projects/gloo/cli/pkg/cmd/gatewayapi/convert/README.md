@@ -24,7 +24,7 @@ glooctl gateway-api convert --input-file gloo-yamls.yaml --output-dir ./_output
 glooctl gateway-api convert --input-dir ./gloo-configs --output-dir ./_output --retain-input-folder-structure
 ```
 
-* Generate Gateway API configurations from Gloo Gateway Input Snapshot
+* Generate Gateway API YAML files from a Gloo Gateway input snapshot.
 
 ```shell
 kubectl -n gloo-system port-forward deploy/gloo 9091
