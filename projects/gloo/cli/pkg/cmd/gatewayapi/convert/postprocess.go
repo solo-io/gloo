@@ -2,6 +2,7 @@ package convert
 
 import (
 	"fmt"
+	"github.com/solo-io/gloo/projects/gloo/cli/pkg/snapshot"
 	"strings"
 
 	"k8s.io/utils/ptr"
@@ -9,7 +10,6 @@ import (
 
 	"github.com/golang/protobuf/proto"
 	v1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
-	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/gatewayapi/convert/domain"
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
 )
 
@@ -25,7 +25,7 @@ func (g *GatewayAPIOutput) PostProcess(opts *Options) error {
 		g.combineRouteOptions()
 	}
 	if opts.IncludeUnknownResources {
-		g.gatewayAPICache.YamlObjects = g.edgeCache.YamlObjects
+		g.gatewayAPICache.YamlObjects = g.edgeCache.YAMLObjects()
 	}
 
 	// fix all the cel validation issues
@@ -52,7 +52,7 @@ func (g *GatewayAPIOutput) celValidationCorrections() error {
 
 func (g *GatewayAPIOutput) splitHTTPRouteRules() {
 	var httpRoutesToDelete []string
-	var updatedHTTPRoutes []*domain.HTTPRouteWrapper
+	var updatedHTTPRoutes []*snapshot.HTTPRouteWrapper
 	for httpRouteKey, httpRoute := range g.gatewayAPICache.HTTPRoutes {
 		if len(httpRoute.Spec.Rules) > 16 {
 			// listener set needs to be broken up into multiple
@@ -66,10 +66,7 @@ func (g *GatewayAPIOutput) splitHTTPRouteRules() {
 				newHTTPRoute := httpRoute.DeepCopy()
 				newHTTPRoute.Spec.Rules = entry
 				newHTTPRoute.Name = fmt.Sprintf("%s-%d", httpRoute.Name, i)
-				updatedHTTPRoutes = append(updatedHTTPRoutes, &domain.HTTPRouteWrapper{
-					HTTPRoute:        newHTTPRoute,
-					OriginalFileName: httpRoute.OriginalFileName,
-				})
+				updatedHTTPRoutes = append(updatedHTTPRoutes, snapshot.NewHTTPRouteWrapper(newHTTPRoute, httpRoute.FileOrigin()))
 			}
 		}
 	}
@@ -86,7 +83,7 @@ func (g *GatewayAPIOutput) splitHTTPRouteRules() {
 
 func (g *GatewayAPIOutput) splitListenerSets() {
 	var listenerSetsToDelete []string
-	var updatedListenerSets []*domain.ListenerSetWrapper
+	var updatedListenerSets []*snapshot.ListenerSetWrapper
 	for listenerSetKey, listenerSet := range g.gatewayAPICache.ListenerSets {
 		if len(listenerSet.Spec.Listeners) > 64 {
 			// listener set needs to be broken up into multiple
@@ -100,10 +97,7 @@ func (g *GatewayAPIOutput) splitListenerSets() {
 				newListenerSet := listenerSet.DeepCopy()
 				newListenerSet.Spec.Listeners = entry
 				newListenerSet.Name = fmt.Sprintf("%s-%d", listenerSet.Name, i)
-				updatedListenerSets = append(updatedListenerSets, &domain.ListenerSetWrapper{
-					XListenerSet:     newListenerSet,
-					OriginalFileName: listenerSet.OriginalFileName,
-				})
+				updatedListenerSets = append(updatedListenerSets, snapshot.NewListenerSetWrapper(newListenerSet, listenerSet.FileOrigin()))
 			}
 		}
 	}
@@ -136,7 +130,7 @@ func splitListeners(slice []v1alpha1.ListenerEntry, maxLen int) [][]v1alpha1.Lis
 }
 
 func (g *GatewayAPIOutput) fixRewritesPerMatch() {
-	var updatedHTTPRoutes []*domain.HTTPRouteWrapper
+	var updatedHTTPRoutes []*snapshot.HTTPRouteWrapper
 	for _, httpRoute := range g.gatewayAPICache.HTTPRoutes {
 		//
 		var updatedRules []gwv1.HTTPRouteRule
@@ -183,13 +177,13 @@ func (g *GatewayAPIOutput) fixRewritesPerMatch() {
 func (g *GatewayAPIOutput) finishDelegation() error {
 
 	// for all edge routetables we need to go and update labels on the httproutes to support delegation
-	updatedHTTPRoutes := map[string]*domain.HTTPRouteWrapper{}
-	for _, rtt := range g.edgeCache.RouteTables {
-		routesToUpdate := g.processRouteForDelegation(rtt.Spec.GetRoutes())
+	updatedHTTPRoutes := map[string]*snapshot.HTTPRouteWrapper{}
+	for _, rtt := range g.edgeCache.RouteTables() {
+		routesToUpdate := g.processRouteForDelegation(rtt.Spec.Routes)
 
 		for _, r := range routesToUpdate {
 			// check to see if we already matched on this httproute
-			updatedHTTPRoute, found := updatedHTTPRoutes[domain.NamespaceNameIndex(r.Namespace, r.Name)]
+			updatedHTTPRoute, found := updatedHTTPRoutes[snapshot.NameNamespaceIndex(r.Name, r.Namespace)]
 
 			if found {
 				delegateValue := updatedHTTPRoute.Labels["delegation.gateway.solo.io/label"]
@@ -198,15 +192,15 @@ func (g *GatewayAPIOutput) finishDelegation() error {
 					continue
 				}
 			}
-			updatedHTTPRoutes[domain.NamespaceNameIndex(r.Namespace, r.Name)] = r
+			updatedHTTPRoutes[snapshot.NameNamespaceIndex(r.Name, r.Namespace)] = r
 		}
 	}
-	for _, vs := range g.edgeCache.VirtualServices {
-		routesToUpdate := g.processRouteForDelegation(vs.Spec.GetVirtualHost().GetRoutes())
+	for _, vs := range g.edgeCache.VirtualServices() {
+		routesToUpdate := g.processRouteForDelegation(vs.Spec.VirtualHost.Routes)
 
 		for _, r := range routesToUpdate {
 			// check to see if we already matched on this httproute
-			updatedHTTPRoute, found := updatedHTTPRoutes[domain.NamespaceNameIndex(r.Namespace, r.Name)]
+			updatedHTTPRoute, found := updatedHTTPRoutes[snapshot.NameNamespaceIndex(r.Name, r.Namespace)]
 
 			if found {
 				delegateValue := updatedHTTPRoute.Labels["delegation.gateway.solo.io/label"]
@@ -215,7 +209,7 @@ func (g *GatewayAPIOutput) finishDelegation() error {
 					continue
 				}
 			}
-			updatedHTTPRoutes[domain.NamespaceNameIndex(r.Namespace, r.Name)] = r
+			updatedHTTPRoutes[snapshot.NameNamespaceIndex(r.Name, r.Namespace)] = r
 		}
 
 	}
@@ -226,8 +220,8 @@ func (g *GatewayAPIOutput) finishDelegation() error {
 	return nil
 }
 
-func (g *GatewayAPIOutput) processRouteForDelegation(routes []*v1.Route) []*domain.HTTPRouteWrapper {
-	var routesToUpdate []*domain.HTTPRouteWrapper
+func (g *GatewayAPIOutput) processRouteForDelegation(routes []*v1.Route) []*snapshot.HTTPRouteWrapper {
+	var routesToUpdate []*snapshot.HTTPRouteWrapper
 	for _, rt := range routes {
 		if rt.GetDelegateAction() != nil && rt.GetDelegateAction().GetSelector() != nil {
 			selector := rt.GetDelegateAction().GetSelector()
@@ -261,12 +255,12 @@ func (g *GatewayAPIOutput) processRouteForDelegation(routes []*v1.Route) []*doma
 	return routesToUpdate
 }
 
-func routeMatchSelector(route *domain.HTTPRouteWrapper, selector *v1.RouteTableSelector) (string, bool) {
+func routeMatchSelector(route *snapshot.HTTPRouteWrapper, selector *v1.RouteTableSelector) (string, bool) {
 
 	//check namespace first
-	if namespaceMatch(route.Namespace, selector.GetNamespaces()) {
+	if namespaceMatch(route.Namespace, selector.Namespaces) {
 		// check to see if any of the labels match the selector
-		for k, v := range selector.GetLabels() {
+		for k, v := range selector.Labels {
 			// see if the route has the label key in the selector
 			value, match := route.Labels[k]
 			if match {

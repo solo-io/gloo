@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
-
+"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/usage"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/gatewayapi"
 
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/add"
@@ -133,6 +133,7 @@ func CommandWithContext(ctx context.Context) *cobra.Command {
 			istio.RootCmd(opts),
 			gatewayapi.RootCmd(opts),
 			license.RootCmd(opts),
+			usage.RootCmd(opts),
 			initpluginmanager.Command(context.Background()),
 			// TODO: re-enable this when it's working again
 			// kubegateway.InstallCmd(opts),
