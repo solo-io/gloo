@@ -3,6 +3,7 @@ package convert
 import (
 	"context"
 	"fmt"
+	"github.com/solo-io/gloo/projects/gloo/cli/pkg/snapshot"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -80,14 +81,23 @@ func run(opts *Options) error {
 	filesMetrics.Add(float64(len(foundFiles)))
 
 	output := NewGatewayAPIOutput()
-	var isSnapshotFile bool
+	var inputSnapshot *snapshot.Instance
 	if opts.GlooSnapshotFile != "" {
-		isSnapshotFile = true
+		inputSnapshot, err = snapshot.FromGlooSnapshot(opts.GlooSnapshotFile)
+		if err != nil {
+			return err
+		}
+
+	} else {
+		// yaml files
+		// snapshot file
+		inputSnapshot, err = snapshot.FromYamlFiles(foundFiles)
+		if err != nil {
+			return err
+		}
 	}
 
-	if err := output.Load(foundFiles, isSnapshotFile); err != nil {
-		return err
-	}
+	output.edgeCache = inputSnapshot
 
 	fmt.Printf("Successfully loaded %d files\n", len(foundFiles))
 	// preprocessing

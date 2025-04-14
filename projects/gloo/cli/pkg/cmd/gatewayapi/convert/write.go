@@ -2,6 +2,7 @@ package convert
 
 import (
 	"fmt"
+	"github.com/solo-io/gloo/projects/gloo/cli/pkg/snapshot"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -10,7 +11,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/gatewayapi/convert/domain"
 	"sigs.k8s.io/yaml"
 )
 
@@ -246,7 +246,7 @@ func (g *GatewayAPIOutput) createNamespaces(dir string) error {
 	return nil
 }
 
-func writeObjectToFile(opts *Options, wrapper domain.Wrapper, stringBytes []byte) error {
+func writeObjectToFile(opts *Options, wrapper snapshot.Wrapper, stringBytes []byte) error {
 	splitFilesByNamespace := !opts.RetainFolderStructure
 	var err error
 	if splitFilesByNamespace {
@@ -257,7 +257,7 @@ func writeObjectToFile(opts *Options, wrapper domain.Wrapper, stringBytes []byte
 	}
 	if opts.RetainFolderStructure {
 		// retain original file name
-		if err := appendToFile(opts.OutputDir, wrapper.GetOriginalFileName(), stringBytes); err != nil {
+		if err := appendToFile(opts.OutputDir, wrapper.FileOrigin(), stringBytes); err != nil {
 			return err
 		}
 	} else {

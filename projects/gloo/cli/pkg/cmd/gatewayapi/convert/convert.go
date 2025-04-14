@@ -2,13 +2,13 @@ package convert
 
 import (
 	"fmt"
+	"github.com/solo-io/gloo/projects/gloo/cli/pkg/snapshot"
 	"strings"
 
 	gloogwv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	gatewaykube "github.com/solo-io/gloo/projects/gateway/pkg/api/v1/kube/apis/gateway.solo.io/v1"
 	"github.com/solo-io/gloo/projects/gateway2/api/v1alpha1"
 	"github.com/solo-io/gloo/projects/gateway2/wellknown"
-	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/gatewayapi/convert/domain"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
 	glookube "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/kube/apis/gloo.solo.io/v1"
@@ -22,7 +22,7 @@ import (
 
 func (g *GatewayAPIOutput) Convert() error {
 
-	for _, gateway := range g.edgeCache.Gateways {
+	for _, gateway := range g.edgeCache.GlooGateways() {
 		// We only translate virtual services for ones that match a gateway selector
 		// TODO in the future we could blindly convert VS and not attach it to anything
 		err := g.convertGatewayAndVirtualServices(gateway)
@@ -31,21 +31,21 @@ func (g *GatewayAPIOutput) Convert() error {
 		}
 	}
 
-	for _, routeTable := range g.edgeCache.RouteTables {
+	for _, routeTable := range g.edgeCache.RouteTables() {
 		err := g.convertRouteTableToHTTPRoute(routeTable)
 		if err != nil {
 			return err
 		}
 	}
 
-	for _, upstream := range g.edgeCache.Upstreams {
+	for _, upstream := range g.edgeCache.Upstreams() {
 		// Add all existing upstreams except for kube services which will be referenced directly
 		if upstream.Spec.GetKube() == nil {
 			g.gatewayAPICache.AddUpstream(upstream)
 		}
 	}
 
-	for _, settings := range g.edgeCache.Settings {
+	for _, settings := range g.edgeCache.Settings() {
 		g.gatewayAPICache.AddSettings(settings)
 	}
 
@@ -53,13 +53,13 @@ func (g *GatewayAPIOutput) Convert() error {
 	return nil
 }
 
-func (g *GatewayAPIOutput) convertGatewayAndVirtualServices(glooGateway *domain.GlooGatewayWrapper) error {
+func (g *GatewayAPIOutput) convertGatewayAndVirtualServices(glooGateway *snapshot.GlooGatewayWrapper) error {
 
 	// we first need to generate Gateway objects with the correct names based on proxy Names
 	// spec.proxyNames
 	g.generateGatewaysFromProxyNames(glooGateway)
 
-	gatewayVs, err := g.edgeCache.GlooGatewayContainsVirtualService(glooGateway)
+	gatewayVs, err := g.edgeCache.GlooGatewayVirtualServices(glooGateway)
 	if err != nil {
 		return err
 	}
@@ -67,12 +67,12 @@ func (g *GatewayAPIOutput) convertGatewayAndVirtualServices(glooGateway *domain.
 		g.AddErrorFromWrapper(ERROR_TYPE_NO_REFERENCES, glooGateway, "gateway does not contain virtual services")
 	}
 	for _, vs := range gatewayVs {
-		proxyNames := glooGateway.Spec.GetProxyNames()
+		proxyNames := glooGateway.Spec.ProxyNames
 		if len(proxyNames) == 0 {
 			proxyNames = append(proxyNames, "gateway-proxy")
 		}
 		for _, proxyName := range proxyNames {
-			listenerName := fmt.Sprintf("%s-%d-%s-%s", proxyName, glooGateway.Spec.GetBindPort(), vs.Name, vs.Namespace)
+			listenerName := fmt.Sprintf("%s-%d-%s-%s", proxyName, glooGateway.Spec.BindPort, vs.Name, vs.Namespace)
 			// convert the listener portion of the virtual service
 			if err := g.convertVirtualServiceListener(vs, glooGateway, listenerName, proxyName); err != nil {
 				return err
@@ -88,7 +88,7 @@ func (g *GatewayAPIOutput) convertGatewayAndVirtualServices(glooGateway *domain.
 	return nil
 }
 
-func (g *GatewayAPIOutput) convertVirtualServiceListener(vs *domain.VirtualServiceWrapper, glooGateway *domain.GlooGatewayWrapper, listenerName string, gatewayName string) error {
+func (g *GatewayAPIOutput) convertVirtualServiceListener(vs *snapshot.VirtualServiceWrapper, glooGateway *snapshot.GlooGatewayWrapper, listenerName string, gatewayName string) error {
 
 	// for each VirtualService generate a listener set given the gateway port
 	listenerSet := &apixv1a1.XListenerSet{
@@ -98,14 +98,14 @@ func (g *GatewayAPIOutput) convertVirtualServiceListener(vs *domain.VirtualServi
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      listenerName,
-			Namespace: vs.Namespace,
-			Labels:    vs.Labels,
+			Namespace: vs.GetNamespace(),
+			Labels:    vs.GetLabels(),
 		},
 		Spec: apixv1a1.ListenerSetSpec{
 			ParentRef: apixv1a1.ParentGatewayReference{
 				Group:     ptr.To(gwv1.Group(wellknown.GatewayGroup)),
 				Kind:      ptr.To(gwv1.Kind(wellknown.GatewayKind)),
-				Namespace: ptr.To(gwv1.Namespace(glooGateway.Namespace)),
+				Namespace: ptr.To(gwv1.Namespace(glooGateway.GetNamespace())),
 				Name:      gwv1.ObjectName(gatewayName),
 			},
 			Listeners: make([]apixv1a1.ListenerEntry, 0),
@@ -113,7 +113,7 @@ func (g *GatewayAPIOutput) convertVirtualServiceListener(vs *domain.VirtualServi
 	}
 
 	// we only create the listener part, not the http matchers
-	for _, hostname := range vs.Spec.GetVirtualHost().GetDomains() {
+	for _, hostname := range vs.Spec.VirtualHost.Domains {
 		if strings.Contains(hostname, ":") {
 			g.AddErrorFromWrapper(ERROR_TYPE_IGNORED, vs, "contains port in hostname %s, its being ignored for ListenerSet %s/%s", hostname, listenerSet.Namespace, listenerSet.Name)
 			continue
@@ -124,10 +124,10 @@ func (g *GatewayAPIOutput) convertVirtualServiceListener(vs *domain.VirtualServi
 		entry := apixv1a1.ListenerEntry{
 			Name:     gwv1.SectionName(listenerEntryName),
 			Hostname: ptr.To(gwv1.Hostname(hostname)),
-			Port:     apixv1a1.PortNumber(glooGateway.Spec.GetBindPort()),
+			Port:     apixv1a1.PortNumber(glooGateway.Spec.BindPort),
 			Protocol: gwv1.HTTPProtocolType,
 		}
-		if vs.Spec.GetSslConfig() != nil {
+		if vs.Spec.SslConfig != nil {
 			tlsConfig := g.generateTLSConfiguration(vs)
 			if tlsConfig != nil {
 				entry.TLS = tlsConfig
@@ -143,35 +143,31 @@ func (g *GatewayAPIOutput) convertVirtualServiceListener(vs *domain.VirtualServi
 		}
 		listenerSet.Spec.Listeners = append(listenerSet.Spec.Listeners, entry)
 	}
-	if vs.Spec.GetVirtualHost().GetOptionsConfigRefs() != nil && len(vs.Spec.GetVirtualHost().GetOptionsConfigRefs().GetDelegateOptions()) > 0 {
-		delegateOptions := vs.Spec.GetVirtualHost().GetOptionsConfigRefs().GetDelegateOptions()
+	if vs.Spec.VirtualHost.GetOptionsConfigRefs() != nil && len(vs.Spec.VirtualHost.GetOptionsConfigRefs().GetDelegateOptions()) > 0 {
+		delegateOptions := vs.Spec.VirtualHost.GetOptionsConfigRefs().GetDelegateOptions()
 		for _, delegateOption := range delegateOptions {
 			// check to see if this already exists in gatewayAPI cache, if not move it over from edge cache
-			vho, exists := g.gatewayAPICache.VirtualHostOptions[domain.NamespaceNameIndex(delegateOption.GetNamespace(), delegateOption.GetName())]
+			vho, exists := g.gatewayAPICache.VirtualHostOptions[snapshot.NameNamespaceIndex(delegateOption.Name, delegateOption.Namespace)]
 			if !exists {
-				vho, exists = g.edgeCache.VirtualHostOptions[domain.NamespaceNameIndex(delegateOption.GetNamespace(), delegateOption.GetName())]
+				vho, exists = g.edgeCache.VirtualHostOptions()[snapshot.NameNamespaceIndex(delegateOption.Name, delegateOption.Namespace)]
 				if !exists {
-					g.AddErrorFromWrapper(ERROR_TYPE_UNKNOWN_REFERENCE, vs, "references VirtualHostOption %s that does not exist", domain.NamespaceNameIndex(delegateOption.GetNamespace(), delegateOption.GetName()))
+					g.AddErrorFromWrapper(ERROR_TYPE_UNKNOWN_REFERENCE, vs, "references VirtualHostOption %s that does not exist", snapshot.NameNamespaceIndex(delegateOption.Name, delegateOption.Namespace))
 					continue
 				}
 			}
 			// add the target ref to the listener
-			vho.VirtualHostOption.Spec.TargetRefs = append(vho.VirtualHostOption.Spec.GetTargetRefs(), &v3.PolicyTargetReferenceWithSectionName{
+			vho.VirtualHostOption.Spec.TargetRefs = append(vho.VirtualHostOption.Spec.TargetRefs, &v3.PolicyTargetReferenceWithSectionName{
 				Group:     apixv1a1.GroupName,
 				Kind:      "XListenerSet",
 				Name:      listenerSet.Name,
 				Namespace: wrapperspb.String(listenerSet.Namespace),
 			})
-
-			g.gatewayAPICache.AddVirtualHostOption(&domain.VirtualHostOptionWrapper{
-				VirtualHostOption: vho.VirtualHostOption,
-				OriginalFileName:  vs.OriginalFileName,
-			})
+			g.gatewayAPICache.AddVirtualHostOption(snapshot.NewVirtualHostOptionWrapper(vho.VirtualHostOption, vs.FileOrigin()))
 		}
 	}
 
 	// we need to get the virtualhostoptions and update their references
-	if vs.Spec.GetVirtualHost().GetOptions() != nil {
+	if vs.Spec.VirtualHost.Options != nil {
 		// create a separate virtualhost option and link it
 		vho := &gatewaykube.VirtualHostOption{
 			TypeMeta: metav1.TypeMeta{
@@ -183,7 +179,7 @@ func (g *GatewayAPIOutput) convertVirtualServiceListener(vs *domain.VirtualServi
 				Namespace: listenerSet.Namespace,
 			},
 			Spec: gloogwv1.VirtualHostOption{
-				Options: vs.Spec.GetVirtualHost().GetOptions(),
+				Options: vs.Spec.VirtualHost.Options,
 				TargetRefs: []*v3.PolicyTargetReferenceWithSectionName{
 					{
 						Group:     apixv1a1.GroupName,
@@ -194,66 +190,58 @@ func (g *GatewayAPIOutput) convertVirtualServiceListener(vs *domain.VirtualServi
 				},
 			},
 		}
-		g.gatewayAPICache.AddVirtualHostOption(&domain.VirtualHostOptionWrapper{
-			VirtualHostOption: vho,
-			OriginalFileName:  vs.OriginalFileName,
-		})
+		g.gatewayAPICache.AddVirtualHostOption(snapshot.NewVirtualHostOptionWrapper(vho, vs.FileOrigin()))
 	}
-
-	g.gatewayAPICache.AddListenerSet(&domain.ListenerSetWrapper{
-		XListenerSet:     listenerSet,
-		OriginalFileName: vs.OriginalFileName,
-	})
+	g.gatewayAPICache.AddListenerSet(snapshot.NewListenerSetWrapper(listenerSet, vs.FileOrigin()))
 
 	return nil
 }
 
-func (g *GatewayAPIOutput) generateTLSConfiguration(vs *domain.VirtualServiceWrapper) *gwv1.GatewayTLSConfig {
+func (g *GatewayAPIOutput) generateTLSConfiguration(vs *snapshot.VirtualServiceWrapper) *gwv1.GatewayTLSConfig {
 	tlsConfig := &gwv1.GatewayTLSConfig{
 		Mode: ptr.To(gwv1.TLSModeTerminate),
 		//FrontendValidation: nil, // TODO do we need to set this?
 		//Options:            nil, // TODO do we need to set this?
 	}
-	if vs.Spec.GetSslConfig().GetSecretRef() != nil {
+	if vs.Spec.SslConfig.GetSecretRef() != nil {
 		tlsConfig.CertificateRefs = []gwv1.SecretObjectReference{
 			{
 				Group:     ptr.To(gwv1.Group("")),
 				Kind:      ptr.To(gwv1.Kind("Secret")),
-				Name:      gwv1.ObjectName(vs.Spec.GetSslConfig().GetSecretRef().GetName()),
-				Namespace: ptr.To(gwv1.Namespace(vs.Spec.GetSslConfig().GetSecretRef().GetNamespace())),
+				Name:      gwv1.ObjectName(vs.Spec.SslConfig.GetSecretRef().Name),
+				Namespace: ptr.To(gwv1.Namespace(vs.Spec.SslConfig.GetSecretRef().Namespace)),
 			},
 		}
 	}
 	// TODO There is a situation where a SSLSecret contains a ca.crt which triggers mTLS in Gloo Edge we have no way to determine this
 
-	if vs.Spec.GetSslConfig().GetSslFiles() != nil {
+	if vs.Spec.SslConfig.GetSslFiles() != nil {
 		g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, vs, "has SSLFiles but its not supported in Gateway API")
 	}
-	if vs.Spec.GetSslConfig().GetSds() != nil {
+	if vs.Spec.SslConfig.GetSds() != nil {
 		g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, vs, "has SDS Certificates but its not supported in Gateway API")
 	}
-	if len(vs.Spec.GetSslConfig().GetVerifySubjectAltName()) > 0 {
+	if len(vs.Spec.SslConfig.VerifySubjectAltName) > 0 {
 		g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, vs, "has VerifySubjectAltName but its not supported in Gateway API")
 	}
-	if len(vs.Spec.GetSslConfig().GetAlpnProtocols()) > 0 {
+	if len(vs.Spec.SslConfig.AlpnProtocols) > 0 {
 		g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, vs, "has AlpnProtocols but its not supported in Gateway API")
 	}
-	if vs.Spec.GetSslConfig().GetOcspStaplePolicy() > 0 {
-		g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, vs, "has OcspStaplePolicy %d but its not supported in Gateway API", vs.Spec.GetSslConfig().GetOcspStaplePolicy())
+	if vs.Spec.SslConfig.GetOcspStaplePolicy() > 0 {
+		g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, vs, "has OcspStaplePolicy %d but its not supported in Gateway API", vs.Spec.SslConfig.GetOcspStaplePolicy())
 	}
 	return tlsConfig
 }
 
-func (g *GatewayAPIOutput) generateGatewaysFromProxyNames(glooGateway *domain.GlooGatewayWrapper) {
+func (g *GatewayAPIOutput) generateGatewaysFromProxyNames(glooGateway *snapshot.GlooGatewayWrapper) {
 
-	proxyNames := glooGateway.Gateway.Spec.GetProxyNames()
+	proxyNames := glooGateway.Gateway.Spec.ProxyNames
 
 	if len(proxyNames) == 0 {
 		proxyNames = append(proxyNames, "gateway-proxy")
 	}
 
-	for _, proxyName := range glooGateway.Gateway.Spec.GetProxyNames() {
-		var gatewayWrapper *domain.GatewayWrapper
+	for _, proxyName := range glooGateway.Gateway.Spec.ProxyNames {
 		// check to see if we already created the Gateway, if we did then just move on
 		existingGw := g.gatewayAPICache.GetGateway(proxyName, glooGateway.Gateway.Namespace)
 		if existingGw == nil {
@@ -277,11 +265,7 @@ func (g *GatewayAPIOutput) generateGatewaysFromProxyNames(glooGateway *domain.Gl
 					GatewayClassName: "gloo-gateway",
 				},
 			}
-			gatewayWrapper = &domain.GatewayWrapper{
-				Gateway:          gwGateway,
-				OriginalFileName: glooGateway.OriginalFileName,
-			}
-			g.gatewayAPICache.AddGateway(gatewayWrapper)
+			g.gatewayAPICache.AddGateway(snapshot.NewGatewayWrapper(gwGateway, glooGateway.FileOrigin()))
 		}
 		if glooGateway.Spec.GetHttpGateway() != nil && glooGateway.Spec.GetHttpGateway().GetOptions() != nil {
 			g.convertHTTPListenerOptions(glooGateway, proxyName)
@@ -292,7 +276,7 @@ func (g *GatewayAPIOutput) generateGatewaysFromProxyNames(glooGateway *domain.Gl
 	}
 }
 
-func (g *GatewayAPIOutput) convertListenerOptions(glooGateway *domain.GlooGatewayWrapper, proxyName string) {
+func (g *GatewayAPIOutput) convertListenerOptions(glooGateway *snapshot.GlooGatewayWrapper, proxyName string) {
 	options := glooGateway.Spec.GetOptions()
 	listenerOption := &gatewaykube.ListenerOption{
 		TypeMeta: metav1.TypeMeta{
@@ -300,8 +284,8 @@ func (g *GatewayAPIOutput) convertListenerOptions(glooGateway *domain.GlooGatewa
 			APIVersion: gatewaykube.SchemeGroupVersion.String(),
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      glooGateway.Name,
-			Namespace: glooGateway.Namespace,
+			Name:      glooGateway.GetName(),
+			Namespace: glooGateway.GetNamespace(),
 			Labels:    glooGateway.Gateway.Labels,
 		},
 		Spec: gloogwv1.ListenerOption{
@@ -309,20 +293,17 @@ func (g *GatewayAPIOutput) convertListenerOptions(glooGateway *domain.GlooGatewa
 		},
 	}
 
-	listenerOption.Spec.TargetRefs = append(listenerOption.Spec.GetTargetRefs(), &v3.PolicyTargetReferenceWithSectionName{
+	listenerOption.Spec.TargetRefs = append(listenerOption.Spec.TargetRefs, &v3.PolicyTargetReferenceWithSectionName{
 		Group:     gwv1.GroupVersion.Group,
 		Kind:      "Gateway",
 		Name:      proxyName,
-		Namespace: wrapperspb.String(glooGateway.Namespace),
+		Namespace: wrapperspb.String(glooGateway.GetNamespace()),
 	})
 
-	g.gatewayAPICache.AddListenerOption(&domain.ListenerOptionWrapper{
-		ListenerOption:   listenerOption,
-		OriginalFileName: glooGateway.OriginalFileName,
-	})
+	g.gatewayAPICache.AddListenerOption(snapshot.NewListenerOptionWrapper(listenerOption, glooGateway.FileOrigin()))
 }
 
-func (g *GatewayAPIOutput) convertHTTPListenerOptions(glooGateway *domain.GlooGatewayWrapper, proxyName string) {
+func (g *GatewayAPIOutput) convertHTTPListenerOptions(glooGateway *snapshot.GlooGatewayWrapper, proxyName string) {
 	options := glooGateway.Spec.GetHttpGateway().GetOptions()
 	listenerOption := &gatewaykube.HttpListenerOption{
 		TypeMeta: metav1.TypeMeta{
@@ -330,8 +311,8 @@ func (g *GatewayAPIOutput) convertHTTPListenerOptions(glooGateway *domain.GlooGa
 			APIVersion: gatewaykube.SchemeGroupVersion.String(),
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      glooGateway.Name,
-			Namespace: glooGateway.Namespace,
+			Name:      glooGateway.GetName(),
+			Namespace: glooGateway.GetNamespace(),
 			Labels:    glooGateway.Gateway.Labels,
 		},
 		Spec: gloogwv1.HttpListenerOption{
@@ -339,20 +320,17 @@ func (g *GatewayAPIOutput) convertHTTPListenerOptions(glooGateway *domain.GlooGa
 		},
 	}
 
-	listenerOption.Spec.TargetRefs = append(listenerOption.Spec.GetTargetRefs(), &v3.PolicyTargetReferenceWithSectionName{
+	listenerOption.Spec.TargetRefs = append(listenerOption.Spec.TargetRefs, &v3.PolicyTargetReferenceWithSectionName{
 		Group:     gwv1.GroupVersion.Group,
 		Kind:      "Gateway",
 		Name:      proxyName,
-		Namespace: wrapperspb.String(glooGateway.Namespace),
+		Namespace: wrapperspb.String(glooGateway.GetNamespace()),
 	})
 
-	g.gatewayAPICache.AddHTTPListenerOption(&domain.HTTPListenerOptionWrapper{
-		HttpListenerOption: listenerOption,
-		OriginalFileName:   glooGateway.OriginalFileName,
-	})
+	g.gatewayAPICache.AddHTTPListenerOption(snapshot.NewHTTPListenerOptionWrapper(listenerOption, glooGateway.FileOrigin()))
 }
 
-func (g *GatewayAPIOutput) convertVirtualServiceHTTPRoutes(vs *domain.VirtualServiceWrapper, glooGateway *domain.GlooGatewayWrapper, listenerName string) error {
+func (g *GatewayAPIOutput) convertVirtualServiceHTTPRoutes(vs *snapshot.VirtualServiceWrapper, glooGateway *snapshot.GlooGatewayWrapper, listenerName string) error {
 
 	hr := &gwv1.HTTPRoute{
 		TypeMeta: metav1.TypeMeta{
@@ -360,27 +338,27 @@ func (g *GatewayAPIOutput) convertVirtualServiceHTTPRoutes(vs *domain.VirtualSer
 			APIVersion: gwv1.GroupVersion.String(),
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      vs.Name,
-			Namespace: vs.Namespace,
-			Labels:    vs.Labels,
+			Name:      vs.GetName(),
+			Namespace: vs.GetNamespace(),
+			Labels:    vs.GetLabels(),
 		},
 		Spec: gwv1.HTTPRouteSpec{
 			CommonRouteSpec: gwv1.CommonRouteSpec{
 				ParentRefs: []gwv1.ParentReference{
 					{
 						Name:      gwv1.ObjectName(listenerName),
-						Namespace: ptr.To(gwv1.Namespace(glooGateway.Namespace)),
+						Namespace: ptr.To(gwv1.Namespace(glooGateway.GetNamespace())),
 						Kind:      ptr.To(gwv1.Kind("XListenerSet")),
 						Group:     ptr.To(gwv1.Group(apixv1a1.GroupVersion.Group)),
 					},
 				},
 			},
-			Hostnames: convertDomains(vs.Spec.GetVirtualHost().GetDomains()),
+			Hostnames: convertDomains(vs.Spec.VirtualHost.Domains),
 			Rules:     []gwv1.HTTPRouteRule{},
 		},
 	}
 
-	for _, route := range vs.Spec.GetVirtualHost().GetRoutes() {
+	for _, route := range vs.Spec.VirtualHost.Routes {
 		rule, err := g.convertRouteToRule(route, vs)
 		if err != nil {
 			return err
@@ -388,10 +366,7 @@ func (g *GatewayAPIOutput) convertVirtualServiceHTTPRoutes(vs *domain.VirtualSer
 		hr.Spec.Rules = append(hr.Spec.Rules, rule)
 	}
 
-	g.gatewayAPICache.AddHTTPRoute(&domain.HTTPRouteWrapper{
-		HTTPRoute:        hr,
-		OriginalFileName: vs.OriginalFileName,
-	})
+	g.gatewayAPICache.AddHTTPRoute(snapshot.NewHTTPRouteWrapper(hr, vs.FileOrigin()))
 
 	return nil
 }
@@ -399,7 +374,7 @@ func (g *GatewayAPIOutput) convertVirtualServiceHTTPRoutes(vs *domain.VirtualSer
 func (g *GatewayAPIOutput) convertRouteOptions(
 	options *gloov1.RouteOptions,
 	routeName string,
-	wrapper domain.Wrapper,
+	wrapper snapshot.Wrapper,
 ) (*gatewaykube.RouteOption, *gwv1.HTTPRouteFilter) {
 
 	var ro *gatewaykube.RouteOption
@@ -442,7 +417,7 @@ func (g *GatewayAPIOutput) convertRouteOptions(
 		if options.GetExtauth() != nil && options.GetExtauth().GetConfigRef() != nil {
 			// we need to copy over the auth config ref if it exists
 			ref := options.GetExtauth().GetConfigRef()
-			ac, exists := g.edgeCache.AuthConfigs[domain.NamespaceNameIndex(ref.GetNamespace(), ref.GetName())]
+			ac, exists := g.edgeCache.AuthConfigs()[snapshot.NameNamespaceIndex(ref.GetName(), ref.GetNamespace())]
 			if !exists {
 				g.AddErrorFromWrapper(ERROR_TYPE_UNKNOWN_REFERENCE, wrapper, "did not find AuthConfig %s/%s for delegated route option reference", ref.GetName(), ref.GetNamespace())
 			}
@@ -452,7 +427,7 @@ func (g *GatewayAPIOutput) convertRouteOptions(
 	return ro, filter
 }
 
-func (g *GatewayAPIOutput) convertRouteToRule(r *gloogwv1.Route, wrapper domain.Wrapper) (gwv1.HTTPRouteRule, error) {
+func (g *GatewayAPIOutput) convertRouteToRule(r *gloogwv1.Route, wrapper snapshot.Wrapper) (gwv1.HTTPRouteRule, error) {
 
 	rr := gwv1.HTTPRouteRule{
 		Matches:     []gwv1.HTTPRouteMatch{},
@@ -461,14 +436,14 @@ func (g *GatewayAPIOutput) convertRouteToRule(r *gloogwv1.Route, wrapper domain.
 	}
 
 	// unused fields
-	if r.GetInheritablePathMatchers() != nil && r.GetInheritablePathMatchers().GetValue() == true {
+	if r.GetInheritablePathMatchers() != nil && r.GetInheritablePathMatchers().Value == true {
 		g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "has inheritable path matchers but there is not equivalent in Gateway API")
 	}
-	if r.GetInheritableMatchers() != nil && r.GetInheritableMatchers().GetValue() == true {
+	if r.GetInheritableMatchers() != nil && r.GetInheritableMatchers().Value == true {
 		g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "has inheritable matchers but there is not equivalent in Gateway API")
 	}
 
-	for _, m := range r.GetMatchers() {
+	for _, m := range r.Matchers {
 		match, err := g.convertMatch(m, wrapper)
 		if err != nil {
 			return rr, err
@@ -486,15 +461,12 @@ func (g *GatewayAPIOutput) convertRouteToRule(r *gloogwv1.Route, wrapper domain.
 			}
 		}
 
-		ro, filter := g.convertRouteOptions(options, r.GetName(), wrapper)
+		ro, filter := g.convertRouteOptions(options, r.Name, wrapper)
 		if filter != nil {
 			rr.Filters = append(rr.Filters, *filter)
 		}
 		if ro != nil {
-			g.gatewayAPICache.AddRouteOption(&domain.RouteOptionWrapper{
-				RouteOption:      ro,
-				OriginalFileName: wrapper.GetOriginalFileName(),
-			})
+			g.gatewayAPICache.AddRouteOption(snapshot.NewRouteOptionWrapper(ro, wrapper.FileOrigin()))
 		}
 	}
 	// Process Route_Actions
@@ -509,7 +481,7 @@ func (g *GatewayAPIOutput) convertRouteToRule(r *gloogwv1.Route, wrapper domain.
 
 		}
 		if r.GetRouteAction().GetMulti() != nil {
-			g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "has multi destination action set but there is not equivalent in Gateway API")
+			g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "has multi detination action set but there is not equivalent in Gateway API")
 		}
 
 		if r.GetRouteAction().GetSingle() != nil {
@@ -537,17 +509,14 @@ func (g *GatewayAPIOutput) convertRouteToRule(r *gloogwv1.Route, wrapper domain.
 		dr := convertDirectResponse(r.GetDirectResponseAction())
 		if dr != nil {
 			//TODO(nick) what if route name is nil?
-			rName := r.GetName()
+			rName := r.Name
 			if rName == "" {
 				rName = RandStringRunes(6)
 			}
 			drName := fmt.Sprintf("directresponse-%s-%s", wrapper.GetName(), rName)
 			dr.Name = drName
 			dr.Namespace = wrapper.GetNamespace()
-			g.gatewayAPICache.AddDirectResponse(&domain.DirectResponseWrapper{
-				DirectResponse:   dr,
-				OriginalFileName: wrapper.GetOriginalFileName(),
-			})
+			g.gatewayAPICache.AddDirectResponse(snapshot.NewDirectResponseWrapper(dr, wrapper.FileOrigin()))
 
 			rr.Filters = append(rr.Filters, gwv1.HTTPRouteFilter{
 				Type: "ExtensionRef",
@@ -571,11 +540,11 @@ func (g *GatewayAPIOutput) convertRouteToRule(r *gloogwv1.Route, wrapper domain.
 		}
 	}
 
-	if r.GetOptionsConfigRefs() != nil && len(r.GetOptionsConfigRefs().GetDelegateOptions()) > 0 {
+	if r.GetOptionsConfigRefs() != nil && len(r.GetOptionsConfigRefs().DelegateOptions) > 0 {
 		// these are references to other RouteOptions, we need to add them
 
-		for _, delegateOptions := range r.GetOptionsConfigRefs().GetDelegateOptions() {
-			if delegateOptions.GetNamespace() != wrapper.GetNamespace() {
+		for _, delegateOptions := range r.GetOptionsConfigRefs().DelegateOptions {
+			if delegateOptions.Namespace != wrapper.GetNamespace() {
 				g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "delegates to route options not in same namespace (this does not work in Gateway API)")
 			}
 			rr.Filters = append(rr.Filters, gwv1.HTTPRouteFilter{
@@ -583,11 +552,11 @@ func (g *GatewayAPIOutput) convertRouteToRule(r *gloogwv1.Route, wrapper domain.
 				ExtensionRef: &gwv1.LocalObjectReference{
 					Group: glookube.GroupName,
 					Kind:  "RouteOption",
-					Name:  gwv1.ObjectName(delegateOptions.GetName()),
+					Name:  gwv1.ObjectName(delegateOptions.Name),
 				},
 			})
 			// grab that route option and add it to the cache
-			ro, exists := g.edgeCache.RouteOptions[domain.NamespaceNameIndex(delegateOptions.GetNamespace(), delegateOptions.GetName())]
+			ro, exists := g.edgeCache.RouteOptions()[snapshot.NameNamespaceIndex(delegateOptions.GetName(), delegateOptions.GetNamespace())]
 			if !exists {
 				g.AddErrorFromWrapper(ERROR_TYPE_UNKNOWN_REFERENCE, wrapper, "did not find RouteOption %s/%s for delegated route option reference", delegateOptions.GetNamespace(), delegateOptions.GetName())
 			}
@@ -596,7 +565,7 @@ func (g *GatewayAPIOutput) convertRouteToRule(r *gloogwv1.Route, wrapper domain.
 			if ro.Spec.GetOptions() != nil && ro.Spec.GetOptions().GetExtauth() != nil && ro.Spec.GetOptions().GetExtauth().GetConfigRef() != nil {
 				// we need to copy over the auth config ref if it exists
 				ref := ro.Spec.GetOptions().GetExtauth().GetConfigRef()
-				ac, exists := g.edgeCache.AuthConfigs[domain.NamespaceNameIndex(ref.GetNamespace(), ref.GetName())]
+				ac, exists := g.edgeCache.AuthConfigs()[snapshot.NameNamespaceIndex(ref.GetName(), ref.GetNamespace())]
 				if !exists {
 					g.AddErrorFromWrapper(ERROR_TYPE_UNKNOWN_REFERENCE, ro, "did not find AuthConfig %s/%s for delegated route option reference", ref.GetName(), ref.GetNamespace())
 				}
@@ -608,14 +577,14 @@ func (g *GatewayAPIOutput) convertRouteToRule(r *gloogwv1.Route, wrapper domain.
 	return rr, nil
 }
 
-func (g *GatewayAPIOutput) convertRedirect(r *gloogwv1.Route, wrapper domain.Wrapper) *gwv1.HTTPRequestRedirectFilter {
+func (g *GatewayAPIOutput) convertRedirect(r *gloogwv1.Route, wrapper snapshot.Wrapper) *gwv1.HTTPRequestRedirectFilter {
 	rdf := &gwv1.HTTPRequestRedirectFilter{}
 
 	action := r.GetRedirectAction()
-	if action.GetHttpsRedirect() {
+	if action.HttpsRedirect {
 		rdf.Scheme = ptr.To("https")
 	}
-	if action.GetStripQuery() {
+	if action.StripQuery {
 		g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "has stripQuery redirect action but there is not equivalent in Gateway API")
 	}
 	if action.GetRegexRewrite() != nil {
@@ -654,7 +623,7 @@ func (g *GatewayAPIOutput) convertRedirect(r *gloogwv1.Route, wrapper domain.Wra
 	}
 
 	if action.GetPortRedirect() != nil {
-		rdf.Port = ptr.To(gwv1.PortNumber(action.GetPortRedirect().GetValue()))
+		rdf.Port = ptr.To(gwv1.PortNumber(action.GetPortRedirect().Value))
 	}
 
 	switch action.GetResponseCode() {
@@ -684,8 +653,8 @@ func convertDirectResponse(action *gloov1.DirectResponseAction) *v1alpha1.Direct
 		},
 		ObjectMeta: metav1.ObjectMeta{},
 		Spec: v1alpha1.DirectResponseSpec{
-			StatusCode: action.GetStatus(),
-			Body:       action.GetBody(),
+			StatusCode: action.Status,
+			Body:       action.Body,
 		},
 	}
 
@@ -694,7 +663,7 @@ func convertDirectResponse(action *gloov1.DirectResponseAction) *v1alpha1.Direct
 
 func (g *GatewayAPIOutput) generateBackendRefForDelegateAction(
 	r *gloogwv1.Route,
-	wrapper domain.Wrapper,
+	wrapper snapshot.Wrapper,
 ) []*gwv1.HTTPBackendRef {
 	var backends []*gwv1.HTTPBackendRef
 	if r.GetDelegateAction().GetRef() != nil {
@@ -719,16 +688,16 @@ func (g *GatewayAPIOutput) generateBackendRefForDelegateAction(
 			namespaces = []string{"gloo-system"}
 		}
 
-		for _, namespace := range selector.GetNamespaces() {
+		for _, namespace := range selector.Namespaces {
 			if namespace == "*" {
 				namespace = "all"
 			}
 
-			if len(selector.GetLabels()) > 1 {
+			if len(selector.Labels) > 1 {
 				g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "has delegate action with more than one label selector which is not supported in Gateway API")
 			}
 			// create a backend ref for each label
-			for _, v := range selector.GetLabels() {
+			for _, v := range selector.Labels {
 				// just grab the first label
 				backendRef := &gwv1.HTTPBackendRef{
 					BackendRef: gwv1.BackendRef{
@@ -749,7 +718,7 @@ func (g *GatewayAPIOutput) generateBackendRefForDelegateAction(
 	return backends
 }
 
-func (g *GatewayAPIOutput) generateFilterForURLRewrite(r *gloogwv1.Route, wrapper domain.Wrapper) *gwv1.HTTPRouteFilter {
+func (g *GatewayAPIOutput) generateFilterForURLRewrite(r *gloogwv1.Route, wrapper snapshot.Wrapper) *gwv1.HTTPRouteFilter {
 
 	rf := &gwv1.HTTPRouteFilter{
 		Type: gwv1.HTTPRouteFilterURLRewrite,
@@ -763,7 +732,7 @@ func (g *GatewayAPIOutput) generateFilterForURLRewrite(r *gloogwv1.Route, wrappe
 	}
 	if match {
 		rf.URLRewrite.Path.Type = gwv1.FullPathHTTPPathModifier
-		rf.URLRewrite.Path.ReplaceFullPath = ptr.To(r.GetOptions().GetPrefixRewrite().GetValue())
+		rf.URLRewrite.Path.ReplaceFullPath = ptr.To(r.GetOptions().GetPrefixRewrite().Value)
 		rf.URLRewrite.Path.ReplacePrefixMatch = nil
 	}
 	match, err = isPrefixMatch(r.GetMatchers())
@@ -773,7 +742,7 @@ func (g *GatewayAPIOutput) generateFilterForURLRewrite(r *gloogwv1.Route, wrappe
 
 	if match {
 		rf.URLRewrite.Path.Type = gwv1.PrefixMatchHTTPPathModifier
-		rf.URLRewrite.Path.ReplacePrefixMatch = ptr.To(r.GetOptions().GetPrefixRewrite().GetValue())
+		rf.URLRewrite.Path.ReplacePrefixMatch = ptr.To(r.GetOptions().GetPrefixRewrite().Value)
 		rf.URLRewrite.Path.ReplaceFullPath = nil
 	}
 
@@ -794,19 +763,19 @@ func (g *GatewayAPIOutput) generateFilterForURLRewrite(r *gloogwv1.Route, wrappe
 }
 
 // Converts a single upstream to a GatewayAPI backend ref
-func (g *GatewayAPIOutput) generateBackendRefForSingleUpstream(r *gloogwv1.Route, wrapper domain.Wrapper) gwv1.HTTPBackendRef {
+func (g *GatewayAPIOutput) generateBackendRefForSingleUpstream(r *gloogwv1.Route, wrapper snapshot.Wrapper) gwv1.HTTPBackendRef {
 	upstream := r.GetRouteAction().GetSingle().GetUpstream()
 	var backendRef gwv1.HTTPBackendRef
 
 	//TODO we need to lookup the upstream to see if its kube and then just reference kube directly
-	var up *domain.UpstreamWrapper
+	var up *snapshot.UpstreamWrapper
 	//if it is not a kube service or does not need http2
-	var upstreamNs = upstream.GetNamespace()
+	var upstreamNs = upstream.Namespace
 	if upstreamNs == "" {
 		upstreamNs = wrapper.GetNamespace()
 	}
 
-	up = g.edgeCache.GetUpstream(upstreamNs, upstream.GetName())
+	up = g.edgeCache.GetUpstream(upstream.GetName(), upstreamNs)
 
 	if up == nil {
 		// unknown reference to backend
@@ -834,15 +803,15 @@ func (g *GatewayAPIOutput) generateBackendRefForSingleUpstream(r *gloogwv1.Route
 				},
 			},
 		}
-	} else if up.Spec.GetKube() != nil && up.Spec.GetUseHttp2() != nil && up.Spec.GetUseHttp2().GetValue() == true {
-		g.AddErrorFromWrapper(ERROR_TYPE_UPDATE_OBJECT, wrapper, "service %s/%s uses http2, update its k8s service appProtocol=http2", up.Spec.GetKube().GetServiceNamespace(), up.Spec.GetKube().GetServiceName())
+	} else if up.Spec.GetKube() != nil && up.Spec.GetUseHttp2() != nil && up.Spec.GetUseHttp2().Value == true {
+		g.AddErrorFromWrapper(ERROR_TYPE_UPDATE_OBJECT, wrapper, "service %s/%s uses http2, update its k8s service appProtocol=http2", up.Spec.GetKube().ServiceNamespace, up.Spec.GetKube().ServiceName)
 		// normal backend ref but let the user know htey need to annotate their service
 		backendRef = gwv1.HTTPBackendRef{
 			BackendRef: gwv1.BackendRef{
 				BackendObjectReference: gwv1.BackendObjectReference{
-					Name:      gwv1.ObjectName(up.Spec.GetKube().GetServiceName()),
-					Namespace: (*gwv1.Namespace)(ptr.To(up.Spec.GetKube().GetServiceNamespace())),
-					Port:      ptr.To(gwv1.PortNumber(int32(up.Spec.GetKube().GetServicePort()))),
+					Name:      gwv1.ObjectName(up.Spec.GetKube().ServiceName),
+					Namespace: (*gwv1.Namespace)(ptr.To(up.Spec.GetKube().ServiceNamespace)),
+					Port:      ptr.To(gwv1.PortNumber(int32(up.Spec.GetKube().ServicePort))),
 				},
 			},
 		}
@@ -851,9 +820,9 @@ func (g *GatewayAPIOutput) generateBackendRefForSingleUpstream(r *gloogwv1.Route
 		backendRef = gwv1.HTTPBackendRef{
 			BackendRef: gwv1.BackendRef{
 				BackendObjectReference: gwv1.BackendObjectReference{
-					Name:      gwv1.ObjectName(up.Spec.GetKube().GetServiceName()),
-					Namespace: (*gwv1.Namespace)(ptr.To(up.Spec.GetKube().GetServiceNamespace())),
-					Port:      ptr.To(gwv1.PortNumber(int32(up.Spec.GetKube().GetServicePort()))),
+					Name:      gwv1.ObjectName(up.Spec.GetKube().ServiceName),
+					Namespace: (*gwv1.Namespace)(ptr.To(up.Spec.GetKube().ServiceNamespace)),
+					Port:      ptr.To(gwv1.PortNumber(int32(up.Spec.GetKube().ServicePort))),
 				},
 			},
 		}
@@ -867,45 +836,45 @@ func (g *GatewayAPIOutput) generateBackendRefForSingleUpstream(r *gloogwv1.Route
 			ExtensionRef: &gwv1.LocalObjectReference{
 				Kind:  "Parameter",
 				Group: glookube.GroupName,
-				Name:  (gwv1.ObjectName)(r.GetRouteAction().GetSingle().GetDestinationSpec().GetAws().GetLogicalName()),
+				Name:  (gwv1.ObjectName)(r.GetRouteAction().GetSingle().GetDestinationSpec().GetAws().LogicalName),
 			},
 		})
 	}
 	return backendRef
 }
 
-func (g *GatewayAPIOutput) convertMatch(m *matchers.Matcher, wrapper domain.Wrapper) (gwv1.HTTPRouteMatch, error) {
+func (g *GatewayAPIOutput) convertMatch(m *matchers.Matcher, wrapper snapshot.Wrapper) (gwv1.HTTPRouteMatch, error) {
 	hrm := gwv1.HTTPRouteMatch{
 		QueryParams: []gwv1.HTTPQueryParamMatch{},
 	}
 
 	// header matching
-	if len(m.GetHeaders()) > 0 {
+	if len(m.Headers) > 0 {
 		hrm.Headers = []gwv1.HTTPHeaderMatch{}
-		for _, h := range m.GetHeaders() {
+		for _, h := range m.Headers {
 			// support invert header match https://github.com/solo-io/gloo/blob/main/projects/gateway2/translator/httproute/gateway_http_route_translator.go#L274
-			if h.GetInvertMatch() == true {
+			if h.InvertMatch == true {
 				g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "invert match not currently supported")
 			}
-			if h.GetRegex() {
+			if h.Regex {
 				hrm.Headers = append(hrm.Headers, gwv1.HTTPHeaderMatch{
 					Type:  ptr.To(gwv1.HeaderMatchRegularExpression),
-					Value: h.GetValue(),
-					Name:  gwv1.HTTPHeaderName(h.GetName()),
+					Value: h.Value,
+					Name:  gwv1.HTTPHeaderName(h.Name),
 				})
 			} else {
-				if h.GetValue() == "" {
+				if h.Value == "" {
 					// no header value set so any value is good
 					hrm.Headers = append(hrm.Headers, gwv1.HTTPHeaderMatch{
 						Type:  ptr.To(gwv1.HeaderMatchRegularExpression),
 						Value: "*",
-						Name:  gwv1.HTTPHeaderName(h.GetName()),
+						Name:  gwv1.HTTPHeaderName(h.Name),
 					})
 				} else {
 					hrm.Headers = append(hrm.Headers, gwv1.HTTPHeaderMatch{
 						Type:  ptr.To(gwv1.HeaderMatchExact),
-						Value: h.GetValue(),
-						Name:  gwv1.HTTPHeaderName(h.GetName()),
+						Value: h.Value,
+						Name:  gwv1.HTTPHeaderName(h.Name),
 					})
 				}
 			}
@@ -914,27 +883,27 @@ func (g *GatewayAPIOutput) convertMatch(m *matchers.Matcher, wrapper domain.Wrap
 	}
 
 	// method matching
-	if len(m.GetMethods()) > 0 {
-		if len(m.GetMethods()) > 1 {
+	if len(m.Methods) > 0 {
+		if len(m.Methods) > 1 {
 			g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "gateway API only supports 1 method match per rule and %d were detected")
 		}
-		hrm.Method = (*gwv1.HTTPMethod)(ptr.To(strings.ToUpper(m.GetMethods()[0])))
+		hrm.Method = (*gwv1.HTTPMethod)(ptr.To(strings.ToUpper(m.Methods[0])))
 	}
 
 	// query param matching
-	if len(m.GetQueryParameters()) > 0 {
-		for _, m := range m.GetQueryParameters() {
-			if m.GetRegex() {
+	if len(m.QueryParameters) > 0 {
+		for _, m := range m.QueryParameters {
+			if m.Regex {
 				hrm.QueryParams = append(hrm.QueryParams, gwv1.HTTPQueryParamMatch{
 					Type:  ptr.To(gwv1.QueryParamMatchRegularExpression),
-					Name:  (gwv1.HTTPHeaderName)(m.GetName()),
-					Value: m.GetValue(),
+					Name:  (gwv1.HTTPHeaderName)(m.Name),
+					Value: m.Value,
 				})
 			} else {
 				hrm.QueryParams = append(hrm.QueryParams, gwv1.HTTPQueryParamMatch{
 					Type:  ptr.To(gwv1.QueryParamMatchExact),
-					Name:  (gwv1.HTTPHeaderName)(m.GetName()),
-					Value: m.GetValue(),
+					Name:  (gwv1.HTTPHeaderName)(m.Name),
+					Value: m.Value,
 				})
 			}
 		}
@@ -964,7 +933,7 @@ func (g *GatewayAPIOutput) convertMatch(m *matchers.Matcher, wrapper domain.Wrap
 	return hrm, nil
 }
 
-func (g *GatewayAPIOutput) convertRouteTableToHTTPRoute(rt *domain.RouteTableWrapper) error {
+func (g *GatewayAPIOutput) convertRouteTableToHTTPRoute(rt *snapshot.RouteTableWrapper) error {
 
 	hr := &gwv1.HTTPRoute{
 		TypeMeta: metav1.TypeMeta{
@@ -982,21 +951,18 @@ func (g *GatewayAPIOutput) convertRouteTableToHTTPRoute(rt *domain.RouteTableWra
 			Rules: []gwv1.HTTPRouteRule{},
 		},
 	}
-	if rt.Spec.GetWeight() != nil {
+	if rt.Spec.Weight != nil {
 		g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, rt, "has weight set but there is no equivalent in Gateway API")
 	}
 
-	for _, route := range rt.Spec.GetRoutes() {
+	for _, route := range rt.Spec.Routes {
 		rule, err := g.convertRouteToRule(route, rt)
 		if err != nil {
 			return err
 		}
 		hr.Spec.Rules = append(hr.Spec.Rules, rule)
 	}
-	g.gatewayAPICache.AddHTTPRoute(&domain.HTTPRouteWrapper{
-		HTTPRoute:        hr,
-		OriginalFileName: rt.OriginalFileName,
-	})
+	g.gatewayAPICache.AddHTTPRoute(snapshot.NewHTTPRouteWrapper(hr, rt.FileOrigin()))
 
 	return nil
 }
