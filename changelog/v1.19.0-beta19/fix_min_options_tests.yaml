@@ -1,0 +1,9 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/solo-projects/issues/7886
+    resolvesIssue: false
+    description: >-
+      "Fix tests to apply different resources based on whether the XListenerSet CRD is present"
+  - type: NON_USER_FACING
+    description: Followup to address review comments in https://github.com/solo-io/gloo/pull/10713
+
