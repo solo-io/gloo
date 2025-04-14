@@ -1,7 +1,7 @@
 # glooctl gateway-api convert 
 A CLI tool to migrate from Gloo Edge APIs to Gateway API
 
-The CLI accepts a single kubernetes yaml file, can scan an entire directory for yaml files, or Gloo input snapshot.
+The CLI accepts a single Kubernetes YAML file or a Gloo Gateway input snapshot. It can also scan an entire directory to find Gloo Gateway YAML files that use the Gloo Edge API. 
 
 ## Requirements
 * Gloo Gateway and VirtualService objects must be provided and correctly associated for conversion. The tool matches the correct VirtualService with the Gateway based on its selectors.
