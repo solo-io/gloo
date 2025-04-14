@@ -77,7 +77,7 @@ func (o *Options) addToFlags(flags *pflag.FlagSet) {
 	flags.StringVar(&o.InputDir, "input-dir", "", "InputDir to read yaml/yml files recursively")
 	flags.StringVar(&o.GlooSnapshotFile, "input-snapshot", "", "Gloo input snapshot file location")
 	flags.BoolVar(&o.Stats, "print-stats", false, "Print stats about the conversion")
-	flags.BoolVar(&o.CombineRouteOptions, "combine-route-options", false, "Combine routeOptions that are exactly the same and share them among the HTTPRoutes")
+	flags.BoolVar(&o.CombineRouteOptions, "combine-route-options", false, "Combine RouteOptions that are exactly the same and share them among the HTTPRoutes")
 	flags.StringVar(&o.OutputDir, "output-dir", "./_output", "Output directory to write Gateway API configurations to. The directory must not exist before starting the migration. To delete and recreate the output directory, use the --recreate-output-dir option")
 	flags.BoolVar(&o.RetainFolderStructure, "retain-input-folder-structure", false, "Arrange the generated Gateway API files in the same folder structure they were read from (input-dir only).")
 	flags.BoolVar(&o.IncludeUnknownResources, "include-unknown", false, "Copy non-Gloo Gateway resources to the output directory without changing them. ")
