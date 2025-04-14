@@ -55,7 +55,7 @@ func RootCmd(op *options.Options) *cobra.Command {
 # For all commands you can print stats about the migration such as number of configs
   glooctl gateway-api convert --input-file gloo-yamls.yaml --output-dir ./_output --print-stats
 
-# If the yaml files contain non Gloo API yaml they can be retained by adding '--include-unknown'
+# To retain non-Gloo Gateway API YAML files, add  the '--include-unknown' option. 
   glooctl gateway-api convert --input-file gloo-yamls.yaml --output-dir ./_output --include-unknown`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if err := opts.validate(); err != nil {
