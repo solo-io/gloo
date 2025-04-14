@@ -35,5 +35,5 @@ glooctl gateway-api convert --input-snapshot gg-input.json --output-dir ./_outpu
 
 ## Output Formats
 
-- Files By Namespace - By default all files will be written to individual files per resource in folders based on their respective namespaces.
+- **Files by namespace**: By default, a separate file is created for each generated Gateway API resource. All resources are placed into namespace-specific directories. 
 - **Retain input folder structure**: When you convert files in a givenCI/CD pipeline folder structure, you might want to retain the generated configuration in the files they were converted from. To do this, add the `--retain-input-folder-structure` option.
