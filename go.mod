@@ -295,6 +295,7 @@ require (
 	github.com/pseudomuto/protokit v0.2.1 // indirect
 	github.com/radovskyb/watcher v1.0.2 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
+	github.com/rodaine/table v1.3.0
 	github.com/rogpeppe/go-internal v1.13.1 // indirect
 	github.com/rubenv/sql-migrate v1.7.1 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
