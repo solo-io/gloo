@@ -18,7 +18,7 @@ The CLI accepts a single kubernetes yaml file, can scan an entire directory for 
 glooctl gateway-api convert --input-file gloo-yamls.yaml --output-dir ./_output
 ```
 
-* Scan a directory and its children for `.yaml` and `.yml` files
+* Scan a nested directory for `.yaml` and `.yml` files and convert them to the Gateway API. 
 
 ```shell
 glooctl gateway-api convert --input-dir ./gloo-configs --output-dir ./_output --retain-input-folder-structure
