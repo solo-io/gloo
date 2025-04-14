@@ -78,7 +78,8 @@ func NewDestRuleIndex(
 		})
 	} else {
 		contextutils.LoggerFrom(ctx).Warn("DestinatonRule v1 CRD not found; running without DestinationRule support")
-		wrappedDestRules = krt.NewStaticCollection[DestinationRuleWrapper]([]DestinationRuleWrapper{})
+		// DO_NOT_SUBMIT - might not be right, but it compiles
+		wrappedDestRules = krt.NewStaticCollection[DestinationRuleWrapper](nil, []DestinationRuleWrapper{})
 	}
 
 	return DestinationRuleIndex{
@@ -88,7 +89,8 @@ func NewDestRuleIndex(
 }
 
 func NewEmptyDestRuleIndex() DestinationRuleIndex {
-	destrules := krt.NewStaticCollection[DestinationRuleWrapper](nil)
+	// DO_NOT_SUBMIT - might not be right, but it compiles
+	destrules := krt.NewStaticCollection[DestinationRuleWrapper](nil, nil)
 	return DestinationRuleIndex{
 		Destrules:  destrules,
 		ByHostname: newDestruleIndex(destrules),
