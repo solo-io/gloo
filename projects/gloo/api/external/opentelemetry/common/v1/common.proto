@@ -16,8 +16,8 @@
 
 syntax = "proto3";
 
-// manually updated pgk
-package solo.io.opentelemetry.common.v1;
+package opentelemetry.proto.common.v1;
+// package solo.io.opentelemetry.common.v1;
 
 // disabled some things we don't need
 // option csharp_namespace = "OpenTelemetry.Proto.Common.V1";
@@ -25,8 +25,8 @@ package solo.io.opentelemetry.common.v1;
 // option java_package = "io.opentelemetry.proto.common.v1";
 // option java_outer_classname = "CommonProto";
 
-// manually updated
-option go_package = "github.com/solo-io/gloo/projects/gloo/pkg/api/external/opentelemetry/common/v1";
+option go_package = "go.opentelemetry.io/proto/otlp/common/v1";
+// option go_package = "github.com/solo-io/gloo/projects/gloo/pkg/api/external/opentelemetry/common/v1";
 
 // AnyValue is used to represent any type of attribute value. AnyValue may contain a
 // primitive value such as a string or integer or it may contain an arbitrary nested
@@ -39,6 +39,7 @@ message AnyValue {
     bool bool_value = 2;
     int64 int_value = 3;
     double double_value = 4;
+    // TODO fix so that doc generation works
     //ArrayValue array_value = 5;
     //KeyValueList kvlist_value = 6;
     bytes bytes_value = 7;

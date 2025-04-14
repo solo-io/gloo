@@ -140,6 +140,8 @@ See here for more information: https://www.envoyproxy.io/docs/envoy/latest/api-v
 "staticClusterName": string
 "filterStateObjectsToLog": []string
 "disableBuiltinLabels": bool
+"body": .opentelemetry.proto.common.v1.AnyValue
+"attributes": .opentelemetry.proto.common.v1.KeyValueList
 "statPrefix": string
 
 ```
@@ -150,6 +152,8 @@ See here for more information: https://www.envoyproxy.io/docs/envoy/latest/api-v
 | `staticClusterName` | `string` |  |
 | `filterStateObjectsToLog` | `[]string` | Additional filter state objects to log in filter_state_objects. Logger will call FilterState::Object::serializeAsProto to serialize the filter state object. See https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/access_loggers/grpc/v3/als.proto#extensions-access-loggers-grpc-v3-commongrpcaccesslogconfig. |
 | `disableBuiltinLabels` | `bool` | If true, Envoy logger will not generate built-in resource labels like log_name, zone_name, cluster_name, node_name. |
+| `body` | .opentelemetry.proto.common.v1.AnyValue | A value containing the body of the log record. Can be for example a human-readable string message (including multi-line) describing the event in a free form or it can be a structured data composed of arrays and maps of other values. |
+| `attributes` | .opentelemetry.proto.common.v1.KeyValueList | Additional attributes that describe the specific event occurrence. [Optional]. Attribute keys MUST be unique (it is not allowed to have more than one attribute with the same key). |
 | `statPrefix` | `string` | Additional prefix to use on OpenTelemetry access logger stats. If empty, the stats will be rooted at `access_logs.open_telemetry_access_log`. |
 
 

@@ -19,6 +19,8 @@ import (
 
 	github_com_solo_io_gloo_projects_gloo_pkg_api_external_envoy_type_v3 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/type/v3"
 
+	go_opentelemetry_io_proto_otlp_common_v1 "go.opentelemetry.io/proto/otlp/common/v1"
+
 	google_golang_org_protobuf_types_known_structpb "google.golang.org/protobuf/types/known/structpb"
 )
 
@@ -228,6 +230,18 @@ func (m *OpenTelemetryService) Clone() proto.Message {
 	}
 
 	target.DisableBuiltinLabels = m.GetDisableBuiltinLabels()
+
+	if h, ok := interface{}(m.GetBody()).(clone.Cloner); ok {
+		target.Body = h.Clone().(*go_opentelemetry_io_proto_otlp_common_v1.AnyValue)
+	} else {
+		target.Body = proto.Clone(m.GetBody()).(*go_opentelemetry_io_proto_otlp_common_v1.AnyValue)
+	}
+
+	if h, ok := interface{}(m.GetAttributes()).(clone.Cloner); ok {
+		target.Attributes = h.Clone().(*go_opentelemetry_io_proto_otlp_common_v1.KeyValueList)
+	} else {
+		target.Attributes = proto.Clone(m.GetAttributes()).(*go_opentelemetry_io_proto_otlp_common_v1.KeyValueList)
+	}
 
 	target.StatPrefix = m.GetStatPrefix()
 

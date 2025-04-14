@@ -1406,6 +1406,18 @@ apis:
   opencensus.proto.trace.TruncatableString:
     relativepath: reference/api/github.com/solo-io/solo-kit/api/external/trace.proto.sk/#TruncatableString
     package: opencensus.proto.trace
+  opentelemetry.proto.common.v1.AnyValue:
+    relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/external/opentelemetry/common/v1/common.proto.sk/#AnyValue
+    package: opentelemetry.proto.common.v1
+  opentelemetry.proto.common.v1.ArrayValue:
+    relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/external/opentelemetry/common/v1/common.proto.sk/#ArrayValue
+    package: opentelemetry.proto.common.v1
+  opentelemetry.proto.common.v1.KeyValue:
+    relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/external/opentelemetry/common/v1/common.proto.sk/#KeyValue
+    package: opentelemetry.proto.common.v1
+  opentelemetry.proto.common.v1.KeyValueList:
+    relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/external/opentelemetry/common/v1/common.proto.sk/#KeyValueList
+    package: opentelemetry.proto.common.v1
   options.gloo.solo.io.Selector:
     relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/options/subset_spec.proto.sk/#Selector
     package: options.gloo.solo.io
@@ -2003,18 +2015,6 @@ apis:
   solo.io.envoy.type.v3.SemanticVersion:
     relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/external/envoy/type/v3/semantic_version.proto.sk/#SemanticVersion
     package: solo.io.envoy.type.v3
-  solo.io.opentelemetry.common.v1.AnyValue:
-    relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/external/opentelemetry/common/v1/common.proto.sk/#AnyValue
-    package: solo.io.opentelemetry.common.v1
-  solo.io.opentelemetry.common.v1.ArrayValue:
-    relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/external/opentelemetry/common/v1/common.proto.sk/#ArrayValue
-    package: solo.io.opentelemetry.common.v1
-  solo.io.opentelemetry.common.v1.KeyValue:
-    relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/external/opentelemetry/common/v1/common.proto.sk/#KeyValue
-    package: solo.io.opentelemetry.common.v1
-  solo.io.opentelemetry.common.v1.KeyValueList:
-    relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/external/opentelemetry/common/v1/common.proto.sk/#KeyValueList
-    package: solo.io.opentelemetry.common.v1
   solo.io.udpa.annotations.FieldMigrateAnnotation:
     relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/external/udpa/annotations/migrate.proto.sk/#FieldMigrateAnnotation
     package: solo.io.udpa.annotations
