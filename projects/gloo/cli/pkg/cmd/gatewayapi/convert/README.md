@@ -36,4 +36,4 @@ glooctl gateway-api convert --input-snapshot gg-input.json --output-dir ./_outpu
 ## Output Formats
 
 - Files By Namespace - By default all files will be written to individual files per resource in folders based on their respective namespaces.
-- Retain input folder structure - If you are trying to convert a CI/CD pipeline folder structure you might want to retain the configs in the files they were converted from. To do this add `--retain-input-folder-structure`
+- **Retain input folder structure**: When you convert files in a givenCI/CD pipeline folder structure, you might want to retain the generated configuration in the files they were converted from. To do this, add the `--retain-input-folder-structure` option.
