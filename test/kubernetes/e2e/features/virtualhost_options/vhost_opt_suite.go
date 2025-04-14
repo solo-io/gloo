@@ -451,6 +451,18 @@ func (s *testingSuite) TestConfigureVirtualHostOptionsWarningMultipleGatewaysSet
 // The expected behavior is that the previously blocked VHO is now attached and the
 // headers are mutated as expected
 func (s *testingSuite) TestDeletingConflictingVirtualHostOptions() {
+	s.T().Cleanup(func() {
+		// this should already be deleted, confirm
+		s.TestInstallation.AssertionsT(s.T()).ExpectGlooObjectNotExist(
+			s.Ctx,
+			s.getterForMeta(&vhoRemoveXBar),
+			&vhoRemoveXBar,
+		)
+
+		output, err := s.TestInstallation.Actions.Kubectl().DeleteFileWithOutput(s.Ctx, manifestVhoRemoveXBaz)
+		s.TestInstallation.AssertionsT(s.T()).ExpectObjectDeleted(manifestVhoRemoveXBaz, err, output)
+	})
+
 	err := s.TestInstallation.Actions.Kubectl().ApplyFile(s.Ctx, manifestVhoRemoveXBar)
 	s.NoError(err, "can apply "+manifestVhoRemoveXBar)
 
@@ -502,13 +514,6 @@ func (s *testingSuite) TestDeletingConflictingVirtualHostOptions() {
 		},
 		expectedResponseWithoutXBaz)
 
-	// Easier to put here for now than in in baseSuiteCleanup:
-	// this should already be deleted, confirm
-	s.TestInstallation.AssertionsT(s.T()).ExpectGlooObjectNotExist(
-		s.Ctx,
-		s.getterForMeta(&vhoRemoveXBar),
-		&vhoRemoveXBar,
-	)
 }
 
 // TestOptionsMerge tests shallow merging of VirtualHostOptions larger in the precedence chain
