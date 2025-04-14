@@ -46,7 +46,7 @@ func RootCmd(op *options.Options) *cobra.Command {
 # To load a bunch of `*.yaml` or `*.yml` files in nested directories. You can also use the `--retain-input-folder-structure` option to keep the original file structure, which can be helpful in CI/CD pipelines.
   glooctl gateway-api convert --input-dir ./gloo-configs --output-dir ./_output --retain-input-folder-structure
 
-# Configuration can also be pulled an translated directly from a running Gloo Gateway Instance (version 1.17+).
+To download a Gloo Gateway snapshot from a running 'gloo' pod (verison 1.17+) and generate Gateway API YAML files from that snapshot. 
   kubectl -n gloo-system port-forward deploy/gloo 9091
   curl localhost:9091/snapshots/input > gg-input.json
   
