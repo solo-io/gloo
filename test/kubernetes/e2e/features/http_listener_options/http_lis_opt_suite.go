@@ -11,18 +11,14 @@ import (
 	"github.com/solo-io/gloo/test/kubernetes/e2e"
 	testdefaults "github.com/solo-io/gloo/test/kubernetes/e2e/defaults"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/listenerset"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"github.com/solo-io/gloo/test/kubernetes/e2e/tests/base"
 )
 
 var _ e2e.NewSuiteFunc = NewTestingSuite
 
 // testingSuite is the entire Suite of tests for the "HttpListenerOptions" feature
 type testingSuite struct {
-	suite.Suite
-	ctx              context.Context
-	testInstallation *e2e.TestInstallation
-	// maps test name to a list of manifests to apply before the test
-	manifests map[string][]string
+	*base.BaseTestingSuite
 }
 
 func NewTestingSuite(
@@ -30,82 +26,14 @@ func NewTestingSuite(
 	testInst *e2e.TestInstallation,
 ) suite.TestingSuite {
 	return &testingSuite{
-		ctx:              ctx,
-		testInstallation: testInst,
-	}
-}
-
-func (s *testingSuite) SetupSuite() {
-	// Check that the common setup manifest is applied
-	err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, setupManifest)
-	s.NoError(err, "can apply "+setupManifest)
-
-	if listenerset.RequiredCrdExists(s.testInstallation) {
-		err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, listenerSetManifest)
-		s.NoError(err, "can apply "+listenerSetManifest)
-	}
-
-	s.testInstallation.AssertionsT(s.T()).EventuallyObjectsExist(s.ctx, exampleSvc, nginxPod)
-	// Check that test app is running
-	s.testInstallation.AssertionsT(s.T()).EventuallyPodsRunning(s.ctx, nginxPod.ObjectMeta.GetNamespace(), metav1.ListOptions{
-		LabelSelector: "app.kubernetes.io/name=nginx",
-	})
-	s.testInstallation.AssertionsT(s.T()).EventuallyPodsRunning(s.ctx, testdefaults.CurlPod.GetNamespace(), metav1.ListOptions{
-		LabelSelector: "app=curl",
-	})
-	s.testInstallation.AssertionsT(s.T()).EventuallyObjectsExist(s.ctx, proxy1Service, proxy1Deployment)
-	s.testInstallation.AssertionsT(s.T()).EventuallyPodsRunning(s.ctx, proxy1Deployment.ObjectMeta.GetNamespace(), metav1.ListOptions{
-		LabelSelector: "app.kubernetes.io/name=gloo-proxy-gw-1",
-	})
-
-	// include gateway manifests for the tests, so we recreate it for each test run
-	s.manifests = map[string][]string{
-		"TestConfigureHttpListenerOptions":                           {basicLisOptManifest},
-		"TestConfigureNotAttachedHttpListenerOptions":                {notAttachedLisOptManifest},
-		"TestConfigureHttpListenerOptionsWithSection":                {basicLisOptSectionManifest},
-		"TestConfigureHttpListenerOptionsWithListenerSetsAndSection": {basicLisOptManifest, basicLisOptSectionManifest, basicLisOptListenerSetSectionManifest, basicLisOptListenerSetManifest},
-	}
-}
-
-func (s *testingSuite) TearDownSuite() {
-	// Check that the common setup manifest is deleted
-	output, err := s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, setupManifest)
-	s.testInstallation.AssertionsT(s.T()).ExpectObjectDeleted(setupManifest, err, output)
-
-	s.testInstallation.AssertionsT(s.T()).EventuallyObjectsNotExist(s.ctx, proxy1Service, proxy1Deployment)
-	s.testInstallation.AssertionsT(s.T()).EventuallyPodsNotExist(s.ctx, proxy1Deployment.ObjectMeta.GetNamespace(), metav1.ListOptions{
-		LabelSelector: "app.kubernetes.io/name=gloo-proxy-gw-1",
-	})
-}
-
-func (s *testingSuite) BeforeTest(suiteName, testName string) {
-	manifests, ok := s.manifests[testName]
-	if !ok {
-		s.FailNow("no manifests found for %s, manifest map contents: %v", testName, s.manifests)
-	}
-
-	for _, manifest := range manifests {
-		err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, manifest)
-		s.Assert().NoError(err, "can apply manifest "+manifest)
-	}
-}
-
-func (s *testingSuite) AfterTest(suiteName, testName string) {
-	manifests, ok := s.manifests[testName]
-	if !ok {
-		s.FailNow("no manifests found for " + testName)
-	}
-
-	for _, manifest := range manifests {
-		output, err := s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, manifest)
-		s.testInstallation.AssertionsT(s.T()).ExpectObjectDeleted(manifest, err, output)
+		base.NewBaseTestingSuite(ctx, testInst, setup(testInst), testCases),
 	}
 }
 
 func (s *testingSuite) TestConfigureHttpListenerOptions() {
 	// Check healthy response and response headers contain server name override from HttpListenerOption
-	s.testInstallation.AssertionsT(s.T()).AssertEventualCurlResponse(
-		s.ctx,
+	s.TestInstallation.AssertionsT(s.T()).AssertEventualCurlResponse(
+		s.Ctx,
 		testdefaults.CurlPodExecOpt,
 		[]curl.Option{
 			curl.WithHost(kubeutils.ServiceFQDN(proxy1Service.ObjectMeta)),
@@ -127,7 +55,7 @@ func (s *testingSuite) TestConfigureHttpListenerOptionsWithSection() {
 		},
 	}
 
-	if listenerset.RequiredCrdExists(s.testInstallation) {
+	if listenerset.RequiredCrdExists(s.TestInstallation) {
 		matchersForListeners[proxyService1Fqdn][lsPort1] = expectedResponseWithoutServer
 		matchersForListeners[proxyService1Fqdn][lsPort2] = expectedResponseWithoutServer
 	}
@@ -148,7 +76,7 @@ func (s *testingSuite) TestConfigureNotAttachedHttpListenerOptions() {
 			gw2port2: expectedResponseWithServer("envoy"),
 		},
 	}
-	if listenerset.RequiredCrdExists(s.testInstallation) {
+	if listenerset.RequiredCrdExists(s.TestInstallation) {
 		matchersForListeners[proxyService1Fqdn][lsPort1] = expectedResponseWithServer("envoy")
 		matchersForListeners[proxyService1Fqdn][lsPort2] = expectedResponseWithServer("envoy")
 	}
@@ -157,7 +85,7 @@ func (s *testingSuite) TestConfigureNotAttachedHttpListenerOptions() {
 }
 
 func (s *testingSuite) TestConfigureHttpListenerOptionsWithListenerSetsAndSection() {
-	if !listenerset.RequiredCrdExists(s.testInstallation) {
+	if !listenerset.RequiredCrdExists(s.TestInstallation) {
 		s.T().Skip("Skipping as the XListenerSet CRD is not installed")
 	}
 
@@ -184,8 +112,8 @@ func (s *testingSuite) testExpectedResponses(matchersForListeners map[string]map
 
 	for host, ports := range matchersForListeners {
 		for port, matcher := range ports {
-			s.testInstallation.AssertionsT(s.T()).AssertEventualCurlResponse(
-				s.ctx,
+			s.TestInstallation.AssertionsT(s.T()).AssertEventualCurlResponse(
+				s.Ctx,
 				testdefaults.CurlPodExecOpt,
 				[]curl.Option{
 					curl.WithHost(host),
