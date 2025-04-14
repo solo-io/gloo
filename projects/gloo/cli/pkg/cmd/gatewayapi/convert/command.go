@@ -47,7 +47,6 @@ func RootCmd(op *options.Options) *cobra.Command {
   glooctl gateway-api convert --input-dir ./gloo-configs --output-dir ./_output --retain-input-folder-structure
 
 # Configuration can also be pulled an translated directly from a running Gloo Gateway Instance (version 1.17+).
-# Port forward to the running gloo instance to grab its snapshot
   kubectl -n gloo-system port-forward deploy/gloo 9091
   curl localhost:9091/snapshots/input > gg-input.json
   
