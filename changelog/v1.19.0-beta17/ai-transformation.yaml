@@ -1,6 +1,0 @@
-changelog:
-  - type: NON_USER_FACING
-    issue: https://github.com/solo-io/solo-projects/issues/8008
-    description: >-
-      Updated the transformation.proto from envoy-gloo that contains the new ai_transformation settings
-    resolvesIssue: false
