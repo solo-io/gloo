@@ -509,7 +509,7 @@ func (g *GatewayAPIOutput) convertRouteToRule(r *gloogwv1.Route, wrapper domain.
 
 		}
 		if r.GetRouteAction().GetMulti() != nil {
-			g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "has multi detination action set but there is not equivalent in Gateway API")
+			g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "has multi destination action set but there is not equivalent in Gateway API")
 		}
 
 		if r.GetRouteAction().GetSingle() != nil {
