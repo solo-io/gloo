@@ -345,36 +345,6 @@ func (m *OpenTelemetryService) Equal(that interface{}) bool {
 		return false
 	}
 
-	if h, ok := interface{}(m.GetResourceAttributes()).(equality.Equalizer); ok {
-		if !h.Equal(target.GetResourceAttributes()) {
-			return false
-		}
-	} else {
-		if !proto.Equal(m.GetResourceAttributes(), target.GetResourceAttributes()) {
-			return false
-		}
-	}
-
-	if h, ok := interface{}(m.GetBody()).(equality.Equalizer); ok {
-		if !h.Equal(target.GetBody()) {
-			return false
-		}
-	} else {
-		if !proto.Equal(m.GetBody(), target.GetBody()) {
-			return false
-		}
-	}
-
-	if h, ok := interface{}(m.GetAttributes()).(equality.Equalizer); ok {
-		if !h.Equal(target.GetAttributes()) {
-			return false
-		}
-	} else {
-		if !proto.Equal(m.GetAttributes(), target.GetAttributes()) {
-			return false
-		}
-	}
-
 	if strings.Compare(m.GetStatPrefix(), target.GetStatPrefix()) != 0 {
 		return false
 	}

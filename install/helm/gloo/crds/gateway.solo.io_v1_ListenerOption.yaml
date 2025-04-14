@@ -191,48 +191,6 @@ spec:
                               type: object
                             openTelemetryService:
                               properties:
-                                attributes:
-                                  properties:
-                                    values:
-                                      items:
-                                        properties:
-                                          key:
-                                            type: string
-                                          value:
-                                            properties:
-                                              boolValue:
-                                                type: boolean
-                                              bytesValue:
-                                                format: byte
-                                                type: string
-                                              doubleValue:
-                                                type: number
-                                              intValue:
-                                                format: int64
-                                                type: integer
-                                                x-kubernetes-int-or-string: true
-                                              stringValue:
-                                                type: string
-                                            type: object
-                                        type: object
-                                      type: array
-                                  type: object
-                                body:
-                                  properties:
-                                    boolValue:
-                                      type: boolean
-                                    bytesValue:
-                                      format: byte
-                                      type: string
-                                    doubleValue:
-                                      type: number
-                                    intValue:
-                                      format: int64
-                                      type: integer
-                                      x-kubernetes-int-or-string: true
-                                    stringValue:
-                                      type: string
-                                  type: object
                                 disableBuiltinLabels:
                                   type: boolean
                                 filterStateObjectsToLog:
@@ -241,32 +199,6 @@ spec:
                                   type: array
                                 logName:
                                   type: string
-                                resourceAttributes:
-                                  properties:
-                                    values:
-                                      items:
-                                        properties:
-                                          key:
-                                            type: string
-                                          value:
-                                            properties:
-                                              boolValue:
-                                                type: boolean
-                                              bytesValue:
-                                                format: byte
-                                                type: string
-                                              doubleValue:
-                                                type: number
-                                              intValue:
-                                                format: int64
-                                                type: integer
-                                                x-kubernetes-int-or-string: true
-                                              stringValue:
-                                                type: string
-                                            type: object
-                                        type: object
-                                      type: array
-                                  type: object
                                 statPrefix:
                                   type: string
                                 staticClusterName:
@@ -453,48 +385,6 @@ spec:
                               type: object
                             openTelemetryService:
                               properties:
-                                attributes:
-                                  properties:
-                                    values:
-                                      items:
-                                        properties:
-                                          key:
-                                            type: string
-                                          value:
-                                            properties:
-                                              boolValue:
-                                                type: boolean
-                                              bytesValue:
-                                                format: byte
-                                                type: string
-                                              doubleValue:
-                                                type: number
-                                              intValue:
-                                                format: int64
-                                                type: integer
-                                                x-kubernetes-int-or-string: true
-                                              stringValue:
-                                                type: string
-                                            type: object
-                                        type: object
-                                      type: array
-                                  type: object
-                                body:
-                                  properties:
-                                    boolValue:
-                                      type: boolean
-                                    bytesValue:
-                                      format: byte
-                                      type: string
-                                    doubleValue:
-                                      type: number
-                                    intValue:
-                                      format: int64
-                                      type: integer
-                                      x-kubernetes-int-or-string: true
-                                    stringValue:
-                                      type: string
-                                  type: object
                                 disableBuiltinLabels:
                                   type: boolean
                                 filterStateObjectsToLog:
@@ -503,32 +393,6 @@ spec:
                                   type: array
                                 logName:
                                   type: string
-                                resourceAttributes:
-                                  properties:
-                                    values:
-                                      items:
-                                        properties:
-                                          key:
-                                            type: string
-                                          value:
-                                            properties:
-                                              boolValue:
-                                                type: boolean
-                                              bytesValue:
-                                                format: byte
-                                                type: string
-                                              doubleValue:
-                                                type: number
-                                              intValue:
-                                                format: int64
-                                                type: integer
-                                                x-kubernetes-int-or-string: true
-                                              stringValue:
-                                                type: string
-                                            type: object
-                                        type: object
-                                      type: array
-                                  type: object
                                 statPrefix:
                                   type: string
                                 staticClusterName:
