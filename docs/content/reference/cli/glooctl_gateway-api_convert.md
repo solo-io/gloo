@@ -19,10 +19,10 @@ glooctl gateway-api convert [flags]
 
 ```
 # This command converts Gloo Edge APIs to Kubernetes Gateway API YAML files and places them in the '--output-dir' directory, grouped by namespace.
-# Example command to generate Gateway API YAML files from a Gloo Gateway snapshot that is retrieved from a running 'gloo' pod. The 'output-dir' must not exist.
+# To generate Gateway API YAML files from a Gloo Gateway snapshot that is retrieved from a running 'gloo' pod. The 'output-dir' must not exist.
   glooctl gateway-api convert --gloo-control-plane deploy/gloo --output-dir ./_output
 
-# Generate Gateway API YAML files from a single Kubernetes YAML file. The 'output-dir' must not exist.
+# To generate Gateway API YAML files from a single Kubernetes YAML file. The 'output-dir' must not exist.
   glooctl gateway-api convert --input-file gloo-yamls.yaml --output-dir ./_output
 
 # To delete and recreate the content in the 'output-dir', add the 'delete-output-dir'' option.
@@ -34,36 +34,35 @@ glooctl gateway-api convert [flags]
 # To load a bunch of '*.yaml' or '*.yml' files in nested directories. You can also use the '--retain-input-folder-structure' option to keep the original file structure, which can be helpful in CI/CD pipelines.
   glooctl gateway-api convert --input-dir ./gloo-configs --output-dir ./_output --retain-input-folder-structure
 
-# Configuration can also be pulled an translated directly from a running Gloo Gateway Instance (version 1.17+).
-# Port forward to the running gloo instance to grab its snapshot
+To download a Gloo Gateway snapshot from a running 'gloo' pod (verison 1.17+) and generate Gateway API YAML files from that snapshot. 
   kubectl -n gloo-system port-forward deploy/gloo 9091
   curl localhost:9091/snapshots/input > gg-input.json
   
   glooctl gateway-api convert --input-snapshot gg-input.json --output-dir ./_output
 
-# For all commands you can print stats about the migration such as number of configs
+# To get the stats for each migration, such as the number of configuration files that were generated, add the '--print-stats' option. 
   glooctl gateway-api convert --input-file gloo-yamls.yaml --output-dir ./_output --print-stats
 
-# If the yaml files contain non Gloo API yaml they can be retained by adding '--include-unknown'
+# To retain non-Gloo Gateway API YAML files, add  the '--include-unknown' option. 
   glooctl gateway-api convert --input-file gloo-yamls.yaml --output-dir ./_output --include-unknown
 ```
 
 ### Options
 
 ```
-      --combine-route-options                 Combine routeOptions that are exactly the same and share them among the HTTPRoutes
-      --create-namespaces                     Create namespaces for the objects in a file
-      --delete-output-dir                     Delete the output directory if it already exists
+      --combine-route-options                 Combine RouteOptions that are exactly the same and share them among the HTTPRoutes
+      --create-namespaces                     Create namespaces for the objects in a file.
+      --delete-output-dir                     Delete the output directory if it already exists.
       --gloo-control-plane string             Name of the Gloo control plane pod
   -n, --gloo-control-plane-namespace string   Namespace of the Gloo control plane pod (default "gloo-system")
   -h, --help                                  help for convert
-      --include-unknown                       Copy unknown resources to output files (if files contain resources that are not Gloo APIs)
+      --include-unknown                       Copy non-Gloo Gateway resources to the output directory without changing them. 
       --input-dir string                      InputDir to read yaml/yml files recursively
-      --input-file string                     Convert single file to Gateway API
+      --input-file string                     Convert a single YAML file to the Gateway API
       --input-snapshot string                 Gloo input snapshot file location
-      --output-dir string                     Output directory to write Gateway API configurations, it must not exist before or can be deleted/recreated with --recreate-output-dir (default "./_output")
+      --output-dir string                     Output directory to write Gateway API configurations to. The directory must not exist before starting the migration. To delete and recreate the output directory, use the --recreate-output-dir option (default "./_output")
       --print-stats                           Print stats about the conversion
-      --retain-input-folder-structure         When writing the output write the Gateway API configurations in the same folder structure they were read from (input-dir only)
+      --retain-input-folder-structure         Arrange the generated Gateway API files in the same folder structure they were read from (input-dir only).
 ```
 
 ### Options inherited from parent commands
