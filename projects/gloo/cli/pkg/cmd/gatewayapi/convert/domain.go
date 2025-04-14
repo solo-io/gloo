@@ -80,7 +80,7 @@ func (o *Options) addToFlags(flags *pflag.FlagSet) {
 	flags.BoolVar(&o.CombineRouteOptions, "combine-route-options", false, "Combine routeOptions that are exactly the same and share them among the HTTPRoutes")
 	flags.StringVar(&o.OutputDir, "output-dir", "./_output", "Output directory to write Gateway API configurations, it must not exist before or can be deleted/recreated with --recreate-output-dir")
 	flags.BoolVar(&o.RetainFolderStructure, "retain-input-folder-structure", false, "When writing the output write the Gateway API configurations in the same folder structure they were read from (input-dir only)")
-	flags.BoolVar(&o.IncludeUnknownResources, "include-unknown", false, "Copy unknown resources to output files (if files contain resources that are not Gloo APIs)")
+	flags.BoolVar(&o.IncludeUnknownResources, "include-unknown", false, "Copy non-Gloo Gateway resources to the output directory without changing them. ")
 	flags.BoolVar(&o.DeleteOutputDir, "delete-output-dir", false, "Delete the output directory if it already exists.")
 	flags.BoolVar(&o.CreateNamespaces, "create-namespaces", false, "Create namespaces for the objects in a file.")
 }
