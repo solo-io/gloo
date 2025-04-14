@@ -1,4 +1,0 @@
-changelog:
-  - type: NON_USER_FACING
-    description: >-
-      Update GHA vm runner image from ubuntu-20.04/ubuntu-22.04 to ubuntu-24.04 as ubuntu-20.04 will be EOL soon.
