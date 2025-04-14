@@ -52,7 +52,7 @@ To download a Gloo Gateway snapshot from a running 'gloo' pod (verison 1.17+) an
   
   glooctl gateway-api convert --input-snapshot gg-input.json --output-dir ./_output
 
-# For all commands you can print stats about the migration such as number of configs
+# To get the stats for each migration, such as the number of configuration files that were generated, add the '--print-stats' option. 
   glooctl gateway-api convert --input-file gloo-yamls.yaml --output-dir ./_output --print-stats
 
 # To retain non-Gloo Gateway API YAML files, add  the '--include-unknown' option. 
