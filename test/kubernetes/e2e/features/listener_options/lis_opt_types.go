@@ -7,11 +7,16 @@ import (
 	"github.com/onsi/gomega"
 	"github.com/solo-io/gloo/pkg/utils/kubeutils"
 	"github.com/solo-io/gloo/test/gomega/matchers"
+	"github.com/solo-io/gloo/test/kubernetes/e2e"
+	"github.com/solo-io/gloo/test/kubernetes/e2e/defaults"
 	e2edefaults "github.com/solo-io/gloo/test/kubernetes/e2e/defaults"
+	"github.com/solo-io/gloo/test/kubernetes/e2e/features/listenerset"
+	"github.com/solo-io/gloo/test/kubernetes/e2e/tests/base"
 	"github.com/solo-io/skv2/codegen/util"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 const (
@@ -26,10 +31,19 @@ const (
 )
 
 var (
-	setupManifests = []string{
+	setup = func(ti *e2e.TestInstallation) base.SimpleTestCase {
+		return base.SimpleTestCase{
+			Manifests: setupManifests(ti),
+			Resources: []client.Object{proxy1Service, proxy1Deployment, proxy2Service, proxy2Deployment, nginxPod, defaults.CurlPod},
+		}
+	}
+
+	commonSetupManifests = []string{
 		filepath.Join(util.MustGetThisDir(), "testdata", "setup.yaml"),
 		e2edefaults.CurlPodManifest,
 	}
+	gw1NoListenerSetManifest              = filepath.Join(util.MustGetThisDir(), "testdata", "gw1-no-listenerset.yaml")
+	gw1ListenerSetManifest                = filepath.Join(util.MustGetThisDir(), "testdata", "gw1-listenerset.yaml")
 	listenerSetManifest                   = filepath.Join(util.MustGetThisDir(), "testdata", "listener-set.yaml")
 	basicLisOptManifest                   = filepath.Join(util.MustGetThisDir(), "testdata", "basic-lisopt.yaml")
 	lisOptWithSectionedTargetRefsManifest = filepath.Join(util.MustGetThisDir(), "testdata", "listopt-with-sectioned-target-refs.yaml")
@@ -77,4 +91,27 @@ var (
 		StatusCode: http.StatusOK,
 		Body:       gomega.ContainSubstring("Welcome to nginx!"),
 	}
+
+	testCases = map[string]*base.TestCase{
+		"TestConfigureListenerOptions": {
+			SimpleTestCase: base.SimpleTestCase{
+				Manifests: []string{basicLisOptManifest},
+			},
+		},
+		"TestConfigureListenerOptionsWithSectionedTargetRefs": {
+			SimpleTestCase: base.SimpleTestCase{
+				Manifests: []string{basicLisOptManifest, lisOptWithSectionedTargetRefsManifest, lisOptWithListenerSetRefsManifest},
+			},
+		},
+	}
 )
+
+func setupManifests(ti *e2e.TestInstallation) []string {
+	manifests := commonSetupManifests
+	if listenerset.RequiredCrdExists(ti) {
+		manifests = append(manifests, gw1ListenerSetManifest, listenerSetManifest)
+	} else {
+		manifests = append(manifests, gw1NoListenerSetManifest)
+	}
+	return manifests
+}
