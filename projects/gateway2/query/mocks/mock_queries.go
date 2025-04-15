@@ -10,6 +10,7 @@ import (
 
 	gomock "github.com/golang/mock/gomock"
 	query "github.com/solo-io/gloo/projects/gateway2/query"
+	types "github.com/solo-io/gloo/projects/gateway2/translator/types"
 	client "sigs.k8s.io/controller-runtime/pkg/client"
 	v1 "sigs.k8s.io/gateway-api/apis/v1"
 )
@@ -35,6 +36,21 @@ func NewMockGatewayQueries(ctrl *gomock.Controller) *MockGatewayQueries {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockGatewayQueries) EXPECT() *MockGatewayQueriesMockRecorder {
 	return m.recorder
+}
+
+// ConsolidateGateway mocks base method.
+func (m *MockGatewayQueries) ConsolidateGateway(arg0 context.Context, arg1 *v1.Gateway) (*types.ConsolidatedGateway, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ConsolidateGateway", arg0, arg1)
+	ret0, _ := ret[0].(*types.ConsolidatedGateway)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ConsolidateGateway indicates an expected call of ConsolidateGateway.
+func (mr *MockGatewayQueriesMockRecorder) ConsolidateGateway(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ConsolidateGateway", reflect.TypeOf((*MockGatewayQueries)(nil).ConsolidateGateway), arg0, arg1)
 }
 
 // GetBackendForRef mocks base method.
@@ -81,19 +97,19 @@ func (mr *MockGatewayQueriesMockRecorder) GetRouteChain(arg0, arg1, arg2, arg3 i
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRouteChain", reflect.TypeOf((*MockGatewayQueries)(nil).GetRouteChain), arg0, arg1, arg2, arg3)
 }
 
-// GetRoutesForGateway mocks base method.
-func (m *MockGatewayQueries) GetRoutesForGateway(arg0 context.Context, arg1 *v1.Gateway) (*query.RoutesForGwResult, error) {
+// GetRoutesForConsolidatedGateway mocks base method.
+func (m *MockGatewayQueries) GetRoutesForConsolidatedGateway(arg0 context.Context, arg1 *types.ConsolidatedGateway) (*query.RoutesForGwResult, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetRoutesForGateway", arg0, arg1)
+	ret := m.ctrl.Call(m, "GetRoutesForConsolidatedGateway", arg0, arg1)
 	ret0, _ := ret[0].(*query.RoutesForGwResult)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetRoutesForGateway indicates an expected call of GetRoutesForGateway.
-func (mr *MockGatewayQueriesMockRecorder) GetRoutesForGateway(arg0, arg1 interface{}) *gomock.Call {
+// GetRoutesForConsolidatedGateway indicates an expected call of GetRoutesForConsolidatedGateway.
+func (mr *MockGatewayQueriesMockRecorder) GetRoutesForConsolidatedGateway(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRoutesForGateway", reflect.TypeOf((*MockGatewayQueries)(nil).GetRoutesForGateway), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRoutesForConsolidatedGateway", reflect.TypeOf((*MockGatewayQueries)(nil).GetRoutesForConsolidatedGateway), arg0, arg1)
 }
 
 // GetSecretForRef mocks base method.

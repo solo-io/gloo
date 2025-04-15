@@ -1,0 +1,7 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    description: Bumped the protobuf version in its own PR to keep feature PRs cleaner
+    dependencyOwner: google.golang.org
+    dependencyRepo: protobuf
+    dependencyTag: v1.36.6
+

@@ -4,9 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/solo-io/gloo/projects/gateway2/query"
 	"github.com/solo-io/gloo/projects/gateway2/translator/plugins"
+	"github.com/solo-io/gloo/projects/gateway2/utils"
+	"github.com/solo-io/gloo/projects/gateway2/wellknown"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	skv2corev1 "github.com/solo-io/skv2/pkg/api/core.skv2.solo.io/v1"
 	wrapperspb "google.golang.org/protobuf/types/known/wrapperspb"
@@ -14,12 +17,18 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
+	apixv1a1 "sigs.k8s.io/gateway-api/apisx/v1alpha1"
 )
 
 var (
 	ErrUnexpectedListenerType = errors.New("unexpected listener type")
 	ErrUnexpectedListener     = func(l *gloov1.Listener) error {
 		return fmt.Errorf("%w: expected AggregateListener, got %T", ErrUnexpectedListenerType, l.GetListenerType())
+	}
+
+	ListenerTargetRefGVKs = []schema.GroupVersionKind{
+		wellknown.GatewayGVK,
+		wellknown.XListenerSetGVK,
 	}
 )
 
@@ -132,64 +141,32 @@ type PolicyWithSectionedTargetRefs[T client.Object] interface {
 // target a specific Listener and returns a slice of these policies (or a subset) resources.
 // The returned policy list is sorted by specificity in the order of
 //
-// 1. older with section name
+// ListenerSet targetRefs:
+//  1. older with section name
+//  2. newer with section name
+//  3. older without section name
+//  4. newer without section name
 //
-// 2. newer with section name
+// Gateway targetRefs:
+//  1. older with section name
+//  2. newer with section name
+//  3. older without section name
+//  4. newer without section name
 //
-// 3. older without section name
-//
-// 4. newer without section name
-// Deprecated: use GetPrioritizedListenerPoliciesAllTargetRefs instead
-// This function will process only the first targetRefs for each policy
+// This function will process all targetRefs for each policy
 func GetPrioritizedListenerPolicies[T client.Object](
 	items []PolicyWithSectionedTargetRefs[T],
 	listener *gwv1.Listener,
-) []T {
-	var optsWithSectionName, optsWithoutSectionName []T
-	for i := range items {
-		item := items[i]
-		// only use the first targetRef in the list for now; user should be warned by caller of this function
-		targetRef := item.GetTargetRefs()[0]
-		if sectionName := targetRef.GetSectionName(); sectionName != nil && sectionName.GetValue() != "" {
-			// we have a section name, now check if it matches the specific listener provided
-			if sectionName.GetValue() == string(listener.Name) {
-				optsWithSectionName = append(optsWithSectionName, item.GetObject())
-			}
-		} else {
-			// attach all matched items that do not have a section name and let the caller be discerning
-			optsWithoutSectionName = append(optsWithoutSectionName, item.GetObject())
-		}
-	}
-
-	// this can happen if the policy list only contains items targeting other Listeners by section name
-	if len(optsWithoutSectionName)+len(optsWithSectionName) == 0 {
-		return nil
-	}
-
-	SortByCreationTime(optsWithSectionName)
-	SortByCreationTime(optsWithoutSectionName)
-	return append(optsWithSectionName, optsWithoutSectionName...)
-}
-
-// GetPrioritizedListenerPoliciesAllTargetRefs accepts a slice of Gateway-attached policies (that may explicitly
-// target a specific Listener and returns a slice of these policies (or a subset) resources.
-// The returned policy list is sorted by specificity in the order of
-//
-// 1. older with section name
-//
-// 2. newer with section name
-//
-// 3. older without section name
-//
-// 4. newer without section name
-//
-// This function will process all targetRefs for each policy
-func GetPrioritizedListenerPoliciesAllTargetRefs[T client.Object](
-	items []PolicyWithSectionedTargetRefs[T],
-	listener *gwv1.Listener,
 	parentGwName string,
+	parentListenerSet *apixv1a1.XListenerSet,
 ) []T {
-	var optsWithSectionName, optsWithoutSectionName []T
+	parentListenerSetName := ""
+	if parentListenerSet != nil {
+		parentListenerSetName = parentListenerSet.GetName()
+	}
+
+	// gw - gateway, ls - listener set
+	var gwOptsWithSectionName, gwOptsWithoutSectionName, lsOptsWithSectionName, lsOptsWithoutSectionName []T
 	for i := range items {
 		item := items[i]
 
@@ -197,34 +174,61 @@ func GetPrioritizedListenerPoliciesAllTargetRefs[T client.Object](
 		appendOptsWithoutSectionName := false
 		for _, targetRef := range item.GetTargetRefs() {
 			// Check that this is the right gw
-			if targetRef.GetName() != parentGwName {
+			gwMatch := (targetRef.GetGroup() == gwv1.GroupName && targetRef.GetKind() == wellknown.GatewayKind && targetRef.GetName() == parentGwName)
+			lsMatch := (targetRef.GetGroup() == apixv1a1.GroupName && targetRef.GetKind() == wellknown.XListenerSetKind && targetRef.GetName() == parentListenerSetName)
+			targetRefMatch := gwMatch || lsMatch
+
+			if !targetRefMatch {
 				continue
 			}
 
-			if sectionName := targetRef.GetSectionName(); sectionName != nil && sectionName.GetValue() != "" {
+			sectionName := targetRef.GetSectionName()
+
+			if sectionName != nil && sectionName.GetValue() != "" {
 				// we have a section name, now check if it matches the specific listener provided
 				if sectionName.GetValue() == string(listener.Name) {
-					optsWithSectionName = append(optsWithSectionName, item.GetObject())
+					switch {
+					case gwMatch:
+						gwOptsWithSectionName = append(gwOptsWithSectionName, item.GetObject())
+					case lsMatch:
+						lsOptsWithSectionName = append(lsOptsWithSectionName, item.GetObject())
+					default:
+						// Given the current implementation of the targetRef, this can never happen
+						// panic to alert the developer if they are changing the targetRef match logic and forget to update this switch
+						panic(fmt.Sprintf("unhandled case when matching targetRef: %v", targetRef))
+					}
 				}
 			} else {
 				appendOptsWithoutSectionName = true
 			}
-		}
 
-		if appendOptsWithoutSectionName {
-			// attach all matched items that do not have a section name and let the caller be discerning
-			optsWithoutSectionName = append(optsWithoutSectionName, item.GetObject())
+			if appendOptsWithoutSectionName {
+				// attach all matched items that do not have a section name and let the caller be discerning
+				switch {
+				case gwMatch:
+					gwOptsWithoutSectionName = append(gwOptsWithoutSectionName, item.GetObject())
+				case lsMatch:
+					lsOptsWithoutSectionName = append(lsOptsWithoutSectionName, item.GetObject())
+				default:
+					// Given the current implementation of the targetRef, this can never happen
+					// panic to alert the developer if they are changing the targetRef match logic and forget to update this switch
+					panic(fmt.Sprintf("unhandled case when matching targetRef: %v", targetRef))
+				}
+			}
 		}
 	}
 
 	// this can happen if the policy list only contains items targeting other Listeners by section name
-	if len(optsWithoutSectionName)+len(optsWithSectionName) == 0 {
+	if len(gwOptsWithoutSectionName)+len(gwOptsWithSectionName)+len(lsOptsWithSectionName)+len(lsOptsWithoutSectionName) == 0 {
 		return nil
 	}
 
-	SortByCreationTime(optsWithSectionName)
-	SortByCreationTime(optsWithoutSectionName)
-	return append(optsWithSectionName, optsWithoutSectionName...)
+	utils.SortByCreationTime(gwOptsWithSectionName)
+	utils.SortByCreationTime(gwOptsWithoutSectionName)
+	utils.SortByCreationTime(lsOptsWithSectionName)
+	utils.SortByCreationTime(lsOptsWithoutSectionName)
+	sortedPolicies := append(append(append(lsOptsWithSectionName, lsOptsWithoutSectionName...), gwOptsWithSectionName...), gwOptsWithoutSectionName...)
+	return sortedPolicies
 }
 
 // policyTargetReference is an interface that represents a policy target reference, and is used to consolidate
@@ -236,8 +240,50 @@ type policyTargetReference interface {
 	GetName() string
 }
 
-// IndexTargetRefs indexes a list of policy target references by namespace and name.
-func IndexTargetRefs[T policyTargetReference](targetRefs []T, namespace, kind string) []string {
+type NamespacedNameKind struct {
+	Name      string
+	Namespace string
+	Kind      string
+}
+
+const NamespacedNameKindSeparator = '/'
+
+func (n NamespacedNameKind) String() string {
+	return strings.Join([]string{n.Namespace, n.Name, n.Kind}, string(NamespacedNameKindSeparator))
+}
+
+// Different index functions for different types of target references
+type indexFunction[T policyTargetReference] func(targetRef T, namespace string) string
+
+func indexTargetRefsNnk[T policyTargetReference](targetRef T, defaultNamespace string) string {
+	ns := targetRef.GetNamespace().GetValue()
+	if ns == "" {
+		ns = defaultNamespace
+	}
+
+	targetNnk := NamespacedNameKind{
+		Namespace: ns,
+		Name:      targetRef.GetName(),
+		Kind:      targetRef.GetKind(),
+	}
+	return targetNnk.String()
+}
+
+func indexTargetRefsNns[T policyTargetReference](targetRef T, defaultNamespace string) string {
+	ns := targetRef.GetNamespace().GetValue()
+	if ns == "" {
+		ns = defaultNamespace
+	}
+
+	targetNn := types.NamespacedName{
+		Namespace: ns,
+		Name:      targetRef.GetName(),
+	}
+	return targetNn.String()
+}
+
+// indexTargetRefs indexes a list of policy target references by namespace and name using the provided indexer function
+func indexTargetRefs[T policyTargetReference](targetRefs []T, namespace string, gvks []schema.GroupVersionKind, indexer indexFunction[T]) []string {
 	var res []string
 
 	if len(targetRefs) == 0 {
@@ -247,20 +293,19 @@ func IndexTargetRefs[T policyTargetReference](targetRefs []T, namespace, kind st
 	foundNns := map[string]any{}
 
 	for _, targetRef := range targetRefs {
-		if targetRef.GetGroup() != gwv1.GroupName || targetRef.GetKind() != kind {
+		matchGroupKind := false
+		for _, kind := range gvks {
+			if targetRef.GetGroup() == kind.Group && targetRef.GetKind() == kind.Kind {
+				matchGroupKind = true
+				break
+			}
+		}
+
+		if !matchGroupKind {
 			continue
 		}
 
-		ns := targetRef.GetNamespace().GetValue()
-		if ns == "" {
-			ns = namespace
-		}
-		targetNN := types.NamespacedName{
-			Namespace: ns,
-			Name:      targetRef.GetName(),
-		}
-
-		foundNns[targetNN.String()] = struct{}{}
+		foundNns[indexer(targetRef, namespace)] = struct{}{}
 	}
 
 	for k := range foundNns {
@@ -268,4 +313,17 @@ func IndexTargetRefs[T policyTargetReference](targetRefs []T, namespace, kind st
 	}
 
 	return res
+
+}
+
+// IndexTargetRefsNnk indexes a list of policy target references by namespace, name, and kind.
+// The kinds parameter is a list of GroupVersionKinds that are allowed to be indexed, though version is ignored.
+func IndexTargetRefsNnk[T policyTargetReference](targetRefs []T, namespace string, gvks []schema.GroupVersionKind) []string {
+	return indexTargetRefs(targetRefs, namespace, gvks, indexTargetRefsNnk[T])
+}
+
+// IndexTargetRefsNns indexes a list of policy target references by namespace and name.
+// The kinds parameter is a list of GroupVersionKinds that are allowed to be indexed, though version is ignored.
+func IndexTargetRefsNns[T policyTargetReference](targetRefs []T, namespace string, gvks []schema.GroupVersionKind) []string {
+	return indexTargetRefs(targetRefs, namespace, gvks, indexTargetRefsNns[T])
 }

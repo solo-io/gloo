@@ -311,12 +311,7 @@ func createOtelCollectorCluster(cfg *envoyotel.OpenTelemetryAccessLogConfig,
 								Endpoint: &envoy_config_endpoint_v3.Endpoint{
 									Address: &envoycore.Address{
 										Address: &envoycore.Address_SocketAddress{
-											SocketAddress: &envoycore.SocketAddress{
-												Address: alsSettings.OpenTelemetryService.GetCollector().GetAddress(),
-												PortSpecifier: &envoycore.SocketAddress_PortValue{
-													PortValue: alsSettings.OpenTelemetryService.GetCollector().GetPort(),
-												},
-											},
+											SocketAddress: &envoycore.SocketAddress{},
 										},
 									},
 								},
