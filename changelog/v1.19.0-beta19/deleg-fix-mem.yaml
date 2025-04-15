@@ -1,0 +1,29 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/solo-projects/issues/8119
+    resolvesIssue: false
+    description: |
+      gateway2/delegation: ignore child routes with mismatched parentRef early
+
+      After the refactor to decouple querying of routes from translation
+      to enable KRT integration, the resolution of child routes for a
+      delegating route became too permissive, leading to massive amount
+      of memory usage when there are cyclic references to namespaces,
+      i.e., a parent route delegating to wildcard routes in the parent
+      route's namespace. This happens even if a child route does not
+      attach to the parent because this check was omitted during the
+      initial route chain construction. Without this check, the recursive
+      nature of evaluating a delegation chain can consume massive amount
+      of memory.
+
+      This change prunes the routes in the chain early on to avoid
+      this problem, as this is a regression from 1.17.x. While we could
+      prune the child route list further, it would degrade the performance
+      due to O(N^2) computation required to match all the rules in a child
+      route with all the rules on the parent, which already happens later
+      in the translation. To reduce the risk of introducing new bugs,
+      we defer other optimizations for the future.
+
+      Testing done:
+      Verified that the memory usage remains stable with the
+      repro config provided in solo-io/solo-projects#8119
