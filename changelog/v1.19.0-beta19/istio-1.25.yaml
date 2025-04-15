@@ -1,0 +1,26 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    issueLink: https://github.com/solo-io/solo-projects/issues/7787
+    resolvesIssue: false
+    description: >-
+      Bump istio to 1.25.2
+    dependencyOwner: istio.io
+    dependencyRepo: istio
+    dependencyTag: v1.25.2
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: istio.io
+    dependencyRepo: client-go
+    dependencyTag: v1.25.2
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: istio.io
+    dependencyRepo: api
+    dependencyTag: v1.25.2
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: golang.org
+    dependencyRepo: x/crypto
+    dependencyTag: v0.36.0
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: golang.org
+    dependencyRepo: x/sync
+    dependencyTag: v0.12.0
+  - type: DEPENDENCY_BUMP
