@@ -268,18 +268,16 @@ func (r *gatewayQueries) getDelegatedChildren(
 			}
 			for _, childRoute := range referencedRoutes {
 				childRef := namespacedName(&childRoute)
+				// ignore routes that are not attached to the parent
+				if !utils.ChildRouteCanAttachToParentRef(&childRoute, parentRef) {
+					continue
+				}
+
+				// This is a candidate child route, check if it results in a cyclic reference
 				if visited.Has(childRef) {
 					err := fmt.Errorf("ignoring child route %s for parent %s: %w", childRef, parentRef, ErrCyclicReference)
 					children.AddError(backendRef.BackendObjectReference, err)
 					// Don't resolve invalid child route
-					continue
-				}
-				// ignore reference to self
-				if childRef == parentRef {
-					continue
-				}
-				// ignore routes that are not attached to the parent
-				if !utils.ChildRouteCanAttachToParentRef(&childRoute, parentRef) {
 					continue
 				}
 
