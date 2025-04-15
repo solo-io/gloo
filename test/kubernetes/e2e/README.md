@@ -51,7 +51,7 @@ The only exception to this is the Upgrade tests that are not run on the main bra
 
 Some tests may require environment variables to be set. Some required env vars are:
 
-- Istio features: Require `ISTIO_VERSION` to be set. The tests running in CI use `ISTIO_VERSION="${ISTIO_VERSION:-1.25.1}"` to default to a specific version of Istio.
+- Istio features: Require `ISTIO_VERSION` to be set. The tests running in CI use `ISTIO_VERSION="${ISTIO_VERSION:-1.25.2}"` to default to a specific version of Istio.
 
 ### Optional Environment Variables
 | Name             | Default | Description                                                                                                                                                                                                                                        |

@@ -63,7 +63,6 @@ var _ = Describe("RouteOptionsPlugin", func() {
 			ret.Spec = *rto
 			return &ret
 		})
-
 		routeOptionCollection = krt.NewStaticCollection(rtkube)
 		for _, rto := range rtoptions {
 			routeOptionClientFull.Write(rto, clients.WriteOpts{})
