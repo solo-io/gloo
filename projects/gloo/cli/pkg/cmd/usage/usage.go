@@ -195,6 +195,7 @@ func (f *FeatureCalculator) processRoute(route *api.Route, parentName string, pa
 				}
 			}
 		}
+		}
 	}
 	if route.GetRedirectAction() != nil {
 		f.AddUsageStat(&UsageStat{
