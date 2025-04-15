@@ -1,6 +1,8 @@
 package wellknown
 
-import "github.com/solo-io/gloo/pkg/utils/envutils"
+import (
+	"github.com/solo-io/gloo/pkg/utils/envutils"
+)
 
 const (
 	// RouteDelegationLabelSelector is the label used to select delegated HTTPRoutes
