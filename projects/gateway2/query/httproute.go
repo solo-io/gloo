@@ -18,6 +18,7 @@ import (
 	gwv1a2 "sigs.k8s.io/gateway-api/apis/v1alpha2"
 
 	"github.com/solo-io/gloo/projects/gateway2/translator/backendref"
+	"github.com/solo-io/gloo/projects/gateway2/utils"
 	"github.com/solo-io/gloo/projects/gateway2/wellknown"
 )
 
@@ -126,7 +127,7 @@ func (r *gatewayQueries) GetRouteChain(
 	switch typedRoute := route.(type) {
 	case *gwv1.HTTPRoute:
 		backends = r.resolveRouteBackends(ctx, typedRoute)
-		children = r.getDelegatedChildren(ctx, typedRoute, nil)
+		children = r.getDelegatedChildren(ctx, typedRoute, sets.New[types.NamespacedName]())
 	case *gwv1a2.TCPRoute:
 		backends = r.resolveRouteBackends(ctx, typedRoute)
 		// TODO (danehans): Should TCPRoute delegation support be added in the future?
@@ -242,10 +243,6 @@ func (r *gatewayQueries) getDelegatedChildren(
 	parent *gwv1.HTTPRoute,
 	visited sets.Set[types.NamespacedName],
 ) BackendMap[[]*RouteInfo] {
-	// Initialize the set of visited routes if it hasn't been initialized yet
-	if visited == nil {
-		visited = sets.New[types.NamespacedName]()
-	}
 	parentRef := namespacedName(parent)
 	// `visited` is used to detect cyclic references to routes in the delegation chain.
 	// It is important to remove the route from the set once all its children have been evaluated
@@ -264,7 +261,7 @@ func (r *gatewayQueries) getDelegatedChildren(
 				continue
 			}
 			// Fetch child routes based on the backend reference
-			referencedRoutes, err := r.fetchChildRoutes(ctx, parent.Namespace, backendRef)
+			referencedRoutes, err := r.fetchRoutesByRef(ctx, namespacedName(parent), backendRef)
 			if err != nil {
 				children.AddError(backendRef.BackendObjectReference, err)
 				continue
@@ -277,6 +274,15 @@ func (r *gatewayQueries) getDelegatedChildren(
 					// Don't resolve invalid child route
 					continue
 				}
+				// ignore reference to self
+				if childRef == parentRef {
+					continue
+				}
+				// ignore routes that are not attached to the parent
+				if !utils.ChildRouteCanAttachToParentRef(&childRoute, parentRef) {
+					continue
+				}
+
 				// Recursively get the route chain for each child route
 				routeInfo := &RouteInfo{
 					Object: &childRoute,
@@ -298,12 +304,14 @@ func (r *gatewayQueries) getDelegatedChildren(
 	return children
 }
 
-func (r *gatewayQueries) fetchChildRoutes(
+// fetchRoutesByRef fetches the child routes based on the given backendRef and parentRef.
+// NOTE: it does not check if the route attaches to the parent (checked in getDelegatedChildren)
+func (r *gatewayQueries) fetchRoutesByRef(
 	ctx context.Context,
-	parentNamespace string,
+	parentRef types.NamespacedName,
 	backendRef gwv1.HTTPBackendRef,
 ) ([]gwv1.HTTPRoute, error) {
-	delegatedNs := parentNamespace
+	delegatedNs := parentRef.Namespace
 	// Use the namespace specified in the backend reference if available
 	if backendRef.Namespace != nil {
 		delegatedNs = string(*backendRef.Namespace)
