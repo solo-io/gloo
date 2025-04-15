@@ -1,0 +1,7 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/gloo/issues/10399
+    resolvesIssue: false
+    description: |
+      Fix Istio support for versions before 1.22.0 by using the v1beta1 API for DestinationRules.
+
