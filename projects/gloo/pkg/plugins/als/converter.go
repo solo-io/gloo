@@ -6,7 +6,9 @@ import (
 	"strings"
 
 	envoyal "github.com/envoyproxy/go-control-plane/envoy/config/accesslog/v3"
+	envoy_config_cluster_v3 "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
 	envoycore "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
+	envoy_config_endpoint_v3 "github.com/envoyproxy/go-control-plane/envoy/config/endpoint/v3"
 	envoyalfile "github.com/envoyproxy/go-control-plane/envoy/extensions/access_loggers/file/v3"
 	envoygrpc "github.com/envoyproxy/go-control-plane/envoy/extensions/access_loggers/grpc/v3"
 	envoyotel "github.com/envoyproxy/go-control-plane/envoy/extensions/access_loggers/open_telemetry/v3"
@@ -14,6 +16,7 @@ import (
 	envoy_req_without_query "github.com/envoyproxy/go-control-plane/envoy/extensions/formatter/req_without_query/v3"
 	"github.com/envoyproxy/go-control-plane/pkg/wellknown"
 	"github.com/rotisserie/eris"
+	"github.com/solo-io/gloo/projects/gloo/constants"
 	v3 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/type/v3"
 	"google.golang.org/protobuf/proto"
 
@@ -275,32 +278,89 @@ func copyGrpcSettings(cfg *envoygrpc.HttpGrpcAccessLogConfig, alsSettings *als.A
 	return cfg.Validate()
 }
 
+func otelCollecoratorName(logName string) string {
+	return fmt.Sprintf("%s_otel_logs_%s", constants.SoloGeneratedClusterPrefix, logName)
+}
+
+func createOtelCollectorCluster(cfg *envoyotel.OpenTelemetryAccessLogConfig,
+	alsSettings *als.AccessLog_OpenTelemetryService) (*envoy_config_cluster_v3.Cluster, error) {
+	if alsSettings.OpenTelemetryService == nil {
+		return nil, eris.New("OpenTelemetry service cannot be empty")
+	}
+
+	collector := alsSettings.OpenTelemetryService.GetCollector()
+	if collector == nil {
+		return nil, eris.New("OpenTelemetry service collector must be unset")
+	}
+
+	// split the endpoint into host and port
+
+	return &envoy_config_cluster_v3.Cluster{
+		Name:           otelCollecoratorName(alsSettings.OpenTelemetryService.GetLogName()),
+		ConnectTimeout: collector.GetTimeout(),
+		ClusterDiscoveryType: &envoy_config_cluster_v3.Cluster_Type{
+			Type: envoy_config_cluster_v3.Cluster_STRICT_DNS,
+		},
+		LoadAssignment: &envoy_config_endpoint_v3.ClusterLoadAssignment{
+			ClusterName: otelCollecoratorName(alsSettings.OpenTelemetryService.GetLogName()),
+			Endpoints: []*envoy_config_endpoint_v3.LocalityLbEndpoints{
+				{
+					LbEndpoints: []*envoy_config_endpoint_v3.LbEndpoint{
+						{
+							HostIdentifier: &envoy_config_endpoint_v3.LbEndpoint_Endpoint{
+								Endpoint: &envoy_config_endpoint_v3.Endpoint{
+									Address: &envoycore.Address{
+										Address: &envoycore.Address_SocketAddress{
+											SocketAddress: &envoycore.SocketAddress{
+												Address: alsSettings.OpenTelemetryService.GetCollector().GetAddress(),
+												PortSpecifier: &envoycore.SocketAddress_PortValue{
+													PortValue: alsSettings.OpenTelemetryService.GetCollector().GetPort(),
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}, nil
+}
+
 func copyOtelSettings(cfg *envoyotel.OpenTelemetryAccessLogConfig,
 	alsSettings *als.AccessLog_OpenTelemetryService) error {
 	if alsSettings.OpenTelemetryService == nil {
-		return eris.New("OpenTelemetry service object cannot be nil")
+		return eris.New("OpenTelemetry service object cannot be empty")
 	}
 
-	svc := &envoycore.GrpcService{
-		TargetSpecifier: &envoycore.GrpcService_EnvoyGrpc_{
-			EnvoyGrpc: &envoycore.GrpcService_EnvoyGrpc{
-				ClusterName: alsSettings.OpenTelemetryService.GetStaticClusterName(),
-			},
-		},
+	if alsSettings.OpenTelemetryService.GetLogName() == "" {
+		return eris.New("OpenTelemetry service log name cannot be empty")
+	}
+
+	collector := alsSettings.OpenTelemetryService.GetCollector()
+	if collector == nil {
+		return eris.New("OpenTelemetry service collector must be unset")
 	}
 
 	cfg.CommonConfig = &envoygrpc.CommonGrpcAccessLogConfig{
-		LogName:                 alsSettings.OpenTelemetryService.GetLogName(),
-		GrpcService:             svc,
+		LogName: alsSettings.OpenTelemetryService.GetLogName(),
+		GrpcService: &envoycore.GrpcService{
+			TargetSpecifier: &envoycore.GrpcService_EnvoyGrpc_{
+				EnvoyGrpc: &envoycore.GrpcService_EnvoyGrpc{
+					ClusterName: otelCollecoratorName(alsSettings.OpenTelemetryService.GetLogName()),
+					Authority:   collector.GetAuthority(),
+				},
+			},
+			Timeout: collector.GetTimeout(),
+		},
 		TransportApiVersion:     envoycore.ApiVersion_V3,
 		FilterStateObjectsToLog: alsSettings.OpenTelemetryService.GetFilterStateObjectsToLog(),
 	}
 	cfg.DisableBuiltinLabels = alsSettings.OpenTelemetryService.GetDisableBuiltinLabels()
-	//cfg.ResourceAttributes = alsSettings.OpenTelemetryService.GetResourceAttributes()
-	//cfg.Body = alsSettings.OpenTelemetryService.GetBody()
-	//cfg.Attributes = alsSettings.OpenTelemetryService.GetAttributes()
-	cfg.StatPrefix = alsSettings.OpenTelemetryService.GetStatPrefix()
-	//cfg.Formatters = alsSettings.OpenTelemetryService.GetFormatters()
+	cfg.Body = alsSettings.OpenTelemetryService.GetBody()
+	cfg.Attributes = alsSettings.OpenTelemetryService.GetAttributes()
 
 	return nil
 }

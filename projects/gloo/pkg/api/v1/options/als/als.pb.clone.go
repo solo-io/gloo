@@ -19,7 +19,11 @@ import (
 
 	github_com_solo_io_gloo_projects_gloo_pkg_api_external_envoy_type_v3 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/type/v3"
 
+	github_com_solo_io_gloo_projects_gloo_pkg_api_v1_ssl "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/ssl"
+
 	go_opentelemetry_io_proto_otlp_common_v1 "go.opentelemetry.io/proto/otlp/common/v1"
+
+	google_golang_org_protobuf_types_known_durationpb "google.golang.org/protobuf/types/known/durationpb"
 
 	google_golang_org_protobuf_types_known_structpb "google.golang.org/protobuf/types/known/structpb"
 )
@@ -211,6 +215,44 @@ func (m *GrpcService) Clone() proto.Message {
 }
 
 // Clone function
+func (m *OpenTelemetryCollector) Clone() proto.Message {
+	var target *OpenTelemetryCollector
+	if m == nil {
+		return target
+	}
+	target = &OpenTelemetryCollector{}
+
+	target.Endpoint = m.GetEndpoint()
+
+	target.Authority = m.GetAuthority()
+
+	if m.GetHeaders() != nil {
+		target.Headers = make(map[string]string, len(m.GetHeaders()))
+		for k, v := range m.GetHeaders() {
+
+			target.Headers[k] = v
+
+		}
+	}
+
+	target.Insecure = m.GetInsecure()
+
+	if h, ok := interface{}(m.GetSslConfig()).(clone.Cloner); ok {
+		target.SslConfig = h.Clone().(*github_com_solo_io_gloo_projects_gloo_pkg_api_v1_ssl.SslConfig)
+	} else {
+		target.SslConfig = proto.Clone(m.GetSslConfig()).(*github_com_solo_io_gloo_projects_gloo_pkg_api_v1_ssl.SslConfig)
+	}
+
+	if h, ok := interface{}(m.GetTimeout()).(clone.Cloner); ok {
+		target.Timeout = h.Clone().(*google_golang_org_protobuf_types_known_durationpb.Duration)
+	} else {
+		target.Timeout = proto.Clone(m.GetTimeout()).(*google_golang_org_protobuf_types_known_durationpb.Duration)
+	}
+
+	return target
+}
+
+// Clone function
 func (m *OpenTelemetryService) Clone() proto.Message {
 	var target *OpenTelemetryService
 	if m == nil {
@@ -243,14 +285,18 @@ func (m *OpenTelemetryService) Clone() proto.Message {
 		target.Attributes = proto.Clone(m.GetAttributes()).(*go_opentelemetry_io_proto_otlp_common_v1.KeyValueList)
 	}
 
-	target.StatPrefix = m.GetStatPrefix()
+	switch m.Destination.(type) {
 
-	switch m.ServiceRef.(type) {
+	case *OpenTelemetryService_Collector:
 
-	case *OpenTelemetryService_StaticClusterName:
-
-		target.ServiceRef = &OpenTelemetryService_StaticClusterName{
-			StaticClusterName: m.GetStaticClusterName(),
+		if h, ok := interface{}(m.GetCollector()).(clone.Cloner); ok {
+			target.Destination = &OpenTelemetryService_Collector{
+				Collector: h.Clone().(*OpenTelemetryCollector),
+			}
+		} else {
+			target.Destination = &OpenTelemetryService_Collector{
+				Collector: proto.Clone(m.GetCollector()).(*OpenTelemetryCollector),
+			}
 		}
 
 	}

@@ -15,6 +15,7 @@ weight: 5
 - [AccessLog](#accesslog)
 - [FileSink](#filesink)
 - [GrpcService](#grpcservice)
+- [OpenTelemetryCollector](#opentelemetrycollector)
 - [OpenTelemetryService](#opentelemetryservice)
 - [AccessLogFilter](#accesslogfilter)
 - [ComparisonFilter](#comparisonfilter)
@@ -131,30 +132,55 @@ See here for more information: https://www.envoyproxy.io/docs/envoy/latest/api-v
 
 
 ---
+### OpenTelemetryCollector
+
+
+
+```yaml
+"endpoint": string
+"authority": string
+"headers": map<string, string>
+"insecure": bool
+"sslConfig": .gloo.solo.io.SslConfig
+"timeout": .google.protobuf.Duration
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+| `endpoint` | `string` | host and port of the OpenTelemetry collector. |
+| `authority` | `string` | authority to use when connecting to the OpenTelemetry collector. |
+| `headers` | `map<string, string>` | headers to use when connecting to the OpenTelemetry collector. |
+| `insecure` | `bool` | if true, the connection to the OpenTelemetry collector will be insecure (i.e. no TLS). |
+| `sslConfig` | [.gloo.solo.io.SslConfig](../../../ssl/ssl.proto.sk/#sslconfig) | ssl config to use when connecting to the OpenTelemetry collector. |
+| `timeout` | [.google.protobuf.Duration](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/duration) | timeout to use when connecting to the OpenTelemetry collector. |
+
+
+
+
+---
 ### OpenTelemetryService
 
 
 
 ```yaml
 "logName": string
-"staticClusterName": string
+"collector": .als.options.gloo.solo.io.OpenTelemetryCollector
 "filterStateObjectsToLog": []string
 "disableBuiltinLabels": bool
 "body": .opentelemetry.proto.common.v1.AnyValue
 "attributes": .opentelemetry.proto.common.v1.KeyValueList
-"statPrefix": string
 
 ```
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
 | `logName` | `string` | name of log stream. |
-| `staticClusterName` | `string` |  |
+| `collector` | [.als.options.gloo.solo.io.OpenTelemetryCollector](../als.proto.sk/#opentelemetrycollector) |  |
 | `filterStateObjectsToLog` | `[]string` | Additional filter state objects to log in filter_state_objects. Logger will call FilterState::Object::serializeAsProto to serialize the filter state object. See https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/access_loggers/grpc/v3/als.proto#extensions-access-loggers-grpc-v3-commongrpcaccesslogconfig. |
 | `disableBuiltinLabels` | `bool` | If true, Envoy logger will not generate built-in resource labels like log_name, zone_name, cluster_name, node_name. |
 | `body` | .opentelemetry.proto.common.v1.AnyValue | A value containing the body of the log record. Can be for example a human-readable string message (including multi-line) describing the event in a free form or it can be a structured data composed of arrays and maps of other values. |
 | `attributes` | .opentelemetry.proto.common.v1.KeyValueList | Additional attributes that describe the specific event occurrence. [Optional]. Attribute keys MUST be unique (it is not allowed to have more than one attribute with the same key). |
-| `statPrefix` | `string` | Additional prefix to use on OpenTelemetry access logger stats. If empty, the stats will be rooted at `access_logs.open_telemetry_access_log`. |
 
 
 

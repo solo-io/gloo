@@ -12,11 +12,13 @@ option (extproto.clone_all) = true;
 
 import "github.com/solo-io/solo-kit/api/v1/ref.proto";
 import "validate/validate.proto";
+import "github.com/solo-io/gloo/projects/gloo/api/v1/ssl/ssl.proto";
 import "github.com/solo-io/gloo/projects/gloo/api/external/envoy/config/core/v3/base.proto";
 import "github.com/solo-io/gloo/projects/gloo/api/external/envoy/type/v3/percent.proto";
 import "github.com/solo-io/gloo/projects/gloo/api/external/envoy/config/route/v3/route_components.proto";
 import "github.com/solo-io/gloo/projects/gloo/api/external/opentelemetry/common/v1/common.proto";
 
+import "google/protobuf/duration.proto";
 import "google/protobuf/struct.proto";
 
 // Contains various settings for Envoy's access logging service.
@@ -73,13 +75,29 @@ message GrpcService {
     repeated string filter_state_objects_to_log = 7;
 }
 
+message OpenTelemetryCollector {
+    // host and port of the OpenTelemetry collector
+    string endpoint = 1;
+    // authority to use when connecting to the OpenTelemetry collector
+    string authority = 2;
+    // headers to use when connecting to the OpenTelemetry collector
+    map<string, string> headers = 3;
+    // if true, the connection to the OpenTelemetry collector will be insecure
+    // (i.e. no TLS).
+    bool insecure = 4;
+    // ssl config to use when connecting to the OpenTelemetry collector
+    .gloo.solo.io.SslConfig ssl_config = 5;
+    // timeout to use when connecting to the OpenTelemetry collector
+    google.protobuf.Duration timeout = 6;
+}
+
 message OpenTelemetryService {
     // name of log stream
     string log_name = 1;
 
-    // The static cluster defined in bootstrap config to route to
-    oneof service_ref {
-        string static_cluster_name = 2;
+    // The destination to ship logs to
+    oneof destination {
+        OpenTelemetryCollector collector = 2;
     }
 
     // Additional filter state objects to log in filter_state_objects. Logger will call FilterState::Object::serializeAsProto to serialize the filter state object.
@@ -93,16 +111,12 @@ message OpenTelemetryService {
     // A value containing the body of the log record. Can be for example a human-readable
     // string message (including multi-line) describing the event in a free form or it can
     // be a structured data composed of arrays and maps of other values.
-    opentelemetry.proto.common.v1.AnyValue body = 6;
+    opentelemetry.proto.common.v1.AnyValue body = 5;
 
     // Additional attributes that describe the specific event occurrence. [Optional].
     // Attribute keys MUST be unique (it is not allowed to have more than one
     // attribute with the same key).
-    opentelemetry.proto.common.v1.KeyValueList attributes = 7;
-    
-    // Additional prefix to use on OpenTelemetry access logger stats. If empty,
-    // the stats will be rooted at `access_logs.open_telemetry_access_log`.
-    string stat_prefix = 8;
+    opentelemetry.proto.common.v1.KeyValueList attributes = 6;
 }
 
 message AccessLogFilter {

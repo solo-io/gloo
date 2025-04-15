@@ -306,6 +306,102 @@ func (m *GrpcService) Hash(hasher hash.Hash64) (uint64, error) {
 // Deprecated: due to hashing implemention only using field values. The omission
 // of the field name in the hash calculation can lead to hash collisions.
 // Prefer the HashUnique function instead.
+func (m *OpenTelemetryCollector) Hash(hasher hash.Hash64) (uint64, error) {
+	if m == nil {
+		return 0, nil
+	}
+	if hasher == nil {
+		hasher = fnv.New64()
+	}
+	var err error
+	if _, err = hasher.Write([]byte("als.options.gloo.solo.io.github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/als.OpenTelemetryCollector")); err != nil {
+		return 0, err
+	}
+
+	if _, err = hasher.Write([]byte(m.GetEndpoint())); err != nil {
+		return 0, err
+	}
+
+	if _, err = hasher.Write([]byte(m.GetAuthority())); err != nil {
+		return 0, err
+	}
+
+	{
+		var result uint64
+		innerHash := fnv.New64()
+		for k, v := range m.GetHeaders() {
+			innerHash.Reset()
+
+			if _, err = innerHash.Write([]byte(v)); err != nil {
+				return 0, err
+			}
+
+			if _, err = innerHash.Write([]byte(k)); err != nil {
+				return 0, err
+			}
+
+			result = result ^ innerHash.Sum64()
+		}
+		err = binary.Write(hasher, binary.LittleEndian, result)
+		if err != nil {
+			return 0, err
+		}
+
+	}
+
+	err = binary.Write(hasher, binary.LittleEndian, m.GetInsecure())
+	if err != nil {
+		return 0, err
+	}
+
+	if h, ok := interface{}(m.GetSslConfig()).(safe_hasher.SafeHasher); ok {
+		if _, err = hasher.Write([]byte("SslConfig")); err != nil {
+			return 0, err
+		}
+		if _, err = h.Hash(hasher); err != nil {
+			return 0, err
+		}
+	} else {
+		if fieldValue, err := hashstructure.Hash(m.GetSslConfig(), nil); err != nil {
+			return 0, err
+		} else {
+			if _, err = hasher.Write([]byte("SslConfig")); err != nil {
+				return 0, err
+			}
+			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
+				return 0, err
+			}
+		}
+	}
+
+	if h, ok := interface{}(m.GetTimeout()).(safe_hasher.SafeHasher); ok {
+		if _, err = hasher.Write([]byte("Timeout")); err != nil {
+			return 0, err
+		}
+		if _, err = h.Hash(hasher); err != nil {
+			return 0, err
+		}
+	} else {
+		if fieldValue, err := hashstructure.Hash(m.GetTimeout(), nil); err != nil {
+			return 0, err
+		} else {
+			if _, err = hasher.Write([]byte("Timeout")); err != nil {
+				return 0, err
+			}
+			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
+				return 0, err
+			}
+		}
+	}
+
+	return hasher.Sum64(), nil
+}
+
+// Hash function
+//
+// Deprecated: due to hashing implemention only using field values. The omission
+// of the field name in the hash calculation can lead to hash collisions.
+// Prefer the HashUnique function instead.
 func (m *OpenTelemetryService) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -375,16 +471,28 @@ func (m *OpenTelemetryService) Hash(hasher hash.Hash64) (uint64, error) {
 		}
 	}
 
-	if _, err = hasher.Write([]byte(m.GetStatPrefix())); err != nil {
-		return 0, err
-	}
+	switch m.Destination.(type) {
 
-	switch m.ServiceRef.(type) {
+	case *OpenTelemetryService_Collector:
 
-	case *OpenTelemetryService_StaticClusterName:
-
-		if _, err = hasher.Write([]byte(m.GetStaticClusterName())); err != nil {
-			return 0, err
+		if h, ok := interface{}(m.GetCollector()).(safe_hasher.SafeHasher); ok {
+			if _, err = hasher.Write([]byte("Collector")); err != nil {
+				return 0, err
+			}
+			if _, err = h.Hash(hasher); err != nil {
+				return 0, err
+			}
+		} else {
+			if fieldValue, err := hashstructure.Hash(m.GetCollector(), nil); err != nil {
+				return 0, err
+			} else {
+				if _, err = hasher.Write([]byte("Collector")); err != nil {
+					return 0, err
+				}
+				if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
+					return 0, err
+				}
+			}
 		}
 
 	}

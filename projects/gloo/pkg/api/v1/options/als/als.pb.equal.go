@@ -306,6 +306,73 @@ func (m *GrpcService) Equal(that interface{}) bool {
 }
 
 // Equal function
+func (m *OpenTelemetryCollector) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*OpenTelemetryCollector)
+	if !ok {
+		that2, ok := that.(OpenTelemetryCollector)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	if strings.Compare(m.GetEndpoint(), target.GetEndpoint()) != 0 {
+		return false
+	}
+
+	if strings.Compare(m.GetAuthority(), target.GetAuthority()) != 0 {
+		return false
+	}
+
+	if len(m.GetHeaders()) != len(target.GetHeaders()) {
+		return false
+	}
+	for k, v := range m.GetHeaders() {
+
+		if strings.Compare(v, target.GetHeaders()[k]) != 0 {
+			return false
+		}
+
+	}
+
+	if m.GetInsecure() != target.GetInsecure() {
+		return false
+	}
+
+	if h, ok := interface{}(m.GetSslConfig()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetSslConfig()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetSslConfig(), target.GetSslConfig()) {
+			return false
+		}
+	}
+
+	if h, ok := interface{}(m.GetTimeout()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetTimeout()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetTimeout(), target.GetTimeout()) {
+			return false
+		}
+	}
+
+	return true
+}
+
+// Equal function
 func (m *OpenTelemetryService) Equal(that interface{}) bool {
 	if that == nil {
 		return m == nil
@@ -365,24 +432,26 @@ func (m *OpenTelemetryService) Equal(that interface{}) bool {
 		}
 	}
 
-	if strings.Compare(m.GetStatPrefix(), target.GetStatPrefix()) != 0 {
-		return false
-	}
+	switch m.Destination.(type) {
 
-	switch m.ServiceRef.(type) {
-
-	case *OpenTelemetryService_StaticClusterName:
-		if _, ok := target.ServiceRef.(*OpenTelemetryService_StaticClusterName); !ok {
+	case *OpenTelemetryService_Collector:
+		if _, ok := target.Destination.(*OpenTelemetryService_Collector); !ok {
 			return false
 		}
 
-		if strings.Compare(m.GetStaticClusterName(), target.GetStaticClusterName()) != 0 {
-			return false
+		if h, ok := interface{}(m.GetCollector()).(equality.Equalizer); ok {
+			if !h.Equal(target.GetCollector()) {
+				return false
+			}
+		} else {
+			if !proto.Equal(m.GetCollector(), target.GetCollector()) {
+				return false
+			}
 		}
 
 	default:
 		// m is nil but target is not nil
-		if m.ServiceRef != target.ServiceRef {
+		if m.Destination != target.Destination {
 			return false
 		}
 	}
