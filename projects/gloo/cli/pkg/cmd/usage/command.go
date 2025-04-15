@@ -34,6 +34,7 @@ type Options struct {
 	GlooSnapshotFile      string
 	ScanProxies           []string
 	ProxyNamespaces       []string
+	IncludeEndpointStats  bool
 }
 
 func RootCmd(op *options.Options) *cobra.Command {
@@ -88,9 +89,11 @@ func run(opts *Options) error {
 		if err != nil {
 			return err
 		}
-		if err := printEndpointInfo(clusters); err != nil {
+
+		if err := printPodInfo(clusters); err != nil {
 			return err
 		}
+
 	}
 
 	output := convert.NewGatewayAPIOutput()
@@ -112,62 +115,21 @@ func run(opts *Options) error {
 
 }
 
-func printEndpointInfo(clusters map[string]*Clusters) error {
+func printPodInfo(proxies map[string]*ProxyInfo) error {
 
 	headerFmt := color.New(color.FgGreen, color.Underline).SprintfFunc()
 	columnFmt := color.New(color.FgYellow).SprintfFunc()
 
 	var noEndpointsPods []string
-	for namespacePodName, cluster := range clusters {
+	for namespacePodName, info := range proxies {
 
-		tbl := table.New("Cluster", "Endpoint", "Port", "Rq Success", "Rq Error", "Cx Active", "Cx Connect Fail", "Priority", "Locality")
-		tbl.WithHeaderFormatter(headerFmt).WithFirstColumnFormatter(columnFmt)
-		var rows = 0
-		for _, s := range cluster.ClusterStatuses {
-			nameSplit := strings.Split(s.Name, "::")
-			if len(nameSplit) > 3 {
-				for _, hs := range s.HostStatuses {
-					statsMap := map[string]string{}
-					for _, stat := range hs.Stats {
-						if stat.Value != "" {
-							value, err := strconv.Atoi(stat.Value)
-							if err != nil {
-								// just print the string
-								if stat.Value != "" {
-									statsMap[stat.Name] = stat.Value
-								}
-							} else {
-								if value != 0 {
-									statsMap[stat.Name] = stat.Value
-								}
-							}
-						}
-					}
-					if len(statsMap) > 0 {
-						var locality string
-						if hs.Locality.Region != "" {
-							locality = hs.Locality.Region
-						}
-						if hs.Locality.Zone != "" {
-							locality += "/" + hs.Locality.Zone
-						}
-						if hs.Locality.SubZone != "" {
-							locality += "/" + hs.Locality.SubZone
-						}
-
-						tbl.AddRow(nameSplit[3], hs.Address.SocketAddress.Address, hs.Address.SocketAddress.PortValue, statsMap["rq_success"], statsMap["rq_error"], statsMap["cx_active"], statsMap["cx_connect_fail"], statsMap["priority"], locality)
-						rows++
-					}
-				}
-
-			}
+		fmt.Printf("%s\n", namespacePodName)
+		// Print upstream request stats first
+		if err := printUpstreamRequestStats(namespacePodName, info); err != nil {
+			return err
 		}
-		if rows > 0 {
-			fmt.Printf("%s\n", namespacePodName)
-			tbl.Print()
-			fmt.Println("\n")
-		} else {
-			noEndpointsPods = append(noEndpointsPods, namespacePodName)
+		if info.Clusters != nil {
+			noEndpointsPods = printEndpointInfo(headerFmt, columnFmt, info, noEndpointsPods, namespacePodName)
 		}
 	}
 	for _, pod := range noEndpointsPods {
@@ -177,8 +139,100 @@ func printEndpointInfo(clusters map[string]*Clusters) error {
 	return nil
 }
 
-func findGlooProxyPods(opts *Options, tempDir string) (map[string]*Clusters, error) {
-	podStats := map[string]*Clusters{}
+func printEndpointInfo(headerFmt func(format string, a ...interface{}) string, columnFmt func(format string, a ...interface{}) string, info *ProxyInfo, noEndpointsPods []string, namespacePodName string) []string {
+	tbl := table.New("Upstream", "Endpoint", "Port", "Rq Success", "Rq Error", "Cx Active", "Cx Connect Fail")
+	tbl.WithHeaderFormatter(headerFmt).WithFirstColumnFormatter(columnFmt)
+	var rows = 0
+	for _, s := range info.Clusters.ClusterStatuses {
+		for _, hs := range s.HostStatuses {
+			statsMap := map[string]string{}
+			for _, stat := range hs.Stats {
+				if stat.Value != "" {
+					value, err := strconv.Atoi(stat.Value)
+					if err != nil {
+						// just print the string
+						if stat.Value != "" {
+							statsMap[stat.Name] = stat.Value
+						}
+					} else {
+						if value != 0 {
+							statsMap[stat.Name] = stat.Value
+						}
+					}
+				}
+			}
+			if len(statsMap) > 0 {
+				var locality string
+				if hs.Locality.Region != "" {
+					locality = hs.Locality.Region
+				}
+				if hs.Locality.Zone != "" {
+					locality += "/" + hs.Locality.Zone
+				}
+				if hs.Locality.SubZone != "" {
+					locality += "/" + hs.Locality.SubZone
+				}
+
+				tbl.AddRow(s.Name, hs.Address.SocketAddress.Address, hs.Address.SocketAddress.PortValue, statsMap["rq_success"], statsMap["rq_error"], statsMap["cx_active"], statsMap["cx_connect_fail"])
+				rows++
+			}
+		}
+	}
+	if rows > 0 {
+		tbl.Print()
+		fmt.Println("\n")
+	} else {
+		noEndpointsPods = append(noEndpointsPods, namespacePodName)
+	}
+	return noEndpointsPods
+}
+
+func printUpstreamRequestStats(namespacePodName string, info *ProxyInfo) error {
+	if info.Stats == nil {
+		return nil
+	}
+
+	var uptimeSeconds float64
+	var totalRequests float64
+	for _, stat := range info.Stats.Stats {
+		// skip xds_cluster stats
+		if strings.Contains(stat.Name, "xds_cluster") {
+			continue
+		}
+
+		if strings.Contains(stat.Name, "server.uptime") {
+			statValue, ok := stat.Value.(float64)
+			if !ok {
+				continue
+			}
+			uptimeSeconds = statValue
+		}
+
+		if strings.HasSuffix(stat.Name, "upstream_rq_2xx") || strings.HasSuffix(stat.Name, "upstream_rq_3xx") || strings.HasSuffix(stat.Name, "upstream_rq_4xx") {
+
+			statValue, ok := stat.Value.(float64)
+			if !ok {
+				continue
+			}
+			if statValue > 0 {
+				// fmt.Printf("\t%s: %d\n", stat.Name, int(statValue))
+				totalRequests += statValue
+			}
+		}
+	}
+
+	fmt.Printf("\tUptime: %d minute | Total 2xx,3xx,4xx: %d | Requests/sec: %d\n", int(uptimeSeconds/60), int(totalRequests), int(totalRequests/uptimeSeconds))
+
+	return nil
+}
+
+type ProxyInfo struct {
+	Clusters *Clusters
+	Stats    *Stats
+}
+
+func findGlooProxyPods(opts *Options, tempDir string) (map[string]*ProxyInfo, error) {
+	podStats := map[string]*ProxyInfo{}
 	// for each selector
 
 	namespaces := opts.ProxyNamespaces
@@ -219,12 +273,26 @@ func findGlooProxyPods(opts *Options, tempDir string) (map[string]*Clusters, err
 					return nil, err
 				}
 				for _, pod := range deploymentPods.Items {
-					clusters, err := getClusterStats(tempDir, &pod, opts)
+					var clusters *Clusters
+					if opts.IncludeEndpointStats {
+						clusters, err = getClusterStats(tempDir, &pod, opts)
+						if err != nil {
+							return nil, err
+						}
+					}
+
+					stats, err := getProxyStats(tempDir, &pod, opts)
 					if err != nil {
 						return nil, err
 					}
+					proxyInfo := &ProxyInfo{
+						Stats: stats,
+					}
+					if clusters != nil {
+						proxyInfo.Clusters = clusters
+					}
 
-					podStats[pod.Name] = clusters
+					podStats[pod.Name] = proxyInfo
 				}
 			} else {
 				pod, err := kube.CoreV1().Pods(namespace).Get(ctx, proxySelector, metav1.GetOptions{})
@@ -233,9 +301,15 @@ func findGlooProxyPods(opts *Options, tempDir string) (map[string]*Clusters, err
 				if err != nil {
 					return nil, err
 				}
-				podStats[proxySelector] = clusters
+				stats, err := getProxyStats(tempDir, pod, opts)
+				if err != nil {
+					return nil, err
+				}
+				podStats[proxySelector] = &ProxyInfo{
+					Clusters: clusters,
+					Stats:    stats,
+				}
 			}
-
 			// need to parse the clusters file
 
 		}
@@ -244,6 +318,57 @@ func findGlooProxyPods(opts *Options, tempDir string) (map[string]*Clusters, err
 
 }
 
+// getProxyStats is used to get the stats for a proxy pod /stats endpoint
+func getProxyStats(tempDir string, pod *v1.Pod, opts *Options) (*Stats, error) {
+
+	// TODO we need to find all gloo proxies to grab the stats
+
+	cli, shutdownFunc, err := NewPortForwardedClient(context.Background(), kubectl.NewCli().WithKubeContext(opts.Top.KubeContext), pod.Name, pod.Namespace, int(defaults.EnvoyAdminPort))
+	if err != nil {
+		return nil, err
+	}
+	defer shutdownFunc()
+	filePath := filepath.Join(tempDir, fmt.Sprintf("%s_%s_stats.json", pod.Namespace, pod.Name))
+	clustersFile, err := fileAtPath(filePath)
+	if err != nil {
+		return nil, err
+	}
+	// We couldn't ge wget to work within the envoy proxy pod so we will curl it from the control plane
+	cmd := cli.Command(context.Background(), curl.WithPath("stats"), curl.WithQueryParameters(map[string]string{"format": "json"}))
+	if err := cmd.WithStdout(clustersFile).Run().Cause(); err != nil {
+		return nil, err
+	}
+
+	// read stats file
+	data, err := os.ReadFile(filePath)
+	if err != nil {
+		return nil, err
+	}
+	stats, err := parseStatsIntoEndpointInfo(string(data))
+	if err != nil {
+		return nil, err
+	}
+
+	return stats, nil
+}
+
+func parseStatsIntoEndpointInfo(file string) (*Stats, error) {
+	var stats Stats
+	err := json.Unmarshal([]byte(file), &stats)
+	if err != nil {
+		return nil, fmt.Errorf("error unmarshalling stats: %v", err)
+	}
+	return &stats, nil
+}
+
+func parseClusterStatsIntoEndpointInfo(file string) (*Clusters, error) {
+	var clusters Clusters
+	err := json.Unmarshal([]byte(file), &clusters)
+	if err != nil {
+		return nil, fmt.Errorf("error unmarshalling clusters: %v", err)
+	}
+	return &clusters, nil
+}
 func getClusterStats(tempDir string, pod *v1.Pod, opts *Options) (*Clusters, error) {
 
 	// TODO we need to find all gloo proxies to grab the stats
@@ -253,7 +378,7 @@ func getClusterStats(tempDir string, pod *v1.Pod, opts *Options) (*Clusters, err
 		return nil, err
 	}
 	defer shutdownFunc()
-	filePath := filepath.Join(tempDir, fmt.Sprintf("%s_%s.json", pod.Namespace, pod.Name))
+	filePath := filepath.Join(tempDir, fmt.Sprintf("%s_%s_clusters.json", pod.Namespace, pod.Name))
 	clustersFile, err := fileAtPath(filePath)
 	if err != nil {
 		return nil, err
@@ -269,7 +394,7 @@ func getClusterStats(tempDir string, pod *v1.Pod, opts *Options) (*Clusters, err
 	if err != nil {
 		return nil, err
 	}
-	clusterStats, err := parseStatsIntoEndpointInfo(string(data))
+	clusterStats, err := parseClusterStatsIntoEndpointInfo(string(data))
 	if err != nil {
 		return nil, err
 	}
@@ -277,18 +402,9 @@ func getClusterStats(tempDir string, pod *v1.Pod, opts *Options) (*Clusters, err
 	return clusterStats, nil
 }
 
-func parseStatsIntoEndpointInfo(stats string) (*Clusters, error) {
-	var clusters Clusters
-	err := json.Unmarshal([]byte(stats), &clusters)
-	if err != nil {
-		return nil, err
-	}
-	return &clusters, nil
-}
-
 func LoadSnapshotFromGloo(opts *Options, tempDir string) (string, error) {
 
-	cli, shutdownFunc, err := NewPortForwardedClient(context.Background(), kubectl.NewCli().WithKubeContext(opts.Top.KubeContext), opts.ControlPlaneName, opts.ControlPlaneNamespace,9095)
+	cli, shutdownFunc, err := NewPortForwardedClient(context.Background(), kubectl.NewCli().WithKubeContext(opts.Top.KubeContext), opts.ControlPlaneName, opts.ControlPlaneNamespace, 9095)
 	if err != nil {
 		return "", err
 	}
@@ -312,6 +428,7 @@ func (o *Options) addToFlags(flags *pflag.FlagSet) {
 	flags.StringVar(&o.GlooSnapshotFile, "input-snapshot", "", "Gloo input snapshot file location")
 	flags.StringSliceVar(&o.ScanProxies, "scan-proxies", []string{}, "Scan for Gloo proxies and grab their routing information")
 	flags.StringSliceVar(&o.ProxyNamespaces, "proxy-namespaces", []string{}, "Namespaces that contain gloo proxies (default gloo-system or gloo-control-plane-namespace)")
+	flags.BoolVar(&o.IncludeEndpointStats, "include-endpoint-stats", false, "Include endpoint stats in the output")
 
 }
 

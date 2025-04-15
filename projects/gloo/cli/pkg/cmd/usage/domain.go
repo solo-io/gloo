@@ -171,7 +171,7 @@ func (u *UsageStats) Print() {
 	fmt.Printf("\tDirectResponses: %d\n", len(u.cache.DirectResponses()))
 	fmt.Printf("\tGatewayParameters: %d\n", len(u.cache.GatewayParameters()))
 
-	fmt.Printf("\nTota Features Used Per API\n")
+	fmt.Printf("\nTotal Features Used Per API\n")
 	fmt.Printf("\tGloo Edge API: %d\n", len(u.stats[GlooEdgeAPI]))
 	fmt.Printf("\tGateway API: %d\n", len(u.stats[GatewayAPI]))
 	fmt.Printf("\tkGateway API: %d\n\n", len(u.stats[KGatewayAPI]))

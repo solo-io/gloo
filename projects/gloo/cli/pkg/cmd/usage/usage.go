@@ -81,7 +81,6 @@ func (u *UsageStats) processVirtualService(service *gatewaykube.VirtualService) 
 
 		for _, route := range spec.GetVirtualHost().GetRoutes() {
 			u.processRoute(route, service.Name, "VirtualService", service.Namespace)
-
 		}
 
 		if spec.GetVirtualHost().GetOptions() != nil {
@@ -174,9 +173,10 @@ func (u *UsageStats) processRoute(route *api.Route, parentName string, parentKin
 				upstream, found := u.cache.Upstreams()[snapshot.NameNamespaceIndex(route.GetRouteAction().GetSingle().GetUpstream().GetName(), namespace)]
 				if !found {
 					fmt.Printf("WARNING: No upstream found for kind %s: %s/%s\n", parentKind, parentNamespace, parentName)
-				}
+				}else{
 				u.processUpstream(upstream.Upstream, parentName, parentKind, GlooEdgeAPI)
 			}
+		}
 		}
 	}
 	if route.GetRedirectAction() != nil {

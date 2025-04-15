@@ -1,5 +1,14 @@
 package usage
 
+type Stats struct {
+	Stats []Stat `json:"stats"`
+}
+
+type Stat struct {
+	Name  string `json:"name"`
+	Value interface{}    `json:"value"`
+}
+
 type SocketAddress struct {
 	Address   string `json:"address"`
 	PortValue int    `json:"port_value"`
@@ -12,7 +21,7 @@ type Address struct {
 	} `json:"pipe,omitempty"`
 }
 
-type Stat struct {
+type EndpointStat struct {
 	Name  string `json:"name"`
 	Value string `json:"value,omitempty"`
 	Type  string `json:"type,omitempty"`
@@ -23,8 +32,8 @@ type HealthStatus struct {
 }
 
 type HostStatus struct {
-	Address      Address      `json:"address"`
-	Stats        []Stat       `json:"stats"`
+	Address      Address       `json:"address"`
+	Stats        []EndpointStat `json:"stats"`
 	HealthStatus HealthStatus `json:"health_status"`
 	Weight       int          `json:"weight"`
 	Hostname     string       `json:"hostname,omitempty"`
