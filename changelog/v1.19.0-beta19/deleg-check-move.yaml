@@ -1,0 +1,13 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/solo-projects/issues/8119
+    resolvesIssue: false
+    description: |
+      gateway2/delegation: check cyclic reference only for valid children
+
+      - Moves the cyclic reference check after ignoring unattached candidate
+        child routes to prevent an unnecessary status error when the parent delegates
+        to wildcard routes in the same namespace.
+
+      - Removes the self-reference check so that invalid references to self
+        are reported as status errors.
