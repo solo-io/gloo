@@ -150,8 +150,7 @@ func (tc TestCase) Run(ctx context.Context) (map[types.NamespacedName]ActualTest
 		routeOptionClient.Write(&rtOpt.Spec, clients.WriteOpts{Ctx: ctx})
 	}
 
-	// DO_NOT_SUBMIT - might not be right, but it compiles
-	routeOptionCollection := krt.NewStaticCollection(nil, routeOptions)
+	routeOptionCollection := krt.NewStaticCollection(routeOptions)
 	vhOptionCollection := krt.NewStatic[*solokubev1.VirtualHostOption](nil, true).AsCollection()
 
 	allPlugins := registry.BuildPlugins(queries, fakeClient, routeOptionCollection, vhOptionCollection, statusReporter)

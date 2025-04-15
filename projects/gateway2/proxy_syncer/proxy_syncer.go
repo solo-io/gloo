@@ -631,7 +631,7 @@ func (s *ProxySyncer) Start(ctx context.Context) error {
 		}
 	}()
 
-	s.perclientSnapCollection.RegisterBatch(func(o []krt.Event[XdsSnapWrapper]) {
+	s.perclientSnapCollection.RegisterBatch(func(o []krt.Event[XdsSnapWrapper], initalSync bool) {
 		for _, e := range o {
 			if e.Event != controllers.EventDelete {
 				snapWrap := e.Latest()

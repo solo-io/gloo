@@ -63,8 +63,8 @@ var _ = Describe("RouteOptionsPlugin", func() {
 			ret.Spec = *rto
 			return &ret
 		})
-		// DO_NOT_SUBMIT - might not be right, but it compiles
-		routeOptionCollection = krt.NewStaticCollection(nil, rtkube)
+
+		routeOptionCollection = krt.NewStaticCollection(rtkube)
 		for _, rto := range rtoptions {
 			routeOptionClientFull.Write(rto, clients.WriteOpts{})
 		}
