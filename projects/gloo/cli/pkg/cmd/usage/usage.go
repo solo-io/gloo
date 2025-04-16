@@ -4,19 +4,18 @@ import (
 	"fmt"
 	api "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	gatewaykube "github.com/solo-io/gloo/projects/gateway/pkg/api/v1/kube/apis/gateway.solo.io/v1"
-	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/gatewayapi/convert"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/snapshot"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
 	glookube "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/kube/apis/gloo.solo.io/v1"
 )
 
-func generateUsage(output *convert.GatewayAPIOutput) (*UsageStats, error) {
+func generateGlooFeatureUsage(glooConfigs *snapshot.Instance) (*UsageStats, error) {
 
 	// look at gateway
 	stats := &UsageStats{
 		stats: make(map[API][]*UsageStat),
-		cache: output.GetEdgeCache(),
+		cache: glooConfigs,
 	}
 	err := stats.processGlooGateways()
 	if err != nil {
@@ -173,10 +172,10 @@ func (u *UsageStats) processRoute(route *api.Route, parentName string, parentKin
 				upstream, found := u.cache.Upstreams()[snapshot.NameNamespaceIndex(route.GetRouteAction().GetSingle().GetUpstream().GetName(), namespace)]
 				if !found {
 					fmt.Printf("WARNING: No upstream found for kind %s: %s/%s\n", parentKind, parentNamespace, parentName)
-				}else{
-				u.processUpstream(upstream.Upstream, parentName, parentKind, GlooEdgeAPI)
+				} else {
+					u.processUpstream(upstream.Upstream, parentName, parentKind, GlooEdgeAPI)
+				}
 			}
-		}
 		}
 	}
 	if route.GetRedirectAction() != nil {

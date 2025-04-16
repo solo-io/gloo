@@ -17,7 +17,6 @@ import (
 	"github.com/solo-io/gloo/pkg/utils/kubeutils/kubectl"
 	"github.com/solo-io/gloo/pkg/utils/kubeutils/portforward"
 	"github.com/solo-io/gloo/pkg/utils/requestutils/curl"
-	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/gatewayapi/convert"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/options"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/snapshot"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
@@ -65,172 +64,157 @@ func (opts *Options) validate() error {
 	return nil
 }
 
-type NodeResources struct {
-	TotalCapacityCPU    int64
-	TotalCapacityMemory int64
-}
-
-func calculateNodeResources(nodes []v1.Node) (*NodeResources, error) {
-	resources := &NodeResources{}
-
-	for _, node := range nodes {
-		// Calculate allocatable (actual capacity)
-		cpuAllocatable := node.Status.Allocatable[v1.ResourceCPU]
-		memoryAllocatable := node.Status.Allocatable[v1.ResourceMemory]
-
-		// Add to total capacity
-		resources.TotalCapacityCPU += cpuAllocatable.MilliValue()
-		resources.TotalCapacityMemory += memoryAllocatable.Value()
-	}
-
-	return resources, nil
-}
-
 func run(opts *Options) error {
-	tempDir, err := os.MkdirTemp("", "tmp")
+	// Go fetch all the data needed for usage
+	inputs, err := gatherUsageInformation(opts)
 	if err != nil {
 		return err
 	}
-	defer os.RemoveAll(tempDir) // Clean up the directory when done
+	usageStats := UsageStats{}
 
-	// Get cluster info
-	clusterInfo, err := getK8sClusterInfo(opts)
+	// calculate all the stats for each input
+	proxyData, err := generateProxyData(inputs.ProxyStats)
 	if err != nil {
 		return err
+	}
+	usageStats.ProxyData = proxyData
+
+	// go through the edge snapshot and count feature usage
+	usage, err := generateGlooFeatureUsage(inputs.GlooConfigs)
+	if err != nil {
+		return err
+	}
+	usageStats.GlooFeatureUsage = usage
+
+	if inputs.ProxyStats != nil {
+		envoyMetric,proxyStats, err := gatherProxyPodInformation(inputs.ProxyStats);
+		if err != nil {
+			return err
+		}
+		usageStats.GlooProxyMetrics = envoyMetric
+		usageStats.GlooProxyStats = proxyStats
+
 	}
 
 	// Calculate node resources
-	nodeResources, err := calculateNodeResources(clusterInfo.Nodes)
+	nodeResources, err := calculateNodeResources(inputs.K8sClusterInfo.Nodes)
 	if err != nil {
 		return err
 	}
 	fmt.Printf("\nK8s Resources:\n")
-	fmt.Printf("\tNodes: %d\n", len(clusterInfo.Nodes))
-	fmt.Printf("\tPods: %d\n", len(clusterInfo.Pods))
-	fmt.Printf("\tServices: %d\n", len(clusterInfo.Services))
+	fmt.Printf("\tNodes: %d\n", len(inputs.K8sClusterInfo.Nodes))
+	fmt.Printf("\tPods: %d\n", len(inputs.K8sClusterInfo.Pods))
+	fmt.Printf("\tServices: %d\n", len(inputs.K8sClusterInfo.Services))
 	// Print node resource information
 	fmt.Printf("\nNode Resources:\n")
 	fmt.Printf("Total CPU Capacity: %.2f cores\n", float64(nodeResources.TotalCapacityCPU)/1000)
 	fmt.Printf("Total Memory Capacity: %.2f GB\n", float64(nodeResources.TotalCapacityMemory)/math.Pow(1024, 3))
 
-	// Create a temporary directory
-	var filePath string
 
-	if opts.GlooSnapshotFile == "" {
 
-		filePath, err = LoadSnapshotFromGloo(opts, tempDir)
-		if err != nil {
-			return err
-		}
-	} else {
-		filePath = opts.GlooSnapshotFile
-	}
-
-	// scan for gloo gateways
-	if len(opts.ScanProxies) > 0 {
-		clusters, err := findGlooProxyPods(opts, tempDir)
-		if err != nil {
-			return err
-		}
-
-		if err := printPodInfo(clusters); err != nil {
-			return err
-		}
-
-	}
-
-	// grab cluster information
-
-	output := convert.NewGatewayAPIOutput()
-
-	inputSnapshot, err := snapshot.FromGlooSnapshot(filePath)
-	if err != nil {
-		return err
-	}
-	output.EdgeCache(inputSnapshot)
-
-	// go through the edge snapshot
-	usage, err := generateUsage(output)
-	if err != nil {
-		return err
-	}
 	usage.Print()
 
 	return nil
 
 }
 
-func getK8sClusterInfo(opts *Options) (*K8sClusterInfo, error) {
-	restCfg, err := kubeutils.GetRestConfigWithKubeContext("")
-	if err != nil {
-		return nil, err
-	}
-	kube, err := kubernetes.NewForConfig(restCfg)
-	if err != nil {
-		return nil, err
-	}
+func generateProxyData(proxyInfo map[string]*ProxyInfo) ([]*ProxyData, error}) {
 
-	// Get all pods across all namespaces
-	pods, err := kube.CoreV1().Pods("").List(context.Background(), metav1.ListOptions{})
-	if err != nil {
-		return nil, err
-	}
+	var proxyData []*ProxyData
+	for nameNamespace, info := range proxyInfo {
+		// for each proxy organize its information
+		envoyMetrics, err := getEnvoyMetrics(info)
+		if err != nil {
+			return nil, err
+		}
+		nnsSplit := strings.Split(nameNamespace, "/")
 
-	// Get all nodes
-	nodes, err := kube.CoreV1().Nodes().List(context.Background(), metav1.ListOptions{})
-	if err != nil {
-		return nil, err
+		proxyData =append(proxyData, &ProxyData{
+			Name: nnsSplit[1],
+			Namespace: nnsSplit[0],
+			EnvoyMetrics: envoyMetrics,
+		})
 	}
-
-	// Get all services in the control plane namespace
-	services, err := kube.CoreV1().Services(opts.ControlPlaneNamespace).List(context.Background(), metav1.ListOptions{})
-	if err != nil {
-		return nil, err
-	}
-
-	return &K8sClusterInfo{
-		Nodes:    nodes.Items,
-		Pods:     pods.Items,
-		Services: services.Items,
-	}, nil
+	return proxyData, nil
 }
 
-type K8sClusterInfo struct {
-	Nodes    []v1.Node
-	Pods     []v1.Pod
-	Services []v1.Service
+type ProxyData struct {
+	Name string
+	Namespace string
+	EnvoyMetrics *EnvoyMetrics
 }
 
-func printPodInfo(proxies map[string]*ProxyInfo) error {
+//gatherUsageInformation reads data from multiple sources and returns it
+func gatherUsageInformation(opts *Options) (*UsageInputs, error) {
 
-	headerFmt := color.New(color.FgGreen, color.Underline).SprintfFunc()
-	columnFmt := color.New(color.FgYellow).SprintfFunc()
+	tempDir, err := os.MkdirTemp("", "tmp")
+	if err != nil {
+		return nil, err
+	}
+	defer os.RemoveAll(tempDir) // Clean up the directory when done
 
-	var noEndpointsPods []string
-	for namespacePodName, info := range proxies {
+	inputs := &UsageInputs{}
 
-		fmt.Printf("%s\n", namespacePodName)
+	// Get cluster info
+	clusterInfo, err := getK8sClusterInfo(opts)
+	if err != nil {
+		return nil, err
+	}
+	inputs.K8sClusterInfo = clusterInfo
+
+	// scan for gloo gateways
+	if len(opts.ScanProxies) > 0 {
+		clusters, err := findGlooProxyPods(opts, tempDir)
+		if err != nil {
+			return nil, err
+		}
+		inputs.ProxyStats = clusters
+	}
+
+	// Create a temporary directory
+	var filePath string
+
+	if opts.GlooSnapshotFile == "" {
+		filePath, err = LoadSnapshotFromGloo(opts, tempDir)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		filePath = opts.GlooSnapshotFile
+	}
+
+	inputSnapshot, err := snapshot.FromGlooSnapshot(filePath)
+	if err != nil {
+		return nil, err
+	}
+	inputs.GlooConfigs = inputSnapshot
+
+	return inputs, nil
+}
+
+func gatherProxyPodInformation(proxies map[string]*ProxyInfo) (*EnvoyMetrics, []*UpstreamStat,error) {
+
+	var envoyMetrics *EnvoyMetrics
+	var upstreamStats []*UpstreamStat
+	var err error
+	for _, proxy := range proxies {
 		// Print upstream request stats first
-		if err := printUpstreamRequestStats(namespacePodName, info); err != nil {
-			return err
+		envoyMetrics, err = getEnvoyMetrics(proxy)
+		if err != nil {
+			return nil,nil, err
 		}
-		if info.Clusters != nil {
-			noEndpointsPods = printEndpointInfo(headerFmt, columnFmt, info, noEndpointsPods, namespacePodName)
+		if proxy.Clusters != nil {
+			upstreamStats = generateUpstreamStats(proxy)
 		}
 	}
-	for _, pod := range noEndpointsPods {
-		fmt.Printf("\nNo active endpoints found for %s", pod)
-	}
-
-	return nil
+	return envoyMetrics, upstreamStats, nil
 }
 
-func printEndpointInfo(headerFmt func(format string, a ...interface{}) string, columnFmt func(format string, a ...interface{}) string, info *ProxyInfo, noEndpointsPods []string, namespacePodName string) []string {
-	tbl := table.New("Upstream", "Endpoint", "Port", "Rq Success", "Rq Error", "Cx Active", "Cx Connect Fail")
-	tbl.WithHeaderFormatter(headerFmt).WithFirstColumnFormatter(columnFmt)
-	var rows = 0
-	for _, s := range info.Clusters.ClusterStatuses {
+func generateUpstreamStats(proxy *ProxyInfo) []*UpstreamStat {
+	var stats []*UpstreamStat
+	for _, s := range proxy.Clusters.ClusterStatuses {
 		for _, hs := range s.HostStatuses {
+
 			statsMap := map[string]string{}
 			for _, stat := range hs.Stats {
 				if stat.Value != "" {
@@ -248,38 +232,61 @@ func printEndpointInfo(headerFmt func(format string, a ...interface{}) string, c
 				}
 			}
 			if len(statsMap) > 0 {
-				var locality string
+				upstreamStat := &UpstreamStat{}
 				if hs.Locality.Region != "" {
-					locality = hs.Locality.Region
+					upstreamStat.Region = hs.Locality.Region
 				}
 				if hs.Locality.Zone != "" {
-					locality += "/" + hs.Locality.Zone
+					upstreamStat.Zone = hs.Locality.Zone
 				}
 				if hs.Locality.SubZone != "" {
-					locality += "/" + hs.Locality.SubZone
+					upstreamStat.SubZone = hs.Locality.SubZone
 				}
 
-				tbl.AddRow(s.Name, hs.Address.SocketAddress.Address, hs.Address.SocketAddress.PortValue, statsMap["rq_success"], statsMap["rq_error"], statsMap["cx_active"], statsMap["cx_connect_fail"])
-				rows++
+				rqSuccess, exists := statsMap["rq_success"]
+				if exists {
+					c, err := strconv.Atoi(rqSuccess)
+					if err != nil {
+						fmt.Printf("Error converting rq_success(%s) to int: %v\n",rqSuccess, err)
+					}
+					upstreamStat.RqSuccess = c
+				}
+				rqError, exists := statsMap["rq_error"]
+				if exists {
+					c, err := strconv.Atoi(rqError)
+					if err != nil {
+						fmt.Printf("Error converting rq_error(%s) to int: %v\n",rqError, err)
+					}
+					upstreamStat.RqError = c
+				}
+				cxActive, exists := statsMap["cx_active"]
+				if exists {
+					c, err := strconv.Atoi(cxActive)
+					if err != nil {
+						fmt.Printf("Error converting cx_active(%s) to int: %v\n",cxActive, err)
+					}
+					upstreamStat.CxActive = c
+				}
+				cxConnectFail, exists := statsMap["cx_connect_fail"]
+				if exists {
+					ccf, err := strconv.Atoi(cxConnectFail)
+					if err != nil {
+						fmt.Printf("Error converting cx_connect_fail(%s) to int: %v\n",cxConnectFail, err)
+					}
+					upstreamStat.CxConnectFail = ccf
+				}
+				stats = append(stats, upstreamStat)
 			}
 		}
 	}
-	if rows > 0 {
-		tbl.Print()
-		fmt.Println("\n")
-	} else {
-		noEndpointsPods = append(noEndpointsPods, namespacePodName)
-	}
-	return noEndpointsPods
+	return stats
 }
 
-func printUpstreamRequestStats(namespacePodName string, info *ProxyInfo) error {
+func getEnvoyMetrics(info *ProxyInfo) (*EnvoyMetrics, error) {
 	if info.Stats == nil {
-		return nil
+		return nil, nil
 	}
-
-	var uptimeSeconds float64
-	var totalRequests float64
+	envoyMetrics := &EnvoyMetrics{}
 	for _, stat := range info.Stats.Stats {
 		// skip xds_cluster stats
 		if strings.Contains(stat.Name, "xds_cluster") {
@@ -291,25 +298,68 @@ func printUpstreamRequestStats(namespacePodName string, info *ProxyInfo) error {
 			if !ok {
 				continue
 			}
-			uptimeSeconds = statValue
+			envoyMetrics.UptimeSeconds = statValue
 		}
-
-		if strings.HasSuffix(stat.Name, "upstream_rq_2xx") || strings.HasSuffix(stat.Name, "upstream_rq_3xx") || strings.HasSuffix(stat.Name, "upstream_rq_4xx") {
-
+		if strings.HasSuffix(stat.Name, "upstream_rq_2xx") {
 			statValue, ok := stat.Value.(float64)
 			if !ok {
 				continue
 			}
 			if statValue > 0 {
-				// fmt.Printf("\t%s: %d\n", stat.Name, int(statValue))
-				totalRequests += statValue
+				envoyMetrics.Total2xxRequests += statValue
+			}
+		}
+		if strings.HasSuffix(stat.Name, "upstream_rq_3xx") {
+			statValue, ok := stat.Value.(float64)
+			if !ok {
+				continue
+			}
+			if statValue > 0 {
+				envoyMetrics.Total2xxRequests += statValue
+			}
+		}
+		if strings.HasSuffix(stat.Name, "upstream_rq_4xx") {
+			statValue, ok := stat.Value.(float64)
+			if !ok {
+				continue
+			}
+			if statValue > 0 {
+				envoyMetrics.Total2xxRequests += statValue
+			}
+		}
+		if strings.HasSuffix(stat.Name, "upstream_rq_5xx") {
+			statValue, ok := stat.Value.(float64)
+			if !ok {
+				continue
+			}
+			if statValue > 0 {
+				envoyMetrics.Total2xxRequests += statValue
 			}
 		}
 	}
 
-	fmt.Printf("\tUptime: %d minute | Total 2xx,3xx,4xx: %d | Requests/sec: %d\n", int(uptimeSeconds/60), int(totalRequests), int(totalRequests/uptimeSeconds))
+	return envoyMetrics, nil
+}
 
-	return nil
+type EnvoyMetrics struct {
+	Total2xxRequests float64
+	Total3xxRequests float64
+	Total4xxRequests float64
+	Total5xxRequests float64
+	UptimeSeconds    float64
+}
+
+type UpstreamStat struct {
+	Host string
+	Region string
+	Zone string
+	SubZone string
+	IPAddress string
+	Port int
+	RqSuccess int
+	RqError   int
+	CxActive  int
+	CxConnectFail int
 }
 
 type ProxyInfo struct {
