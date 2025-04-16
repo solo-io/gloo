@@ -2101,13 +2101,13 @@ func (x *UpstreamSpec_Bedrock) GetRegion() string {
 // AwsCredentialProvider provider for signing the request.
 type UpstreamSpec_AwsCredentialProvider struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// Store the “AWS_ACCESS_KEY_ID“, “AWS_SECRET_ACCESS_KEY“, and the optional “AWS_SESSION_TOKEN“ in a Kubernetes secret in
-	// the same namespace as the Upstream. Then, refer to the secret in the Upstream configuration.
-	SecretRef *core.ResourceRef `protobuf:"bytes,1,opt,name=secret_ref,json=secretRef,proto3" json:"secret_ref,omitempty"`
-	// Uses inlined AWS credentials for“AWS_ACCESS_KEY_ID“, “AWS_SECRET_ACCESS_KEY“, and the optional “AWS_SESSION_TOKEN“.
-	Inline        *UpstreamSpec_AWSInline `protobuf:"bytes,2,opt,name=inline,proto3" json:"inline,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	// Types that are valid to be assigned to AuthTokenSource:
+	//
+	//	*UpstreamSpec_AwsCredentialProvider_SecretRef
+	//	*UpstreamSpec_AwsCredentialProvider_Inline
+	AuthTokenSource isUpstreamSpec_AwsCredentialProvider_AuthTokenSource `protobuf_oneof:"auth_token_source"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *UpstreamSpec_AwsCredentialProvider) Reset() {
@@ -2140,18 +2140,50 @@ func (*UpstreamSpec_AwsCredentialProvider) Descriptor() ([]byte, []int) {
 	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_rawDescGZIP(), []int{1, 8}
 }
 
+func (x *UpstreamSpec_AwsCredentialProvider) GetAuthTokenSource() isUpstreamSpec_AwsCredentialProvider_AuthTokenSource {
+	if x != nil {
+		return x.AuthTokenSource
+	}
+	return nil
+}
+
 func (x *UpstreamSpec_AwsCredentialProvider) GetSecretRef() *core.ResourceRef {
 	if x != nil {
-		return x.SecretRef
+		if x, ok := x.AuthTokenSource.(*UpstreamSpec_AwsCredentialProvider_SecretRef); ok {
+			return x.SecretRef
+		}
 	}
 	return nil
 }
 
 func (x *UpstreamSpec_AwsCredentialProvider) GetInline() *UpstreamSpec_AWSInline {
 	if x != nil {
-		return x.Inline
+		if x, ok := x.AuthTokenSource.(*UpstreamSpec_AwsCredentialProvider_Inline); ok {
+			return x.Inline
+		}
 	}
 	return nil
+}
+
+type isUpstreamSpec_AwsCredentialProvider_AuthTokenSource interface {
+	isUpstreamSpec_AwsCredentialProvider_AuthTokenSource()
+}
+
+type UpstreamSpec_AwsCredentialProvider_SecretRef struct {
+	// Store the “AWS_ACCESS_KEY_ID“, “AWS_SECRET_ACCESS_KEY“, and the optional “AWS_SESSION_TOKEN“ in a Kubernetes secret in
+	// the same namespace as the Upstream. Then, refer to the secret in the Upstream configuration.
+	SecretRef *core.ResourceRef `protobuf:"bytes,1,opt,name=secret_ref,json=secretRef,proto3,oneof"`
+}
+
+type UpstreamSpec_AwsCredentialProvider_Inline struct {
+	// Uses inlined AWS credentials for“AWS_ACCESS_KEY_ID“, “AWS_SECRET_ACCESS_KEY“, and the optional “AWS_SESSION_TOKEN“.
+	Inline *UpstreamSpec_AWSInline `protobuf:"bytes,2,opt,name=inline,proto3,oneof"`
+}
+
+func (*UpstreamSpec_AwsCredentialProvider_SecretRef) isUpstreamSpec_AwsCredentialProvider_AuthTokenSource() {
+}
+
+func (*UpstreamSpec_AwsCredentialProvider_Inline) isUpstreamSpec_AwsCredentialProvider_AuthTokenSource() {
 }
 
 // Configuration to use an inline AWS credential. This is an equivalent to setting the well-known
@@ -3626,7 +3658,7 @@ const file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai
 	"secret_ref\x18\x02 \x01(\v2\x19.core.solo.io.ResourceRefH\x00R\tsecretRef\x12X\n" +
 	"\vpassthrough\x18\x03 \x01(\v24.ai.options.gloo.solo.io.SingleAuthToken.PassthroughH\x00R\vpassthrough\x1a\r\n" +
 	"\vPassthroughB\x13\n" +
-	"\x11auth_token_source\"\xb5\x1a\n" +
+	"\x11auth_token_source\"\xce\x1a\n" +
 	"\fUpstreamSpec\x12F\n" +
 	"\x06openai\x18\x01 \x01(\v2,.ai.options.gloo.solo.io.UpstreamSpec.OpenAIH\x00R\x06openai\x12I\n" +
 	"\amistral\x18\x02 \x01(\v2-.ai.options.gloo.solo.io.UpstreamSpec.MistralH\x00R\amistral\x12O\n" +
@@ -3696,11 +3728,12 @@ const file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai
 	"\vcustom_host\x18\x02 \x01(\v20.ai.options.gloo.solo.io.UpstreamSpec.CustomHostR\n" +
 	"customHost\x12\x14\n" +
 	"\x05model\x18\x03 \x01(\tR\x05model\x12\x16\n" +
-	"\x06region\x18\x04 \x01(\tR\x06region\x1a\x9a\x01\n" +
-	"\x15AwsCredentialProvider\x128\n" +
+	"\x06region\x18\x04 \x01(\tR\x06region\x1a\xb3\x01\n" +
+	"\x15AwsCredentialProvider\x12:\n" +
 	"\n" +
-	"secret_ref\x18\x01 \x01(\v2\x19.core.solo.io.ResourceRefR\tsecretRef\x12G\n" +
-	"\x06inline\x18\x02 \x01(\v2/.ai.options.gloo.solo.io.UpstreamSpec.AWSInlineR\x06inline\x1a\x80\x01\n" +
+	"secret_ref\x18\x01 \x01(\v2\x19.core.solo.io.ResourceRefH\x00R\tsecretRef\x12I\n" +
+	"\x06inline\x18\x02 \x01(\v2/.ai.options.gloo.solo.io.UpstreamSpec.AWSInlineH\x00R\x06inlineB\x13\n" +
+	"\x11auth_token_source\x1a\x80\x01\n" +
 	"\tAWSInline\x12\"\n" +
 	"\raccess_key_id\x18\x01 \x01(\tR\vaccessKeyId\x12*\n" +
 	"\x11secret_access_key\x18\x02 \x01(\tR\x0fsecretAccessKey\x12#\n" +
@@ -4026,6 +4059,10 @@ func file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_
 	}
 	file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[15].OneofWrappers = []any{
 		(*UpstreamSpec_VertexAI_AuthToken)(nil),
+	}
+	file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[19].OneofWrappers = []any{
+		(*UpstreamSpec_AwsCredentialProvider_SecretRef)(nil),
+		(*UpstreamSpec_AwsCredentialProvider_Inline)(nil),
 	}
 	file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[22].OneofWrappers = []any{
 		(*UpstreamSpec_MultiPool_Backend_Openai)(nil),
