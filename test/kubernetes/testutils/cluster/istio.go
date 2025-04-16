@@ -13,11 +13,16 @@ import (
 	glooruntime "github.com/solo-io/gloo/test/kubernetes/testutils/runtime"
 	"github.com/solo-io/gloo/test/testutils"
 	"github.com/solo-io/go-utils/contextutils"
+	"k8s.io/apimachinery/pkg/util/version"
 )
 
 const (
 	// TODO(npolshak): Add support for other profiles (ambient, etc.)
 	minimalProfile = "minimal"
+)
+
+var (
+	applyDefaultRevisionTagAfterVersion = version.MustParseSemantic("1.24.0")
 )
 
 func GetIstioctl(ctx context.Context) (string, error) {
@@ -58,7 +63,46 @@ func InstallRevisionedIstio(
 		return fmt.Errorf("failed to write operator file: %w", err)
 	}
 
-	return installIstioOperator(ctx, istioctlBinary, kubeContext, operatorFile)
+	err = installIstioOperator(ctx, istioctlBinary, kubeContext, operatorFile)
+	if err != nil {
+		return err
+	}
+
+	if manuallyManageDefaultRevisionTag() {
+		return setDefaultRevisionTag(ctx, istioctlBinary, kubeContext, revision)
+	}
+
+	return nil
+}
+
+func manuallyManageDefaultRevisionTag() bool {
+	semver := version.MustParseSemantic(getIstioVersion())
+	if semver.LessThan(applyDefaultRevisionTagAfterVersion) {
+		return false
+	}
+
+	return true
+}
+
+func setDefaultRevisionTag(ctx context.Context, istioctlBinary, kubeContext, revision string) error {
+	cmd := exec.Command(istioctlBinary, "tag", "set", "default", "--revision", revision, "--context", kubeContext)
+
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("setting default revision tag failed: %w", err)
+	}
+
+	return ctx.Err()
+}
+
+func deleteDefaultRevisionTag(istioctlBinary, kubeContext string) error {
+	//  istioctl tag delete default
+	cmd := exec.Command(istioctlBinary, "tag", "delete", "default", "--context", kubeContext)
+
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("deleting default revision tag failed: %w", err)
+	}
+
+	return nil
 }
 
 // TODO(npolshak): Add Istio dependency to define operator in code instead of writing file
@@ -188,6 +232,13 @@ func downloadIstio(ctx context.Context, version string) (string, error) {
 }
 
 func UninstallIstio(istioctlBinary, kubeContext string) error {
+	if manuallyManageDefaultRevisionTag() {
+		err := deleteDefaultRevisionTag(istioctlBinary, kubeContext)
+		if err != nil {
+			return fmt.Errorf("failed to delete default revision tag: %w", err)
+		}
+	}
+
 	// sh -c yes | istioctl uninstall —purge —context <kube-context>
 	cmd := exec.Command("sh", "-c", fmt.Sprintf("yes | %s uninstall --purge --context %s", istioctlBinary, kubeContext))
 	cmd.Stdout = os.Stdout
