@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"math"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -64,12 +65,54 @@ func (opts *Options) validate() error {
 	return nil
 }
 
+type NodeResources struct {
+	TotalCapacityCPU    int64
+	TotalCapacityMemory int64
+}
+
+func calculateNodeResources(nodes []v1.Node) (*NodeResources, error) {
+	resources := &NodeResources{}
+
+	for _, node := range nodes {
+		// Calculate allocatable (actual capacity)
+		cpuAllocatable := node.Status.Allocatable[v1.ResourceCPU]
+		memoryAllocatable := node.Status.Allocatable[v1.ResourceMemory]
+
+		// Add to total capacity
+		resources.TotalCapacityCPU += cpuAllocatable.MilliValue()
+		resources.TotalCapacityMemory += memoryAllocatable.Value()
+	}
+
+	return resources, nil
+}
+
 func run(opts *Options) error {
 	tempDir, err := os.MkdirTemp("", "tmp")
 	if err != nil {
 		return err
 	}
 	defer os.RemoveAll(tempDir) // Clean up the directory when done
+
+	// Get cluster info
+	clusterInfo, err := getK8sClusterInfo(opts)
+	if err != nil {
+		return err
+	}
+
+	// Calculate node resources
+	nodeResources, err := calculateNodeResources(clusterInfo.Nodes)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("\nK8s Resources:\n")
+	fmt.Printf("\tNodes: %d\n", len(clusterInfo.Nodes))
+	fmt.Printf("\tPods: %d\n", len(clusterInfo.Pods))
+	fmt.Printf("\tServices: %d\n", len(clusterInfo.Services))
+	// Print node resource information
+	fmt.Printf("\nNode Resources:\n")
+	fmt.Printf("Total CPU Capacity: %.2f cores\n", float64(nodeResources.TotalCapacityCPU)/1000)
+	fmt.Printf("Total Memory Capacity: %.2f GB\n", float64(nodeResources.TotalCapacityMemory)/math.Pow(1024, 3))
+
 	// Create a temporary directory
 	var filePath string
 
@@ -96,6 +139,8 @@ func run(opts *Options) error {
 
 	}
 
+	// grab cluster information
+
 	output := convert.NewGatewayAPIOutput()
 
 	inputSnapshot, err := snapshot.FromGlooSnapshot(filePath)
@@ -113,6 +158,47 @@ func run(opts *Options) error {
 
 	return nil
 
+}
+
+func getK8sClusterInfo(opts *Options) (*K8sClusterInfo, error) {
+	restCfg, err := kubeutils.GetRestConfigWithKubeContext("")
+	if err != nil {
+		return nil, err
+	}
+	kube, err := kubernetes.NewForConfig(restCfg)
+	if err != nil {
+		return nil, err
+	}
+
+	// Get all pods across all namespaces
+	pods, err := kube.CoreV1().Pods("").List(context.Background(), metav1.ListOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	// Get all nodes
+	nodes, err := kube.CoreV1().Nodes().List(context.Background(), metav1.ListOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	// Get all services in the control plane namespace
+	services, err := kube.CoreV1().Services(opts.ControlPlaneNamespace).List(context.Background(), metav1.ListOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	return &K8sClusterInfo{
+		Nodes:    nodes.Items,
+		Pods:     pods.Items,
+		Services: services.Items,
+	}, nil
+}
+
+type K8sClusterInfo struct {
+	Nodes    []v1.Node
+	Pods     []v1.Pod
+	Services []v1.Service
 }
 
 func printPodInfo(proxies map[string]*ProxyInfo) error {
