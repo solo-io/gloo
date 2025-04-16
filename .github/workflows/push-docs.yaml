@@ -153,9 +153,9 @@ jobs:
       uses: peter-evans/create-pull-request@v7
       with:
         base: main
-        body: 'Copy auto-generated docs from the gloo-mesh-enterprise repo, post-release of ${{ steps.version-variables.outputs.minor }}'
+        body: 'Copy auto-generated docs from the gloo repo, post-release of Gloo Gateway ${{ steps.version-variables.outputs.minor }}'
         branch: post-${{ steps.version-variables.outputs.minor }}-release-docs-copy
-        commit-message: 'Copy auto-generated docs from the gloo-mesh-enterprise repo, post-release of ${{ steps.version-variables.outputs.minor }}'
+        commit-message: 'Copy auto-generated docs from ${{ steps.version-variables.outputs.minor }}'
         committer: github-runner-solo <github-runner-solo@github.com>
         delete-branch: true
         path: docs
