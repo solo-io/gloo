@@ -13,7 +13,10 @@ spec:
           from: Same
   allowedListeners:
     namespaces:
-      from: Same
+      from: Selector
+      selector:
+        matchLabels:
+          allowed: ns
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute

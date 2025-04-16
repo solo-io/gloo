@@ -2,30 +2,7 @@
 # The first gateway has listeners "http" and "other" on ports 8080 and 8081.
 # The second gateway has listeners "http" and "other" on ports 8083 and 8084.
 # An HTTPRoute is created for each gateway for the host "example.com".
-# RouteOptionsfor header manipulation are created for each gateway and assigned in the HTTPRoute spec.
-kind: Gateway
-apiVersion: gateway.networking.k8s.io/v1
-metadata:
-  name: gw-1
-spec:
-  gatewayClassName: gloo-gateway
-  allowedListeners:
-    namespaces:
-      from: Same
-  listeners:
-    - protocol: HTTP
-      port: 8080
-      name: http
-      allowedRoutes:
-        namespaces:
-          from: Same
-    - protocol: HTTP
-      port: 8081
-      name: other
-      allowedRoutes:
-        namespaces:
-          from: Same
----
+# RouteOptionsfor header manipulation are created for each gateway and assigned in the HTTPRoute spec
 kind: Gateway
 apiVersion: gateway.networking.k8s.io/v1
 metadata:
@@ -42,9 +19,6 @@ spec:
     - protocol: HTTP
       port: 8084
       name: other
-      allowedRoutes:
-        namespaces:
-          from: Same
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
