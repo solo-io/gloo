@@ -141,7 +141,7 @@ var _ = DescribeTable("getDelegatedChildren",
 		ErrWildcardNamespaceDisallowed,
 	),
 	Entry(
-		"filter self reference and mismatched parentRef",
+		"detect self reference and filter mismatched parentRef",
 		types.NamespacedName{Namespace: "parent-ns", Name: "parent"},
 		gwv1.HTTPBackendRef{
 			BackendRef: gwv1.BackendRef{
@@ -248,7 +248,117 @@ var _ = DescribeTable("getDelegatedChildren",
 				},
 			},
 		},
-		2,
+		2,                  // child-1 and child-2
+		ErrCyclicReference, // parent reference to self
+	),
+	Entry(
+		"no errors with wildcard backendRef",
+		types.NamespacedName{Namespace: "parent-ns", Name: "parent"},
+		gwv1.HTTPBackendRef{
+			BackendRef: gwv1.BackendRef{
+				BackendObjectReference: gwv1.BackendObjectReference{
+					Group:     ptr.To(gwv1.Group("gateway.networking.k8s.io")),
+					Kind:      ptr.To(gwv1.Kind("HTTPRoute")),
+					Name:      "*",
+					Namespace: ptr.To(gwv1.Namespace("parent-ns")),
+				},
+			},
+		},
+		[]client.Object{
+			&corev1.Namespace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: wellknown.RouteDelegationLabelSelectorWildcardNamespace,
+				},
+			},
+			&gwv1.HTTPRoute{
+				TypeMeta: metav1.TypeMeta{
+					Kind:       wellknown.HTTPRouteKind,
+					APIVersion: gwv1.GroupVersion.String(),
+				},
+				ObjectMeta: metav1.ObjectMeta{
+					Namespace: "parent-ns",
+					Name:      "parent",
+				},
+				Spec: gwv1.HTTPRouteSpec{
+					CommonRouteSpec: gwv1.CommonRouteSpec{
+						ParentRefs: []gwv1.ParentReference{
+							{
+								Group: ptr.To(gwv1.Group("gateway.networking.k8s.io")),
+								Kind:  ptr.To(gwv1.Kind("Gateway")),
+								Name:  "gateway",
+							},
+						},
+					},
+				},
+			},
+			// ParentRef mismatch
+			&gwv1.HTTPRoute{
+				TypeMeta: metav1.TypeMeta{
+					Kind:       wellknown.HTTPRouteKind,
+					APIVersion: gwv1.GroupVersion.String(),
+				},
+				ObjectMeta: metav1.ObjectMeta{
+					Namespace: "parent-ns",
+					Name:      "invalid-ref",
+				},
+				Spec: gwv1.HTTPRouteSpec{
+					CommonRouteSpec: gwv1.CommonRouteSpec{
+						ParentRefs: []gwv1.ParentReference{
+							{
+								Group: ptr.To(gwv1.Group("gateway.networking.k8s.io")),
+								Kind:  ptr.To(gwv1.Kind("HTTPRoute")),
+								Name:  "invalid", // mismatched parentRef
+							},
+						},
+					},
+				},
+			},
+			// valid child
+			&gwv1.HTTPRoute{
+				TypeMeta: metav1.TypeMeta{
+					Kind:       wellknown.HTTPRouteKind,
+					APIVersion: gwv1.GroupVersion.String(),
+				},
+				ObjectMeta: metav1.ObjectMeta{
+					Namespace: "parent-ns",
+					Name:      "child-1",
+				},
+				Spec: gwv1.HTTPRouteSpec{
+					CommonRouteSpec: gwv1.CommonRouteSpec{
+						ParentRefs: []gwv1.ParentReference{
+							{
+								Group: ptr.To(gwv1.Group("gateway.networking.k8s.io")),
+								Kind:  ptr.To(gwv1.Kind("HTTPRoute")),
+								Name:  "parent",
+							},
+						},
+					},
+				},
+			},
+			// valid child
+			&gwv1.HTTPRoute{
+				TypeMeta: metav1.TypeMeta{
+					Kind:       wellknown.HTTPRouteKind,
+					APIVersion: gwv1.GroupVersion.String(),
+				},
+				ObjectMeta: metav1.ObjectMeta{
+					Namespace: "parent-ns",
+					Name:      "child-2",
+				},
+				Spec: gwv1.HTTPRouteSpec{
+					CommonRouteSpec: gwv1.CommonRouteSpec{
+						ParentRefs: []gwv1.ParentReference{
+							{
+								Group: ptr.To(gwv1.Group("gateway.networking.k8s.io")),
+								Kind:  ptr.To(gwv1.Kind("HTTPRoute")),
+								Name:  "parent",
+							},
+						},
+					},
+				},
+			},
+		},
+		2, // child-1 and child-2
 		nil,
 	),
 )
