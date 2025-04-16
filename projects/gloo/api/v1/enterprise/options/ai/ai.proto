@@ -246,14 +246,16 @@ message UpstreamSpec {
 
   // AwsCredentialProvider provider for signing the request.
   message AwsCredentialProvider {
-    // Store the ``AWS_ACCESS_KEY_ID``, ``AWS_SECRET_ACCESS_KEY``, and the optional ``AWS_SESSION_TOKEN`` in a Kubernetes secret in
-    // the same namespace as the Upstream. Then, refer to the secret in the Upstream configuration.
-    core.solo.io.ResourceRef secret_ref = 1;
+    oneof auth_token_source {
+      // Store the ``AWS_ACCESS_KEY_ID``, ``AWS_SECRET_ACCESS_KEY``, and the optional ``AWS_SESSION_TOKEN`` in a Kubernetes secret in
+      // the same namespace as the Upstream. Then, refer to the secret in the Upstream configuration.
+      core.solo.io.ResourceRef secret_ref = 1;
 
-    // Uses inlined AWS credentials for``AWS_ACCESS_KEY_ID``, ``AWS_SECRET_ACCESS_KEY``, and the optional ``AWS_SESSION_TOKEN``.
-    AWSInline inline = 2;
+      // Uses inlined AWS credentials for``AWS_ACCESS_KEY_ID``, ``AWS_SECRET_ACCESS_KEY``, and the optional ``AWS_SESSION_TOKEN``.
+      AWSInline inline = 2;
 
-    // TODO: add support for AssumeRoleWithWebIdentityCredentialProvider, CredentialsFileCredentialProvider
+      // TODO: add support for AssumeRoleWithWebIdentityCredentialProvider, CredentialsFileCredentialProvider
+    }
   }
 
   // Configuration to use an inline AWS credential. This is an equivalent to setting the well-known

@@ -387,8 +387,8 @@ AwsCredentialProvider provider for signing the request.
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `secretRef` | [.core.solo.io.ResourceRef](../../../../../../../../../solo-kit/api/v1/ref.proto.sk/#resourceref) | Store the ``AWS_ACCESS_KEY_ID``, ``AWS_SECRET_ACCESS_KEY``, and the optional ``AWS_SESSION_TOKEN`` in a Kubernetes secret in the same namespace as the Upstream. Then, refer to the secret in the Upstream configuration. |
-| `inline` | [.ai.options.gloo.solo.io.UpstreamSpec.AWSInline](../ai.proto.sk/#awsinline) | Uses inlined AWS credentials for``AWS_ACCESS_KEY_ID``, ``AWS_SECRET_ACCESS_KEY``, and the optional ``AWS_SESSION_TOKEN``. |
+| `secretRef` | [.core.solo.io.ResourceRef](../../../../../../../../../solo-kit/api/v1/ref.proto.sk/#resourceref) | Store the ``AWS_ACCESS_KEY_ID``, ``AWS_SECRET_ACCESS_KEY``, and the optional ``AWS_SESSION_TOKEN`` in a Kubernetes secret in the same namespace as the Upstream. Then, refer to the secret in the Upstream configuration. Only one of `secretRef` or `inline` can be set. |
+| `inline` | [.ai.options.gloo.solo.io.UpstreamSpec.AWSInline](../ai.proto.sk/#awsinline) | Uses inlined AWS credentials for``AWS_ACCESS_KEY_ID``, ``AWS_SECRET_ACCESS_KEY``, and the optional ``AWS_SESSION_TOKEN``. Only one of `inline` or `secretRef` can be set. |
 
 
 

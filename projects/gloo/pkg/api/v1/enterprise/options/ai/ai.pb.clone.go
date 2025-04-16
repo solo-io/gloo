@@ -675,16 +675,32 @@ func (m *UpstreamSpec_AwsCredentialProvider) Clone() proto.Message {
 	}
 	target = &UpstreamSpec_AwsCredentialProvider{}
 
-	if h, ok := interface{}(m.GetSecretRef()).(clone.Cloner); ok {
-		target.SecretRef = h.Clone().(*github_com_solo_io_solo_kit_pkg_api_v1_resources_core.ResourceRef)
-	} else {
-		target.SecretRef = proto.Clone(m.GetSecretRef()).(*github_com_solo_io_solo_kit_pkg_api_v1_resources_core.ResourceRef)
-	}
+	switch m.AuthTokenSource.(type) {
 
-	if h, ok := interface{}(m.GetInline()).(clone.Cloner); ok {
-		target.Inline = h.Clone().(*UpstreamSpec_AWSInline)
-	} else {
-		target.Inline = proto.Clone(m.GetInline()).(*UpstreamSpec_AWSInline)
+	case *UpstreamSpec_AwsCredentialProvider_SecretRef:
+
+		if h, ok := interface{}(m.GetSecretRef()).(clone.Cloner); ok {
+			target.AuthTokenSource = &UpstreamSpec_AwsCredentialProvider_SecretRef{
+				SecretRef: h.Clone().(*github_com_solo_io_solo_kit_pkg_api_v1_resources_core.ResourceRef),
+			}
+		} else {
+			target.AuthTokenSource = &UpstreamSpec_AwsCredentialProvider_SecretRef{
+				SecretRef: proto.Clone(m.GetSecretRef()).(*github_com_solo_io_solo_kit_pkg_api_v1_resources_core.ResourceRef),
+			}
+		}
+
+	case *UpstreamSpec_AwsCredentialProvider_Inline:
+
+		if h, ok := interface{}(m.GetInline()).(clone.Cloner); ok {
+			target.AuthTokenSource = &UpstreamSpec_AwsCredentialProvider_Inline{
+				Inline: h.Clone().(*UpstreamSpec_AWSInline),
+			}
+		} else {
+			target.AuthTokenSource = &UpstreamSpec_AwsCredentialProvider_Inline{
+				Inline: proto.Clone(m.GetInline()).(*UpstreamSpec_AWSInline),
+			}
+		}
+
 	}
 
 	return target

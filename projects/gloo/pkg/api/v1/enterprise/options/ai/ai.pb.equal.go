@@ -1157,22 +1157,41 @@ func (m *UpstreamSpec_AwsCredentialProvider) Equal(that interface{}) bool {
 		return false
 	}
 
-	if h, ok := interface{}(m.GetSecretRef()).(equality.Equalizer); ok {
-		if !h.Equal(target.GetSecretRef()) {
-			return false
-		}
-	} else {
-		if !proto.Equal(m.GetSecretRef(), target.GetSecretRef()) {
-			return false
-		}
-	}
+	switch m.AuthTokenSource.(type) {
 
-	if h, ok := interface{}(m.GetInline()).(equality.Equalizer); ok {
-		if !h.Equal(target.GetInline()) {
+	case *UpstreamSpec_AwsCredentialProvider_SecretRef:
+		if _, ok := target.AuthTokenSource.(*UpstreamSpec_AwsCredentialProvider_SecretRef); !ok {
 			return false
 		}
-	} else {
-		if !proto.Equal(m.GetInline(), target.GetInline()) {
+
+		if h, ok := interface{}(m.GetSecretRef()).(equality.Equalizer); ok {
+			if !h.Equal(target.GetSecretRef()) {
+				return false
+			}
+		} else {
+			if !proto.Equal(m.GetSecretRef(), target.GetSecretRef()) {
+				return false
+			}
+		}
+
+	case *UpstreamSpec_AwsCredentialProvider_Inline:
+		if _, ok := target.AuthTokenSource.(*UpstreamSpec_AwsCredentialProvider_Inline); !ok {
+			return false
+		}
+
+		if h, ok := interface{}(m.GetInline()).(equality.Equalizer); ok {
+			if !h.Equal(target.GetInline()) {
+				return false
+			}
+		} else {
+			if !proto.Equal(m.GetInline(), target.GetInline()) {
+				return false
+			}
+		}
+
+	default:
+		// m is nil but target is not nil
+		if m.AuthTokenSource != target.AuthTokenSource {
 			return false
 		}
 	}

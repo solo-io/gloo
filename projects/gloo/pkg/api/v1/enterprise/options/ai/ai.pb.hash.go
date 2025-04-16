@@ -1378,44 +1378,52 @@ func (m *UpstreamSpec_AwsCredentialProvider) Hash(hasher hash.Hash64) (uint64, e
 		return 0, err
 	}
 
-	if h, ok := interface{}(m.GetSecretRef()).(safe_hasher.SafeHasher); ok {
-		if _, err = hasher.Write([]byte("SecretRef")); err != nil {
-			return 0, err
-		}
-		if _, err = h.Hash(hasher); err != nil {
-			return 0, err
-		}
-	} else {
-		if fieldValue, err := hashstructure.Hash(m.GetSecretRef(), nil); err != nil {
-			return 0, err
-		} else {
+	switch m.AuthTokenSource.(type) {
+
+	case *UpstreamSpec_AwsCredentialProvider_SecretRef:
+
+		if h, ok := interface{}(m.GetSecretRef()).(safe_hasher.SafeHasher); ok {
 			if _, err = hasher.Write([]byte("SecretRef")); err != nil {
 				return 0, err
 			}
-			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
+			if _, err = h.Hash(hasher); err != nil {
 				return 0, err
 			}
-		}
-	}
-
-	if h, ok := interface{}(m.GetInline()).(safe_hasher.SafeHasher); ok {
-		if _, err = hasher.Write([]byte("Inline")); err != nil {
-			return 0, err
-		}
-		if _, err = h.Hash(hasher); err != nil {
-			return 0, err
-		}
-	} else {
-		if fieldValue, err := hashstructure.Hash(m.GetInline(), nil); err != nil {
-			return 0, err
 		} else {
+			if fieldValue, err := hashstructure.Hash(m.GetSecretRef(), nil); err != nil {
+				return 0, err
+			} else {
+				if _, err = hasher.Write([]byte("SecretRef")); err != nil {
+					return 0, err
+				}
+				if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
+					return 0, err
+				}
+			}
+		}
+
+	case *UpstreamSpec_AwsCredentialProvider_Inline:
+
+		if h, ok := interface{}(m.GetInline()).(safe_hasher.SafeHasher); ok {
 			if _, err = hasher.Write([]byte("Inline")); err != nil {
 				return 0, err
 			}
-			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
+			if _, err = h.Hash(hasher); err != nil {
 				return 0, err
 			}
+		} else {
+			if fieldValue, err := hashstructure.Hash(m.GetInline(), nil); err != nil {
+				return 0, err
+			} else {
+				if _, err = hasher.Write([]byte("Inline")); err != nil {
+					return 0, err
+				}
+				if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
+					return 0, err
+				}
+			}
 		}
+
 	}
 
 	return hasher.Sum64(), nil
