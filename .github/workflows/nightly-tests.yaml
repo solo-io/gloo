@@ -43,7 +43,7 @@ jobs:
   end_to_end_tests_on_demand:
     name: End-to-End (branch=${{ github.ref_name }}, cluster=${{ matrix.test.cluster-name }}, version=${{ matrix.version-files.label }} )
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.run-kubernetes-end-to-end && inputs.branch == 'workflow_initiating_branch' }}
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     timeout-minutes: 180
     strategy:
       # Since we are running these on a schedule, there is no value in failing fast
@@ -105,7 +105,7 @@ jobs:
   regression_tests_on_demand:
     name: on demand regression tests
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.run-regression && inputs.branch == 'workflow_initiating_branch' }}
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     timeout-minutes: 60
     strategy:
       fail-fast: false
@@ -124,7 +124,7 @@ jobs:
   performance_tests_on_demand:
     name: on demand performance tests
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.run-performance && inputs.branch == 'workflow_initiating_branch' }}
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
@@ -134,7 +134,7 @@ jobs:
       - uses: ./.github/workflows/composite-actions/performance-tests
 
   publish_results:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     timeout-minutes: 5
     if: ${{ always() }}
     needs:
