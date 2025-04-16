@@ -306,14 +306,14 @@ func (m *GrpcService) Equal(that interface{}) bool {
 }
 
 // Equal function
-func (m *OpenTelemetryCollector) Equal(that interface{}) bool {
+func (m *OpenTelemetryGrpcCollector) Equal(that interface{}) bool {
 	if that == nil {
 		return m == nil
 	}
 
-	target, ok := that.(*OpenTelemetryCollector)
+	target, ok := that.(*OpenTelemetryGrpcCollector)
 	if !ok {
-		that2, ok := that.(OpenTelemetryCollector)
+		that2, ok := that.(OpenTelemetryGrpcCollector)
 		if ok {
 			target = &that2
 		} else {

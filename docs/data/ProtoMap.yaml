@@ -74,8 +74,8 @@ apis:
   als.options.gloo.solo.io.NotHealthCheckFilter:
     relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/options/als/als.proto.sk/#NotHealthCheckFilter
     package: als.options.gloo.solo.io
-  als.options.gloo.solo.io.OpenTelemetryCollector:
-    relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/options/als/als.proto.sk/#OpenTelemetryCollector
+  als.options.gloo.solo.io.OpenTelemetryGrpcCollector:
+    relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/options/als/als.proto.sk/#OpenTelemetryGrpcCollector
     package: als.options.gloo.solo.io
   als.options.gloo.solo.io.OpenTelemetryService:
     relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/options/als/als.proto.sk/#OpenTelemetryService

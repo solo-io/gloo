@@ -215,12 +215,12 @@ func (m *GrpcService) Clone() proto.Message {
 }
 
 // Clone function
-func (m *OpenTelemetryCollector) Clone() proto.Message {
-	var target *OpenTelemetryCollector
+func (m *OpenTelemetryGrpcCollector) Clone() proto.Message {
+	var target *OpenTelemetryGrpcCollector
 	if m == nil {
 		return target
 	}
-	target = &OpenTelemetryCollector{}
+	target = &OpenTelemetryGrpcCollector{}
 
 	target.Endpoint = m.GetEndpoint()
 
@@ -238,9 +238,9 @@ func (m *OpenTelemetryCollector) Clone() proto.Message {
 	target.Insecure = m.GetInsecure()
 
 	if h, ok := interface{}(m.GetSslConfig()).(clone.Cloner); ok {
-		target.SslConfig = h.Clone().(*github_com_solo_io_gloo_projects_gloo_pkg_api_v1_ssl.SslConfig)
+		target.SslConfig = h.Clone().(*github_com_solo_io_gloo_projects_gloo_pkg_api_v1_ssl.UpstreamSslConfig)
 	} else {
-		target.SslConfig = proto.Clone(m.GetSslConfig()).(*github_com_solo_io_gloo_projects_gloo_pkg_api_v1_ssl.SslConfig)
+		target.SslConfig = proto.Clone(m.GetSslConfig()).(*github_com_solo_io_gloo_projects_gloo_pkg_api_v1_ssl.UpstreamSslConfig)
 	}
 
 	if h, ok := interface{}(m.GetTimeout()).(clone.Cloner); ok {
@@ -291,11 +291,11 @@ func (m *OpenTelemetryService) Clone() proto.Message {
 
 		if h, ok := interface{}(m.GetCollector()).(clone.Cloner); ok {
 			target.Destination = &OpenTelemetryService_Collector{
-				Collector: h.Clone().(*OpenTelemetryCollector),
+				Collector: h.Clone().(*OpenTelemetryGrpcCollector),
 			}
 		} else {
 			target.Destination = &OpenTelemetryService_Collector{
-				Collector: proto.Clone(m.GetCollector()).(*OpenTelemetryCollector),
+				Collector: proto.Clone(m.GetCollector()).(*OpenTelemetryGrpcCollector),
 			}
 		}
 

@@ -306,7 +306,7 @@ func (m *GrpcService) Hash(hasher hash.Hash64) (uint64, error) {
 // Deprecated: due to hashing implemention only using field values. The omission
 // of the field name in the hash calculation can lead to hash collisions.
 // Prefer the HashUnique function instead.
-func (m *OpenTelemetryCollector) Hash(hasher hash.Hash64) (uint64, error) {
+func (m *OpenTelemetryGrpcCollector) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
 	}
@@ -314,7 +314,7 @@ func (m *OpenTelemetryCollector) Hash(hasher hash.Hash64) (uint64, error) {
 		hasher = fnv.New64()
 	}
 	var err error
-	if _, err = hasher.Write([]byte("als.options.gloo.solo.io.github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/als.OpenTelemetryCollector")); err != nil {
+	if _, err = hasher.Write([]byte("als.options.gloo.solo.io.github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/als.OpenTelemetryGrpcCollector")); err != nil {
 		return 0, err
 	}
 

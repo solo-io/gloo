@@ -75,7 +75,7 @@ message GrpcService {
     repeated string filter_state_objects_to_log = 7;
 }
 
-message OpenTelemetryCollector {
+message OpenTelemetryGrpcCollector {
     // host and port of the OpenTelemetry collector
     string endpoint = 1;
     // authority to use when connecting to the OpenTelemetry collector
@@ -85,8 +85,9 @@ message OpenTelemetryCollector {
     // if true, the connection to the OpenTelemetry collector will be insecure
     // (i.e. no TLS).
     bool insecure = 4;
-    // ssl config to use when connecting to the OpenTelemetry collector
-    .gloo.solo.io.SslConfig ssl_config = 5;
+    // ssl config to use when connecting to the OpenTelemetry collector, 
+    // if insecure is true, this will be ignored
+    .gloo.solo.io.UpstreamSslConfig ssl_config = 5;
     // timeout to use when connecting to the OpenTelemetry collector
     google.protobuf.Duration timeout = 6;
 }
@@ -96,8 +97,10 @@ message OpenTelemetryService {
     string log_name = 1;
 
     // The destination to ship logs to
+    // This is a oneof field, so we can easily add other destinations in the future
+    // without breaking the API.
     oneof destination {
-        OpenTelemetryCollector collector = 2;
+        OpenTelemetryGrpcCollector collector = 2;
     }
 
     // Additional filter state objects to log in filter_state_objects. Logger will call FilterState::Object::serializeAsProto to serialize the filter state object.

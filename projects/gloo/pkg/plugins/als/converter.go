@@ -3,21 +3,28 @@ package als
 import (
 	"errors"
 	"fmt"
+	"net"
+	"strconv"
 	"strings"
 
-	envoyal "github.com/envoyproxy/go-control-plane/envoy/config/accesslog/v3"
+	envoy_al "github.com/envoyproxy/go-control-plane/envoy/config/accesslog/v3"
 	envoy_config_cluster_v3 "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
-	envoycore "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
+	envoy_config_core_v3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
+	envoy_core_v3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	envoy_config_endpoint_v3 "github.com/envoyproxy/go-control-plane/envoy/config/endpoint/v3"
-	envoyalfile "github.com/envoyproxy/go-control-plane/envoy/extensions/access_loggers/file/v3"
-	envoygrpc "github.com/envoyproxy/go-control-plane/envoy/extensions/access_loggers/grpc/v3"
-	envoyotel "github.com/envoyproxy/go-control-plane/envoy/extensions/access_loggers/open_telemetry/v3"
+	envoy_al_file_v3 "github.com/envoyproxy/go-control-plane/envoy/extensions/access_loggers/file/v3"
+	envoy_al_grpc "github.com/envoyproxy/go-control-plane/envoy/extensions/access_loggers/grpc/v3"
+	envoy_al_otel "github.com/envoyproxy/go-control-plane/envoy/extensions/access_loggers/open_telemetry/v3"
 	envoy_metadata_formatter "github.com/envoyproxy/go-control-plane/envoy/extensions/formatter/metadata/v3"
 	envoy_req_without_query "github.com/envoyproxy/go-control-plane/envoy/extensions/formatter/req_without_query/v3"
+	envoy_tls_v3 "github.com/envoyproxy/go-control-plane/envoy/extensions/transport_sockets/tls/v3"
 	"github.com/envoyproxy/go-control-plane/pkg/wellknown"
 	"github.com/rotisserie/eris"
 	"github.com/solo-io/gloo/projects/gloo/constants"
 	v3 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/type/v3"
+	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
+	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
 	"google.golang.org/protobuf/proto"
 
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/als"
@@ -54,7 +61,7 @@ var (
 // DetectUnusefulCmds will detect commands that are not useful in the current configuration
 // It returns errors that may some day be bubbled up arbitrarly high.
 // See https://github.com/envoyproxy/envoy/blob/313b6fb7cf0f806e74a2d42c93e7c1fcccce2391/docs/root/configuration/observability/access_log/usage.rst?plain=1#L114-L123
-func DetectUnusefulCmds(filterLocationType aclType, proposedLogFormats []*envoyal.AccessLog) error {
+func DetectUnusefulCmds(filterLocationType aclType, proposedLogFormats []*envoy_al.AccessLog) error {
 
 	// TODO: programatically make sure we cover all command operators as found
 	// in https://github.com/envoyproxy/envoy/blob/0f3e4aa373db6bbb7643b1bb60b0cb60d5b39df8/source/common/formatter/stream_info_formatter.cc#L1443
@@ -103,17 +110,16 @@ func DetectUnusefulCmds(filterLocationType aclType, proposedLogFormats []*envoya
 // However, the TCP proxy is still configured by the TCP plugin only.
 // To keep our access logging translation in a single place, we expose this function
 // and the TCP plugin calls out to it.
-func ProcessAccessLogPlugins(service *als.AccessLoggingService, logCfg []*envoyal.AccessLog) ([]*envoyal.AccessLog, error) {
-	results := make([]*envoyal.AccessLog, 0, len(service.GetAccessLog()))
+func ProcessAccessLogPlugins(service *als.AccessLoggingService, logCfg []*envoy_al.AccessLog) ([]*envoy_al.AccessLog, error) {
+	results := make([]*envoy_al.AccessLog, 0, len(service.GetAccessLog()))
 	for _, al := range service.GetAccessLog() {
-
-		var newAlsCfg envoyal.AccessLog
+		var newAlsCfg envoy_al.AccessLog
 		var err error
 
 		// Make the "base" config with output destination
 		switch cfgType := al.GetOutputDestination().(type) {
 		case *als.AccessLog_FileSink:
-			var cfg envoyalfile.FileAccessLog
+			var cfg envoy_al_file_v3.FileAccessLog
 			if err = copyFileSettings(&cfg, cfgType); err != nil {
 				return nil, err
 			}
@@ -123,7 +129,7 @@ func ProcessAccessLogPlugins(service *als.AccessLoggingService, logCfg []*envoya
 			}
 
 		case *als.AccessLog_GrpcService:
-			var cfg envoygrpc.HttpGrpcAccessLogConfig
+			var cfg envoy_al_grpc.HttpGrpcAccessLogConfig
 			err := copyGrpcSettings(&cfg, cfgType)
 			if err != nil {
 				return nil, err
@@ -134,7 +140,9 @@ func ProcessAccessLogPlugins(service *als.AccessLoggingService, logCfg []*envoya
 				return nil, err
 			}
 		case *als.AccessLog_OpenTelemetryService:
-			var cfg envoyotel.OpenTelemetryAccessLogConfig
+			fmt.Printf("rolds: OTEL access logger: %v\n", cfgType)
+
+			var cfg envoy_al_otel.OpenTelemetryAccessLogConfig
 			if err = copyOtelSettings(&cfg, cfgType); err != nil {
 				return nil, err
 			}
@@ -161,7 +169,7 @@ func ProcessAccessLogPlugins(service *als.AccessLoggingService, logCfg []*envoya
 }
 
 // Since we are using the same proto def, marshal out of gloo format and unmarshal into envoy format
-func translateFilter(accessLog *envoyal.AccessLog, inFilter *als.AccessLogFilter) error {
+func translateFilter(accessLog *envoy_al.AccessLog, inFilter *als.AccessLogFilter) error {
 	if inFilter == nil {
 		return nil
 	}
@@ -178,7 +186,7 @@ func translateFilter(accessLog *envoyal.AccessLog, inFilter *als.AccessLogFilter
 		return err
 	}
 
-	outFilter := &envoyal.AccessLogFilter{}
+	outFilter := &envoy_al.AccessLogFilter{}
 	if err := proto.Unmarshal(bytes, outFilter); err != nil {
 		return err
 	}
@@ -254,14 +262,14 @@ func validateFilterEnums(filter *als.AccessLogFilter) error {
 	return nil
 }
 
-func copyGrpcSettings(cfg *envoygrpc.HttpGrpcAccessLogConfig, alsSettings *als.AccessLog_GrpcService) error {
+func copyGrpcSettings(cfg *envoy_al_grpc.HttpGrpcAccessLogConfig, alsSettings *als.AccessLog_GrpcService) error {
 	if alsSettings.GrpcService == nil {
 		return eris.New("grpc service object cannot be nil")
 	}
 
-	svc := &envoycore.GrpcService{
-		TargetSpecifier: &envoycore.GrpcService_EnvoyGrpc_{
-			EnvoyGrpc: &envoycore.GrpcService_EnvoyGrpc{
+	svc := &envoy_core_v3.GrpcService{
+		TargetSpecifier: &envoy_core_v3.GrpcService_EnvoyGrpc_{
+			EnvoyGrpc: &envoy_core_v3.GrpcService_EnvoyGrpc{
 				ClusterName: alsSettings.GrpcService.GetStaticClusterName(),
 			},
 		},
@@ -269,49 +277,118 @@ func copyGrpcSettings(cfg *envoygrpc.HttpGrpcAccessLogConfig, alsSettings *als.A
 	cfg.AdditionalRequestHeadersToLog = alsSettings.GrpcService.GetAdditionalRequestHeadersToLog()
 	cfg.AdditionalResponseHeadersToLog = alsSettings.GrpcService.GetAdditionalResponseHeadersToLog()
 	cfg.AdditionalResponseTrailersToLog = alsSettings.GrpcService.GetAdditionalResponseTrailersToLog()
-	cfg.CommonConfig = &envoygrpc.CommonGrpcAccessLogConfig{
+	cfg.CommonConfig = &envoy_al_grpc.CommonGrpcAccessLogConfig{
 		LogName:                 alsSettings.GrpcService.GetLogName(),
 		GrpcService:             svc,
-		TransportApiVersion:     envoycore.ApiVersion_V3,
+		TransportApiVersion:     envoy_core_v3.ApiVersion_V3,
 		FilterStateObjectsToLog: alsSettings.GrpcService.GetFilterStateObjectsToLog(),
 	}
 	return cfg.Validate()
 }
 
-func otelCollecoratorName(logName string) string {
-	return fmt.Sprintf("%s_otel_logs_%s", constants.SoloGeneratedClusterPrefix, logName)
+// getClustersForAccessLogs returns the clusters for the access loggers (if needed)
+func getClustersForAccessLogs(
+	params plugins.Params,
+	proxy *v1.Proxy,
+	reports reporter.ResourceReports,
+	service *als.AccessLoggingService,
+) []*envoy_config_cluster_v3.Cluster {
+	clusters := []*envoy_config_cluster_v3.Cluster{}
+
+	for _, al := range service.GetAccessLog() {
+		switch cfgType := al.GetOutputDestination().(type) {
+		case *als.AccessLog_OpenTelemetryService:
+			// Create the cluster for the OpenTelemetry access log service
+			cluster := createOtelCollectorCluster(params, proxy, reports, cfgType)
+			if cluster == nil {
+				continue
+			}
+
+			// Add the cluster to the list of clusters
+			clusters = append(clusters, cluster)
+		}
+	}
+
+	return clusters
 }
 
-func createOtelCollectorCluster(cfg *envoyotel.OpenTelemetryAccessLogConfig,
-	alsSettings *als.AccessLog_OpenTelemetryService) (*envoy_config_cluster_v3.Cluster, error) {
+func otelCollectorName(logName string) string {
+	return fmt.Sprintf("%sotel_logs_%s", constants.SoloGeneratedClusterPrefix, logName)
+}
+
+// createOtelCollectorCluster creates a cluster for the OpenTelemetry collector
+// that will receive the access logs.
+func createOtelCollectorCluster(
+	params plugins.Params,
+	proxy *v1.Proxy,
+	reports reporter.ResourceReports,
+	alsSettings *als.AccessLog_OpenTelemetryService,
+) *envoy_config_cluster_v3.Cluster {
 	if alsSettings.OpenTelemetryService == nil {
-		return nil, eris.New("OpenTelemetry service cannot be empty")
+		return nil
 	}
 
 	collector := alsSettings.OpenTelemetryService.GetCollector()
 	if collector == nil {
-		return nil, eris.New("OpenTelemetry service collector must be unset")
+		return nil
 	}
 
-	// split the endpoint into host and port
+	clusterName := otelCollectorName(alsSettings.OpenTelemetryService.GetLogName())
 
-	return &envoy_config_cluster_v3.Cluster{
-		Name:           otelCollecoratorName(alsSettings.OpenTelemetryService.GetLogName()),
+	host, port, err := net.SplitHostPort(collector.GetEndpoint())
+	if err != nil {
+		reports.AddError(proxy, fmt.Errorf("invalid OTEL log endpoint (%s): %v", collector.GetEndpoint(), err))
+		return nil
+	}
+
+	if host == "" {
+		reports.AddError(proxy, fmt.Errorf("invalid OTEL log endpoint (%s) missing host: %v",
+			collector.GetEndpoint(), err))
+		return nil
+	}
+
+	if port == "" {
+		reports.AddError(proxy, fmt.Errorf("invalid OTEL log endpoint (%s) missing port: %v",
+			collector.GetEndpoint(), err))
+		return nil
+	}
+
+	discoveryType := envoy_config_cluster_v3.Cluster_STRICT_DNS
+	addr := net.ParseIP(host)
+	if addr != nil {
+		discoveryType = envoy_config_cluster_v3.Cluster_STATIC
+	}
+
+	portValue, err := strconv.Atoi(port)
+	if err != nil {
+		reports.AddError(proxy, fmt.Errorf("invalid OTEL log endpoint port (%s): %v", port, err))
+		return nil
+	}
+
+	cluster := &envoy_config_cluster_v3.Cluster{
+		Name:           clusterName,
 		ConnectTimeout: collector.GetTimeout(),
+		// required to force envoy to use http2
+		Http2ProtocolOptions: &envoy_core_v3.Http2ProtocolOptions{},
 		ClusterDiscoveryType: &envoy_config_cluster_v3.Cluster_Type{
-			Type: envoy_config_cluster_v3.Cluster_STRICT_DNS,
+			Type: discoveryType,
 		},
 		LoadAssignment: &envoy_config_endpoint_v3.ClusterLoadAssignment{
-			ClusterName: otelCollecoratorName(alsSettings.OpenTelemetryService.GetLogName()),
+			ClusterName: clusterName,
 			Endpoints: []*envoy_config_endpoint_v3.LocalityLbEndpoints{
 				{
 					LbEndpoints: []*envoy_config_endpoint_v3.LbEndpoint{
 						{
 							HostIdentifier: &envoy_config_endpoint_v3.LbEndpoint_Endpoint{
 								Endpoint: &envoy_config_endpoint_v3.Endpoint{
-									Address: &envoycore.Address{
-										Address: &envoycore.Address_SocketAddress{
-											SocketAddress: &envoycore.SocketAddress{},
+									Address: &envoy_core_v3.Address{
+										Address: &envoy_core_v3.Address_SocketAddress{
+											SocketAddress: &envoy_core_v3.SocketAddress{
+												Address: host,
+												PortSpecifier: &envoy_core_v3.SocketAddress_PortValue{
+													PortValue: uint32(portValue),
+												},
+											},
 										},
 									},
 								},
@@ -321,10 +398,49 @@ func createOtelCollectorCluster(cfg *envoyotel.OpenTelemetryAccessLogConfig,
 				},
 			},
 		},
-	}, nil
+	}
+
+	// if the collector is not insecure, we need to add the TLS context
+	if !collector.GetInsecure() {
+		cfg := &envoy_tls_v3.UpstreamTlsContext{
+			Sni: host,
+			CommonTlsContext: &envoy_tls_v3.CommonTlsContext{
+				// default params
+				TlsParams: &envoy_tls_v3.TlsParameters{},
+			},
+		}
+
+		if sslConfig := collector.GetSslConfig(); sslConfig != nil {
+			cfg, err = utils.NewSslConfigTranslator().ResolveUpstreamSslConfig(params.Snapshot.Secrets, sslConfig)
+			if err != nil {
+				// if we are configured to warn on missing tls secret and we match that error, add a
+				// warning instead of error to the report.
+				if params.Settings.GetGateway().GetValidation().GetWarnMissingTlsSecret().GetValue() &&
+					errors.Is(err, utils.SslSecretNotFoundError) {
+					reports.AddWarning(proxy, err.Error())
+				} else {
+					reports.AddError(proxy, err)
+					return nil
+				}
+			}
+		}
+
+		typedConfig, err := utils.MessageToAny(cfg)
+		if err != nil {
+			reports.AddError(proxy, err)
+			return nil
+		}
+
+		cluster.TransportSocket = &envoy_config_core_v3.TransportSocket{
+			Name:       wellknown.TransportSocketTls,
+			ConfigType: &envoy_config_core_v3.TransportSocket_TypedConfig{TypedConfig: typedConfig},
+		}
+	}
+
+	return cluster
 }
 
-func copyOtelSettings(cfg *envoyotel.OpenTelemetryAccessLogConfig,
+func copyOtelSettings(cfg *envoy_al_otel.OpenTelemetryAccessLogConfig,
 	alsSettings *als.AccessLog_OpenTelemetryService) error {
 	if alsSettings.OpenTelemetryService == nil {
 		return eris.New("OpenTelemetry service object cannot be empty")
@@ -339,18 +455,18 @@ func copyOtelSettings(cfg *envoyotel.OpenTelemetryAccessLogConfig,
 		return eris.New("OpenTelemetry service collector must be unset")
 	}
 
-	cfg.CommonConfig = &envoygrpc.CommonGrpcAccessLogConfig{
+	cfg.CommonConfig = &envoy_al_grpc.CommonGrpcAccessLogConfig{
 		LogName: alsSettings.OpenTelemetryService.GetLogName(),
-		GrpcService: &envoycore.GrpcService{
-			TargetSpecifier: &envoycore.GrpcService_EnvoyGrpc_{
-				EnvoyGrpc: &envoycore.GrpcService_EnvoyGrpc{
-					ClusterName: otelCollecoratorName(alsSettings.OpenTelemetryService.GetLogName()),
+		GrpcService: &envoy_core_v3.GrpcService{
+			TargetSpecifier: &envoy_core_v3.GrpcService_EnvoyGrpc_{
+				EnvoyGrpc: &envoy_core_v3.GrpcService_EnvoyGrpc{
+					ClusterName: otelCollectorName(alsSettings.OpenTelemetryService.GetLogName()),
 					Authority:   collector.GetAuthority(),
 				},
 			},
-			Timeout: collector.GetTimeout(),
+			InitialMetadata: convertHeaders(collector.GetHeaders()),
+			Timeout:         collector.GetTimeout(),
 		},
-		TransportApiVersion:     envoycore.ApiVersion_V3,
 		FilterStateObjectsToLog: alsSettings.OpenTelemetryService.GetFilterStateObjectsToLog(),
 	}
 	cfg.DisableBuiltinLabels = alsSettings.OpenTelemetryService.GetDisableBuiltinLabels()
@@ -360,7 +476,7 @@ func copyOtelSettings(cfg *envoyotel.OpenTelemetryAccessLogConfig,
 	return nil
 }
 
-func copyFileSettings(cfg *envoyalfile.FileAccessLog, alsSettings *als.AccessLog_FileSink) error {
+func copyFileSettings(cfg *envoy_al_file_v3.FileAccessLog, alsSettings *als.AccessLog_FileSink) error {
 	cfg.Path = alsSettings.FileSink.GetPath()
 
 	formatterExtensions, err := getFormatterExtensions()
@@ -371,9 +487,9 @@ func copyFileSettings(cfg *envoyalfile.FileAccessLog, alsSettings *als.AccessLog
 	switch fileSinkType := alsSettings.FileSink.GetOutputFormat().(type) {
 	case *als.FileSink_StringFormat:
 		if fileSinkType.StringFormat != "" {
-			cfg.AccessLogFormat = &envoyalfile.FileAccessLog_LogFormat{
-				LogFormat: &envoycore.SubstitutionFormatString{
-					Format: &envoycore.SubstitutionFormatString_TextFormat{
+			cfg.AccessLogFormat = &envoy_al_file_v3.FileAccessLog_LogFormat{
+				LogFormat: &envoy_core_v3.SubstitutionFormatString{
+					Format: &envoy_core_v3.SubstitutionFormatString_TextFormat{
 						TextFormat: fileSinkType.StringFormat,
 					},
 					Formatters: formatterExtensions,
@@ -381,9 +497,9 @@ func copyFileSettings(cfg *envoyalfile.FileAccessLog, alsSettings *als.AccessLog
 			}
 		}
 	case *als.FileSink_JsonFormat:
-		cfg.AccessLogFormat = &envoyalfile.FileAccessLog_LogFormat{
-			LogFormat: &envoycore.SubstitutionFormatString{
-				Format: &envoycore.SubstitutionFormatString_JsonFormat{
+		cfg.AccessLogFormat = &envoy_al_file_v3.FileAccessLog_LogFormat{
+			LogFormat: &envoy_core_v3.SubstitutionFormatString{
+				Format: &envoy_core_v3.SubstitutionFormatString_JsonFormat{
 					JsonFormat: fileSinkType.JsonFormat,
 				},
 				Formatters: formatterExtensions,
@@ -393,7 +509,7 @@ func copyFileSettings(cfg *envoyalfile.FileAccessLog, alsSettings *als.AccessLog
 	return cfg.Validate()
 }
 
-func getFormatterExtensions() ([]*envoycore.TypedExtensionConfig, error) {
+func getFormatterExtensions() ([]*envoy_core_v3.TypedExtensionConfig, error) {
 	reqWithoutQueryFormatter := &envoy_req_without_query.ReqWithoutQuery{}
 	reqWithoutQueryFormatterTc, err := utils.MessageToAny(reqWithoutQueryFormatter)
 	if err != nil {
@@ -406,7 +522,7 @@ func getFormatterExtensions() ([]*envoycore.TypedExtensionConfig, error) {
 		return nil, err
 	}
 
-	return []*envoycore.TypedExtensionConfig{
+	return []*envoy_core_v3.TypedExtensionConfig{
 		{
 			Name:        "envoy.formatter.req_without_query",
 			TypedConfig: reqWithoutQueryFormatterTc,
@@ -416,4 +532,16 @@ func getFormatterExtensions() ([]*envoycore.TypedExtensionConfig, error) {
 			TypedConfig: mdFormatterTc,
 		},
 	}, nil
+}
+
+// convertHeaders converts a map of headers to add to a slice of Envoy HeaderValues
+func convertHeaders(headersToAddMap map[string]string) []*envoy_config_core_v3.HeaderValue {
+	var headersToAdd []*envoy_config_core_v3.HeaderValue
+	for k, v := range headersToAddMap {
+		headersToAdd = append(headersToAdd, &envoy_config_core_v3.HeaderValue{
+			Key:   k,
+			Value: v,
+		})
+	}
+	return headersToAdd
 }

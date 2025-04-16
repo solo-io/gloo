@@ -357,7 +357,7 @@ func (m *GrpcService) HashUnique(hasher hash.Hash64) (uint64, error) {
 // hashing field name and value pairs.
 // Replaces Hash due to original hashing implemention only using field values. The omission
 // of the field name in the hash calculation can lead to hash collisions.
-func (m *OpenTelemetryCollector) HashUnique(hasher hash.Hash64) (uint64, error) {
+func (m *OpenTelemetryGrpcCollector) HashUnique(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
 	}
@@ -365,7 +365,7 @@ func (m *OpenTelemetryCollector) HashUnique(hasher hash.Hash64) (uint64, error) 
 		hasher = fnv.New64()
 	}
 	var err error
-	if _, err = hasher.Write([]byte("als.options.gloo.solo.io.github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/als.OpenTelemetryCollector")); err != nil {
+	if _, err = hasher.Write([]byte("als.options.gloo.solo.io.github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/als.OpenTelemetryGrpcCollector")); err != nil {
 		return 0, err
 	}
 

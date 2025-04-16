@@ -294,16 +294,13 @@ spec:
                                             type: boolean
                                           sslConfig:
                                             properties:
+                                              allowRenegotiation:
+                                                nullable: true
+                                                type: boolean
                                               alpnProtocols:
                                                 items:
                                                   type: string
                                                 type: array
-                                              disableTlsSessionResumption:
-                                                nullable: true
-                                                type: boolean
-                                              ocspStaplePolicy:
-                                                type: string
-                                                x-kubernetes-int-or-string: true
                                               oneWayTls:
                                                 nullable: true
                                                 type: boolean
@@ -352,10 +349,8 @@ spec:
                                                   namespace:
                                                     type: string
                                                 type: object
-                                              sniDomains:
-                                                items:
-                                                  type: string
-                                                type: array
+                                              sni:
+                                                type: string
                                               sslFiles:
                                                 properties:
                                                   ocspStaple:
@@ -367,8 +362,6 @@ spec:
                                                   tlsKey:
                                                     type: string
                                                 type: object
-                                              transportSocketConnectTimeout:
-                                                type: string
                                               verifySubjectAltName:
                                                 items:
                                                   type: string
@@ -623,16 +616,13 @@ spec:
                                             type: boolean
                                           sslConfig:
                                             properties:
+                                              allowRenegotiation:
+                                                nullable: true
+                                                type: boolean
                                               alpnProtocols:
                                                 items:
                                                   type: string
                                                 type: array
-                                              disableTlsSessionResumption:
-                                                nullable: true
-                                                type: boolean
-                                              ocspStaplePolicy:
-                                                type: string
-                                                x-kubernetes-int-or-string: true
                                               oneWayTls:
                                                 nullable: true
                                                 type: boolean
@@ -681,10 +671,8 @@ spec:
                                                   namespace:
                                                     type: string
                                                 type: object
-                                              sniDomains:
-                                                items:
-                                                  type: string
-                                                type: array
+                                              sni:
+                                                type: string
                                               sslFiles:
                                                 properties:
                                                   ocspStaple:
@@ -696,8 +684,6 @@ spec:
                                                   tlsKey:
                                                     type: string
                                                 type: object
-                                              transportSocketConnectTimeout:
-                                                type: string
                                               verifySubjectAltName:
                                                 items:
                                                   type: string

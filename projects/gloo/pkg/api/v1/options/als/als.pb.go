@@ -543,7 +543,7 @@ type GrpcService_StaticClusterName struct {
 
 func (*GrpcService_StaticClusterName) isGrpcService_ServiceRef() {}
 
-type OpenTelemetryCollector struct {
+type OpenTelemetryGrpcCollector struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// host and port of the OpenTelemetry collector
 	Endpoint string `protobuf:"bytes,1,opt,name=endpoint,proto3" json:"endpoint,omitempty"`
@@ -555,27 +555,27 @@ type OpenTelemetryCollector struct {
 	// (i.e. no TLS).
 	Insecure bool `protobuf:"varint,4,opt,name=insecure,proto3" json:"insecure,omitempty"`
 	// ssl config to use when connecting to the OpenTelemetry collector
-	SslConfig *ssl.SslConfig `protobuf:"bytes,5,opt,name=ssl_config,json=sslConfig,proto3" json:"ssl_config,omitempty"`
+	SslConfig *ssl.UpstreamSslConfig `protobuf:"bytes,5,opt,name=ssl_config,json=sslConfig,proto3" json:"ssl_config,omitempty"`
 	// timeout to use when connecting to the OpenTelemetry collector
 	Timeout       *durationpb.Duration `protobuf:"bytes,6,opt,name=timeout,proto3" json:"timeout,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *OpenTelemetryCollector) Reset() {
-	*x = OpenTelemetryCollector{}
+func (x *OpenTelemetryGrpcCollector) Reset() {
+	*x = OpenTelemetryGrpcCollector{}
 	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_options_als_als_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *OpenTelemetryCollector) String() string {
+func (x *OpenTelemetryGrpcCollector) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*OpenTelemetryCollector) ProtoMessage() {}
+func (*OpenTelemetryGrpcCollector) ProtoMessage() {}
 
-func (x *OpenTelemetryCollector) ProtoReflect() protoreflect.Message {
+func (x *OpenTelemetryGrpcCollector) ProtoReflect() protoreflect.Message {
 	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_options_als_als_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -587,47 +587,47 @@ func (x *OpenTelemetryCollector) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use OpenTelemetryCollector.ProtoReflect.Descriptor instead.
-func (*OpenTelemetryCollector) Descriptor() ([]byte, []int) {
+// Deprecated: Use OpenTelemetryGrpcCollector.ProtoReflect.Descriptor instead.
+func (*OpenTelemetryGrpcCollector) Descriptor() ([]byte, []int) {
 	return file_github_com_solo_io_gloo_projects_gloo_api_v1_options_als_als_proto_rawDescGZIP(), []int{4}
 }
 
-func (x *OpenTelemetryCollector) GetEndpoint() string {
+func (x *OpenTelemetryGrpcCollector) GetEndpoint() string {
 	if x != nil {
 		return x.Endpoint
 	}
 	return ""
 }
 
-func (x *OpenTelemetryCollector) GetAuthority() string {
+func (x *OpenTelemetryGrpcCollector) GetAuthority() string {
 	if x != nil {
 		return x.Authority
 	}
 	return ""
 }
 
-func (x *OpenTelemetryCollector) GetHeaders() map[string]string {
+func (x *OpenTelemetryGrpcCollector) GetHeaders() map[string]string {
 	if x != nil {
 		return x.Headers
 	}
 	return nil
 }
 
-func (x *OpenTelemetryCollector) GetInsecure() bool {
+func (x *OpenTelemetryGrpcCollector) GetInsecure() bool {
 	if x != nil {
 		return x.Insecure
 	}
 	return false
 }
 
-func (x *OpenTelemetryCollector) GetSslConfig() *ssl.SslConfig {
+func (x *OpenTelemetryGrpcCollector) GetSslConfig() *ssl.UpstreamSslConfig {
 	if x != nil {
 		return x.SslConfig
 	}
 	return nil
 }
 
-func (x *OpenTelemetryCollector) GetTimeout() *durationpb.Duration {
+func (x *OpenTelemetryGrpcCollector) GetTimeout() *durationpb.Duration {
 	if x != nil {
 		return x.Timeout
 	}
@@ -639,6 +639,8 @@ type OpenTelemetryService struct {
 	// name of log stream
 	LogName string `protobuf:"bytes,1,opt,name=log_name,json=logName,proto3" json:"log_name,omitempty"`
 	// The destination to ship logs to
+	// This is a oneof field, so we can easily add other destinations in the future
+	// without breaking the API.
 	//
 	// Types that are valid to be assigned to Destination:
 	//
@@ -706,7 +708,7 @@ func (x *OpenTelemetryService) GetDestination() isOpenTelemetryService_Destinati
 	return nil
 }
 
-func (x *OpenTelemetryService) GetCollector() *OpenTelemetryCollector {
+func (x *OpenTelemetryService) GetCollector() *OpenTelemetryGrpcCollector {
 	if x != nil {
 		if x, ok := x.Destination.(*OpenTelemetryService_Collector); ok {
 			return x.Collector
@@ -748,7 +750,7 @@ type isOpenTelemetryService_Destination interface {
 }
 
 type OpenTelemetryService_Collector struct {
-	Collector *OpenTelemetryCollector `protobuf:"bytes,2,opt,name=collector,proto3,oneof"`
+	Collector *OpenTelemetryGrpcCollector `protobuf:"bytes,2,opt,name=collector,proto3,oneof"`
 }
 
 func (*OpenTelemetryService_Collector) isOpenTelemetryService_Destination() {}
@@ -1558,21 +1560,21 @@ const file_github_com_solo_io_gloo_projects_gloo_api_v1_options_als_als_proto_ra
 	"\"additional_response_headers_to_log\x18\x05 \x03(\tR\x1eadditionalResponseHeadersToLog\x12L\n" +
 	"#additional_response_trailers_to_log\x18\x06 \x03(\tR\x1fadditionalResponseTrailersToLog\x12<\n" +
 	"\x1bfilter_state_objects_to_log\x18\a \x03(\tR\x17filterStateObjectsToLogB\r\n" +
-	"\vservice_ref\"\xf0\x02\n" +
-	"\x16OpenTelemetryCollector\x12\x1a\n" +
+	"\vservice_ref\"\x80\x03\n" +
+	"\x1aOpenTelemetryGrpcCollector\x12\x1a\n" +
 	"\bendpoint\x18\x01 \x01(\tR\bendpoint\x12\x1c\n" +
-	"\tauthority\x18\x02 \x01(\tR\tauthority\x12W\n" +
-	"\aheaders\x18\x03 \x03(\v2=.als.options.gloo.solo.io.OpenTelemetryCollector.HeadersEntryR\aheaders\x12\x1a\n" +
-	"\binsecure\x18\x04 \x01(\bR\binsecure\x126\n" +
+	"\tauthority\x18\x02 \x01(\tR\tauthority\x12[\n" +
+	"\aheaders\x18\x03 \x03(\v2A.als.options.gloo.solo.io.OpenTelemetryGrpcCollector.HeadersEntryR\aheaders\x12\x1a\n" +
+	"\binsecure\x18\x04 \x01(\bR\binsecure\x12>\n" +
 	"\n" +
-	"ssl_config\x18\x05 \x01(\v2\x17.gloo.solo.io.SslConfigR\tsslConfig\x123\n" +
+	"ssl_config\x18\x05 \x01(\v2\x1f.gloo.solo.io.UpstreamSslConfigR\tsslConfig\x123\n" +
 	"\atimeout\x18\x06 \x01(\v2\x19.google.protobuf.DurationR\atimeout\x1a:\n" +
 	"\fHeadersEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\x90\x03\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\x94\x03\n" +
 	"\x14OpenTelemetryService\x12\x19\n" +
-	"\blog_name\x18\x01 \x01(\tR\alogName\x12P\n" +
-	"\tcollector\x18\x02 \x01(\v20.als.options.gloo.solo.io.OpenTelemetryCollectorH\x00R\tcollector\x12<\n" +
+	"\blog_name\x18\x01 \x01(\tR\alogName\x12T\n" +
+	"\tcollector\x18\x02 \x01(\v24.als.options.gloo.solo.io.OpenTelemetryGrpcCollectorH\x00R\tcollector\x12<\n" +
 	"\x1bfilter_state_objects_to_log\x18\x03 \x03(\tR\x17filterStateObjectsToLog\x124\n" +
 	"\x16disable_builtin_labels\x18\x04 \x01(\bR\x14disableBuiltinLabels\x12;\n" +
 	"\x04body\x18\x05 \x01(\v2'.opentelemetry.proto.common.v1.AnyValueR\x04body\x12K\n" +
@@ -1663,35 +1665,35 @@ func file_github_com_solo_io_gloo_projects_gloo_api_v1_options_als_als_proto_raw
 var file_github_com_solo_io_gloo_projects_gloo_api_v1_options_als_als_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
 var file_github_com_solo_io_gloo_projects_gloo_api_v1_options_als_als_proto_msgTypes = make([]protoimpl.MessageInfo, 19)
 var file_github_com_solo_io_gloo_projects_gloo_api_v1_options_als_als_proto_goTypes = []any{
-	(ComparisonFilter_Op)(0),       // 0: als.options.gloo.solo.io.ComparisonFilter.Op
-	(GrpcStatusFilter_Status)(0),   // 1: als.options.gloo.solo.io.GrpcStatusFilter.Status
-	(*AccessLoggingService)(nil),   // 2: als.options.gloo.solo.io.AccessLoggingService
-	(*AccessLog)(nil),              // 3: als.options.gloo.solo.io.AccessLog
-	(*FileSink)(nil),               // 4: als.options.gloo.solo.io.FileSink
-	(*GrpcService)(nil),            // 5: als.options.gloo.solo.io.GrpcService
-	(*OpenTelemetryCollector)(nil), // 6: als.options.gloo.solo.io.OpenTelemetryCollector
-	(*OpenTelemetryService)(nil),   // 7: als.options.gloo.solo.io.OpenTelemetryService
-	(*AccessLogFilter)(nil),        // 8: als.options.gloo.solo.io.AccessLogFilter
-	(*ComparisonFilter)(nil),       // 9: als.options.gloo.solo.io.ComparisonFilter
-	(*StatusCodeFilter)(nil),       // 10: als.options.gloo.solo.io.StatusCodeFilter
-	(*DurationFilter)(nil),         // 11: als.options.gloo.solo.io.DurationFilter
-	(*NotHealthCheckFilter)(nil),   // 12: als.options.gloo.solo.io.NotHealthCheckFilter
-	(*TraceableFilter)(nil),        // 13: als.options.gloo.solo.io.TraceableFilter
-	(*RuntimeFilter)(nil),          // 14: als.options.gloo.solo.io.RuntimeFilter
-	(*AndFilter)(nil),              // 15: als.options.gloo.solo.io.AndFilter
-	(*OrFilter)(nil),               // 16: als.options.gloo.solo.io.OrFilter
-	(*HeaderFilter)(nil),           // 17: als.options.gloo.solo.io.HeaderFilter
-	(*ResponseFlagFilter)(nil),     // 18: als.options.gloo.solo.io.ResponseFlagFilter
-	(*GrpcStatusFilter)(nil),       // 19: als.options.gloo.solo.io.GrpcStatusFilter
-	nil,                            // 20: als.options.gloo.solo.io.OpenTelemetryCollector.HeadersEntry
-	(*structpb.Struct)(nil),        // 21: google.protobuf.Struct
-	(*ssl.SslConfig)(nil),          // 22: gloo.solo.io.SslConfig
-	(*durationpb.Duration)(nil),    // 23: google.protobuf.Duration
-	(*v1.AnyValue)(nil),            // 24: opentelemetry.proto.common.v1.AnyValue
-	(*v1.KeyValueList)(nil),        // 25: opentelemetry.proto.common.v1.KeyValueList
-	(*v3.RuntimeUInt32)(nil),       // 26: solo.io.envoy.config.core.v3.RuntimeUInt32
-	(*v31.FractionalPercent)(nil),  // 27: solo.io.envoy.type.v3.FractionalPercent
-	(*v32.HeaderMatcher)(nil),      // 28: solo.io.envoy.config.route.v3.HeaderMatcher
+	(ComparisonFilter_Op)(0),           // 0: als.options.gloo.solo.io.ComparisonFilter.Op
+	(GrpcStatusFilter_Status)(0),       // 1: als.options.gloo.solo.io.GrpcStatusFilter.Status
+	(*AccessLoggingService)(nil),       // 2: als.options.gloo.solo.io.AccessLoggingService
+	(*AccessLog)(nil),                  // 3: als.options.gloo.solo.io.AccessLog
+	(*FileSink)(nil),                   // 4: als.options.gloo.solo.io.FileSink
+	(*GrpcService)(nil),                // 5: als.options.gloo.solo.io.GrpcService
+	(*OpenTelemetryGrpcCollector)(nil), // 6: als.options.gloo.solo.io.OpenTelemetryGrpcCollector
+	(*OpenTelemetryService)(nil),       // 7: als.options.gloo.solo.io.OpenTelemetryService
+	(*AccessLogFilter)(nil),            // 8: als.options.gloo.solo.io.AccessLogFilter
+	(*ComparisonFilter)(nil),           // 9: als.options.gloo.solo.io.ComparisonFilter
+	(*StatusCodeFilter)(nil),           // 10: als.options.gloo.solo.io.StatusCodeFilter
+	(*DurationFilter)(nil),             // 11: als.options.gloo.solo.io.DurationFilter
+	(*NotHealthCheckFilter)(nil),       // 12: als.options.gloo.solo.io.NotHealthCheckFilter
+	(*TraceableFilter)(nil),            // 13: als.options.gloo.solo.io.TraceableFilter
+	(*RuntimeFilter)(nil),              // 14: als.options.gloo.solo.io.RuntimeFilter
+	(*AndFilter)(nil),                  // 15: als.options.gloo.solo.io.AndFilter
+	(*OrFilter)(nil),                   // 16: als.options.gloo.solo.io.OrFilter
+	(*HeaderFilter)(nil),               // 17: als.options.gloo.solo.io.HeaderFilter
+	(*ResponseFlagFilter)(nil),         // 18: als.options.gloo.solo.io.ResponseFlagFilter
+	(*GrpcStatusFilter)(nil),           // 19: als.options.gloo.solo.io.GrpcStatusFilter
+	nil,                                // 20: als.options.gloo.solo.io.OpenTelemetryGrpcCollector.HeadersEntry
+	(*structpb.Struct)(nil),            // 21: google.protobuf.Struct
+	(*ssl.UpstreamSslConfig)(nil),      // 22: gloo.solo.io.UpstreamSslConfig
+	(*durationpb.Duration)(nil),        // 23: google.protobuf.Duration
+	(*v1.AnyValue)(nil),                // 24: opentelemetry.proto.common.v1.AnyValue
+	(*v1.KeyValueList)(nil),            // 25: opentelemetry.proto.common.v1.KeyValueList
+	(*v3.RuntimeUInt32)(nil),           // 26: solo.io.envoy.config.core.v3.RuntimeUInt32
+	(*v31.FractionalPercent)(nil),      // 27: solo.io.envoy.type.v3.FractionalPercent
+	(*v32.HeaderMatcher)(nil),          // 28: solo.io.envoy.config.route.v3.HeaderMatcher
 }
 var file_github_com_solo_io_gloo_projects_gloo_api_v1_options_als_als_proto_depIdxs = []int32{
 	3,  // 0: als.options.gloo.solo.io.AccessLoggingService.access_log:type_name -> als.options.gloo.solo.io.AccessLog
@@ -1700,10 +1702,10 @@ var file_github_com_solo_io_gloo_projects_gloo_api_v1_options_als_als_proto_depI
 	7,  // 3: als.options.gloo.solo.io.AccessLog.open_telemetry_service:type_name -> als.options.gloo.solo.io.OpenTelemetryService
 	8,  // 4: als.options.gloo.solo.io.AccessLog.filter:type_name -> als.options.gloo.solo.io.AccessLogFilter
 	21, // 5: als.options.gloo.solo.io.FileSink.json_format:type_name -> google.protobuf.Struct
-	20, // 6: als.options.gloo.solo.io.OpenTelemetryCollector.headers:type_name -> als.options.gloo.solo.io.OpenTelemetryCollector.HeadersEntry
-	22, // 7: als.options.gloo.solo.io.OpenTelemetryCollector.ssl_config:type_name -> gloo.solo.io.SslConfig
-	23, // 8: als.options.gloo.solo.io.OpenTelemetryCollector.timeout:type_name -> google.protobuf.Duration
-	6,  // 9: als.options.gloo.solo.io.OpenTelemetryService.collector:type_name -> als.options.gloo.solo.io.OpenTelemetryCollector
+	20, // 6: als.options.gloo.solo.io.OpenTelemetryGrpcCollector.headers:type_name -> als.options.gloo.solo.io.OpenTelemetryGrpcCollector.HeadersEntry
+	22, // 7: als.options.gloo.solo.io.OpenTelemetryGrpcCollector.ssl_config:type_name -> gloo.solo.io.UpstreamSslConfig
+	23, // 8: als.options.gloo.solo.io.OpenTelemetryGrpcCollector.timeout:type_name -> google.protobuf.Duration
+	6,  // 9: als.options.gloo.solo.io.OpenTelemetryService.collector:type_name -> als.options.gloo.solo.io.OpenTelemetryGrpcCollector
 	24, // 10: als.options.gloo.solo.io.OpenTelemetryService.body:type_name -> opentelemetry.proto.common.v1.AnyValue
 	25, // 11: als.options.gloo.solo.io.OpenTelemetryService.attributes:type_name -> opentelemetry.proto.common.v1.KeyValueList
 	10, // 12: als.options.gloo.solo.io.AccessLogFilter.status_code_filter:type_name -> als.options.gloo.solo.io.StatusCodeFilter
