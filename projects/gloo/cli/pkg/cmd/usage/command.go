@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"math"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -89,6 +90,27 @@ func (o *Options) addToFlags(flags *pflag.FlagSet) {
 func (opts *Options) validate() error {
 
 	return nil
+}
+
+type NodeResources struct {
+	TotalCapacityCPU    int64
+	TotalCapacityMemory int64
+}
+
+func calculateNodeResources(nodes []v1.Node) (*NodeResources, error) {
+	resources := &NodeResources{}
+
+	for _, node := range nodes {
+		// Calculate allocatable (actual capacity)
+		cpuAllocatable := node.Status.Allocatable[v1.ResourceCPU]
+		memoryAllocatable := node.Status.Allocatable[v1.ResourceMemory]
+
+		// Add to total capacity
+		resources.TotalCapacityCPU += cpuAllocatable.MilliValue()
+		resources.TotalCapacityMemory += memoryAllocatable.Value()
+	}
+
+	return resources, nil
 }
 
 func run(opts *Options) error {

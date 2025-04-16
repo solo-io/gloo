@@ -160,3 +160,24 @@ func (u *UsageStats) Print(format string) error {
 
 	return nil
 }
+
+
+type OutputStats struct {
+	Features *GlooFeatures
+	ProxyStats    *ProxyStats
+}
+
+type GlooFeatures struct {
+	
+}
+
+type ProxyStats struct {
+	TotalRequests int
+	Uptime int
+	UpstreamStats []UpstreamStats
+}
+
+type UpstreamStats struct {
+	UpstreamName string
+	TotalRequests int
+}
