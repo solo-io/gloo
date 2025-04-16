@@ -34,7 +34,7 @@ jobs:
   regression_tests_main:
     name: main regression tests
     if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-regression && inputs.branch == 'main') || github.event.schedule == '0 5 * * 1-5' }}
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     timeout-minutes: 60
     # Previously, there was an environment variable, RELEASED_VERSION="LATEST" set.  This made use of some internal code:
     #       https://github.com/solo-io/gloo/blob/main/test/kube2e/util.go#L229-L241
@@ -56,7 +56,7 @@ jobs:
   regression_tests_15:
     name: v1.15.x regression tests
     if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-regression && inputs.branch == 'v1.15.x') || github.event.schedule == '0 6 * * 1' }}
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     timeout-minutes: 60
     strategy:
       fail-fast: false
@@ -73,7 +73,7 @@ jobs:
   regression_tests_14:
     name: v1.14.x regression tests
     if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-regression && inputs.branch == 'v1.14.x') || github.event.schedule == '0 7 * * 1' }}
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     timeout-minutes: 60
     strategy:
       fail-fast: false
@@ -90,7 +90,7 @@ jobs:
   performance_tests_main:
     name: main performance tests
     if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-performance && inputs.branch == 'main') || github.event.schedule == '0 5 * * 1-5' }}
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v3
@@ -102,7 +102,7 @@ jobs:
   performance_tests_15:
     name: v1.15.x performance tests
     if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-performance && inputs.branch == 'v1.15.x') || github.event.schedule == '0 6 * * 1' }}
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v3
@@ -116,14 +116,14 @@ jobs:
     # As a result, we don't use an 8core runner and don't include a schedule trigger
     name: v1.14.x performance tests
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.run-performance && inputs.branch == 'v1.14.x'}}
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     timeout-minutes: 60
     steps:
       - run: echo "v1.14.x performance tests do not exist"
         shell: bash
 
   publish_results:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     timeout-minutes: 5
     if: ${{ always() }}
     needs:
