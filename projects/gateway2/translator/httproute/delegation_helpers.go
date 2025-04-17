@@ -2,12 +2,11 @@ package httproute
 
 import (
 	"path"
-	"reflect"
 	"slices"
 	"strings"
 
 	"github.com/solo-io/gloo/projects/gateway2/query"
-	"github.com/solo-io/gloo/projects/gateway2/wellknown"
+	"github.com/solo-io/gloo/projects/gateway2/utils"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/utils/ptr"
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
@@ -39,6 +38,17 @@ func filterDelegatedChildren(
 	// Select the child routes that match the parent
 	var selected []*query.RouteInfo
 	for _, c := range children {
+		origChild, ok := c.Object.(*gwv1.HTTPRoute)
+		if !ok {
+			continue
+		}
+
+		// This check is redundant as it is already done in fetchRoutesByRef in projects/gateway2/query/httproute.go,
+		// so this is just to be extra careful if there is a bug when the child routes are resolved earlier.
+		if !utils.ChildRouteCanAttachToParentRef(origChild, parentRef) {
+			continue
+		}
+
 		// make a copy; multiple parents can delegate to the same child so we can't modify a shared reference
 		clone := c.Clone()
 
@@ -47,7 +57,7 @@ func filterDelegatedChildren(
 			continue
 		}
 
-		inheritMatcher := shouldInheritMatcher(child)
+		inheritMatcher := utils.ShouldChildRouteInheritParentMatcher(child)
 
 		// Check if the child route has a prefix that matches the parent.
 		// Only rules matching the parent prefix are considered.
@@ -73,7 +83,7 @@ func filterDelegatedChildren(
 					// the parent's matcher with the child's.
 					mergeParentChildRouteMatch(&parentMatch, &match)
 					validMatches = append(validMatches, match)
-				} else if ok := isDelegatedRouteMatch(parentMatch, parentRef, match, child.Namespace, child.Spec.ParentRefs); ok {
+				} else if ok := utils.IsDelegatedRouteMatch(parentMatch, match); ok {
 					// Non-inherited matcher delegation requires matching child matcher to parent matcher
 					// to delegate from the parent route to the child.
 					validMatches = append(validMatches, match)
@@ -97,99 +107,6 @@ func filterDelegatedChildren(
 	}
 
 	return selected
-}
-
-func isDelegatedRouteMatch(
-	parent gwv1.HTTPRouteMatch,
-	parentRef types.NamespacedName,
-	child gwv1.HTTPRouteMatch,
-	childNs string,
-	parentRefs []gwv1.ParentReference,
-) bool {
-	// If the child has parentRefs set, validate that it matches the parent route
-	if len(parentRefs) > 0 {
-		matched := false
-		for _, ref := range parentRefs {
-			refNs := childNs
-			if ref.Namespace != nil {
-				refNs = string(*ref.Namespace)
-			}
-			if ref.Group != nil && *ref.Group == wellknown.GatewayGroup &&
-				ref.Kind != nil && *ref.Kind == wellknown.HTTPRouteKind &&
-				string(ref.Name) == parentRef.Name &&
-				refNs == parentRef.Namespace {
-				matched = true
-				break
-			}
-		}
-		if !matched {
-			return false
-		}
-	}
-
-	// Validate path
-	if parent.Path == nil || parent.Path.Type == nil || *parent.Path.Type != gwv1.PathMatchPathPrefix {
-		return false
-	}
-	parentPath := *parent.Path.Value
-	if child.Path == nil || child.Path.Type == nil {
-		return false
-	}
-	childPath := *child.Path.Value
-	if !strings.HasPrefix(childPath, parentPath) {
-		return false
-	}
-
-	// Validate that the child headers are a superset of the parent headers
-	for _, parentHeader := range parent.Headers {
-		found := false
-		for _, childHeader := range child.Headers {
-			if reflect.DeepEqual(parentHeader, childHeader) {
-				found = true
-				break
-			}
-		}
-		if !found {
-			return false
-		}
-	}
-
-	// Validate that the child query parameters are a superset of the parent headers
-	for _, parentQuery := range parent.QueryParams {
-		found := false
-		for _, childQuery := range child.QueryParams {
-			if reflect.DeepEqual(parentQuery, childQuery) {
-				found = true
-				break
-			}
-		}
-		if !found {
-			return false
-		}
-	}
-
-	// Validate that the child method matches the parent method
-	if parent.Method != nil && (child.Method == nil || *parent.Method != *child.Method) {
-		return false
-	}
-
-	return true
-}
-
-// shouldInheritMatcher returns true if the route indicates that it should inherit
-// its parent's matcher.
-func shouldInheritMatcher(route *gwv1.HTTPRoute) bool {
-	val, ok := route.Annotations[wellknown.InheritMatcherAnnotation]
-	if !ok {
-		return false
-	}
-	switch strings.ToLower(val) {
-	case "true", "yes", "enabled":
-		return true
-
-	default:
-		return false
-	}
 }
 
 // mergeParentChildRouteMatch merges the parent route match into the child.
