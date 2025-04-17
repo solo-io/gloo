@@ -7,13 +7,10 @@ server:
 		-tags "netgo" -installsuffix netgo \
 		-o server
 
-docker-local:
+docker-local: server
 	docker build -t quay.io/solo-io/passthrough-grpc-service-example .
 
-docker-push: docker-local
-	docker push quay.io/solo-io/passthrough-grpc-service-example
-
-docker-buildx:
+docker-push:
 	docker buildx build --no-cache --push --platform linux/arm64,linux/amd64 -t quay.io/solo-io/passthrough-grpc-service-example .
 
 clean:

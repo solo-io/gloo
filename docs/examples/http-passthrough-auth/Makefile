@@ -8,10 +8,7 @@ server:
 docker-local:
 	docker build -t gcr.io/solo-public/passthrough-http-service-example .
 
-docker-push: docker-local
-	docker push gcr.io/solo-public/passthrough-http-service-example
-
-docker-buildx:
+docker-push:
 	docker buildx build --no-cache --push --platform linux/arm64,linux/amd64 -t gcr.io/solo-public/passthrough-http-service-example .
 
 clean:
