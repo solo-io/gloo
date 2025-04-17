@@ -22,6 +22,9 @@ const (
 )
 
 var (
+	// https://github.com/istio/istio/issues/55980
+	// The `istioctl install` command does not automatically set the default revision tag starting in 1.24.0
+	// We need to manually set/delete the default revision tag starting in 1.24.0
 	applyDefaultRevisionTagAfterVersion = version.MustParseSemantic("1.24.0")
 )
 
