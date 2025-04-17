@@ -55,7 +55,7 @@ func TestIstioEdgeApiGateway(t *testing.T) {
 		testInstallation.UninstallGlooGatewayWithTestHelper(ctx, testHelper)
 
 		// Uninstall Istio
-		err = testInstallation.UninstallIstio()
+		err = testInstallation.UninstallIstio(ctx)
 		if err != nil {
 			t.Errorf("failed to remove istioctl: %v\n", err)
 		}

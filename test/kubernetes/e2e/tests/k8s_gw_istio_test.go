@@ -54,7 +54,7 @@ func TestK8sGatewayIstio(t *testing.T) {
 		testInstallation.UninstallGlooGatewayWithTestHelper(ctx, testHelper)
 
 		// Uninstall Istio
-		err = testInstallation.UninstallIstio()
+		err = testInstallation.UninstallIstio(ctx)
 		if err != nil {
 			t.Fatalf("failed to uninstall: %v\n", err)
 		}
