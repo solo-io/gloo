@@ -10,7 +10,8 @@ env:
 jobs:
   evict-mod-cache-closed-pr:
     name: Evict Go Modules Cache for Closed PRs
-    runs-on: ubuntu-22.04
+    # this job runs gh cli cmds in bash, so we should be ok with ubuntu-latest
+    runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
       - name: Check out code
