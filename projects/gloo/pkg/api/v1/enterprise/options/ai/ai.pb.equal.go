@@ -938,6 +938,10 @@ func (m *UpstreamSpec_VertexAI) Equal(that interface{}) bool {
 		return false
 	}
 
+	if m.GetJsonSchema() != target.GetJsonSchema() {
+		return false
+	}
+
 	switch m.AuthTokenSource.(type) {
 
 	case *UpstreamSpec_VertexAI_AuthToken:
