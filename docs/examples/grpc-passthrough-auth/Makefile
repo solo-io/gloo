@@ -8,10 +8,10 @@ server:
 		-o server
 
 docker-local: server
-	docker build -t quay.io/solo-io/passthrough-grpc-service-example .
+	docker build -t gcr.io/solo-public/passthrough-grpc-service-example .
 
 docker-push:
-	docker buildx build --no-cache --push --platform linux/arm64,linux/amd64 -t quay.io/solo-io/passthrough-grpc-service-example .
+	docker buildx build --no-cache --push --platform linux/arm64,linux/amd64 -t gcr.io/solo-public/passthrough-grpc-service-example .
 
 clean:
 	@rm -fr server
