@@ -2,6 +2,7 @@ package usage
 
 import (
 	"context"
+
 	"github.com/solo-io/gloo/pkg/utils/kubeutils"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -17,15 +18,15 @@ func calculateNodeResources(nodes []v1.Node) (*NodeResources, error) {
 		memoryAllocatable := node.Status.Allocatable[v1.ResourceMemory]
 
 		// Add to total capacity
-		resources.TotalCapacityCPU += cpuAllocatable.MilliValue()
-		resources.TotalCapacityMemory += memoryAllocatable.Value()
+		resources.TotalCPUCores += cpuAllocatable.Value()
+		resources.TotalMemoryGb += memoryAllocatable.Value() / (1024 * 1024 * 1024) // Convert bytes to GB
 	}
 	resources.Nodes = len(nodes)
 
 	return resources, nil
 }
 
-func getK8sClusterInfo(opts *Options) (*K8sClusterInfo, error) {
+func getK8sClusterInfo() (*K8sClusterInfo, error) {
 	restCfg, err := kubeutils.GetRestConfigWithKubeContext("")
 	if err != nil {
 		return nil, err
@@ -47,8 +48,7 @@ func getK8sClusterInfo(opts *Options) (*K8sClusterInfo, error) {
 		return nil, err
 	}
 
-	// Get all services in the control plane namespace
-	services, err := kube.CoreV1().Services(opts.ControlPlaneNamespace).List(context.Background(), metav1.ListOptions{})
+	services, err := kube.CoreV1().Services("").List(context.Background(), metav1.ListOptions{})
 	if err != nil {
 		return nil, err
 	}

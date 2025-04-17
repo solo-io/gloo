@@ -70,19 +70,12 @@ func run(opts *Options) error {
 	}
 	usageStats := &UsageStats{}
 
-	// calculate all the stats for each input
-	proxyData, err := generateProxyData(inputs.ProxyStats)
-	if err != nil {
-		return err
-	}
-	usageStats.ProxyData = proxyData
-
 	// go through the edge snapshot and count feature usage
 	usage, err := generateGlooFeatureUsage(inputs.GlooEdgeConfigs)
 	if err != nil {
 		return err
 	}
-	usageStats.GlooFeatureUsage = usage
+	usageStats.GlooFeatureUsage = processGlooFeatures(usage, inputs.GlooEdgeConfigs)
 
 	if inputs.ProxyStats != nil {
 		proxyStats, err := gatherProxyPodInformation(inputs.ProxyStats)
@@ -102,36 +95,80 @@ func run(opts *Options) error {
 		Services:      len(inputs.K8sClusterInfo.Services),
 	}
 
-	usage.Print(opts.OutputFormat)
+	usageStats.Print(opts.OutputFormat)
 
 	return nil
 
 }
 
-func generateProxyData(proxyInfo map[string]*ProxyInfo) ([]*ProxyData, error) {
+func processGlooFeatures(apiUsageStats map[API][]*UsageStat, instance *snapshot.Instance) map[API]*GlooFeatureUsage {
 
-	var proxyData []*ProxyData
-	for nameNamespace, info := range proxyInfo {
-		// for each proxy organize its information
-		envoyMetrics, err := getEnvoyMetrics(info)
-		if err != nil {
-			return nil, err
+	glooFeatureUsage := map[API]*GlooFeatureUsage{}
+	// take all the features and organize them by gateway / proxyName and API
+	for api, stats := range apiUsageStats {
+		//
+		usage, exists := glooFeatureUsage[api]
+		if !exists {
+			usage = &GlooFeatureUsage{}
+			usage.FeatureCountPerProxy = make(map[string]*ProxyFeatureCount)
 		}
-		nnsSplit := strings.Split(nameNamespace, "/")
-
-		proxyData = append(proxyData, &ProxyData{
-			Name:         nnsSplit[1],
-			Namespace:    nnsSplit[0],
-			EnvoyMetrics: envoyMetrics,
-		})
+		for _, stat := range stats {
+			// for each stat we need to grab its proxy name and update its feature count
+			proxyNames := stat.Metadata.ProxyNames
+			for _, proxyName := range proxyNames {
+				if proxyName == "" {
+					fmt.Printf("proxyName is empty for stat %v\n", stat)
+				}
+				if usage.FeatureCountPerProxy[proxyName] == nil {
+					usage.FeatureCountPerProxy[proxyName] = &ProxyFeatureCount{
+						FeatureCount: make(map[FeatureType]int),
+					}
+				}
+				usage.FeatureCountPerProxy[proxyName].FeatureCount[stat.Type]++
+			}
+		}
+		glooFeatureUsage[api] = usage
 	}
-	return proxyData, nil
-}
 
-type ProxyData struct {
-	Name         string
-	Namespace    string
-	EnvoyMetrics *EnvoyMetrics
+	apis := []API{
+		GlooEdgeAPI,
+		KGatewayAPI,
+		GatewayAPI,
+	}
+	for _, api := range apis {
+		usage, exists := glooFeatureUsage[api]
+		if !exists {
+			usage = &GlooFeatureUsage{
+				APICounts: make(map[string]int),
+			}
+		}
+		if usage.APICounts == nil {
+			usage.APICounts = make(map[string]int)
+		}
+		// Count all available resources
+		if api == GlooEdgeAPI {
+			usage.APICounts["RouteTable"] = len(instance.RouteTables())
+			usage.APICounts["Settings"] = len(instance.Settings())
+			usage.APICounts["RouteOption"] = len(instance.RouteOptions())
+			usage.APICounts["ListenerOption"] = len(instance.ListenerOptions())
+			usage.APICounts["Upstream"] = len(instance.Upstreams())
+			usage.APICounts["GlooGateway"] = len(instance.GlooGateways())
+			usage.APICounts["AuthConfig"] = len(instance.AuthConfigs())
+			usage.APICounts["VirtualService"] = len(instance.VirtualServices())
+			usage.APICounts["HTTPListenerOption"] = len(instance.HTTPListenerOptions())
+			usage.APICounts["VirtualHostOption"] = len(instance.VirtualHostOptions())
+			usage.APICounts["DirectResponse"] = len(instance.DirectResponses())
+
+		}
+		if api == GatewayAPI {
+			usage.APICounts["HTTPRoute"] = len(instance.HTTPRoutes())
+			usage.APICounts["ListenerSet"] = len(instance.ListenerSets())
+			usage.APICounts["Gateway"] = len(instance.Gateways())
+			usage.APICounts["GatewayParameters"] = len(instance.GatewayParameters())
+		}
+
+	}
+	return glooFeatureUsage
 }
 
 // gatherUsageInformation reads data from multiple sources and returns it
@@ -146,7 +183,7 @@ func gatherUsageInformation(opts *Options) (*Inputs, error) {
 	inputs := &Inputs{}
 
 	// Get cluster info
-	clusterInfo, err := getK8sClusterInfo(opts)
+	clusterInfo, err := getK8sClusterInfo()
 	if err != nil {
 		return nil, err
 	}
@@ -294,7 +331,7 @@ func getEnvoyMetrics(info *ProxyInfo) (*EnvoyMetrics, error) {
 			if !ok {
 				continue
 			}
-			envoyMetrics.UptimeSeconds = statValue
+			envoyMetrics.UptimeSeconds = int64(statValue)
 		}
 		if strings.HasSuffix(stat.Name, "upstream_rq_2xx") {
 			statValue, ok := stat.Value.(float64)
@@ -302,7 +339,7 @@ func getEnvoyMetrics(info *ProxyInfo) (*EnvoyMetrics, error) {
 				continue
 			}
 			if statValue > 0 {
-				envoyMetrics.Total2xxRequests += statValue
+				envoyMetrics.Total2xxRequests += int64(statValue)
 			}
 		}
 		if strings.HasSuffix(stat.Name, "upstream_rq_3xx") {
@@ -311,7 +348,7 @@ func getEnvoyMetrics(info *ProxyInfo) (*EnvoyMetrics, error) {
 				continue
 			}
 			if statValue > 0 {
-				envoyMetrics.Total2xxRequests += statValue
+				envoyMetrics.Total3xxRequests += int64(statValue)
 			}
 		}
 		if strings.HasSuffix(stat.Name, "upstream_rq_4xx") {
@@ -320,7 +357,7 @@ func getEnvoyMetrics(info *ProxyInfo) (*EnvoyMetrics, error) {
 				continue
 			}
 			if statValue > 0 {
-				envoyMetrics.Total2xxRequests += statValue
+				envoyMetrics.Total4xxRequests += int64(statValue)
 			}
 		}
 		if strings.HasSuffix(stat.Name, "upstream_rq_5xx") {
@@ -329,20 +366,26 @@ func getEnvoyMetrics(info *ProxyInfo) (*EnvoyMetrics, error) {
 				continue
 			}
 			if statValue > 0 {
-				envoyMetrics.Total2xxRequests += statValue
+				envoyMetrics.Total5xxRequests += int64(statValue)
 			}
 		}
+	}
+	if envoyMetrics.UptimeSeconds > 0 {
+		totalRequests := envoyMetrics.Total2xxRequests + envoyMetrics.Total3xxRequests + envoyMetrics.Total4xxRequests + envoyMetrics.Total5xxRequests
+		envoyMetrics.AverageRequestsPerSecond = float64(totalRequests) / float64(envoyMetrics.UptimeSeconds)
+
 	}
 
 	return envoyMetrics, nil
 }
 
 type EnvoyMetrics struct {
-	Total2xxRequests float64
-	Total3xxRequests float64
-	Total4xxRequests float64
-	Total5xxRequests float64
-	UptimeSeconds    float64
+	Total2xxRequests         int64
+	Total3xxRequests         int64
+	Total4xxRequests         int64
+	Total5xxRequests         int64
+	UptimeSeconds            int64
+	AverageRequestsPerSecond float64
 }
 
 type UpstreamStat struct {

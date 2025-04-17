@@ -1,5 +1,7 @@
 package usage
 
+import "gopkg.in/yaml.v3"
+
 type FeatureType string
 type Label string
 
@@ -134,3 +136,19 @@ const (
 	GatewayAPI  API = "Gateway API"
 	KGatewayAPI API = "kGateway API"
 )
+func (a API) MarshalYAML() (interface{}, error) {
+	return yaml.Node{
+			Kind:  yaml.ScalarNode,
+			Style: yaml.DoubleQuotedStyle,
+			Value: string(a),
+	}, nil
+}
+
+// MarshalYAML implements yaml.Marshaler interface
+func (f FeatureType) MarshalYAML() (interface{}, error) {
+	return yaml.Node{
+			Kind:  yaml.ScalarNode,
+			Style: yaml.DoubleQuotedStyle,
+			Value: string(f),
+	}, nil
+}

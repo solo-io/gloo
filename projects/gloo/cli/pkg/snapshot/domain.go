@@ -2,6 +2,7 @@ package snapshot
 
 import (
 	"fmt"
+	api "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gateway/pkg/translator"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"strings"
@@ -272,6 +273,40 @@ func (i *Instance) GlooGatewayVirtualServices(gateway *GlooGatewayWrapper) ([]*V
 			response = append(response, virtualService)
 		}
 	}
+	return response, nil
+}
+
+// DelegatedRouteTables finds all RouteTables that match the virtual service delegate selector
+func (i *Instance) DelegatedRouteTables(namespace string, delegateAction *api.DelegateAction) ([]*RouteTableWrapper, error) {
+	var response []*RouteTableWrapper
+
+	//get all routeTables
+	rtlist := []*api.RouteTable{}
+
+	//TODO this could be expensive and may need to move this to a special property
+	for _, rtw := range i.RouteTables() {
+		rtSpec := &rtw.Spec
+		// set all the metadata on the route table object.
+		rtSpec.Metadata = &core.Metadata{
+			Name:        rtw.Name,
+			Namespace:   rtw.Namespace,
+			Labels:      rtw.Labels,
+			Annotations: rtw.Annotations,
+		}
+
+		rtlist = append(rtlist, &rtw.Spec)
+	}
+
+	rts := translator.NewRouteTableSelector(rtlist)
+
+	selectedRouteTables, err := rts.SelectRouteTables(delegateAction, namespace)
+	if err != nil {
+		return nil, err
+	}
+	for _, rt := range selectedRouteTables {
+		response = append(response, i.routeTables[NameNamespaceIndex(rt.GetMetadata().GetName(), rt.GetMetadata().GetNamespace())])
+	}
+
 	return response, nil
 }
 
