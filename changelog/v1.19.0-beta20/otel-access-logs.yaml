@@ -1,0 +1,6 @@
+changelog:
+- type: NEW_FEATURE
+  description: >- 
+    Added support for sending gateway access logs to an OpenTelemetry collector.
+  resolvesIssues: false
+  issueLink: https://github.com/solo-io/solo-projects/issues/6661
