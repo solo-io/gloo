@@ -13,4 +13,4 @@ global:
 
 gatewayProxies:
   gatewayProxy:
-    istioDiscoveryAddress: istiod-1-22-1.istio-system.svc:15012 # this needs to be set for Istio integration to work with revisions
+    istioDiscoveryAddress: istiod-test-revision.istio-system.svc:15012 # this needs to be set for Istio integration to work with revisions
