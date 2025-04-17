@@ -57,14 +57,14 @@ func TestIstioRegression(t *testing.T) {
 		// Uninstall Istio
 		err = testInstallation.UninstallIstio()
 		if err != nil {
-			t.Errorf("failed to add istioctl: %v\n", err)
+			t.Errorf("failed to remove istioctl: %v\n", err)
 		}
 	})
 
 	// Install Istio before Gloo Gateway to make sure istiod is present before istio-proxy
 	err = testInstallation.InstallMinimalIstio(ctx)
 	if err != nil {
-		t.Errorf("failed to add istioctl: %v\n", err)
+		t.Errorf("failed to install istioctl: %v\n", err)
 	}
 
 	// Install Gloo Gateway with only Edge APIs enabled
