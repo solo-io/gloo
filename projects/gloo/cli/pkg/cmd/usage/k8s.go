@@ -20,6 +20,7 @@ func calculateNodeResources(nodes []v1.Node) (*NodeResources, error) {
 		resources.TotalCapacityCPU += cpuAllocatable.MilliValue()
 		resources.TotalCapacityMemory += memoryAllocatable.Value()
 	}
+	resources.Nodes = len(nodes)
 
 	return resources, nil
 }

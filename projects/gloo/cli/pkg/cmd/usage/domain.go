@@ -1,38 +1,84 @@
 package usage
 
 import (
+	"encoding/json"
 	"fmt"
-	"github.com/solo-io/gloo/projects/gloo/cli/pkg/snapshot"
-	v1 "k8s.io/api/core/v1"
+	"math"
+	"os"
 	"sort"
+
+	"github.com/solo-io/gloo/projects/gloo/cli/pkg/snapshot"
+	"gopkg.in/yaml.v3"
+	v1 "k8s.io/api/core/v1"
 )
 
 type K8sClusterInfo struct {
-	Nodes    []v1.Node
-	Pods     []v1.Pod
-	Services []v1.Service
+	Nodes    []v1.Node    `json:"nodes"`
+	Pods     []v1.Pod     `json:"pods"`
+	Services []v1.Service `json:"services"`
 }
 type UsageStats struct {
-	ProxyData        *ProxyData
-	GlooFeatureUsage *UsageStats
-	GlooProxyMetrics *EnvoyMetrics
-	GlooProxyStats   []*UpstreamStat
-	GlooEdgeConfigs  *snapshot.Instance
+	GlooFeatureUsage map[API][]*UsageStat       `json:"glooFeatureUsage"`
+	GlooProxyStats   map[string]*GlooProxyStats `json:"glooProxyStats"`
+	GlooEdgeConfigs  *snapshot.Instance         `json:"-"`
+	KubernetesStats  *KubernetesStats           `json:"kubernetesStats"`
 }
 
-type UsageInputs struct {
-	GlooEdgeConfigs *snapshot.Instance
-	K8sClusterInfo  *K8sClusterInfo
-	ProxyStats      map[string]*ProxyInfo
+type GlooFeatureUsage struct {
+	APICounts            map[string]int                `json:"apiCounts"`
+	FeatureCountPerProxy map[string]*ProxyFeatureCount `json:"featureCountPerProxy"`
+}
+
+type ProxyFeatureCount struct {
+	FeatureCount map[string]int `json:"featureCount"`
+}
+
+type GlooProxyStats struct {
+	GlooProxyMetrics *EnvoyMetrics   `json:"glooProxyMetrics"`
+	GlooProxyStats   []*UpstreamStat `json:"glooProxyStats"`
+}
+
+type KubernetesStats struct {
+	Pods          int            `json:"pods"`
+	NodeResources *NodeResources `json:"nodeResources"`
+	Services      int            `json:"services"`
+}
+
+type Inputs struct {
+	GlooEdgeConfigs *snapshot.Instance    `json:"glooEdgeConfigs"`
+	K8sClusterInfo  *K8sClusterInfo       `json:"k8sClusterInfo"`
+	ProxyStats      map[string]*ProxyInfo `json:"proxyStats"`
 }
 
 type NodeResources struct {
-	TotalCapacityCPU    int64
-	TotalCapacityMemory int64
+	TotalCapacityCPU    int64 `json:"totalCapacityCPU"`
+	TotalCapacityMemory int64 `json:"totalCapacityMemory"`
+	Nodes               int   `json:"nodes"`
 }
 
-func (u *UsageStats) Print() {
+func (u *UsageStats) Print(format string) {
 	//featureCount := map[FeatureType]int{}
+
+	if format == "json" {
+		json.NewEncoder(os.Stdout).Encode(u)
+		return
+	}
+
+	if format == "yaml" {
+		yaml.NewEncoder(os.Stdout).Encode(u)
+		return
+	}
+
+	// text output format
+
+	fmt.Printf("\nK8s Resources:\n")
+	fmt.Printf("\tNodes: %d\n", u.KubernetesStats.NodeResources.Nodes)
+	fmt.Printf("\tPods: %d\n", u.KubernetesStats.Pods)
+	fmt.Printf("\tServices: %d\n", u.KubernetesStats.Services)
+	// Print node resource information
+	fmt.Printf("\nNode Resources:\n")
+	fmt.Printf("Total CPU Capacity: %.2f cores\n", float64(u.KubernetesStats.NodeResources.TotalCapacityCPU)/1000)
+	fmt.Printf("Total Memory Capacity: %.2f GB\n", float64(u.KubernetesStats.NodeResources.TotalCapacityMemory)/math.Pow(1024, 3))
 
 	fmt.Printf("Gloo Edge APIs: \n")
 	fmt.Printf("\tGloo Gateways: %d\n", len(u.GlooEdgeConfigs.GlooGateways()))
@@ -53,23 +99,23 @@ func (u *UsageStats) Print() {
 	fmt.Printf("\tGatewayParameters: %d\n", len(u.GlooEdgeConfigs.GatewayParameters()))
 
 	fmt.Printf("\nTotal Features Used Per API\n")
-	fmt.Printf("\tGloo Edge API: %d\n", len(u.stats[GlooEdgeAPI]))
-	fmt.Printf("\tGateway API: %d\n", len(u.stats[GatewayAPI]))
-	fmt.Printf("\tkGateway API: %d\n\n", len(u.stats[KGatewayAPI]))
+	fmt.Printf("\tGloo Edge API: %d\n", len(u.GlooFeatureUsage[GlooEdgeAPI]))
+	fmt.Printf("\tGateway API: %d\n", len(u.GlooFeatureUsage[GatewayAPI]))
+	fmt.Printf("\tkGateway API: %d\n\n", len(u.GlooFeatureUsage[KGatewayAPI]))
 
-	for api, stats := range u.GlooProxyStats {
+	for api, features := range u.GlooFeatureUsage {
 		fmt.Printf("API: %s", api)
 
 		// organize by category
 		categories := map[Category]map[FeatureType]int{}
 
 		// group all the stats by their codes
-		for _, stat := range stats {
+		for _, feature := range features {
 			//featureCount[stat.Type]++
-			if categories[stat.Metadata.Category] == nil {
-				categories[stat.Metadata.Category] = map[FeatureType]int{}
+			if categories[feature.Metadata.Category] == nil {
+				categories[feature.Metadata.Category] = map[FeatureType]int{}
 			}
-			categories[stat.Metadata.Category][stat.Type]++
+			categories[feature.Metadata.Category][feature.Type]++
 
 		}
 		for category, features := range categories {
@@ -90,44 +136,30 @@ func (u *UsageStats) Print() {
 		}
 	}
 
-	//// Calculate node resources
-	//nodeResources, err := calculateNodeResources(inputs.K8sClusterInfo.Nodes)
-	//if err != nil {
-	//	return err
-	//}
-	//fmt.Printf("\nK8s Resources:\n")
-	//fmt.Printf("\tNodes: %d\n", len(inputs.K8sClusterInfo.Nodes))
-	//fmt.Printf("\tPods: %d\n", len(inputs.K8sClusterInfo.Pods))
-	//fmt.Printf("\tServices: %d\n", len(inputs.K8sClusterInfo.Services))
-	//// Print node resource information
-	//fmt.Printf("\nNode Resources:\n")
-	//fmt.Printf("Total CPU Capacity: %.2f cores\n", float64(nodeResources.TotalCapacityCPU)/1000)
-	//fmt.Printf("Total Memory Capacity: %.2f GB\n", float64(nodeResources.TotalCapacityMemory)/math.Pow(1024, 3))
-
 }
 
 type UsageMetadata struct {
-	Name      string
-	Namespace string
-	Kind      string
-	Category  Category
-	API       API
+	Name      string   `json:"name"`
+	Namespace string   `json:"namespace"`
+	Kind      string   `json:"kind"`
+	Category  Category `json:"category"`
+	API       API      `json:"api"`
 }
 
 type UsageStat struct {
-	Type     FeatureType
-	Metadata UsageMetadata
+	Type     FeatureType   `json:"type"`
+	Metadata UsageMetadata `json:"metadata"`
 }
 
 func (u *UsageStats) AddUsageStat(stat *UsageStat) {
 	if stat.Metadata.API == "" {
 		stat.Metadata.API = GlooEdgeAPI
 	}
-	if u.stats == nil {
-		u.stats = make(map[API][]*UsageStat)
+	if u.GlooFeatureUsage == nil {
+		u.GlooFeatureUsage = make(map[API][]*UsageStat)
 	}
-	if u.stats[stat.Metadata.API] == nil {
-		u.stats[stat.Metadata.API] = []*UsageStat{}
+	if u.GlooFeatureUsage[stat.Metadata.API] == nil {
+		u.GlooFeatureUsage[stat.Metadata.API] = []*UsageStat{}
 	}
-	u.stats[stat.Metadata.API] = append(u.stats[stat.Metadata.API], stat)
+	u.GlooFeatureUsage[stat.Metadata.API] = append(u.GlooFeatureUsage[stat.Metadata.API], stat)
 }

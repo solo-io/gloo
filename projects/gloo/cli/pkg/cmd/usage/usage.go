@@ -14,8 +14,7 @@ func generateGlooFeatureUsage(glooConfigs *snapshot.Instance) (*UsageStats, erro
 
 	// look at gateway
 	stats := &UsageStats{
-		stats: make(map[API][]*UsageStat),
-		cache: glooConfigs,
+		GlooEdgeConfigs: glooConfigs,
 	}
 	err := stats.processGlooGateways()
 	if err != nil {
@@ -42,7 +41,7 @@ func generateGlooFeatureUsage(glooConfigs *snapshot.Instance) (*UsageStats, erro
 
 func (u *UsageStats) processRouteTables() error {
 
-	for _, routeTable := range u.cache.RouteTables() {
+	for _, routeTable := range u.GlooEdgeConfigs.RouteTables() {
 		u.processRouteTable(routeTable.RouteTable)
 	}
 	return nil
@@ -68,7 +67,7 @@ func (u *UsageStats) processRouteTable(table *gatewaykube.RouteTable) {
 
 func (u *UsageStats) processVirtualServices() error {
 
-	for _, service := range u.cache.VirtualServices() {
+	for _, service := range u.GlooEdgeConfigs.VirtualServices() {
 		u.processVirtualService(service.VirtualService)
 	}
 	return nil
@@ -92,7 +91,7 @@ func (u *UsageStats) processVirtualService(service *gatewaykube.VirtualService) 
 					// same namespace as the reference object
 					namespace = service.Namespace
 				}
-				vho, found := u.cache.VirtualHostOptions()[snapshot.NameNamespaceIndex(ref.GetName(), namespace)]
+				vho, found := u.GlooEdgeConfigs.VirtualHostOptions()[snapshot.NameNamespaceIndex(ref.GetName(), namespace)]
 				if !found {
 					fmt.Printf("WARNING: No route options found for kind %s: %s/%s\n", "VirtualService", service.Namespace, service.Name)
 				}
@@ -169,7 +168,7 @@ func (u *UsageStats) processRoute(route *api.Route, parentName string, parentKin
 					// same namespace as the reference object
 					namespace = parentNamespace
 				}
-				upstream, found := u.cache.Upstreams()[snapshot.NameNamespaceIndex(route.GetRouteAction().GetSingle().GetUpstream().GetName(), namespace)]
+				upstream, found := u.GlooEdgeConfigs.Upstreams()[snapshot.NameNamespaceIndex(route.GetRouteAction().GetSingle().GetUpstream().GetName(), namespace)]
 				if !found {
 					fmt.Printf("WARNING: No upstream found for kind %s: %s/%s\n", parentKind, parentNamespace, parentName)
 				} else {
@@ -212,7 +211,7 @@ func (u *UsageStats) processRoute(route *api.Route, parentName string, parentKin
 				// same namespace as the reference object
 				namespace = parentNamespace
 			}
-			ro, found := u.cache.RouteOptions()[snapshot.NameNamespaceIndex(ref.GetName(), namespace)]
+			ro, found := u.GlooEdgeConfigs.RouteOptions()[snapshot.NameNamespaceIndex(ref.GetName(), namespace)]
 			if !found {
 				fmt.Printf("WARNING: No route options found for kind %s: %s/%s\n", parentKind, parentNamespace, parentName)
 			}
@@ -586,7 +585,7 @@ func (u *UsageStats) processRouteOptions(options *v1.RouteOptions, parentName st
 				// same namespace as the reference object
 				namespace = parentNamespace
 			}
-			authConfig, found := u.cache.AuthConfigs()[snapshot.NameNamespaceIndex(options.GetExtauth().GetConfigRef().GetName(), namespace)]
+			authConfig, found := u.GlooEdgeConfigs.AuthConfigs()[snapshot.NameNamespaceIndex(options.GetExtauth().GetConfigRef().GetName(), namespace)]
 			if !found {
 				fmt.Printf("WARNING: No auth config found for kind %s: %s/%s\n", parentKind, parentNamespace, parentName)
 			}
@@ -744,7 +743,7 @@ func (u *UsageStats) processVirtualHostOptions(options *v1.VirtualHostOptions, p
 				// same namespace as the reference object
 				namespace = parentNamespace
 			}
-			authConfig, found := u.cache.AuthConfigs()[snapshot.NameNamespaceIndex(options.GetExtauth().GetConfigRef().GetName(), namespace)]
+			authConfig, found := u.GlooEdgeConfigs.AuthConfigs()[snapshot.NameNamespaceIndex(options.GetExtauth().GetConfigRef().GetName(), namespace)]
 			if !found {
 				fmt.Printf("WARNING: No auth config found for kind %s: %s/%s\n", parentKind, parentNamespace, parentName)
 			}

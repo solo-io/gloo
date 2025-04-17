@@ -4,14 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"math"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
 
-	"github.com/fatih/color"
-	"github.com/rodaine/table"
 	"github.com/solo-io/gloo/pkg/utils/envoyutils/admincli"
 	"github.com/solo-io/gloo/pkg/utils/kubeutils"
 	"github.com/solo-io/gloo/pkg/utils/kubeutils/kubectl"
@@ -35,6 +32,7 @@ type Options struct {
 	ScanProxies           []string
 	ProxyNamespaces       []string
 	IncludeEndpointStats  bool
+	OutputFormat          string
 }
 
 func RootCmd(op *options.Options) *cobra.Command {
@@ -70,7 +68,7 @@ func run(opts *Options) error {
 	if err != nil {
 		return err
 	}
-	usageStats := UsageStats{}
+	usageStats := &UsageStats{}
 
 	// calculate all the stats for each input
 	proxyData, err := generateProxyData(inputs.ProxyStats)
@@ -80,45 +78,37 @@ func run(opts *Options) error {
 	usageStats.ProxyData = proxyData
 
 	// go through the edge snapshot and count feature usage
-	usage, err := generateGlooFeatureUsage(inputs.GlooConfigs)
+	usage, err := generateGlooFeatureUsage(inputs.GlooEdgeConfigs)
 	if err != nil {
 		return err
 	}
 	usageStats.GlooFeatureUsage = usage
 
 	if inputs.ProxyStats != nil {
-		envoyMetric,proxyStats, err := gatherProxyPodInformation(inputs.ProxyStats);
+		proxyStats, err := gatherProxyPodInformation(inputs.ProxyStats)
 		if err != nil {
 			return err
 		}
-		usageStats.GlooProxyMetrics = envoyMetric
 		usageStats.GlooProxyStats = proxyStats
-
 	}
-
 	// Calculate node resources
 	nodeResources, err := calculateNodeResources(inputs.K8sClusterInfo.Nodes)
 	if err != nil {
 		return err
 	}
-	fmt.Printf("\nK8s Resources:\n")
-	fmt.Printf("\tNodes: %d\n", len(inputs.K8sClusterInfo.Nodes))
-	fmt.Printf("\tPods: %d\n", len(inputs.K8sClusterInfo.Pods))
-	fmt.Printf("\tServices: %d\n", len(inputs.K8sClusterInfo.Services))
-	// Print node resource information
-	fmt.Printf("\nNode Resources:\n")
-	fmt.Printf("Total CPU Capacity: %.2f cores\n", float64(nodeResources.TotalCapacityCPU)/1000)
-	fmt.Printf("Total Memory Capacity: %.2f GB\n", float64(nodeResources.TotalCapacityMemory)/math.Pow(1024, 3))
+	usageStats.KubernetesStats = &KubernetesStats{
+		Pods:          len(inputs.K8sClusterInfo.Pods),
+		NodeResources: nodeResources,
+		Services:      len(inputs.K8sClusterInfo.Services),
+	}
 
-
-
-	usage.Print()
+	usage.Print(opts.OutputFormat)
 
 	return nil
 
 }
 
-func generateProxyData(proxyInfo map[string]*ProxyInfo) ([]*ProxyData, error}) {
+func generateProxyData(proxyInfo map[string]*ProxyInfo) ([]*ProxyData, error) {
 
 	var proxyData []*ProxyData
 	for nameNamespace, info := range proxyInfo {
@@ -129,9 +119,9 @@ func generateProxyData(proxyInfo map[string]*ProxyInfo) ([]*ProxyData, error}) {
 		}
 		nnsSplit := strings.Split(nameNamespace, "/")
 
-		proxyData =append(proxyData, &ProxyData{
-			Name: nnsSplit[1],
-			Namespace: nnsSplit[0],
+		proxyData = append(proxyData, &ProxyData{
+			Name:         nnsSplit[1],
+			Namespace:    nnsSplit[0],
 			EnvoyMetrics: envoyMetrics,
 		})
 	}
@@ -139,13 +129,13 @@ func generateProxyData(proxyInfo map[string]*ProxyInfo) ([]*ProxyData, error}) {
 }
 
 type ProxyData struct {
-	Name string
-	Namespace string
+	Name         string
+	Namespace    string
 	EnvoyMetrics *EnvoyMetrics
 }
 
-//gatherUsageInformation reads data from multiple sources and returns it
-func gatherUsageInformation(opts *Options) (*UsageInputs, error) {
+// gatherUsageInformation reads data from multiple sources and returns it
+func gatherUsageInformation(opts *Options) (*Inputs, error) {
 
 	tempDir, err := os.MkdirTemp("", "tmp")
 	if err != nil {
@@ -153,7 +143,7 @@ func gatherUsageInformation(opts *Options) (*UsageInputs, error) {
 	}
 	defer os.RemoveAll(tempDir) // Clean up the directory when done
 
-	inputs := &UsageInputs{}
+	inputs := &Inputs{}
 
 	// Get cluster info
 	clusterInfo, err := getK8sClusterInfo(opts)
@@ -187,27 +177,33 @@ func gatherUsageInformation(opts *Options) (*UsageInputs, error) {
 	if err != nil {
 		return nil, err
 	}
-	inputs.GlooConfigs = inputSnapshot
+	inputs.GlooEdgeConfigs = inputSnapshot
 
 	return inputs, nil
 }
 
-func gatherProxyPodInformation(proxies map[string]*ProxyInfo) (*EnvoyMetrics, []*UpstreamStat,error) {
+func gatherProxyPodInformation(proxies map[string]*ProxyInfo) (map[string]*GlooProxyStats, error) {
+
+	proxyStats := make(map[string]*GlooProxyStats)
 
 	var envoyMetrics *EnvoyMetrics
 	var upstreamStats []*UpstreamStat
 	var err error
-	for _, proxy := range proxies {
+	for proxyName, proxy := range proxies {
 		// Print upstream request stats first
 		envoyMetrics, err = getEnvoyMetrics(proxy)
 		if err != nil {
-			return nil,nil, err
+			return nil, err
 		}
 		if proxy.Clusters != nil {
 			upstreamStats = generateUpstreamStats(proxy)
 		}
+		proxyStats[proxyName] = &GlooProxyStats{
+			GlooProxyMetrics: envoyMetrics,
+			GlooProxyStats:   upstreamStats,
+		}
 	}
-	return envoyMetrics, upstreamStats, nil
+	return proxyStats, nil
 }
 
 func generateUpstreamStats(proxy *ProxyInfo) []*UpstreamStat {
@@ -247,7 +243,7 @@ func generateUpstreamStats(proxy *ProxyInfo) []*UpstreamStat {
 				if exists {
 					c, err := strconv.Atoi(rqSuccess)
 					if err != nil {
-						fmt.Printf("Error converting rq_success(%s) to int: %v\n",rqSuccess, err)
+						fmt.Printf("Error converting rq_success(%s) to int: %v\n", rqSuccess, err)
 					}
 					upstreamStat.RqSuccess = c
 				}
@@ -255,7 +251,7 @@ func generateUpstreamStats(proxy *ProxyInfo) []*UpstreamStat {
 				if exists {
 					c, err := strconv.Atoi(rqError)
 					if err != nil {
-						fmt.Printf("Error converting rq_error(%s) to int: %v\n",rqError, err)
+						fmt.Printf("Error converting rq_error(%s) to int: %v\n", rqError, err)
 					}
 					upstreamStat.RqError = c
 				}
@@ -263,7 +259,7 @@ func generateUpstreamStats(proxy *ProxyInfo) []*UpstreamStat {
 				if exists {
 					c, err := strconv.Atoi(cxActive)
 					if err != nil {
-						fmt.Printf("Error converting cx_active(%s) to int: %v\n",cxActive, err)
+						fmt.Printf("Error converting cx_active(%s) to int: %v\n", cxActive, err)
 					}
 					upstreamStat.CxActive = c
 				}
@@ -271,7 +267,7 @@ func generateUpstreamStats(proxy *ProxyInfo) []*UpstreamStat {
 				if exists {
 					ccf, err := strconv.Atoi(cxConnectFail)
 					if err != nil {
-						fmt.Printf("Error converting cx_connect_fail(%s) to int: %v\n",cxConnectFail, err)
+						fmt.Printf("Error converting cx_connect_fail(%s) to int: %v\n", cxConnectFail, err)
 					}
 					upstreamStat.CxConnectFail = ccf
 				}
@@ -350,15 +346,15 @@ type EnvoyMetrics struct {
 }
 
 type UpstreamStat struct {
-	Host string
-	Region string
-	Zone string
-	SubZone string
-	IPAddress string
-	Port int
-	RqSuccess int
-	RqError   int
-	CxActive  int
+	Host          string
+	Region        string
+	Zone          string
+	SubZone       string
+	IPAddress     string
+	Port          int
+	RqSuccess     int
+	RqError       int
+	CxActive      int
 	CxConnectFail int
 }
 
@@ -565,7 +561,7 @@ func (o *Options) addToFlags(flags *pflag.FlagSet) {
 	flags.StringSliceVar(&o.ScanProxies, "scan-proxies", []string{}, "Scan for Gloo proxies and grab their routing information")
 	flags.StringSliceVar(&o.ProxyNamespaces, "proxy-namespaces", []string{}, "Namespaces that contain gloo proxies (default gloo-system or gloo-control-plane-namespace)")
 	flags.BoolVar(&o.IncludeEndpointStats, "include-endpoint-stats", false, "Include endpoint stats in the output")
-
+	flags.StringVar(&o.OutputFormat, "output-format", "text", "Output format (text, json, yaml)")
 }
 
 func NewPortForwardedClient(ctx context.Context, kubectlCli *kubectl.Cli, podSelector, namespace string, port int) (*admincli.Client, func(), error) {

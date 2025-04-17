@@ -7,7 +7,7 @@ import (
 
 func (u *UsageStats) processGlooGateways() error {
 
-	for _, gateway := range u.cache.GlooGateways() {
+	for _, gateway := range u.GlooEdgeConfigs.GlooGateways() {
 		spec := gateway.Gateway.Spec
 		if spec.UseProxyProto != nil && spec.UseProxyProto.Value == true {
 			u.AddUsageStat(&UsageStat{
