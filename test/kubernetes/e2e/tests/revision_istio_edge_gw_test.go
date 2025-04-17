@@ -62,7 +62,7 @@ func TestRevisionIstioRegression(t *testing.T) {
 	})
 
 	// Install Istio before Gloo Gateway to make sure istiod is present before istio-proxy
-	err = testInstallation.InstallRevisionedIstio(ctx, "1-22-1", "minimal")
+	err = testInstallation.InstallRevisionedIstio(ctx, "test-revision", "minimal")
 	if err != nil {
 		t.Errorf("failed to add istioctl: %v\n", err)
 	}
