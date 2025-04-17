@@ -74,7 +74,7 @@ spec:
         - "--disable-hot-restart"
         {{- if or (eq $gateway.logLevel "debug") (eq $gateway.logLevel "trace") -}}
         - "--suppress-deprecated-warning-logs"
-        {{- end}}
+        {{- end -}}
         - "--service-node"
         - $(POD_NAME).$(POD_NAMESPACE)
         {{- with $gateway.logLevel }}
