@@ -59,10 +59,10 @@ Name|Version|License
 [go.uber.org/goleak](https://go.uber.org/goleak)|v1.3.0|MIT License
 [go.uber.org/multierr](https://go.uber.org/multierr)|v1.11.0|MIT License
 [go.uber.org/zap](https://go.uber.org/zap)|v1.27.0|MIT License
-[x/crypto](https://golang.org/x/crypto)|v0.33.0|BSD 3-clause "New" or "Revised" License
+[x/crypto](https://golang.org/x/crypto)|v0.36.0|BSD 3-clause "New" or "Revised" License
 [x/exp](https://golang.org/x/exp)|v0.0.0-20241215155358-4a5509556b9e|BSD 3-clause "New" or "Revised" License
 [x/mod](https://golang.org/x/mod)|v0.23.0|BSD 3-clause "New" or "Revised" License
-[x/sync](https://golang.org/x/sync)|v0.11.0|BSD 3-clause "New" or "Revised" License
+[x/sync](https://golang.org/x/sync)|v0.12.0|BSD 3-clause "New" or "Revised" License
 [x/tools](https://golang.org/x/tools)|v0.30.0|BSD 3-clause "New" or "Revised" License
 [googleapis/api](https://google.golang.org/genproto/googleapis/api)|v0.0.0-20250122153221-138b5a5a4fd4|Apache License 2.0
 [googleapis/rpc](https://google.golang.org/genproto/googleapis/rpc)|v0.0.0-20250122153221-138b5a5a4fd4|Apache License 2.0
@@ -70,9 +70,9 @@ Name|Version|License
 [google.golang.org/protobuf](https://google.golang.org/protobuf)|v1.36.6|BSD 3-clause "New" or "Revised" License
 [AlecAivazis/survey.v1](https://gopkg.in/AlecAivazis/survey.v1)|v1.8.7|MIT License
 [helm/v3](https://helm.sh/helm/v3)|v3.17.0|Apache License 2.0
-[istio.io/api](https://istio.io/api)|v1.25.0-alpha.0.0.20250210220544-0b64afd2de85|Apache License 2.0
-[istio.io/client-go](https://istio.io/client-go)|v1.25.0-alpha.0.0.20250210220843-5a4065fded65|Apache License 2.0
-[istio.io/istio](https://istio.io/istio)|v0.0.0-20250212203644-c2ac935c5888|Apache License 2.0
+[istio.io/api](https://istio.io/api)|v1.25.2-0.20250410212420-84c271001f68|Apache License 2.0
+[istio.io/client-go](https://istio.io/client-go)|v1.25.2-0.20250410213018-e5f6074bc228|Apache License 2.0
+[istio.io/istio](https://istio.io/istio)|v0.0.0-20250411142419-0d83506c2883|Apache License 2.0
 [k8s.io/api](https://k8s.io/api)|v0.32.2|Apache License 2.0
 [k8s.io/apiextensions-apiserver](https://k8s.io/apiextensions-apiserver)|v0.32.2|Apache License 2.0
 [k8s.io/apimachinery](https://k8s.io/apimachinery)|v0.32.2|Apache License 2.0
