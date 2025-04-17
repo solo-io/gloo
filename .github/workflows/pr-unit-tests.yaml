@@ -15,7 +15,7 @@ jobs:
   # Runs the unit tests for `projects/gateway2`
   kube_gateway_project:
     name: projects/gateway2
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     # Other unit tests are run by our CloudBuild runner
     # These tests do run on Draft PRs, and so we maintain that consistency and run this job on Draft PRs as well
