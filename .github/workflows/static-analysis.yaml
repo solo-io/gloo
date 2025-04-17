@@ -10,7 +10,7 @@ concurrency:
 jobs:
   codegen:
     name: Generated Code
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
     - name: Check out code into the Go module directory
@@ -35,7 +35,7 @@ jobs:
 
   static-analysis:
     name: Lint Checks
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     # The linter is intended to run quickly.
     # We define a 10-minute timeout on the linter config (.golangci.yaml) as well.
     # If we exceed this timeout, we should consider only running the linter on changed files.
