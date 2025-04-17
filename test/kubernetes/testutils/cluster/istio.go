@@ -245,8 +245,7 @@ func UninstallIstio(istioctlBinary, kubeContext string) error {
 
 	// sh -c yes | istioctl uninstall —purge —context <kube-context>
 	cmd := exec.Command("sh", "-c", fmt.Sprintf("yes | %s uninstall --purge --context %s", istioctlBinary, kubeContext))
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
+
 	if out, err := cmd.CombinedOutput(); err != nil {
 		return fmt.Errorf("istioctl uninstall failed: %w, output: %s", err, string(out))
 	}
