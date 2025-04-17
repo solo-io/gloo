@@ -1,4 +1,0 @@
-changelog:
-   - type: NON_USER_FACING
-     description: >-
-       Update the Dockerfiles for http and grpc passthrough examples to do multiarch builds.
