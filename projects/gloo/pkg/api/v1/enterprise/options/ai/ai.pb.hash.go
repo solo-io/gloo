@@ -1105,6 +1105,11 @@ func (m *UpstreamSpec_VertexAI) Hash(hasher hash.Hash64) (uint64, error) {
 		return 0, err
 	}
 
+	err = binary.Write(hasher, binary.LittleEndian, m.GetJsonSchema())
+	if err != nil {
+		return 0, err
+	}
+
 	switch m.AuthTokenSource.(type) {
 
 	case *UpstreamSpec_VertexAI_AuthToken:
