@@ -173,8 +173,10 @@ func (s *testingSuite) TestConfigureInvalidVirtualHostOptions() {
 		output, err := s.TestInstallation.Actions.Kubectl().DeleteFileWithOutput(s.Ctx, manifestVhoRemoveXBar)
 		s.TestInstallation.AssertionsT(s.T()).ExpectObjectDeleted(manifestVhoRemoveXBar, err, output)
 
-		output, err = s.TestInstallation.Actions.Kubectl().DeleteFileWithOutput(s.Ctx, manifestVhoWebhookReject)
-		s.TestInstallation.AssertionsT(s.T()).ExpectObjectDeleted(manifestVhoWebhookReject, err, output)
+		if s.TestInstallation.Metadata.ValidationAlwaysAccept {
+			output, err = s.TestInstallation.Actions.Kubectl().DeleteFileWithOutput(s.Ctx, manifestVhoWebhookReject)
+			s.TestInstallation.AssertionsT(s.T()).ExpectObjectDeleted(manifestVhoWebhookReject, err, output)
+		}
 	})
 
 	err := s.TestInstallation.Actions.Kubectl().ApplyFile(s.Ctx, manifestVhoRemoveXBar)
