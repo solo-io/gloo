@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/solo-io/gloo/pkg/utils/envoyutils/admincli"
 	"github.com/solo-io/gloo/pkg/utils/kubeutils"
@@ -64,17 +65,20 @@ func (opts *Options) validate() error {
 
 func run(opts *Options) error {
 	// Go fetch all the data needed for usage
+	fmt.Printf("%v Gathering usage information\n", time.Now().String())
 	inputs, err := gatherUsageInformation(opts)
 	if err != nil {
 		return err
 	}
 	usageStats := &UsageStats{}
 
+	fmt.Printf("%v Calculating feature usage\n", time.Now().String())
 	// go through the edge snapshot and count feature usage
 	usage, err := generateGlooFeatureUsage(inputs.GlooEdgeConfigs)
 	if err != nil {
 		return err
 	}
+	fmt.Printf("%v Organizing feature usage\n", time.Now().String())
 	usageStats.GlooFeatureUsage = processGlooFeatures(usage, inputs.GlooEdgeConfigs)
 
 	if inputs.ProxyStats != nil {
@@ -84,17 +88,19 @@ func run(opts *Options) error {
 		}
 		usageStats.GlooProxyStats = proxyStats
 	}
-	// Calculate node resources
-	nodeResources, err := calculateNodeResources(inputs.K8sClusterInfo.Nodes)
-	if err != nil {
-		return err
+	if inputs.K8sClusterInfo != nil {
+		// Calculate node resources
+		nodeResources, err := calculateNodeResources(inputs.K8sClusterInfo.Nodes)
+		if err != nil {
+			return err
+		}
+		usageStats.KubernetesStats = &KubernetesStats{
+			Pods:          len(inputs.K8sClusterInfo.Pods),
+			NodeResources: nodeResources,
+			Services:      len(inputs.K8sClusterInfo.Services),
+		}
 	}
-	usageStats.KubernetesStats = &KubernetesStats{
-		Pods:          len(inputs.K8sClusterInfo.Pods),
-		NodeResources: nodeResources,
-		Services:      len(inputs.K8sClusterInfo.Services),
-	}
-
+	fmt.Printf("%v Printing feature usage\n", time.Now().String())
 	usageStats.Print(opts.OutputFormat)
 
 	return nil
@@ -182,13 +188,15 @@ func gatherUsageInformation(opts *Options) (*Inputs, error) {
 
 	inputs := &Inputs{}
 
-	// Get cluster info
-	clusterInfo, err := getK8sClusterInfo()
-	if err != nil {
-		return nil, err
+	// we only run this if they are talking the to cluster directly
+	if opts.GlooSnapshotFile == "" {
+		// Get cluster info
+		clusterInfo, err := getK8sClusterInfo()
+		if err != nil {
+			return nil, err
+		}
+		inputs.K8sClusterInfo = clusterInfo
 	}
-	inputs.K8sClusterInfo = clusterInfo
-
 	// scan for gloo gateways
 	if len(opts.ScanProxies) > 0 {
 		clusters, err := findGlooProxyPods(opts, tempDir)
@@ -604,7 +612,7 @@ func (o *Options) addToFlags(flags *pflag.FlagSet) {
 	flags.StringSliceVar(&o.ScanProxies, "scan-proxies", []string{}, "Scan for Gloo proxies and grab their routing information")
 	flags.StringSliceVar(&o.ProxyNamespaces, "proxy-namespaces", []string{}, "Namespaces that contain gloo proxies (default gloo-system or gloo-control-plane-namespace)")
 	flags.BoolVar(&o.IncludeEndpointStats, "include-endpoint-stats", false, "Include endpoint stats in the output")
-	flags.StringVar(&o.OutputFormat, "output-format", "text", "Output format (text, json, yaml)")
+	flags.StringVar(&o.OutputFormat, "output-format", "yaml", "Output format (text, json, yaml)")
 }
 
 func NewPortForwardedClient(ctx context.Context, kubectlCli *kubectl.Cli, podSelector, namespace string, port int) (*admincli.Client, func(), error) {

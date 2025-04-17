@@ -9,17 +9,18 @@ import (
 )
 
 type Instance struct {
-	parseErrors         []error
-	yamlObjects         []*YAMLWrapper
-	settings            map[string]*SettingsWrapper
-	routeTables         map[string]*RouteTableWrapper
-	routeOptions        map[string]*RouteOptionWrapper
-	listenerOptions     map[string]*ListenerOptionWrapper
-	httpListenerOptions map[string]*HTTPListenerOptionWrapper
-	upstreams           map[string]*UpstreamWrapper
-	virtualServices     map[string]*VirtualServiceWrapper
-	glooGateways        map[string]*GlooGatewayWrapper
-	authConfigs         map[string]*AuthConfigWrapper
+	parseErrors          []error
+	yamlObjects          []*YAMLWrapper
+	settings             map[string]*SettingsWrapper
+	routeTables          map[string]*RouteTableWrapper
+	routeOptions         map[string]*RouteOptionWrapper
+	listenerOptions      map[string]*ListenerOptionWrapper
+	httpListenerOptions  map[string]*HTTPListenerOptionWrapper
+	upstreams            map[string]*UpstreamWrapper
+	virtualServices      map[string]*VirtualServiceWrapper
+	glooGateways         map[string]*GlooGatewayWrapper
+	authConfigs          map[string]*AuthConfigWrapper
+	delegatesRouteTables []*api.RouteTable
 
 	//Gateway API Configs
 	httpRoutes         map[string]*HTTPRouteWrapper
@@ -282,22 +283,24 @@ func (i *Instance) DelegatedRouteTables(namespace string, delegateAction *api.De
 
 	//get all routeTables
 	rtlist := []*api.RouteTable{}
+	if len(i.delegatesRouteTables) != len(i.routeTables) {
+		//TODO this could be expensive and may need to move this to a special property
+		for _, rtw := range i.RouteTables() {
+			rtSpec := &rtw.Spec
+			// set all the metadata on the route table object.
+			rtSpec.Metadata = &core.Metadata{
+				Name:        rtw.Name,
+				Namespace:   rtw.Namespace,
+				Labels:      rtw.Labels,
+				Annotations: rtw.Annotations,
+			}
 
-	//TODO this could be expensive and may need to move this to a special property
-	for _, rtw := range i.RouteTables() {
-		rtSpec := &rtw.Spec
-		// set all the metadata on the route table object.
-		rtSpec.Metadata = &core.Metadata{
-			Name:        rtw.Name,
-			Namespace:   rtw.Namespace,
-			Labels:      rtw.Labels,
-			Annotations: rtw.Annotations,
+			rtlist = append(rtlist, &rtw.Spec)
 		}
-
-		rtlist = append(rtlist, &rtw.Spec)
+		i.delegatesRouteTables = rtlist
 	}
 
-	rts := translator.NewRouteTableSelector(rtlist)
+	rts := translator.NewRouteTableSelector(i.delegatesRouteTables)
 
 	selectedRouteTables, err := rts.SelectRouteTables(delegateAction, namespace)
 	if err != nil {

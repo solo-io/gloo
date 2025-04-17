@@ -885,7 +885,7 @@ func (g *GatewayAPIOutput) convertMatch(m *matchers.Matcher, wrapper snapshot.Wr
 	// method matching
 	if len(m.Methods) > 0 {
 		if len(m.Methods) > 1 {
-			g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "gateway API only supports 1 method match per rule and %d were detected")
+			g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "gateway API only supports 1 method match per rule and %d were detected", len(m.Methods))
 		}
 		hrm.Method = (*gwv1.HTTPMethod)(ptr.To(strings.ToUpper(m.Methods[0])))
 	}
