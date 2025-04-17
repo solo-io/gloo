@@ -140,8 +140,8 @@ func installIstioOperator(
 	//  istioctl install -y --context <kube-context> -f <operator-file>
 	cmd := exec.Command(istioctlBinary, "install", "-y", "--context", kubeContext, "-f", operatorFile)
 
-	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("istioctl install failed: %w", err)
+	if out, err := cmd.CombinedOutput(); err != nil {
+		return fmt.Errorf("istioctl install failed: %w, output: %s", err, string(out))
 	}
 
 	return ctx.Err()
