@@ -152,7 +152,7 @@ See here for more information: https://www.envoyproxy.io/docs/envoy/latest/api-v
 | `authority` | `string` | authority to use when connecting to the OpenTelemetry collector. |
 | `headers` | `map<string, string>` | headers to use when connecting to the OpenTelemetry collector. |
 | `insecure` | `bool` | if true, the connection to the OpenTelemetry collector will be insecure (i.e. no TLS). |
-| `sslConfig` | [.gloo.solo.io.UpstreamSslConfig](../../../ssl/ssl.proto.sk/#upstreamsslconfig) | ssl config to use when connecting to the OpenTelemetry collector. |
+| `sslConfig` | [.gloo.solo.io.UpstreamSslConfig](../../../ssl/ssl.proto.sk/#upstreamsslconfig) | ssl config to use when connecting to the OpenTelemetry collector, if insecure is true, this will be ignored. |
 | `timeout` | [.google.protobuf.Duration](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/duration) | timeout to use when connecting to the OpenTelemetry collector. |
 
 

@@ -2,7 +2,6 @@ package als
 
 import (
 	"context"
-	"fmt"
 
 	envoy_config_cluster_v3 "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
 	envoy_config_endpoint_v3 "github.com/envoyproxy/go-control-plane/envoy/config/endpoint/v3"
@@ -62,10 +61,8 @@ func (p *plugin) ProcessHcmNetworkFilter(params plugins.Params, parentListener *
 		return nil
 	}
 
-	fmt.Printf("hcm filter %v\n", alsSettings)
-
 	var err error
-	out.AccessLog, err = ProcessAccessLogPlugins(alsSettings, out.GetAccessLog())
+	out.AccessLog, err = ProcessAccessLogPlugins(params, alsSettings, out.GetAccessLog())
 	if err := DetectUnusefulCmds(Hcm, out.GetAccessLog()); err != nil {
 		contextutils.LoggerFrom(p.ctx).Warnf("warning non-useful access log operator on %s's hcm: %s",
 			parentListener.GetName(), err.Error())
@@ -82,10 +79,8 @@ func (p *plugin) ProcessListener(params plugins.Params, parentListener *v1.Liste
 		return nil
 	}
 
-	fmt.Printf("listener filter %v\n", alsSettings)
-
 	var err error
-	out.AccessLog, err = ProcessAccessLogPlugins(alsSettings, out.GetAccessLog())
+	out.AccessLog, err = ProcessAccessLogPlugins(params, alsSettings, out.GetAccessLog())
 	if err := DetectUnusefulCmds(HttpListener, out.GetAccessLog()); err != nil {
 		contextutils.LoggerFrom(p.ctx).Warnf("non-useful access log operator configured on %s: %s",
 			parentListener.GetName(), err.Error())
@@ -109,7 +104,6 @@ func (p *plugin) GeneratedResources(
 	[]*envoy_config_endpoint_v3.ClusterLoadAssignment,
 	[]*envoy_config_route_v3.RouteConfiguration,
 	[]*envoy_config_listener_v3.Listener) {
-	fmt.Printf("generated resources: %v\n", proxy.GetListeners())
 
 	generatedClusters := []*envoy_config_cluster_v3.Cluster{}
 	for _, listener := range proxy.GetListeners() {
@@ -130,8 +124,6 @@ func (p *plugin) GeneratedResources(
 			generatedClusters = append(generatedClusters, clusters...)
 		}
 	}
-
-	fmt.Printf("rolds: generated clusters %v\n", generatedClusters)
 
 	return generatedClusters, nil, nil, nil
 }

@@ -23,11 +23,14 @@ spec:
     accessLoggingService:
       accessLog:
         - openTelemetryService:
-            logName: example
+            logName: extra-secure-example
             collector:
               endpoint: otel-collector.default.svc.cluster.local:4317
               authority: authority.example.com
-              insecure: true
+              sslConfig:
+                sni: otel-collector.default.svc.cluster.local
+                verifySubjectAltName:
+                  - collector.example.com
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute

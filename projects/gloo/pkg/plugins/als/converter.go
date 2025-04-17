@@ -24,6 +24,7 @@ import (
 	v3 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/type/v3"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
+	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
 	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
 	"google.golang.org/protobuf/proto"
 
@@ -110,7 +111,8 @@ func DetectUnusefulCmds(filterLocationType aclType, proposedLogFormats []*envoy_
 // However, the TCP proxy is still configured by the TCP plugin only.
 // To keep our access logging translation in a single place, we expose this function
 // and the TCP plugin calls out to it.
-func ProcessAccessLogPlugins(service *als.AccessLoggingService, logCfg []*envoy_al.AccessLog) ([]*envoy_al.AccessLog, error) {
+func ProcessAccessLogPlugins(params plugins.Params, service *als.AccessLoggingService,
+	logCfg []*envoy_al.AccessLog) ([]*envoy_al.AccessLog, error) {
 	results := make([]*envoy_al.AccessLog, 0, len(service.GetAccessLog()))
 	for _, al := range service.GetAccessLog() {
 		var newAlsCfg envoy_al.AccessLog
@@ -140,10 +142,8 @@ func ProcessAccessLogPlugins(service *als.AccessLoggingService, logCfg []*envoy_
 				return nil, err
 			}
 		case *als.AccessLog_OpenTelemetryService:
-			fmt.Printf("rolds: OTEL access logger: %v\n", cfgType)
-
 			var cfg envoy_al_otel.OpenTelemetryAccessLogConfig
-			if err = copyOtelSettings(&cfg, cfgType); err != nil {
+			if err = copyOtelSettings(params, &cfg, cfgType); err != nil {
 				return nil, err
 			}
 
@@ -410,9 +410,15 @@ func createOtelCollectorCluster(
 			},
 		}
 
+		fmt.Printf("rolds: sslConfig: %v\n", collector.GetSslConfig())
+
 		if sslConfig := collector.GetSslConfig(); sslConfig != nil {
+			fmt.Printf("rolds: sslConfig again: %v\n", sslConfig)
+
 			cfg, err = utils.NewSslConfigTranslator().ResolveUpstreamSslConfig(params.Snapshot.Secrets, sslConfig)
 			if err != nil {
+				fmt.Printf("rolds: sslConfig error: %v\n", err)
+
 				// if we are configured to warn on missing tls secret and we match that error, add a
 				// warning instead of error to the report.
 				if params.Settings.GetGateway().GetValidation().GetWarnMissingTlsSecret().GetValue() &&
@@ -440,7 +446,7 @@ func createOtelCollectorCluster(
 	return cluster
 }
 
-func copyOtelSettings(cfg *envoy_al_otel.OpenTelemetryAccessLogConfig,
+func copyOtelSettings(params plugins.Params, cfg *envoy_al_otel.OpenTelemetryAccessLogConfig,
 	alsSettings *als.AccessLog_OpenTelemetryService) error {
 	if alsSettings.OpenTelemetryService == nil {
 		return eris.New("OpenTelemetry service object cannot be empty")
@@ -472,6 +478,23 @@ func copyOtelSettings(cfg *envoy_al_otel.OpenTelemetryAccessLogConfig,
 	cfg.DisableBuiltinLabels = alsSettings.OpenTelemetryService.GetDisableBuiltinLabels()
 	cfg.Body = alsSettings.OpenTelemetryService.GetBody()
 	cfg.Attributes = alsSettings.OpenTelemetryService.GetAttributes()
+
+	if sslConfig := collector.GetSslConfig(); sslConfig != nil {
+		_, err := utils.NewSslConfigTranslator().ResolveUpstreamSslConfig(params.Snapshot.Secrets, sslConfig)
+		if err != nil {
+			fmt.Printf("rolds: sslConfig error in settings: %v\n", err)
+
+			if params.Settings.GetGateway().GetValidation().GetWarnMissingTlsSecret().GetValue() &&
+				errors.Is(err, utils.SslSecretNotFoundError) {
+				return &translator.Warning{
+					Message: err.Error(),
+				}
+			} else {
+				fmt.Printf("rolds: returning error: %v\n", err)
+				return err
+			}
+		}
+	}
 
 	return nil
 }

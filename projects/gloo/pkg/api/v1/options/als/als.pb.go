@@ -554,7 +554,8 @@ type OpenTelemetryGrpcCollector struct {
 	// if true, the connection to the OpenTelemetry collector will be insecure
 	// (i.e. no TLS).
 	Insecure bool `protobuf:"varint,4,opt,name=insecure,proto3" json:"insecure,omitempty"`
-	// ssl config to use when connecting to the OpenTelemetry collector
+	// ssl config to use when connecting to the OpenTelemetry collector,
+	// if insecure is true, this will be ignored
 	SslConfig *ssl.UpstreamSslConfig `protobuf:"bytes,5,opt,name=ssl_config,json=sslConfig,proto3" json:"ssl_config,omitempty"`
 	// timeout to use when connecting to the OpenTelemetry collector
 	Timeout       *durationpb.Duration `protobuf:"bytes,6,opt,name=timeout,proto3" json:"timeout,omitempty"`

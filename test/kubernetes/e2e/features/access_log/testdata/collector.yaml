@@ -60,12 +60,12 @@ spec:
     - name: otel-collector-config-vol
       mountPath: /conf
   volumes:
-    - configMap:
+    - name: otel-collector-config-vol
+      configMap:
         name: otel-collector-conf
         items:
           - key: otel-collector-config
-            path: otel-collector-config.yaml
-      name: otel-collector-config-vol
+            path: otel-collector-config.yaml    
 ---
 apiVersion: v1
 kind: Service
