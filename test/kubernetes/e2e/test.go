@@ -183,7 +183,19 @@ func (i *TestInstallation) InstallRevisionedIstio(ctx context.Context, rev, prof
 }
 
 func (i *TestInstallation) UninstallIstio() error {
-	return cluster.UninstallIstio(i.IstioctlBinary, i.ClusterContext.KubeContext)
+	if err := cluster.UninstallIstio(i.IstioctlBinary, i.ClusterContext.KubeContext); err != nil {
+		return fmt.Errorf("failed to uninstall istio: %w", err)
+	}
+
+	// We run into problems sometimes if we rapidly install and uninstall istio
+	// so we delete the istio-system namespace to ensure that it is completely removed
+	err := i.Actions.Kubectl().RunCommand(context.Background(), "delete", "namespace", "istio-system")
+	if err != nil {
+		return fmt.Errorf("failed to delete istio-system namespace: %w", err)
+	}
+
+	i.Assertions.ExpectNamespaceNotExist(context.Background(), "istio-system")
+	return nil
 }
 
 func (i *TestInstallation) CreateIstioBugReport(ctx context.Context) {
