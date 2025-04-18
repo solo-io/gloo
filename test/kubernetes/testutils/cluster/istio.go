@@ -91,8 +91,8 @@ func setDefaultRevisionTag(ctx context.Context, istioctlBinary, kubeContext, rev
 	//  istioctl tag set default --revision <revision>
 	cmd := exec.Command(istioctlBinary, "tag", "set", "default", "--revision", revision, "--context", kubeContext)
 
-	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("setting default revision tag failed: %w", err)
+	if out, err := cmd.CombinedOutput(); err != nil {
+		return fmt.Errorf("setting default revision tag failed: %w, output: %s", err, string(out))
 	}
 
 	return ctx.Err()
@@ -102,8 +102,8 @@ func deleteDefaultRevisionTag(istioctlBinary, kubeContext string) error {
 	//  istioctl tag delete default
 	cmd := exec.Command(istioctlBinary, "tag", "delete", "default", "--context", kubeContext)
 
-	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("deleting default revision tag failed: %w", err)
+	if out, err := cmd.CombinedOutput(); err != nil {
+		return fmt.Errorf("deleting default revision tag failed: %w, output: %s", err, string(out))
 	}
 
 	return nil
@@ -140,8 +140,8 @@ func installIstioOperator(
 	//  istioctl install -y --context <kube-context> -f <operator-file>
 	cmd := exec.Command(istioctlBinary, "install", "-y", "--context", kubeContext, "-f", operatorFile)
 
-	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("istioctl install failed: %w", err)
+	if out, err := cmd.CombinedOutput(); err != nil {
+		return fmt.Errorf("istioctl install failed: %w, output: %s", err, string(out))
 	}
 
 	return ctx.Err()
@@ -245,10 +245,9 @@ func UninstallIstio(istioctlBinary, kubeContext string) error {
 
 	// sh -c yes | istioctl uninstall —purge —context <kube-context>
 	cmd := exec.Command("sh", "-c", fmt.Sprintf("yes | %s uninstall --purge --context %s", istioctlBinary, kubeContext))
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("istioctl uninstall failed: %w", err)
+
+	if out, err := cmd.CombinedOutput(); err != nil {
+		return fmt.Errorf("istioctl uninstall failed: %w, output: %s", err, string(out))
 	}
 	return nil
 }
