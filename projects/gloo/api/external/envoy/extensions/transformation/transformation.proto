@@ -10,6 +10,7 @@ option (extproto.equal_all) = true;
 
 
 import "google/protobuf/empty.proto";
+import "google/protobuf/struct.proto";
 import "google/protobuf/wrappers.proto";
 import "validate/validate.proto";
 
@@ -138,6 +139,9 @@ message Transformation {
     // Configuration for an externally implemented transformer, used by
     // envoy transformation filter.
     solo.io.envoy.config.core.v3.TypedExtensionConfig transformer_config = 3;
+
+    // AI Gateway specific Transformation
+    AiTransformation ai_transformation = 5;
   }
 
   // Logs request/response sensitive information
@@ -421,4 +425,38 @@ message HeaderBodyTransform {
   // "queryStringParameters", "multiValueQueryStringParameters", "httpMethod", "path",
   // and "multiValueHeaders" to the body
   bool add_request_metadata = 1;
+}
+
+message FieldDefault {
+  // The name of the field.
+  string field = 1;
+  // The field default value, which can be any JSON Data Type.
+  google.protobuf.Value value = 2;
+  // Whether to override the field's value if it already exists.
+  // Defaults to false.
+  bool override = 3;
+}
+
+message PromptEnrichment {
+  // An entry for a message to prepend or append to each prompt.
+  message Message {
+      // Role of the message. The available roles depend on the backend
+      // LLM provider model, such as `SYSTEM` or `USER` in the OpenAI API.
+      string role = 1;
+      // String content of the message.
+      string content = 2;
+  }
+  // A list of messages to be prepended to the prompt sent by the client.
+  repeated Message prepend = 2;
+  // A list of messages to be appended to the prompt sent by the client.
+  repeated Message append = 3;
+}
+
+message AiTransformation {
+  // Rewrite the request to enable chat streaming
+  bool enable_chat_streaming = 1;
+  // Set defaults for fields in the request body 
+  repeated FieldDefault field_defaults = 2;
+  // Inject prompts into the request body
+  PromptEnrichment prompt_enrichment = 3;
 }

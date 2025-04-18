@@ -93,7 +93,7 @@ func (p *Provider) AssertCurlReturnResponse(
 	// Do the transform in a separate step instead of a WithTransform to avoid having to do it twice
 	curlHttpResponse := transforms.WithCurlResponse(curlResponse)
 	Expect(curlHttpResponse).To(matchers.HaveHttpResponse(expectedResponse))
-	fmt.Printf("success: %+v", curlResponse)
+	fmt.Printf("Curl response matched expected response")
 
 	return curlHttpResponse
 }
