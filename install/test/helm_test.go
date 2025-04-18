@@ -3989,6 +3989,7 @@ spec:
 					It("can set envoy log level", func() {
 						gatewayProxyDeployment.Spec.Template.Spec.Containers[0].Args = append(
 							gatewayProxyDeployment.Spec.Template.Spec.Containers[0].Args,
+							"--suppress-deprecation-warning-logs",
 							"--log-level debug",
 						)
 						prepareMakefile(namespace, glootestutils.HelmValues{
