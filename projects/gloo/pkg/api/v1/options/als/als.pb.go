@@ -656,10 +656,19 @@ type OpenTelemetryService struct {
 	// A value containing the body of the log record. Can be for example a human-readable
 	// string message (including multi-line) describing the event in a free form or it can
 	// be a structured data composed of arrays and maps of other values.
+	//
+	// Example: {"int_value": 1}
+	// Example: {"string_value": "hello world"}
+	// Example: {"kvlist_value": {"values": [{"key": "k1", "value": {"int_value": 1}}, {"key": "k2", "value": {"string_value": "v2"}}]}}
+	// Example: {"array_value": {"values": [{"int_value": 1}, {"string_value": "hello world"}]}}
 	Body *v1.AnyValue `protobuf:"bytes,5,opt,name=body,proto3" json:"body,omitempty"`
 	// Additional attributes that describe the specific event occurrence. [Optional].
 	// Attribute keys MUST be unique (it is not allowed to have more than one
 	// attribute with the same key).
+	//
+	// Example: {"values": [{"key": "k1", "value": {"int_value": 1}}, {"key": "k2", "value": {"string_value": "v2"}}]}
+	// Example: {"values": [{"key": "k1", "values": {kvlist_value: {values: [{"key": "k2", "value": {"int_value": 1}}, {"key": "k3", "value": {"string_value": "v2"}}]}}}]}
+	// Example: {"values": [{"key": "k1", "value": {"int_value": 1}}, {"key": "k2", "value": {"string_value": "v2"}}]}
 	Attributes    *v1.KeyValueList `protobuf:"bytes,6,opt,name=attributes,proto3" json:"attributes,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
