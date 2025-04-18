@@ -46,6 +46,33 @@ Review the following changes made to Gloo Gateway in version {{< readfile file="
 
 ### Breaking changes
 
+**Bug when using `writeNamespace` or `discoveryNamespace` in version 1.18.7 or later**
+
+In version 1.18.7 and later, a bug was identified in the Gloo Gateway control plane and discovery pods. If you configured Gloo Gateway to write and discover configuration in a namespace that is different from the Gloo Gateway installation namespace by using the `gloo.settings.writeNamespace` and `gloo.settings.discoveryNamespace` settings in your Helm values file, the control plane and discovery pods go into a `CrashLoopBackOff` state. 
+
+Users that currently configure a `writeNamespace` or `discoveryNamespace` are adviced to not upgrade to version 1.18.7. 
+
+For example, if Gloo Gateway is installed in the `gloo-system` namespace, but you configured the `writeNamespace` and `discoveryNamespace` to be `gg-write`, you see errors similar to the following:
+
+Gloo Gateway control plane example: 
+```
+{"level":"fatal","ts":"2025-04-16T10:41:59.134Z","logger":"gloo-ee","caller":"setuputils/main_setup.go:107","msg":"error in setup: service in gg-write with gloo=gloo: failed to find Gloo service","version":"1.1 │
+│ 8.9","stacktrace":"github.com/solo-io/gloo/pkg/utils/setuputils.Main\n\t/go/pkg/mod/github.com/solo-io/gloo@v1.18.13/pkg/utils/setuputils/main_setup.go:107\ngithub.com/solo-io/solo-projects/projects/gloo/pkg/se │
+│ tup.Main\n\t/go/src/github.com/solo-io/solo-projects/projects/gloo/pkg/setup/setup.go:67\nmain.main\n\t/go/src/github.com/solo-io/solo-projects/projects/gloo/cmd/main.go:17\nruntime.main\n\t/usr/local/go/src/ru │
+│ ntime/proc.go:272"}
+```
+
+Discovery pod example: 
+```
+{"level":"info","ts":"2025-04-16T10:41:21.672Z","caller":"stats/stats.go:96","msg":"Stats server starting at :9091"}                                                                                               │
+│ {"level":"info","ts":"2025-04-16T10:41:21.784Z","logger":"uds.v1.event_loop","caller":"v1/setup_event_loop.sk.go:79","msg":"event loop started","version":"undefined"}                                             │
+│ {"level":"info","ts":"2025-04-16T10:41:21.784Z","logger":"fds.v1.event_loop","caller":"v1/setup_event_loop.sk.go:79","msg":"event loop started","version":"undefined"}                                             │
+│ {"level":"fatal","ts":"2025-04-16T10:41:21.992Z","logger":"fds","caller":"setuputils/main_setup.go:107","msg":"error in setup: service in gg-write with gloo=gloo: failed to find Gloo service","version":"undefin │
+│ ed","stacktrace":"github.com/solo-io/gloo/pkg/utils/setuputils.Main\n\t/home/runner/go/pkg/mod/github.com/solo-io/gloo@v1.18.13/pkg/utils/setuputils/main_setup.go:107\ngithub.com/solo-io/solo-projects/projects/ │
+│ discovery/pkg/fds/setup.Main\n\t/home/runner/work/solo-projects/solo-projects/projects/discovery/pkg/fds/setup/setup.go:14\nmain.run.func2\n\t/home/runner/work/solo-projects/solo-projects/projects/discovery/cmd │
+│ /main.go:23"}
+```
+
 **Envoy version 1.31 upgrade**
 
 The Envoy dependency in Gloo Gateway 1.18 was upgraded from 1.29.x to 1.31.x. This upgrade includes the following changes. For more information about these changes, see the [Envoy changelog documentation](https://www.envoyproxy.io/docs/envoy/latest/version_history/v1.31/v1.31).
