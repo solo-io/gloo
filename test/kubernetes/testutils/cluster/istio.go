@@ -29,7 +29,7 @@ var (
 )
 
 func GetIstioctl(ctx context.Context) (string, error) {
-	// Download istioctl binary.
+	// Download istioctl binary
 	istioctlBinary, err := downloadIstio(ctx, getIstioVersion())
 	if err != nil {
 		return "", fmt.Errorf("failed to download istio: %w", err)
