@@ -9,6 +9,9 @@ on:
       branch:
         description: 'LTS branch to execute the workflow for, such as v1.17.x, or main. Supported ONLY for v1.17.x and later (1.16.x and earlier are not in the new docs repo).'
         required: true
+      tag:
+        description: 'Version tag, such as v1.17.4-beta2'
+        required: true
   repository_dispatch:
     types: [glooe-release-created]
 
@@ -82,6 +85,40 @@ jobs:
         token: ${{ secrets.DOCS_TOKEN }}
         path: gloo
         ref: ${{ steps.lts-version.outputs.lts }}
+    - name: Bump version conrefs
+      run: |
+        pushd docs || exit 1
+
+        # Searches in the version conrefs (assets/conrefs/versions) for any instances of the previous tag for the minor version, like 1.19.0-beta3, and replaces them with the current tag, like 1.19.0-beta4.
+        MINOR_VERSION="${{ steps.version-variables.outputs.minor }}"
+        NEW_VERSION="${{ github.event.release.tag_name || inputs.tag }}"
+        TARGET_DIR="assets/conrefs/versions"
+
+        # Escape dots in minor version (e.g., 1.19 → 1\.19)
+        MINOR_VERSION_ESCAPED="${MINOR_VERSION//./\\.}"
+
+        # Remove leading 'v' from new version if present
+        if [[ "$NEW_VERSION" == v* ]]; then
+          TRIMMED_NEW_VERSION="${NEW_VERSION:1}"
+        else
+          TRIMMED_NEW_VERSION="$NEW_VERSION"
+        fi
+
+        # Escape & in replacement string for sed
+        SAFE_NEW_VERSION="${TRIMMED_NEW_VERSION//&/\\&}"
+
+        # Construct regex pattern based on minor version
+        # This will match versions like: 1.19.0, 1.19.3, 1.19.0-beta1, etc.
+        # This also looks for versions only within double curly braces, such as
+        # "}}1.9.0-beta3{{", to signify our Hugo version tagging boundaries
+        OLD_VERSION_REGEX="}}${MINOR_VERSION_ESCAPED}\\.\\d+(?:-[a-zA-Z0-9]+)?\\{\\{"
+
+        # Perform in-place sed replacement on all files under target directory
+        find "$TARGET_DIR" -type f -exec sed -E -i "s/\}\}${MINOR_VERSION_ESCAPED}\.[0-9]+(-[a-zA-Z0-9]+)?\{\{/}}${SAFE_NEW_VERSION}{{/g" {} \;
+
+        echo "Replaced versions matching '$OLD_VERSION_REGEX' with '$TRIMMED_NEW_VERSION' in $TARGET_DIR"
+
+        popd || exit 1
     - name: Generate docs
       env:
         GITHUB_TOKEN: ${{ secrets.DOCS_TOKEN }}
