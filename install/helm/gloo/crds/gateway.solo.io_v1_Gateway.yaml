@@ -6261,40 +6261,14 @@ spec:
                                           key:
                                             type: string
                                           value:
-                                            properties:
-                                              boolValue:
-                                                type: boolean
-                                              bytesValue:
-                                                format: byte
-                                                type: string
-                                              doubleValue:
-                                                type: number
-                                              intValue:
-                                                format: int64
-                                                type: integer
-                                                x-kubernetes-int-or-string: true
-                                              stringValue:
-                                                type: string
                                             type: object
+                                            x-kubernetes-preserve-unknown-fields: true
                                         type: object
                                       type: array
                                   type: object
                                 body:
-                                  properties:
-                                    boolValue:
-                                      type: boolean
-                                    bytesValue:
-                                      format: byte
-                                      type: string
-                                    doubleValue:
-                                      type: number
-                                    intValue:
-                                      format: int64
-                                      type: integer
-                                      x-kubernetes-int-or-string: true
-                                    stringValue:
-                                      type: string
                                   type: object
+                                  x-kubernetes-preserve-unknown-fields: true
                                 collector:
                                   properties:
                                     authority:
@@ -6583,40 +6557,14 @@ spec:
                                           key:
                                             type: string
                                           value:
-                                            properties:
-                                              boolValue:
-                                                type: boolean
-                                              bytesValue:
-                                                format: byte
-                                                type: string
-                                              doubleValue:
-                                                type: number
-                                              intValue:
-                                                format: int64
-                                                type: integer
-                                                x-kubernetes-int-or-string: true
-                                              stringValue:
-                                                type: string
                                             type: object
+                                            x-kubernetes-preserve-unknown-fields: true
                                         type: object
                                       type: array
                                   type: object
                                 body:
-                                  properties:
-                                    boolValue:
-                                      type: boolean
-                                    bytesValue:
-                                      format: byte
-                                      type: string
-                                    doubleValue:
-                                      type: number
-                                    intValue:
-                                      format: int64
-                                      type: integer
-                                      x-kubernetes-int-or-string: true
-                                    stringValue:
-                                      type: string
                                   type: object
+                                  x-kubernetes-preserve-unknown-fields: true
                                 collector:
                                   properties:
                                     authority:
