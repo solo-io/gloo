@@ -197,7 +197,7 @@ jobs:
         delete-branch: true
         path: docs
         team-reviewers: solo-io/solo-docs
-        title: '[Automated] Post-release docsgen for ${{ steps.version-variables.outputs.minor }'
+        title: '[Automated] Post-release docsgen for ${{ steps.version-variables.outputs.minor }}'
         token: ${{ secrets.DOCS_TOKEN }}
     - name: Notify in slack of success
       if: success()
