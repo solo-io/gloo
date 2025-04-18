@@ -15,6 +15,8 @@ weight: 5
 - [AccessLog](#accesslog)
 - [FileSink](#filesink)
 - [GrpcService](#grpcservice)
+- [OpenTelemetryGrpcCollector](#opentelemetrygrpccollector)
+- [OpenTelemetryService](#opentelemetryservice)
 - [AccessLogFilter](#accesslogfilter)
 - [ComparisonFilter](#comparisonfilter)
 - [Op](#op)
@@ -66,14 +68,16 @@ See here for more information: https://www.envoyproxy.io/docs/envoy/latest/api-v
 ```yaml
 "fileSink": .als.options.gloo.solo.io.FileSink
 "grpcService": .als.options.gloo.solo.io.GrpcService
+"openTelemetryService": .als.options.gloo.solo.io.OpenTelemetryService
 "filter": .als.options.gloo.solo.io.AccessLogFilter
 
 ```
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `fileSink` | [.als.options.gloo.solo.io.FileSink](../als.proto.sk/#filesink) | Output access logs to local file. Only one of `fileSink` or `grpcService` can be set. |
-| `grpcService` | [.als.options.gloo.solo.io.GrpcService](../als.proto.sk/#grpcservice) | Send access logs to gRPC service. Only one of `grpcService` or `fileSink` can be set. |
+| `fileSink` | [.als.options.gloo.solo.io.FileSink](../als.proto.sk/#filesink) | Output access logs to local file. Only one of `fileSink`, `grpcService`, or `openTelemetryService` can be set. |
+| `grpcService` | [.als.options.gloo.solo.io.GrpcService](../als.proto.sk/#grpcservice) | Send access logs to gRPC service. Only one of `grpcService`, `fileSink`, or `openTelemetryService` can be set. |
+| `openTelemetryService` | [.als.options.gloo.solo.io.OpenTelemetryService](../als.proto.sk/#opentelemetryservice) | Send access logs to OpenTelemetry service. Only one of `openTelemetryService`, `fileSink`, or `grpcService` can be set. |
 | `filter` | [.als.options.gloo.solo.io.AccessLogFilter](../als.proto.sk/#accesslogfilter) |  |
 
 
@@ -123,6 +127,60 @@ See here for more information: https://www.envoyproxy.io/docs/envoy/latest/api-v
 | `additionalResponseHeadersToLog` | `[]string` |  |
 | `additionalResponseTrailersToLog` | `[]string` |  |
 | `filterStateObjectsToLog` | `[]string` | Additional filter state objects to log in filter_state_objects. Logger will call FilterState::Object::serializeAsProto to serialize the filter state object. See https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/access_loggers/grpc/v3/als.proto#extensions-access-loggers-grpc-v3-commongrpcaccesslogconfig. |
+
+
+
+
+---
+### OpenTelemetryGrpcCollector
+
+
+
+```yaml
+"endpoint": string
+"authority": string
+"headers": map<string, string>
+"insecure": bool
+"sslConfig": .gloo.solo.io.UpstreamSslConfig
+"timeout": .google.protobuf.Duration
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+| `endpoint` | `string` | host and port of the OpenTelemetry collector. |
+| `authority` | `string` | authority to use when connecting to the OpenTelemetry collector. |
+| `headers` | `map<string, string>` | headers to use when connecting to the OpenTelemetry collector. |
+| `insecure` | `bool` | if true, the connection to the OpenTelemetry collector will be insecure (i.e. no TLS). |
+| `sslConfig` | [.gloo.solo.io.UpstreamSslConfig](../../../ssl/ssl.proto.sk/#upstreamsslconfig) | ssl config to use when connecting to the OpenTelemetry collector, if insecure is true, this will be ignored. |
+| `timeout` | [.google.protobuf.Duration](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/duration) | timeout to use when connecting to the OpenTelemetry collector. |
+
+
+
+
+---
+### OpenTelemetryService
+
+
+
+```yaml
+"logName": string
+"collector": .als.options.gloo.solo.io.OpenTelemetryGrpcCollector
+"filterStateObjectsToLog": []string
+"disableBuiltinLabels": bool
+"body": .opentelemetry.proto.common.v1.AnyValue
+"attributes": .opentelemetry.proto.common.v1.KeyValueList
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+| `logName` | `string` | name of log stream. |
+| `collector` | [.als.options.gloo.solo.io.OpenTelemetryGrpcCollector](../als.proto.sk/#opentelemetrygrpccollector) |  |
+| `filterStateObjectsToLog` | `[]string` | Additional filter state objects to log in filter_state_objects. Logger will call FilterState::Object::serializeAsProto to serialize the filter state object. See https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/access_loggers/grpc/v3/als.proto#extensions-access-loggers-grpc-v3-commongrpcaccesslogconfig. |
+| `disableBuiltinLabels` | `bool` | If true, Envoy logger will not generate built-in resource labels like log_name, zone_name, cluster_name, node_name. |
+| `body` | .opentelemetry.proto.common.v1.AnyValue | A value containing the body of the log record. Can be for example a human-readable string message (including multi-line) describing the event in a free form or it can be a structured data composed of arrays and maps of other values. Example: {"int_value": 1} Example: {"string_value": "hello world"} Example: {"kvlist_value": {"values": [{"key": "k1", "value": {"int_value": 1}}, {"key": "k2", "value": {"string_value": "v2"}}]}} Example: {"array_value": {"values": [{"int_value": 1}, {"string_value": "hello world"}]}}. |
+| `attributes` | .opentelemetry.proto.common.v1.KeyValueList | Additional attributes that describe the specific event occurrence. [Optional]. Attribute keys MUST be unique (it is not allowed to have more than one attribute with the same key). Example: {"values": [{"key": "k1", "value": {"int_value": 1}}, {"key": "k2", "value": {"string_value": "v2"}}]} Example: {"values": [{"key": "k1", "values": {kvlist_value: {values: [{"key": "k2", "value": {"int_value": 1}}, {"key": "k3", "value": {"string_value": "v2"}}]}}}]} Example: {"values": [{"key": "k1", "value": {"int_value": 1}}, {"key": "k2", "value": {"string_value": "v2"}}]}. |
 
 
 

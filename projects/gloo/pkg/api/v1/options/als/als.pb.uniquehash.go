@@ -158,6 +158,28 @@ func (m *AccessLog) HashUnique(hasher hash.Hash64) (uint64, error) {
 			}
 		}
 
+	case *AccessLog_OpenTelemetryService:
+
+		if h, ok := interface{}(m.GetOpenTelemetryService()).(safe_hasher.SafeHasher); ok {
+			if _, err = hasher.Write([]byte("OpenTelemetryService")); err != nil {
+				return 0, err
+			}
+			if _, err = h.Hash(hasher); err != nil {
+				return 0, err
+			}
+		} else {
+			if fieldValue, err := hashstructure.Hash(m.GetOpenTelemetryService(), nil); err != nil {
+				return 0, err
+			} else {
+				if _, err = hasher.Write([]byte("OpenTelemetryService")); err != nil {
+					return 0, err
+				}
+				if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
+					return 0, err
+				}
+			}
+		}
+
 	}
 
 	return hasher.Sum64(), nil
@@ -324,6 +346,233 @@ func (m *GrpcService) HashUnique(hasher hash.Hash64) (uint64, error) {
 		}
 		if _, err = hasher.Write([]byte(m.GetStaticClusterName())); err != nil {
 			return 0, err
+		}
+
+	}
+
+	return hasher.Sum64(), nil
+}
+
+// HashUnique function generates a hash of the object that is unique to the object by
+// hashing field name and value pairs.
+// Replaces Hash due to original hashing implemention only using field values. The omission
+// of the field name in the hash calculation can lead to hash collisions.
+func (m *OpenTelemetryGrpcCollector) HashUnique(hasher hash.Hash64) (uint64, error) {
+	if m == nil {
+		return 0, nil
+	}
+	if hasher == nil {
+		hasher = fnv.New64()
+	}
+	var err error
+	if _, err = hasher.Write([]byte("als.options.gloo.solo.io.github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/als.OpenTelemetryGrpcCollector")); err != nil {
+		return 0, err
+	}
+
+	if _, err = hasher.Write([]byte("Endpoint")); err != nil {
+		return 0, err
+	}
+	if _, err = hasher.Write([]byte(m.GetEndpoint())); err != nil {
+		return 0, err
+	}
+
+	if _, err = hasher.Write([]byte("Authority")); err != nil {
+		return 0, err
+	}
+	if _, err = hasher.Write([]byte(m.GetAuthority())); err != nil {
+		return 0, err
+	}
+
+	{
+		var result uint64
+		innerHash := fnv.New64()
+		for k, v := range m.GetHeaders() {
+			innerHash.Reset()
+
+			if _, err = innerHash.Write([]byte("v")); err != nil {
+				return 0, err
+			}
+			if _, err = innerHash.Write([]byte(v)); err != nil {
+				return 0, err
+			}
+
+			if _, err = innerHash.Write([]byte("k")); err != nil {
+				return 0, err
+			}
+			if _, err = innerHash.Write([]byte(k)); err != nil {
+				return 0, err
+			}
+
+			result = result ^ innerHash.Sum64()
+		}
+		err = binary.Write(hasher, binary.LittleEndian, result)
+		if err != nil {
+			return 0, err
+		}
+
+	}
+
+	if _, err = hasher.Write([]byte("Insecure")); err != nil {
+		return 0, err
+	}
+	err = binary.Write(hasher, binary.LittleEndian, m.GetInsecure())
+	if err != nil {
+		return 0, err
+	}
+
+	if h, ok := interface{}(m.GetSslConfig()).(safe_hasher.SafeHasher); ok {
+		if _, err = hasher.Write([]byte("SslConfig")); err != nil {
+			return 0, err
+		}
+		if _, err = h.Hash(hasher); err != nil {
+			return 0, err
+		}
+	} else {
+		if fieldValue, err := hashstructure.Hash(m.GetSslConfig(), nil); err != nil {
+			return 0, err
+		} else {
+			if _, err = hasher.Write([]byte("SslConfig")); err != nil {
+				return 0, err
+			}
+			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
+				return 0, err
+			}
+		}
+	}
+
+	if h, ok := interface{}(m.GetTimeout()).(safe_hasher.SafeHasher); ok {
+		if _, err = hasher.Write([]byte("Timeout")); err != nil {
+			return 0, err
+		}
+		if _, err = h.Hash(hasher); err != nil {
+			return 0, err
+		}
+	} else {
+		if fieldValue, err := hashstructure.Hash(m.GetTimeout(), nil); err != nil {
+			return 0, err
+		} else {
+			if _, err = hasher.Write([]byte("Timeout")); err != nil {
+				return 0, err
+			}
+			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
+				return 0, err
+			}
+		}
+	}
+
+	return hasher.Sum64(), nil
+}
+
+// HashUnique function generates a hash of the object that is unique to the object by
+// hashing field name and value pairs.
+// Replaces Hash due to original hashing implemention only using field values. The omission
+// of the field name in the hash calculation can lead to hash collisions.
+func (m *OpenTelemetryService) HashUnique(hasher hash.Hash64) (uint64, error) {
+	if m == nil {
+		return 0, nil
+	}
+	if hasher == nil {
+		hasher = fnv.New64()
+	}
+	var err error
+	if _, err = hasher.Write([]byte("als.options.gloo.solo.io.github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/als.OpenTelemetryService")); err != nil {
+		return 0, err
+	}
+
+	if _, err = hasher.Write([]byte("LogName")); err != nil {
+		return 0, err
+	}
+	if _, err = hasher.Write([]byte(m.GetLogName())); err != nil {
+		return 0, err
+	}
+
+	if _, err = hasher.Write([]byte("FilterStateObjectsToLog")); err != nil {
+		return 0, err
+	}
+	for i, v := range m.GetFilterStateObjectsToLog() {
+		if _, err = hasher.Write([]byte(strconv.Itoa(i))); err != nil {
+			return 0, err
+		}
+
+		if _, err = hasher.Write([]byte("v")); err != nil {
+			return 0, err
+		}
+		if _, err = hasher.Write([]byte(v)); err != nil {
+			return 0, err
+		}
+
+	}
+
+	if _, err = hasher.Write([]byte("DisableBuiltinLabels")); err != nil {
+		return 0, err
+	}
+	err = binary.Write(hasher, binary.LittleEndian, m.GetDisableBuiltinLabels())
+	if err != nil {
+		return 0, err
+	}
+
+	if h, ok := interface{}(m.GetBody()).(safe_hasher.SafeHasher); ok {
+		if _, err = hasher.Write([]byte("Body")); err != nil {
+			return 0, err
+		}
+		if _, err = h.Hash(hasher); err != nil {
+			return 0, err
+		}
+	} else {
+		if fieldValue, err := hashstructure.Hash(m.GetBody(), nil); err != nil {
+			return 0, err
+		} else {
+			if _, err = hasher.Write([]byte("Body")); err != nil {
+				return 0, err
+			}
+			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
+				return 0, err
+			}
+		}
+	}
+
+	if h, ok := interface{}(m.GetAttributes()).(safe_hasher.SafeHasher); ok {
+		if _, err = hasher.Write([]byte("Attributes")); err != nil {
+			return 0, err
+		}
+		if _, err = h.Hash(hasher); err != nil {
+			return 0, err
+		}
+	} else {
+		if fieldValue, err := hashstructure.Hash(m.GetAttributes(), nil); err != nil {
+			return 0, err
+		} else {
+			if _, err = hasher.Write([]byte("Attributes")); err != nil {
+				return 0, err
+			}
+			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
+				return 0, err
+			}
+		}
+	}
+
+	switch m.Destination.(type) {
+
+	case *OpenTelemetryService_Collector:
+
+		if h, ok := interface{}(m.GetCollector()).(safe_hasher.SafeHasher); ok {
+			if _, err = hasher.Write([]byte("Collector")); err != nil {
+				return 0, err
+			}
+			if _, err = h.Hash(hasher); err != nil {
+				return 0, err
+			}
+		} else {
+			if fieldValue, err := hashstructure.Hash(m.GetCollector(), nil); err != nil {
+				return 0, err
+			} else {
+				if _, err = hasher.Write([]byte("Collector")); err != nil {
+					return 0, err
+				}
+				if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
+					return 0, err
+				}
+			}
 		}
 
 	}

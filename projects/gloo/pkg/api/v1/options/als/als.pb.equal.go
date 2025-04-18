@@ -129,6 +129,21 @@ func (m *AccessLog) Equal(that interface{}) bool {
 			}
 		}
 
+	case *AccessLog_OpenTelemetryService:
+		if _, ok := target.OutputDestination.(*AccessLog_OpenTelemetryService); !ok {
+			return false
+		}
+
+		if h, ok := interface{}(m.GetOpenTelemetryService()).(equality.Equalizer); ok {
+			if !h.Equal(target.GetOpenTelemetryService()) {
+				return false
+			}
+		} else {
+			if !proto.Equal(m.GetOpenTelemetryService(), target.GetOpenTelemetryService()) {
+				return false
+			}
+		}
+
 	default:
 		// m is nil but target is not nil
 		if m.OutputDestination != target.OutputDestination {
@@ -283,6 +298,160 @@ func (m *GrpcService) Equal(that interface{}) bool {
 	default:
 		// m is nil but target is not nil
 		if m.ServiceRef != target.ServiceRef {
+			return false
+		}
+	}
+
+	return true
+}
+
+// Equal function
+func (m *OpenTelemetryGrpcCollector) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*OpenTelemetryGrpcCollector)
+	if !ok {
+		that2, ok := that.(OpenTelemetryGrpcCollector)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	if strings.Compare(m.GetEndpoint(), target.GetEndpoint()) != 0 {
+		return false
+	}
+
+	if strings.Compare(m.GetAuthority(), target.GetAuthority()) != 0 {
+		return false
+	}
+
+	if len(m.GetHeaders()) != len(target.GetHeaders()) {
+		return false
+	}
+	for k, v := range m.GetHeaders() {
+
+		if strings.Compare(v, target.GetHeaders()[k]) != 0 {
+			return false
+		}
+
+	}
+
+	if m.GetInsecure() != target.GetInsecure() {
+		return false
+	}
+
+	if h, ok := interface{}(m.GetSslConfig()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetSslConfig()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetSslConfig(), target.GetSslConfig()) {
+			return false
+		}
+	}
+
+	if h, ok := interface{}(m.GetTimeout()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetTimeout()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetTimeout(), target.GetTimeout()) {
+			return false
+		}
+	}
+
+	return true
+}
+
+// Equal function
+func (m *OpenTelemetryService) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*OpenTelemetryService)
+	if !ok {
+		that2, ok := that.(OpenTelemetryService)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	if strings.Compare(m.GetLogName(), target.GetLogName()) != 0 {
+		return false
+	}
+
+	if len(m.GetFilterStateObjectsToLog()) != len(target.GetFilterStateObjectsToLog()) {
+		return false
+	}
+	for idx, v := range m.GetFilterStateObjectsToLog() {
+
+		if strings.Compare(v, target.GetFilterStateObjectsToLog()[idx]) != 0 {
+			return false
+		}
+
+	}
+
+	if m.GetDisableBuiltinLabels() != target.GetDisableBuiltinLabels() {
+		return false
+	}
+
+	if h, ok := interface{}(m.GetBody()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetBody()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetBody(), target.GetBody()) {
+			return false
+		}
+	}
+
+	if h, ok := interface{}(m.GetAttributes()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetAttributes()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetAttributes(), target.GetAttributes()) {
+			return false
+		}
+	}
+
+	switch m.Destination.(type) {
+
+	case *OpenTelemetryService_Collector:
+		if _, ok := target.Destination.(*OpenTelemetryService_Collector); !ok {
+			return false
+		}
+
+		if h, ok := interface{}(m.GetCollector()).(equality.Equalizer); ok {
+			if !h.Equal(target.GetCollector()) {
+				return false
+			}
+		} else {
+			if !proto.Equal(m.GetCollector(), target.GetCollector()) {
+				return false
+			}
+		}
+
+	default:
+		// m is nil but target is not nil
+		if m.Destination != target.Destination {
 			return false
 		}
 	}

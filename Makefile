@@ -401,6 +401,7 @@ generate-all-debug: generate-all
 # Generates all required code, cleaning and formatting as well; this target is executed in CI
 .PHONY: generated-code
 generated-code: check-go-version clean-solo-kit-gen ## Run all codegen and formatting as required by CI
+generated-code: install-go-tools
 generated-code: go-generate-all generate-cli-docs getter-check mod-tidy
 generated-code: verify-enterprise-protos generate-helm-files update-licenses
 generated-code: generate-crd-reference-docs

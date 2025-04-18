@@ -12,10 +12,13 @@ option (extproto.clone_all) = true;
 
 import "github.com/solo-io/solo-kit/api/v1/ref.proto";
 import "validate/validate.proto";
+import "github.com/solo-io/gloo/projects/gloo/api/v1/ssl/ssl.proto";
 import "github.com/solo-io/gloo/projects/gloo/api/external/envoy/config/core/v3/base.proto";
 import "github.com/solo-io/gloo/projects/gloo/api/external/envoy/type/v3/percent.proto";
 import "github.com/solo-io/gloo/projects/gloo/api/external/envoy/config/route/v3/route_components.proto";
+import "github.com/solo-io/gloo/projects/gloo/api/external/opentelemetry/common/v1/common.proto";
 
+import "google/protobuf/duration.proto";
 import "google/protobuf/struct.proto";
 
 // Contains various settings for Envoy's access logging service.
@@ -31,6 +34,8 @@ message AccessLog {
         FileSink file_sink = 2;
         // Send access logs to gRPC service
         GrpcService grpc_service = 3;
+        // Send access logs to OpenTelemetry service
+        OpenTelemetryService open_telemetry_service = 5; 
     }
 
     AccessLogFilter filter = 4;
@@ -53,6 +58,7 @@ message FileSink {
 message GrpcService {
     // name of log stream
     string log_name = 1;
+
     // The static cluster defined in bootstrap config to route to
     oneof service_ref {
         string static_cluster_name = 2;
@@ -67,6 +73,62 @@ message GrpcService {
     // Additional filter state objects to log in filter_state_objects. Logger will call FilterState::Object::serializeAsProto to serialize the filter state object.
     // See https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/access_loggers/grpc/v3/als.proto#extensions-access-loggers-grpc-v3-commongrpcaccesslogconfig
     repeated string filter_state_objects_to_log = 7;
+}
+
+message OpenTelemetryGrpcCollector {
+    // host and port of the OpenTelemetry collector
+    string endpoint = 1;
+    // authority to use when connecting to the OpenTelemetry collector
+    string authority = 2;
+    // headers to use when connecting to the OpenTelemetry collector
+    map<string, string> headers = 3;
+    // if true, the connection to the OpenTelemetry collector will be insecure
+    // (i.e. no TLS).
+    bool insecure = 4;
+    // ssl config to use when connecting to the OpenTelemetry collector, 
+    // if insecure is true, this will be ignored
+    .gloo.solo.io.UpstreamSslConfig ssl_config = 5;
+    // timeout to use when connecting to the OpenTelemetry collector
+    google.protobuf.Duration timeout = 6;
+}
+
+message OpenTelemetryService {
+    // name of log stream
+    string log_name = 1;
+
+    // The destination to ship logs to
+    // This is a oneof field, so we can easily add other destinations in the future
+    // without breaking the API.
+    oneof destination {
+        OpenTelemetryGrpcCollector collector = 2;
+    }
+
+    // Additional filter state objects to log in filter_state_objects. Logger will call FilterState::Object::serializeAsProto to serialize the filter state object.
+    // See https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/access_loggers/grpc/v3/als.proto#extensions-access-loggers-grpc-v3-commongrpcaccesslogconfig
+    repeated string filter_state_objects_to_log = 3;
+
+    // If true, Envoy logger will not generate built-in resource labels like log_name,
+    // zone_name, cluster_name, node_name
+    bool disable_builtin_labels = 4;
+
+    // A value containing the body of the log record. Can be for example a human-readable
+    // string message (including multi-line) describing the event in a free form or it can
+    // be a structured data composed of arrays and maps of other values.
+    //
+    // Example: {"int_value": 1}
+    // Example: {"string_value": "hello world"}
+    // Example: {"kvlist_value": {"values": [{"key": "k1", "value": {"int_value": 1}}, {"key": "k2", "value": {"string_value": "v2"}}]}}
+    // Example: {"array_value": {"values": [{"int_value": 1}, {"string_value": "hello world"}]}}
+    opentelemetry.proto.common.v1.AnyValue body = 5;
+
+    // Additional attributes that describe the specific event occurrence. [Optional].
+    // Attribute keys MUST be unique (it is not allowed to have more than one
+    // attribute with the same key).
+    //
+    // Example: {"values": [{"key": "k1", "value": {"int_value": 1}}, {"key": "k2", "value": {"string_value": "v2"}}]}
+    // Example: {"values": [{"key": "k1", "values": {kvlist_value: {values: [{"key": "k2", "value": {"int_value": 1}}, {"key": "k3", "value": {"string_value": "v2"}}]}}}]}
+    // Example: {"values": [{"key": "k1", "value": {"int_value": 1}}, {"key": "k2", "value": {"string_value": "v2"}}]}
+    opentelemetry.proto.common.v1.KeyValueList attributes = 6;
 }
 
 message AccessLogFilter {
