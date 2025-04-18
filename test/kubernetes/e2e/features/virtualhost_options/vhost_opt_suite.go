@@ -168,7 +168,7 @@ func (s *testingSuite) TestConfigureVirtualHostOptionsWithConflictingVHO() {
 }
 
 // TestConfigureInvalidVirtualHostOptions confirms that an invalid VirtualHostOption is rejected
-func (s *testingSuite) TestConfigureInvalidVirtualHostOptions() {
+func (s *testingSuite) TestXConfigureInvalidVirtualHostOptions() {
 	s.T().Cleanup(func() {
 		output, err := s.TestInstallation.Actions.Kubectl().DeleteFileWithOutput(s.Ctx, manifestVhoRemoveXBar)
 		s.TestInstallation.AssertionsT(s.T()).ExpectObjectDeleted(manifestVhoRemoveXBar, err, output)
