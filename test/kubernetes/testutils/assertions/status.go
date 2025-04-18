@@ -34,7 +34,7 @@ func (p *Provider) EventuallyResourceStatusMatchesWarningReasons(getter helpers.
 		status, err := getResourceNamespacedStatus(getter)
 		g.Expect(err).NotTo(gomega.HaveOccurred(), fmt.Sprintf("EventuallyResourceStatusMatchesWarningReasons failed: %s", err))
 		g.Expect(status).ToNot(gomega.BeNil())
-		g.Expect(status).To(gomega.HaveValue(statusWarningsMatcher))
+		g.Expect(status).To(gomega.HaveValue(statusWarningsMatcher), fmt.Sprintf("status %v does not match expected reasons %v", status, desiredStatusReasons))
 	}, currentTimeout, pollingInterval).Should(gomega.Succeed())
 }
 
