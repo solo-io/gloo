@@ -175,7 +175,7 @@ spec:
       {{- end }}
       - args:
           - --disable-hot-restart
-        {{- if or (eq $spec.envoyLogLevel "debug") (eq $spec.envoyLogLevel "trace") -}}
+        {{- if or (eq $spec.envoyLogLevel "debug") (eq $spec.envoyLogLevel "trace") }}
           - --suppress-deprecated-warning-logs
         {{- end}}
         {{- if $spec.envoyLogLevel }}
