@@ -51,7 +51,7 @@ func (p *Provider) EventuallyResourceStatusMatchesRejectedReasons(getter helpers
 		status, err := getResourceNamespacedStatus(getter)
 		g.Expect(err).NotTo(gomega.HaveOccurred(), fmt.Sprintf("EventuallyResourceStatusMatchesRejectedReasons failed: %s", err))
 		g.Expect(status).ToNot(gomega.BeNil())
-		g.Expect(status).To(gomega.HaveValue(statusRejectionsMatcher))
+		g.Expect(status).To(gomega.HaveValue(statusRejectionsMatcher), fmt.Sprintf("status %v does not match expected reasons %v", status, desiredStatusReasons))
 	}, currentTimeout, pollingInterval).Should(gomega.Succeed())
 }
 
@@ -70,7 +70,7 @@ func (p *Provider) EventuallyResourceStatusMatchesState(
 		status, err := getResourceNamespacedStatus(getter)
 		g.Expect(err).NotTo(gomega.HaveOccurred(), fmt.Sprintf("EventuallyResourceStatusMatchesState failed: %s", err))
 		g.Expect(status).ToNot(gomega.BeNil())
-		g.Expect(status).To(gomega.HaveValue(statusStateMatcher))
+		g.Expect(status).To(gomega.HaveValue(statusStateMatcher), fmt.Sprintf("status %v does not match expected state %v", status, desiredState))
 	}, currentTimeout, pollingInterval).Should(gomega.Succeed())
 }
 
@@ -86,7 +86,7 @@ func (p *Provider) EventuallyResourceStatusMatchesSubResource(
 		status, err := getResourceNamespacedStatus(getter)
 		g.Expect(err).NotTo(gomega.HaveOccurred(), fmt.Sprintf("EventuallyResourceStatusMatchesSubResource failed: %s", err))
 		g.Expect(status).ToNot(gomega.BeNil())
-		g.Expect(status).To(gomega.HaveValue(subResourceStatusMatcher))
+		g.Expect(status).To(gomega.HaveValue(subResourceStatusMatcher), fmt.Sprintf("subresource status %v does not match expected subresource %v", status, desiredSubresource))
 	}, currentTimeout, pollingInterval).Should(gomega.Succeed())
 }
 
