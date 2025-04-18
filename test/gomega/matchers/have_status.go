@@ -257,12 +257,9 @@ func (m *HaveNamespacedStatusesMatcher) Match(actual interface{}) (success bool,
 	m.evaluated = true
 
 	val, ok := actual.(core.NamespacedStatuses)
-
 	if !ok {
 		return false, eris.Errorf("matcher expected core.NamespacedStatuses, got %T", actual)
 	}
-
-	fmt.Printf("HaveNamespacedStatusesMatcher Match actual: %v\n", actual)
 
 	for ns, matcher := range m.namespacedStatusesMatchers {
 		actualStatus, ok := val.GetStatuses()[ns]
