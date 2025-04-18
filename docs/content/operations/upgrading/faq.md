@@ -73,6 +73,8 @@ Discovery pod example:
 │ /main.go:23"}
 ```
 
+Note that this bug is planned to be fixed in a future release. 
+
 **Envoy version 1.31 upgrade**
 
 The Envoy dependency in Gloo Gateway 1.18 was upgraded from 1.29.x to 1.31.x. This upgrade includes the following changes. For more information about these changes, see the [Envoy changelog documentation](https://www.envoyproxy.io/docs/envoy/latest/version_history/v1.31/v1.31).
