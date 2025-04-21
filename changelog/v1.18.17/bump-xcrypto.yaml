@@ -1,0 +1,7 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: golang.org
+    dependencyRepo: crypto
+    dependencyTag: v0.35.0
+    description: >
+      Bump xcrypto to v0.35.0
