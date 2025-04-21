@@ -3,5 +3,6 @@ changelog:
     dependencyOwner: golang.org
     dependencyRepo: crypto
     dependencyTag: v0.35.0
+    issueLink: https://github.com/solo-io/gloo/issues/10792
     description: >
       Bump xcrypto to v0.35.0
