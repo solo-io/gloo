@@ -1086,6 +1086,16 @@ func (m *ListenerReport_Error) Equal(that interface{}) bool {
 		return false
 	}
 
+	if h, ok := interface{}(m.GetMetadata()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetMetadata()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetMetadata(), target.GetMetadata()) {
+			return false
+		}
+	}
+
 	return true
 }
 

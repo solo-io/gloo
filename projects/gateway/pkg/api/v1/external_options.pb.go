@@ -7,10 +7,6 @@
 package v1
 
 import (
-	reflect "reflect"
-	sync "sync"
-	unsafe "unsafe"
-
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	_ "github.com/solo-io/protoc-gen-ext/extproto"
 	v11 "github.com/solo-io/skv2/pkg/api/core.skv2.solo.io/v1"
@@ -18,6 +14,9 @@ import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	_ "google.golang.org/protobuf/types/known/wrapperspb"
+	reflect "reflect"
+	sync "sync"
+	unsafe "unsafe"
 )
 
 const (
@@ -402,6 +401,9 @@ func (x *RouteOption) GetTargetRefs() []*v11.PolicyTargetReference {
 
 type ListenerOption struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
+	// NamespacedStatuses indicates the validation status of this resource.
+	// NamespacedStatuses is read-only by clients, and set by gateway during validation
+	NamespacedStatuses *core.NamespacedStatuses `protobuf:"bytes,4,opt,name=namespaced_statuses,json=namespacedStatuses,proto3" json:"namespaced_statuses,omitempty"`
 	// Metadata contains the object metadata for this resource
 	Metadata *core.Metadata `protobuf:"bytes,1,opt,name=metadata,proto3" json:"metadata,omitempty"`
 	// Listener options
@@ -444,6 +446,13 @@ func (*ListenerOption) Descriptor() ([]byte, []int) {
 	return file_github_com_solo_io_gloo_projects_gateway_api_v1_external_options_proto_rawDescGZIP(), []int{2}
 }
 
+func (x *ListenerOption) GetNamespacedStatuses() *core.NamespacedStatuses {
+	if x != nil {
+		return x.NamespacedStatuses
+	}
+	return nil
+}
+
 func (x *ListenerOption) GetMetadata() *core.Metadata {
 	if x != nil {
 		return x.Metadata
@@ -467,6 +476,9 @@ func (x *ListenerOption) GetTargetRefs() []*v11.PolicyTargetReferenceWithSection
 
 type HttpListenerOption struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
+	// NamespacedStatuses indicates the validation status of this resource.
+	// NamespacedStatuses is read-only by clients, and set by gateway during validation
+	NamespacedStatuses *core.NamespacedStatuses `protobuf:"bytes,4,opt,name=namespaced_statuses,json=namespacedStatuses,proto3" json:"namespaced_statuses,omitempty"`
 	// Metadata contains the object metadata for this resource
 	Metadata *core.Metadata `protobuf:"bytes,1,opt,name=metadata,proto3" json:"metadata,omitempty"`
 	// HttpListener options
@@ -509,6 +521,13 @@ func (*HttpListenerOption) Descriptor() ([]byte, []int) {
 	return file_github_com_solo_io_gloo_projects_gateway_api_v1_external_options_proto_rawDescGZIP(), []int{3}
 }
 
+func (x *HttpListenerOption) GetNamespacedStatuses() *core.NamespacedStatuses {
+	if x != nil {
+		return x.NamespacedStatuses
+	}
+	return nil
+}
+
 func (x *HttpListenerOption) GetMetadata() *core.Metadata {
 	if x != nil {
 		return x.Metadata
@@ -548,14 +567,16 @@ const file_github_com_solo_io_gloo_projects_gateway_api_v1_external_options_prot
 	"\aoptions\x18\x03 \x01(\v2\x1a.gloo.solo.io.RouteOptionsR\aoptions\x12I\n" +
 	"\vtarget_refs\x18\x05 \x03(\v2(.core.skv2.solo.io.PolicyTargetReferenceR\n" +
 	"targetRefs:\x1b\x82\xf1\x04\x17\n" +
-	"\x06rtopts\x12\rroute_optionsJ\x04\b\x01\x10\x02\"\xf8\x01\n" +
-	"\x0eListenerOption\x122\n" +
+	"\x06rtopts\x12\rroute_optionsJ\x04\b\x01\x10\x02\"\xd1\x02\n" +
+	"\x0eListenerOption\x12W\n" +
+	"\x13namespaced_statuses\x18\x04 \x01(\v2 .core.solo.io.NamespacedStatusesB\x04\xb8\xf5\x04\x01R\x12namespacedStatuses\x122\n" +
 	"\bmetadata\x18\x01 \x01(\v2\x16.core.solo.io.MetadataR\bmetadata\x127\n" +
 	"\aoptions\x18\x02 \x01(\v2\x1d.gloo.solo.io.ListenerOptionsR\aoptions\x12X\n" +
 	"\vtarget_refs\x18\x03 \x03(\v27.core.skv2.solo.io.PolicyTargetReferenceWithSectionNameR\n" +
 	"targetRefs:\x1f\x82\xf1\x04\x1b\n" +
-	"\alisopts\x12\x10listener_options\"\x86\x02\n" +
-	"\x12HttpListenerOption\x122\n" +
+	"\alisopts\x12\x10listener_options\"\xdf\x02\n" +
+	"\x12HttpListenerOption\x12W\n" +
+	"\x13namespaced_statuses\x18\x04 \x01(\v2 .core.solo.io.NamespacedStatusesB\x04\xb8\xf5\x04\x01R\x12namespacedStatuses\x122\n" +
 	"\bmetadata\x18\x01 \x01(\v2\x16.core.solo.io.MetadataR\bmetadata\x12;\n" +
 	"\aoptions\x18\x02 \x01(\v2!.gloo.solo.io.HttpListenerOptionsR\aoptions\x12X\n" +
 	"\vtarget_refs\x18\x03 \x03(\v27.core.skv2.solo.io.PolicyTargetReferenceWithSectionNameR\n" +
@@ -598,17 +619,19 @@ var file_github_com_solo_io_gloo_projects_gateway_api_v1_external_options_proto_
 	5,  // 5: gateway.solo.io.RouteOption.metadata:type_name -> core.solo.io.Metadata
 	8,  // 6: gateway.solo.io.RouteOption.options:type_name -> gloo.solo.io.RouteOptions
 	9,  // 7: gateway.solo.io.RouteOption.target_refs:type_name -> core.skv2.solo.io.PolicyTargetReference
-	5,  // 8: gateway.solo.io.ListenerOption.metadata:type_name -> core.solo.io.Metadata
-	10, // 9: gateway.solo.io.ListenerOption.options:type_name -> gloo.solo.io.ListenerOptions
-	7,  // 10: gateway.solo.io.ListenerOption.target_refs:type_name -> core.skv2.solo.io.PolicyTargetReferenceWithSectionName
-	5,  // 11: gateway.solo.io.HttpListenerOption.metadata:type_name -> core.solo.io.Metadata
-	11, // 12: gateway.solo.io.HttpListenerOption.options:type_name -> gloo.solo.io.HttpListenerOptions
-	7,  // 13: gateway.solo.io.HttpListenerOption.target_refs:type_name -> core.skv2.solo.io.PolicyTargetReferenceWithSectionName
-	14, // [14:14] is the sub-list for method output_type
-	14, // [14:14] is the sub-list for method input_type
-	14, // [14:14] is the sub-list for extension type_name
-	14, // [14:14] is the sub-list for extension extendee
-	0,  // [0:14] is the sub-list for field type_name
+	4,  // 8: gateway.solo.io.ListenerOption.namespaced_statuses:type_name -> core.solo.io.NamespacedStatuses
+	5,  // 9: gateway.solo.io.ListenerOption.metadata:type_name -> core.solo.io.Metadata
+	10, // 10: gateway.solo.io.ListenerOption.options:type_name -> gloo.solo.io.ListenerOptions
+	7,  // 11: gateway.solo.io.ListenerOption.target_refs:type_name -> core.skv2.solo.io.PolicyTargetReferenceWithSectionName
+	4,  // 12: gateway.solo.io.HttpListenerOption.namespaced_statuses:type_name -> core.solo.io.NamespacedStatuses
+	5,  // 13: gateway.solo.io.HttpListenerOption.metadata:type_name -> core.solo.io.Metadata
+	11, // 14: gateway.solo.io.HttpListenerOption.options:type_name -> gloo.solo.io.HttpListenerOptions
+	7,  // 15: gateway.solo.io.HttpListenerOption.target_refs:type_name -> core.skv2.solo.io.PolicyTargetReferenceWithSectionName
+	16, // [16:16] is the sub-list for method output_type
+	16, // [16:16] is the sub-list for method input_type
+	16, // [16:16] is the sub-list for extension type_name
+	16, // [16:16] is the sub-list for extension extendee
+	0,  // [0:16] is the sub-list for field type_name
 }
 
 func init() { file_github_com_solo_io_gloo_projects_gateway_api_v1_external_options_proto_init() }

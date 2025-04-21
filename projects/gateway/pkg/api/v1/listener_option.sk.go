@@ -10,13 +10,14 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/pkg/errors"
+	"github.com/solo-io/solo-kit/pkg/utils/statusutils"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
 var (
 	// Compile-time assertion
-	_ resources.Resource = new(ListenerOption)
+	_ resources.InputResource = new(ListenerOption)
 )
 
 func NewListenerOptionHashableResource() resources.HashableResource {
@@ -34,6 +35,23 @@ func NewListenerOption(namespace, name string) *ListenerOption {
 
 func (r *ListenerOption) SetMetadata(meta *core.Metadata) {
 	r.Metadata = meta
+}
+
+// Deprecated
+func (r *ListenerOption) SetStatus(status *core.Status) {
+	statusutils.SetSingleStatusInNamespacedStatuses(r, status)
+}
+
+// Deprecated
+func (r *ListenerOption) GetStatus() *core.Status {
+	if r != nil {
+		return statusutils.GetSingleStatusInNamespacedStatuses(r)
+	}
+	return nil
+}
+
+func (r *ListenerOption) SetNamespacedStatuses(namespacedStatuses *core.NamespacedStatuses) {
+	r.NamespacedStatuses = namespacedStatuses
 }
 
 func (r *ListenerOption) MustHash() uint64 {
@@ -61,6 +79,14 @@ func (list ListenerOptionList) Find(namespace, name string) (*ListenerOption, er
 
 func (list ListenerOptionList) AsResources() resources.ResourceList {
 	var ress resources.ResourceList
+	for _, listenerOption := range list {
+		ress = append(ress, listenerOption)
+	}
+	return ress
+}
+
+func (list ListenerOptionList) AsInputResources() resources.InputResourceList {
+	var ress resources.InputResourceList
 	for _, listenerOption := range list {
 		ress = append(ress, listenerOption)
 	}

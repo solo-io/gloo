@@ -168,13 +168,8 @@ func (p *plugin) InitStatusPlugin(ctx context.Context, statusCtx *plugins.Status
 
 		// for this specific proxy, get all the route errors and their associated RouteOption sources
 		routeErrors := extractRouteErrors(proxyWithReport.Reports.ProxyReport)
-
 		for roKey := range routeErrors {
-			newStatus := newLegacyStatus()
-			newStatus.subresourceStatus = make(map[string]*core.Status)
-
-			// update the cache
-			p.legacyStatusCache[roKey] = newStatus
+			p.legacyStatusCache[roKey] = newLegacyStatus()
 		}
 	}
 	return nil

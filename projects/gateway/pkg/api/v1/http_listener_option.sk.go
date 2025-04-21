@@ -10,13 +10,14 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/pkg/errors"
+	"github.com/solo-io/solo-kit/pkg/utils/statusutils"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
 var (
 	// Compile-time assertion
-	_ resources.Resource = new(HttpListenerOption)
+	_ resources.InputResource = new(HttpListenerOption)
 )
 
 func NewHttpListenerOptionHashableResource() resources.HashableResource {
@@ -34,6 +35,23 @@ func NewHttpListenerOption(namespace, name string) *HttpListenerOption {
 
 func (r *HttpListenerOption) SetMetadata(meta *core.Metadata) {
 	r.Metadata = meta
+}
+
+// Deprecated
+func (r *HttpListenerOption) SetStatus(status *core.Status) {
+	statusutils.SetSingleStatusInNamespacedStatuses(r, status)
+}
+
+// Deprecated
+func (r *HttpListenerOption) GetStatus() *core.Status {
+	if r != nil {
+		return statusutils.GetSingleStatusInNamespacedStatuses(r)
+	}
+	return nil
+}
+
+func (r *HttpListenerOption) SetNamespacedStatuses(namespacedStatuses *core.NamespacedStatuses) {
+	r.NamespacedStatuses = namespacedStatuses
 }
 
 func (r *HttpListenerOption) MustHash() uint64 {
@@ -61,6 +79,14 @@ func (list HttpListenerOptionList) Find(namespace, name string) (*HttpListenerOp
 
 func (list HttpListenerOptionList) AsResources() resources.ResourceList {
 	var ress resources.ResourceList
+	for _, httpListenerOption := range list {
+		ress = append(ress, httpListenerOption)
+	}
+	return ress
+}
+
+func (list HttpListenerOptionList) AsInputResources() resources.InputResourceList {
+	var ress resources.InputResourceList
 	for _, httpListenerOption := range list {
 		ress = append(ress, httpListenerOption)
 	}
