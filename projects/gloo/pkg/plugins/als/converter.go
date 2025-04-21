@@ -496,7 +496,7 @@ func copyOtelSettings(params plugins.Params, cfg *envoy_al_otel.OpenTelemetryAcc
 		}
 	}
 
-	return nil
+	return cfg.Validate()
 }
 
 func copyFileSettings(cfg *envoy_al_file_v3.FileAccessLog, alsSettings *als.AccessLog_FileSink) error {

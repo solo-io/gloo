@@ -23,7 +23,7 @@ spec:
     accessLoggingService:
       accessLog:
         - openTelemetryService:
-            logName: extra-secure-example
+            logName: sslconfig-example
             collector:
               endpoint: otel-collector.default.svc.cluster.local:4317
               authority: authority.example.com

@@ -8,6 +8,7 @@ import (
 
 	"github.com/solo-io/gloo/pkg/utils/kubeutils"
 	"github.com/solo-io/gloo/pkg/utils/requestutils/curl"
+	"github.com/solo-io/gloo/projects/gateway/pkg/defaults"
 	"github.com/solo-io/gloo/test/gomega/matchers"
 	"github.com/solo-io/gloo/test/kubernetes/e2e"
 	testDefaults "github.com/solo-io/gloo/test/kubernetes/e2e/defaults"
@@ -19,14 +20,23 @@ import (
 
 var _ e2e.NewSuiteFunc = NewAccessLogSuite
 
-//go:embed testdata/gateway.yaml
-var gatewayYaml []byte
+//go:embed testdata/k8s-gateway.yaml
+var k8sGatewayYaml []byte
 
-//go:embed testdata/gateway-secure.yaml
-var gatewaySecureYaml []byte
+//go:embed testdata/k8s-gateway-secure.yaml
+var k8sGatewaySecureYaml []byte
 
-//go:embed testdata/gateway-extra-secure.yaml
-var gatewayExtraSecureYaml []byte
+//go:embed testdata/k8s-gateway-sslconfig.yaml
+var k8sGatewayExtraSecureYaml []byte
+
+//go:embed testdata/edge.yaml
+var edgeYaml []byte
+
+//go:embed testdata/edge-secure.yaml
+var edgeSecureYaml []byte
+
+//go:embed testdata/edge-sslconfig.yaml
+var edgeExtraSecureYaml []byte
 
 //go:embed testdata/collector.yaml
 var collectorYaml []byte
@@ -71,26 +81,45 @@ func (s *accessLogSuite) AfterTest(suiteName, testName string) {
 }
 
 func (s *accessLogSuite) TestOTELAccessLog() {
+	testGatewayYaml := edgeYaml
+	if s.testInstallation.Metadata.K8sGatewayEnabled {
+		testGatewayYaml = k8sGatewayYaml
+	}
+
 	s.setupCollector(collectorYaml)
-	s.setupGateway(gatewayYaml)
+	s.setupGateway(testGatewayYaml)
+
 	s.eventuallyFindRequestInCollectorLogs([]string{
 		`ResourceLog.*log_name: Str\(example\)`,
 	}, "should find access logs in collector pod logs")
 }
 
 func (s *accessLogSuite) TestOTELAccessLogSecure() {
+	testGatewayYaml := edgeSecureYaml
+	if s.testInstallation.Metadata.K8sGatewayEnabled {
+		testGatewayYaml = k8sGatewaySecureYaml
+	}
+
 	s.setupCollector(collectorSecureYaml)
-	s.setupGateway(gatewaySecureYaml)
+	s.setupGateway(testGatewayYaml)
 	s.eventuallyFindRequestInCollectorLogs([]string{
 		`ResourceLog.*log_name: Str\(secure-example\)`,
 	}, "should find access logs in collector pod logs")
 }
 
 func (s *accessLogSuite) TestOTELAccessLogWithSslConfig() {
+	testGatewayYaml := edgeExtraSecureYaml
+	if s.testInstallation.Metadata.K8sGatewayEnabled {
+		testGatewayYaml = k8sGatewayExtraSecureYaml
+	}
+
 	s.setupCollector(collectorSecureYaml)
-	s.setupGateway(gatewayExtraSecureYaml)
+	s.setupGateway(testGatewayYaml)
+
+	time.Sleep(5 * time.Minute)
+
 	s.eventuallyFindRequestInCollectorLogs([]string{
-		`ResourceLog.*log_name: Str\(extra-secure-example\)`,
+		`ResourceLog.*log_name: Str\(sslconfig-example\)`,
 	}, "should find access logs in collector pod logs")
 }
 
@@ -129,18 +158,33 @@ func (s *accessLogSuite) setupGateway(yaml []byte) {
 func (s *accessLogSuite) eventuallyFindRequestInCollectorLogs(patterns []string, msg string) {
 	// confirm that the squid proxy connected to the httpbin service
 	s.testInstallation.AssertionsT(s.T()).Assert.Eventually(func() bool {
-		// make curl request to httpbin service
-		s.testInstallation.AssertionsT(s.T()).AssertEventualCurlResponse(
-			s.ctx,
-			testDefaults.CurlPodExecOpt,
-			[]curl.Option{
-				curl.WithHostHeader("httpbin.example.com"),
-				curl.WithPath("/status/200"),
+		opts := []curl.Option{
+			curl.WithHostHeader("httpbin.example.com"),
+			curl.WithPath("/status/200"),
+		}
+
+		if s.testInstallation.Metadata.K8sGatewayEnabled {
+			opts = append(opts,
 				curl.WithHost(kubeutils.ServiceFQDN(metav1.ObjectMeta{
 					Name:      "gloo-proxy-gw",
 					Namespace: "default",
 				})),
-			},
+			)
+		} else {
+			opts = append(opts,
+				curl.WithHost(kubeutils.ServiceFQDN(metav1.ObjectMeta{
+					Name:      defaults.GatewayProxyName,
+					Namespace: s.testInstallation.Metadata.InstallNamespace,
+				})),
+				curl.WithPort(80),
+			)
+		}
+
+		// make curl request to httpbin service
+		s.testInstallation.AssertionsT(s.T()).AssertEventualCurlResponse(
+			s.ctx,
+			testDefaults.CurlPodExecOpt,
+			opts,
 			&matchers.HttpResponse{
 				StatusCode: 200,
 			},
