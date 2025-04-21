@@ -186,7 +186,7 @@ jobs:
   # Reminder: when setting up the job next release branch, copy from "end_to_end_tests_main" not the previous release job as configuration may have changed
   end_to_end_tests_latest_stable:
     name: End-to-End (branch=${{ vars.LATEST_STABLE_BRANCH }}, cluster=${{ matrix.test.cluster-name }}, version=${{ matrix.version-files.label }} )
-    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-kubernetes-end-to-end && inputs.branch == 'latest_stable' ) || github.event.schedule == '0 5 * * *' }}
+    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-kubernetes-end-to-end && inputs.branch == 'latest_stable' ) || github.event.schedule == '0 6 * * 1' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 180
     strategy:
@@ -248,7 +248,7 @@ jobs:
 
   end_to_end_tests_latest_stable_minus_one:
     name: End-to-End (branch=${{ vars.LATEST_STABLE_MINUS_ONE_BRANCH }}, cluster=${{ matrix.test.cluster-name }}, version=${{ matrix.version-files.label }} )
-    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-kubernetes-end-to-end && inputs.branch == 'latest_stable_minus_one' ) || github.event.schedule == '0 6 * * 1' }}
+    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-kubernetes-end-to-end && inputs.branch == 'latest_stable_minus_one' ) || github.event.schedule == '0 7 * * 1' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 180
     strategy:
@@ -310,7 +310,7 @@ jobs:
 
   end_to_end_tests_latest_stable_minus_two:
     name: End-to-End (branch=${{ vars.LATEST_STABLE_MINUS_TWO_BRANCH }}, cluster=${{ matrix.test.cluster-name }}, version=${{ matrix.version-files.label }} )
-    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-kubernetes-end-to-end && inputs.branch == 'latest_stable_minus_two' ) || github.event.schedule == '0 7 * * 1' }}
+    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-kubernetes-end-to-end && inputs.branch == 'latest_stable_minus_two' ) || github.event.schedule == '0 8 * * 1' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 150
     strategy:
@@ -419,7 +419,7 @@ jobs:
 
   regression_tests_latest_stable:
     name: ${{ vars.LATEST_STABLE_BRANCH }} regression tests (${{ matrix.kube-e2e-test-type }} - ${{ matrix.kube-version.kubectl }})
-    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-regression && inputs.branch == 'latest_stable' ) || github.event.schedule == '0 5 * * *' }}
+    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-regression && inputs.branch == 'latest_stable' ) || github.event.schedule == '0 6 * * 1' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     # Previously, there was an environment variable, RELEASED_VERSION="LATEST" set.  This made use of some internal code:
@@ -448,7 +448,7 @@ jobs:
 
   regression_tests_latest_stable_minus_one:
     name: ${{ vars.LATEST_STABLE_MINUS_ONE_BRANCH }} regression tests (${{ matrix.kube-e2e-test-type }} - ${{ matrix.kube-version.kubectl }})
-    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-regression && inputs.branch == 'latest_stable_minus_one' ) || github.event.schedule == '0 6 * * 1' }}
+    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-regression && inputs.branch == 'latest_stable_minus_one' ) || github.event.schedule == '0 7 * * 1' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     # Previously, there was an environment variable, RELEASED_VERSION="LATEST" set.  This made use of some internal code:
@@ -477,7 +477,7 @@ jobs:
 
   regression_tests_latest_stable_minus_two:
     name: ${{ vars.LATEST_STABLE_MINUS_TWO_BRANCH }} regression tests (${{ matrix.kube-e2e-test-type }} - ${{ matrix.kube-version.kubectl }})
-    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-regression && inputs.branch == 'latest_stable_minus_two' ) || github.event.schedule == '0 7 * * 1' }}
+    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-regression && inputs.branch == 'latest_stable_minus_two' ) || github.event.schedule == '0 8 * * 1' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     strategy:
@@ -526,7 +526,7 @@ jobs:
     name: ${{ vars.LATEST_STABLE_BRANCH }} performance tests"
     # Instead of false, we would want to define: env.ENABLE_PERFORMANCE_TESTS == 'true'
     # Due to https://github.com/actions/runner/issues/1189#issuecomment-880110759, we cannot use env variables in job.if
-    if: ${{ false && ((github.event_name == 'workflow_dispatch' && inputs.run-performance && inputs.branch == 'latest_stable' ) || github.event.schedule == '0 5 * * *') }}
+    if: ${{ false && ((github.event_name == 'workflow_dispatch' && inputs.run-performance && inputs.branch == 'latest_stable' ) || github.event.schedule == '0 6 * * 1') }}
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     steps:
@@ -540,7 +540,7 @@ jobs:
     name: ${{ vars.LATEST_STABLE_MINUS_ONE_BRANCH }} performance tests"
     # Instead of false, we would want to define: env.ENABLE_PERFORMANCE_TESTS == 'true'
     # Due to https://github.com/actions/runner/issues/1189#issuecomment-880110759, we cannot use env variables in job.if
-    if: ${{ false && ((github.event_name == 'workflow_dispatch' && inputs.run-performance && inputs.branch == 'latest_stable_minus_one' ) || github.event.schedule == '0 6 * * 1') }}
+    if: ${{ false && ((github.event_name == 'workflow_dispatch' && inputs.run-performance && inputs.branch == 'latest_stable_minus_one' ) || github.event.schedule == '0 7 * * 1') }}
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     steps:
@@ -554,7 +554,7 @@ jobs:
     name: ${{ vars.LATEST_STABLE_MINUS_TWO_BRANCH }} performance tests"
     # Instead of false, we would want to define: env.ENABLE_PERFORMANCE_TESTS == 'true'
     # Due to https://github.com/actions/runner/issues/1189#issuecomment-880110759, we cannot use env variables in job.if
-    if: ${{ false && ((github.event_name == 'workflow_dispatch' && inputs.run-performance && inputs.branch == 'latest_stable_minus_two' ) || github.event.schedule == '0 7 * * 1') }}
+    if: ${{ false && ((github.event_name == 'workflow_dispatch' && inputs.run-performance && inputs.branch == 'latest_stable_minus_two' ) || github.event.schedule == '0 8 * * 1') }}
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     steps:
@@ -584,7 +584,7 @@ jobs:
 
   kube_gateway_api_conformance_tests_latest_stable:
     name: Conformance (branch=${{ vars.LATEST_STABLE_BRANCH }}, type=Kubernetes Gateway API, version=${{matrix.kube-version.node}} )
-    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-conformance && inputs.branch == 'latest_stable' ) || github.event.schedule == '0 5 * * *' }}
+    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-conformance && inputs.branch == 'latest_stable' ) || github.event.schedule == '0 6 * * 1' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     strategy:
@@ -602,7 +602,7 @@ jobs:
 
   kube_gateway_api_conformance_tests_latest_stable_minus_one:
     name: Conformance (branch=${{ vars.LATEST_STABLE_MINUS_ONE_BRANCH }}, type=Kubernetes Gateway API, version=${{matrix.kube-version.node}} )
-    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-conformance && inputs.branch == 'latest_stable_minus_one' ) || github.event.schedule == '0 6 * * 1' }}
+    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-conformance && inputs.branch == 'latest_stable_minus_one' ) || github.event.schedule == '0 7 * * 1' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     strategy:
@@ -620,7 +620,7 @@ jobs:
 
   kube_gateway_api_conformance_tests_latest_stable_minus_two:
     name: Conformance (branch=${{ vars.LATEST_STABLE_MINUS_TWO_BRANCH }}, type=Kubernetes Gateway API, version=${{matrix.kube-version.node}} )
-    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-conformance && inputs.branch == 'latest_stable_minus_two' ) || github.event.schedule == '0 7 * * 1' }}
+    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-conformance && inputs.branch == 'latest_stable_minus_two' ) || github.event.schedule == '0 8 * * 1' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     strategy:
