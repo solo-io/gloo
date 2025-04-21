@@ -370,7 +370,7 @@ jobs:
           matrix-label: ${{ matrix.version-files.label }}
 
   regression_tests_on_demand:
-    name: on demand regression tests (${{ matrix.kube-e2e-test-type }})
+    name: on demand regression tests (${{ matrix.kube-e2e-test-type }} - ${{ matrix.kube-version.kubectl }})
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.run-regression && inputs.branch == 'workflow_initiating_branch' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 60
@@ -389,7 +389,7 @@ jobs:
     - uses: ./.github/workflows/composite-actions/regression-tests
 
   regression_tests_main:
-    name: main regression tests (${{ matrix.kube-e2e-test-type }})
+    name: main regression tests (${{ matrix.kube-e2e-test-type }} - ${{ matrix.kube-version.kubectl }})
     if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-regression && inputs.branch == 'main') || github.event.schedule == '0 5 * * *' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 60
@@ -418,7 +418,7 @@ jobs:
     - uses: ./.github/workflows/composite-actions/regression-tests
 
   regression_tests_latest_stable:
-    name: ${{ vars.LATEST_STABLE_BRANCH }} regression tests (${{ matrix.kube-e2e-test-type }})
+    name: ${{ vars.LATEST_STABLE_BRANCH }} regression tests (${{ matrix.kube-e2e-test-type }} - ${{ matrix.kube-version.kubectl }})
     if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-regression && inputs.branch == 'latest_stable' ) || github.event.schedule == '0 5 * * *' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 60
@@ -447,7 +447,7 @@ jobs:
     - uses: ./.github/workflows/composite-actions/regression-tests
 
   regression_tests_latest_stable_minus_one:
-    name: ${{ vars.LATEST_STABLE_MINUS_ONE_BRANCH }} regression tests (${{ matrix.kube-e2e-test-type }})
+    name: ${{ vars.LATEST_STABLE_MINUS_ONE_BRANCH }} regression tests (${{ matrix.kube-e2e-test-type }} - ${{ matrix.kube-version.kubectl }})
     if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-regression && inputs.branch == 'latest_stable_minus_one' ) || github.event.schedule == '0 6 * * 1' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 60
@@ -476,7 +476,7 @@ jobs:
       - uses: ./.github/workflows/composite-actions/regression-tests
 
   regression_tests_latest_stable_minus_two:
-    name: ${{ vars.LATEST_STABLE_MINUS_TWO_BRANCH }} regression tests (${{ matrix.kube-e2e-test-type }})
+    name: ${{ vars.LATEST_STABLE_MINUS_TWO_BRANCH }} regression tests (${{ matrix.kube-e2e-test-type }} - ${{ matrix.kube-version.kubectl }})
     if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-regression && inputs.branch == 'latest_stable_minus_two' ) || github.event.schedule == '0 7 * * 1' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 60
