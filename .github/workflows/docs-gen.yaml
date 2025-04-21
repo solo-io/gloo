@@ -1,16 +1,19 @@
 name: Docs
 
 env:
+    # ON_LTS_UPDATE - bump lts version in the repo variables
+    MIN_SCANNED_VERSION: ${{ vars.LATEST_STABLE_MINUS_THREE_BRANCH }}  # ⚠️ you should also change trivy-analysis-scheduled.yaml ⚠️
+
     SLACK_DEBUG_TESTING: false      # when set to "true", send notifications to #slack-integration-testing.  Otherwise, post to #edge-team-bots
-    MIN_SCANNED_VERSION: 'v1.15.0'  # ⚠️ you should also change trivy-analysis-scheduled.yaml ⚠️
 on:
   push:
     branches:
     - 'main'
+    # ON_LTS_UPDATE - bump version
+    - 'v1.19.x'
     - 'v1.18.x'
     - 'v1.17.x'
     - 'v1.16.x'
-    - 'v1.15.x'
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
     branches:
