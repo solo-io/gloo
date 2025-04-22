@@ -1,0 +1,5 @@
+changelog:
+  - type: NON_USER_FACING
+    issue: https://github.com/solo-io/solo-projects/issues/8008
+    description: |
+      Moved the AI Transformation from inja template to C++. So, updated the transformation proto file from envoy-gloo. No user facing functional changes. 
