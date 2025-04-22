@@ -81,7 +81,7 @@ func (p *plugin) ApplyListenerPlugin(
 ) error {
 	// attachedOption represents the ListenerOptions targeting the Gateway on which this listener resides, and/or
 	// the ListenerOptions which specifies this listener in section name
-	attachedOptions, err := p.lisOptQueries.GetAttachedListenerOptions(ctx, listenerCtx.GwListener, listenerCtx.Gateway, listenerCtx.ListenerSet)
+	attachedOptions, _, err := p.lisOptQueries.GetAttachedListenerOptions(ctx, listenerCtx.GwListener, listenerCtx.Gateway, listenerCtx.ListenerSet)
 	if err != nil {
 		return err
 	}
@@ -244,29 +244,17 @@ func extractListenerOptionsErrors(
 	proxyReport *validation.ProxyReport,
 ) map[types.NamespacedName][]*validation.HttpListenerReport_Error {
 	listenerErrors := make(map[types.NamespacedName][]*validation.HttpListenerReport_Error)
-	listenerReports := getAllListenerReports(proxyReport.GetListenerReports())
-	fmt.Printf("Processing all listener reports: %v\n", listenerReports)
+	httpListenerReports := getAllHttpListenerReports(proxyReport.GetListenerReports())
+	fmt.Printf("Processing all listener reports: %v\n", httpListenerReports)
 
-	for _, lr := range listenerReports {
-		fmt.Printf("Processing listener report: %s\n", lr)
+	for _, hlr := range httpListenerReports {
+		fmt.Printf("Processing listener report: %s\n", hlr)
 
-		alr := lr.GetAggregateListenerReport()
-		if alr == nil {
-			fmt.Printf("No aggregate listener report found\n")
-			continue
-		}
+		for _, hlerr := range hlr.GetErrors() {
+			fmt.Printf("Processing HTTP listener report: %s\n", hlerr)
 
-		fmt.Printf("Processing aggregate listener report: %s\n", alr)
-
-		for _, hlr := range alr.GetHttpListenerReports() {
-			for _, hlerr := range hlr.GetErrors() {
-				fmt.Printf("Processing HTTP listener report: %s\n", hlerr)
-
-				if loKey, ok := extractListenerOptionSourceKeys(hlerr); ok {
-					errors := listenerErrors[loKey]
-					errors = append(errors, hlerr)
-					listenerErrors[loKey] = errors
-				}
+			if loKey, ok := extractListenerOptionSourceKeys(hlerr); ok {
+				listenerErrors[loKey] = append(listenerErrors[loKey], hlerr)
 			}
 		}
 	}
@@ -274,10 +262,12 @@ func extractListenerOptionsErrors(
 	return listenerErrors
 }
 
-func getAllListenerReports(listenerReports []*validation.ListenerReport) []*validation.ListenerReport {
-	allReports := make([]*validation.ListenerReport, 0)
+func getAllHttpListenerReports(listenerReports []*validation.ListenerReport) []*validation.HttpListenerReport {
+	allReports := make([]*validation.HttpListenerReport, 0)
 	for _, lr := range listenerReports {
-		allReports = append(allReports, lr)
+		for _, hlr := range lr.GetAggregateListenerReport().GetHttpListenerReports() {
+			allReports = append(allReports, hlr)
+		}
 	}
 	return allReports
 }

@@ -7,6 +7,10 @@
 package v1
 
 import (
+	reflect "reflect"
+	sync "sync"
+	unsafe "unsafe"
+
 	aws "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/aws"
 	azure "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/azure"
 	grpc "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/grpc"
@@ -14,9 +18,6 @@ import (
 	_ "github.com/solo-io/protoc-gen-ext/extproto"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
-	reflect "reflect"
-	sync "sync"
-	unsafe "unsafe"
 )
 
 const (

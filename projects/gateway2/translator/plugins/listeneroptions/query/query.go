@@ -7,7 +7,9 @@ import (
 	solokubev1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1/kube/apis/gateway.solo.io/v1"
 	"github.com/solo-io/gloo/projects/gateway2/translator/plugins/utils"
 	"github.com/solo-io/gloo/projects/gateway2/wellknown"
+	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	skv2corev1 "github.com/solo-io/skv2/pkg/api/core.skv2.solo.io/v1"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"k8s.io/apimachinery/pkg/fields"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
@@ -36,7 +38,7 @@ type ListenerOptionQueries interface {
 		listener *gwv1.Listener,
 		parentGw *gwv1.Gateway,
 		parentListenerSet *apixv1a1.XListenerSet,
-	) ([]*solokubev1.ListenerOption, error)
+	) ([]*solokubev1.ListenerOption, []*gloov1.SourceMetadata_SourceRef, error)
 }
 
 type listenerOptionQueries struct {
@@ -64,9 +66,9 @@ func (r *listenerOptionQueries) GetAttachedListenerOptions(
 	listener *gwv1.Listener,
 	parentGw *gwv1.Gateway,
 	parentListenerSet *apixv1a1.XListenerSet,
-) ([]*solokubev1.ListenerOption, error) {
+) ([]*solokubev1.ListenerOption, []*gloov1.SourceMetadata_SourceRef, error) {
 	if parentGw.GetName() == "" || parentGw.GetNamespace() == "" {
-		return nil, fmt.Errorf("parent gateway must have name and namespace; received name: %s, namespace: %s", parentGw.GetName(), parentGw.GetNamespace())
+		return nil, nil, fmt.Errorf("parent gateway must have name and namespace; received name: %s, namespace: %s", parentGw.GetName(), parentGw.GetNamespace())
 	}
 
 	nnk := utils.NamespacedNameKind{
@@ -82,7 +84,7 @@ func (r *listenerOptionQueries) GetAttachedListenerOptions(
 		client.MatchingFieldsSelector{Selector: fields.OneTermEqualSelector(ListenerOptionTargetField, nnk.String())},
 		client.InNamespace(parentGw.GetNamespace()),
 	); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	listListenerSet := &solokubev1.ListenerOptionList{}
@@ -98,19 +100,24 @@ func (r *listenerOptionQueries) GetAttachedListenerOptions(
 			client.MatchingFieldsSelector{Selector: fields.OneTermEqualSelector(ListenerOptionTargetField, nnkListenerSet.String())},
 			client.InNamespace(parentListenerSet.GetNamespace()),
 		); err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 	}
 
 	allItems := append(list.Items, listListenerSet.Items...)
 	if len(allItems) == 0 {
-		return nil, nil
+		return nil, nil, nil
 	}
 
 	policies := buildWrapperType(allItems)
 	orderedPolicies := utils.GetPrioritizedListenerPolicies(policies, listener, parentGw.Name, parentListenerSet)
 
-	return orderedPolicies, nil
+	var sources []*gloov1.SourceMetadata_SourceRef
+	for _, policy := range orderedPolicies {
+		sources = append(sources, listenerOptionToSourceRef(policy))
+	}
+
+	return orderedPolicies, sources, nil
 }
 
 func buildWrapperType(
@@ -126,4 +133,17 @@ func buildWrapperType(
 		policies = append(policies, policy)
 	}
 	return policies
+}
+
+func listenerOptionToSourceRef(opt *solokubev1.ListenerOption) *gloov1.SourceMetadata_SourceRef {
+	fmt.Printf("Converting listener option to source ref: %s\n", opt.GetName())
+
+	return &gloov1.SourceMetadata_SourceRef{
+		ResourceRef: &core.ResourceRef{
+			Name:      opt.GetName(),
+			Namespace: opt.GetNamespace(),
+		},
+		ResourceKind:       opt.GetObjectKind().GroupVersionKind().Kind,
+		ObservedGeneration: opt.GetGeneration(),
+	}
 }

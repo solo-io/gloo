@@ -193,15 +193,29 @@ func reportPluginProcessingErrorOrWarning(
 func reportHTTPListenerProcessingError(
 	params plugins.Params,
 	report *validationapi.HttpListenerReport,
+	in *v1.HttpListener,
 	err error,
 ) {
 	doReportErr := func() {
+		fmt.Printf("reportHTTPListenerProcessingError: %v\n", err)
+
+		if staticMetadata := in.GetMetadataStatic(); staticMetadata != nil {
+			fmt.Printf("reportHTTPListenerProcessingError: staticMetadata: %v\n", staticMetadata)
+			validation.AppendHTTPListenerErrorWithMetadata(report,
+				validationapi.HttpListenerReport_Error_ProcessingError,
+				err.Error(),
+				staticMetadata,
+			)
+		}
+
 		validation.AppendHTTPListenerError(report,
 			validationapi.HttpListenerReport_Error_ProcessingError,
 			err.Error())
 	}
 
 	doReportWarning := func() {
+		fmt.Printf("reportHTTPListenerProcessingWarning: %v\n", err)
+
 		validation.AppendHTTPListenerWarning(report,
 			validationapi.HttpListenerReport_Warning_Type(validationapi.HttpListenerReport_Warning_InvalidDestinationWarning),
 			err.Error())
@@ -216,12 +230,14 @@ func reportTCPListenerProcessingError(
 	err error,
 ) {
 	doReportErr := func() {
+		fmt.Printf("reportTCPListenerProcessingError: %v\n", err)
 		validation.AppendTCPListenerError(report,
 			validationapi.TcpListenerReport_Error_ProcessingError,
 			err.Error())
 	}
 
 	doReportWarning := func() {
+		fmt.Printf("reportTCPListenerProcessingWarning: %v\n", err)
 		validation.AppendTCPListenerWarning(report,
 			validationapi.TcpListenerReport_Warning_InvalidDestinationWarning,
 			err.Error())
