@@ -1,0 +1,7 @@
+changelog:
+- type: NON_USER_FACING
+  description: >-
+    GHAs use repo variables for LTS branches
+
+    skipCI-kube-tests:true
+    skipCI-docs-build:true
