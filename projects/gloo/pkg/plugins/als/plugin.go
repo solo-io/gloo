@@ -2,6 +2,7 @@ package als
 
 import (
 	"context"
+	"fmt"
 
 	envoy_config_cluster_v3 "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
 	envoy_config_endpoint_v3 "github.com/envoyproxy/go-control-plane/envoy/config/endpoint/v3"
@@ -61,6 +62,8 @@ func (p *plugin) ProcessHcmNetworkFilter(params plugins.Params, parentListener *
 		return nil
 	}
 
+	fmt.Printf("ProcessHcmNetworkFilter alsSettings: %v\n", alsSettings)
+
 	var err error
 	out.AccessLog, err = ProcessAccessLogPlugins(params, alsSettings, out.GetAccessLog())
 	if err := DetectUnusefulCmds(Hcm, out.GetAccessLog()); err != nil {
@@ -78,6 +81,8 @@ func (p *plugin) ProcessListener(params plugins.Params, parentListener *v1.Liste
 	if alsSettings == nil {
 		return nil
 	}
+
+	fmt.Printf("ProcessListener alsSettings: %v\n", alsSettings)
 
 	var err error
 	out.AccessLog, err = ProcessAccessLogPlugins(params, alsSettings, out.GetAccessLog())

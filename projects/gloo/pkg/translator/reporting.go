@@ -193,11 +193,24 @@ func reportPluginProcessingErrorOrWarning(
 func reportHTTPListenerProcessingError(
 	params plugins.Params,
 	report *validationapi.HttpListenerReport,
+	inParent *v1.Listener,
 	in *v1.HttpListener,
 	err error,
 ) {
 	doReportErr := func() {
 		fmt.Printf("reportHTTPListenerProcessingError: %v\n", err)
+		fmt.Printf("reportHTTPListenerProcessingError: in: %v\n", in)
+
+		if inParent != nil {
+			fmt.Printf("reportHTTPListenerProcessingError: inParent staticMetadata: %v\n", inParent)
+			if staticMetadata := inParent.GetMetadataStatic(); staticMetadata != nil {
+				validation.AppendHTTPListenerErrorWithMetadata(report,
+					validationapi.HttpListenerReport_Error_ProcessingError,
+					err.Error(),
+					staticMetadata,
+				)
+			}
+		}
 
 		if staticMetadata := in.GetMetadataStatic(); staticMetadata != nil {
 			fmt.Printf("reportHTTPListenerProcessingError: staticMetadata: %v\n", staticMetadata)

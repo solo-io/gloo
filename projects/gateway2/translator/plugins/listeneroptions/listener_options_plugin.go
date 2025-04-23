@@ -17,11 +17,8 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/grpc/validation"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	glooutils "github.com/solo-io/gloo/projects/gloo/pkg/utils"
-	"github.com/solo-io/gloo/projects/gloo/pkg/xds"
-	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
-	"go.uber.org/zap"
 	"istio.io/istio/pkg/kube/krt"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -81,7 +78,7 @@ func (p *plugin) ApplyListenerPlugin(
 ) error {
 	// attachedOption represents the ListenerOptions targeting the Gateway on which this listener resides, and/or
 	// the ListenerOptions which specifies this listener in section name
-	attachedOptions, _, err := p.lisOptQueries.GetAttachedListenerOptions(ctx, listenerCtx.GwListener, listenerCtx.Gateway, listenerCtx.ListenerSet)
+	attachedOptions, err := p.lisOptQueries.GetAttachedListenerOptions(ctx, listenerCtx.GwListener, listenerCtx.Gateway, listenerCtx.ListenerSet)
 	if err != nil {
 		return err
 	}
@@ -130,11 +127,7 @@ func (p *plugin) InitStatusPlugin(
 	statusCtx *plugins.StatusContext,
 ) error {
 	for _, proxyWithReports := range statusCtx.ProxiesWithReports {
-		fmt.Printf("Processing proxy reports: %s\n", proxyWithReports.Reports.ProxyReport)
-
 		listenerOptionsErrors := extractListenerOptionsErrors(proxyWithReports.Reports.ProxyReport)
-		fmt.Printf("ListenerOptions errors: %v\n", listenerOptionsErrors)
-
 		for loKey := range listenerOptionsErrors {
 			p.legacyStatusCache[loKey] = newLegacyStatus()
 		}
@@ -172,11 +165,7 @@ func (p *plugin) ApplyStatusPlugin(
 	ctx context.Context,
 	statusCtx *plugins.StatusContext,
 ) error {
-	logger := contextutils.LoggerFrom(ctx).Desugar()
-
 	for _, proxyWithReport := range statusCtx.ProxiesWithReports {
-		proxyStatus := p.statusReporter.StatusFromReport(proxyWithReport.Reports.ResourceReports[proxyWithReport.Proxy], nil)
-
 		loErrors := extractListenerOptionsErrors(proxyWithReport.Reports.ProxyReport)
 		for loKey, loerrs := range loErrors {
 			statusForLO, ok := p.legacyStatusCache[loKey]
@@ -184,12 +173,6 @@ func (p *plugin) ApplyStatusPlugin(
 				continue
 			}
 
-			// set the subresource status for this specific proxy on the RO
-			thisSubresourceStatus := statusForLO.subresourceStatus
-			thisSubresourceStatus[xds.SnapshotCacheKey(proxyWithReport.Proxy)] = proxyStatus
-			statusForLO.subresourceStatus = thisSubresourceStatus
-
-			// add any routeErrors from this Proxy translation
 			statusForLO.errors = append(statusForLO.errors, loerrs...)
 
 			// update the cache
@@ -221,12 +204,12 @@ func (p *plugin) ApplyStatusPlugin(
 		listenerOptionReport.Accept(loObjSk)
 
 		// add any errors
-		for i, loerr := range status.errors {
-			loErr := errors.New(loerr.GetReason())
-			logger.Debug("adding error to ListenerOption status", zap.Stringer("ListenerOption", loKey),
-				zap.Error(loErr), zap.Int("errorIndex", i))
-			listenerOptionReport.AddError(loObjSk, loErr)
+		for _, loerr := range status.errors {
+			listenerOptionReport.AddError(loObjSk, errors.New(loerr.GetReason()))
 		}
+
+		// add any warnings
+		listenerOptionReport.AddWarnings(loObjSk, status.warnings...)
 
 		// actually write out the reports
 		err := p.statusReporter.WriteReports(ctx, listenerOptionReport, status.subresourceStatus)
@@ -245,14 +228,9 @@ func extractListenerOptionsErrors(
 ) map[types.NamespacedName][]*validation.HttpListenerReport_Error {
 	listenerErrors := make(map[types.NamespacedName][]*validation.HttpListenerReport_Error)
 	httpListenerReports := getAllHttpListenerReports(proxyReport.GetListenerReports())
-	fmt.Printf("Processing all listener reports: %v\n", httpListenerReports)
 
 	for _, hlr := range httpListenerReports {
-		fmt.Printf("Processing listener report: %s\n", hlr)
-
 		for _, hlerr := range hlr.GetErrors() {
-			fmt.Printf("Processing HTTP listener report: %s\n", hlerr)
-
 			if loKey, ok := extractListenerOptionSourceKeys(hlerr); ok {
 				listenerErrors[loKey] = append(listenerErrors[loKey], hlerr)
 			}
@@ -272,17 +250,14 @@ func getAllHttpListenerReports(listenerReports []*validation.ListenerReport) []*
 	return allReports
 }
 
-func extractListenerOptionSourceKeys(listenerError *validation.HttpListenerReport_Error) (types.NamespacedName, bool) {
-	metadata := listenerError.GetMetadata()
+func extractListenerOptionSourceKeys(hlre *validation.HttpListenerReport_Error) (types.NamespacedName, bool) {
+	metadata := hlre.GetMetadata()
 	if metadata == nil {
-		fmt.Printf("No metadata found: %v\n", listenerError)
 		return types.NamespacedName{}, false
 	}
 
 	for _, src := range metadata.GetSources() {
 		resourceKind := src.GetResourceKind()
-		fmt.Printf("Resource kind: %s\n", resourceKind)
-
 		if resourceKind == sologatewayv1.ListenerOptionGVK.Kind {
 			resRef := src.GetResourceRef()
 			return types.NamespacedName{
