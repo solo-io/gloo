@@ -17,11 +17,15 @@ on:
   # Day of the month [1,31]
   # Month of the year [1,12]
   # Day of the week ([0,6] with 0=Sunday)
+
+  # ON_LTS_UPDATE: Update schedule. The easiest way to do this is probably to update the comment of the oldest branch here to reflect the new LTS branch,
+  #  and then use that schedule in the "if" for the new test run job for the LTS. This way, no other schedules need to be changed.
+  #  There is no need for the LTS branches to run in any specfic order.
   schedule:
     - cron: "0 5 * * *" # every day @ 05:00 UTC, run tests against latest main
-    - cron: "0 6 * * 1" # monday    @ 06:00 UTC, run expanded tests against LATEST_STABLE_BRANCH
-    - cron: "0 7 * * 1" # monday    @ 07:00 UTC, run expanded tests against LATEST_STABLE_MINUS_ONE_BRANCH
-    - cron: "0 8 * * 1" # monday    @ 08:00 UTC, run expanded tests against LATEST_STABLE_MINUS_TWO_BRANCH
+    - cron: "0 6 * * 1" # monday    @ 06:00 UTC, run expanded tests against v1.19.x
+    - cron: "0 7 * * 1" # monday    @ 07:00 UTC, run expanded tests against v1.18.x
+    - cron: "0 8 * * 1" # monday    @ 08:00 UTC, run expanded tests against v1.17.x
   workflow_dispatch:
     inputs:
       branch:
@@ -29,9 +33,11 @@ on:
         type: choice
         options:
           - main
-          - latest_stable
-          - latest_stable_minus_one
-          - latest_stable_minus_two
+            # ON_LTS_UPDATE: Add new LTS branch here
+            # We decided to go with branch names instead of latest_stable based on the discussion [here](https://solo-io-corp.slack.com/archives/C0899JVG486/p1745354465272779)
+          - v1.19.x
+          - v1.18.x
+          - v1.17.x
           - workflow_initiating_branch
       run-regression:
         description: "Run regression tests"
@@ -184,9 +190,9 @@ jobs:
           matrix-label: ${{ matrix.version-files.label }}
 
   # Reminder: when setting up the job next release branch, copy from "end_to_end_tests_main" not the previous release job as configuration may have changed
-  end_to_end_tests_latest_stable:
-    name: End-to-End (branch=${{ vars.LATEST_STABLE_BRANCH }}, cluster=${{ matrix.test.cluster-name }}, version=${{ matrix.version-files.label }} )
-    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-kubernetes-end-to-end && inputs.branch == 'latest_stable' ) || github.event.schedule == '0 6 * * 1' }}
+  end_to_end_tests_v1_19_x:
+    name: End-to-End (branch=v1.19.x, cluster=${{ matrix.test.cluster-name }}, version=${{ matrix.version-files.label }} )
+    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-kubernetes-end-to-end && inputs.branch == 'v1.19.x' ) || github.event.schedule == '0 6 * * 1' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 180
     strategy:
@@ -212,7 +218,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ vars.LATEST_STABLE_BRANCH }}
+          ref: v1.19.x
       # The dotenv action is used to load key-value pairs from files.
       # In this case, the file is specified in the matrix and will contain the versions of the tools to use
       - name: Dotenv Action
@@ -246,9 +252,9 @@ jobs:
           istio-version: ${{ steps.dotenv.outputs.istio_version }}
           matrix-label: ${{ matrix.version-files.label }}
 
-  end_to_end_tests_latest_stable_minus_one:
-    name: End-to-End (branch=${{ vars.LATEST_STABLE_MINUS_ONE_BRANCH }}, cluster=${{ matrix.test.cluster-name }}, version=${{ matrix.version-files.label }} )
-    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-kubernetes-end-to-end && inputs.branch == 'latest_stable_minus_one' ) || github.event.schedule == '0 7 * * 1' }}
+  end_to_end_tests_v1_18_x:
+    name: End-to-End (branch=v1.18.x, cluster=${{ matrix.test.cluster-name }}, version=${{ matrix.version-files.label }} )
+    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-kubernetes-end-to-end && inputs.branch == 'v1.18.x' ) || github.event.schedule == '0 7 * * 1' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 180
     strategy:
@@ -274,7 +280,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ vars.LATEST_STABLE_MINUS_ONE_BRANCH }}
+          ref: v1.18.x
       # The dotenv action is used to load key-value pairs from files.
       # In this case, the file is specified in the matrix and will contain the versions of the tools to use
       - name: Dotenv Action
@@ -308,9 +314,9 @@ jobs:
           istio-version: ${{ steps.dotenv.outputs.istio_version }}
           matrix-label: ${{ matrix.version-files.label }}
 
-  end_to_end_tests_latest_stable_minus_two:
-    name: End-to-End (branch=${{ vars.LATEST_STABLE_MINUS_TWO_BRANCH }}, cluster=${{ matrix.test.cluster-name }}, version=${{ matrix.version-files.label }} )
-    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-kubernetes-end-to-end && inputs.branch == 'latest_stable_minus_two' ) || github.event.schedule == '0 8 * * 1' }}
+  end_to_end_tests_v1_17_x:
+    name: End-to-End (branch=v1.17.x, cluster=${{ matrix.test.cluster-name }}, version=${{ matrix.version-files.label }} )
+    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-kubernetes-end-to-end && inputs.branch == 'v1.17.x' ) || github.event.schedule == '0 8 * * 1' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 150
     strategy:
@@ -336,7 +342,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ vars.LATEST_STABLE_MINUS_TWO_BRANCH }}
+          ref: v1.17.x
       # The dotenv action is used to load key-value pairs from files.
       # In this case, the file is specified in the matrix and will contain the versions of the tools to use
       - name: Dotenv Action
@@ -417,9 +423,9 @@ jobs:
         ref: main
     - uses: ./.github/workflows/composite-actions/regression-tests
 
-  regression_tests_latest_stable:
-    name: ${{ vars.LATEST_STABLE_BRANCH }} regression tests (${{ matrix.kube-e2e-test-type }} - ${{ matrix.kube-version.kubectl }})
-    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-regression && inputs.branch == 'latest_stable' ) || github.event.schedule == '0 6 * * 1' }}
+  regression_tests_v1_19_x:
+    name: v1.19.x regression tests (${{ matrix.kube-e2e-test-type }} - ${{ matrix.kube-version.kubectl }})
+    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-regression && inputs.branch == 'v1.19.x' ) || github.event.schedule == '0 6 * * 1' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     # Previously, there was an environment variable, RELEASED_VERSION="LATEST" set.  This made use of some internal code:
@@ -443,12 +449,12 @@ jobs:
     steps:
     - uses: actions/checkout@v4
       with:
-        ref: ${{ vars.LATEST_STABLE_BRANCH }}
+        ref: v1.19.x
     - uses: ./.github/workflows/composite-actions/regression-tests
 
-  regression_tests_latest_stable_minus_one:
-    name: ${{ vars.LATEST_STABLE_MINUS_ONE_BRANCH }} regression tests (${{ matrix.kube-e2e-test-type }} - ${{ matrix.kube-version.kubectl }})
-    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-regression && inputs.branch == 'latest_stable_minus_one' ) || github.event.schedule == '0 7 * * 1' }}
+  regression_tests_v1_18_x:
+    name: v1.18.x regression tests (${{ matrix.kube-e2e-test-type }} - ${{ matrix.kube-version.kubectl }})
+    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-regression && inputs.branch == 'v1.18.x' ) || github.event.schedule == '0 7 * * 1' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     # Previously, there was an environment variable, RELEASED_VERSION="LATEST" set.  This made use of some internal code:
@@ -472,12 +478,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ vars.LATEST_STABLE_MINUS_ONE_BRANCH }}
+          ref: v1.18.x
       - uses: ./.github/workflows/composite-actions/regression-tests
 
-  regression_tests_latest_stable_minus_two:
-    name: ${{ vars.LATEST_STABLE_MINUS_TWO_BRANCH }} regression tests (${{ matrix.kube-e2e-test-type }} - ${{ matrix.kube-version.kubectl }})
-    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-regression && inputs.branch == 'latest_stable_minus_two' ) || github.event.schedule == '0 8 * * 1' }}
+  regression_tests_v1_17_x:
+    name: v1.17.x regression tests (${{ matrix.kube-e2e-test-type }} - ${{ matrix.kube-version.kubectl }})
+    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-regression && inputs.branch == 'v1.17.x' ) || github.event.schedule == '0 8 * * 1' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     strategy:
@@ -490,7 +496,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ vars.LATEST_STABLE_MINUS_TWO_BRANCH }}
+          ref: v1.17.x
       - uses: ./.github/workflows/composite-actions/regression-tests
 
   performance_tests_on_demand:
@@ -522,45 +528,45 @@ jobs:
       - uses: ./.github/workflows/composite-actions/prep-go-runner
       - uses: ./.github/workflows/composite-actions/performance-tests
 
-  performance_tests_latest_stable:
-    name: ${{ vars.LATEST_STABLE_BRANCH }} performance tests"
+  performance_tests_v1_19_x:
+    name: v1.19.x performance tests"
     # Instead of false, we would want to define: env.ENABLE_PERFORMANCE_TESTS == 'true'
     # Due to https://github.com/actions/runner/issues/1189#issuecomment-880110759, we cannot use env variables in job.if
-    if: ${{ false && ((github.event_name == 'workflow_dispatch' && inputs.run-performance && inputs.branch == 'latest_stable' ) || github.event.schedule == '0 6 * * 1') }}
+    if: ${{ false && ((github.event_name == 'workflow_dispatch' && inputs.run-performance && inputs.branch == 'v1.19.x' ) || github.event.schedule == '0 6 * * 1') }}
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ vars.LATEST_STABLE_BRANCH }}
+          ref: v1.19.x
       - uses: ./.github/workflows/composite-actions/prep-go-runner
       - uses: ./.github/workflows/composite-actions/performance-tests
 
-  performance_tests_latest_stable_minus_one:
-    name: ${{ vars.LATEST_STABLE_MINUS_ONE_BRANCH }} performance tests"
+  performance_tests_v1_18_x:
+    name: v1.18.x performance tests"
     # Instead of false, we would want to define: env.ENABLE_PERFORMANCE_TESTS == 'true'
     # Due to https://github.com/actions/runner/issues/1189#issuecomment-880110759, we cannot use env variables in job.if
-    if: ${{ false && ((github.event_name == 'workflow_dispatch' && inputs.run-performance && inputs.branch == 'latest_stable_minus_one' ) || github.event.schedule == '0 7 * * 1') }}
+    if: ${{ false && ((github.event_name == 'workflow_dispatch' && inputs.run-performance && inputs.branch == 'v1.18.x' ) || github.event.schedule == '0 7 * * 1') }}
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ vars.LATEST_STABLE_MINUS_ONE_BRANCH }}
+          ref: v1.18.x
       - uses: ./.github/workflows/composite-actions/prep-go-runner
       - uses: ./.github/workflows/composite-actions/performance-tests
 
-  performance_tests_latest_stable_minus_two:
-    name: ${{ vars.LATEST_STABLE_MINUS_TWO_BRANCH }} performance tests"
+  performance_tests_v1_17_x:
+    name: v1.17.x performance tests"
     # Instead of false, we would want to define: env.ENABLE_PERFORMANCE_TESTS == 'true'
     # Due to https://github.com/actions/runner/issues/1189#issuecomment-880110759, we cannot use env variables in job.if
-    if: ${{ false && ((github.event_name == 'workflow_dispatch' && inputs.run-performance && inputs.branch == 'latest_stable_minus_two' ) || github.event.schedule == '0 8 * * 1') }}
+    if: ${{ false && ((github.event_name == 'workflow_dispatch' && inputs.run-performance && inputs.branch == 'v1.17.x' ) || github.event.schedule == '0 8 * * 1') }}
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ vars.LATEST_STABLE_MINUS_TWO_BRANCH }}
+          ref: v1.17.x
       - uses: ./.github/workflows/composite-actions/prep-go-runner
       - uses: ./.github/workflows/composite-actions/performance-tests
 
@@ -582,9 +588,9 @@ jobs:
         ref: main
     - uses: ./.github/workflows/composite-actions/kube-gateway-api-conformance-tests
 
-  kube_gateway_api_conformance_tests_latest_stable:
-    name: Conformance (branch=${{ vars.LATEST_STABLE_BRANCH }}, type=Kubernetes Gateway API, version=${{matrix.kube-version.node}} )
-    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-conformance && inputs.branch == 'latest_stable' ) || github.event.schedule == '0 6 * * 1' }}
+  kube_gateway_api_conformance_tests_v1_19_x:
+    name: Conformance (branch=v1.19.x, type=Kubernetes Gateway API, version=${{matrix.kube-version.node}} )
+    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-conformance && inputs.branch == 'v1.19.x' ) || github.event.schedule == '0 6 * * 1' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     strategy:
@@ -597,12 +603,12 @@ jobs:
     steps:
     - uses: actions/checkout@v4
       with:
-        ref: ${{ vars.LATEST_STABLE_BRANCH }}
+        ref: v1.19.x
     - uses: ./.github/workflows/composite-actions/kube-gateway-api-conformance-tests
 
-  kube_gateway_api_conformance_tests_latest_stable_minus_one:
-    name: Conformance (branch=${{ vars.LATEST_STABLE_MINUS_ONE_BRANCH }}, type=Kubernetes Gateway API, version=${{matrix.kube-version.node}} )
-    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-conformance && inputs.branch == 'latest_stable_minus_one' ) || github.event.schedule == '0 7 * * 1' }}
+  kube_gateway_api_conformance_tests_v1_18_x:
+    name: Conformance (branch=v1.18.x, type=Kubernetes Gateway API, version=${{matrix.kube-version.node}} )
+    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-conformance && inputs.branch == 'v1.18.x' ) || github.event.schedule == '0 7 * * 1' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     strategy:
@@ -615,12 +621,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ vars.LATEST_STABLE_MINUS_ONE_BRANCH }}
+          ref: v1.18.x
       - uses: ./.github/workflows/composite-actions/kube-gateway-api-conformance-tests
 
-  kube_gateway_api_conformance_tests_latest_stable_minus_two:
-    name: Conformance (branch=${{ vars.LATEST_STABLE_MINUS_TWO_BRANCH }}, type=Kubernetes Gateway API, version=${{matrix.kube-version.node}} )
-    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-conformance && inputs.branch == 'latest_stable_minus_two' ) || github.event.schedule == '0 8 * * 1' }}
+  kube_gateway_api_conformance_tests_v1_17_x:
+    name: Conformance (branch=v1.17.x, type=Kubernetes Gateway API, version=${{matrix.kube-version.node}} )
+    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-conformance && inputs.branch == 'v1.17.x' ) || github.event.schedule == '0 8 * * 1' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     strategy:
@@ -633,7 +639,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ vars.LATEST_STABLE_MINUS_TWO_BRANCH }}
+          ref: v1.17.x
       - uses: ./.github/workflows/composite-actions/kube-gateway-api-conformance-tests
 
   publish_results:
@@ -642,21 +648,21 @@ jobs:
     if: ${{ always() }}
     needs:
       - end_to_end_tests_main
-      - end_to_end_tests_latest_stable
-      - end_to_end_tests_latest_stable_minus_one
-      - end_to_end_tests_latest_stable_minus_two
+      - end_to_end_tests_v1_19_x
+      - end_to_end_tests_v1_18_x
+      - end_to_end_tests_v1_17_x
       - regression_tests_main
-      - regression_tests_latest_stable
-      - regression_tests_latest_stable_minus_one
-      - regression_tests_latest_stable_minus_two
+      - regression_tests_v1_19_x
+      - regression_tests_v1_18_x
+      - regression_tests_v1_17_x
       - performance_tests_main
-      - performance_tests_latest_stable
-      - performance_tests_latest_stable_minus_one
-      - performance_tests_latest_stable_minus_two
+      - performance_tests_v1_19_x
+      - performance_tests_v1_18_x
+      - performance_tests_v1_17_x
       - kube_gateway_api_conformance_tests_main
-      - kube_gateway_api_conformance_tests_latest_stable
-      - kube_gateway_api_conformance_tests_latest_stable_minus_one
-      - kube_gateway_api_conformance_tests_latest_stable_minus_two
+      - kube_gateway_api_conformance_tests_v1_19_x
+      - kube_gateway_api_conformance_tests_v1_18_x
+      - kube_gateway_api_conformance_tests_v1_17_x
       - end_to_end_tests_on_demand
       - regression_tests_on_demand
       - performance_tests_on_demand
@@ -666,6 +672,7 @@ jobs:
         id: compute-preamble
         shell: bash
         run: |
+          # ON_LTS_UPDATE - update for new branch
           echo "SLACK_CHANNEL=C04CJMXAH7A" >> $GITHUB_ENV     #edge-nightly-results by default
           if [[ ${{github.event_name == 'workflow_dispatch'}} = true ]]; then
             trigger="Gloo OSS Manual run"
@@ -676,13 +683,13 @@ jobs:
             branch="main"
           elif [[ ${{github.event.schedule == '0 6 * * 1'}} = true ]]; then
             trigger="Gloo OSS weeklies"
-            branch="${{ vars.LATEST_STABLE_BRANCH }}"
+            branch="v1.19.x"
           elif [[ ${{github.event.schedule == '0 7 * * 1'}} = true ]]; then
             trigger="Gloo OSS weeklies"
-            branch="${{ vars.LATEST_STABLE_MINUS_ONE_BRANCH }}"
+            branch="v1.18.x"
           elif [[ ${{github.event.schedule == '0 8 * * 1'}} = true ]]; then
             trigger="Gloo OSS nightlies"
-            branch="${{ vars.LATEST_STABLE_MINUS_TWO_BRANCH }}"
+            branch="v1.17.x"
           fi
           preamble="$trigger ($branch)"
           echo "Setting PREAMBLE as $preamble"
