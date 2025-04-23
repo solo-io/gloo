@@ -410,15 +410,9 @@ func createOtelCollectorCluster(
 			},
 		}
 
-		fmt.Printf("rolds: sslConfig: %v\n", collector.GetSslConfig())
-
 		if sslConfig := collector.GetSslConfig(); sslConfig != nil {
-			fmt.Printf("rolds: sslConfig again: %v\n", sslConfig)
-
 			cfg, err = utils.NewSslConfigTranslator().ResolveUpstreamSslConfig(params.Snapshot.Secrets, sslConfig)
 			if err != nil {
-				fmt.Printf("rolds: sslConfig error: %v\n", err)
-
 				// if we are configured to warn on missing tls secret and we match that error, add a
 				// warning instead of error to the report.
 				if params.Settings.GetGateway().GetValidation().GetWarnMissingTlsSecret().GetValue() &&
@@ -461,6 +455,22 @@ func copyOtelSettings(params plugins.Params, cfg *envoy_al_otel.OpenTelemetryAcc
 		return eris.New("OpenTelemetry service collector must be unset")
 	}
 
+	// check the ssl config and return error if a problem
+	var sslWarning *translator.Warning
+	if sslConfig := collector.GetSslConfig(); sslConfig != nil {
+		_, err := utils.NewSslConfigTranslator().ResolveUpstreamSslConfig(params.Snapshot.Secrets, sslConfig)
+		if err != nil {
+			if params.Settings.GetGateway().GetValidation().GetWarnMissingTlsSecret().GetValue() &&
+				errors.Is(err, utils.SslSecretNotFoundError) {
+				sslWarning = &translator.Warning{
+					Message: err.Error(),
+				}
+			} else {
+				return err
+			}
+		}
+	}
+
 	cfg.CommonConfig = &envoy_al_grpc.CommonGrpcAccessLogConfig{
 		LogName: alsSettings.OpenTelemetryService.GetLogName(),
 		GrpcService: &envoy_core_v3.GrpcService{
@@ -479,24 +489,16 @@ func copyOtelSettings(params plugins.Params, cfg *envoy_al_otel.OpenTelemetryAcc
 	cfg.Body = alsSettings.OpenTelemetryService.GetBody()
 	cfg.Attributes = alsSettings.OpenTelemetryService.GetAttributes()
 
-	if sslConfig := collector.GetSslConfig(); sslConfig != nil {
-		_, err := utils.NewSslConfigTranslator().ResolveUpstreamSslConfig(params.Snapshot.Secrets, sslConfig)
-		if err != nil {
-			fmt.Printf("rolds: sslConfig error in settings: %v\n", err)
-
-			if params.Settings.GetGateway().GetValidation().GetWarnMissingTlsSecret().GetValue() &&
-				errors.Is(err, utils.SslSecretNotFoundError) {
-				return &translator.Warning{
-					Message: err.Error(),
-				}
-			} else {
-				fmt.Printf("rolds: returning error: %v\n", err)
-				return err
-			}
-		}
+	err := cfg.Validate()
+	if err != nil {
+		return err
 	}
 
-	return cfg.Validate()
+	if sslWarning != nil {
+		return sslWarning
+	}
+
+	return nil
 }
 
 func copyFileSettings(cfg *envoy_al_file_v3.FileAccessLog, alsSettings *als.AccessLog_FileSink) error {

@@ -366,27 +366,9 @@ listener with your custom access logging server, it should be reported there.
 
 ## OpenTelemetry Access Logging
 
-Gloo Gateway also supports OpenTelemetry access logging. This feature is available in Gloo Gateway Enterprise starting in `1.19.0`. 
+Gloo Gateway also supports OpenTelemetry access logging. This feature is available in Gloo Gateway starting in `1.19.0`. 
 
 ### Configuring the OpenTelemetry access logger
-
-```yaml
-...
-      - name: access_log_cluster
-        connect_timeout: 5.000s
-        load_assignment:
-            cluster_name: access_log_cluster
-            endpoints:
-            - lb_endpoints:
-              - endpoint:
-                    address:
-                        socket_address:
-                            address: gateway-proxy-access-logger.gloo-system.svc.cluster.local
-                            port_value: 8083
-        http2_protocol_options: {}
-        type: STRICT_DNS
-...
-```
 
 This access logging service can now be used by configuring the **gateway** CRD:
 
@@ -406,13 +388,14 @@ spec:
   options:
     accessLoggingService:
       accessLog:
-        - grpcService:
+        - openTelemetryService:
             logName: example
-            staticClusterName: access_log_cluster
+            collector:
+              endpoint: otel-collector.default.svc.cluster.local:4317
 ```
 
 {{% notice note %}}
-You may want to add additional configuration for the {{% protobuf name="als.options.gloo.solo.io.GrpcService" display="OpenTelemetryService"%}}.
+You may want to add additional configuration for the {{% protobuf name="als.options.gloo.solo.io.OpenTelemetryService" display="openTelemetryService"%}}.
 {{% /notice %}}
 
 ## Configuring multiple access logs 
