@@ -4,10 +4,12 @@ import (
 	"strconv"
 
 	envoyal "github.com/envoyproxy/go-control-plane/envoy/config/accesslog/v3"
+	envoy_core_v3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	envoy_v3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	envoy_config_listener_v3 "github.com/envoyproxy/go-control-plane/envoy/config/listener/v3"
 	envoy_route "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
 	envoyalfile "github.com/envoyproxy/go-control-plane/envoy/extensions/access_loggers/file/v3"
+	envoy_al_otel "github.com/envoyproxy/go-control-plane/envoy/extensions/access_loggers/open_telemetry/v3"
 	envoy_extensions_filters_network_http_connection_manager_v3 "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/http_connection_manager/v3"
 	envoy_types "github.com/envoyproxy/go-control-plane/envoy/type/v3"
 	"github.com/envoyproxy/go-control-plane/pkg/wellknown"
@@ -20,11 +22,11 @@ import (
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	accessLogService "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/als"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
-	"github.com/solo-io/solo-kit/test/matchers"
-
 	. "github.com/solo-io/gloo/projects/gloo/pkg/plugins/als"
 	translatorutil "github.com/solo-io/gloo/projects/gloo/pkg/translator"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+	"github.com/solo-io/solo-kit/test/matchers"
+	otlp_common_v1 "go.opentelemetry.io/proto/otlp/common/v1"
 
 	envoygrpc "github.com/envoyproxy/go-control-plane/envoy/extensions/access_loggers/grpc/v3"
 )
@@ -741,6 +743,86 @@ var _ = Describe("Plugin", func() {
 			})
 		})
 
+		Context("OpenTelemetryService", func() {
+			var (
+				logName              string
+				attributes           *otlp_common_v1.KeyValueList
+				body                 *otlp_common_v1.AnyValue
+				collectorEndpoint    string
+				disableBuiltinLabels bool
+				alsSettings          *accessLogService.AccessLoggingService
+			)
+
+			BeforeEach(func() {
+				logName = "otel-log"
+				attributes = &otlp_common_v1.KeyValueList{
+					Values: []*otlp_common_v1.KeyValue{
+						{
+							Key: "key1",
+							Value: &otlp_common_v1.AnyValue{
+								Value: &otlp_common_v1.AnyValue_StringValue{
+									StringValue: "value1",
+								},
+							},
+						},
+					},
+				}
+				body = &otlp_common_v1.AnyValue{
+					Value: &otlp_common_v1.AnyValue_StringValue{
+						StringValue: "body",
+					},
+				}
+				collectorEndpoint = "otel-collector:4317"
+				disableBuiltinLabels = true
+
+				alsSettings = &accessLogService.AccessLoggingService{
+					AccessLog: []*accessLogService.AccessLog{
+						{
+							OutputDestination: &accessLogService.AccessLog_OpenTelemetryService{
+								OpenTelemetryService: &accessLogService.OpenTelemetryService{
+									LogName: logName,
+									Destination: &accessLogService.OpenTelemetryService_Collector{
+										Collector: &accessLogService.OpenTelemetryGrpcCollector{
+											Endpoint:  collectorEndpoint,
+											Authority: "otel-collector",
+										},
+									},
+									Attributes:           attributes,
+									Body:                 body,
+									DisableBuiltinLabels: disableBuiltinLabels,
+								},
+							},
+						},
+					},
+				}
+			})
+
+			It("correctly processes OpenTelemetryService configuration", func() {
+				params := plugins.Params{}
+
+				accessLogConfigs, err := ProcessAccessLogPlugins(params, alsSettings, nil)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(accessLogConfigs).To(HaveLen(1))
+				alConfig := accessLogConfigs[0]
+
+				Expect(alConfig.Name).To(Equal(OpenTelemetryAccessLog))
+				var cfg envoy_al_otel.OpenTelemetryAccessLogConfig
+				err = translatorutil.ParseTypedConfig(alConfig, &cfg)
+				Expect(err).NotTo(HaveOccurred())
+
+				commonConfig := cfg.GetCommonConfig()
+				Expect(commonConfig.LogName).To(Equal(logName))
+				envoyGrpc := commonConfig.GetGrpcService().GetEnvoyGrpc()
+				Expect(envoyGrpc).To(matchers.MatchProto(&envoy_core_v3.GrpcService_EnvoyGrpc{
+					ClusterName: "solo_io_generated_otel_logs_otel-log",
+					Authority:   "otel-collector",
+				}))
+
+				Expect(cfg.Attributes).To(matchers.MatchProto(attributes))
+				Expect(cfg.Body).To(matchers.MatchProto(body))
+			})
+		})
 	})
 
 	Context("ProcessHcmandListenerFilters", func() {
