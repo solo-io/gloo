@@ -1,0 +1,7 @@
+changelog:
+- type: NON_USER_FACING
+  description: >-
+    Use branch names in GHA
+
+    skipCI-kube-tests:true
+    skipCI-docs-build:true
