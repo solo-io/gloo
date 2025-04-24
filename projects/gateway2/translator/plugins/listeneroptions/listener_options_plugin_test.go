@@ -102,7 +102,7 @@ var _ = Describe("ListenerOptions Plugin", func() {
 					Name:      "policy",
 					Namespace: "default",
 				},
-				ResourceKind: "ListenerOption",
+				ResourceKind: sologatewayv1.ListenerOptionGVK.Kind,
 			}
 
 			statusCtx = plugins.StatusContext{
@@ -144,7 +144,7 @@ var _ = Describe("ListenerOptions Plugin", func() {
 				Expect(err).ToNot(HaveOccurred())
 				Expect(proto.Equal(outputListener.GetOptions(), expectedOptions)).To(BeTrue())
 				Expect(outputListener.GetMetadataStatic().GetSources()).To(HaveLen(1))
-				Expect(proto.Equal(outputListener.GetMetadataStatic().GetSources()[0], expectedSource))
+				Expect(proto.Equal(outputListener.GetMetadataStatic().GetSources()[0], expectedSource)).To(BeTrue())
 
 				err = plugin.ApplyStatusPlugin(ctx, &statusCtx)
 				Expect(err).ToNot(HaveOccurred())
@@ -168,7 +168,7 @@ var _ = Describe("ListenerOptions Plugin", func() {
 				Expect(err).ToNot(HaveOccurred())
 				Expect(proto.Equal(outputListener.GetOptions(), expectedOptions)).To(BeTrue())
 				Expect(outputListener.GetMetadataStatic().GetSources()).To(HaveLen(1))
-				Expect(proto.Equal(outputListener.GetMetadataStatic().GetSources()[0], expectedSource))
+				Expect(proto.Equal(outputListener.GetMetadataStatic().GetSources()[0], expectedSource)).To(BeTrue())
 
 				err = plugin.ApplyStatusPlugin(ctx, &statusCtx)
 				Expect(err).ToNot(HaveOccurred())
@@ -192,7 +192,7 @@ var _ = Describe("ListenerOptions Plugin", func() {
 				Expect(err).ToNot(HaveOccurred())
 				Expect(proto.Equal(outputListener.GetOptions(), expectedOptions)).To(BeTrue())
 				Expect(outputListener.GetMetadataStatic().GetSources()).To(HaveLen(1))
-				Expect(proto.Equal(outputListener.GetMetadataStatic().GetSources()[0], expectedSource))
+				Expect(proto.Equal(outputListener.GetMetadataStatic().GetSources()[0], expectedSource)).To(BeTrue())
 
 				err = plugin.ApplyStatusPlugin(ctx, &statusCtx)
 				Expect(err).ToNot(HaveOccurred())
@@ -215,7 +215,7 @@ var _ = Describe("ListenerOptions Plugin", func() {
 				err := plugin.ApplyListenerPlugin(ctx, listenerCtx, outputListener)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(outputListener.GetOptions().GetPerConnectionBufferLimitBytes()).To(BeNil())
-				Expect(outputListener.GetMetadataStatic().GetSources()).To(HaveLen(0))
+				Expect(outputListener.GetMetadataStatic().GetSources()).To(BeEmpty())
 
 				err = plugin.ApplyStatusPlugin(ctx, &statusCtx)
 				Expect(err).ToNot(HaveOccurred())
@@ -223,7 +223,6 @@ var _ = Describe("ListenerOptions Plugin", func() {
 				loobj, err := listenerOptionClient.Read("default", "bad-policy", clients.ReadOpts{Ctx: ctx})
 				Expect(err).ToNot(HaveOccurred())
 				Expect(loobj.GetNamespacedStatuses()).To(BeNil())
-
 			})
 		})
 
@@ -239,7 +238,7 @@ var _ = Describe("ListenerOptions Plugin", func() {
 				err := plugin.ApplyListenerPlugin(ctx, listenerCtx, outputListener)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(outputListener.GetOptions().GetPerConnectionBufferLimitBytes()).To(BeNil())
-				Expect(outputListener.GetMetadataStatic().GetSources()).To(HaveLen(0))
+				Expect(outputListener.GetMetadataStatic().GetSources()).To(BeEmpty())
 
 				err = plugin.ApplyStatusPlugin(ctx, &statusCtx)
 				Expect(err).ToNot(HaveOccurred())
@@ -247,6 +246,36 @@ var _ = Describe("ListenerOptions Plugin", func() {
 				loobj, err := listenerOptionClient.Read("default", "policy", clients.ReadOpts{Ctx: ctx})
 				Expect(err).ToNot(HaveOccurred())
 				Expect(loobj.GetNamespacedStatuses()).To(BeNil())
+			})
+		})
+
+		When("Multiple ListenerOptions attaching to Gateway", func() {
+			It("should mark the non-attached ListenerOption as not attached", func() {
+				initCollections(attachedListenerOptionInternal(), unattachedListenerOptionInternal())
+				deps := []client.Object{attachedListenerOption(), unattachedListenerOption()}
+				fakeClient := testutils.BuildIndexedFakeClient(deps, gwquery.IterateIndices, lisoptquery.IterateIndices)
+				gwQueries := testutils.BuildGatewayQueriesWithClient(fakeClient)
+				plugin := NewPlugin(gwQueries, fakeClient, listenerOptionCollection, statusReporter)
+
+				err := plugin.ApplyListenerPlugin(ctx, listenerCtx, outputListener)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(proto.Equal(outputListener.GetOptions(), expectedOptions)).To(BeTrue())
+				Expect(outputListener.GetMetadataStatic().GetSources()).To(HaveLen(1))
+				Expect(proto.Equal(outputListener.GetMetadataStatic().GetSources()[0], expectedSource)).To(BeTrue())
+
+				err = plugin.ApplyStatusPlugin(ctx, &statusCtx)
+				Expect(err).ToNot(HaveOccurred())
+
+				loobj, err := listenerOptionClient.Read("default", "policy", clients.ReadOpts{Ctx: ctx})
+				Expect(err).ToNot(HaveOccurred())
+				status := loobj.GetNamespacedStatuses().Statuses["gloo-system"]
+				Expect(status.State).To(Equal(core.Status_Accepted), "status should be accepted")
+
+				loobj, err = listenerOptionClient.Read("default", "unattached-policy", clients.ReadOpts{Ctx: ctx})
+				Expect(err).ToNot(HaveOccurred())
+				status = loobj.GetNamespacedStatuses().Statuses["gloo-system"]
+				Expect(status.State).To(Equal(core.Status_Warning), "status should be warning")
+				Expect(status.Reason).To(ContainSubstring("istenerOption 'default/unattached-policy' not attached to Gateway 'default/gw' due to higher priority ListenerOption 'default/policy'"))
 			})
 		})
 	})
@@ -276,6 +305,9 @@ func attachedListenerOptionInternal() *sologatewayv1.ListenerOption {
 
 func attachedListenerOption() *solokubev1.ListenerOption {
 	return &solokubev1.ListenerOption{
+		TypeMeta: metav1.TypeMeta{
+			Kind: sologatewayv1.ListenerOptionGVK.Kind,
+		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "policy",
 			Namespace: "default",
@@ -309,6 +341,9 @@ func attachedListenerOptionWithSectionNameInternal() *sologatewayv1.ListenerOpti
 
 func attachedListenerOptionWithSectionName() *solokubev1.ListenerOption {
 	return &solokubev1.ListenerOption{
+		TypeMeta: metav1.TypeMeta{
+			Kind: sologatewayv1.ListenerOptionGVK.Kind,
+		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "policy",
 			Namespace: "default",
@@ -341,6 +376,9 @@ func attachedListenerOptionOmitNamespaceInternal() *sologatewayv1.ListenerOption
 
 func attachedListenerOptionOmitNamespace() *solokubev1.ListenerOption {
 	return &solokubev1.ListenerOption{
+		TypeMeta: metav1.TypeMeta{
+			Kind: sologatewayv1.ListenerOptionGVK.Kind,
+		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "policy",
 			Namespace: "default",
@@ -360,5 +398,18 @@ func nonAttachedListenerOption() *solokubev1.ListenerOption {
 	listOpt := attachedListenerOption()
 	listOpt.ObjectMeta.Name = "bad-policy"
 	listOpt.Spec = *nonAttachedListenerOptionInternal()
+	return listOpt
+}
+
+func unattachedListenerOptionInternal() *sologatewayv1.ListenerOption {
+	listOpt := attachedListenerOptionInternal()
+	listOpt.Metadata.Name = "unattached-policy"
+	return listOpt
+}
+
+func unattachedListenerOption() *solokubev1.ListenerOption {
+	listOpt := attachedListenerOption()
+	listOpt.ObjectMeta.Name = "unattached-policy"
+	listOpt.Spec = *unattachedListenerOptionInternal()
 	return listOpt
 }
