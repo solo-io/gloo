@@ -84,6 +84,7 @@ func (p *plugin) ApplyListenerPlugin(
 	}
 
 	if len(attachedOptions) == 0 {
+		fmt.Printf("No ListenerOptions found for listener %s/%s\n", listenerCtx.Gateway.Namespace, listenerCtx.Gateway.Name)
 		return nil
 	}
 

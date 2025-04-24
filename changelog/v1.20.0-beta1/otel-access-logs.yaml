@@ -4,3 +4,9 @@ changelog:
     Added support for sending gateway access logs to an OpenTelemetry collector.
   resolvesIssues: false
   issueLink: https://github.com/solo-io/solo-projects/issues/6661
+- type: NEW_FEATURE 
+  description: >- 
+    Added support for reporting ListenerOption status. Issues/conflicts with ListenerOptions
+    are now reported in the resource's status.
+  resolvesIssues: false
+  issueLink: https://github.com/solo-io/solo-projects/issues/6344
