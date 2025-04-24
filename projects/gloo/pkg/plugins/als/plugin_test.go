@@ -4,8 +4,10 @@ import (
 	"strconv"
 
 	envoyal "github.com/envoyproxy/go-control-plane/envoy/config/accesslog/v3"
+	envoy_config_cluster_v3 "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
 	envoy_core_v3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	envoy_v3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
+	envoy_config_endpoint_v3 "github.com/envoyproxy/go-control-plane/envoy/config/endpoint/v3"
 	envoy_config_listener_v3 "github.com/envoyproxy/go-control-plane/envoy/config/listener/v3"
 	envoy_route "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
 	envoyalfile "github.com/envoyproxy/go-control-plane/envoy/extensions/access_loggers/file/v3"
@@ -25,6 +27,7 @@ import (
 	. "github.com/solo-io/gloo/projects/gloo/pkg/plugins/als"
 	translatorutil "github.com/solo-io/gloo/projects/gloo/pkg/translator"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
 	"github.com/solo-io/solo-kit/test/matchers"
 	otlp_common_v1 "go.opentelemetry.io/proto/otlp/common/v1"
 
@@ -1097,6 +1100,79 @@ var _ = Describe("Plugin", func() {
 
 		})
 
+	})
+
+	Context("GeneratedResources", func() {
+		var (
+			proxy *v1.Proxy
+		)
+
+		BeforeEach(func() {
+			proxy = &v1.Proxy{
+				Listeners: []*v1.Listener{
+					{
+						Name: "test-listener",
+						Options: &v1.ListenerOptions{
+							AccessLoggingService: &accessLogService.AccessLoggingService{
+								AccessLog: []*accessLogService.AccessLog{
+									{
+										OutputDestination: &accessLogService.AccessLog_OpenTelemetryService{
+											OpenTelemetryService: &accessLogService.OpenTelemetryService{
+												LogName: "test-log",
+												Destination: &accessLogService.OpenTelemetryService_Collector{
+													Collector: &accessLogService.OpenTelemetryGrpcCollector{
+														Endpoint:  "otel-collector:4317",
+														Authority: "otel-collector",
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			}
+		})
+
+		It("creates a cluster for access logging settings with strict_dns", func() {
+			plugin := NewPlugin()
+			params := plugins.Params{}
+
+			reports := reporter.ResourceReports{}
+
+			clusters, _, _, _ := plugin.GeneratedResources(params, proxy, nil, nil, nil, nil, reports)
+
+			Expect(clusters).To(HaveLen(1))
+			Expect(clusters[0].Name).To(Equal("solo_io_generated_otel_logs_test-log"))
+			Expect(clusters[0].GetType()).To(Equal(envoy_config_cluster_v3.Cluster_STRICT_DNS))
+			Expect(clusters[0].GetLoadAssignment()).To(matchers.MatchProto(&envoy_config_endpoint_v3.ClusterLoadAssignment{
+				ClusterName: "solo_io_generated_otel_logs_test-log",
+				Endpoints: []*envoy_config_endpoint_v3.LocalityLbEndpoints{
+					{
+						LbEndpoints: []*envoy_config_endpoint_v3.LbEndpoint{
+							{
+								HostIdentifier: &envoy_config_endpoint_v3.LbEndpoint_Endpoint{
+									Endpoint: &envoy_config_endpoint_v3.Endpoint{
+										Address: &envoy_core_v3.Address{
+											Address: &envoy_core_v3.Address_SocketAddress{
+												SocketAddress: &envoy_core_v3.SocketAddress{
+													Address: "otel-collector",
+													PortSpecifier: &envoy_core_v3.SocketAddress_PortValue{
+														PortValue: 4317,
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			}))
+		})
 	})
 
 })
