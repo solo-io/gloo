@@ -134,7 +134,6 @@ func (s *accessLogSuite) setupGateway(yaml []byte) {
 // eventuallyFindRequestInCollectorLogs makes a request to the httpbin service
 // and checks if the collector pod logs contain the expected patterns
 func (s *accessLogSuite) eventuallyFindRequestInCollectorLogs(patterns []string, msg string) {
-	// confirm that the squid proxy connected to the httpbin service
 	s.testInstallation.AssertionsT(s.T()).Assert.Eventually(func() bool {
 		opts := []curl.Option{
 			curl.WithHostHeader("httpbin.example.com"),

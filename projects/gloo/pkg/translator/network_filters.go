@@ -1,7 +1,6 @@
 package translator
 
 import (
-	"fmt"
 	"sort"
 
 	envoy_config_core_v3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
@@ -171,7 +170,6 @@ func (h *hcmNetworkFilterTranslator) ComputeNetworkFilter(params plugins.Params)
 	// 3. Allow any HCM plugins to make their changes, with respect to any changes the core plugin made
 	for _, hcmPlugin := range h.hcmPlugins {
 		if err := hcmPlugin.ProcessHcmNetworkFilter(params, h.parentListener, h.listener, httpConnectionManager); err != nil {
-			fmt.Printf("ProcessHcmNetworkFilter: post: parent: %v\n listener: %v\n error: %v\n", h.parentListener, h.listener, err)
 			reportHTTPListenerProcessingError(params, h.report, h.parentListener, h.listener, err)
 		}
 	}
