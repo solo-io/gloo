@@ -85,6 +85,9 @@ func (s *accessLogSuite) TestOTELAccessLog() {
 
 	s.eventuallyFindRequestInCollectorLogs([]string{
 		`ResourceLog.*log_name: Str\(example\)`,
+		`Body: Str\(curl/`,
+		`foo: Str\(bar\)`,
+		`bar: Map\({\\"baz\\":\\"qux\\"}\)`,
 	}, "should find access logs in collector pod logs")
 }
 
@@ -165,7 +168,7 @@ func (s *accessLogSuite) eventuallyFindRequestInCollectorLogs(patterns []string,
 			&matchers.HttpResponse{
 				StatusCode: 200,
 			},
-			10*time.Second,
+			20*time.Second,
 			2*time.Second,
 		)
 

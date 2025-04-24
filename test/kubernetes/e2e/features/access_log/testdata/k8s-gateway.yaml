@@ -28,6 +28,20 @@ spec:
               endpoint: otel-collector.default.svc.cluster.local:4317
               authority: authority.example.com
               insecure: true
+            body:
+              stringValue: "%REQ(USER-AGENT)%"
+            attributes:
+              values:
+                - key: "foo"
+                  value:
+                    stringValue: "bar"
+                - key: "bar"
+                  value:
+                    kvlistValue:
+                      values:
+                        - key: "baz"
+                          value:
+                            stringValue: "qux"
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
