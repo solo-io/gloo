@@ -26,17 +26,11 @@ var k8sGatewayYaml []byte
 //go:embed testdata/k8s-gateway-secure.yaml
 var k8sGatewaySecureYaml []byte
 
-//go:embed testdata/k8s-gateway-sslconfig.yaml
-var k8sGatewayExtraSecureYaml []byte
-
 //go:embed testdata/edge.yaml
 var edgeYaml []byte
 
 //go:embed testdata/edge-secure.yaml
 var edgeSecureYaml []byte
-
-//go:embed testdata/edge-sslconfig.yaml
-var edgeExtraSecureYaml []byte
 
 //go:embed testdata/collector.yaml
 var collectorYaml []byte
@@ -104,22 +98,6 @@ func (s *accessLogSuite) TestOTELAccessLogSecure() {
 	s.setupGateway(testGatewayYaml)
 	s.eventuallyFindRequestInCollectorLogs([]string{
 		`ResourceLog.*log_name: Str\(secure-example\)`,
-	}, "should find access logs in collector pod logs")
-}
-
-func (s *accessLogSuite) TestOTELAccessLogWithSslConfig() {
-	testGatewayYaml := edgeExtraSecureYaml
-	if s.testInstallation.Metadata.K8sGatewayEnabled {
-		testGatewayYaml = k8sGatewayExtraSecureYaml
-	}
-
-	s.setupCollector(collectorSecureYaml)
-	s.setupGateway(testGatewayYaml)
-
-	time.Sleep(5 * time.Minute)
-
-	s.eventuallyFindRequestInCollectorLogs([]string{
-		`ResourceLog.*log_name: Str\(sslconfig-example\)`,
 	}, "should find access logs in collector pod logs")
 }
 

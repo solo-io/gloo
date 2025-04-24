@@ -107,11 +107,12 @@ var _ = Describe("Plugin", func() {
 
 			DescribeTable("Test each filter is translated properly",
 				func(glooInputFilter *accessLogService.AccessLogFilter, expectedEnvoyFilter *envoyal.AccessLogFilter) {
+					params := plugins.Params{}
 
 					accessLog := alsSettings.GetAccessLog()[0]
 					accessLog.Filter = glooInputFilter
 
-					accessLogConfigs, err = ProcessAccessLogPlugins(alsSettings, nil)
+					accessLogConfigs, err = ProcessAccessLogPlugins(params, alsSettings, nil)
 					Expect(err).NotTo(HaveOccurred())
 
 					Expect(accessLogConfigs).To(HaveLen(1))
@@ -367,11 +368,12 @@ var _ = Describe("Plugin", func() {
 
 		DescribeTable("Test We Correctly Handle Bad Enum",
 			func(glooInputFilter *accessLogService.AccessLogFilter, expectedError error) {
+				params := plugins.Params{}
 
 				accessLog := alsSettings.GetAccessLog()[0]
 				accessLog.Filter = glooInputFilter
 
-				accessLogConfigs, err = ProcessAccessLogPlugins(alsSettings, nil)
+				accessLogConfigs, err = ProcessAccessLogPlugins(params, alsSettings, nil)
 				Expect(err).To(HaveOccurred())
 				Expect(err).Should(MatchError(expectedError))
 
@@ -622,7 +624,8 @@ var _ = Describe("Plugin", func() {
 			})
 
 			It("works", func() {
-				accessLogConfigs, err := ProcessAccessLogPlugins(alsSettings, nil)
+				params := plugins.Params{}
+				accessLogConfigs, err := ProcessAccessLogPlugins(params, alsSettings, nil)
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(accessLogConfigs).To(HaveLen(1))
@@ -683,7 +686,8 @@ var _ = Describe("Plugin", func() {
 				})
 
 				It("works", func() {
-					accessLogConfigs, err := ProcessAccessLogPlugins(alsSettings, nil)
+					params := plugins.Params{}
+					accessLogConfigs, err := ProcessAccessLogPlugins(params, alsSettings, nil)
 					Expect(err).NotTo(HaveOccurred())
 
 					Expect(accessLogConfigs).To(HaveLen(1))
@@ -718,7 +722,8 @@ var _ = Describe("Plugin", func() {
 				})
 
 				It("works", func() {
-					accessLogConfigs, err := ProcessAccessLogPlugins(alsSettings, nil)
+					params := plugins.Params{}
+					accessLogConfigs, err := ProcessAccessLogPlugins(params, alsSettings, nil)
 					Expect(err).NotTo(HaveOccurred())
 
 					Expect(accessLogConfigs).To(HaveLen(1))
