@@ -2322,15 +2322,11 @@ type OidcAuthorizationCode struct {
 	// in the OIDC documentation.
 	EndSessionProperties *EndSessionProperties `protobuf:"bytes,19,opt,name=end_session_properties,json=endSessionProperties,proto3" json:"end_session_properties,omitempty"`
 	// Map claims to dynamic metadata keys in the authorization response, such as
-	// dynamic_metadata_from_claims:
-	//
-	//	issuer: iss
-	//	email: email
-	//
+	// `dynamic_metadata.issuer=iss` and `dynamic_metadata.email=email`.
 	// Use this approach to enrich the metadata that is passed to upstream services
 	// so that they can be further processed or used for decision-making.
 	// Note that metadata keys must be unique, and the claim names must be alphanumeric and use `-` or `_` as separators.
-	// The metadata live in a namespace specified by the canonical name of the extauth filter (in our case `envoy.filters.http.ext_authz`),
+	// The metadata live in a namespace specified by the canonical name of the extauth filter (`envoy.filters.http.ext_authz`),
 	// and the structure of the claim value is preserved in the metadata struct. Dynamic metadata can be viewed in the authorization response.
 	// You can view the authorization response in the logs of the extauth pod when debug logging is enabled.
 	// To further process dynamic metadata, you can extract the dynamic metadata keys with an Inja template in a transformation or rate limiting policy.
@@ -3035,19 +3031,19 @@ type AccessTokenValidation struct {
 	//
 	//	*AccessTokenValidation_RequiredScopes
 	ScopeValidation isAccessTokenValidation_ScopeValidation `protobuf_oneof:"scope_validation"`
-	// Map of metadata key to claim. Ie:
-	// dynamic_metadata_from_claims:
-	//
-	//	issuer: iss
-	//	email: email
-	//
-	// When specified, the matching claims from the access token will be emitted as dynamic metadata.
+	// Map claims to dynamic metadata keys in the authorization response, such as
+	// 'dynamic_metadata_from_claims.issuer=iss' and 'dynamic_metadata_from_claims.email=email'.
+	// Use this approach to enrich the metadata that is passed to upstream services
+	// so that they can be further processed or used for decision-making.
 	// Note that metadata keys must be unique, and the claim names must be alphanumeric and use `-` or `_` as separators.
-	// Works when the access token is a JWT or when the access token is opaque, in which case the claims will refer to field in the response from the token introspection endpoint.
-	// The metadata will live in a namespace specified by the canonical name of the ext auth filter (in our case `envoy.filters.http.ext_authz`),
-	// and the structure of the claim value will be preserved in the metadata struct.
+	// The metadata live in a namespace specified by the canonical name of the extauth filter (`envoy.filters.http.ext_authz`),
+	// and the structure of the claim value is preserved in the metadata struct. Dynamic metadata can be viewed in the authorization response.
+	// You can view the authorization response in the logs of the extauth pod when debug logging is enabled.
+	// To further process dynamic metadata, you can extract the dynamic metadata keys with an Inja template in a transformation or rate limiting policy.
+	// For example, to extract a nested `sub` key that is stored under `config_0`, use `{{ dynamic_metadata("config_0:sub", "envoy.filters.http.ext_authz")}}`.
 	DynamicMetadataFromClaims map[string]string `protobuf:"bytes,7,rep,name=dynamic_metadata_from_claims,json=dynamicMetadataFromClaims,proto3" json:"dynamic_metadata_from_claims,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	// A list of claims to be mapped from the JWT token received by ext-auth-service to an upstream destination
+	// A list of claims to be mapped from the JWT token received by ext-auth-service to an upstream destination.
+	// This option is not supported for opaque tokens.
 	ClaimsToHeaders []*ClaimToHeader `protobuf:"bytes,8,rep,name=claims_to_headers,json=claimsToHeaders,proto3" json:"claims_to_headers,omitempty"`
 	// Types that are valid to be assigned to Provider:
 	//
@@ -5979,7 +5975,8 @@ func (*UserSession_CipherConfig_KeyRef) isUserSession_CipherConfig_Key() {}
 // and configure the `clearRouteCache` or `recalculateRoutingDestination` options.
 type OidcAuthorizationCode_AccessToken struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// A list of claims to be mapped from the JWT token received by ext-auth-service to an upstream destination
+	// A list of claims to be mapped from the JWT token received by ext-auth-service to an upstream destination.
+	// This option is not available for opaque tokens.
 	ClaimsToHeaders []*ClaimToHeader `protobuf:"bytes,1,rep,name=claims_to_headers,json=claimsToHeaders,proto3" json:"claims_to_headers,omitempty"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
@@ -6025,7 +6022,8 @@ func (x *OidcAuthorizationCode_AccessToken) GetClaimsToHeaders() []*ClaimToHeade
 // Optional: Map a single claim from an OIDC identity token to a header in the request to the upstream destination.
 type OidcAuthorizationCode_IdentityToken struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// A list of claims to be mapped from the JWT token received by ext-auth-service to an upstream destination
+	// A list of claims to be mapped from the JWT token received by ext-auth-service to an upstream destination.
+	// This option is not available for opaque tokens.
 	ClaimsToHeaders []*ClaimToHeader `protobuf:"bytes,1,rep,name=claims_to_headers,json=claimsToHeaders,proto3" json:"claims_to_headers,omitempty"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache

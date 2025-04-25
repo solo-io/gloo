@@ -780,13 +780,11 @@ message OidcAuthorizationCode {
     EndSessionProperties end_session_properties = 19;
 
     // Map claims to dynamic metadata keys in the authorization response, such as
-    // dynamic_metadata_from_claims:  
-    //   issuer: iss
-    //   email: email
+    // `dynamic_metadata.issuer=iss` and `dynamic_metadata.email=email`.
     // Use this approach to enrich the metadata that is passed to upstream services
     // so that they can be further processed or used for decision-making. 
     // Note that metadata keys must be unique, and the claim names must be alphanumeric and use `-` or `_` as separators.
-    // The metadata live in a namespace specified by the canonical name of the extauth filter (in our case `envoy.filters.http.ext_authz`),
+    // The metadata live in a namespace specified by the canonical name of the extauth filter (`envoy.filters.http.ext_authz`),
     // and the structure of the claim value is preserved in the metadata struct. Dynamic metadata can be viewed in the authorization response.
     // You can view the authorization response in the logs of the extauth pod when debug logging is enabled. 
     // To further process dynamic metadata, you can extract the dynamic metadata keys with an Inja template in a transformation or rate limiting policy. 
@@ -810,14 +808,16 @@ message OidcAuthorizationCode {
     // and configure the `clearRouteCache` or `recalculateRoutingDestination` options.
     message AccessToken {
 
-        // A list of claims to be mapped from the JWT token received by ext-auth-service to an upstream destination
+        // A list of claims to be mapped from the JWT token received by ext-auth-service to an upstream destination.
+        // This option is not available for opaque tokens.
         repeated ClaimToHeader claims_to_headers = 1;
     }
 
     // Optional: Map a single claim from an OIDC identity token to a header in the request to the upstream destination.
     message IdentityToken {
 
-        // A list of claims to be mapped from the JWT token received by ext-auth-service to an upstream destination
+        // A list of claims to be mapped from the JWT token received by ext-auth-service to an upstream destination.
+        // This option is not available for opaque tokens.
         repeated ClaimToHeader claims_to_headers = 1;
     }
 
@@ -1089,18 +1089,20 @@ message AccessTokenValidation {
         // in the future we may add other types of scope validation (e.g. predicate matching)
     }
 
-    // Map of metadata key to claim. Ie:
-    // dynamic_metadata_from_claims:
-    //   issuer: iss
-    //   email: email
-    // When specified, the matching claims from the access token will be emitted as dynamic metadata.
+    // Map claims to dynamic metadata keys in the authorization response, such as
+    // 'dynamic_metadata_from_claims.issuer=iss' and 'dynamic_metadata_from_claims.email=email'.
+    // Use this approach to enrich the metadata that is passed to upstream services
+    // so that they can be further processed or used for decision-making. 
     // Note that metadata keys must be unique, and the claim names must be alphanumeric and use `-` or `_` as separators.
-    // Works when the access token is a JWT or when the access token is opaque, in which case the claims will refer to field in the response from the token introspection endpoint.
-    // The metadata will live in a namespace specified by the canonical name of the ext auth filter (in our case `envoy.filters.http.ext_authz`),
-    // and the structure of the claim value will be preserved in the metadata struct.
+    // The metadata live in a namespace specified by the canonical name of the extauth filter (`envoy.filters.http.ext_authz`),
+    // and the structure of the claim value is preserved in the metadata struct. Dynamic metadata can be viewed in the authorization response.
+    // You can view the authorization response in the logs of the extauth pod when debug logging is enabled. 
+    // To further process dynamic metadata, you can extract the dynamic metadata keys with an Inja template in a transformation or rate limiting policy. 
+    // For example, to extract a nested `sub` key that is stored under `config_0`, use `{{ dynamic_metadata("config_0:sub", "envoy.filters.http.ext_authz")}}`.
     map<string, string> dynamic_metadata_from_claims = 7;
 
-    // A list of claims to be mapped from the JWT token received by ext-auth-service to an upstream destination
+    // A list of claims to be mapped from the JWT token received by ext-auth-service to an upstream destination.
+    // This option is not supported for opaque tokens. 
     repeated ClaimToHeader claims_to_headers = 8;
 
     oneof Provider {
