@@ -1650,7 +1650,10 @@ type ListenerReport_Error struct {
 	// the type of the error
 	Type ListenerReport_Error_Type `protobuf:"varint,1,opt,name=type,proto3,enum=gloo.solo.io.ListenerReport_Error_Type" json:"type,omitempty"`
 	// any extra info as a string
-	Reason        string `protobuf:"bytes,2,opt,name=reason,proto3" json:"reason,omitempty"`
+	Reason string `protobuf:"bytes,2,opt,name=reason,proto3" json:"reason,omitempty"`
+	// Source metadata for the ListenerReport, can be used by external components to associate
+	// sources with the ListenerError
+	Metadata      *v1.SourceMetadata `protobuf:"bytes,3,opt,name=metadata,proto3" json:"metadata,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1697,6 +1700,13 @@ func (x *ListenerReport_Error) GetReason() string {
 		return x.Reason
 	}
 	return ""
+}
+
+func (x *ListenerReport_Error) GetMetadata() *v1.SourceMetadata {
+	if x != nil {
+		return x.Metadata
+	}
+	return nil
 }
 
 // warning types for the given listener config
@@ -2305,17 +2315,18 @@ const file_github_com_solo_io_gloo_projects_gloo_api_grpc_validation_gloo_valida
 	"\x15NotifyOnResyncRequest\"\x18\n" +
 	"\x16NotifyOnResyncResponse\"V\n" +
 	"\vProxyReport\x12G\n" +
-	"\x10listener_reports\x18\x01 \x03(\v2\x1c.gloo.solo.io.ListenerReportR\x0flistenerReports\"\xd4\x06\n" +
+	"\x10listener_reports\x18\x01 \x03(\v2\x1c.gloo.solo.io.ListenerReportR\x0flistenerReports\"\x8e\a\n" +
 	"\x0eListenerReport\x12:\n" +
 	"\x06errors\x18\x02 \x03(\v2\".gloo.solo.io.ListenerReport.ErrorR\x06errors\x12@\n" +
 	"\bwarnings\x18\a \x03(\v2$.gloo.solo.io.ListenerReport.WarningR\bwarnings\x12T\n" +
 	"\x14http_listener_report\x18\x03 \x01(\v2 .gloo.solo.io.HttpListenerReportH\x00R\x12httpListenerReport\x12Q\n" +
 	"\x13tcp_listener_report\x18\x04 \x01(\v2\x1f.gloo.solo.io.TcpListenerReportH\x00R\x11tcpListenerReport\x12Z\n" +
 	"\x16hybrid_listener_report\x18\x05 \x01(\v2\".gloo.solo.io.HybridListenerReportH\x00R\x14hybridListenerReport\x12c\n" +
-	"\x19aggregate_listener_report\x18\x06 \x01(\v2%.gloo.solo.io.AggregateListenerReportH\x00R\x17aggregateListenerReport\x1a\xc1\x01\n" +
+	"\x19aggregate_listener_report\x18\x06 \x01(\v2%.gloo.solo.io.AggregateListenerReportH\x00R\x17aggregateListenerReport\x1a\xfb\x01\n" +
 	"\x05Error\x12;\n" +
 	"\x04type\x18\x01 \x01(\x0e2'.gloo.solo.io.ListenerReport.Error.TypeR\x04type\x12\x16\n" +
-	"\x06reason\x18\x02 \x01(\tR\x06reason\"c\n" +
+	"\x06reason\x18\x02 \x01(\tR\x06reason\x128\n" +
+	"\bmetadata\x18\x03 \x01(\v2\x1c.gloo.solo.io.SourceMetadataR\bmetadata\"c\n" +
 	"\x04Type\x12\x16\n" +
 	"\x12NameNotUniqueError\x10\x00\x12\x1a\n" +
 	"\x16BindPortNotUniqueError\x10\x01\x12\x12\n" +
@@ -2526,31 +2537,32 @@ var file_github_com_solo_io_gloo_projects_gloo_api_grpc_validation_gloo_validati
 	41, // 33: gloo.solo.io.AggregateListenerReport.http_listener_reports:type_name -> gloo.solo.io.AggregateListenerReport.HttpListenerReportsEntry
 	42, // 34: gloo.solo.io.AggregateListenerReport.tcp_listener_reports:type_name -> gloo.solo.io.AggregateListenerReport.TcpListenerReportsEntry
 	0,  // 35: gloo.solo.io.ListenerReport.Error.type:type_name -> gloo.solo.io.ListenerReport.Error.Type
-	1,  // 36: gloo.solo.io.ListenerReport.Warning.type:type_name -> gloo.solo.io.ListenerReport.Warning.Type
-	2,  // 37: gloo.solo.io.HttpListenerReport.Error.type:type_name -> gloo.solo.io.HttpListenerReport.Error.Type
-	46, // 38: gloo.solo.io.HttpListenerReport.Error.metadata:type_name -> gloo.solo.io.SourceMetadata
-	3,  // 39: gloo.solo.io.HttpListenerReport.Warning.type:type_name -> gloo.solo.io.HttpListenerReport.Warning.Type
-	4,  // 40: gloo.solo.io.VirtualHostReport.Error.type:type_name -> gloo.solo.io.VirtualHostReport.Error.Type
-	46, // 41: gloo.solo.io.VirtualHostReport.Error.metadata:type_name -> gloo.solo.io.SourceMetadata
-	5,  // 42: gloo.solo.io.RouteReport.Error.type:type_name -> gloo.solo.io.RouteReport.Error.Type
-	46, // 43: gloo.solo.io.RouteReport.Error.metadata:type_name -> gloo.solo.io.SourceMetadata
-	6,  // 44: gloo.solo.io.RouteReport.Warning.type:type_name -> gloo.solo.io.RouteReport.Warning.Type
-	7,  // 45: gloo.solo.io.TcpListenerReport.Error.type:type_name -> gloo.solo.io.TcpListenerReport.Error.Type
-	8,  // 46: gloo.solo.io.TcpListenerReport.Warning.type:type_name -> gloo.solo.io.TcpListenerReport.Warning.Type
-	9,  // 47: gloo.solo.io.TcpHostReport.Error.type:type_name -> gloo.solo.io.TcpHostReport.Error.Type
-	10, // 48: gloo.solo.io.TcpHostReport.Warning.type:type_name -> gloo.solo.io.TcpHostReport.Warning.Type
-	27, // 49: gloo.solo.io.HybridListenerReport.MatchedListenerReportsEntry.value:type_name -> gloo.solo.io.MatchedListenerReport
-	21, // 50: gloo.solo.io.AggregateListenerReport.HttpListenerReportsEntry.value:type_name -> gloo.solo.io.HttpListenerReport
-	24, // 51: gloo.solo.io.AggregateListenerReport.TcpListenerReportsEntry.value:type_name -> gloo.solo.io.TcpListenerReport
-	17, // 52: gloo.solo.io.GlooValidationService.NotifyOnResync:input_type -> gloo.solo.io.NotifyOnResyncRequest
-	11, // 53: gloo.solo.io.GlooValidationService.Validate:input_type -> gloo.solo.io.GlooValidationServiceRequest
-	18, // 54: gloo.solo.io.GlooValidationService.NotifyOnResync:output_type -> gloo.solo.io.NotifyOnResyncResponse
-	12, // 55: gloo.solo.io.GlooValidationService.Validate:output_type -> gloo.solo.io.GlooValidationServiceResponse
-	54, // [54:56] is the sub-list for method output_type
-	52, // [52:54] is the sub-list for method input_type
-	52, // [52:52] is the sub-list for extension type_name
-	52, // [52:52] is the sub-list for extension extendee
-	0,  // [0:52] is the sub-list for field type_name
+	46, // 36: gloo.solo.io.ListenerReport.Error.metadata:type_name -> gloo.solo.io.SourceMetadata
+	1,  // 37: gloo.solo.io.ListenerReport.Warning.type:type_name -> gloo.solo.io.ListenerReport.Warning.Type
+	2,  // 38: gloo.solo.io.HttpListenerReport.Error.type:type_name -> gloo.solo.io.HttpListenerReport.Error.Type
+	46, // 39: gloo.solo.io.HttpListenerReport.Error.metadata:type_name -> gloo.solo.io.SourceMetadata
+	3,  // 40: gloo.solo.io.HttpListenerReport.Warning.type:type_name -> gloo.solo.io.HttpListenerReport.Warning.Type
+	4,  // 41: gloo.solo.io.VirtualHostReport.Error.type:type_name -> gloo.solo.io.VirtualHostReport.Error.Type
+	46, // 42: gloo.solo.io.VirtualHostReport.Error.metadata:type_name -> gloo.solo.io.SourceMetadata
+	5,  // 43: gloo.solo.io.RouteReport.Error.type:type_name -> gloo.solo.io.RouteReport.Error.Type
+	46, // 44: gloo.solo.io.RouteReport.Error.metadata:type_name -> gloo.solo.io.SourceMetadata
+	6,  // 45: gloo.solo.io.RouteReport.Warning.type:type_name -> gloo.solo.io.RouteReport.Warning.Type
+	7,  // 46: gloo.solo.io.TcpListenerReport.Error.type:type_name -> gloo.solo.io.TcpListenerReport.Error.Type
+	8,  // 47: gloo.solo.io.TcpListenerReport.Warning.type:type_name -> gloo.solo.io.TcpListenerReport.Warning.Type
+	9,  // 48: gloo.solo.io.TcpHostReport.Error.type:type_name -> gloo.solo.io.TcpHostReport.Error.Type
+	10, // 49: gloo.solo.io.TcpHostReport.Warning.type:type_name -> gloo.solo.io.TcpHostReport.Warning.Type
+	27, // 50: gloo.solo.io.HybridListenerReport.MatchedListenerReportsEntry.value:type_name -> gloo.solo.io.MatchedListenerReport
+	21, // 51: gloo.solo.io.AggregateListenerReport.HttpListenerReportsEntry.value:type_name -> gloo.solo.io.HttpListenerReport
+	24, // 52: gloo.solo.io.AggregateListenerReport.TcpListenerReportsEntry.value:type_name -> gloo.solo.io.TcpListenerReport
+	17, // 53: gloo.solo.io.GlooValidationService.NotifyOnResync:input_type -> gloo.solo.io.NotifyOnResyncRequest
+	11, // 54: gloo.solo.io.GlooValidationService.Validate:input_type -> gloo.solo.io.GlooValidationServiceRequest
+	18, // 55: gloo.solo.io.GlooValidationService.NotifyOnResync:output_type -> gloo.solo.io.NotifyOnResyncResponse
+	12, // 56: gloo.solo.io.GlooValidationService.Validate:output_type -> gloo.solo.io.GlooValidationServiceResponse
+	55, // [55:57] is the sub-list for method output_type
+	53, // [53:55] is the sub-list for method input_type
+	53, // [53:53] is the sub-list for extension type_name
+	53, // [53:53] is the sub-list for extension extendee
+	0,  // [0:53] is the sub-list for field type_name
 }
 
 func init() {

@@ -93,6 +93,7 @@ func BuildPlugins(
 	client client.Client,
 	routeOptionCollection krt.Collection[*gatewaykubev1.RouteOption],
 	virtualHostOptionCollection krt.Collection[*gatewaykubev1.VirtualHostOption],
+	listenerOptionCollection krt.Collection[*gatewaykubev1.ListenerOption],
 	statusReporter reporter.StatusReporter,
 ) []plugins.Plugin {
 	return []plugins.Plugin{
@@ -102,7 +103,7 @@ func BuildPlugins(
 		routeoptions.NewPlugin(queries, client, routeOptionCollection, statusReporter),
 		virtualhostoptions.NewPlugin(queries, client, virtualHostOptionCollection, statusReporter),
 		httplisteneroptions.NewPlugin(queries, client),
-		listeneroptions.NewPlugin(queries, client),
+		listeneroptions.NewPlugin(queries, client, listenerOptionCollection, statusReporter),
 		urlrewrite.NewPlugin(),
 		directresponse.NewPlugin(queries), // direct response needs to run after any plugin that might set an action
 	}

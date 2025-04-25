@@ -309,6 +309,7 @@ func add(crd crd.Crd, resourceType resources.InputResource) {
 func init() {
 	add(gateway.RouteOptionCrd, new(gateway.RouteOption))
 	add(gateway.VirtualHostOptionCrd, new(gateway.VirtualHostOption))
+	add(gateway.ListenerOptionCrd, new(gateway.ListenerOption))
 	add(gloov1.ProxyCrd, new(gloov1.Proxy))
 	add(gloov1.UpstreamCrd, new(gloov1.Upstream))
 	// add(rlv1alpha1.RateLimitCrd, new(rlv1alpha1.RateLimit))

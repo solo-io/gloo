@@ -480,6 +480,14 @@ func AppendListenerError(listenerReport *validation.ListenerReport, errType vali
 	})
 }
 
+func AppendListenerErrorWithMetadata(listenerReport *validation.ListenerReport, errType validation.ListenerReport_Error_Type, reason string, metadata *v1.SourceMetadata) {
+	listenerReport.Errors = append(listenerReport.GetErrors(), &validation.ListenerReport_Error{
+		Type:     errType,
+		Reason:   reason,
+		Metadata: metadata,
+	})
+}
+
 func AppendListenerWarning(listenerReport *validation.ListenerReport, errType validation.ListenerReport_Warning_Type, reason string) {
 	listenerReport.Warnings = append(listenerReport.GetWarnings(), &validation.ListenerReport_Warning{
 		Type:   errType,
@@ -506,6 +514,18 @@ func AppendHTTPListenerError(httpListenerReport *validation.HttpListenerReport, 
 	httpListenerReport.Errors = append(httpListenerReport.GetErrors(), &validation.HttpListenerReport_Error{
 		Type:   errType,
 		Reason: reason,
+	})
+}
+
+func AppendHTTPListenerErrorWithMetadata(
+	httpListenerReport *validation.HttpListenerReport,
+	errType validation.HttpListenerReport_Error_Type,
+	reason string,
+	metadata *v1.SourceMetadata) {
+	httpListenerReport.Errors = append(httpListenerReport.GetErrors(), &validation.HttpListenerReport_Error{
+		Type:     errType,
+		Reason:   reason,
+		Metadata: metadata,
 	})
 }
 

@@ -86,11 +86,13 @@ var _ = Describe("GatewayHttpRouteTranslator", func() {
 
 		routeOptionCollection := krt.NewStatic[*solokubev1.RouteOption](nil, true).AsCollection()
 		vhOptionCollection := krt.NewStatic[*solokubev1.VirtualHostOption](nil, true).AsCollection()
+		listenerOptionCollection := krt.NewStatic[*solokubev1.ListenerOption](nil, true).AsCollection()
 		pluginRegistry = registry.NewPluginRegistry(registry.BuildPlugins(
 			queries,
 			c,
 			routeOptionCollection,
 			vhOptionCollection,
+			listenerOptionCollection,
 			statusReporter,
 		))
 	})
