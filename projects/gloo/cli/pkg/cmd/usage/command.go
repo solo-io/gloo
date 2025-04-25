@@ -101,7 +101,10 @@ func run(opts *Options) error {
 		}
 	}
 	fmt.Printf("%v Printing feature usage\n", time.Now().String())
-	usageStats.Print(opts.OutputFormat)
+	err = usageStats.Print(opts.OutputFormat)
+	if err != nil {
+		return err
+	}
 
 	return nil
 
@@ -116,7 +119,7 @@ func processGlooFeatures(apiUsageStats map[API][]*UsageStat, instance *snapshot.
 		usage, exists := glooFeatureUsage[api]
 		if !exists {
 			usage = &GlooFeatureUsage{}
-			usage.FeatureCountPerProxy = make(map[string]*ProxyFeatureCount)
+			usage.FeatureCountPerProxy = map[string]*ProxyFeatureCountCategory{}
 		}
 		for _, stat := range stats {
 			// for each stat we need to grab its proxy name and update its feature count
@@ -126,11 +129,27 @@ func processGlooFeatures(apiUsageStats map[API][]*UsageStat, instance *snapshot.
 					fmt.Printf("proxyName is empty for stat %v\n", stat)
 				}
 				if usage.FeatureCountPerProxy[proxyName] == nil {
-					usage.FeatureCountPerProxy[proxyName] = &ProxyFeatureCount{
-						FeatureCount: make(map[FeatureType]int),
+					usage.FeatureCountPerProxy[proxyName] = &ProxyFeatureCountCategory{
+						Categories: map[Category]ProxyFeatureCount{
+							aiCategory: {
+								FeatureCount: make(map[FeatureType]int),
+							},
+							listenerCatagory: {
+								FeatureCount: make(map[FeatureType]int),
+							},
+							upstreamCategory: {
+								FeatureCount: make(map[FeatureType]int),
+							},
+							settingsCategory: {
+								FeatureCount: make(map[FeatureType]int),
+							},
+							routingCatagory: {
+								FeatureCount: make(map[FeatureType]int),
+							},
+						},
 					}
 				}
-				usage.FeatureCountPerProxy[proxyName].FeatureCount[stat.Type]++
+				usage.FeatureCountPerProxy[proxyName].Categories[stat.Metadata.Category].FeatureCount[stat.Type]++
 			}
 		}
 		glooFeatureUsage[api] = usage
@@ -273,7 +292,11 @@ func generateUpstreamStats(proxy *ProxyInfo) []*UpstreamStat {
 				}
 			}
 			if len(statsMap) > 0 {
-				upstreamStat := &UpstreamStat{}
+				upstreamStat := &UpstreamStat{
+					IPAddress: hs.Address.SocketAddress.Address,
+					Upstream:  s.Name,
+					Port:      hs.Address.SocketAddress.PortValue,
+				}
 				if hs.Locality.Region != "" {
 					upstreamStat.Region = hs.Locality.Region
 				}
@@ -323,6 +346,13 @@ func generateUpstreamStats(proxy *ProxyInfo) []*UpstreamStat {
 	return stats
 }
 
+// Every connection manager has a statistics tree rooted at http.<stat_prefix>. with the following statistics:
+// up til 1.19 Gloo and possibly later, gloo always sets the statsPrefix to 'http'
+// http.http.downstream_rq_1xx: 0
+// http.http.downstream_rq_2xx: 502910
+// http.http.downstream_rq_3xx: 0
+// http.http.downstream_rq_4xx: 2
+// http.http.downstream_rq_5xx: 341969
 func getEnvoyMetrics(info *ProxyInfo) (*EnvoyMetrics, error) {
 	if info.Stats == nil {
 		return nil, nil
@@ -341,63 +371,62 @@ func getEnvoyMetrics(info *ProxyInfo) (*EnvoyMetrics, error) {
 			}
 			envoyMetrics.UptimeSeconds = int64(statValue)
 		}
-		if strings.HasSuffix(stat.Name, "upstream_rq_2xx") {
+		if strings.HasSuffix(stat.Name, "http.http.downstream_rq_2xx") {
 			statValue, ok := stat.Value.(float64)
 			if !ok {
 				continue
 			}
 			if statValue > 0 {
-				envoyMetrics.Total2xxRequests += int64(statValue)
+				envoyMetrics.Total2xxResponses += int64(statValue)
 			}
 		}
-		if strings.HasSuffix(stat.Name, "upstream_rq_3xx") {
+		if strings.HasSuffix(stat.Name, "http.http.downstream_rq_3xx") {
 			statValue, ok := stat.Value.(float64)
 			if !ok {
 				continue
 			}
 			if statValue > 0 {
-				envoyMetrics.Total3xxRequests += int64(statValue)
+				envoyMetrics.Total3xxResponses += int64(statValue)
 			}
 		}
-		if strings.HasSuffix(stat.Name, "upstream_rq_4xx") {
+		if strings.HasSuffix(stat.Name, "http.http.downstream_rq_4xx") {
 			statValue, ok := stat.Value.(float64)
 			if !ok {
 				continue
 			}
 			if statValue > 0 {
-				envoyMetrics.Total4xxRequests += int64(statValue)
+				envoyMetrics.Total4xxResponses += int64(statValue)
 			}
 		}
-		if strings.HasSuffix(stat.Name, "upstream_rq_5xx") {
+		if strings.HasSuffix(stat.Name, "http.http.downstream_rq_5xx") {
 			statValue, ok := stat.Value.(float64)
 			if !ok {
 				continue
 			}
 			if statValue > 0 {
-				envoyMetrics.Total5xxRequests += int64(statValue)
+				envoyMetrics.Total5xxResponses += int64(statValue)
 			}
 		}
 	}
 	if envoyMetrics.UptimeSeconds > 0 {
-		totalRequests := envoyMetrics.Total2xxRequests + envoyMetrics.Total3xxRequests + envoyMetrics.Total4xxRequests + envoyMetrics.Total5xxRequests
-		envoyMetrics.AverageRequestsPerSecond = float64(totalRequests) / float64(envoyMetrics.UptimeSeconds)
-
+		totalResponses := envoyMetrics.Total2xxResponses + envoyMetrics.Total3xxResponses + envoyMetrics.Total4xxResponses + envoyMetrics.Total5xxResponses
+		envoyMetrics.AverageResponsesPerSecond = float64(totalResponses) / float64(envoyMetrics.UptimeSeconds)
 	}
 
 	return envoyMetrics, nil
 }
 
 type EnvoyMetrics struct {
-	Total2xxRequests         int64
-	Total3xxRequests         int64
-	Total4xxRequests         int64
-	Total5xxRequests         int64
-	UptimeSeconds            int64
-	AverageRequestsPerSecond float64
+	Total2xxResponses         int64
+	Total3xxResponses         int64
+	Total4xxResponses         int64
+	Total5xxResponses         int64
+	UptimeSeconds             int64
+	AverageResponsesPerSecond float64
 }
 
 type UpstreamStat struct {
-	Host          string
+	Upstream      string
 	Region        string
 	Zone          string
 	SubZone       string
@@ -611,7 +640,7 @@ func (o *Options) addToFlags(flags *pflag.FlagSet) {
 	flags.StringVar(&o.GlooSnapshotFile, "input-snapshot", "", "Gloo input snapshot file location")
 	flags.StringSliceVar(&o.ScanProxies, "scan-proxies", []string{}, "Scan for Gloo proxies and grab their routing information")
 	flags.StringSliceVar(&o.ProxyNamespaces, "proxy-namespaces", []string{}, "Namespaces that contain gloo proxies (default gloo-system or gloo-control-plane-namespace)")
-	flags.BoolVar(&o.IncludeEndpointStats, "include-endpoint-stats", false, "Include endpoint stats in the output")
+	flags.BoolVar(&o.IncludeEndpointStats, "include-endpoint-stats", true, "Include endpoint stats in the output")
 	flags.StringVar(&o.OutputFormat, "output-format", "yaml", "Output format (text, json, yaml)")
 }
 

@@ -2,10 +2,14 @@ package usage
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
+	"time"
 
 	"gopkg.in/yaml.v3"
 
+	"github.com/fatih/color"
+	"github.com/rodaine/table"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/snapshot"
 	v1 "k8s.io/api/core/v1"
 )
@@ -22,10 +26,12 @@ type UsageStats struct {
 }
 
 type GlooFeatureUsage struct {
-	APICounts            map[string]int                `json:"apiCounts" yaml:"apiCounts"`
-	FeatureCountPerProxy map[string]*ProxyFeatureCount `json:"featureCountPerProxy" yaml:"featureCountPerProxy"`
+	APICounts            map[string]int                        `json:"apiCounts" yaml:"apiCounts"`
+	FeatureCountPerProxy map[string]*ProxyFeatureCountCategory `json:"featureCountPerProxy" yaml:"featureCountPerProxy"`
 }
-
+type ProxyFeatureCountCategory struct {
+	Categories map[Category]ProxyFeatureCount `json:"categories" yaml:"categories"`
+}
 type ProxyFeatureCount struct {
 	FeatureCount map[FeatureType]int `json:"featureCount" yaml:"featureCount"`
 }
@@ -41,9 +47,9 @@ type KubernetesStats struct {
 	Services      int            `json:"services" yaml:"services"`
 }
 type ProxyData struct {
-	Name         string
-	Namespace    string
-	EnvoyMetrics *EnvoyMetrics
+	Name         string        `json:"name" yaml:"name"`
+	Namespace    string        `json:"namespace" yaml:"namespace"`
+	EnvoyMetrics *EnvoyMetrics `json:"envoyMetrics" yaml:"envoyMetrics"`
 }
 
 type Inputs struct {
@@ -63,7 +69,10 @@ func (u *UsageStats) Print(format string) error {
 
 	if format == "json" {
 		err := json.NewEncoder(os.Stdout).Encode(u)
-		return err
+		if err != nil {
+			return err
+		}
+		return nil
 	}
 
 	if format == "yaml" {
@@ -71,73 +80,82 @@ func (u *UsageStats) Print(format string) error {
 		if err != nil {
 			return err
 		}
+		return nil
 	}
 
 	// text output format
+	if u.KubernetesStats != nil {
+		fmt.Printf("\nK8s Resources:")
+		fmt.Printf("\n\tNodes: %d", u.KubernetesStats.NodeResources.Nodes)
+		fmt.Printf("\n\tPods: %d", u.KubernetesStats.Pods)
+		fmt.Printf("\n\tServices: %d", u.KubernetesStats.Services)
+		// Print node resource information
+		fmt.Printf("\n\n\tNode Resources:")
+		fmt.Printf("\n\t\tTotal CPU Capacity: %.2f cores", float64(u.KubernetesStats.NodeResources.TotalCPUCores))
+		fmt.Printf("\n\t\tTotal Memory Capacity: %.2f GB", float64(u.KubernetesStats.NodeResources.TotalMemoryGb))
+	}
 
-	//fmt.Printf("\nK8s Resources:\n")
-	//fmt.Printf("\tNodes: %d\n", u.KubernetesStats.NodeResources.Nodes)
-	//fmt.Printf("\tPods: %d\n", u.KubernetesStats.Pods)
-	//fmt.Printf("\tServices: %d\n", u.KubernetesStats.Services)
-	//// Print node resource information
-	//fmt.Printf("\nNode Resources:\n")
-	//fmt.Printf("Total CPU Capacity: %.2f cores\n", float64(u.KubernetesStats.NodeResources.TotalCapacityCPU)/1000)
-	//fmt.Printf("Total Memory Capacity: %.2f GB\n", float64(u.KubernetesStats.NodeResources.TotalCapacityMemory)/math.Pow(1024, 3))
-	//
-	//fmt.Printf("Gloo Edge APIs: \n")
-	//fmt.Printf("\tGloo Gateways: %d\n", len(u.GlooEdgeConfigs.GlooGateways()))
-	//fmt.Printf("\tVirtualService: %d\n", len(u.GlooEdgeConfigs.VirtualServices()))
-	//fmt.Printf("\tRouteTables: %d\n", len(u.GlooEdgeConfigs.RouteTables()))
-	//fmt.Printf("\tUpstreams: %d\n", len(u.GlooEdgeConfigs.Upstreams()))
-	//fmt.Printf("\tVirtualHostOptions: %d\n", len(u.GlooEdgeConfigs.VirtualHostOptions()))
-	//fmt.Printf("\tListenerOptions: %d\n", len(u.GlooEdgeConfigs.ListenerOptions()))
-	//fmt.Printf("\tHTTPListenerOptions: %d\n", len(u.GlooEdgeConfigs.HTTPListenerOptions()))
-	//fmt.Printf("\tAuthConfigs: %d\n", len(u.GlooEdgeConfigs.AuthConfigs()))
-	//fmt.Printf("\tSettings: %d\n", len(u.GlooEdgeConfigs.Settings()))
-	//
-	//fmt.Printf("\nGateway API APIs: \n")
-	//fmt.Printf("\tGateways: %d\n", len(u.GlooEdgeConfigs.Gateways()))
-	//fmt.Printf("\tListenerSets: %d\n", len(u.GlooEdgeConfigs.ListenerSets()))
-	//fmt.Printf("\tHTTPRoutes: %d\n", len(u.GlooEdgeConfigs.HTTPRoutes()))
-	//fmt.Printf("\tDirectResponses: %d\n", len(u.GlooEdgeConfigs.DirectResponses()))
-	//fmt.Printf("\tGatewayParameters: %d\n", len(u.GlooEdgeConfigs.GatewayParameters()))
-	//
-	//fmt.Printf("\nTotal Features Used Per API\n")
-	//fmt.Printf("\tGloo Edge API: %d\n", len(u.GlooFeatureUsage[GlooEdgeAPI]))
-	//fmt.Printf("\tGateway API: %d\n", len(u.GlooFeatureUsage[GatewayAPI]))
-	//fmt.Printf("\tkGateway API: %d\n\n", len(u.GlooFeatureUsage[KGatewayAPI]))
-	//
-	//for api, features := range u.GlooFeatureUsage {
-	//	fmt.Printf("API: %s", api)
-	//
-	//	// organize by category
-	//	categories := map[Category]map[FeatureType]int{}
-	//
-	//	// group all the stats by their codes
-	//	for _, feature := range features {
-	//		//featureCount[stat.Type]++
-	//		if categories[feature.Metadata.Category] == nil {
-	//			categories[feature.Metadata.Category] = map[FeatureType]int{}
-	//		}
-	//		categories[feature.Metadata.Category][feature.Type]++
-	//
-	//	}
-	//	for category, features := range categories {
-	//		fmt.Printf("\n\tCategory: %s", category)
-	//		//sort the features
-	//		//add all the features to a list for naming
-	//		featureList := []FeatureType{}
-	//		for key := range features {
-	//			featureList = append(featureList, key)
-	//		}
-	//
-	//		sort.Slice(featureList, func(i, j int) bool {
-	//			return featureList[i] < featureList[j]
-	//		})
-	//		for _, feature := range featureList {
-	//			fmt.Printf("\n\t\t%s: %d", feature, features[feature])
-	//		}
-	//	}
-	//}
+	if u.GlooFeatureUsage[GlooEdgeAPI] != nil {
+		fmt.Printf("\n\nGloo Edge APIs:")
+		fmt.Printf("\n\tGloo Gateways: %d", u.GlooFeatureUsage[GlooEdgeAPI].APICounts["Gloo Gateways"])
+		fmt.Printf("\n\tVirtualService: %d", u.GlooFeatureUsage[GlooEdgeAPI].APICounts["VirtualService"])
+		fmt.Printf("\n\tRouteTables: %d", u.GlooFeatureUsage[GlooEdgeAPI].APICounts["RouteTables"])
+		fmt.Printf("\n\tUpstreams: %d", u.GlooFeatureUsage[GlooEdgeAPI].APICounts["Upstreams"])
+		fmt.Printf("\n\tVirtualHostOptions: %d", u.GlooFeatureUsage[GlooEdgeAPI].APICounts["VirtualHostOptions"])
+		fmt.Printf("\n\tListenerOptions: %d", u.GlooFeatureUsage[GlooEdgeAPI].APICounts["ListenerOptions"])
+		fmt.Printf("\n\tHTTPListenerOptions: %d", u.GlooFeatureUsage[GlooEdgeAPI].APICounts["HTTPListenerOptions"])
+		fmt.Printf("\n\tAuthConfigs: %d", u.GlooFeatureUsage[GlooEdgeAPI].APICounts["AuthConfigs"])
+		fmt.Printf("\n\tSettings: %d", u.GlooFeatureUsage[GlooEdgeAPI].APICounts["Settings"])
+	}
+
+	if u.GlooFeatureUsage[GatewayAPI] != nil {
+		fmt.Printf("\n\nGateway API APIs:")
+		fmt.Printf("\n\tGateways: %d", u.GlooFeatureUsage[GatewayAPI].APICounts["Gateways"])
+		fmt.Printf("\n\tListenerSets: %d", u.GlooFeatureUsage[GatewayAPI].APICounts["ListenerSets"])
+		fmt.Printf("\n\tHTTPRoutes: %d", u.GlooFeatureUsage[GatewayAPI].APICounts["HTTPRoutes"])
+		fmt.Printf("\n\tDirectResponses: %d", u.GlooFeatureUsage[GatewayAPI].APICounts["DirectResponses"])
+		fmt.Printf("\n\tGatewayParameters: %d", u.GlooFeatureUsage[GatewayAPI].APICounts["GatewayParameters"])
+	}
+
+	for api, features := range u.GlooFeatureUsage {
+		fmt.Printf("\n\nAPI: %s", api)
+		for proxyName, feature := range features.FeatureCountPerProxy {
+			fmt.Printf("\n\t%s:", proxyName)
+			for category, featureCount := range feature.Categories {
+				fmt.Printf("\n\t\t%s:", category)
+				for featureType, count := range featureCount.FeatureCount {
+					fmt.Printf("\n\t\t\t%s: %d", featureType, count)
+				}
+			}
+		}
+	}
+
+	if u.GlooProxyStats != nil {
+		fmt.Printf("\n\nProxy Stats:")
+		for proxyName, stats := range u.GlooProxyStats {
+			fmt.Printf("\n\tProxy: %s", proxyName)
+			if stats.GlooProxyMetrics != nil {
+				fmt.Printf("\n\t\tGloo 2xx Responses: %v", stats.GlooProxyMetrics.Total2xxResponses)
+				fmt.Printf("\n\t\tGloo 3xx Responses: %v", stats.GlooProxyMetrics.Total3xxResponses)
+				fmt.Printf("\n\t\tGloo 4xx Responses: %v", stats.GlooProxyMetrics.Total4xxResponses)
+				fmt.Printf("\n\t\tGloo 5xx Responses: %v", stats.GlooProxyMetrics.Total5xxResponses)
+				fmt.Printf("\n\t\tUptime: %v", time.Duration(stats.GlooProxyMetrics.UptimeSeconds)*time.Second)
+				fmt.Printf("\n\t\tAverage Responses Per Second: %v", stats.GlooProxyMetrics.AverageResponsesPerSecond)
+			}
+			if len(stats.GlooProxyStats) > 0 {
+				headerFmt := color.New(color.FgGreen, color.Underline).SprintfFunc()
+				columnFmt := color.New(color.FgYellow).SprintfFunc()
+				tbl := table.New("Upstream", "IP Address", "Port", "Rq Success", "Rq Error", "Cx Active", "Cx Connect Fail")
+				tbl.WithHeaderFormatter(headerFmt).WithFirstColumnFormatter(columnFmt)
+				for _, stat := range stats.GlooProxyStats {
+					tbl.AddRow(stat.Upstream, stat.IPAddress, stat.Port, stat.RqSuccess, stat.RqError, stat.CxActive, stat.CxConnectFail)
+				}
+				fmt.Printf("\n------------%s Upstream Calls ------------\n", proxyName)
+				tbl.Print()
+				fmt.Printf("--------------------------------------\n")
+			}
+		}
+	}
+
 	return nil
 }

@@ -1,6 +1,8 @@
 package usage
 
 import (
+	"time"
+
 	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/snapshot"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
@@ -38,6 +40,394 @@ func (f *FeatureCalculator) AddUsageStat(stat *UsageStat) {
 		f.Features[stat.Metadata.API] = []*UsageStat{}
 	}
 	f.Features[stat.Metadata.API] = append(f.Features[stat.Metadata.API], stat)
+}
+
+func (f *FeatureCalculator) processSettings(proxyNames []string) error {
+	defaultMetadata := UsageMetadata{
+		ProxyNames: proxyNames,
+		Category:   settingsCategory,
+		API:        GlooEdgeAPI,
+	}
+	for _, settings := range f.Configs.Settings() {
+		defaultMetadata.Name = settings.Name
+		defaultMetadata.Namespace = settings.Namespace
+		if settings.Spec.GetDiscoveryNamespace() != "" {
+			f.AddUsageStat(&UsageStat{
+				Type:     DISCOVERY_NAMESPACE,
+				Metadata: defaultMetadata,
+			})
+		}
+		if settings.Spec.GetWatchNamespaces() != nil && len(settings.Spec.GetWatchNamespaces()) > 0 {
+			f.AddUsageStat(&UsageStat{
+				Type:     WATCH_NAMESPACES,
+				Metadata: defaultMetadata,
+			})
+		}
+		if settings.Spec.GetKubernetesConfigSource() != nil {
+			f.AddUsageStat(&UsageStat{
+				Type:     KUBERNETES_CONFIG_SOURCE,
+				Metadata: defaultMetadata,
+			})
+		}
+		if settings.Spec.GetDirectoryConfigSource() != nil {
+			f.AddUsageStat(&UsageStat{
+				Type:     DIRECTORY_CONFIG_SOURCE,
+				Metadata: defaultMetadata,
+			})
+		}
+		if settings.Spec.GetConsulKvSource() != nil {
+			f.AddUsageStat(&UsageStat{
+				Type:     CONSUL_KV_SOURCE,
+				Metadata: defaultMetadata,
+			})
+		}
+		if settings.Spec.GetKubernetesSecretSource() != nil {
+			f.AddUsageStat(&UsageStat{
+				Type:     KUBERNETES_SECRET_SOURCE,
+				Metadata: defaultMetadata,
+			})
+		}
+		if settings.Spec.GetVaultSecretSource() != nil {
+			f.AddUsageStat(&UsageStat{
+				Type:     VAULT_SECRET_SOURCE,
+				Metadata: defaultMetadata,
+			})
+		}
+		if settings.Spec.GetDirectorySecretSource() != nil {
+			f.AddUsageStat(&UsageStat{
+				Type:     DIRECTORY_SECRET_SOURCE,
+				Metadata: defaultMetadata,
+			})
+		}
+		if settings.Spec.GetSecretOptions() != nil && len(settings.Spec.GetSecretOptions().Sources) > 0 {
+			for _, source := range settings.Spec.GetSecretOptions().Sources {
+				switch source.Source.(type) {
+				case *gloov1.Settings_SecretOptions_Source_Kubernetes:
+					f.AddUsageStat(&UsageStat{
+						Type: KUBERNETES_SECRET_SOURCE_OPTIONS,
+					})
+				case *gloov1.Settings_SecretOptions_Source_Vault:
+					f.AddUsageStat(&UsageStat{
+						Type: VAULT_SECRET_SOURCE_OPTIONS,
+					})
+				case *gloov1.Settings_SecretOptions_Source_Directory:
+					f.AddUsageStat(&UsageStat{
+						Type: DIRECTORY_SECRET_SOURCE_OPTIONS,
+					})
+				}
+			}
+		}
+		if settings.Spec.GetKubernetesArtifactSource() != nil {
+			f.AddUsageStat(&UsageStat{
+				Type:     KUBERNETES_ARTIFACT_SOURCE,
+				Metadata: defaultMetadata,
+			})
+		}
+		if settings.Spec.GetDirectoryArtifactSource() != nil {
+			f.AddUsageStat(&UsageStat{
+				Type:     DIRECTORY_ARTIFACT_SOURCE,
+				Metadata: defaultMetadata,
+			})
+		}
+		if settings.Spec.GetConsulKvArtifactSource() != nil {
+			f.AddUsageStat(&UsageStat{
+				Type:     CONSUL_KV_ARTIFACT_SOURCE,
+				Metadata: defaultMetadata,
+			})
+		}
+		if settings.Spec.GetRefreshRate() != nil {
+			f.AddUsageStat(&UsageStat{
+				Type:     REFRESH_RATE,
+				Metadata: defaultMetadata,
+			})
+		}
+		if settings.Spec.GetDevMode() == true {
+			f.AddUsageStat(&UsageStat{
+				Type:     DEV_MODE,
+				Metadata: defaultMetadata,
+			})
+		}
+		if settings.Spec.GetLinkerd() == true {
+			f.AddUsageStat(&UsageStat{
+				Type:     LINKERD,
+				Metadata: defaultMetadata,
+			})
+		}
+		if settings.Spec.GetKnative() != nil {
+			f.AddUsageStat(&UsageStat{
+				Type:     KNATIVE,
+				Metadata: defaultMetadata,
+			})
+		}
+		if settings.Spec.GetDiscovery() != nil {
+			if settings.Spec.GetDiscovery().GetFdsMode() != gloov1.Settings_DiscoveryOptions_BLACKLIST {
+				if settings.Spec.GetDiscovery().GetFdsMode() != gloov1.Settings_DiscoveryOptions_WHITELIST {
+					f.AddUsageStat(&UsageStat{
+						Type:     FDS_WHITELIST,
+						Metadata: defaultMetadata,
+					})
+				}
+				if settings.Spec.GetDiscovery().GetFdsMode() != gloov1.Settings_DiscoveryOptions_DISABLED {
+					f.AddUsageStat(&UsageStat{
+						Type:     FDS_DISABLED,
+						Metadata: defaultMetadata,
+					})
+				}
+			}
+			if settings.Spec.GetDiscovery().GetUdsOptions() != nil && settings.Spec.GetDiscovery().GetUdsOptions().GetEnabled() != nil && settings.Spec.GetDiscovery().GetUdsOptions().GetEnabled().Value == true {
+				f.AddUsageStat(&UsageStat{
+					Type:     UDS_DISCOVERY,
+					Metadata: defaultMetadata,
+				})
+			}
+			if settings.Spec.GetDiscovery().GetFdsOptions() != nil && settings.Spec.GetDiscovery().GetFdsOptions().GraphqlEnabled != nil && settings.Spec.GetDiscovery().GetFdsOptions().GraphqlEnabled.Value == true {
+				f.AddUsageStat(&UsageStat{
+					Type:     GRAPHQL_FDS,
+					Metadata: defaultMetadata,
+				})
+			}
+		}
+		if settings.Spec.GetGloo() != nil {
+			if settings.Spec.GetGloo().GetXdsBindAddr() != "" {
+				f.AddUsageStat(&UsageStat{
+					Type:     XDS_BIND_ADDR,
+					Metadata: defaultMetadata,
+				})
+			}
+			if settings.Spec.GetGloo().GetValidationBindAddr() != "" {
+				f.AddUsageStat(&UsageStat{
+					Type:     VALIDATION_BIND_ADDR,
+					Metadata: defaultMetadata,
+				})
+			}
+			if settings.Spec.GetGloo().GetCircuitBreakers() != nil {
+				f.AddUsageStat(&UsageStat{
+					Type:     GLOBAL_CIRCUIT_BREAKER,
+					Metadata: defaultMetadata,
+				})
+			}
+			if settings.Spec.GetGloo().GetEndpointsWarmingTimeout() != nil && settings.Spec.GetGloo().GetEndpointsWarmingTimeout().AsDuration() != (5*time.Minute) {
+				f.AddUsageStat(&UsageStat{
+					Type:     ENDPOINTS_WARMING_TIMEOUT,
+					Metadata: defaultMetadata,
+				})
+			}
+			if settings.Spec.GetGloo().GetAwsOptions() != nil {
+				f.AddUsageStat(&UsageStat{
+					Type:     AWS_OPTIONS,
+					Metadata: defaultMetadata,
+				})
+			}
+			if settings.Spec.GetGloo().GetInvalidConfigPolicy() != nil {
+				f.AddUsageStat(&UsageStat{
+					Type:     INVALID_CONFIG_POLICY,
+					Metadata: defaultMetadata,
+				})
+			}
+			if settings.Spec.GetGloo().GetDisableKubernetesDestinations() == true {
+				f.AddUsageStat(&UsageStat{
+					Type:     DISABLE_KUBERNETES_DESTINATIONS,
+					Metadata: defaultMetadata,
+				})
+			}
+			if settings.Spec.GetGloo().GetDisableGrpcWeb() != nil && settings.Spec.GetGloo().GetDisableGrpcWeb().Value == true {
+				f.AddUsageStat(&UsageStat{
+					Type:     DISABLE_GRPC_WEB,
+					Metadata: defaultMetadata,
+				})
+			}
+			if settings.Spec.GetGloo().GetDisableProxyGarbageCollection() != nil && settings.Spec.GetGloo().GetDisableProxyGarbageCollection().Value == true {
+				f.AddUsageStat(&UsageStat{
+					Type:     DISABLE_PROXY_GARBAGE_COLLECTION,
+					Metadata: defaultMetadata,
+				})
+			}
+			if settings.Spec.GetGloo().GetRegexMaxProgramSize() != nil && settings.Spec.GetGloo().GetRegexMaxProgramSize().Value != 100 {
+				f.AddUsageStat(&UsageStat{
+					Type:     REGEX_MAX_PROGRAM_SIZE,
+					Metadata: defaultMetadata,
+				})
+			}
+			if settings.Spec.GetGloo().GetEnableRestEds() != nil && settings.Spec.GetGloo().GetEnableRestEds().Value == true {
+				f.AddUsageStat(&UsageStat{
+					Type:     REST_XDS_BIND_ADDR,
+					Metadata: defaultMetadata,
+				})
+			}
+			if settings.Spec.GetGloo().GetFailoverUpstreamDnsPollingInterval() != nil && settings.Spec.GetGloo().GetFailoverUpstreamDnsPollingInterval().AsDuration() != 10*time.Second {
+				f.AddUsageStat(&UsageStat{
+					Type:     FAIL_OVER_UPSTREAM_DNS_POLLING_INTERVAL,
+					Metadata: defaultMetadata,
+				})
+			}
+			if settings.Spec.GetGloo().GetRemoveUnusedFilters() != nil && settings.Spec.GetGloo().GetRemoveUnusedFilters().Value == true {
+				f.AddUsageStat(&UsageStat{
+					Type:     REMOVE_UNUSED_FILTERS,
+					Metadata: defaultMetadata,
+				})
+			}
+			if settings.Spec.GetGloo().GetProxyDebugBindAddr() != "" {
+				f.AddUsageStat(&UsageStat{
+					Type:     PROXY_DEBUG_BIND_ADDR,
+					Metadata: defaultMetadata,
+				})
+			}
+			if settings.Spec.GetGloo().GetLogTransformationRequestResponseInfo() != nil && settings.Spec.GetGloo().GetLogTransformationRequestResponseInfo().Value == true {
+				f.AddUsageStat(&UsageStat{
+					Type:     LOG_TRANSFORMATION_REQUEST_RESPONSE_INFO,
+					Metadata: defaultMetadata,
+				})
+			}
+			if settings.Spec.GetGloo().GetTransformationEscapeCharacters() != nil && settings.Spec.GetGloo().GetTransformationEscapeCharacters().Value == true {
+				f.AddUsageStat(&UsageStat{
+					Type:     TRANSFORMATION_ESCAPE_CHARACTERS,
+					Metadata: defaultMetadata,
+				})
+			}
+			if settings.Spec.GetGloo().GetIstioOptions() != nil {
+				f.AddUsageStat(&UsageStat{
+					Type:     ISTIO_OPTIONS,
+					Metadata: defaultMetadata,
+				})
+			}
+		} // end of gloo
+
+		if settings.Spec.GetGateway() != nil {
+			if settings.Spec.GetGateway().GetValidation() != nil {
+				f.AddUsageStat(&UsageStat{
+					Type:     VALIDATION_OPTIONS,
+					Metadata: defaultMetadata,
+				})
+			}
+			if settings.Spec.GetGateway().GetReadGatewaysFromAllNamespaces() != true {
+				f.AddUsageStat(&UsageStat{
+					Type:     READ_GATEWAYS_FROM_ALL_NAMESPACES,
+					Metadata: defaultMetadata,
+				})
+			}
+			if settings.Spec.GetGateway().GetCompressedProxySpec() == true {
+				f.AddUsageStat(&UsageStat{
+					Type:     COMPRESSED_PROXY_SPEC,
+					Metadata: defaultMetadata,
+				})
+			}
+			if settings.Spec.GetGateway().GetVirtualServiceOptions() != nil && settings.Spec.GetGateway().GetVirtualServiceOptions().OneWayTls != nil && settings.Spec.GetGateway().GetVirtualServiceOptions().OneWayTls.Value == true {
+				f.AddUsageStat(&UsageStat{
+					Type:     GLOBAL_ONE_WAY_TLS,
+					Metadata: defaultMetadata,
+				})
+			}
+			if settings.Spec.GetGateway().GetPersistProxySpec() != nil && settings.Spec.GetGateway().GetPersistProxySpec().Value == true {
+				f.AddUsageStat(&UsageStat{
+					Type:     PERSIST_PROXY_SPEC,
+					Metadata: defaultMetadata,
+				})
+			}
+			if settings.Spec.GetGateway().GetEnableGatewayController() != nil && settings.Spec.GetGateway().GetEnableGatewayController().Value == false {
+				f.AddUsageStat(&UsageStat{
+					Type:     DISABLE_GATEWAY_CONTROLLER,
+					Metadata: defaultMetadata,
+				})
+			}
+			if settings.Spec.GetGateway().GetIsolateVirtualHostsBySslConfig() != nil && settings.Spec.GetGateway().GetIsolateVirtualHostsBySslConfig().Value == true {
+				f.AddUsageStat(&UsageStat{
+					Type:     ISOLATE_VIRTUAL_HOSTS_BY_SSL_CONFIG,
+					Metadata: defaultMetadata,
+				})
+			}
+			if settings.Spec.GetGateway().GetTranslateEmptyGateways() != nil && settings.Spec.GetGateway().GetTranslateEmptyGateways().Value == true {
+				f.AddUsageStat(&UsageStat{
+					Type:     TRANSLATE_EMPTY_GATEWAYS,
+					Metadata: defaultMetadata,
+				})
+			}
+			if settings.Spec.GetConsul() != nil {
+				f.AddUsageStat(&UsageStat{
+					Type:     CONSUL_CONFIGURATION,
+					Metadata: defaultMetadata,
+				})
+			}
+			if settings.Spec.GetConsulDiscovery() != nil {
+				f.AddUsageStat(&UsageStat{
+					Type:     CONSUL_DISCOVERY,
+					Metadata: defaultMetadata,
+				})
+			}
+			if settings.Spec.GetKubernetes() != nil && settings.Spec.GetKubernetes().GetRateLimits() != nil {
+				f.AddUsageStat(&UsageStat{
+					Type:     KUBERNETES_API_RATE_LIMITS,
+					Metadata: defaultMetadata,
+				})
+			}
+			if settings.Spec.GetExtensions() != nil && len(settings.Spec.GetExtensions().GetConfigs()) > 0 {
+				f.AddUsageStat(&UsageStat{
+					Type:     GLOBAL_EXTENSIONS,
+					Metadata: defaultMetadata,
+				})
+			}
+			if settings.Spec.GetRbac() != nil && settings.Spec.GetRbac().RequireRbac == true {
+				f.AddUsageStat(&UsageStat{
+					Type:     GLOBAL_RBAC,
+					Metadata: defaultMetadata,
+				})
+			}
+			if settings.Spec.GetExtauth() != nil {
+				f.AddUsageStat(&UsageStat{
+					Type:     GLOBAL_EXTAUTH_SETTINGS,
+					Metadata: defaultMetadata,
+				})
+			}
+			if settings.Spec.GetNamedExtauth() != nil && len(settings.Spec.GetNamedExtauth()) > 0 {
+				f.AddUsageStat(&UsageStat{
+					Type:     GLOBAL_NAMED_EXTAUTH_SETTINGS,
+					Metadata: defaultMetadata,
+				})
+			}
+			if settings.Spec.GetCachingServer() != nil {
+				f.AddUsageStat(&UsageStat{
+					Type:     GLOBAL_CACHING_SERVER_SETTINGS,
+					Metadata: defaultMetadata,
+				})
+			}
+			if settings.Spec.GetMetadata() != nil {
+				f.AddUsageStat(&UsageStat{
+					Type:     GLOBAL_METADATA_SETTINGS,
+					Metadata: defaultMetadata,
+				})
+			}
+			if settings.Spec.GetObservabilityOptions() != nil {
+				f.AddUsageStat(&UsageStat{
+					Type:     GLOBAL_OBSERVABILITY_SETTINGS,
+					Metadata: defaultMetadata,
+				})
+			}
+			if settings.Spec.GetUpstreamOptions() != nil {
+				f.AddUsageStat(&UsageStat{
+					Type:     GLOBAL_UPSTREAM_SETTINGS,
+					Metadata: defaultMetadata,
+				})
+			}
+			if settings.Spec.GetGraphqlOptions() != nil {
+				f.AddUsageStat(&UsageStat{
+					Type:     GLOBAL_GRAPHQL_SETTINGS,
+					Metadata: defaultMetadata,
+				})
+			}
+			if settings.Spec.GetExtProc() != nil {
+				f.AddUsageStat(&UsageStat{
+					Type:     GLOBAL_EXTPROC_SETTINGS,
+					Metadata: defaultMetadata,
+				})
+			}
+			if settings.Spec.GetWatchNamespaceSelectors() != nil {
+				f.AddUsageStat(&UsageStat{
+					Type:     GLOBAL_WATCH_NAMESPACE_SELECTORS,
+					Metadata: defaultMetadata,
+				})
+			}
+		}
+	} // end of settings
+	return nil
 }
 
 func (f *FeatureCalculator) processGlooGateways() error {

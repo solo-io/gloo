@@ -26,6 +26,27 @@ func generateGlooFeatureUsage(instance *snapshot.Instance) (map[API][]*UsageStat
 		return nil, err
 	}
 
+	proxyNames := map[string]bool{}
+
+	for _, gateway := range calculator.Configs.GlooGateways() {
+		if len(proxyNames) == 0 {
+			proxyNames["gateway-proxy"] = true
+		} else {
+			for _, proxyName := range gateway.Spec.ProxyNames {
+				proxyNames[proxyName] = true
+			}
+		}
+	}
+	var proxyNameList []string
+	for proxyName, _ := range proxyNames {
+		proxyNameList = append(proxyNameList, proxyName)
+	}
+
+	err = calculator.processSettings(proxyNameList)
+	if err != nil {
+		return nil, err
+	}
+
 	return calculator.Features, nil
 }
 
