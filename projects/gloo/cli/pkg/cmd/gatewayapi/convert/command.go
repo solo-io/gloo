@@ -79,16 +79,20 @@ func run(opts *Options) error {
 		return err
 	}
 
-	filesMetrics.Add(float64(len(foundFiles)))
-
 	output := NewGatewayAPIOutput()
 	var inputSnapshot *snapshot.Instance
-	if opts.GlooSnapshotFile != "" {
-		inputSnapshot, err = snapshot.FromGlooSnapshot(opts.GlooSnapshotFile)
+	snapshotFile := opts.GlooSnapshotFile
+
+	// the snapshot file comes from control plane
+	if opts.ControlPlaneName != "" {
+		snapshotFile = foundFiles[0]
+	}
+
+	if snapshotFile != "" {
+		inputSnapshot, err = snapshot.FromGlooSnapshot(snapshotFile)
 		if err != nil {
 			return err
 		}
-
 	} else {
 		// yaml files
 		// snapshot file
@@ -127,7 +131,7 @@ func run(opts *Options) error {
 	}
 
 	if opts.Stats {
-		printMetrics(output)
+		printMetrics(output, len(foundFiles))
 	}
 
 	return nil

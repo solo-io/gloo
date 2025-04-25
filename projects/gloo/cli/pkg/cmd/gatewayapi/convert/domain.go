@@ -74,7 +74,7 @@ func folderExists(path string) bool {
 	return info.IsDir()
 }
 func (o *Options) addToFlags(flags *pflag.FlagSet) {
-	flags.StringVar(&o.ControlPlaneName, "gloo-control-plane", "g", "Name of the Gloo control plane pod")
+	flags.StringVar(&o.ControlPlaneName, "gloo-control-plane", "", "Name of the Gloo control plane pod")
 	flags.StringVarP(&o.ControlPlaneNamespace, "gloo-control-plane-namespace", "n", "gloo-system", "Namespace of the Gloo control plane pod")
 	flags.StringVar(&o.InputFile, "input-file", "", "Convert single file to Gateway API")
 	flags.StringVar(&o.InputDir, "input-dir", "", "InputDir to read yaml/yml files recursively")
