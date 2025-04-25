@@ -41,10 +41,27 @@ func RootCmd(op *options.Options) *cobra.Command {
 		Options: op,
 	}
 	cmd := &cobra.Command{
-		Use:     "usage",
-		Short:   "Scan Gloo for feature usage",
-		Long:    "",
-		Example: ``,
+		Use:   "usage",
+		Short: "Scan Gloo for feature usage",
+		Long:  "glooctl usage will evaluate Gloo Gateway snapshots and collect usage stats. It also has the ability to scan for Gloo Gateway proxies and grab their current throughput stats.",
+		Example: `# This command scans Gloo Gateway for feature usage.
+# To get usage stats from a running Gloo Gateway control plane.
+  glooctl usage
+
+# To get usage stats from a Gloo Gateway snapshot file.
+  glooctl usage --input-snapshot ./gg-input.json
+
+# To get usage stats from a Gloo Gateway snapshot file in json format.
+  glooctl usage --input-snapshot ./gg-input.json --output-format json
+
+# To get throughput stats from a Gloo Gateway proxy pods.
+  glooctl usage --scan-proxies deploy/gateway-proxy
+
+# To get throughput stats from a Gloo Gateway proxy running in a different namespace than the control plane
+  glooctl usage --scan-proxies deploy/gateway-proxy --proxy-namespaces gloo-system
+	
+# To print all the backend endpoint stats per Gloo Gateway proxy (requires --scan-proxies)
+  glooctl usage --scan-proxies deploy/gateway-proxy --include-endpoint-stats`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if err := opts.validate(); err != nil {
 				return err
@@ -56,6 +73,16 @@ func RootCmd(op *options.Options) *cobra.Command {
 	opts.addToFlags(cmd.PersistentFlags())
 	cmd.SilenceUsage = true
 	return cmd
+}
+
+func (o *Options) addToFlags(flags *pflag.FlagSet) {
+	flags.StringVar(&o.ControlPlaneName, "gloo-control-plane", "deploy/gloo", "Name of the Gloo control plane pod")
+	flags.StringVarP(&o.ControlPlaneNamespace, "gloo-control-plane-namespace", "n", "gloo-system", "Namespace of the Gloo control plane pod")
+	flags.StringVar(&o.GlooSnapshotFile, "input-snapshot", "", "Gloo input snapshot file location")
+	flags.StringSliceVar(&o.ScanProxies, "scan-proxies", []string{}, "Scan for Gloo proxies and grab their routing information")
+	flags.StringSliceVar(&o.ProxyNamespaces, "proxy-namespaces", []string{}, "Namespaces that contain gloo proxies (default gloo-system or gloo-control-plane-namespace)")
+	flags.BoolVar(&o.IncludeEndpointStats, "include-endpoint-stats", true, "Include endpoint stats in the output")
+	flags.StringVar(&o.OutputFormat, "output-format", "yaml", "Output format (text, json, yaml)")
 }
 
 func (opts *Options) validate() error {
@@ -180,7 +207,6 @@ func processGlooFeatures(apiUsageStats map[API][]*UsageStat, instance *snapshot.
 			usage.APICounts["GlooGateway"] = len(instance.GlooGateways())
 			usage.APICounts["AuthConfig"] = len(instance.AuthConfigs())
 			usage.APICounts["VirtualService"] = len(instance.VirtualServices())
-			usage.APICounts["HTTPListenerOption"] = len(instance.HTTPListenerOptions())
 			usage.APICounts["VirtualHostOption"] = len(instance.VirtualHostOptions())
 			usage.APICounts["DirectResponse"] = len(instance.DirectResponses())
 
@@ -190,6 +216,7 @@ func processGlooFeatures(apiUsageStats map[API][]*UsageStat, instance *snapshot.
 			usage.APICounts["ListenerSet"] = len(instance.ListenerSets())
 			usage.APICounts["Gateway"] = len(instance.Gateways())
 			usage.APICounts["GatewayParameters"] = len(instance.GatewayParameters())
+			usage.APICounts["HTTPListenerOption"] = len(instance.HTTPListenerOptions())
 		}
 
 	}
@@ -632,16 +659,6 @@ func LoadSnapshotFromGloo(opts *Options, tempDir string) (string, error) {
 	}
 
 	return filePath, nil
-}
-
-func (o *Options) addToFlags(flags *pflag.FlagSet) {
-	flags.StringVar(&o.ControlPlaneName, "gloo-control-plane", "deploy/gloo", "Name of the Gloo control plane pod")
-	flags.StringVarP(&o.ControlPlaneNamespace, "gloo-control-plane-namespace", "n", "gloo-system", "Namespace of the Gloo control plane pod")
-	flags.StringVar(&o.GlooSnapshotFile, "input-snapshot", "", "Gloo input snapshot file location")
-	flags.StringSliceVar(&o.ScanProxies, "scan-proxies", []string{}, "Scan for Gloo proxies and grab their routing information")
-	flags.StringSliceVar(&o.ProxyNamespaces, "proxy-namespaces", []string{}, "Namespaces that contain gloo proxies (default gloo-system or gloo-control-plane-namespace)")
-	flags.BoolVar(&o.IncludeEndpointStats, "include-endpoint-stats", true, "Include endpoint stats in the output")
-	flags.StringVar(&o.OutputFormat, "output-format", "yaml", "Output format (text, json, yaml)")
 }
 
 func NewPortForwardedClient(ctx context.Context, kubectlCli *kubectl.Cli, podSelector, namespace string, port int) (*admincli.Client, func(), error) {
