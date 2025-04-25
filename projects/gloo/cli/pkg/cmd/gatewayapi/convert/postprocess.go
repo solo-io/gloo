@@ -2,8 +2,9 @@ package convert
 
 import (
 	"fmt"
-	"github.com/solo-io/gloo/projects/gloo/cli/pkg/snapshot"
 	"strings"
+
+	"github.com/solo-io/gloo/projects/gloo/cli/pkg/snapshot"
 
 	"k8s.io/utils/ptr"
 	"sigs.k8s.io/gateway-api/apisx/v1alpha1"

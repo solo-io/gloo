@@ -2,10 +2,11 @@ package snapshot
 
 import (
 	"fmt"
+	"strings"
+
 	api "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gateway/pkg/translator"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
-	"strings"
 )
 
 type Instance struct {

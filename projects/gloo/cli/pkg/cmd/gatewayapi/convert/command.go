@@ -3,11 +3,12 @@ package convert
 import (
 	"context"
 	"fmt"
-	"github.com/solo-io/gloo/projects/gloo/cli/pkg/snapshot"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
+
+	"github.com/solo-io/gloo/projects/gloo/cli/pkg/snapshot"
 
 	"github.com/solo-io/gloo/pkg/utils/envoyutils/admincli"
 	"github.com/solo-io/gloo/pkg/utils/kubeutils/kubectl"

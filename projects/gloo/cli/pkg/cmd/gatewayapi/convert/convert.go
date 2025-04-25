@@ -2,8 +2,9 @@ package convert
 
 import (
 	"fmt"
-	"github.com/solo-io/gloo/projects/gloo/cli/pkg/snapshot"
 	"strings"
+
+	"github.com/solo-io/gloo/projects/gloo/cli/pkg/snapshot"
 
 	gloogwv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	gatewaykube "github.com/solo-io/gloo/projects/gateway/pkg/api/v1/kube/apis/gateway.solo.io/v1"

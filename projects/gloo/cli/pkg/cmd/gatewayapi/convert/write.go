@@ -2,11 +2,12 @@ package convert
 
 import (
 	"fmt"
-	"github.com/solo-io/gloo/projects/gloo/cli/pkg/snapshot"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
+
+	"github.com/solo-io/gloo/projects/gloo/cli/pkg/snapshot"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

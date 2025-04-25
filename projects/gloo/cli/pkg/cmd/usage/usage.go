@@ -2,6 +2,7 @@ package usage
 
 import (
 	"fmt"
+
 	api "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	gatewaykube "github.com/solo-io/gloo/projects/gateway/pkg/api/v1/kube/apis/gateway.solo.io/v1"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/snapshot"
@@ -17,11 +18,6 @@ func generateGlooFeatureUsage(instance *snapshot.Instance) (map[API][]*UsageStat
 		Configs: instance,
 	}
 	err := calculator.processGlooGateways()
-	if err != nil {
-		return nil, err
-	}
-
-	err = calculator.processGateways()
 	if err != nil {
 		return nil, err
 	}
@@ -887,8 +883,4 @@ func (f *FeatureCalculator) processAuthConfig(config *snapshot.AuthConfigWrapper
 			})
 		}
 	}
-}
-func (f *FeatureCalculator) processGateways() error {
-
-	return nil
 }

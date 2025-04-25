@@ -2,10 +2,11 @@ package convert
 
 import (
 	"fmt"
+	"os"
+
 	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/snapshot"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
-	"os"
 
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/options"
 	"github.com/spf13/pflag"

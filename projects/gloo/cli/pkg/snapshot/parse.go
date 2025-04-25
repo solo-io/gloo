@@ -3,6 +3,10 @@ package snapshot
 import (
 	"encoding/json"
 	"fmt"
+	"log"
+	"os"
+	"strings"
+
 	"github.com/solo-io/gloo/pkg/schemes"
 	gatewaykube "github.com/solo-io/gloo/projects/gateway/pkg/api/v1/kube/apis/gateway.solo.io/v1"
 	extauthv1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1/kube/apis/enterprise.gloo.solo.io/v1"
@@ -10,10 +14,7 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
-	"log"
-	"os"
 	"sigs.k8s.io/yaml"
-	"strings"
 )
 
 func FromYamlFiles(files []string) (*Instance, error) {

@@ -4,8 +4,9 @@ import (
 	"context"
 	"fmt"
 	"os"
-"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/usage"
+
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/gatewayapi"
+	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/usage"
 
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/add"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/check"

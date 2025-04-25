@@ -5,8 +5,8 @@ type Stats struct {
 }
 
 type Stat struct {
-	Name  string `json:"name"`
-	Value interface{}    `json:"value"`
+	Name  string      `json:"name"`
+	Value interface{} `json:"value"`
 }
 
 type SocketAddress struct {
@@ -32,12 +32,12 @@ type HealthStatus struct {
 }
 
 type HostStatus struct {
-	Address      Address       `json:"address"`
+	Address      Address        `json:"address"`
 	Stats        []EndpointStat `json:"stats"`
-	HealthStatus HealthStatus `json:"health_status"`
-	Weight       int          `json:"weight"`
-	Hostname     string       `json:"hostname,omitempty"`
-	Locality     Locality     `json:"locality"`
+	HealthStatus HealthStatus   `json:"health_status"`
+	Weight       int            `json:"weight"`
+	Hostname     string         `json:"hostname,omitempty"`
+	Locality     Locality       `json:"locality"`
 }
 
 type Locality struct {
