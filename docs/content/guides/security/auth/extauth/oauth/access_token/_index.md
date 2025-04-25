@@ -213,7 +213,7 @@ Now that all the necessary resources are in place, add the introspection path to
      --type=extauth.solo.io/oauth
    ```
 
-2. Create an AuthConfig that references the introspection path. This configuration instructs Gloo Gateway to use the `introspectionUrl` to validate access tokens that are provided in an `authorization` header with the request. If the token is missing or invalid, Gloo Gateway denies the request. You use the internal hostname of the Hydra administrative service as the request comes from Gloo Gateway's exauth pod, which has access to Kubernetes DNS.
+2. Create an AuthConfig that references the introspection path. This configuration instructs Gloo Gateway to use the `introspectionUrl` to validate access tokens that are provided in an `authorization` header with the request. If the token is missing or invalid, Gloo Gateway denies the request. You use the internal hostname of the Hydra administrative service because the request comes from Gloo Gateway's exauth pod, which has access to Kubernetes DNS.
    ```yaml
    kubectl apply -f- <<EOF
    apiVersion: enterprise.gloo.solo.io/v1
