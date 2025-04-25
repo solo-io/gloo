@@ -50,19 +50,19 @@ To download a Gloo Gateway snapshot from a running 'gloo' pod (verison 1.17+) an
 ### Options
 
 ```
-      --combine-route-options                 Combine RouteOptions that are exactly the same and share them among the HTTPRoutes
-      --create-namespaces                     Create namespaces for the objects in a file.
-      --delete-output-dir                     Delete the output directory if it already exists.
+      --combine-route-options                 Combine routeOptions that are exactly the same and share them among the HTTPRoutes
+      --create-namespaces                     Create namespaces for the objects in a file
+      --delete-output-dir                     Delete the output directory if it already exists
       --gloo-control-plane string             Name of the Gloo control plane pod
   -n, --gloo-control-plane-namespace string   Namespace of the Gloo control plane pod (default "gloo-system")
   -h, --help                                  help for convert
-      --include-unknown                       Copy non-Gloo Gateway resources to the output directory without changing them. 
+      --include-unknown                       Copy unknown resources to output files (if files contain resources that are not Gloo APIs)
       --input-dir string                      InputDir to read yaml/yml files recursively
-      --input-file string                     Convert a single YAML file to the Gateway API
+      --input-file string                     Convert single file to Gateway API
       --input-snapshot string                 Gloo input snapshot file location
-      --output-dir string                     Output directory to write Gateway API configurations to. The directory must not exist before starting the migration. To delete and recreate the output directory, use the --recreate-output-dir option (default "./_output")
+      --output-dir string                     Output directory to write Gateway API configurations, it must not exist before or can be deleted/recreated with --recreate-output-dir (default "./_output")
       --print-stats                           Print stats about the conversion
-      --retain-input-folder-structure         Arrange the generated Gateway API files in the same folder structure they were read from (input-dir only).
+      --retain-input-folder-structure         When writing the output write the Gateway API configurations in the same folder structure they were read from (input-dir only)
 ```
 
 ### Options inherited from parent commands
