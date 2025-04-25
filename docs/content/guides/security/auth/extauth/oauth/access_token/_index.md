@@ -381,7 +381,7 @@ You can extract the claims that are returned by the introspection URL and add th
    
    {{% /notice %}}
 
-3. Update your VirtualService to add a transformation policy that extracts the dynamic metadata value from the `sub` key and maps it to the `x-customer` header in your request. Because the `sub` key is returned as a nested key, you must include all the keys that are part of the chain and separate them with `:`. In this example, `config_0:sub` is used as the `sub` key is nested under the `config_0` key in the authorization response.
+3. Update your VirtualService to add a transformation policy that extracts the dynamic metadata value from the `sub` key and maps it to the `x-customer` header in your request. Because the `sub` key is returned as a nested key, you must include all the keys that are part of the chain and separate them with `:`. In this example, `config_0:sub` is used as the `sub` key, which is nested under the `config_0` key in the authorization response.
    ```yaml
    kubectl apply -f- <<EOF
    apiVersion: gateway.solo.io/v1
