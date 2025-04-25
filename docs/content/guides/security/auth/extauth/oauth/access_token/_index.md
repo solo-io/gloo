@@ -85,7 +85,7 @@ In this guide we will deploy ORY Hydra, a simple OpenID Connect Provider. Hydra 
    
 ## Step 3: Secure the VirtualService
 
-In the next step, you learn how to secure access to the httpbin app with an access token that you get back from an OpenID Connect povider. 
+In the next step, you learn how to secure access to the httpbin app with an access token that you get back from an OpenID Connect provider. 
 
 ### Install Ory Hydra
 
