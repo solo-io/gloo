@@ -1,0 +1,4 @@
+changelog:
+  - type: NEW_FEATURE
+    description: >
+      This adds a cli command 'glooctl usage' to collect usage stats from Gloo Edge APIs.
