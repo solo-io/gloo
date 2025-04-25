@@ -124,8 +124,6 @@ To implement the authentication flow, an OpenID Connect provider must be availab
    NAME                                     READY   STATUS    RESTARTS   AGE
    hydra-example-58cd5bf699-9jgz5           1/1     Running   0          10m
    hydra-example-maester-75c985dd5b-s4b27   1/1     Running   0          10m
-   petclinic-0                              1/1     Running   1          25h
-   petclinic-db-0                           1/1     Running   0          25h
    ```
 
 Hydra automatically exposes its admin endpoint on port 4445 and a public endpoint on port 4444. You use the admin endpoint to create a client ID and password and to validate the access token. The public endpoint is used to generate an access token. 
@@ -377,7 +375,7 @@ You can extract the claims that are returned by the introspection URL and add th
    }}}"}
    ```
    
-   It is important to know the syntax of the authorization response, because you later use a transformation policy to extract the dynamic metadata key-value pair and map it to a header in the request. To view the authorization response, enable debug logging for the extauth pod and review the pod's logs.
+   It is important to know the syntax of the authorization response, because you later use a transformation policy to extract the dynamic metadata key-value pair and map it to a header in the request. To view the authorization response, enable debug logging for the extauth pod with  and review the pod's logs for a request to httpbin. To enable debug logging, edit the extauth deployment with `kubectl edit deployment extauth -n gloo-system` and change the `LOG_LEVEL` to `debug`. 
    
    {{% /notice %}}
 
