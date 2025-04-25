@@ -119,6 +119,9 @@ message ListenerReport {
         Type type = 1;
         // any extra info as a string
         string reason = 2;
+        // Source metadata for the ListenerReport, can be used by external components to associate
+        // sources with the ListenerError
+        SourceMetadata metadata = 3;
     }
 
     // warning types for the given listener config

@@ -36,7 +36,8 @@ func GetServiceAccountPermissions(namespace string) *manifesttestutils.ServiceAc
 		"gloo-system.gloo",
 		namespace,
 		[]string{"gateway.solo.io"},
-		[]string{"gateways", "httpgateways", "tcpgateways", "virtualservices", "routetables", "virtualhostoptions", "routeoptions"},
+		[]string{"gateways", "httpgateways", "tcpgateways", "virtualservices", "routetables",
+			"virtualhostoptions", "routeoptions", "listeneroptions"},
 		[]string{"get", "list", "watch", "patch"})
 	permissions.AddExpectedPermission(
 		"gloo-system.gloo",
