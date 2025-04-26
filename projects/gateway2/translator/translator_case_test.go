@@ -151,8 +151,10 @@ func (tc TestCase) Run(ctx context.Context) (map[types.NamespacedName]ActualTest
 	}
 	routeOptionCollection := krt.NewStaticCollection(routeOptions)
 	vhOptionCollection := krt.NewStatic[*solokubev1.VirtualHostOption](nil, true).AsCollection()
+	listenerOptionCollection := krt.NewStatic[*solokubev1.ListenerOption](nil, true).AsCollection()
 
-	allPlugins := registry.BuildPlugins(queries, fakeClient, routeOptionCollection, vhOptionCollection, statusReporter)
+	allPlugins := registry.BuildPlugins(queries, fakeClient, routeOptionCollection, vhOptionCollection,
+		listenerOptionCollection, statusReporter)
 	allPlugins = append(allPlugins, &testBackendPlugin{})
 	pluginRegistry := registry.NewPluginRegistry(allPlugins)
 

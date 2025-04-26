@@ -123,6 +123,12 @@ func (m *ListenerOption) Clone() proto.Message {
 	}
 	target = &ListenerOption{}
 
+	if h, ok := interface{}(m.GetNamespacedStatuses()).(clone.Cloner); ok {
+		target.NamespacedStatuses = h.Clone().(*github_com_solo_io_solo_kit_pkg_api_v1_resources_core.NamespacedStatuses)
+	} else {
+		target.NamespacedStatuses = proto.Clone(m.GetNamespacedStatuses()).(*github_com_solo_io_solo_kit_pkg_api_v1_resources_core.NamespacedStatuses)
+	}
+
 	if h, ok := interface{}(m.GetMetadata()).(clone.Cloner); ok {
 		target.Metadata = h.Clone().(*github_com_solo_io_solo_kit_pkg_api_v1_resources_core.Metadata)
 	} else {
@@ -158,6 +164,12 @@ func (m *HttpListenerOption) Clone() proto.Message {
 		return target
 	}
 	target = &HttpListenerOption{}
+
+	if h, ok := interface{}(m.GetNamespacedStatuses()).(clone.Cloner); ok {
+		target.NamespacedStatuses = h.Clone().(*github_com_solo_io_solo_kit_pkg_api_v1_resources_core.NamespacedStatuses)
+	} else {
+		target.NamespacedStatuses = proto.Clone(m.GetNamespacedStatuses()).(*github_com_solo_io_solo_kit_pkg_api_v1_resources_core.NamespacedStatuses)
+	}
 
 	if h, ok := interface{}(m.GetMetadata()).(clone.Cloner); ok {
 		target.Metadata = h.Clone().(*github_com_solo_io_solo_kit_pkg_api_v1_resources_core.Metadata)

@@ -79,6 +79,10 @@ func setObjMeta(obj ObjectWithMetadata, meta *SourceMetadata) error {
 		typedObj.OpaqueMetadata = &v1.Listener_MetadataStatic{
 			MetadataStatic: objMetaToSourceMeta(meta),
 		}
+	case *v1.HttpListener:
+		typedObj.OpaqueMetadata = &v1.HttpListener_MetadataStatic{
+			MetadataStatic: objMetaToSourceMeta(meta),
+		}
 	default:
 		return errors.Errorf("unimplemented object type: %T", obj)
 	}
