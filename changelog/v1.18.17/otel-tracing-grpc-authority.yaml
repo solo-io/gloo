@@ -1,0 +1,14 @@
+changelog:
+  - type: FIX
+    description: |
+      Add support for setting the authority field on gRPC requests made to OTEL Collectors during tracing.
+      When the authority field is set, the gRPC client will use the specified value as the :authority header
+      when making requests to the collector. This is useful when the collector is behind a reverse proxy that
+      requires a specific authority to be set on incoming requests.
+    issueLink: https://github.com/solo-io/solo-projects/issues/7740
+    resolvesIssue: true
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/solo-projects/issues/8089
+    resolvesIssue: true
+    description: |
+      backport functionality

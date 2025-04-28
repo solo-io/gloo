@@ -19,6 +19,7 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/pluginutils"
 	translatorutil "github.com/solo-io/gloo/projects/gloo/pkg/translator"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+	"google.golang.org/protobuf/types/known/anypb"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
@@ -261,10 +262,19 @@ func processEnvoyOpenTelemetryTracing(
 		return nil, errors.Errorf("Unsupported Tracing.ProviderConfiguration: %v", collectorCluster)
 	}
 
-	serviceName := api_conversion.GetGatewayNameFromParent(params.Ctx, parent)
-	envoyConfig := api_conversion.ToEnvoyOpenTelemetryConfiguration(collectorClusterName, serviceName)
+	serviceName := openTelemetryTracingSettings.OpenTelemetryConfig.GetServiceName()
+	if serviceName == "" {
+		serviceName = api_conversion.GetGatewayNameFromParent(params.Ctx, parent)
+	}
 
-	marshalledEnvoyConfig, err := ptypes.MarshalAny(envoyConfig)
+	authority := ""
+	grpcService := openTelemetryTracingSettings.OpenTelemetryConfig.GetGrpcService()
+	if grpcService != nil {
+		authority = grpcService.GetAuthority()
+	}
+
+	envoyConfig := api_conversion.ToEnvoyOpenTelemetryConfiguration(collectorClusterName, serviceName, authority)
+	marshalledEnvoyConfig, err := anypb.New(envoyConfig)
 	if err != nil {
 		return nil, err
 	}
