@@ -3,10 +3,13 @@ package proxy_syncer
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/utils/ptr"
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
 	gwxv1a1 "sigs.k8s.io/gateway-api/apisx/v1alpha1"
 
+	"github.com/solo-io/gloo/projects/gateway2/reports"
 	"github.com/solo-io/gloo/projects/gateway2/wellknown"
 )
 
@@ -64,18 +67,18 @@ func TestIsRouteStatusEqual(t *testing.T) {
 		Parents: []gwv1.RouteParentStatus{
 			{
 				ParentRef: gwv1.ParentReference{
-					Group:     ptr.To[gwv1.Group](gwv1.Group(wellknown.GatewayGroup)),
-					Kind:      ptr.To[gwv1.Kind](gwv1.Kind(wellknown.HTTPRouteKind)),
+					Group:     ptr.To(gwv1.Group(wellknown.GatewayGroup)),
+					Kind:      ptr.To(gwv1.Kind(wellknown.HTTPRouteKind)),
 					Name:      "parent",
-					Namespace: ptr.To[gwv1.Namespace](gwv1.Namespace("default")),
+					Namespace: ptr.To(gwv1.Namespace("default")),
 				},
 			},
 			{
 				ParentRef: gwv1.ParentReference{
-					Group:     ptr.To[gwv1.Group](gwv1.Group(wellknown.GatewayGroup)),
-					Kind:      ptr.To[gwv1.Kind](gwv1.Kind(wellknown.TCPRouteKind)),
+					Group:     ptr.To(gwv1.Group(wellknown.GatewayGroup)),
+					Kind:      ptr.To(gwv1.Kind(wellknown.TCPRouteKind)),
 					Name:      "parent",
-					Namespace: ptr.To[gwv1.Namespace](gwv1.Namespace("default")),
+					Namespace: ptr.To(gwv1.Namespace("default")),
 				},
 			},
 		},
@@ -85,18 +88,18 @@ func TestIsRouteStatusEqual(t *testing.T) {
 		Parents: []gwv1.RouteParentStatus{
 			{
 				ParentRef: gwv1.ParentReference{
-					Group:     ptr.To[gwv1.Group](gwv1.Group(wellknown.GatewayGroup)),
-					Kind:      ptr.To[gwv1.Kind](gwv1.Kind(wellknown.HTTPRouteKind)),
+					Group:     ptr.To(gwv1.Group(wellknown.GatewayGroup)),
+					Kind:      ptr.To(gwv1.Kind(wellknown.HTTPRouteKind)),
 					Name:      "parent",
-					Namespace: ptr.To[gwv1.Namespace](gwv1.Namespace("default")),
+					Namespace: ptr.To(gwv1.Namespace("default")),
 				},
 			},
 			{
 				ParentRef: gwv1.ParentReference{
-					Group:     ptr.To[gwv1.Group](gwv1.Group(wellknown.GatewayGroup)),
-					Kind:      ptr.To[gwv1.Kind](gwv1.Kind(wellknown.TCPRouteKind)),
+					Group:     ptr.To(gwv1.Group(wellknown.GatewayGroup)),
+					Kind:      ptr.To(gwv1.Kind(wellknown.TCPRouteKind)),
 					Name:      "parent",
-					Namespace: ptr.To[gwv1.Namespace](gwv1.Namespace("default")),
+					Namespace: ptr.To(gwv1.Namespace("default")),
 				},
 			},
 		},
@@ -106,18 +109,18 @@ func TestIsRouteStatusEqual(t *testing.T) {
 		Parents: []gwv1.RouteParentStatus{
 			{
 				ParentRef: gwv1.ParentReference{
-					Group:     ptr.To[gwv1.Group](gwv1.Group(wellknown.GatewayGroup)),
-					Kind:      ptr.To[gwv1.Kind](gwv1.Kind(wellknown.HTTPRouteKind)),
+					Group:     ptr.To(gwv1.Group(wellknown.GatewayGroup)),
+					Kind:      ptr.To(gwv1.Kind(wellknown.HTTPRouteKind)),
 					Name:      "parent",
-					Namespace: ptr.To[gwv1.Namespace](gwv1.Namespace("my-other-ns")),
+					Namespace: ptr.To(gwv1.Namespace("my-other-ns")),
 				},
 			},
 			{
 				ParentRef: gwv1.ParentReference{
-					Group:     ptr.To[gwv1.Group](gwv1.Group(wellknown.GatewayGroup)),
-					Kind:      ptr.To[gwv1.Kind](gwv1.Kind(wellknown.TCPRouteKind)),
+					Group:     ptr.To(gwv1.Group(wellknown.GatewayGroup)),
+					Kind:      ptr.To(gwv1.Kind(wellknown.TCPRouteKind)),
 					Name:      "parent",
-					Namespace: ptr.To[gwv1.Namespace](gwv1.Namespace("my-other-ns")),
+					Namespace: ptr.To(gwv1.Namespace("my-other-ns")),
 				},
 			},
 		},
@@ -184,6 +187,143 @@ func TestIsListenerSetStatusEqual(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := isListenerSetStatusEqual(tt.objA, tt.objB); got != tt.want {
 				t.Errorf("isListenerSetStatusEqual() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestMergeProxyReports(t *testing.T) {
+	tests := []struct {
+		name     string
+		proxies  []glooProxy
+		expected reports.ReportMap
+	}{
+		{
+			name: "Merge HTTPRoute reports for different parents",
+			proxies: []glooProxy{
+				{
+					reportMap: reports.ReportMap{
+						HTTPRoutes: map[types.NamespacedName]*reports.RouteReport{
+							{Name: "route1", Namespace: "default"}: {
+								Parents: map[reports.ParentRefKey]*reports.ParentRefReport{
+									{NamespacedName: types.NamespacedName{Name: "gw-1", Namespace: "default"}}: {},
+								},
+							},
+						},
+					},
+				},
+				{
+					reportMap: reports.ReportMap{
+						HTTPRoutes: map[types.NamespacedName]*reports.RouteReport{
+							{Name: "route1", Namespace: "default"}: {
+								Parents: map[reports.ParentRefKey]*reports.ParentRefReport{
+									{NamespacedName: types.NamespacedName{Name: "gw-2", Namespace: "default"}}: {},
+								},
+							},
+						},
+					},
+				},
+			},
+			expected: reports.ReportMap{
+				HTTPRoutes: map[types.NamespacedName]*reports.RouteReport{
+					{Name: "route1", Namespace: "default"}: {
+						Parents: map[reports.ParentRefKey]*reports.ParentRefReport{
+							{NamespacedName: types.NamespacedName{Name: "gw-1", Namespace: "default"}}: {},
+							{NamespacedName: types.NamespacedName{Name: "gw-2", Namespace: "default"}}: {},
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "Merge TCPRoute reports for different parents",
+			proxies: []glooProxy{
+				{
+					reportMap: reports.ReportMap{
+						TCPRoutes: map[types.NamespacedName]*reports.RouteReport{
+							{Name: "route1", Namespace: "default"}: {
+								Parents: map[reports.ParentRefKey]*reports.ParentRefReport{
+									{NamespacedName: types.NamespacedName{Name: "gw-1", Namespace: "default"}}: {},
+								},
+							},
+						},
+					},
+				},
+				{
+					reportMap: reports.ReportMap{
+						TCPRoutes: map[types.NamespacedName]*reports.RouteReport{
+							{Name: "route1", Namespace: "default"}: {
+								Parents: map[reports.ParentRefKey]*reports.ParentRefReport{
+									{NamespacedName: types.NamespacedName{Name: "gw-2", Namespace: "default"}}: {},
+								},
+							},
+						},
+					},
+				},
+			},
+			expected: reports.ReportMap{
+				TCPRoutes: map[types.NamespacedName]*reports.RouteReport{
+					{Name: "route1", Namespace: "default"}: {
+						Parents: map[reports.ParentRefKey]*reports.ParentRefReport{
+							{NamespacedName: types.NamespacedName{Name: "gw-1", Namespace: "default"}}: {},
+							{NamespacedName: types.NamespacedName{Name: "gw-2", Namespace: "default"}}: {},
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "Merge TLSRoute reports for different parents",
+			proxies: []glooProxy{
+				{
+					reportMap: reports.ReportMap{
+						TLSRoutes: map[types.NamespacedName]*reports.RouteReport{
+							{Name: "route1", Namespace: "default"}: {
+								Parents: map[reports.ParentRefKey]*reports.ParentRefReport{
+									{NamespacedName: types.NamespacedName{Name: "gw-1", Namespace: "default"}}: {},
+								},
+							},
+						},
+					},
+				},
+				{
+					reportMap: reports.ReportMap{
+						TLSRoutes: map[types.NamespacedName]*reports.RouteReport{
+							{Name: "route1", Namespace: "default"}: {
+								Parents: map[reports.ParentRefKey]*reports.ParentRefReport{
+									{NamespacedName: types.NamespacedName{Name: "gw-2", Namespace: "default"}}: {},
+								},
+							},
+						},
+					},
+				},
+			},
+			expected: reports.ReportMap{
+				TLSRoutes: map[types.NamespacedName]*reports.RouteReport{
+					{Name: "route1", Namespace: "default"}: {
+						Parents: map[reports.ParentRefKey]*reports.ParentRefReport{
+							{NamespacedName: types.NamespacedName{Name: "gw-1", Namespace: "default"}}: {},
+							{NamespacedName: types.NamespacedName{Name: "gw-2", Namespace: "default"}}: {},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			a := assert.New(t)
+
+			actual := mergeProxyReports(tt.proxies)
+			if tt.expected.HTTPRoutes != nil {
+				a.Equal(tt.expected.HTTPRoutes, actual.HTTPRoutes)
+			}
+			if tt.expected.TCPRoutes != nil {
+				a.Equal(tt.expected.TCPRoutes, actual.TCPRoutes)
+			}
+			if tt.expected.TLSRoutes != nil {
+				a.Equal(tt.expected.TLSRoutes, actual.TLSRoutes)
 			}
 		})
 	}

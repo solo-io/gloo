@@ -1,0 +1,14 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/solo-projects/issues/8230
+    resolvesIssue: false
+    description: |
+      gateway2/status: correctly merge parentRefs for routes
+
+      When a route has multiple parentRefs, the exitsing status
+      merging code does not correctly merge parentRefs belonging
+      to different proxies. As a result, a route with multiple
+      parents does not have both parents in their status during
+      merging of status reports.
+
+      This change fixes it.

@@ -170,31 +170,20 @@ func (r *ReportMap) BuildRouteStatus(ctx context.Context, obj client.Object, cNa
 		obj.GetObjectKind().GroupVersionKind().Kind, obj.GetNamespace(),
 		obj.GetName())
 
-	// Default to using spec.ParentRefs when building the parent statuses for a route.
-	// However, for delegatee (child) routes, the parentRefs field is optional and such routes
-	// may not specify it. In this case, we infer the parentRefs form the RouteReport
-	// corresponding to the delegatee (child) route as the route's report is associated to a parentRef.
+	// parentRefs is always derived from the routeReport so that we don't try to build statuses
+	// for parents we do not own, such as refs to Gateways from other controllers
 	var existingStatus gwv1.RouteStatus
 	var parentRefs []gwv1.ParentReference
 	switch route := obj.(type) {
 	case *gwv1.HTTPRoute:
 		existingStatus = route.Status.RouteStatus
-		parentRefs = append(parentRefs, route.Spec.ParentRefs...)
-		if len(parentRefs) == 0 {
-			parentRefs = append(parentRefs, routeReport.parentRefs()...)
-		}
+		parentRefs = routeReport.parentRefs()
 	case *gwv1a2.TCPRoute:
 		existingStatus = route.Status.RouteStatus
-		parentRefs = append(parentRefs, route.Spec.ParentRefs...)
-		if len(parentRefs) == 0 {
-			parentRefs = append(parentRefs, routeReport.parentRefs()...)
-		}
+		parentRefs = routeReport.parentRefs()
 	case *gwv1a2.TLSRoute:
 		existingStatus = route.Status.RouteStatus
-		parentRefs = append(parentRefs, route.Spec.ParentRefs...)
-		if len(parentRefs) == 0 {
-			parentRefs = append(parentRefs, routeReport.parentRefs()...)
-		}
+		parentRefs = routeReport.parentRefs()
 	default:
 		contextutils.LoggerFrom(ctx).Error(fmt.Errorf("unsupported route type %T", obj), "failed to build route status")
 		return nil
@@ -203,7 +192,14 @@ func (r *ReportMap) BuildRouteStatus(ctx context.Context, obj client.Object, cNa
 	// Process the parent references to build the RouteParentStatus
 	routeStatus := gwv1.RouteStatus{}
 	for _, parentRef := range parentRefs {
-		parentStatusReport := routeReport.parentRef(&parentRef)
+		parentStatusReport := routeReport.getParentRefOrNil(&parentRef)
+		if parentStatusReport == nil {
+			// This should never happen as `parentRefs = routeReport.parentRefs()`
+			// guarantees that the parentRef is in the report. This check exists to
+			// prevent silent bugs that can arise when parentRefs is initialized differently
+			contextutils.LoggerFrom(ctx).DPanicf("missing parentRef %v in report", parentRef)
+			continue
+		}
 		addMissingParentRefConditions(parentStatusReport)
 
 		// Get the status of the current parentRef conditions if they exist

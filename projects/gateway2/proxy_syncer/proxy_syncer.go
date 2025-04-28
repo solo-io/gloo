@@ -475,53 +475,7 @@ func (s *ProxySyncer) Init(ctx context.Context, dbg *krt.DebugHandler) error {
 	// here we will merge reports that are per-Proxy to a singleton Report used to persist to k8s on a timer
 	s.statusReport = krt.NewSingleton(func(kctx krt.HandlerContext) *report {
 		proxies := krt.Fetch(kctx, glooProxies)
-		merged := reports.NewReportMap()
-		for _, p := range proxies {
-			// 1. merge GW Reports for all Proxies' status reports
-			maps.Copy(merged.Gateways, p.reportMap.Gateways)
-
-			// 2. merge LS Reports for all Proxies' status reports
-			maps.Copy(merged.ListenerSets, p.reportMap.ListenerSets)
-
-			// 3. merge httproute parentRefs into RouteReports
-			for rnn, rr := range p.reportMap.HTTPRoutes {
-				// if we haven't encountered this route, just copy it over completely
-				old := merged.HTTPRoutes[rnn]
-				if old == nil {
-					merged.HTTPRoutes[rnn] = rr
-					continue
-				}
-				// else, let's merge our parentRefs into the existing map
-				// obsGen will stay as-is...
-				maps.Copy(p.reportMap.HTTPRoutes[rnn].Parents, rr.Parents)
-			}
-
-			// 4. merge tcproute parentRefs into RouteReports
-			for rnn, rr := range p.reportMap.TCPRoutes {
-				// if we haven't encountered this route, just copy it over completely
-				old := merged.TCPRoutes[rnn]
-				if old == nil {
-					merged.TCPRoutes[rnn] = rr
-					continue
-				}
-				// else, let's merge our parentRefs into the existing map
-				// obsGen will stay as-is...
-				maps.Copy(p.reportMap.TCPRoutes[rnn].Parents, rr.Parents)
-			}
-
-			// 5. merge tlsroute parentRefs into RouteReports
-			for rnn, rr := range p.reportMap.TLSRoutes {
-				// if we haven't encountered this route, just copy it over completely
-				old := merged.TLSRoutes[rnn]
-				if old == nil {
-					merged.TLSRoutes[rnn] = rr
-					continue
-				}
-				// else, let's merge our parentRefs into the existing map
-				// obsGen will stay as-is...
-				maps.Copy(p.reportMap.TLSRoutes[rnn].Parents, rr.Parents)
-			}
-		}
+		merged := mergeProxyReports(proxies)
 		return &report{merged}
 	})
 
@@ -549,6 +503,56 @@ func (s *ProxySyncer) Init(ctx context.Context, dbg *krt.DebugHandler) error {
 		s.k8sGwExtensions.KRTExtensions().HasSynced,
 	}
 	return nil
+}
+
+func mergeProxyReports(
+	proxies []glooProxy,
+) reports.ReportMap {
+	merged := reports.NewReportMap()
+	for _, p := range proxies {
+		// 1. merge GW Reports for all Proxies' status reports
+		maps.Copy(merged.Gateways, p.reportMap.Gateways)
+
+		// 2. merge httproute parentRefs into RouteReports
+		for rnn, rr := range p.reportMap.HTTPRoutes {
+			// if we haven't encountered this route, just copy it over completely
+			old := merged.HTTPRoutes[rnn]
+			if old == nil {
+				merged.HTTPRoutes[rnn] = rr
+				continue
+			}
+			// else, this route has already been seen for a proxy, merge this proxy's parents
+			// into the merged report
+			maps.Copy(merged.HTTPRoutes[rnn].Parents, rr.Parents)
+		}
+
+		// 3. merge tcproute parentRefs into RouteReports
+		for rnn, rr := range p.reportMap.TCPRoutes {
+			// if we haven't encountered this route, just copy it over completely
+			old := merged.TCPRoutes[rnn]
+			if old == nil {
+				merged.TCPRoutes[rnn] = rr
+				continue
+			}
+			// else, this route has already been seen for a proxy, merge this proxy's parents
+			// into the merged report
+			maps.Copy(merged.TCPRoutes[rnn].Parents, rr.Parents)
+		}
+
+		for rnn, rr := range p.reportMap.TLSRoutes {
+			// if we haven't encountered this route, just copy it over completely
+			old := merged.TLSRoutes[rnn]
+			if old == nil {
+				merged.TLSRoutes[rnn] = rr
+				continue
+			}
+			// else, this route has already been seen for a proxy, merge this proxy's parents
+			// into the merged report
+			maps.Copy(merged.TLSRoutes[rnn].Parents, rr.Parents)
+		}
+	}
+
+	return merged
 }
 
 func (s *ProxySyncer) Start(ctx context.Context) error {
