@@ -6251,6 +6251,123 @@ spec:
                                 staticClusterName:
                                   type: string
                               type: object
+                            openTelemetryService:
+                              properties:
+                                attributes:
+                                  properties:
+                                    values:
+                                      items:
+                                        properties:
+                                          key:
+                                            type: string
+                                          value:
+                                            type: object
+                                            x-kubernetes-preserve-unknown-fields: true
+                                        type: object
+                                      type: array
+                                  type: object
+                                body:
+                                  type: object
+                                  x-kubernetes-preserve-unknown-fields: true
+                                collector:
+                                  properties:
+                                    authority:
+                                      type: string
+                                    endpoint:
+                                      type: string
+                                    headers:
+                                      additionalProperties:
+                                        type: string
+                                      type: object
+                                    insecure:
+                                      type: boolean
+                                    sslConfig:
+                                      properties:
+                                        allowRenegotiation:
+                                          nullable: true
+                                          type: boolean
+                                        alpnProtocols:
+                                          items:
+                                            type: string
+                                          type: array
+                                        oneWayTls:
+                                          nullable: true
+                                          type: boolean
+                                        parameters:
+                                          properties:
+                                            cipherSuites:
+                                              items:
+                                                type: string
+                                              type: array
+                                            ecdhCurves:
+                                              items:
+                                                type: string
+                                              type: array
+                                            maximumProtocolVersion:
+                                              type: string
+                                              x-kubernetes-int-or-string: true
+                                            minimumProtocolVersion:
+                                              type: string
+                                              x-kubernetes-int-or-string: true
+                                          type: object
+                                        sds:
+                                          properties:
+                                            callCredentials:
+                                              properties:
+                                                fileCredentialSource:
+                                                  properties:
+                                                    header:
+                                                      type: string
+                                                    tokenFileName:
+                                                      type: string
+                                                  type: object
+                                              type: object
+                                            certificatesSecretName:
+                                              type: string
+                                            clusterName:
+                                              type: string
+                                            targetUri:
+                                              type: string
+                                            validationContextName:
+                                              type: string
+                                          type: object
+                                        secretRef:
+                                          properties:
+                                            name:
+                                              type: string
+                                            namespace:
+                                              type: string
+                                          type: object
+                                        sni:
+                                          type: string
+                                        sslFiles:
+                                          properties:
+                                            ocspStaple:
+                                              type: string
+                                            rootCa:
+                                              type: string
+                                            tlsCert:
+                                              type: string
+                                            tlsKey:
+                                              type: string
+                                          type: object
+                                        verifySubjectAltName:
+                                          items:
+                                            type: string
+                                          type: array
+                                      type: object
+                                    timeout:
+                                      type: string
+                                  type: object
+                                disableBuiltinLabels:
+                                  type: boolean
+                                filterStateObjectsToLog:
+                                  items:
+                                    type: string
+                                  type: array
+                                logName:
+                                  type: string
+                              type: object
                           type: object
                         type: array
                     type: object
@@ -6428,6 +6545,123 @@ spec:
                                 logName:
                                   type: string
                                 staticClusterName:
+                                  type: string
+                              type: object
+                            openTelemetryService:
+                              properties:
+                                attributes:
+                                  properties:
+                                    values:
+                                      items:
+                                        properties:
+                                          key:
+                                            type: string
+                                          value:
+                                            type: object
+                                            x-kubernetes-preserve-unknown-fields: true
+                                        type: object
+                                      type: array
+                                  type: object
+                                body:
+                                  type: object
+                                  x-kubernetes-preserve-unknown-fields: true
+                                collector:
+                                  properties:
+                                    authority:
+                                      type: string
+                                    endpoint:
+                                      type: string
+                                    headers:
+                                      additionalProperties:
+                                        type: string
+                                      type: object
+                                    insecure:
+                                      type: boolean
+                                    sslConfig:
+                                      properties:
+                                        allowRenegotiation:
+                                          nullable: true
+                                          type: boolean
+                                        alpnProtocols:
+                                          items:
+                                            type: string
+                                          type: array
+                                        oneWayTls:
+                                          nullable: true
+                                          type: boolean
+                                        parameters:
+                                          properties:
+                                            cipherSuites:
+                                              items:
+                                                type: string
+                                              type: array
+                                            ecdhCurves:
+                                              items:
+                                                type: string
+                                              type: array
+                                            maximumProtocolVersion:
+                                              type: string
+                                              x-kubernetes-int-or-string: true
+                                            minimumProtocolVersion:
+                                              type: string
+                                              x-kubernetes-int-or-string: true
+                                          type: object
+                                        sds:
+                                          properties:
+                                            callCredentials:
+                                              properties:
+                                                fileCredentialSource:
+                                                  properties:
+                                                    header:
+                                                      type: string
+                                                    tokenFileName:
+                                                      type: string
+                                                  type: object
+                                              type: object
+                                            certificatesSecretName:
+                                              type: string
+                                            clusterName:
+                                              type: string
+                                            targetUri:
+                                              type: string
+                                            validationContextName:
+                                              type: string
+                                          type: object
+                                        secretRef:
+                                          properties:
+                                            name:
+                                              type: string
+                                            namespace:
+                                              type: string
+                                          type: object
+                                        sni:
+                                          type: string
+                                        sslFiles:
+                                          properties:
+                                            ocspStaple:
+                                              type: string
+                                            rootCa:
+                                              type: string
+                                            tlsCert:
+                                              type: string
+                                            tlsKey:
+                                              type: string
+                                          type: object
+                                        verifySubjectAltName:
+                                          items:
+                                            type: string
+                                          type: array
+                                      type: object
+                                    timeout:
+                                      type: string
+                                  type: object
+                                disableBuiltinLabels:
+                                  type: boolean
+                                filterStateObjectsToLog:
+                                  items:
+                                    type: string
+                                  type: array
+                                logName:
                                   type: string
                               type: object
                           type: object

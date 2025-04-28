@@ -83,7 +83,6 @@ type GatewayList struct {
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 // +resourceName=httplisteneroptions
 // +genclient
-// +genclient:noStatus
 type HttpListenerOption struct {
 	v1.TypeMeta `json:",inline"`
 	// +optional
@@ -91,7 +90,8 @@ type HttpListenerOption struct {
 
 	// Spec defines the implementation of this definition.
 	// +optional
-	Spec api.HttpListenerOption `json:"spec,omitempty" protobuf:"bytes,2,opt,name=spec"`
+	Spec   api.HttpListenerOption  `json:"spec,omitempty" protobuf:"bytes,2,opt,name=spec"`
+	Status core.NamespacedStatuses `json:"status,omitempty" protobuf:"bytes,3,opt,name=status"`
 }
 
 func (o *HttpListenerOption) MarshalJSON() ([]byte, error) {
@@ -100,10 +100,12 @@ func (o *HttpListenerOption) MarshalJSON() ([]byte, error) {
 		return nil, err
 	}
 	delete(spec, "metadata")
+	delete(spec, "namespacedStatuses")
 	asMap := map[string]interface{}{
 		"metadata":   o.ObjectMeta,
 		"apiVersion": o.TypeMeta.APIVersion,
 		"kind":       o.TypeMeta.Kind,
+		"status":     o.Status,
 		"spec":       spec,
 	}
 	return json.Marshal(asMap)
@@ -124,6 +126,10 @@ func (o *HttpListenerOption) UnmarshalJSON(data []byte) error {
 		TypeMeta:   metaOnly.TypeMeta,
 		Spec:       spec,
 	}
+	if spec.GetNamespacedStatuses() != nil {
+		o.Status = *spec.NamespacedStatuses
+		o.Spec.NamespacedStatuses = nil
+	}
 
 	return nil
 }
@@ -140,7 +146,6 @@ type HttpListenerOptionList struct {
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 // +resourceName=listeneroptions
 // +genclient
-// +genclient:noStatus
 type ListenerOption struct {
 	v1.TypeMeta `json:",inline"`
 	// +optional
@@ -148,7 +153,8 @@ type ListenerOption struct {
 
 	// Spec defines the implementation of this definition.
 	// +optional
-	Spec api.ListenerOption `json:"spec,omitempty" protobuf:"bytes,2,opt,name=spec"`
+	Spec   api.ListenerOption      `json:"spec,omitempty" protobuf:"bytes,2,opt,name=spec"`
+	Status core.NamespacedStatuses `json:"status,omitempty" protobuf:"bytes,3,opt,name=status"`
 }
 
 func (o *ListenerOption) MarshalJSON() ([]byte, error) {
@@ -157,10 +163,12 @@ func (o *ListenerOption) MarshalJSON() ([]byte, error) {
 		return nil, err
 	}
 	delete(spec, "metadata")
+	delete(spec, "namespacedStatuses")
 	asMap := map[string]interface{}{
 		"metadata":   o.ObjectMeta,
 		"apiVersion": o.TypeMeta.APIVersion,
 		"kind":       o.TypeMeta.Kind,
+		"status":     o.Status,
 		"spec":       spec,
 	}
 	return json.Marshal(asMap)
@@ -180,6 +188,10 @@ func (o *ListenerOption) UnmarshalJSON(data []byte) error {
 		ObjectMeta: metaOnly.ObjectMeta,
 		TypeMeta:   metaOnly.TypeMeta,
 		Spec:       spec,
+	}
+	if spec.GetNamespacedStatuses() != nil {
+		o.Status = *spec.NamespacedStatuses
+		o.Spec.NamespacedStatuses = nil
 	}
 
 	return nil
