@@ -2,6 +2,7 @@ package main
 
 import (
 	"os"
+	"strings"
 
 	"github.com/solo-io/go-utils/log"
 	"github.com/solo-io/solo-kit/pkg/code-generator/cmd"
@@ -69,10 +70,13 @@ func main() {
 			EnumAsIntOrString:            true,
 			MessagesWithEmptySchema: []string{
 				// These messages are recursive, and will cause codegen to enter an infinite loop
+				// If you're adding a new message to this list, consider addressing the issue
+				// solo-io/protoc-gen-openapi or switching to another implementation
 				"core.solo.io.Status",
 				"ratelimit.api.solo.io.Descriptor",
 				"als.options.gloo.solo.io.AndFilter",
 				"als.options.gloo.solo.io.OrFilter",
+				"opentelemetry.proto.common.v1.AnyValue",
 
 				// These messages are part of our internal API, and therefore aren't required
 				// Also they are quite large and can cause the Proxy CRD to become too large,
@@ -86,6 +90,14 @@ func main() {
 		},
 	}
 	if err := cmd.Generate(generateOptions); err != nil {
+		// check the error for "generateMessageSchema", if we see it many times
+		// it's likely a cycle in the the proto files
+		count := strings.Count(err.Error(), "generateMessageSchema")
+		// this is arbitrary, raise if you're seeing false positives
+		if count > 10 {
+			log.Fatalf("generate failed!: %v. The error message indicates a cycle the protos! See MessagesWithEmptySchema in generate.go.", err)
+		}
+
 		log.Fatalf("generate failed!: %v", err)
 	}
 

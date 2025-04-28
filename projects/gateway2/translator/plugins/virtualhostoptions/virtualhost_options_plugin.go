@@ -178,9 +178,7 @@ func (p *plugin) InitStatusPlugin(ctx context.Context, statusCtx *plugins.Status
 		// for this specific proxy, get all the route errors and their associated RouteOption sources
 		virtualHostErrors := extractVirtualHostErrors(proxyWithReport.Reports.ProxyReport)
 		for vhKey := range virtualHostErrors {
-			cacheEntry := newClassicStatus()
-			// init the cache
-			p.classicStatusCache[vhKey] = cacheEntry
+			p.classicStatusCache[vhKey] = newClassicStatus()
 		}
 	}
 	return nil
