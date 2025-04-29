@@ -267,6 +267,7 @@ error types for top-level listener config
 ```yaml
 "type": .gloo.solo.io.ListenerReport.Error.Type
 "reason": string
+"metadata": .gloo.solo.io.SourceMetadata
 
 ```
 
@@ -274,6 +275,7 @@ error types for top-level listener config
 | ----- | ---- | ----------- | 
 | `type` | [.gloo.solo.io.ListenerReport.Error.Type](../gloo_validation.proto.sk/#type) | the type of the error. |
 | `reason` | `string` | any extra info as a string. |
+| `metadata` | [.gloo.solo.io.SourceMetadata](../../../v1/proxy.proto.sk/#sourcemetadata) | Source metadata for the ListenerReport, can be used by external components to associate sources with the ListenerError. |
 
 
 
