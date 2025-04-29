@@ -8,7 +8,6 @@ import (
 
 	"github.com/solo-io/gloo/pkg/utils/kubeutils"
 	"github.com/solo-io/gloo/pkg/utils/requestutils/curl"
-	"github.com/solo-io/gloo/projects/gateway/pkg/defaults"
 	"github.com/solo-io/gloo/test/gomega/matchers"
 	"github.com/solo-io/gloo/test/kubernetes/e2e"
 	testDefaults "github.com/solo-io/gloo/test/kubernetes/e2e/defaults"
@@ -184,7 +183,7 @@ func (s *accessLogSuite) eventuallyFindRequestInCollectorLogs(patterns []string,
 		} else {
 			opts = append(opts,
 				curl.WithHost(kubeutils.ServiceFQDN(metav1.ObjectMeta{
-					Name:      defaults.GatewayProxyName,
+					Name:      "gateway-proxy-access-log",
 					Namespace: s.testInstallation.Metadata.InstallNamespace,
 				})),
 				curl.WithPort(80),

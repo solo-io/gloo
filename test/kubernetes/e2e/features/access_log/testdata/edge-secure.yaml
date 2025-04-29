@@ -3,10 +3,10 @@ kind: Gateway
 metadata:
   labels:
     app: gloo
-  name: gateway-proxy
+  name: gateway-proxy-access-log
 spec:
   bindAddress: '::'
-  bindPort: 8080
+  bindPort: 8085
   httpGateway: {}
   proxyNames:
   - gateway-proxy
@@ -20,3 +20,17 @@ spec:
             collector:
               endpoint: otel-collector.default.svc.cluster.local:4317
               authority: authority.example.com
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway-proxy-access-log
+spec:
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: 8085
+  selector:
+    gloo: gateway-proxy
+  type: ClusterIP
