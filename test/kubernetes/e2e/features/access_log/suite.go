@@ -18,6 +18,10 @@ import (
 	_ "embed"
 )
 
+const (
+	defaultNamespace = "default"
+)
+
 var _ e2e.NewSuiteFunc = NewAccessLogSuite
 
 //go:embed testdata/k8s-gateway.yaml
@@ -98,12 +102,14 @@ func (s *accessLogSuite) AfterTest(suiteName, testName string) {
 
 func (s *accessLogSuite) TestOTELAccessLog() {
 	testGatewayYaml := edgeYaml
+	gatewayNamespace := s.testInstallation.Metadata.InstallNamespace
 	if s.testInstallation.Metadata.K8sGatewayEnabled {
 		testGatewayYaml = k8sGatewayYaml
+		gatewayNamespace = defaultNamespace
 	}
 
 	s.setupCollector(collectorYaml)
-	s.setupGateway(testGatewayYaml)
+	s.setupGateway(testGatewayYaml, gatewayNamespace)
 
 	s.eventuallyFindRequestInCollectorLogs([]string{
 		`ResourceLog.*log_name: Str\(example\)`,
@@ -115,12 +121,14 @@ func (s *accessLogSuite) TestOTELAccessLog() {
 
 func (s *accessLogSuite) TestOTELAccessLogSecure() {
 	testGatewayYaml := edgeSecureYaml
+	gatewayNamespace := s.testInstallation.Metadata.InstallNamespace
 	if s.testInstallation.Metadata.K8sGatewayEnabled {
 		testGatewayYaml = k8sGatewaySecureYaml
+		gatewayNamespace = defaultNamespace
 	}
 
 	s.setupCollector(collectorSecureYaml)
-	s.setupGateway(testGatewayYaml)
+	s.setupGateway(testGatewayYaml, gatewayNamespace)
 
 	s.eventuallyFindRequestInCollectorLogs([]string{
 		`ResourceLog.*log_name: Str\(secure-example\)`,
@@ -147,9 +155,7 @@ func (s *accessLogSuite) setupCollector(yaml []byte) {
 	})
 }
 
-func (s *accessLogSuite) setupGateway(yaml []byte) {
-	ns := s.testInstallation.Metadata.InstallNamespace
-
+func (s *accessLogSuite) setupGateway(yaml []byte, ns string) {
 	err := s.testInstallation.Actions.Kubectl().Apply(s.ctx, yaml, "-n", ns)
 	s.Require().NoError(err)
 
