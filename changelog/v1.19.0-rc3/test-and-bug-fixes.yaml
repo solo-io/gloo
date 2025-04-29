@@ -1,0 +1,7 @@
+changelog:
+- type: FIX
+  issueLink: https://github.com/solo-io/solo-projects/issues/8183
+  resolvesIssue: false
+  description: Fix a bug where the gloo pod crashes if the install and write namespace are different.
+- type: NON_USER_FACING
+  description: Fix issue with test namespace and some tests not being executed.

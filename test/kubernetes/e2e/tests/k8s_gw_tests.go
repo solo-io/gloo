@@ -27,6 +27,12 @@ import (
 func KubeGatewaySuiteRunner() e2e.SuiteRunner {
 	kubeGatewaySuiteRunner := e2e.NewSuiteRunner(false)
 
+	// =============================== IMPORTANT ===============================
+	// When updating the registered tests, make sure to also update the cluster
+	// regular expressions in .github/workflows/pr-kubernetes-tests.yaml.
+	// If you don't, your tests will not run in the PR workflow.
+	// =========================================================================
+
 	kubeGatewaySuiteRunner.Register("Deployer", deployer.NewTestingSuite)
 	kubeGatewaySuiteRunner.Register("HttpListenerOptions", http_listener_options.NewTestingSuite)
 	kubeGatewaySuiteRunner.Register("ListenerOptions", listener_options.NewTestingSuite)

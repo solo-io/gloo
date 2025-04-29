@@ -1,44 +1,12 @@
-
----
-apiVersion: gateway.solo.io/v1
-kind: VirtualService
-metadata:
-  name: httpbin-vs
-  namespace: default
-spec:
-  virtualHost:
-    domains:
-      - httpbin.example.com
-    routes:
-      - matchers:
-         - prefix: /
-        routeAction:
-          single:
-            upstream:
-              name: httpbin
-              namespace: httpbin
----
-apiVersion: gloo.solo.io/v1
-kind: Upstream
-metadata:
-  name: httpbin
-  namespace: httpbin
-spec:
-  kube:
-    serviceName: httpbin
-    serviceNamespace: httpbin
-    servicePort: 8080
----
 apiVersion: gateway.solo.io/v1
 kind: Gateway
 metadata:
   labels:
     app: gloo
-  name: gateway-proxy
-  namespace: gloo-gateway-edge-test
+  name: gateway-proxy-access-log
 spec:
   bindAddress: '::'
-  bindPort: 8080
+  bindPort: 8085
   httpGateway: {}
   proxyNames:
   - gateway-proxy
@@ -52,3 +20,17 @@ spec:
             collector:
               endpoint: otel-collector.default.svc.cluster.local:4317
               authority: authority.example.com
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway-proxy-access-log
+spec:
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: 8085
+  selector:
+    gloo: gateway-proxy
+  type: ClusterIP
