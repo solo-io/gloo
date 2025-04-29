@@ -28,6 +28,7 @@ weight: 5
 - [MultiPool](#multipool)
 - [Backend](#backend)
 - [Priority](#priority)
+- [SigningAlgorithm](#signingalgorithm)
 - [RouteSettings](#routesettings)
 - [RouteType](#routetype)
 - [FieldDefault](#fielddefault)
@@ -368,7 +369,7 @@ Settings for the Bedrock LLM provider
 | `credentialProvider` | [.ai.options.gloo.solo.io.UpstreamSpec.AwsCredentialProvider](../ai.proto.sk/#awscredentialprovider) | The authorization config used to access authenticated AWS Bedrock services. |
 | `customHost` | [.ai.options.gloo.solo.io.UpstreamSpec.CustomHost](../ai.proto.sk/#customhost) | Optional: Send requests to a custom host and port, such as to proxy the request, or to use a different backend that is API-compliant with the upstream version. Note: For AWS Bedrock, if custom_host is set, host_rewrite will be used to override the Host header before signing the request. |
 | `model` | `string` | Optional: Sets the model-id name. If unset, the model name is taken from the request. |
-| `region` | `string` | Required: region string. When signing_algorithm is set to ``AWS_SIGV4`` the region is a standard AWS `region <https://docs.aws.amazon.com/general/latest/gr/rande.html>`_ string for the service hosting the HTTP endpoint. Example: us-west-2 When signing_algorithm is set to ``AWS_SIGV4A`` the region is used as a region set. A region set is a comma separated list of AWS regions, such as ``us-east-1,us-east-2`` or wildcard ``*`` or even region strings containing wildcards such as ``us-east-*`` Example: '*' By configuring a region set, a SigV4A signed request can be sent to multiple regions, rather than being valid for only a single region destination. |
+| `region` | `string` | Required: region string. When signing_algorithm is set to ``AWS_SIGV4`` the region is a standard AWS `region <https://docs.aws.amazon.com/general/latest/gr/rande.html>`_ string for the service hosting the HTTP endpoint. Example: us-west-2 NOTE: multiple regions are not currently supported. |
 
 
 
@@ -507,6 +508,19 @@ The order of `pool` entries within this section defines the priority of the back
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
 | `pool` | [[]ai.options.gloo.solo.io.UpstreamSpec.MultiPool.Backend](../ai.proto.sk/#backend) | A list of LLM provider backends within a single endpoint pool entry. |
+
+
+
+
+---
+### SigningAlgorithm
+
+
+
+| Name | Description |
+| ----- | ----------- | 
+| `AWS_SIGV4` | Use SigV4 for signing |
+| `AWS_SIGV4A` | Use SigV4A for signing |
 
 
 

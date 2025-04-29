@@ -208,6 +208,14 @@ message UpstreamSpec {
     string model = 4;
   }
 
+  enum SigningAlgorithm {
+    // Use SigV4 for signing
+    AWS_SIGV4 = 0;
+
+    // Use SigV4A for signing
+    AWS_SIGV4A = 1;
+  }
+
   // Settings for the Bedrock LLM provider
   message Bedrock {
     // The authorization config used to access authenticated AWS Bedrock services.
@@ -226,21 +234,10 @@ message UpstreamSpec {
     //
     // Example: us-west-2
     //
-    // When signing_algorithm is set to ``AWS_SIGV4A`` the region is used as a region set.
-    //
-    // A region set is a comma separated list of AWS regions, such as ``us-east-1,us-east-2`` or wildcard ``*``
-    // or even region strings containing wildcards such as ``us-east-*``
-    //
-    // Example: '*'
-    //
-    // By configuring a region set, a SigV4A signed request can be sent to multiple regions, rather than being
-    // valid for only a single region destination.
+    // NOTE: multiple regions are not currently supported
     string region = 4;
 
-    // NOTE:
-    // Default signing algorithm is AWS_SIGV4. Only need to change to AWS_SIGV4A if targeting multiple regions. Not needed for Bedrock.
-    // service_name will always be set to 'bedrock' no matter which model is called
-    // TODO: add future support for match_excluded_headers for more control over what gets signed
+    // TODO: add future support for match_excluded_headers for more control over what gets signed, signing_algorithm for multiple regions, etc.
 
   }
 
