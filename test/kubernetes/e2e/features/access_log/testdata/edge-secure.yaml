@@ -34,11 +34,11 @@ kind: Gateway
 metadata:
   labels:
     app: gloo
-  name: gateway-proxy
+  name: gateway-proxy-access-log
   namespace: gloo-gateway-edge-test
 spec:
   bindAddress: '::'
-  bindPort: 8080
+  bindPort: 8081
   httpGateway: {}
   proxyNames:
   - gateway-proxy
