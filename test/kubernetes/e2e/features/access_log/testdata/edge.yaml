@@ -33,11 +33,11 @@ kind: Gateway
 metadata:
   labels:
     app: gloo
-  name: gateway-proxy
+  name: gateway-proxy-access-log
   namespace: gloo-gateway-edge-test
 spec:
   bindAddress: '::'
-  bindPort: 8080
+  bindPort: 8085
   httpGateway: {}
   proxyNames:
   - gateway-proxy
@@ -66,3 +66,18 @@ spec:
                         - key: "baz"
                           value:
                             stringValue: "qux"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway-proxy-access-log
+  namespace: gloo-gateway-edge-test
+spec:
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: 8085
+  selector:
+    gloo: gateway-proxy
+  type: ClusterIP
