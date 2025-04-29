@@ -78,6 +78,9 @@ func (s *testingSuite) TearDownSuite() {
 	// Delete the common setup manifest
 	err := s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, setupManifest)
 	s.NoError(err, "can delete "+setupManifest)
+
+	s.testInstallation.AssertionsT(s.T()).EventuallyObjectsNotExist(s.ctx, testdefaults.CurlPod)
+
 }
 
 func (s *testingSuite) BeforeTest(suiteName, testName string) {
