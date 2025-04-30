@@ -2131,8 +2131,8 @@ type UpstreamSpec_Bedrock struct {
 	Model string `protobuf:"bytes,3,opt,name=model,proto3" json:"model,omitempty"`
 	// Required: region string.
 	//
-	// When signing_algorithm is set to “AWS_SIGV4“ the region is a standard AWS `region <https://docs.aws.amazon.com/general/latest/gr/rande.html>`_ string for the service
-	// hosting the HTTP endpoint.
+	// The region is a string for the standard AWS region for the service that hosts the HTTP endpoint. The `AWS_SIGV4` signing algorithm is currently used by default.
+	// For more regions, see the AWS docs <https://docs.aws.amazon.com/general/latest/gr/rande.html>
 	//
 	// Example: us-west-2
 	//
@@ -2292,11 +2292,11 @@ func (*UpstreamSpec_AwsCredentialProvider_Inline) isUpstreamSpec_AwsCredentialPr
 // environment variables “AWS_ACCESS_KEY_ID“, “AWS_SECRET_ACCESS_KEY“, and the optional “AWS_SESSION_TOKEN“.
 type UpstreamSpec_AWSInline struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// The AWS access key ID, identifies the user/account
+	// The AWS access key ID, which identifies the user and account.
 	AccessKeyId string `protobuf:"bytes,1,opt,name=access_key_id,json=accessKeyId,proto3" json:"access_key_id,omitempty"`
-	// The AWS secret access key, used to sign the request
+	// The AWS secret access key, which is used to sign the request.
 	SecretAccessKey string `protobuf:"bytes,2,opt,name=secret_access_key,json=secretAccessKey,proto3" json:"secret_access_key,omitempty"`
-	// The AWS session token. This is optional. Only needed when using temporary credentials (like from STS or an assumed role)
+	// The AWS session token. This value is required only when using temporary credentials, such as from STS or an assumed role.
 	SessionToken  string `protobuf:"bytes,3,opt,name=session_token,json=sessionToken,proto3" json:"session_token,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache

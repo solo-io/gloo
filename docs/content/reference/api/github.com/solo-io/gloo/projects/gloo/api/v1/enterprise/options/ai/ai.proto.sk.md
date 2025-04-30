@@ -369,7 +369,7 @@ Settings for the Bedrock LLM provider
 | `credentialProvider` | [.ai.options.gloo.solo.io.UpstreamSpec.AwsCredentialProvider](../ai.proto.sk/#awscredentialprovider) | The authorization config used to access authenticated AWS Bedrock services. |
 | `customHost` | [.ai.options.gloo.solo.io.UpstreamSpec.CustomHost](../ai.proto.sk/#customhost) | Optional: Send requests to a custom host and port, such as to proxy the request, or to use a different backend that is API-compliant with the upstream version. Note: For AWS Bedrock, if custom_host is set, host_rewrite will be used to override the Host header before signing the request. |
 | `model` | `string` | Optional: Sets the model-id name. If unset, the model name is taken from the request. |
-| `region` | `string` | Required: region string. When signing_algorithm is set to ``AWS_SIGV4`` the region is a standard AWS `region <https://docs.aws.amazon.com/general/latest/gr/rande.html>`_ string for the service hosting the HTTP endpoint. Example: us-west-2 NOTE: multiple regions are not currently supported. |
+| `region` | `string` | Required: region string. The region is a string for the standard AWS region for the service that hosts the HTTP endpoint. The `AWS_SIGV4` signing algorithm is currently used by default. For more regions, see the AWS docs <https://docs.aws.amazon.com/general/latest/gr/rande.html> Example: us-west-2 NOTE: multiple regions are not currently supported. |
 
 
 
@@ -410,9 +410,9 @@ environment variables ``AWS_ACCESS_KEY_ID``, ``AWS_SECRET_ACCESS_KEY``, and the 
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `accessKeyId` | `string` | The AWS access key ID, identifies the user/account. |
-| `secretAccessKey` | `string` | The AWS secret access key, used to sign the request. |
-| `sessionToken` | `string` | The AWS session token. This is optional. Only needed when using temporary credentials (like from STS or an assumed role). |
+| `accessKeyId` | `string` | The AWS access key ID, which identifies the user and account. |
+| `secretAccessKey` | `string` | The AWS secret access key, which is used to sign the request. |
+| `sessionToken` | `string` | The AWS session token. This value is required only when using temporary credentials, such as from STS or an assumed role. |
 
 
 
