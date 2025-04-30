@@ -17,6 +17,10 @@ import (
 	_ "embed"
 )
 
+const (
+	defaultNamespace = "default"
+)
+
 var _ e2e.NewSuiteFunc = NewAccessLogSuite
 
 //go:embed testdata/k8s-gateway.yaml
@@ -36,6 +40,12 @@ var collectorYaml []byte
 
 //go:embed testdata/collector-secure.yaml
 var collectorSecureYaml []byte
+
+//go:embed testdata/httpbin-routes.yaml
+var httpbinRoutesYaml []byte
+
+//go:embed testdata/httpbin-edge.yaml
+var httpbinEdgeYaml []byte
 
 type accessLogSuite struct {
 	suite.Suite
@@ -58,9 +68,25 @@ func (s *accessLogSuite) SetupSuite() {
 	s.Require().NoError(err)
 	err = s.testInstallation.Actions.Kubectl().Apply(s.ctx, testDefaults.HttpbinYaml)
 	s.Require().NoError(err)
+
+	if s.testInstallation.Metadata.K8sGatewayEnabled {
+		err = s.testInstallation.Actions.Kubectl().Apply(s.ctx, httpbinRoutesYaml)
+		s.Require().NoError(err)
+	} else {
+		err = s.testInstallation.Actions.Kubectl().Apply(s.ctx, httpbinEdgeYaml)
+		s.Require().NoError(err)
+	}
 }
 
 func (s *accessLogSuite) TearDownSuite() {
+	if s.testInstallation.Metadata.K8sGatewayEnabled {
+		err := s.testInstallation.Actions.Kubectl().Delete(s.ctx, httpbinRoutesYaml)
+		s.Require().NoError(err)
+	} else {
+		err := s.testInstallation.Actions.Kubectl().Delete(s.ctx, httpbinEdgeYaml)
+		s.Require().NoError(err)
+	}
+
 	err := s.testInstallation.Actions.Kubectl().Delete(s.ctx, testDefaults.CurlPodYaml)
 	s.Require().NoError(err)
 	err = s.testInstallation.Actions.Kubectl().Delete(s.ctx, testDefaults.HttpbinYaml)
@@ -75,12 +101,14 @@ func (s *accessLogSuite) AfterTest(suiteName, testName string) {
 
 func (s *accessLogSuite) TestOTELAccessLog() {
 	testGatewayYaml := edgeYaml
+	gatewayNamespace := s.testInstallation.Metadata.InstallNamespace
 	if s.testInstallation.Metadata.K8sGatewayEnabled {
 		testGatewayYaml = k8sGatewayYaml
+		gatewayNamespace = defaultNamespace
 	}
 
 	s.setupCollector(collectorYaml)
-	s.setupGateway(testGatewayYaml)
+	s.setupGateway(testGatewayYaml, gatewayNamespace)
 
 	s.eventuallyFindRequestInCollectorLogs([]string{
 		`ResourceLog.*log_name: Str\(example\)`,
@@ -92,12 +120,15 @@ func (s *accessLogSuite) TestOTELAccessLog() {
 
 func (s *accessLogSuite) TestOTELAccessLogSecure() {
 	testGatewayYaml := edgeSecureYaml
+	gatewayNamespace := s.testInstallation.Metadata.InstallNamespace
 	if s.testInstallation.Metadata.K8sGatewayEnabled {
 		testGatewayYaml = k8sGatewaySecureYaml
+		gatewayNamespace = defaultNamespace
 	}
 
 	s.setupCollector(collectorSecureYaml)
-	s.setupGateway(testGatewayYaml)
+	s.setupGateway(testGatewayYaml, gatewayNamespace)
+
 	s.eventuallyFindRequestInCollectorLogs([]string{
 		`ResourceLog.*log_name: Str\(secure-example\)`,
 	}, "should find access logs in collector pod logs")
@@ -123,12 +154,12 @@ func (s *accessLogSuite) setupCollector(yaml []byte) {
 	})
 }
 
-func (s *accessLogSuite) setupGateway(yaml []byte) {
-	err := s.testInstallation.Actions.Kubectl().Apply(s.ctx, yaml)
+func (s *accessLogSuite) setupGateway(yaml []byte, ns string) {
+	err := s.testInstallation.Actions.Kubectl().Apply(s.ctx, yaml, "-n", ns)
 	s.Require().NoError(err)
 
 	s.T().Cleanup(func() {
-		err := s.testInstallation.Actions.Kubectl().Delete(s.ctx, yaml)
+		err := s.testInstallation.Actions.Kubectl().Delete(s.ctx, yaml, "-n", ns)
 		s.Require().NoError(err)
 	})
 }
@@ -156,7 +187,6 @@ func (s *accessLogSuite) eventuallyFindRequestInCollectorLogs(patterns []string,
 					Namespace: s.testInstallation.Metadata.InstallNamespace,
 				})),
 				curl.WithPort(80),
-				curl.WithHostHeader("httpbin.example.com"),
 			)
 		}
 
