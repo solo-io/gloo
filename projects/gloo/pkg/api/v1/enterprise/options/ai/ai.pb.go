@@ -2136,7 +2136,7 @@ type UpstreamSpec_Bedrock struct {
 	//
 	// Example: us-west-2
 	//
-	// NOTE: multiple regions are not currently supported
+	// NOTE: Multiple regions are not currently supported.
 	Region        string `protobuf:"bytes,4,opt,name=region,proto3" json:"region,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache

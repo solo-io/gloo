@@ -234,7 +234,7 @@ message UpstreamSpec {
     //
     // Example: us-west-2
     //
-    // NOTE: multiple regions are not currently supported
+    // NOTE: Multiple regions are not currently supported.
     string region = 4;
 
     // TODO: add future support for match_excluded_headers for more control over what gets signed, signing_algorithm for multiple regions, etc.

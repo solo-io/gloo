@@ -369,7 +369,7 @@ Settings for the Bedrock LLM provider
 | `credentialProvider` | [.ai.options.gloo.solo.io.UpstreamSpec.AwsCredentialProvider](../ai.proto.sk/#awscredentialprovider) | The authorization config used to access authenticated AWS Bedrock services. |
 | `customHost` | [.ai.options.gloo.solo.io.UpstreamSpec.CustomHost](../ai.proto.sk/#customhost) | Optional: Send requests to a custom host and port, such as to proxy the request, or to use a different backend that is API-compliant with the upstream version. Note: For AWS Bedrock, if custom_host is set, host_rewrite will be used to override the Host header before signing the request. |
 | `model` | `string` | Optional: Sets the model-id name. If unset, the model name is taken from the request. |
-| `region` | `string` | Required: region string. The region is a string for the standard AWS region for the service that hosts the HTTP endpoint. The `AWS_SIGV4` signing algorithm is currently used by default. For more regions, see the AWS docs <https://docs.aws.amazon.com/general/latest/gr/rande.html> Example: us-west-2 NOTE: multiple regions are not currently supported. |
+| `region` | `string` | Required: region string. The region is a string for the standard AWS region for the service that hosts the HTTP endpoint. The `AWS_SIGV4` signing algorithm is currently used by default. For more regions, see the AWS docs <https://docs.aws.amazon.com/general/latest/gr/rande.html> Example: us-west-2 NOTE: Multiple regions are not currently supported. |
 
 
 
