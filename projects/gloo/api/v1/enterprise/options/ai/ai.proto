@@ -229,8 +229,8 @@ message UpstreamSpec {
     string model = 3;
     // Required: region string.
     //
-    // When signing_algorithm is set to ``AWS_SIGV4`` the region is a standard AWS `region <https://docs.aws.amazon.com/general/latest/gr/rande.html>`_ string for the service
-    // hosting the HTTP endpoint.
+    // When signing_algorithm is set to `AWS_SIGV4`, then the region is a string for the standard AWS region for the service that hosts the HTTP endpoint.
+    // For more regions, see the AWS docs <https://docs.aws.amazon.com/general/latest/gr/rande.html>
     //
     // Example: us-west-2
     //
