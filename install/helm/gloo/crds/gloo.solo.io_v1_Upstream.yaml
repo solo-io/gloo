@@ -83,6 +83,44 @@ spec:
                       endpoint:
                         type: string
                     type: object
+                  bedrock:
+                    properties:
+                      credentialProvider:
+                        properties:
+                          inline:
+                            properties:
+                              accessKeyId:
+                                type: string
+                              secretAccessKey:
+                                type: string
+                              sessionToken:
+                                type: string
+                            type: object
+                          secretRef:
+                            properties:
+                              name:
+                                type: string
+                              namespace:
+                                type: string
+                            type: object
+                        type: object
+                      customHost:
+                        properties:
+                          host:
+                            type: string
+                          hostname:
+                            nullable: true
+                            type: string
+                          port:
+                            maximum: 4294967295
+                            minimum: 0
+                            type: integer
+                        type: object
+                      model:
+                        type: string
+                      region:
+                        type: string
+                    type: object
                   gemini:
                     properties:
                       apiVersion:
@@ -197,6 +235,44 @@ spec:
                                       deploymentName:
                                         type: string
                                       endpoint:
+                                        type: string
+                                    type: object
+                                  bedrock:
+                                    properties:
+                                      credentialProvider:
+                                        properties:
+                                          inline:
+                                            properties:
+                                              accessKeyId:
+                                                type: string
+                                              secretAccessKey:
+                                                type: string
+                                              sessionToken:
+                                                type: string
+                                            type: object
+                                          secretRef:
+                                            properties:
+                                              name:
+                                                type: string
+                                              namespace:
+                                                type: string
+                                            type: object
+                                        type: object
+                                      customHost:
+                                        properties:
+                                          host:
+                                            type: string
+                                          hostname:
+                                            nullable: true
+                                            type: string
+                                          port:
+                                            maximum: 4294967295
+                                            minimum: 0
+                                            type: integer
+                                        type: object
+                                      model:
+                                        type: string
+                                      region:
                                         type: string
                                     type: object
                                   gemini:
