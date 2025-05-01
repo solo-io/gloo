@@ -2,6 +2,6 @@ changelog:
   - type: NON_USER_FACING
     description: >-
       Fixed the namespace error in the OSS Otel Accesslog e2e test
-      skipCI-docs-build: true
-      skipCI-kube-tests: true
-      skipCI-storybook-tests: true
+      skipCI-docs-build:true
+      skipCI-kube-tests:true
+      skipCI-storybook-tests:true
