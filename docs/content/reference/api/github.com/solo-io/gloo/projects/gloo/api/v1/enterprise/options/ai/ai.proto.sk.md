@@ -28,7 +28,6 @@ weight: 5
 - [MultiPool](#multipool)
 - [Backend](#backend)
 - [Priority](#priority)
-- [SigningAlgorithm](#signingalgorithm)
 - [RouteSettings](#routesettings)
 - [RouteType](#routetype)
 - [FieldDefault](#fielddefault)
@@ -508,19 +507,6 @@ The order of `pool` entries within this section defines the priority of the back
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
 | `pool` | [[]ai.options.gloo.solo.io.UpstreamSpec.MultiPool.Backend](../ai.proto.sk/#backend) | A list of LLM provider backends within a single endpoint pool entry. |
-
-
-
-
----
-### SigningAlgorithm
-
-
-
-| Name | Description |
-| ----- | ----------- | 
-| `AWS_SIGV4` | Use SigV4 for signing |
-| `AWS_SIGV4A` | Use SigV4A for signing |
 
 
 

@@ -78,54 +78,6 @@ func (ApiJsonSchema) EnumDescriptor() ([]byte, []int) {
 	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_rawDescGZIP(), []int{0}
 }
 
-type UpstreamSpec_SigningAlgorithm int32
-
-const (
-	// Use SigV4 for signing
-	UpstreamSpec_AWS_SIGV4 UpstreamSpec_SigningAlgorithm = 0
-	// Use SigV4A for signing
-	UpstreamSpec_AWS_SIGV4A UpstreamSpec_SigningAlgorithm = 1
-)
-
-// Enum value maps for UpstreamSpec_SigningAlgorithm.
-var (
-	UpstreamSpec_SigningAlgorithm_name = map[int32]string{
-		0: "AWS_SIGV4",
-		1: "AWS_SIGV4A",
-	}
-	UpstreamSpec_SigningAlgorithm_value = map[string]int32{
-		"AWS_SIGV4":  0,
-		"AWS_SIGV4A": 1,
-	}
-)
-
-func (x UpstreamSpec_SigningAlgorithm) Enum() *UpstreamSpec_SigningAlgorithm {
-	p := new(UpstreamSpec_SigningAlgorithm)
-	*p = x
-	return p
-}
-
-func (x UpstreamSpec_SigningAlgorithm) String() string {
-	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
-}
-
-func (UpstreamSpec_SigningAlgorithm) Descriptor() protoreflect.EnumDescriptor {
-	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_enumTypes[1].Descriptor()
-}
-
-func (UpstreamSpec_SigningAlgorithm) Type() protoreflect.EnumType {
-	return &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_enumTypes[1]
-}
-
-func (x UpstreamSpec_SigningAlgorithm) Number() protoreflect.EnumNumber {
-	return protoreflect.EnumNumber(x)
-}
-
-// Deprecated: Use UpstreamSpec_SigningAlgorithm.Descriptor instead.
-func (UpstreamSpec_SigningAlgorithm) EnumDescriptor() ([]byte, []int) {
-	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_rawDescGZIP(), []int{1, 0}
-}
-
 // The type of publisher model to use. Currently, only Google is supported.
 type UpstreamSpec_VertexAI_Publisher int32
 
@@ -154,11 +106,11 @@ func (x UpstreamSpec_VertexAI_Publisher) String() string {
 }
 
 func (UpstreamSpec_VertexAI_Publisher) Descriptor() protoreflect.EnumDescriptor {
-	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_enumTypes[2].Descriptor()
+	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_enumTypes[1].Descriptor()
 }
 
 func (UpstreamSpec_VertexAI_Publisher) Type() protoreflect.EnumType {
-	return &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_enumTypes[2]
+	return &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_enumTypes[1]
 }
 
 func (x UpstreamSpec_VertexAI_Publisher) Number() protoreflect.EnumNumber {
@@ -203,11 +155,11 @@ func (x RouteSettings_RouteType) String() string {
 }
 
 func (RouteSettings_RouteType) Descriptor() protoreflect.EnumDescriptor {
-	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_enumTypes[3].Descriptor()
+	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_enumTypes[2].Descriptor()
 }
 
 func (RouteSettings_RouteType) Type() protoreflect.EnumType {
-	return &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_enumTypes[3]
+	return &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_enumTypes[2]
 }
 
 func (x RouteSettings_RouteType) Number() protoreflect.EnumNumber {
@@ -253,11 +205,11 @@ func (x SemanticCache_Mode) String() string {
 }
 
 func (SemanticCache_Mode) Descriptor() protoreflect.EnumDescriptor {
-	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_enumTypes[4].Descriptor()
+	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_enumTypes[3].Descriptor()
 }
 
 func (SemanticCache_Mode) Type() protoreflect.EnumType {
-	return &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_enumTypes[4]
+	return &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_enumTypes[3]
 }
 
 func (x SemanticCache_Mode) Number() protoreflect.EnumNumber {
@@ -312,11 +264,11 @@ func (x AIPromptGuard_Regex_BuiltIn) String() string {
 }
 
 func (AIPromptGuard_Regex_BuiltIn) Descriptor() protoreflect.EnumDescriptor {
-	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_enumTypes[5].Descriptor()
+	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_enumTypes[4].Descriptor()
 }
 
 func (AIPromptGuard_Regex_BuiltIn) Type() protoreflect.EnumType {
-	return &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_enumTypes[5]
+	return &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_enumTypes[4]
 }
 
 func (x AIPromptGuard_Regex_BuiltIn) Number() protoreflect.EnumNumber {
@@ -362,11 +314,11 @@ func (x AIPromptGuard_Regex_Action) String() string {
 }
 
 func (AIPromptGuard_Regex_Action) Descriptor() protoreflect.EnumDescriptor {
-	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_enumTypes[6].Descriptor()
+	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_enumTypes[5].Descriptor()
 }
 
 func (AIPromptGuard_Regex_Action) Type() protoreflect.EnumType {
-	return &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_enumTypes[6]
+	return &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_enumTypes[5]
 }
 
 func (x AIPromptGuard_Regex_Action) Number() protoreflect.EnumNumber {
@@ -423,11 +375,11 @@ func (x AIPromptGuard_Webhook_HeaderMatch_MatchType) String() string {
 }
 
 func (AIPromptGuard_Webhook_HeaderMatch_MatchType) Descriptor() protoreflect.EnumDescriptor {
-	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_enumTypes[7].Descriptor()
+	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_enumTypes[6].Descriptor()
 }
 
 func (AIPromptGuard_Webhook_HeaderMatch_MatchType) Type() protoreflect.EnumType {
-	return &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_enumTypes[7]
+	return &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_enumTypes[6]
 }
 
 func (x AIPromptGuard_Webhook_HeaderMatch_MatchType) Number() protoreflect.EnumNumber {
@@ -3760,7 +3712,7 @@ const file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai
 	"secret_ref\x18\x02 \x01(\v2\x19.core.solo.io.ResourceRefH\x00R\tsecretRef\x12X\n" +
 	"\vpassthrough\x18\x03 \x01(\v24.ai.options.gloo.solo.io.SingleAuthToken.PassthroughH\x00R\vpassthrough\x1a\r\n" +
 	"\vPassthroughB\x13\n" +
-	"\x11auth_token_source\"\xca\x1b\n" +
+	"\x11auth_token_source\"\x97\x1b\n" +
 	"\fUpstreamSpec\x12F\n" +
 	"\x06openai\x18\x01 \x01(\v2,.ai.options.gloo.solo.io.UpstreamSpec.OpenAIH\x00R\x06openai\x12I\n" +
 	"\amistral\x18\x02 \x01(\v2-.ai.options.gloo.solo.io.UpstreamSpec.MistralH\x00R\amistral\x12O\n" +
@@ -3856,11 +3808,7 @@ const file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai
 	"\abedrock\x18\a \x01(\v2-.ai.options.gloo.solo.io.UpstreamSpec.BedrockH\x00R\abedrockB\x05\n" +
 	"\x03llm\x1aW\n" +
 	"\bPriority\x12K\n" +
-	"\x04pool\x18\x01 \x03(\v27.ai.options.gloo.solo.io.UpstreamSpec.MultiPool.BackendR\x04pool\"1\n" +
-	"\x10SigningAlgorithm\x12\r\n" +
-	"\tAWS_SIGV4\x10\x00\x12\x0e\n" +
-	"\n" +
-	"AWS_SIGV4A\x10\x01B\x05\n" +
+	"\x04pool\x18\x01 \x03(\v27.ai.options.gloo.solo.io.UpstreamSpec.MultiPool.BackendR\x04poolB\x05\n" +
 	"\x03llm\"\xf2\x03\n" +
 	"\rRouteSettings\x12X\n" +
 	"\x11prompt_enrichment\x18\x01 \x01(\v2+.ai.options.gloo.solo.io.AIPromptEnrichmentR\x10promptEnrichment\x12I\n" +
@@ -4011,133 +3959,132 @@ func file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_
 	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_rawDescData
 }
 
-var file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_enumTypes = make([]protoimpl.EnumInfo, 8)
+var file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_enumTypes = make([]protoimpl.EnumInfo, 7)
 var file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes = make([]protoimpl.MessageInfo, 40)
 var file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_goTypes = []any{
 	(ApiJsonSchema)(0),                               // 0: ai.options.gloo.solo.io.ApiJsonSchema
-	(UpstreamSpec_SigningAlgorithm)(0),               // 1: ai.options.gloo.solo.io.UpstreamSpec.SigningAlgorithm
-	(UpstreamSpec_VertexAI_Publisher)(0),             // 2: ai.options.gloo.solo.io.UpstreamSpec.VertexAI.Publisher
-	(RouteSettings_RouteType)(0),                     // 3: ai.options.gloo.solo.io.RouteSettings.RouteType
-	(SemanticCache_Mode)(0),                          // 4: ai.options.gloo.solo.io.SemanticCache.Mode
-	(AIPromptGuard_Regex_BuiltIn)(0),                 // 5: ai.options.gloo.solo.io.AIPromptGuard.Regex.BuiltIn
-	(AIPromptGuard_Regex_Action)(0),                  // 6: ai.options.gloo.solo.io.AIPromptGuard.Regex.Action
-	(AIPromptGuard_Webhook_HeaderMatch_MatchType)(0), // 7: ai.options.gloo.solo.io.AIPromptGuard.Webhook.HeaderMatch.MatchType
-	(*SingleAuthToken)(nil),                          // 8: ai.options.gloo.solo.io.SingleAuthToken
-	(*UpstreamSpec)(nil),                             // 9: ai.options.gloo.solo.io.UpstreamSpec
-	(*RouteSettings)(nil),                            // 10: ai.options.gloo.solo.io.RouteSettings
-	(*FieldDefault)(nil),                             // 11: ai.options.gloo.solo.io.FieldDefault
-	(*Postgres)(nil),                                 // 12: ai.options.gloo.solo.io.Postgres
-	(*Embedding)(nil),                                // 13: ai.options.gloo.solo.io.Embedding
-	(*SemanticCache)(nil),                            // 14: ai.options.gloo.solo.io.SemanticCache
-	(*RAG)(nil),                                      // 15: ai.options.gloo.solo.io.RAG
-	(*AIPromptEnrichment)(nil),                       // 16: ai.options.gloo.solo.io.AIPromptEnrichment
-	(*AIPromptGuard)(nil),                            // 17: ai.options.gloo.solo.io.AIPromptGuard
-	(*SingleAuthToken_Passthrough)(nil),              // 18: ai.options.gloo.solo.io.SingleAuthToken.Passthrough
-	(*UpstreamSpec_CustomHost)(nil),                  // 19: ai.options.gloo.solo.io.UpstreamSpec.CustomHost
-	(*UpstreamSpec_OpenAI)(nil),                      // 20: ai.options.gloo.solo.io.UpstreamSpec.OpenAI
-	(*UpstreamSpec_AzureOpenAI)(nil),                 // 21: ai.options.gloo.solo.io.UpstreamSpec.AzureOpenAI
-	(*UpstreamSpec_Gemini)(nil),                      // 22: ai.options.gloo.solo.io.UpstreamSpec.Gemini
-	(*UpstreamSpec_VertexAI)(nil),                    // 23: ai.options.gloo.solo.io.UpstreamSpec.VertexAI
-	(*UpstreamSpec_Mistral)(nil),                     // 24: ai.options.gloo.solo.io.UpstreamSpec.Mistral
-	(*UpstreamSpec_Anthropic)(nil),                   // 25: ai.options.gloo.solo.io.UpstreamSpec.Anthropic
-	(*UpstreamSpec_Bedrock)(nil),                     // 26: ai.options.gloo.solo.io.UpstreamSpec.Bedrock
-	(*UpstreamSpec_AwsCredentialProvider)(nil),       // 27: ai.options.gloo.solo.io.UpstreamSpec.AwsCredentialProvider
-	(*UpstreamSpec_AWSInline)(nil),                   // 28: ai.options.gloo.solo.io.UpstreamSpec.AWSInline
-	(*UpstreamSpec_MultiPool)(nil),                   // 29: ai.options.gloo.solo.io.UpstreamSpec.MultiPool
-	(*UpstreamSpec_MultiPool_Backend)(nil),           // 30: ai.options.gloo.solo.io.UpstreamSpec.MultiPool.Backend
-	(*UpstreamSpec_MultiPool_Priority)(nil),          // 31: ai.options.gloo.solo.io.UpstreamSpec.MultiPool.Priority
-	(*Embedding_OpenAI)(nil),                         // 32: ai.options.gloo.solo.io.Embedding.OpenAI
-	(*Embedding_AzureOpenAI)(nil),                    // 33: ai.options.gloo.solo.io.Embedding.AzureOpenAI
-	(*SemanticCache_Redis)(nil),                      // 34: ai.options.gloo.solo.io.SemanticCache.Redis
-	(*SemanticCache_Weaviate)(nil),                   // 35: ai.options.gloo.solo.io.SemanticCache.Weaviate
-	(*SemanticCache_DataStore)(nil),                  // 36: ai.options.gloo.solo.io.SemanticCache.DataStore
-	(*RAG_DataStore)(nil),                            // 37: ai.options.gloo.solo.io.RAG.DataStore
-	(*AIPromptEnrichment_Message)(nil),               // 38: ai.options.gloo.solo.io.AIPromptEnrichment.Message
-	(*AIPromptGuard_Regex)(nil),                      // 39: ai.options.gloo.solo.io.AIPromptGuard.Regex
-	(*AIPromptGuard_Webhook)(nil),                    // 40: ai.options.gloo.solo.io.AIPromptGuard.Webhook
-	(*AIPromptGuard_Moderation)(nil),                 // 41: ai.options.gloo.solo.io.AIPromptGuard.Moderation
-	(*AIPromptGuard_Request)(nil),                    // 42: ai.options.gloo.solo.io.AIPromptGuard.Request
-	(*AIPromptGuard_Response)(nil),                   // 43: ai.options.gloo.solo.io.AIPromptGuard.Response
-	(*AIPromptGuard_Regex_RegexMatch)(nil),           // 44: ai.options.gloo.solo.io.AIPromptGuard.Regex.RegexMatch
-	(*AIPromptGuard_Webhook_HeaderMatch)(nil),        // 45: ai.options.gloo.solo.io.AIPromptGuard.Webhook.HeaderMatch
-	(*AIPromptGuard_Moderation_OpenAI)(nil),          // 46: ai.options.gloo.solo.io.AIPromptGuard.Moderation.OpenAI
-	(*AIPromptGuard_Request_CustomResponse)(nil),     // 47: ai.options.gloo.solo.io.AIPromptGuard.Request.CustomResponse
-	(*core.ResourceRef)(nil),                         // 48: core.solo.io.ResourceRef
-	(*structpb.Value)(nil),                           // 49: google.protobuf.Value
-	(*wrapperspb.StringValue)(nil),                   // 50: google.protobuf.StringValue
+	(UpstreamSpec_VertexAI_Publisher)(0),             // 1: ai.options.gloo.solo.io.UpstreamSpec.VertexAI.Publisher
+	(RouteSettings_RouteType)(0),                     // 2: ai.options.gloo.solo.io.RouteSettings.RouteType
+	(SemanticCache_Mode)(0),                          // 3: ai.options.gloo.solo.io.SemanticCache.Mode
+	(AIPromptGuard_Regex_BuiltIn)(0),                 // 4: ai.options.gloo.solo.io.AIPromptGuard.Regex.BuiltIn
+	(AIPromptGuard_Regex_Action)(0),                  // 5: ai.options.gloo.solo.io.AIPromptGuard.Regex.Action
+	(AIPromptGuard_Webhook_HeaderMatch_MatchType)(0), // 6: ai.options.gloo.solo.io.AIPromptGuard.Webhook.HeaderMatch.MatchType
+	(*SingleAuthToken)(nil),                          // 7: ai.options.gloo.solo.io.SingleAuthToken
+	(*UpstreamSpec)(nil),                             // 8: ai.options.gloo.solo.io.UpstreamSpec
+	(*RouteSettings)(nil),                            // 9: ai.options.gloo.solo.io.RouteSettings
+	(*FieldDefault)(nil),                             // 10: ai.options.gloo.solo.io.FieldDefault
+	(*Postgres)(nil),                                 // 11: ai.options.gloo.solo.io.Postgres
+	(*Embedding)(nil),                                // 12: ai.options.gloo.solo.io.Embedding
+	(*SemanticCache)(nil),                            // 13: ai.options.gloo.solo.io.SemanticCache
+	(*RAG)(nil),                                      // 14: ai.options.gloo.solo.io.RAG
+	(*AIPromptEnrichment)(nil),                       // 15: ai.options.gloo.solo.io.AIPromptEnrichment
+	(*AIPromptGuard)(nil),                            // 16: ai.options.gloo.solo.io.AIPromptGuard
+	(*SingleAuthToken_Passthrough)(nil),              // 17: ai.options.gloo.solo.io.SingleAuthToken.Passthrough
+	(*UpstreamSpec_CustomHost)(nil),                  // 18: ai.options.gloo.solo.io.UpstreamSpec.CustomHost
+	(*UpstreamSpec_OpenAI)(nil),                      // 19: ai.options.gloo.solo.io.UpstreamSpec.OpenAI
+	(*UpstreamSpec_AzureOpenAI)(nil),                 // 20: ai.options.gloo.solo.io.UpstreamSpec.AzureOpenAI
+	(*UpstreamSpec_Gemini)(nil),                      // 21: ai.options.gloo.solo.io.UpstreamSpec.Gemini
+	(*UpstreamSpec_VertexAI)(nil),                    // 22: ai.options.gloo.solo.io.UpstreamSpec.VertexAI
+	(*UpstreamSpec_Mistral)(nil),                     // 23: ai.options.gloo.solo.io.UpstreamSpec.Mistral
+	(*UpstreamSpec_Anthropic)(nil),                   // 24: ai.options.gloo.solo.io.UpstreamSpec.Anthropic
+	(*UpstreamSpec_Bedrock)(nil),                     // 25: ai.options.gloo.solo.io.UpstreamSpec.Bedrock
+	(*UpstreamSpec_AwsCredentialProvider)(nil),       // 26: ai.options.gloo.solo.io.UpstreamSpec.AwsCredentialProvider
+	(*UpstreamSpec_AWSInline)(nil),                   // 27: ai.options.gloo.solo.io.UpstreamSpec.AWSInline
+	(*UpstreamSpec_MultiPool)(nil),                   // 28: ai.options.gloo.solo.io.UpstreamSpec.MultiPool
+	(*UpstreamSpec_MultiPool_Backend)(nil),           // 29: ai.options.gloo.solo.io.UpstreamSpec.MultiPool.Backend
+	(*UpstreamSpec_MultiPool_Priority)(nil),          // 30: ai.options.gloo.solo.io.UpstreamSpec.MultiPool.Priority
+	(*Embedding_OpenAI)(nil),                         // 31: ai.options.gloo.solo.io.Embedding.OpenAI
+	(*Embedding_AzureOpenAI)(nil),                    // 32: ai.options.gloo.solo.io.Embedding.AzureOpenAI
+	(*SemanticCache_Redis)(nil),                      // 33: ai.options.gloo.solo.io.SemanticCache.Redis
+	(*SemanticCache_Weaviate)(nil),                   // 34: ai.options.gloo.solo.io.SemanticCache.Weaviate
+	(*SemanticCache_DataStore)(nil),                  // 35: ai.options.gloo.solo.io.SemanticCache.DataStore
+	(*RAG_DataStore)(nil),                            // 36: ai.options.gloo.solo.io.RAG.DataStore
+	(*AIPromptEnrichment_Message)(nil),               // 37: ai.options.gloo.solo.io.AIPromptEnrichment.Message
+	(*AIPromptGuard_Regex)(nil),                      // 38: ai.options.gloo.solo.io.AIPromptGuard.Regex
+	(*AIPromptGuard_Webhook)(nil),                    // 39: ai.options.gloo.solo.io.AIPromptGuard.Webhook
+	(*AIPromptGuard_Moderation)(nil),                 // 40: ai.options.gloo.solo.io.AIPromptGuard.Moderation
+	(*AIPromptGuard_Request)(nil),                    // 41: ai.options.gloo.solo.io.AIPromptGuard.Request
+	(*AIPromptGuard_Response)(nil),                   // 42: ai.options.gloo.solo.io.AIPromptGuard.Response
+	(*AIPromptGuard_Regex_RegexMatch)(nil),           // 43: ai.options.gloo.solo.io.AIPromptGuard.Regex.RegexMatch
+	(*AIPromptGuard_Webhook_HeaderMatch)(nil),        // 44: ai.options.gloo.solo.io.AIPromptGuard.Webhook.HeaderMatch
+	(*AIPromptGuard_Moderation_OpenAI)(nil),          // 45: ai.options.gloo.solo.io.AIPromptGuard.Moderation.OpenAI
+	(*AIPromptGuard_Request_CustomResponse)(nil),     // 46: ai.options.gloo.solo.io.AIPromptGuard.Request.CustomResponse
+	(*core.ResourceRef)(nil),                         // 47: core.solo.io.ResourceRef
+	(*structpb.Value)(nil),                           // 48: google.protobuf.Value
+	(*wrapperspb.StringValue)(nil),                   // 49: google.protobuf.StringValue
 }
 var file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_depIdxs = []int32{
-	48, // 0: ai.options.gloo.solo.io.SingleAuthToken.secret_ref:type_name -> core.solo.io.ResourceRef
-	18, // 1: ai.options.gloo.solo.io.SingleAuthToken.passthrough:type_name -> ai.options.gloo.solo.io.SingleAuthToken.Passthrough
-	20, // 2: ai.options.gloo.solo.io.UpstreamSpec.openai:type_name -> ai.options.gloo.solo.io.UpstreamSpec.OpenAI
-	24, // 3: ai.options.gloo.solo.io.UpstreamSpec.mistral:type_name -> ai.options.gloo.solo.io.UpstreamSpec.Mistral
-	25, // 4: ai.options.gloo.solo.io.UpstreamSpec.anthropic:type_name -> ai.options.gloo.solo.io.UpstreamSpec.Anthropic
-	21, // 5: ai.options.gloo.solo.io.UpstreamSpec.azure_openai:type_name -> ai.options.gloo.solo.io.UpstreamSpec.AzureOpenAI
-	29, // 6: ai.options.gloo.solo.io.UpstreamSpec.multi:type_name -> ai.options.gloo.solo.io.UpstreamSpec.MultiPool
-	22, // 7: ai.options.gloo.solo.io.UpstreamSpec.gemini:type_name -> ai.options.gloo.solo.io.UpstreamSpec.Gemini
-	23, // 8: ai.options.gloo.solo.io.UpstreamSpec.vertex_ai:type_name -> ai.options.gloo.solo.io.UpstreamSpec.VertexAI
-	26, // 9: ai.options.gloo.solo.io.UpstreamSpec.bedrock:type_name -> ai.options.gloo.solo.io.UpstreamSpec.Bedrock
-	16, // 10: ai.options.gloo.solo.io.RouteSettings.prompt_enrichment:type_name -> ai.options.gloo.solo.io.AIPromptEnrichment
-	17, // 11: ai.options.gloo.solo.io.RouteSettings.prompt_guard:type_name -> ai.options.gloo.solo.io.AIPromptGuard
-	15, // 12: ai.options.gloo.solo.io.RouteSettings.rag:type_name -> ai.options.gloo.solo.io.RAG
-	14, // 13: ai.options.gloo.solo.io.RouteSettings.semantic_cache:type_name -> ai.options.gloo.solo.io.SemanticCache
-	11, // 14: ai.options.gloo.solo.io.RouteSettings.defaults:type_name -> ai.options.gloo.solo.io.FieldDefault
-	3,  // 15: ai.options.gloo.solo.io.RouteSettings.route_type:type_name -> ai.options.gloo.solo.io.RouteSettings.RouteType
-	49, // 16: ai.options.gloo.solo.io.FieldDefault.value:type_name -> google.protobuf.Value
-	32, // 17: ai.options.gloo.solo.io.Embedding.openai:type_name -> ai.options.gloo.solo.io.Embedding.OpenAI
-	33, // 18: ai.options.gloo.solo.io.Embedding.azure_openai:type_name -> ai.options.gloo.solo.io.Embedding.AzureOpenAI
-	36, // 19: ai.options.gloo.solo.io.SemanticCache.datastore:type_name -> ai.options.gloo.solo.io.SemanticCache.DataStore
-	13, // 20: ai.options.gloo.solo.io.SemanticCache.embedding:type_name -> ai.options.gloo.solo.io.Embedding
-	4,  // 21: ai.options.gloo.solo.io.SemanticCache.mode:type_name -> ai.options.gloo.solo.io.SemanticCache.Mode
-	37, // 22: ai.options.gloo.solo.io.RAG.datastore:type_name -> ai.options.gloo.solo.io.RAG.DataStore
-	13, // 23: ai.options.gloo.solo.io.RAG.embedding:type_name -> ai.options.gloo.solo.io.Embedding
-	38, // 24: ai.options.gloo.solo.io.AIPromptEnrichment.prepend:type_name -> ai.options.gloo.solo.io.AIPromptEnrichment.Message
-	38, // 25: ai.options.gloo.solo.io.AIPromptEnrichment.append:type_name -> ai.options.gloo.solo.io.AIPromptEnrichment.Message
-	42, // 26: ai.options.gloo.solo.io.AIPromptGuard.request:type_name -> ai.options.gloo.solo.io.AIPromptGuard.Request
-	43, // 27: ai.options.gloo.solo.io.AIPromptGuard.response:type_name -> ai.options.gloo.solo.io.AIPromptGuard.Response
-	50, // 28: ai.options.gloo.solo.io.UpstreamSpec.CustomHost.hostname:type_name -> google.protobuf.StringValue
-	8,  // 29: ai.options.gloo.solo.io.UpstreamSpec.OpenAI.auth_token:type_name -> ai.options.gloo.solo.io.SingleAuthToken
-	19, // 30: ai.options.gloo.solo.io.UpstreamSpec.OpenAI.custom_host:type_name -> ai.options.gloo.solo.io.UpstreamSpec.CustomHost
-	8,  // 31: ai.options.gloo.solo.io.UpstreamSpec.AzureOpenAI.auth_token:type_name -> ai.options.gloo.solo.io.SingleAuthToken
-	8,  // 32: ai.options.gloo.solo.io.UpstreamSpec.Gemini.auth_token:type_name -> ai.options.gloo.solo.io.SingleAuthToken
-	8,  // 33: ai.options.gloo.solo.io.UpstreamSpec.VertexAI.auth_token:type_name -> ai.options.gloo.solo.io.SingleAuthToken
-	2,  // 34: ai.options.gloo.solo.io.UpstreamSpec.VertexAI.publisher:type_name -> ai.options.gloo.solo.io.UpstreamSpec.VertexAI.Publisher
+	47, // 0: ai.options.gloo.solo.io.SingleAuthToken.secret_ref:type_name -> core.solo.io.ResourceRef
+	17, // 1: ai.options.gloo.solo.io.SingleAuthToken.passthrough:type_name -> ai.options.gloo.solo.io.SingleAuthToken.Passthrough
+	19, // 2: ai.options.gloo.solo.io.UpstreamSpec.openai:type_name -> ai.options.gloo.solo.io.UpstreamSpec.OpenAI
+	23, // 3: ai.options.gloo.solo.io.UpstreamSpec.mistral:type_name -> ai.options.gloo.solo.io.UpstreamSpec.Mistral
+	24, // 4: ai.options.gloo.solo.io.UpstreamSpec.anthropic:type_name -> ai.options.gloo.solo.io.UpstreamSpec.Anthropic
+	20, // 5: ai.options.gloo.solo.io.UpstreamSpec.azure_openai:type_name -> ai.options.gloo.solo.io.UpstreamSpec.AzureOpenAI
+	28, // 6: ai.options.gloo.solo.io.UpstreamSpec.multi:type_name -> ai.options.gloo.solo.io.UpstreamSpec.MultiPool
+	21, // 7: ai.options.gloo.solo.io.UpstreamSpec.gemini:type_name -> ai.options.gloo.solo.io.UpstreamSpec.Gemini
+	22, // 8: ai.options.gloo.solo.io.UpstreamSpec.vertex_ai:type_name -> ai.options.gloo.solo.io.UpstreamSpec.VertexAI
+	25, // 9: ai.options.gloo.solo.io.UpstreamSpec.bedrock:type_name -> ai.options.gloo.solo.io.UpstreamSpec.Bedrock
+	15, // 10: ai.options.gloo.solo.io.RouteSettings.prompt_enrichment:type_name -> ai.options.gloo.solo.io.AIPromptEnrichment
+	16, // 11: ai.options.gloo.solo.io.RouteSettings.prompt_guard:type_name -> ai.options.gloo.solo.io.AIPromptGuard
+	14, // 12: ai.options.gloo.solo.io.RouteSettings.rag:type_name -> ai.options.gloo.solo.io.RAG
+	13, // 13: ai.options.gloo.solo.io.RouteSettings.semantic_cache:type_name -> ai.options.gloo.solo.io.SemanticCache
+	10, // 14: ai.options.gloo.solo.io.RouteSettings.defaults:type_name -> ai.options.gloo.solo.io.FieldDefault
+	2,  // 15: ai.options.gloo.solo.io.RouteSettings.route_type:type_name -> ai.options.gloo.solo.io.RouteSettings.RouteType
+	48, // 16: ai.options.gloo.solo.io.FieldDefault.value:type_name -> google.protobuf.Value
+	31, // 17: ai.options.gloo.solo.io.Embedding.openai:type_name -> ai.options.gloo.solo.io.Embedding.OpenAI
+	32, // 18: ai.options.gloo.solo.io.Embedding.azure_openai:type_name -> ai.options.gloo.solo.io.Embedding.AzureOpenAI
+	35, // 19: ai.options.gloo.solo.io.SemanticCache.datastore:type_name -> ai.options.gloo.solo.io.SemanticCache.DataStore
+	12, // 20: ai.options.gloo.solo.io.SemanticCache.embedding:type_name -> ai.options.gloo.solo.io.Embedding
+	3,  // 21: ai.options.gloo.solo.io.SemanticCache.mode:type_name -> ai.options.gloo.solo.io.SemanticCache.Mode
+	36, // 22: ai.options.gloo.solo.io.RAG.datastore:type_name -> ai.options.gloo.solo.io.RAG.DataStore
+	12, // 23: ai.options.gloo.solo.io.RAG.embedding:type_name -> ai.options.gloo.solo.io.Embedding
+	37, // 24: ai.options.gloo.solo.io.AIPromptEnrichment.prepend:type_name -> ai.options.gloo.solo.io.AIPromptEnrichment.Message
+	37, // 25: ai.options.gloo.solo.io.AIPromptEnrichment.append:type_name -> ai.options.gloo.solo.io.AIPromptEnrichment.Message
+	41, // 26: ai.options.gloo.solo.io.AIPromptGuard.request:type_name -> ai.options.gloo.solo.io.AIPromptGuard.Request
+	42, // 27: ai.options.gloo.solo.io.AIPromptGuard.response:type_name -> ai.options.gloo.solo.io.AIPromptGuard.Response
+	49, // 28: ai.options.gloo.solo.io.UpstreamSpec.CustomHost.hostname:type_name -> google.protobuf.StringValue
+	7,  // 29: ai.options.gloo.solo.io.UpstreamSpec.OpenAI.auth_token:type_name -> ai.options.gloo.solo.io.SingleAuthToken
+	18, // 30: ai.options.gloo.solo.io.UpstreamSpec.OpenAI.custom_host:type_name -> ai.options.gloo.solo.io.UpstreamSpec.CustomHost
+	7,  // 31: ai.options.gloo.solo.io.UpstreamSpec.AzureOpenAI.auth_token:type_name -> ai.options.gloo.solo.io.SingleAuthToken
+	7,  // 32: ai.options.gloo.solo.io.UpstreamSpec.Gemini.auth_token:type_name -> ai.options.gloo.solo.io.SingleAuthToken
+	7,  // 33: ai.options.gloo.solo.io.UpstreamSpec.VertexAI.auth_token:type_name -> ai.options.gloo.solo.io.SingleAuthToken
+	1,  // 34: ai.options.gloo.solo.io.UpstreamSpec.VertexAI.publisher:type_name -> ai.options.gloo.solo.io.UpstreamSpec.VertexAI.Publisher
 	0,  // 35: ai.options.gloo.solo.io.UpstreamSpec.VertexAI.json_schema:type_name -> ai.options.gloo.solo.io.ApiJsonSchema
-	8,  // 36: ai.options.gloo.solo.io.UpstreamSpec.Mistral.auth_token:type_name -> ai.options.gloo.solo.io.SingleAuthToken
-	19, // 37: ai.options.gloo.solo.io.UpstreamSpec.Mistral.custom_host:type_name -> ai.options.gloo.solo.io.UpstreamSpec.CustomHost
-	8,  // 38: ai.options.gloo.solo.io.UpstreamSpec.Anthropic.auth_token:type_name -> ai.options.gloo.solo.io.SingleAuthToken
-	19, // 39: ai.options.gloo.solo.io.UpstreamSpec.Anthropic.custom_host:type_name -> ai.options.gloo.solo.io.UpstreamSpec.CustomHost
-	27, // 40: ai.options.gloo.solo.io.UpstreamSpec.Bedrock.credential_provider:type_name -> ai.options.gloo.solo.io.UpstreamSpec.AwsCredentialProvider
-	19, // 41: ai.options.gloo.solo.io.UpstreamSpec.Bedrock.custom_host:type_name -> ai.options.gloo.solo.io.UpstreamSpec.CustomHost
-	48, // 42: ai.options.gloo.solo.io.UpstreamSpec.AwsCredentialProvider.secret_ref:type_name -> core.solo.io.ResourceRef
-	28, // 43: ai.options.gloo.solo.io.UpstreamSpec.AwsCredentialProvider.inline:type_name -> ai.options.gloo.solo.io.UpstreamSpec.AWSInline
-	31, // 44: ai.options.gloo.solo.io.UpstreamSpec.MultiPool.priorities:type_name -> ai.options.gloo.solo.io.UpstreamSpec.MultiPool.Priority
-	20, // 45: ai.options.gloo.solo.io.UpstreamSpec.MultiPool.Backend.openai:type_name -> ai.options.gloo.solo.io.UpstreamSpec.OpenAI
-	24, // 46: ai.options.gloo.solo.io.UpstreamSpec.MultiPool.Backend.mistral:type_name -> ai.options.gloo.solo.io.UpstreamSpec.Mistral
-	25, // 47: ai.options.gloo.solo.io.UpstreamSpec.MultiPool.Backend.anthropic:type_name -> ai.options.gloo.solo.io.UpstreamSpec.Anthropic
-	21, // 48: ai.options.gloo.solo.io.UpstreamSpec.MultiPool.Backend.azure_openai:type_name -> ai.options.gloo.solo.io.UpstreamSpec.AzureOpenAI
-	22, // 49: ai.options.gloo.solo.io.UpstreamSpec.MultiPool.Backend.gemini:type_name -> ai.options.gloo.solo.io.UpstreamSpec.Gemini
-	23, // 50: ai.options.gloo.solo.io.UpstreamSpec.MultiPool.Backend.vertex_ai:type_name -> ai.options.gloo.solo.io.UpstreamSpec.VertexAI
-	26, // 51: ai.options.gloo.solo.io.UpstreamSpec.MultiPool.Backend.bedrock:type_name -> ai.options.gloo.solo.io.UpstreamSpec.Bedrock
-	30, // 52: ai.options.gloo.solo.io.UpstreamSpec.MultiPool.Priority.pool:type_name -> ai.options.gloo.solo.io.UpstreamSpec.MultiPool.Backend
-	8,  // 53: ai.options.gloo.solo.io.Embedding.OpenAI.auth_token:type_name -> ai.options.gloo.solo.io.SingleAuthToken
-	8,  // 54: ai.options.gloo.solo.io.Embedding.AzureOpenAI.auth_token:type_name -> ai.options.gloo.solo.io.SingleAuthToken
-	34, // 55: ai.options.gloo.solo.io.SemanticCache.DataStore.redis:type_name -> ai.options.gloo.solo.io.SemanticCache.Redis
-	35, // 56: ai.options.gloo.solo.io.SemanticCache.DataStore.weaviate:type_name -> ai.options.gloo.solo.io.SemanticCache.Weaviate
-	12, // 57: ai.options.gloo.solo.io.RAG.DataStore.postgres:type_name -> ai.options.gloo.solo.io.Postgres
-	44, // 58: ai.options.gloo.solo.io.AIPromptGuard.Regex.matches:type_name -> ai.options.gloo.solo.io.AIPromptGuard.Regex.RegexMatch
-	5,  // 59: ai.options.gloo.solo.io.AIPromptGuard.Regex.builtins:type_name -> ai.options.gloo.solo.io.AIPromptGuard.Regex.BuiltIn
-	6,  // 60: ai.options.gloo.solo.io.AIPromptGuard.Regex.action:type_name -> ai.options.gloo.solo.io.AIPromptGuard.Regex.Action
-	45, // 61: ai.options.gloo.solo.io.AIPromptGuard.Webhook.forwardHeaders:type_name -> ai.options.gloo.solo.io.AIPromptGuard.Webhook.HeaderMatch
-	46, // 62: ai.options.gloo.solo.io.AIPromptGuard.Moderation.openai:type_name -> ai.options.gloo.solo.io.AIPromptGuard.Moderation.OpenAI
-	47, // 63: ai.options.gloo.solo.io.AIPromptGuard.Request.custom_response:type_name -> ai.options.gloo.solo.io.AIPromptGuard.Request.CustomResponse
-	39, // 64: ai.options.gloo.solo.io.AIPromptGuard.Request.regex:type_name -> ai.options.gloo.solo.io.AIPromptGuard.Regex
-	40, // 65: ai.options.gloo.solo.io.AIPromptGuard.Request.webhook:type_name -> ai.options.gloo.solo.io.AIPromptGuard.Webhook
-	41, // 66: ai.options.gloo.solo.io.AIPromptGuard.Request.moderation:type_name -> ai.options.gloo.solo.io.AIPromptGuard.Moderation
-	39, // 67: ai.options.gloo.solo.io.AIPromptGuard.Response.regex:type_name -> ai.options.gloo.solo.io.AIPromptGuard.Regex
-	40, // 68: ai.options.gloo.solo.io.AIPromptGuard.Response.webhook:type_name -> ai.options.gloo.solo.io.AIPromptGuard.Webhook
-	7,  // 69: ai.options.gloo.solo.io.AIPromptGuard.Webhook.HeaderMatch.match_type:type_name -> ai.options.gloo.solo.io.AIPromptGuard.Webhook.HeaderMatch.MatchType
-	8,  // 70: ai.options.gloo.solo.io.AIPromptGuard.Moderation.OpenAI.auth_token:type_name -> ai.options.gloo.solo.io.SingleAuthToken
+	7,  // 36: ai.options.gloo.solo.io.UpstreamSpec.Mistral.auth_token:type_name -> ai.options.gloo.solo.io.SingleAuthToken
+	18, // 37: ai.options.gloo.solo.io.UpstreamSpec.Mistral.custom_host:type_name -> ai.options.gloo.solo.io.UpstreamSpec.CustomHost
+	7,  // 38: ai.options.gloo.solo.io.UpstreamSpec.Anthropic.auth_token:type_name -> ai.options.gloo.solo.io.SingleAuthToken
+	18, // 39: ai.options.gloo.solo.io.UpstreamSpec.Anthropic.custom_host:type_name -> ai.options.gloo.solo.io.UpstreamSpec.CustomHost
+	26, // 40: ai.options.gloo.solo.io.UpstreamSpec.Bedrock.credential_provider:type_name -> ai.options.gloo.solo.io.UpstreamSpec.AwsCredentialProvider
+	18, // 41: ai.options.gloo.solo.io.UpstreamSpec.Bedrock.custom_host:type_name -> ai.options.gloo.solo.io.UpstreamSpec.CustomHost
+	47, // 42: ai.options.gloo.solo.io.UpstreamSpec.AwsCredentialProvider.secret_ref:type_name -> core.solo.io.ResourceRef
+	27, // 43: ai.options.gloo.solo.io.UpstreamSpec.AwsCredentialProvider.inline:type_name -> ai.options.gloo.solo.io.UpstreamSpec.AWSInline
+	30, // 44: ai.options.gloo.solo.io.UpstreamSpec.MultiPool.priorities:type_name -> ai.options.gloo.solo.io.UpstreamSpec.MultiPool.Priority
+	19, // 45: ai.options.gloo.solo.io.UpstreamSpec.MultiPool.Backend.openai:type_name -> ai.options.gloo.solo.io.UpstreamSpec.OpenAI
+	23, // 46: ai.options.gloo.solo.io.UpstreamSpec.MultiPool.Backend.mistral:type_name -> ai.options.gloo.solo.io.UpstreamSpec.Mistral
+	24, // 47: ai.options.gloo.solo.io.UpstreamSpec.MultiPool.Backend.anthropic:type_name -> ai.options.gloo.solo.io.UpstreamSpec.Anthropic
+	20, // 48: ai.options.gloo.solo.io.UpstreamSpec.MultiPool.Backend.azure_openai:type_name -> ai.options.gloo.solo.io.UpstreamSpec.AzureOpenAI
+	21, // 49: ai.options.gloo.solo.io.UpstreamSpec.MultiPool.Backend.gemini:type_name -> ai.options.gloo.solo.io.UpstreamSpec.Gemini
+	22, // 50: ai.options.gloo.solo.io.UpstreamSpec.MultiPool.Backend.vertex_ai:type_name -> ai.options.gloo.solo.io.UpstreamSpec.VertexAI
+	25, // 51: ai.options.gloo.solo.io.UpstreamSpec.MultiPool.Backend.bedrock:type_name -> ai.options.gloo.solo.io.UpstreamSpec.Bedrock
+	29, // 52: ai.options.gloo.solo.io.UpstreamSpec.MultiPool.Priority.pool:type_name -> ai.options.gloo.solo.io.UpstreamSpec.MultiPool.Backend
+	7,  // 53: ai.options.gloo.solo.io.Embedding.OpenAI.auth_token:type_name -> ai.options.gloo.solo.io.SingleAuthToken
+	7,  // 54: ai.options.gloo.solo.io.Embedding.AzureOpenAI.auth_token:type_name -> ai.options.gloo.solo.io.SingleAuthToken
+	33, // 55: ai.options.gloo.solo.io.SemanticCache.DataStore.redis:type_name -> ai.options.gloo.solo.io.SemanticCache.Redis
+	34, // 56: ai.options.gloo.solo.io.SemanticCache.DataStore.weaviate:type_name -> ai.options.gloo.solo.io.SemanticCache.Weaviate
+	11, // 57: ai.options.gloo.solo.io.RAG.DataStore.postgres:type_name -> ai.options.gloo.solo.io.Postgres
+	43, // 58: ai.options.gloo.solo.io.AIPromptGuard.Regex.matches:type_name -> ai.options.gloo.solo.io.AIPromptGuard.Regex.RegexMatch
+	4,  // 59: ai.options.gloo.solo.io.AIPromptGuard.Regex.builtins:type_name -> ai.options.gloo.solo.io.AIPromptGuard.Regex.BuiltIn
+	5,  // 60: ai.options.gloo.solo.io.AIPromptGuard.Regex.action:type_name -> ai.options.gloo.solo.io.AIPromptGuard.Regex.Action
+	44, // 61: ai.options.gloo.solo.io.AIPromptGuard.Webhook.forwardHeaders:type_name -> ai.options.gloo.solo.io.AIPromptGuard.Webhook.HeaderMatch
+	45, // 62: ai.options.gloo.solo.io.AIPromptGuard.Moderation.openai:type_name -> ai.options.gloo.solo.io.AIPromptGuard.Moderation.OpenAI
+	46, // 63: ai.options.gloo.solo.io.AIPromptGuard.Request.custom_response:type_name -> ai.options.gloo.solo.io.AIPromptGuard.Request.CustomResponse
+	38, // 64: ai.options.gloo.solo.io.AIPromptGuard.Request.regex:type_name -> ai.options.gloo.solo.io.AIPromptGuard.Regex
+	39, // 65: ai.options.gloo.solo.io.AIPromptGuard.Request.webhook:type_name -> ai.options.gloo.solo.io.AIPromptGuard.Webhook
+	40, // 66: ai.options.gloo.solo.io.AIPromptGuard.Request.moderation:type_name -> ai.options.gloo.solo.io.AIPromptGuard.Moderation
+	38, // 67: ai.options.gloo.solo.io.AIPromptGuard.Response.regex:type_name -> ai.options.gloo.solo.io.AIPromptGuard.Regex
+	39, // 68: ai.options.gloo.solo.io.AIPromptGuard.Response.webhook:type_name -> ai.options.gloo.solo.io.AIPromptGuard.Webhook
+	6,  // 69: ai.options.gloo.solo.io.AIPromptGuard.Webhook.HeaderMatch.match_type:type_name -> ai.options.gloo.solo.io.AIPromptGuard.Webhook.HeaderMatch.MatchType
+	7,  // 70: ai.options.gloo.solo.io.AIPromptGuard.Moderation.OpenAI.auth_token:type_name -> ai.options.gloo.solo.io.SingleAuthToken
 	71, // [71:71] is the sub-list for method output_type
 	71, // [71:71] is the sub-list for method input_type
 	71, // [71:71] is the sub-list for extension type_name
@@ -4215,7 +4162,7 @@ func file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_rawDesc), len(file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_rawDesc)),
-			NumEnums:      8,
+			NumEnums:      7,
 			NumMessages:   40,
 			NumExtensions: 0,
 			NumServices:   0,

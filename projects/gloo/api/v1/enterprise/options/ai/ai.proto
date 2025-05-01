@@ -208,14 +208,6 @@ message UpstreamSpec {
     string model = 4;
   }
 
-  enum SigningAlgorithm {
-    // Use SigV4 for signing
-    AWS_SIGV4 = 0;
-
-    // Use SigV4A for signing
-    AWS_SIGV4A = 1;
-  }
-
   // Settings for the Bedrock LLM provider
   message Bedrock {
     // The authorization config used to access authenticated AWS Bedrock services.
