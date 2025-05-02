@@ -67,47 +67,157 @@ The Envoy dependency in Gloo Gateway 1.18 was upgraded from 1.29.x to 1.31.x. Th
 
 ## New features
 
-### Watch namespace based on label 
+### Set authority header for gRPC OpenTelemetry collectors
 
-Previously, the namespaces that you wanted Gloo Gateway to watch for resources needed to be provided as a static list via the `watchNamespaces` setting in the Settings resource and had to be updated manually every time a namespace was added or deleted. Starting in 1.18.0, you can now define the namespaces that you want to watch by using the `WatchNamespaceSelectors` option on the Settings CR. This way, Gloo Gateway automatically includes new namespaces that have the required selectors. 
+When referencing a gRPC OpenTelemetry collector in your Gateway, Gloo Gateway automatically generates an Envoy configuration that sets the cluster name as the `:authority` pseudo-header. If your collector expects a different `:authority` header, you can specify that by setting the `spec.httpGateway.options.httpConnectionManagerSettings.tracing.openTelemetryConfig.grpcService.authority` value on your Gateway as shown in the following example. 
 
-Label selectors can use exact matches or an `In`, `NotIn`, `Exists`, or `DoesNotExist` expression. You can also chain label selectors to form logical `AND` or `OR` expressions as shown in the following example. 
-
-```yaml
-settings: 
-  watchNamespaceSelectors: 
-    - matchLabels: 
-        label: match
-    - matchLabels: 
-        label: and
-    - matchExpressions: 
-      - key: expression
-        operator: In
-        values: 
-          - and
-```
+{{< highlight yaml "hl_lines=23-24" >}}
+apiVersion: gateway.solo.io/v1
+kind: Gateway
+metadata:
+  labels:
+    app: gloo
+    app.kubernetes.io/name: gateway-proxy-tracing-authority
+  name: gateway-proxy-tracing-authority
+spec:
+  bindAddress: '::'
+  bindPort: 18082
+  proxyNames:
+    - gateway-proxy
+  httpGateway:
+    virtualServiceSelector:
+      gateway-type: tracing
+    options:
+      httpConnectionManagerSettings:
+        tracing:
+          openTelemetryConfig:
+            collectorUpstreamRef:
+              name: opentelemetry-collector
+              namespace: default
+            grpcService:
+              authority: my-authority
+{{< /highlight >}}
         
-{{% notice note %}}
-If you specify both the `watchNamespaces` and `watchNamespaceSelectors` setting, the `watchNamespaces` setting takes precedence.  
-{{% /notice %}}
+### Log filter state in gRPC access logs
 
-For more information, see [Specify namespaces to watch for Kuberenetes services and Gloo Gateway CRs]({{% versioned_link_path fromRoot="/installation/advanced_configuration/multiple-gloo-installs/#specify-namespaces-to-watch-for-kuberenetes-services-and-gloo-gateway-crs " %}}).
+Enable grpc access logging of filter state with
+You can enable logging of the filter state when performing gRPC access logging. The filter state logger calls the `FilterState::Object::serializeAsProto` to serialize the filter state object. 
 
-### ARM images
+You can enable the filter in your Helm values file or a Gateway resource directly. 
 
-In Gloo Gateway Enterprise, ARM images are now supported for Gloo Gateway components. An image that is tagged with -arm is compatible with ARM64 architectures. Note that ARM images are currently not published for VMs.
+{{< tabs >}}
+{{% tab name="Helm" %}}
+The following example adds the modsecurity object from a WAF policy to the filter state object in the access log. 
+```yaml
+gloo:
+  accessLogger:
+    enabled: true
+    image:
+      registry: quay.io/solo-io
+      tag: 1.0.0-ci1
+  gatewayProxies:
+    gatewayProxy:
+      gatewaySettings:
+        customHttpGateway:
+          options:
+            waf:
+              auditLogging:
+                action: ALWAYS
+                location: FILTER_STATE
+              customInterventionMessage: 'ModSecurity intervention! Custom message details here..'
+              ruleSets:
+              - ruleStr: |
+                  # Turn rule engine on
+                  SecRuleEngine On
+                  SecRule REQUEST_HEADERS:User-Agent "scammer" "deny,status:403,id:107,phase:1,msg:'blocked scammer'"
+        accessLoggingService:
+          accessLog:
+          - grpcService:
+              logName: example
+              staticClusterName: access_log_cluster
+              filterStateObjectsToLog:
+              - io.solo.modsecurity.audit_log
+```
+{{% /tab %}}
+{{% tab name="Gateway resource" %}}
+The following example adds the modsecurity object from a WAF policy to the filter state object in the access log. 
+```yaml  
+apiVersion: gateway.solo.io/v1
+kind: Gateway
+metadata:
+  name: gateway-proxy
+  namespace: gloo-system
+spec:
+  bindAddress: '::'
+  bindPort: 8080
+  proxyNames: 
+    - gateway-proxy
+  httpGateway: 
+    options:
+      waf:
+        customInterventionMessage: 'ModSecurity intervention! Custom message details here..'
+        ruleSets:
+        - ruleStr: |
+            # Turn rule engine on
+            SecRuleEngine On
+            SecRule REQUEST_HEADERS:User-Agent "scammer" "deny,status:403,id:107,phase:1,msg:'blocked scammer'" 
+  useProxyProto: false
+  options:
+    accessLoggingService:
+      accessLog:
+      - grpcService:
+          logName: example
+          staticClusterName: access_log_cluster
+          filterStateObjectsToLog:
+          - io.solo.modsecurity.audit_log
+```
+
+{{% /tab %}}
+{{< /tabs >}}
+
+Example access log output: 
+```
+"filter_state_objects":{"io.solo.modsecurity.audit_log":{"type_url":"type.googleapis.com/google.protobuf.StringValue","value":"Ct0DLS0tQS0tClsxMC9NYXIvMjAyNToxNDoyNTowMSArMDAwMF0gMTc0MTYxNjcwMTQ1LjkwMTMzMCAxMjcuMC4wLjEgMzg5NTQgIDAKLS0tQi0tCkdFVCAvYWxsLXBldHMgSFRUUC8xLjEKOm1ldGhvZDogR0VUCmhvc3Q6IGxvY2FsaG9zdDo4MDgwCjpwYXRoOiAvYWxsLXBldHMKOmF1dGhvcml0eTogbG9jYWxob3N0OjgwODAKeC1mb3J3YXJkZWQtcHJvdG86IGh0dHAKOnNjaGVtZTogaHR0cAp1c2VyLWFnZW50OiBjdXJsLzguMTEuMAphY2NlcHQ6ICovKgp4LXJlcXVlc3QtaWQ6IDUwZTBjZTVmLTk0NjktNGQ3NS1hMzUxLWU4MmI0ODFlYTFmYgoKLS0tRi0tCkhUVFAvMS4xIDIwMAo6c3RhdHVzOiAyMDAKY29udGVudC10eXBlOiBhcHBsaWNhdGlvbi94bWwKZGF0ZTogTW9uLCAxMCBNYXIgMjAyNSAxNDoyNTowMSBHTVQKY29udGVudC1sZW5ndGg6IDg2CngtZW52b3ktdXBzdHJlYW0tc2VydmljZS10aW1lOiAyCgotLS1ILS0KCi0tLVotLQoK"}}}
+```
+
+For more information, see the [Access logging API]({{% versioned_link_path fromRoot="/reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/options/als/als.proto.sk/" %}}). 
+
+
+### Match conditions on validation webhook
+
+You can now specify match condititions on the Gloo Gateway or Kubernetes validating admission webhook level to filter the resources that you want to include or exclude from validation. Match conditions are written in [CEL (Common Expression Language)](https://cel.dev) language. 
+
+Examples: 
+
+To exclude secrets or other resources with the `foo` label on the Kubernetes validating admission webhook, add the following values to your Helm values file. 
+```sh
+
+gateway:
+  validation:
+    kubeCoreFailurePolicy: Fail # For "strict" validation mode, fail the validation if webhook server is not available
+    kubeCoreMatchConditions:
+    - name: 'not-a-secret-or-secret-with-foo-label-key'
+       expression: 'request.resource.resource != "secrets" || ("labels" in oldObject.metadata && "foo" in oldObject.metadata.labels)'
+```
+
+To exclude all Upstream resources on the Gloo Gateway validating admission webhook, add the following values to your Helm values file.  
+```sh
+
+gateway:
+  validation:
+    failurePolicy: Fail # For "strict" validation mode, fail the validation if webhook server is not available
+    matchConditions:
+      - name: skip-upstreams
+        expression: '!(request.resource.group == "gloo.solo.io" && request.resource.resource == "upstreams")' # Match non-upstream resources.
+    webhook:
+      skipDeleteValidationResources: []
+```
+
+For more information, see the Helm reference for [OSS]({{< versioned_link_path fromRoot="/reference/helm_chart_values/open_source_helm_chart_values/" >}}) and [Enterprise]({{< versioned_link_path fromRoot="/reference/helm_chart_values/enterprise_helm_chart_values/" >}}).
 
 ### Kubernetes 1.30 and 1.31 support 
 
 Starting in version 1.18.0, Gloo Gateway can now run on Kubernetes 1.30 and 1.31. For more information about supported Kubernetes, Envoy, and Istio versions, see [Supported versions]({{% versioned_link_path fromRoot="/reference/support/" %}}).
-
-### Front channel logout
-
-You can configure a front channel logout path on an AuthConfig that configures OIDC authorization code for your apps.
-
-Front channel logout is a security mechanism that is used in the context of Single Sign-On (SSO) and Identity and Access Management (IAM) systems to ensure that when a user logs out of one app or service, they are also automatically logged out of the Identity Provider (IdP) and therefore all related apps and services in a secure and synchronized manner. Without front channel logout, the user is logged out of the requested app only.
-
-For more information, see [Front channel logout]({{% versioned_link_path fromRoot="/guides/security/auth/extauth/oauth/#front-channel-logout" %}}).
 
 
 <!-- ggv2-related changes:
@@ -249,7 +359,7 @@ Review the following summary of important new, deprecated, or removed CLI option
 
 **New CLI commands or options**:
 
-* `glooctl proxy snapshot`: [Create a snapshot of the current state in Envoy]({{% versioned_link_path fromRoot="/reference/cli/glooctl_proxy_snapshot/" %}}) for the purpose of simplified issue reporting and triaging.
+* [`glooctl debug`]({{< versioned_link_path fromRoot="/reference/cli/glooctl_debug/" >}}) and [`glooctl debug yaml`]({{< versioned_link_path fromRoot="/reference/cli/glooctl_debug_yaml/" >}}): Collect Kubernetes, Gloo Gateway controller, and Envoy information from your environment, such as logs, YAML manifests, metrics, and snapshots. This information can be used to debug issues in your environment or to provide this information to the Solo.io support team. 
 
 <!-->
 As part of the {{< readfile file="static/content/version_geoss_latest.md" markdown="true">}} release, no CLI changes were introduced.
