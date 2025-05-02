@@ -21,51 +21,51 @@ import (
 	apixv1a1 "sigs.k8s.io/gateway-api/apisx/v1alpha1"
 )
 
-func (g *GatewayAPIOutput) Convert() error {
+func (o *GatewayAPIOutput) Convert() error {
 
-	for _, gateway := range g.edgeCache.GlooGateways() {
+	for _, gateway := range o.edgeCache.GlooGateways() {
 		// We only translate virtual services for ones that match a gateway selector
 		// TODO in the future we could blindly convert VS and not attach it to anything
-		err := g.convertGatewayAndVirtualServices(gateway)
+		err := o.convertGatewayAndVirtualServices(gateway)
 		if err != nil {
 			return err
 		}
 	}
 
-	for _, routeTable := range g.edgeCache.RouteTables() {
-		err := g.convertRouteTableToHTTPRoute(routeTable)
+	for _, routeTable := range o.edgeCache.RouteTables() {
+		err := o.convertRouteTableToHTTPRoute(routeTable)
 		if err != nil {
 			return err
 		}
 	}
 
-	for _, upstream := range g.edgeCache.Upstreams() {
+	for _, upstream := range o.edgeCache.Upstreams() {
 		// Add all existing upstreams except for kube services which will be referenced directly
 		if upstream.Spec.GetKube() == nil {
-			g.gatewayAPICache.AddUpstream(upstream)
+			o.gatewayAPICache.AddUpstream(upstream)
 		}
 	}
 
-	for _, settings := range g.edgeCache.Settings() {
-		g.gatewayAPICache.AddSettings(settings)
+	for _, settings := range o.edgeCache.Settings() {
+		o.gatewayAPICache.AddSettings(settings)
 	}
 
 	// copy over any existing options
 	return nil
 }
 
-func (g *GatewayAPIOutput) convertGatewayAndVirtualServices(glooGateway *snapshot.GlooGatewayWrapper) error {
+func (o *GatewayAPIOutput) convertGatewayAndVirtualServices(glooGateway *snapshot.GlooGatewayWrapper) error {
 
 	// we first need to generate Gateway objects with the correct names based on proxy Names
 	// spec.proxyNames
-	g.generateGatewaysFromProxyNames(glooGateway)
+	o.generateGatewaysFromProxyNames(glooGateway)
 
-	gatewayVs, err := g.edgeCache.GlooGatewayVirtualServices(glooGateway)
+	gatewayVs, err := o.edgeCache.GlooGatewayVirtualServices(glooGateway)
 	if err != nil {
 		return err
 	}
 	if len(gatewayVs) == 0 {
-		g.AddErrorFromWrapper(ERROR_TYPE_NO_REFERENCES, glooGateway, "gateway does not contain virtual services")
+		o.AddErrorFromWrapper(ERROR_TYPE_NO_REFERENCES, glooGateway, "gateway does not contain virtual services")
 	}
 	for _, vs := range gatewayVs {
 		proxyNames := glooGateway.Spec.ProxyNames
@@ -75,11 +75,11 @@ func (g *GatewayAPIOutput) convertGatewayAndVirtualServices(glooGateway *snapsho
 		for _, proxyName := range proxyNames {
 			listenerName := fmt.Sprintf("%s-%d-%s-%s", proxyName, glooGateway.Spec.BindPort, vs.Name, vs.Namespace)
 			// convert the listener portion of the virtual service
-			if err := g.convertVirtualServiceListener(vs, glooGateway, listenerName, proxyName); err != nil {
+			if err := o.convertVirtualServiceListener(vs, glooGateway, listenerName, proxyName); err != nil {
 				return err
 			}
 			// convert the routing portion of the virtual service
-			err := g.convertVirtualServiceHTTPRoutes(vs, glooGateway, listenerName)
+			err := o.convertVirtualServiceHTTPRoutes(vs, glooGateway, listenerName)
 			if err != nil {
 				return err
 			}
@@ -89,7 +89,7 @@ func (g *GatewayAPIOutput) convertGatewayAndVirtualServices(glooGateway *snapsho
 	return nil
 }
 
-func (g *GatewayAPIOutput) convertVirtualServiceListener(vs *snapshot.VirtualServiceWrapper, glooGateway *snapshot.GlooGatewayWrapper, listenerName string, gatewayName string) error {
+func (o *GatewayAPIOutput) convertVirtualServiceListener(vs *snapshot.VirtualServiceWrapper, glooGateway *snapshot.GlooGatewayWrapper, listenerName string, gatewayName string) error {
 
 	// for each VirtualService generate a listener set given the gateway port
 	listenerSet := &apixv1a1.XListenerSet{
@@ -116,7 +116,7 @@ func (g *GatewayAPIOutput) convertVirtualServiceListener(vs *snapshot.VirtualSer
 	// we only create the listener part, not the http matchers
 	for _, hostname := range vs.Spec.VirtualHost.Domains {
 		if strings.Contains(hostname, ":") {
-			g.AddErrorFromWrapper(ERROR_TYPE_IGNORED, vs, "contains port in hostname %s, its being ignored for ListenerSet %s/%s", hostname, listenerSet.Namespace, listenerSet.Name)
+			o.AddErrorFromWrapper(ERROR_TYPE_IGNORED, vs, "contains port in hostname %s, its being ignored for ListenerSet %s/%s", hostname, listenerSet.Namespace, listenerSet.Name)
 			continue
 		}
 
@@ -129,7 +129,7 @@ func (g *GatewayAPIOutput) convertVirtualServiceListener(vs *snapshot.VirtualSer
 			Protocol: gwv1.HTTPProtocolType,
 		}
 		if vs.Spec.SslConfig != nil {
-			tlsConfig := g.generateTLSConfiguration(vs)
+			tlsConfig := o.generateTLSConfiguration(vs)
 			if tlsConfig != nil {
 				entry.TLS = tlsConfig
 				entry.Protocol = gwv1.HTTPSProtocolType
@@ -148,11 +148,11 @@ func (g *GatewayAPIOutput) convertVirtualServiceListener(vs *snapshot.VirtualSer
 		delegateOptions := vs.Spec.VirtualHost.GetOptionsConfigRefs().GetDelegateOptions()
 		for _, delegateOption := range delegateOptions {
 			// check to see if this already exists in gatewayAPI cache, if not move it over from edge cache
-			vho, exists := g.gatewayAPICache.VirtualHostOptions[snapshot.NameNamespaceIndex(delegateOption.Name, delegateOption.Namespace)]
+			vho, exists := o.gatewayAPICache.VirtualHostOptions[snapshot.NameNamespaceIndex(delegateOption.Name, delegateOption.Namespace)]
 			if !exists {
-				vho, exists = g.edgeCache.VirtualHostOptions()[snapshot.NameNamespaceIndex(delegateOption.Name, delegateOption.Namespace)]
+				vho, exists = o.edgeCache.VirtualHostOptions()[snapshot.NameNamespaceIndex(delegateOption.Name, delegateOption.Namespace)]
 				if !exists {
-					g.AddErrorFromWrapper(ERROR_TYPE_UNKNOWN_REFERENCE, vs, "references VirtualHostOption %s that does not exist", snapshot.NameNamespaceIndex(delegateOption.Name, delegateOption.Namespace))
+					o.AddErrorFromWrapper(ERROR_TYPE_UNKNOWN_REFERENCE, vs, "references VirtualHostOption %s that does not exist", snapshot.NameNamespaceIndex(delegateOption.Name, delegateOption.Namespace))
 					continue
 				}
 			}
@@ -163,7 +163,7 @@ func (g *GatewayAPIOutput) convertVirtualServiceListener(vs *snapshot.VirtualSer
 				Name:      listenerSet.Name,
 				Namespace: wrapperspb.String(listenerSet.Namespace),
 			})
-			g.gatewayAPICache.AddVirtualHostOption(snapshot.NewVirtualHostOptionWrapper(vho.VirtualHostOption, vs.FileOrigin()))
+			o.gatewayAPICache.AddVirtualHostOption(snapshot.NewVirtualHostOptionWrapper(vho.VirtualHostOption, vs.FileOrigin()))
 		}
 	}
 
@@ -191,14 +191,14 @@ func (g *GatewayAPIOutput) convertVirtualServiceListener(vs *snapshot.VirtualSer
 				},
 			},
 		}
-		g.gatewayAPICache.AddVirtualHostOption(snapshot.NewVirtualHostOptionWrapper(vho, vs.FileOrigin()))
+		o.gatewayAPICache.AddVirtualHostOption(snapshot.NewVirtualHostOptionWrapper(vho, vs.FileOrigin()))
 	}
-	g.gatewayAPICache.AddListenerSet(snapshot.NewListenerSetWrapper(listenerSet, vs.FileOrigin()))
+	o.gatewayAPICache.AddListenerSet(snapshot.NewListenerSetWrapper(listenerSet, vs.FileOrigin()))
 
 	return nil
 }
 
-func (g *GatewayAPIOutput) generateTLSConfiguration(vs *snapshot.VirtualServiceWrapper) *gwv1.GatewayTLSConfig {
+func (o *GatewayAPIOutput) generateTLSConfiguration(vs *snapshot.VirtualServiceWrapper) *gwv1.GatewayTLSConfig {
 	tlsConfig := &gwv1.GatewayTLSConfig{
 		Mode: ptr.To(gwv1.TLSModeTerminate),
 		//FrontendValidation: nil, // TODO do we need to set this?
@@ -217,24 +217,24 @@ func (g *GatewayAPIOutput) generateTLSConfiguration(vs *snapshot.VirtualServiceW
 	// TODO There is a situation where a SSLSecret contains a ca.crt which triggers mTLS in Gloo Edge we have no way to determine this
 
 	if vs.Spec.SslConfig.GetSslFiles() != nil {
-		g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, vs, "has SSLFiles but its not supported in Gateway API")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, vs, "has SSLFiles but its not supported in Gateway API")
 	}
 	if vs.Spec.SslConfig.GetSds() != nil {
-		g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, vs, "has SDS Certificates but its not supported in Gateway API")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, vs, "has SDS Certificates but its not supported in Gateway API")
 	}
 	if len(vs.Spec.SslConfig.VerifySubjectAltName) > 0 {
-		g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, vs, "has VerifySubjectAltName but its not supported in Gateway API")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, vs, "has VerifySubjectAltName but its not supported in Gateway API")
 	}
 	if len(vs.Spec.SslConfig.AlpnProtocols) > 0 {
-		g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, vs, "has AlpnProtocols but its not supported in Gateway API")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, vs, "has AlpnProtocols but its not supported in Gateway API")
 	}
 	if vs.Spec.SslConfig.GetOcspStaplePolicy() > 0 {
-		g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, vs, "has OcspStaplePolicy %d but its not supported in Gateway API", vs.Spec.SslConfig.GetOcspStaplePolicy())
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, vs, "has OcspStaplePolicy %d but its not supported in Gateway API", vs.Spec.SslConfig.GetOcspStaplePolicy())
 	}
 	return tlsConfig
 }
 
-func (g *GatewayAPIOutput) generateGatewaysFromProxyNames(glooGateway *snapshot.GlooGatewayWrapper) {
+func (o *GatewayAPIOutput) generateGatewaysFromProxyNames(glooGateway *snapshot.GlooGatewayWrapper) {
 
 	proxyNames := glooGateway.Gateway.Spec.ProxyNames
 
@@ -244,7 +244,7 @@ func (g *GatewayAPIOutput) generateGatewaysFromProxyNames(glooGateway *snapshot.
 
 	for _, proxyName := range glooGateway.Gateway.Spec.ProxyNames {
 		// check to see if we already created the Gateway, if we did then just move on
-		existingGw := g.gatewayAPICache.GetGateway(proxyName, glooGateway.Gateway.Namespace)
+		existingGw := o.gatewayAPICache.GetGateway(proxyName, glooGateway.Gateway.Namespace)
 		if existingGw == nil {
 			// create a new gateway
 			gwGateway := &gwv1.Gateway{
@@ -266,18 +266,18 @@ func (g *GatewayAPIOutput) generateGatewaysFromProxyNames(glooGateway *snapshot.
 					GatewayClassName: "gloo-gateway",
 				},
 			}
-			g.gatewayAPICache.AddGateway(snapshot.NewGatewayWrapper(gwGateway, glooGateway.FileOrigin()))
+			o.gatewayAPICache.AddGateway(snapshot.NewGatewayWrapper(gwGateway, glooGateway.FileOrigin()))
 		}
 		if glooGateway.Spec.GetHttpGateway() != nil && glooGateway.Spec.GetHttpGateway().GetOptions() != nil {
-			g.convertHTTPListenerOptions(glooGateway, proxyName)
+			o.convertHTTPListenerOptions(glooGateway, proxyName)
 		}
 		if glooGateway.Spec.GetOptions() != nil && glooGateway.Spec.GetOptions() != nil {
-			g.convertListenerOptions(glooGateway, proxyName)
+			o.convertListenerOptions(glooGateway, proxyName)
 		}
 	}
 }
 
-func (g *GatewayAPIOutput) convertListenerOptions(glooGateway *snapshot.GlooGatewayWrapper, proxyName string) {
+func (o *GatewayAPIOutput) convertListenerOptions(glooGateway *snapshot.GlooGatewayWrapper, proxyName string) {
 	options := glooGateway.Spec.GetOptions()
 	listenerOption := &gatewaykube.ListenerOption{
 		TypeMeta: metav1.TypeMeta{
@@ -301,10 +301,10 @@ func (g *GatewayAPIOutput) convertListenerOptions(glooGateway *snapshot.GlooGate
 		Namespace: wrapperspb.String(glooGateway.GetNamespace()),
 	})
 
-	g.gatewayAPICache.AddListenerOption(snapshot.NewListenerOptionWrapper(listenerOption, glooGateway.FileOrigin()))
+	o.gatewayAPICache.AddListenerOption(snapshot.NewListenerOptionWrapper(listenerOption, glooGateway.FileOrigin()))
 }
 
-func (g *GatewayAPIOutput) convertHTTPListenerOptions(glooGateway *snapshot.GlooGatewayWrapper, proxyName string) {
+func (o *GatewayAPIOutput) convertHTTPListenerOptions(glooGateway *snapshot.GlooGatewayWrapper, proxyName string) {
 	options := glooGateway.Spec.GetHttpGateway().GetOptions()
 	listenerOption := &gatewaykube.HttpListenerOption{
 		TypeMeta: metav1.TypeMeta{
@@ -328,10 +328,10 @@ func (g *GatewayAPIOutput) convertHTTPListenerOptions(glooGateway *snapshot.Gloo
 		Namespace: wrapperspb.String(glooGateway.GetNamespace()),
 	})
 
-	g.gatewayAPICache.AddHTTPListenerOption(snapshot.NewHTTPListenerOptionWrapper(listenerOption, glooGateway.FileOrigin()))
+	o.gatewayAPICache.AddHTTPListenerOption(snapshot.NewHTTPListenerOptionWrapper(listenerOption, glooGateway.FileOrigin()))
 }
 
-func (g *GatewayAPIOutput) convertVirtualServiceHTTPRoutes(vs *snapshot.VirtualServiceWrapper, glooGateway *snapshot.GlooGatewayWrapper, listenerName string) error {
+func (o *GatewayAPIOutput) convertVirtualServiceHTTPRoutes(vs *snapshot.VirtualServiceWrapper, glooGateway *snapshot.GlooGatewayWrapper, listenerName string) error {
 
 	hr := &gwv1.HTTPRoute{
 		TypeMeta: metav1.TypeMeta{
@@ -360,19 +360,19 @@ func (g *GatewayAPIOutput) convertVirtualServiceHTTPRoutes(vs *snapshot.VirtualS
 	}
 
 	for _, route := range vs.Spec.VirtualHost.Routes {
-		rule, err := g.convertRouteToRule(route, vs)
+		rule, err := o.convertRouteToRule(route, vs)
 		if err != nil {
 			return err
 		}
 		hr.Spec.Rules = append(hr.Spec.Rules, rule)
 	}
 
-	g.gatewayAPICache.AddHTTPRoute(snapshot.NewHTTPRouteWrapper(hr, vs.FileOrigin()))
+	o.gatewayAPICache.AddHTTPRoute(snapshot.NewHTTPRouteWrapper(hr, vs.FileOrigin()))
 
 	return nil
 }
 
-func (g *GatewayAPIOutput) convertRouteOptions(
+func (o *GatewayAPIOutput) convertRouteOptions(
 	options *gloov1.RouteOptions,
 	routeName string,
 	wrapper snapshot.Wrapper,
@@ -418,17 +418,17 @@ func (g *GatewayAPIOutput) convertRouteOptions(
 		if options.GetExtauth() != nil && options.GetExtauth().GetConfigRef() != nil {
 			// we need to copy over the auth config ref if it exists
 			ref := options.GetExtauth().GetConfigRef()
-			ac, exists := g.edgeCache.AuthConfigs()[snapshot.NameNamespaceIndex(ref.GetName(), ref.GetNamespace())]
+			ac, exists := o.edgeCache.AuthConfigs()[snapshot.NameNamespaceIndex(ref.GetName(), ref.GetNamespace())]
 			if !exists {
-				g.AddErrorFromWrapper(ERROR_TYPE_UNKNOWN_REFERENCE, wrapper, "did not find AuthConfig %s/%s for delegated route option reference", ref.GetName(), ref.GetNamespace())
+				o.AddErrorFromWrapper(ERROR_TYPE_UNKNOWN_REFERENCE, wrapper, "did not find AuthConfig %s/%s for delegated route option reference", ref.GetName(), ref.GetNamespace())
 			}
-			g.gatewayAPICache.AddAuthConfig(ac)
+			o.gatewayAPICache.AddAuthConfig(ac)
 		}
 	}
 	return ro, filter
 }
 
-func (g *GatewayAPIOutput) convertRouteToRule(r *gloogwv1.Route, wrapper snapshot.Wrapper) (gwv1.HTTPRouteRule, error) {
+func (o *GatewayAPIOutput) convertRouteToRule(r *gloogwv1.Route, wrapper snapshot.Wrapper) (gwv1.HTTPRouteRule, error) {
 
 	rr := gwv1.HTTPRouteRule{
 		Matches:     []gwv1.HTTPRouteMatch{},
@@ -438,14 +438,14 @@ func (g *GatewayAPIOutput) convertRouteToRule(r *gloogwv1.Route, wrapper snapsho
 
 	// unused fields
 	if r.GetInheritablePathMatchers() != nil && r.GetInheritablePathMatchers().Value == true {
-		g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "has inheritable path matchers but there is not equivalent in Gateway API")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "has inheritable path matchers but there is not equivalent in Gateway API")
 	}
 	if r.GetInheritableMatchers() != nil && r.GetInheritableMatchers().Value == true {
-		g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "has inheritable matchers but there is not equivalent in Gateway API")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "has inheritable matchers but there is not equivalent in Gateway API")
 	}
 
 	for _, m := range r.Matchers {
-		match, err := g.convertMatch(m, wrapper)
+		match, err := o.convertMatch(m, wrapper)
 		if err != nil {
 			return rr, err
 		}
@@ -456,49 +456,49 @@ func (g *GatewayAPIOutput) convertRouteToRule(r *gloogwv1.Route, wrapper snapsho
 
 		// prefix rewrite, sets it on HTTPRoute
 		if options.GetPrefixRewrite() != nil {
-			rf := g.generateFilterForURLRewrite(r, wrapper)
+			rf := o.generateFilterForURLRewrite(r, wrapper)
 			if rf != nil {
 				rr.Filters = append(rr.Filters, *rf)
 			}
 		}
 
-		ro, filter := g.convertRouteOptions(options, r.Name, wrapper)
+		ro, filter := o.convertRouteOptions(options, r.Name, wrapper)
 		if filter != nil {
 			rr.Filters = append(rr.Filters, *filter)
 		}
 		if ro != nil {
-			g.gatewayAPICache.AddRouteOption(snapshot.NewRouteOptionWrapper(ro, wrapper.FileOrigin()))
+			o.gatewayAPICache.AddRouteOption(snapshot.NewRouteOptionWrapper(ro, wrapper.FileOrigin()))
 		}
 	}
 	// Process Route_Actions
 	if r.GetRouteAction() != nil {
 		// Route_Route Action
 		if r.GetRouteAction().GetClusterHeader() != "" {
-			g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "has cluster header action set but there is not equivalent in Gateway API")
+			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "has cluster header action set but there is not equivalent in Gateway API")
 
 		}
 		if r.GetRouteAction().GetDynamicForwardProxy() != nil {
-			g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "has dynamic forward proxy action set but there is not equivalent in Gateway API")
+			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "has dynamic forward proxy action set but there is not equivalent in Gateway API")
 
 		}
 		if r.GetRouteAction().GetMulti() != nil {
-			g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "has multi detination action set but there is not equivalent in Gateway API")
+			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "has multi detination action set but there is not equivalent in Gateway API")
 		}
 
 		if r.GetRouteAction().GetSingle() != nil {
 			// single static upstream
 			if r.GetRouteAction().GetSingle().GetUpstream() != nil {
-				backendRef := g.generateBackendRefForSingleUpstream(r, wrapper)
+				backendRef := o.generateBackendRefForSingleUpstream(r, wrapper)
 
 				rr.BackendRefs = append(rr.BackendRefs, backendRef)
 			}
 		}
 		if r.GetRouteAction().GetUpstreamGroup() != nil {
-			g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "has upstream group action set but there is not equivalent in Gateway API")
+			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "has upstream group action set but there is not equivalent in Gateway API")
 		}
 
 	} else if r.GetRedirectAction() != nil {
-		rdf := g.convertRedirect(r, wrapper)
+		rdf := o.convertRedirect(r, wrapper)
 
 		rr.Filters = append(rr.Filters, gwv1.HTTPRouteFilter{
 			Type:            "RequestRedirect",
@@ -517,7 +517,7 @@ func (g *GatewayAPIOutput) convertRouteToRule(r *gloogwv1.Route, wrapper snapsho
 			drName := fmt.Sprintf("directresponse-%s-%s", wrapper.GetName(), rName)
 			dr.Name = drName
 			dr.Namespace = wrapper.GetNamespace()
-			g.gatewayAPICache.AddDirectResponse(snapshot.NewDirectResponseWrapper(dr, wrapper.FileOrigin()))
+			o.gatewayAPICache.AddDirectResponse(snapshot.NewDirectResponseWrapper(dr, wrapper.FileOrigin()))
 
 			rr.Filters = append(rr.Filters, gwv1.HTTPRouteFilter{
 				Type: "ExtensionRef",
@@ -532,7 +532,7 @@ func (g *GatewayAPIOutput) convertRouteToRule(r *gloogwv1.Route, wrapper snapsho
 	} else if r.GetDelegateAction() != nil {
 		// delegate action
 		// intermediate delegation step. This is a placeholder for the next path to do delegation
-		backendRef := g.generateBackendRefForDelegateAction(r, wrapper)
+		backendRef := o.generateBackendRefForDelegateAction(r, wrapper)
 
 		if len(backendRef) > 0 {
 			for _, b := range backendRef {
@@ -546,7 +546,7 @@ func (g *GatewayAPIOutput) convertRouteToRule(r *gloogwv1.Route, wrapper snapsho
 
 		for _, delegateOptions := range r.GetOptionsConfigRefs().DelegateOptions {
 			if delegateOptions.Namespace != wrapper.GetNamespace() {
-				g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "delegates to route options not in same namespace (this does not work in Gateway API)")
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "delegates to route options not in same namespace (this does not work in Gateway API)")
 			}
 			rr.Filters = append(rr.Filters, gwv1.HTTPRouteFilter{
 				Type: gwv1.HTTPRouteFilterExtensionRef,
@@ -557,20 +557,20 @@ func (g *GatewayAPIOutput) convertRouteToRule(r *gloogwv1.Route, wrapper snapsho
 				},
 			})
 			// grab that route option and add it to the cache
-			ro, exists := g.edgeCache.RouteOptions()[snapshot.NameNamespaceIndex(delegateOptions.GetName(), delegateOptions.GetNamespace())]
+			ro, exists := o.edgeCache.RouteOptions()[snapshot.NameNamespaceIndex(delegateOptions.GetName(), delegateOptions.GetNamespace())]
 			if !exists {
-				g.AddErrorFromWrapper(ERROR_TYPE_UNKNOWN_REFERENCE, wrapper, "did not find RouteOption %s/%s for delegated route option reference", delegateOptions.GetNamespace(), delegateOptions.GetName())
+				o.AddErrorFromWrapper(ERROR_TYPE_UNKNOWN_REFERENCE, wrapper, "did not find RouteOption %s/%s for delegated route option reference", delegateOptions.GetNamespace(), delegateOptions.GetName())
 			}
-			g.gatewayAPICache.AddRouteOption(ro)
+			o.gatewayAPICache.AddRouteOption(ro)
 
 			if ro.Spec.GetOptions() != nil && ro.Spec.GetOptions().GetExtauth() != nil && ro.Spec.GetOptions().GetExtauth().GetConfigRef() != nil {
 				// we need to copy over the auth config ref if it exists
 				ref := ro.Spec.GetOptions().GetExtauth().GetConfigRef()
-				ac, exists := g.edgeCache.AuthConfigs()[snapshot.NameNamespaceIndex(ref.GetName(), ref.GetNamespace())]
+				ac, exists := o.edgeCache.AuthConfigs()[snapshot.NameNamespaceIndex(ref.GetName(), ref.GetNamespace())]
 				if !exists {
-					g.AddErrorFromWrapper(ERROR_TYPE_UNKNOWN_REFERENCE, ro, "did not find AuthConfig %s/%s for delegated route option reference", ref.GetName(), ref.GetNamespace())
+					o.AddErrorFromWrapper(ERROR_TYPE_UNKNOWN_REFERENCE, ro, "did not find AuthConfig %s/%s for delegated route option reference", ref.GetName(), ref.GetNamespace())
 				}
-				g.gatewayAPICache.AddAuthConfig(ac)
+				o.gatewayAPICache.AddAuthConfig(ac)
 			}
 		}
 	}
@@ -578,7 +578,7 @@ func (g *GatewayAPIOutput) convertRouteToRule(r *gloogwv1.Route, wrapper snapsho
 	return rr, nil
 }
 
-func (g *GatewayAPIOutput) convertRedirect(r *gloogwv1.Route, wrapper snapshot.Wrapper) *gwv1.HTTPRequestRedirectFilter {
+func (o *GatewayAPIOutput) convertRedirect(r *gloogwv1.Route, wrapper snapshot.Wrapper) *gwv1.HTTPRequestRedirectFilter {
 	rdf := &gwv1.HTTPRequestRedirectFilter{}
 
 	action := r.GetRedirectAction()
@@ -586,15 +586,15 @@ func (g *GatewayAPIOutput) convertRedirect(r *gloogwv1.Route, wrapper snapshot.W
 		rdf.Scheme = ptr.To("https")
 	}
 	if action.StripQuery {
-		g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "has stripQuery redirect action but there is not equivalent in Gateway API")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "has stripQuery redirect action but there is not equivalent in Gateway API")
 	}
 	if action.GetRegexRewrite() != nil {
-		g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "has regexRewrite redirect action but there is not equivalent in Gateway API")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "has regexRewrite redirect action but there is not equivalent in Gateway API")
 	}
 	if action.GetPrefixRewrite() != "" {
 		match, err := isPrefixMatch(r.GetMatchers())
 		if err != nil {
-			g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "has multiple matchers in same route")
+			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "has multiple matchers in same route")
 		}
 
 		if match {
@@ -612,7 +612,7 @@ func (g *GatewayAPIOutput) convertRedirect(r *gloogwv1.Route, wrapper snapshot.W
 	if action.GetPathRedirect() != "" {
 		match, err := isExactMatch(r.GetMatchers())
 		if err != nil {
-			g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "has multiple matchers in same route")
+			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "has multiple matchers in same route")
 		}
 		if match {
 			// full path rewrite
@@ -662,7 +662,7 @@ func convertDirectResponse(action *gloov1.DirectResponseAction) *v1alpha1.Direct
 	return dr
 }
 
-func (g *GatewayAPIOutput) generateBackendRefForDelegateAction(
+func (o *GatewayAPIOutput) generateBackendRefForDelegateAction(
 	r *gloogwv1.Route,
 	wrapper snapshot.Wrapper,
 ) []*gwv1.HTTPBackendRef {
@@ -695,7 +695,7 @@ func (g *GatewayAPIOutput) generateBackendRefForDelegateAction(
 			}
 
 			if len(selector.Labels) > 1 {
-				g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "has delegate action with more than one label selector which is not supported in Gateway API")
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "has delegate action with more than one label selector which is not supported in Gateway API")
 			}
 			// create a backend ref for each label
 			for _, v := range selector.Labels {
@@ -719,7 +719,7 @@ func (g *GatewayAPIOutput) generateBackendRefForDelegateAction(
 	return backends
 }
 
-func (g *GatewayAPIOutput) generateFilterForURLRewrite(r *gloogwv1.Route, wrapper snapshot.Wrapper) *gwv1.HTTPRouteFilter {
+func (o *GatewayAPIOutput) generateFilterForURLRewrite(r *gloogwv1.Route, wrapper snapshot.Wrapper) *gwv1.HTTPRouteFilter {
 
 	rf := &gwv1.HTTPRouteFilter{
 		Type: gwv1.HTTPRouteFilterURLRewrite,
@@ -729,7 +729,7 @@ func (g *GatewayAPIOutput) generateFilterForURLRewrite(r *gloogwv1.Route, wrappe
 	}
 	match, err := isExactMatch(r.GetMatchers())
 	if err != nil {
-		g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "has multiple matchers with different types in same route")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "has multiple matchers with different types in same route")
 	}
 	if match {
 		rf.URLRewrite.Path.Type = gwv1.FullPathHTTPPathModifier
@@ -738,7 +738,7 @@ func (g *GatewayAPIOutput) generateFilterForURLRewrite(r *gloogwv1.Route, wrappe
 	}
 	match, err = isPrefixMatch(r.GetMatchers())
 	if err != nil {
-		g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "has multiple matchers in same route")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "has multiple matchers in same route")
 	}
 
 	if match {
@@ -749,22 +749,22 @@ func (g *GatewayAPIOutput) generateFilterForURLRewrite(r *gloogwv1.Route, wrappe
 
 	match, err = isRegexMatch(r.GetMatchers())
 	if err != nil {
-		g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "has multiple matchers with different types in same route")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "has multiple matchers with different types in same route")
 	}
 	if match {
-		g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "has regex matchers and cannot be used with path rewrites in Gateway API")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "has regex matchers and cannot be used with path rewrites in Gateway API")
 		return nil
 	}
 	// regex rewrite, NOT SUPPORTED IN GATEWAY API
 	if r.GetOptions().GetRegexRewrite() != nil {
-		g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "regex rewrite not supported in Gateway API")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "regex rewrite not supported in Gateway API")
 	}
 
 	return rf
 }
 
 // Converts a single upstream to a GatewayAPI backend ref
-func (g *GatewayAPIOutput) generateBackendRefForSingleUpstream(r *gloogwv1.Route, wrapper snapshot.Wrapper) gwv1.HTTPBackendRef {
+func (o *GatewayAPIOutput) generateBackendRefForSingleUpstream(r *gloogwv1.Route, wrapper snapshot.Wrapper) gwv1.HTTPBackendRef {
 	upstream := r.GetRouteAction().GetSingle().GetUpstream()
 	var backendRef gwv1.HTTPBackendRef
 
@@ -776,11 +776,11 @@ func (g *GatewayAPIOutput) generateBackendRefForSingleUpstream(r *gloogwv1.Route
 		upstreamNs = wrapper.GetNamespace()
 	}
 
-	up = g.edgeCache.GetUpstream(upstream.GetName(), upstreamNs)
+	up = o.edgeCache.GetUpstream(upstream.GetName(), upstreamNs)
 
 	if up == nil {
 		// unknown reference to backend
-		g.AddErrorFromWrapper(ERROR_TYPE_UNKNOWN_REFERENCE, wrapper, "upstream %s not found, referencing unknown upstream backend ref", upstream.GetName())
+		o.AddErrorFromWrapper(ERROR_TYPE_UNKNOWN_REFERENCE, wrapper, "upstream %s not found, referencing unknown upstream backend ref", upstream.GetName())
 
 		backendRef = gwv1.HTTPBackendRef{
 			BackendRef: gwv1.BackendRef{
@@ -805,7 +805,7 @@ func (g *GatewayAPIOutput) generateBackendRefForSingleUpstream(r *gloogwv1.Route
 			},
 		}
 	} else if up.Spec.GetKube() != nil && up.Spec.GetUseHttp2() != nil && up.Spec.GetUseHttp2().Value == true {
-		g.AddErrorFromWrapper(ERROR_TYPE_UPDATE_OBJECT, wrapper, "service %s/%s uses http2, update its k8s service appProtocol=http2", up.Spec.GetKube().ServiceNamespace, up.Spec.GetKube().ServiceName)
+		o.AddErrorFromWrapper(ERROR_TYPE_UPDATE_OBJECT, wrapper, "service %s/%s uses http2, update its k8s service appProtocol=http2", up.Spec.GetKube().ServiceNamespace, up.Spec.GetKube().ServiceName)
 		// normal backend ref but let the user know htey need to annotate their service
 		backendRef = gwv1.HTTPBackendRef{
 			BackendRef: gwv1.BackendRef{
@@ -844,7 +844,7 @@ func (g *GatewayAPIOutput) generateBackendRefForSingleUpstream(r *gloogwv1.Route
 	return backendRef
 }
 
-func (g *GatewayAPIOutput) convertMatch(m *matchers.Matcher, wrapper snapshot.Wrapper) (gwv1.HTTPRouteMatch, error) {
+func (o *GatewayAPIOutput) convertMatch(m *matchers.Matcher, wrapper snapshot.Wrapper) (gwv1.HTTPRouteMatch, error) {
 	hrm := gwv1.HTTPRouteMatch{
 		QueryParams: []gwv1.HTTPQueryParamMatch{},
 	}
@@ -855,7 +855,7 @@ func (g *GatewayAPIOutput) convertMatch(m *matchers.Matcher, wrapper snapshot.Wr
 		for _, h := range m.Headers {
 			// support invert header match https://github.com/solo-io/gloo/blob/main/projects/gateway2/translator/httproute/gateway_http_route_translator.go#L274
 			if h.InvertMatch == true {
-				g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "invert match not currently supported")
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "invert match not currently supported")
 			}
 			if h.Regex {
 				hrm.Headers = append(hrm.Headers, gwv1.HTTPHeaderMatch{
@@ -886,7 +886,7 @@ func (g *GatewayAPIOutput) convertMatch(m *matchers.Matcher, wrapper snapshot.Wr
 	// method matching
 	if len(m.Methods) > 0 {
 		if len(m.Methods) > 1 {
-			g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "gateway API only supports 1 method match per rule and %d were detected", len(m.Methods))
+			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "gateway API only supports 1 method match per rule and %d were detected", len(m.Methods))
 		}
 		hrm.Method = (*gwv1.HTTPMethod)(ptr.To(strings.ToUpper(m.Methods[0])))
 	}
@@ -934,7 +934,7 @@ func (g *GatewayAPIOutput) convertMatch(m *matchers.Matcher, wrapper snapshot.Wr
 	return hrm, nil
 }
 
-func (g *GatewayAPIOutput) convertRouteTableToHTTPRoute(rt *snapshot.RouteTableWrapper) error {
+func (o *GatewayAPIOutput) convertRouteTableToHTTPRoute(rt *snapshot.RouteTableWrapper) error {
 
 	hr := &gwv1.HTTPRoute{
 		TypeMeta: metav1.TypeMeta{
@@ -953,17 +953,17 @@ func (g *GatewayAPIOutput) convertRouteTableToHTTPRoute(rt *snapshot.RouteTableW
 		},
 	}
 	if rt.Spec.Weight != nil {
-		g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, rt, "has weight set but there is no equivalent in Gateway API")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, rt, "has weight set but there is no equivalent in Gateway API")
 	}
 
 	for _, route := range rt.Spec.Routes {
-		rule, err := g.convertRouteToRule(route, rt)
+		rule, err := o.convertRouteToRule(route, rt)
 		if err != nil {
 			return err
 		}
 		hr.Spec.Rules = append(hr.Spec.Rules, rule)
 	}
-	g.gatewayAPICache.AddHTTPRoute(snapshot.NewHTTPRouteWrapper(hr, rt.FileOrigin()))
+	o.gatewayAPICache.AddHTTPRoute(snapshot.NewHTTPRouteWrapper(hr, rt.FileOrigin()))
 
 	return nil
 }

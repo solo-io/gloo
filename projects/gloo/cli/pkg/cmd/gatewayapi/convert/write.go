@@ -15,7 +15,7 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
-func (g *GatewayAPIOutput) Write(opts *Options) error {
+func (o *GatewayAPIOutput) Write(opts *Options) error {
 
 	if folderExists(opts.OutputDir) {
 		if !opts.DeleteOutputDir {
@@ -34,7 +34,7 @@ func (g *GatewayAPIOutput) Write(opts *Options) error {
 	// TODO we need to know all the files we are going to write a head of time because we want to wipe
 
 	var err error
-	for _, r := range g.gatewayAPICache.Gateways {
+	for _, r := range o.gatewayAPICache.Gateways {
 		r.ObjectMeta.SetResourceVersion("")
 		yml, err := yaml.Marshal(r.Gateway)
 		if err != nil {
@@ -45,7 +45,7 @@ func (g *GatewayAPIOutput) Write(opts *Options) error {
 		}
 	}
 	// Write Routes
-	for _, r := range g.gatewayAPICache.HTTPRoutes {
+	for _, r := range o.gatewayAPICache.HTTPRoutes {
 		yml, err := yaml.Marshal(r.HTTPRoute)
 		if err != nil {
 			return err
@@ -54,7 +54,7 @@ func (g *GatewayAPIOutput) Write(opts *Options) error {
 			return err
 		}
 	}
-	for _, r := range g.gatewayAPICache.RouteOptions {
+	for _, r := range o.gatewayAPICache.RouteOptions {
 		yml, err := yaml.Marshal(r.RouteOption)
 		if err != nil {
 			return err
@@ -63,7 +63,7 @@ func (g *GatewayAPIOutput) Write(opts *Options) error {
 			return err
 		}
 	}
-	for _, r := range g.gatewayAPICache.VirtualHostOptions {
+	for _, r := range o.gatewayAPICache.VirtualHostOptions {
 		yml, err := yaml.Marshal(r.VirtualHostOption)
 		if err != nil {
 			return err
@@ -72,7 +72,7 @@ func (g *GatewayAPIOutput) Write(opts *Options) error {
 			return err
 		}
 	}
-	for _, r := range g.gatewayAPICache.ListenerOptions {
+	for _, r := range o.gatewayAPICache.ListenerOptions {
 		yml, err := yaml.Marshal(r.ListenerOption)
 		if err != nil {
 			return err
@@ -81,7 +81,7 @@ func (g *GatewayAPIOutput) Write(opts *Options) error {
 			return err
 		}
 	}
-	for _, r := range g.gatewayAPICache.HTTPListenerOptions {
+	for _, r := range o.gatewayAPICache.HTTPListenerOptions {
 		yml, err := yaml.Marshal(r.HttpListenerOption)
 		if err != nil {
 			return err
@@ -90,7 +90,7 @@ func (g *GatewayAPIOutput) Write(opts *Options) error {
 			return err
 		}
 	}
-	for _, r := range g.gatewayAPICache.Upstreams {
+	for _, r := range o.gatewayAPICache.Upstreams {
 		yml, err := yaml.Marshal(r.Upstream)
 		if err != nil {
 			return err
@@ -99,7 +99,7 @@ func (g *GatewayAPIOutput) Write(opts *Options) error {
 			return err
 		}
 	}
-	for _, r := range g.gatewayAPICache.AuthConfigs {
+	for _, r := range o.gatewayAPICache.AuthConfigs {
 		yml, err := yaml.Marshal(r.AuthConfig)
 		if err != nil {
 			return err
@@ -108,7 +108,7 @@ func (g *GatewayAPIOutput) Write(opts *Options) error {
 			return err
 		}
 	}
-	for _, r := range g.gatewayAPICache.ListenerSets {
+	for _, r := range o.gatewayAPICache.ListenerSets {
 		yml, err := yaml.Marshal(r.XListenerSet)
 		if err != nil {
 			return err
@@ -117,7 +117,7 @@ func (g *GatewayAPIOutput) Write(opts *Options) error {
 			return err
 		}
 	}
-	for _, r := range g.gatewayAPICache.Settings {
+	for _, r := range o.gatewayAPICache.Settings {
 		yml, err := yaml.Marshal(r.Settings)
 		if err != nil {
 			return err
@@ -126,7 +126,7 @@ func (g *GatewayAPIOutput) Write(opts *Options) error {
 			return err
 		}
 	}
-	for _, r := range g.gatewayAPICache.YamlObjects {
+	for _, r := range o.gatewayAPICache.YamlObjects {
 		yml, err := yaml.Marshal(r.Object)
 		if err != nil {
 			return err
@@ -135,7 +135,7 @@ func (g *GatewayAPIOutput) Write(opts *Options) error {
 			return err
 		}
 	}
-	for _, r := range g.gatewayAPICache.DirectResponses {
+	for _, r := range o.gatewayAPICache.DirectResponses {
 		yml, err := yaml.Marshal(r.DirectResponse)
 		if err != nil {
 			return err
@@ -151,7 +151,7 @@ func (g *GatewayAPIOutput) Write(opts *Options) error {
 	}
 	//organize all errors into a map
 
-	for t, errors := range g.errors {
+	for t, errors := range o.errors {
 		f, err := os.Create(fmt.Sprintf("%s/%s.txt", folder, t))
 		if err != nil {
 			return err
@@ -184,13 +184,13 @@ func (g *GatewayAPIOutput) Write(opts *Options) error {
 			return err
 		}
 	}
-	if len(g.errors) > 0 {
+	if len(o.errors) > 0 {
 		fmt.Printf("Errros were encountered during translation, please check %s/gloo-errors\n", opts.OutputDir)
 	}
 	fmt.Printf("Files succesfully written to %s\n", opts.OutputDir)
 
 	if opts.CreateNamespaces {
-		if err := g.createNamespaces(opts.OutputDir); err != nil {
+		if err := o.createNamespaces(opts.OutputDir); err != nil {
 			return err
 		}
 	}
@@ -198,22 +198,22 @@ func (g *GatewayAPIOutput) Write(opts *Options) error {
 	return nil
 }
 
-func (g *GatewayAPIOutput) createNamespaces(dir string) error {
+func (o *GatewayAPIOutput) createNamespaces(dir string) error {
 	namespaces := map[string]bool{}
 	// iterate through all main objects and find unique namespaces, references shouldnt be needed
-	for namespaceName := range g.gatewayAPICache.Gateways {
+	for namespaceName := range o.gatewayAPICache.Gateways {
 		namespace := strings.Split(namespaceName, "/")[0]
 		namespaces[namespace] = true
 	}
-	for namespaceName := range g.gatewayAPICache.ListenerSets {
+	for namespaceName := range o.gatewayAPICache.ListenerSets {
 		namespace := strings.Split(namespaceName, "/")[0]
 		namespaces[namespace] = true
 	}
-	for namespaceName := range g.gatewayAPICache.HTTPRoutes {
+	for namespaceName := range o.gatewayAPICache.HTTPRoutes {
 		namespace := strings.Split(namespaceName, "/")[0]
 		namespaces[namespace] = true
 	}
-	for namespaceName := range g.gatewayAPICache.Upstreams {
+	for namespaceName := range o.gatewayAPICache.Upstreams {
 		namespace := strings.Split(namespaceName, "/")[0]
 		namespaces[namespace] = true
 	}

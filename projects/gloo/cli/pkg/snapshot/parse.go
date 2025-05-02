@@ -3,7 +3,6 @@ package snapshot
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"os"
 	"strings"
 
@@ -68,12 +67,7 @@ func (i *Instance) translateSnapshotToEdgeInput(jsonData string, fileName string
 }
 
 func (i *Instance) parseObjects(item unstructured.Unstructured, fileName string) error {
-	runtimeScheme := runtime.NewScheme()
-	// Gloo Edge APIs
-	if err := schemes.SchemeBuilder.AddToScheme(runtimeScheme); err != nil {
-		log.Fatal(err)
-	}
-
+	runtimeScheme := schemes.DefaultScheme()
 	resourceYaml, err := yaml.Marshal(item)
 	if err != nil {
 		return err
@@ -129,11 +123,8 @@ func (i *Instance) addObjectToGatewayAPIOutput(obj runtime.Object, fileName stri
 }
 func (i *Instance) translateFileToEdgeInput(yamlData string, fileName string) error {
 
-	runtimeScheme := runtime.NewScheme()
-	// Gloo Edge APIs
-	if err := schemes.SchemeBuilder.AddToScheme(runtimeScheme); err != nil {
-		log.Fatal(err)
-	}
+	// Gloo Edge runtime scheme
+	runtimeScheme := schemes.DefaultScheme()
 	codecs := serializer.NewCodecFactory(runtimeScheme)
 	decoder := codecs.UniversalDeserializer()
 

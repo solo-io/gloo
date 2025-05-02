@@ -1,7 +1,7 @@
 package snapshot
 
 import (
-	"fmt"
+	"k8s.io/apimachinery/pkg/types"
 
 	gatewaykube "github.com/solo-io/gloo/projects/gateway/pkg/api/v1/kube/apis/gateway.solo.io/v1"
 	"github.com/solo-io/gloo/projects/gateway2/api/v1alpha1"
@@ -61,7 +61,7 @@ func (w *YAMLWrapper) HasFileOrigin(fileOrigin string) *YAMLWrapper {
 	return w
 }
 func (w *YAMLWrapper) Index() string {
-	return "unknown-unknown"
+	return types.NamespacedName{Name: "unknown", Namespace: "unknown"}.String()
 }
 
 type HTTPRouteWrapper struct {
@@ -77,7 +77,7 @@ func NewHTTPRouteWrapper(httpRoute *gwv1.HTTPRoute, fileOrigin string) *HTTPRout
 }
 
 func (w *HTTPRouteWrapper) Index() string {
-	return fmt.Sprintf("%s/%s", w.Namespace, w.Name)
+	return types.NamespacedName{Name: w.Name, Namespace: w.Name}.String()
 }
 
 func (w *HTTPRouteWrapper) FileOrigin() string {
@@ -101,7 +101,7 @@ func NewSettingsWrapper(settings *glookube.Settings, fileOrigin string) *Setting
 }
 
 func (w *SettingsWrapper) Index() string {
-	return fmt.Sprintf("%s/%s", w.Namespace, w.Name)
+	return types.NamespacedName{Name: w.Name, Namespace: w.Name}.String()
 }
 func (w *SettingsWrapper) FileOrigin() string {
 	return w.fileOrigin
@@ -126,7 +126,7 @@ func NewRouteOptionWrapper(opt *gatewaykube.RouteOption, fileOrigin string) *Rou
 }
 
 func (w *RouteOptionWrapper) Index() string {
-	return fmt.Sprintf("%s/%s", w.Namespace, w.Name)
+	return types.NamespacedName{Name: w.Name, Namespace: w.Name}.String()
 }
 
 func (w *RouteOptionWrapper) FileOrigin() string {
@@ -150,7 +150,7 @@ func NewVirtualHostOptionWrapper(opt *gatewaykube.VirtualHostOption, fileOrigin 
 }
 
 func (w *VirtualHostOptionWrapper) Index() string {
-	return fmt.Sprintf("%s/%s", w.Namespace, w.Name)
+	return types.NamespacedName{Name: w.Name, Namespace: w.Name}.String()
 }
 func (w *VirtualHostOptionWrapper) FileOrigin() string {
 	return w.fileOrigin
@@ -173,7 +173,7 @@ func NewGatewayParametersWrapper(params *v1alpha1.GatewayParameters, fileOrigin 
 }
 
 func (w *GatewayParametersWrapper) Index() string {
-	return fmt.Sprintf("%s/%s", w.Namespace, w.Name)
+	return types.NamespacedName{Name: w.Name, Namespace: w.Name}.String()
 }
 func (w *GatewayParametersWrapper) FileOrigin() string {
 	return w.fileOrigin
@@ -196,7 +196,7 @@ func NewListenerOptionWrapper(opt *gatewaykube.ListenerOption, fileOrigin string
 }
 
 func (w *ListenerOptionWrapper) Index() string {
-	return fmt.Sprintf("%s/%s", w.Namespace, w.Name)
+	return types.NamespacedName{Name: w.Name, Namespace: w.Name}.String()
 }
 func (w *ListenerOptionWrapper) FileOrigin() string {
 	return w.fileOrigin
@@ -218,7 +218,7 @@ func NewHTTPListenerOptionWrapper(opt *gatewaykube.HttpListenerOption, fileOrigi
 	}
 }
 func (w *HTTPListenerOptionWrapper) Index() string {
-	return fmt.Sprintf("%s/%s", w.Namespace, w.Name)
+	return types.NamespacedName{Name: w.Name, Namespace: w.Name}.String()
 }
 func (w *HTTPListenerOptionWrapper) FileOrigin() string {
 	return w.fileOrigin
@@ -241,7 +241,7 @@ func NewUpstreamWrapper(upstream *glookube.Upstream, fileOrigin string) *Upstrea
 }
 
 func (w *UpstreamWrapper) Index() string {
-	return fmt.Sprintf("%s/%s", w.Namespace, w.Name)
+	return types.NamespacedName{Name: w.Name, Namespace: w.Name}.String()
 }
 func (w *UpstreamWrapper) FileOrigin() string {
 	return w.fileOrigin
@@ -265,7 +265,7 @@ func NewAuthConfigWrapper(authConfig *v1.AuthConfig, fileOrigin string) *AuthCon
 }
 
 func (w *AuthConfigWrapper) Index() string {
-	return fmt.Sprintf("%s/%s", w.Namespace, w.Name)
+	return types.NamespacedName{Name: w.Name, Namespace: w.Name}.String()
 }
 func (w *AuthConfigWrapper) FileOrigin() string {
 	return w.fileOrigin
@@ -288,7 +288,7 @@ func NewGatewayWrapper(gw *gwv1.Gateway, fileOrigin string) *GatewayWrapper {
 }
 
 func (w *GatewayWrapper) Index() string {
-	return fmt.Sprintf("%s/%s", w.Namespace, w.Name)
+	return types.NamespacedName{Name: w.Name, Namespace: w.Name}.String()
 }
 func (w *GatewayWrapper) FileOrigin() string {
 	return w.fileOrigin
@@ -311,7 +311,7 @@ func NewListenerSetWrapper(listenerSet *apixv1a1.XListenerSet, fileOrigin string
 }
 
 func (w *ListenerSetWrapper) Index() string {
-	return fmt.Sprintf("%s/%s", w.Namespace, w.Name)
+	return types.NamespacedName{Name: w.Name, Namespace: w.Name}.String()
 }
 func (w *ListenerSetWrapper) FileOrigin() string {
 	return w.fileOrigin
@@ -334,7 +334,7 @@ func newRouteTableWrapper(routeTable *gatewaykube.RouteTable, fileOrigin string)
 }
 
 func (w *RouteTableWrapper) Index() string {
-	return fmt.Sprintf("%s/%s", w.Namespace, w.Name)
+	return types.NamespacedName{Name: w.Name, Namespace: w.Name}.String()
 }
 func (w *RouteTableWrapper) FileOrigin() string {
 	return w.fileOrigin
@@ -359,7 +359,7 @@ func NewVirtualServiceWrapper(virtualService *gatewaykube.VirtualService, fileOr
 }
 
 func (w *VirtualServiceWrapper) Index() string {
-	return fmt.Sprintf("%s/%s", w.GetNamespace(), w.GetName())
+	return types.NamespacedName{Name: w.Name, Namespace: w.Name}.String()
 }
 func (w *VirtualServiceWrapper) FileOrigin() string {
 	return w.fileOrigin
@@ -384,7 +384,7 @@ func NewGlooGatewayWrapper(gateway *gatewaykube.Gateway, fileOrigin string) *Glo
 }
 
 func (w *GlooGatewayWrapper) Index() string {
-	return fmt.Sprintf("%s/%s", w.Namespace, w.Name)
+	return types.NamespacedName{Name: w.Name, Namespace: w.Name}.String()
 }
 func (w *GlooGatewayWrapper) FileOrigin() string {
 	return w.fileOrigin
@@ -407,7 +407,7 @@ func NewDirectResponseWrapper(resp *v1alpha1.DirectResponse, fileOrigin string) 
 }
 
 func (w *DirectResponseWrapper) Index() string {
-	return fmt.Sprintf("%s/%s", w.Namespace, w.Name)
+	return types.NamespacedName{Name: w.Name, Namespace: w.Name}.String()
 }
 func (w *DirectResponseWrapper) FileOrigin() string {
 	return w.fileOrigin

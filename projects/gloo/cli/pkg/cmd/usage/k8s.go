@@ -26,8 +26,8 @@ func calculateNodeResources(nodes []v1.Node) (*NodeResources, error) {
 	return resources, nil
 }
 
-func getK8sClusterInfo() (*K8sClusterInfo, error) {
-	restCfg, err := kubeutils.GetRestConfigWithKubeContext("")
+func getK8sClusterInfo(ctx context.Context, opts *Options) (*K8sClusterInfo, error) {
+	restCfg, err := kubeutils.GetRestConfigWithKubeContext(opts.Top.KubeContext)
 	if err != nil {
 		return nil, err
 	}
@@ -37,18 +37,18 @@ func getK8sClusterInfo() (*K8sClusterInfo, error) {
 	}
 
 	// Get all pods across all namespaces
-	pods, err := kube.CoreV1().Pods("").List(context.Background(), metav1.ListOptions{})
+	pods, err := kube.CoreV1().Pods("").List(ctx, metav1.ListOptions{})
 	if err != nil {
 		return nil, err
 	}
 
 	// Get all nodes
-	nodes, err := kube.CoreV1().Nodes().List(context.Background(), metav1.ListOptions{})
+	nodes, err := kube.CoreV1().Nodes().List(ctx, metav1.ListOptions{})
 	if err != nil {
 		return nil, err
 	}
 
-	services, err := kube.CoreV1().Services("").List(context.Background(), metav1.ListOptions{})
+	services, err := kube.CoreV1().Services("").List(ctx, metav1.ListOptions{})
 	if err != nil {
 		return nil, err
 	}

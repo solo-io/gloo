@@ -237,7 +237,7 @@ func gatherUsageInformation(opts *Options) (*Inputs, error) {
 	// we only run this if they are talking the to cluster directly
 	if opts.GlooSnapshotFile == "" {
 		// Get cluster info
-		clusterInfo, err := getK8sClusterInfo()
+		clusterInfo, err := getK8sClusterInfo(context.Background(), opts)
 		if err != nil {
 			return nil, err
 		}

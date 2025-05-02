@@ -254,10 +254,10 @@ func (g *GatewayAPICache) AddListenerSet(l *snapshot.ListenerSetWrapper) {
 	g.ListenerSets[l.Index()] = l
 }
 
-func (g *GatewayAPIOutput) PreProcess(splitMatchers bool) error {
+func (o *GatewayAPIOutput) PreProcess(splitMatchers bool) error {
 
 	if splitMatchers {
-		if err := g.splitRouteMatchers(); err != nil {
+		if err := o.splitRouteMatchers(); err != nil {
 			return err
 		}
 	}
@@ -265,8 +265,8 @@ func (g *GatewayAPIOutput) PreProcess(splitMatchers bool) error {
 }
 
 // we need to split the route matchers because prefix and exact matchers cause problems with rewrites
-func (g *GatewayAPIOutput) splitRouteMatchers() error {
-	for _, rt := range g.edgeCache.RouteTables() {
+func (o *GatewayAPIOutput) splitRouteMatchers() error {
+	for _, rt := range o.edgeCache.RouteTables() {
 		var newRoutes []*gatewayv1.Route
 		for _, route := range rt.Spec.Routes {
 			editedRoute := generateRoutesForMethodMatchers(route)
@@ -274,7 +274,7 @@ func (g *GatewayAPIOutput) splitRouteMatchers() error {
 		}
 		rt.Spec.Routes = newRoutes
 
-		g.edgeCache.AddRouteTable(rt)
+		o.edgeCache.AddRouteTable(rt)
 	}
 	return nil
 }

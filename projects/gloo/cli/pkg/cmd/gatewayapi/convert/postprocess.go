@@ -14,23 +14,23 @@ import (
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
 )
 
-func (g *GatewayAPIOutput) PostProcess(opts *Options) error {
+func (o *GatewayAPIOutput) PostProcess(opts *Options) error {
 
 	// complete delegation
-	if err := g.finishDelegation(); err != nil {
+	if err := o.finishDelegation(); err != nil {
 		return err
 	}
 
 	if opts.CombineRouteOptions {
 		fmt.Printf("Combining route options...\n")
-		g.combineRouteOptions()
+		o.combineRouteOptions()
 	}
 	if opts.IncludeUnknownResources {
-		g.gatewayAPICache.YamlObjects = g.edgeCache.YAMLObjects()
+		o.gatewayAPICache.YamlObjects = o.edgeCache.YAMLObjects()
 	}
 
 	// fix all the cel validation issues
-	if err := g.celValidationCorrections(); err != nil {
+	if err := o.celValidationCorrections(); err != nil {
 		return err
 	}
 
@@ -40,26 +40,26 @@ func (g *GatewayAPIOutput) PostProcess(opts *Options) error {
 // This function fixes all the cel validation rules that are cumbersome.
 // All route rules with URL Rewrite need to be their own separate rules
 // ListenerSets can only have a max of 64 listeners
-func (g *GatewayAPIOutput) celValidationCorrections() error {
+func (o *GatewayAPIOutput) celValidationCorrections() error {
 	fmt.Printf("Fixing CEL validations...\n")
-	g.fixRewritesPerMatch()
+	o.fixRewritesPerMatch()
 
-	g.splitListenerSets()
+	o.splitListenerSets()
 
-	g.splitHTTPRouteRules()
+	o.splitHTTPRouteRules()
 
 	return nil
 }
 
-func (g *GatewayAPIOutput) splitHTTPRouteRules() {
+func (o *GatewayAPIOutput) splitHTTPRouteRules() {
 	var httpRoutesToDelete []string
 	var updatedHTTPRoutes []*snapshot.HTTPRouteWrapper
-	for httpRouteKey, httpRoute := range g.gatewayAPICache.HTTPRoutes {
+	for httpRouteKey, httpRoute := range o.gatewayAPICache.HTTPRoutes {
 		if len(httpRoute.Spec.Rules) > 16 {
 			// listener set needs to be broken up into multiple
 			httpRoutesToDelete = append(httpRoutesToDelete, httpRouteKey)
 			entries := splitRules(httpRoute.Spec.Rules, 16)
-			g.AddErrorFromWrapper(ERROR_TYPE_CEL_VALIDATION_CORRECTION, httpRoute, "HTTPRoute contains too many route rules %d, splitting into %d new HTTPRoutes", len(httpRoute.Spec.Rules), len(entries))
+			o.AddErrorFromWrapper(ERROR_TYPE_CEL_VALIDATION_CORRECTION, httpRoute, "HTTPRoute contains too many route rules %d, splitting into %d new HTTPRoutes", len(httpRoute.Spec.Rules), len(entries))
 
 			// for each entry set we create a new XListenerSet
 			for i, entry := range entries {
@@ -74,23 +74,23 @@ func (g *GatewayAPIOutput) splitHTTPRouteRules() {
 	fmt.Printf("HTTPRoutes number of rules that required spliting: %d generated %d new routes\n", len(httpRoutesToDelete), len(updatedHTTPRoutes))
 
 	for _, httpRouteKey := range httpRoutesToDelete {
-		delete(g.gatewayAPICache.HTTPRoutes, httpRouteKey)
+		delete(o.gatewayAPICache.HTTPRoutes, httpRouteKey)
 	}
 
 	for _, httpRoute := range updatedHTTPRoutes {
-		g.gatewayAPICache.AddHTTPRoute(httpRoute)
+		o.gatewayAPICache.AddHTTPRoute(httpRoute)
 	}
 }
 
-func (g *GatewayAPIOutput) splitListenerSets() {
+func (o *GatewayAPIOutput) splitListenerSets() {
 	var listenerSetsToDelete []string
 	var updatedListenerSets []*snapshot.ListenerSetWrapper
-	for listenerSetKey, listenerSet := range g.gatewayAPICache.ListenerSets {
+	for listenerSetKey, listenerSet := range o.gatewayAPICache.ListenerSets {
 		if len(listenerSet.Spec.Listeners) > 64 {
 			// listener set needs to be broken up into multiple
 			listenerSetsToDelete = append(listenerSetsToDelete, listenerSetKey)
 			entries := splitListeners(listenerSet.Spec.Listeners, 64)
-			g.AddErrorFromWrapper(ERROR_TYPE_CEL_VALIDATION_CORRECTION, listenerSet, "ListenerSet contains too many listeners %d, splitting into %d new ListenerSet", len(listenerSet.Spec.Listeners), len(entries))
+			o.AddErrorFromWrapper(ERROR_TYPE_CEL_VALIDATION_CORRECTION, listenerSet, "ListenerSet contains too many listeners %d, splitting into %d new ListenerSet", len(listenerSet.Spec.Listeners), len(entries))
 
 			// for each entry set we create a new XListenerSet
 			for i, entry := range entries {
@@ -105,11 +105,11 @@ func (g *GatewayAPIOutput) splitListenerSets() {
 	fmt.Printf("ListenerSets number of listeners that required splitting: %d generated %d new listeners\n", len(listenerSetsToDelete), len(updatedListenerSets))
 
 	for _, listenerSetKey := range listenerSetsToDelete {
-		delete(g.gatewayAPICache.ListenerSets, listenerSetKey)
+		delete(o.gatewayAPICache.ListenerSets, listenerSetKey)
 	}
 
 	for _, listenerSet := range updatedListenerSets {
-		g.gatewayAPICache.AddListenerSet(listenerSet)
+		o.gatewayAPICache.AddListenerSet(listenerSet)
 	}
 }
 
@@ -130,9 +130,9 @@ func splitListeners(slice []v1alpha1.ListenerEntry, maxLen int) [][]v1alpha1.Lis
 	return result
 }
 
-func (g *GatewayAPIOutput) fixRewritesPerMatch() {
+func (o *GatewayAPIOutput) fixRewritesPerMatch() {
 	var updatedHTTPRoutes []*snapshot.HTTPRouteWrapper
-	for _, httpRoute := range g.gatewayAPICache.HTTPRoutes {
+	for _, httpRoute := range o.gatewayAPICache.HTTPRoutes {
 		//
 		var updatedRules []gwv1.HTTPRouteRule
 		for _, rr := range httpRoute.Spec.Rules {
@@ -164,23 +164,23 @@ func (g *GatewayAPIOutput) fixRewritesPerMatch() {
 			}
 		}
 		if len(updatedRules) > 0 {
-			g.AddErrorFromWrapper(ERROR_TYPE_CEL_VALIDATION_CORRECTION, httpRoute, "updating HTTPRoute URLRewrite rules %d to conform to one rule per match, total new rules %d", len(httpRoute.Spec.Rules), len(updatedRules))
+			o.AddErrorFromWrapper(ERROR_TYPE_CEL_VALIDATION_CORRECTION, httpRoute, "updating HTTPRoute URLRewrite rules %d to conform to one rule per match, total new rules %d", len(httpRoute.Spec.Rules), len(updatedRules))
 			httpRoute.Spec.Rules = updatedRules
 			updatedHTTPRoutes = append(updatedHTTPRoutes, httpRoute)
 		}
 	}
 	// update the routes
 	for _, httpRoute := range updatedHTTPRoutes {
-		g.gatewayAPICache.AddHTTPRoute(httpRoute)
+		o.gatewayAPICache.AddHTTPRoute(httpRoute)
 	}
 }
 
-func (g *GatewayAPIOutput) finishDelegation() error {
+func (o *GatewayAPIOutput) finishDelegation() error {
 
 	// for all edge routetables we need to go and update labels on the httproutes to support delegation
 	updatedHTTPRoutes := map[string]*snapshot.HTTPRouteWrapper{}
-	for _, rtt := range g.edgeCache.RouteTables() {
-		routesToUpdate := g.processRouteForDelegation(rtt.Spec.Routes)
+	for _, rtt := range o.edgeCache.RouteTables() {
+		routesToUpdate := o.processRouteForDelegation(rtt.Spec.Routes)
 
 		for _, r := range routesToUpdate {
 			// check to see if we already matched on this httproute
@@ -189,15 +189,15 @@ func (g *GatewayAPIOutput) finishDelegation() error {
 			if found {
 				delegateValue := updatedHTTPRoute.Labels["delegation.gateway.solo.io/label"]
 				if delegateValue != r.Labels["delegation.gateway.solo.io/label"] {
-					g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, rtt, "HTTPRoute already selected by delegation label delegation.gateway.solo.io/label: %s but also selected by delegation.gateway.solo.io/label: %s", r.Labels["delegation.gateway.solo.io/label"], delegateValue)
+					o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, rtt, "HTTPRoute already selected by delegation label delegation.gateway.solo.io/label: %s but also selected by delegation.gateway.solo.io/label: %s", r.Labels["delegation.gateway.solo.io/label"], delegateValue)
 					continue
 				}
 			}
 			updatedHTTPRoutes[snapshot.NameNamespaceIndex(r.Name, r.Namespace)] = r
 		}
 	}
-	for _, vs := range g.edgeCache.VirtualServices() {
-		routesToUpdate := g.processRouteForDelegation(vs.Spec.VirtualHost.Routes)
+	for _, vs := range o.edgeCache.VirtualServices() {
+		routesToUpdate := o.processRouteForDelegation(vs.Spec.VirtualHost.Routes)
 
 		for _, r := range routesToUpdate {
 			// check to see if we already matched on this httproute
@@ -206,7 +206,7 @@ func (g *GatewayAPIOutput) finishDelegation() error {
 			if found {
 				delegateValue := updatedHTTPRoute.Labels["delegation.gateway.solo.io/label"]
 				if delegateValue != r.Labels["delegation.gateway.solo.io/label"] {
-					g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, r, "HTTPRoute already selected by delegation label delegation.gateway.solo.io/label: %s but also selected by delegation.gateway.solo.io/label: %s", r.Labels["delegation.gateway.solo.io/label"], delegateValue)
+					o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, r, "HTTPRoute already selected by delegation label delegation.gateway.solo.io/label: %s but also selected by delegation.gateway.solo.io/label: %s", r.Labels["delegation.gateway.solo.io/label"], delegateValue)
 					continue
 				}
 			}
@@ -215,13 +215,13 @@ func (g *GatewayAPIOutput) finishDelegation() error {
 
 	}
 	for name, route := range updatedHTTPRoutes {
-		g.gatewayAPICache.HTTPRoutes[name] = route
+		o.gatewayAPICache.HTTPRoutes[name] = route
 	}
 
 	return nil
 }
 
-func (g *GatewayAPIOutput) processRouteForDelegation(routes []*v1.Route) []*snapshot.HTTPRouteWrapper {
+func (o *GatewayAPIOutput) processRouteForDelegation(routes []*v1.Route) []*snapshot.HTTPRouteWrapper {
 	var routesToUpdate []*snapshot.HTTPRouteWrapper
 	for _, rt := range routes {
 		if rt.GetDelegateAction() != nil && rt.GetDelegateAction().GetSelector() != nil {
@@ -234,7 +234,7 @@ func (g *GatewayAPIOutput) processRouteForDelegation(routes []*v1.Route) []*snap
 			}
 
 			// get all http routes
-			for _, httpRoute := range g.gatewayAPICache.HTTPRoutes {
+			for _, httpRoute := range o.gatewayAPICache.HTTPRoutes {
 				value, matches := routeMatchSelector(httpRoute, selector)
 				if matches {
 
@@ -289,10 +289,10 @@ func namespaceMatch(namespace string, namespaces []string) bool {
 }
 
 // TODO we should only combine route options in the same namespace
-func (g *GatewayAPIOutput) combineRouteOptions() {
-	totalRouteOptions := len(g.gatewayAPICache.RouteOptions)
+func (o *GatewayAPIOutput) combineRouteOptions() {
+	totalRouteOptions := len(o.gatewayAPICache.RouteOptions)
 	var routeOptionKeys []string
-	for key, _ := range g.gatewayAPICache.RouteOptions {
+	for key, _ := range o.gatewayAPICache.RouteOptions {
 		routeOptionKeys = append(routeOptionKeys, key)
 	}
 	duplicates := map[string][]string{}
@@ -311,13 +311,13 @@ func (g *GatewayAPIOutput) combineRouteOptions() {
 				// skip if its the same primaryKey
 				continue
 			}
-			ro, found1 := g.gatewayAPICache.RouteOptions[primaryKey]
+			ro, found1 := o.gatewayAPICache.RouteOptions[primaryKey]
 			if !found1 {
 				// this primary primaryKey has already been removed
 				//fmt.Printf("primary key %s not found\n", primaryKey)
 				break
 			}
-			ro2, found2 := g.gatewayAPICache.RouteOptions[secondaryKey]
+			ro2, found2 := o.gatewayAPICache.RouteOptions[secondaryKey]
 			if !found2 {
 				// move on to the next secondaryKey
 				continue
@@ -327,7 +327,7 @@ func (g *GatewayAPIOutput) combineRouteOptions() {
 				duplicates[primaryKey] = append(duplicates[primaryKey], secondaryKey)
 				//fmt.Printf("Route Option %s matches %s\n", primaryKey, secondaryKey)
 				// remove both of them from the list
-				delete(g.gatewayAPICache.RouteOptions, secondaryKey)
+				delete(o.gatewayAPICache.RouteOptions, secondaryKey)
 			}
 		}
 	}
@@ -347,14 +347,14 @@ func (g *GatewayAPIOutput) combineRouteOptions() {
 		}
 
 		// create a new RouteOption with the new name
-		existingRO := g.gatewayAPICache.RouteOptions[primaryKey]
+		existingRO := o.gatewayAPICache.RouteOptions[primaryKey]
 		existingRO.Name = newName
-		g.gatewayAPICache.AddRouteOption(existingRO)
-		delete(g.gatewayAPICache.RouteOptions, primaryKey)
+		o.gatewayAPICache.AddRouteOption(existingRO)
+		delete(o.gatewayAPICache.RouteOptions, primaryKey)
 		combined++
 	}
 
-	for key, route := range g.gatewayAPICache.HTTPRoutes {
+	for key, route := range o.gatewayAPICache.HTTPRoutes {
 		var newRules []gwv1.HTTPRouteRule
 		for _, rule := range route.Spec.Rules {
 			for _, filter := range rule.Filters {
@@ -369,7 +369,7 @@ func (g *GatewayAPIOutput) combineRouteOptions() {
 			newRules = append(newRules, rule)
 		}
 		route.Spec.Rules = newRules
-		g.gatewayAPICache.HTTPRoutes[key] = route
+		o.gatewayAPICache.HTTPRoutes[key] = route
 	}
 	fmt.Printf("Initial %d RouteOptions combined to %d\n", totalRouteOptions, combined)
 }
