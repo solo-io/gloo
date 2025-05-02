@@ -2,9 +2,9 @@ package convert
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/snapshot"
+	"k8s.io/apimachinery/pkg/types"
 
 	"k8s.io/utils/ptr"
 	"sigs.k8s.io/gateway-api/apisx/v1alpha1"
@@ -52,7 +52,7 @@ func (o *GatewayAPIOutput) celValidationCorrections() error {
 }
 
 func (o *GatewayAPIOutput) splitHTTPRouteRules() {
-	var httpRoutesToDelete []string
+	var httpRoutesToDelete []types.NamespacedName
 	var updatedHTTPRoutes []*snapshot.HTTPRouteWrapper
 	for httpRouteKey, httpRoute := range o.gatewayAPICache.HTTPRoutes {
 		if len(httpRoute.Spec.Rules) > 16 {
@@ -83,7 +83,7 @@ func (o *GatewayAPIOutput) splitHTTPRouteRules() {
 }
 
 func (o *GatewayAPIOutput) splitListenerSets() {
-	var listenerSetsToDelete []string
+	var listenerSetsToDelete []types.NamespacedName
 	var updatedListenerSets []*snapshot.ListenerSetWrapper
 	for listenerSetKey, listenerSet := range o.gatewayAPICache.ListenerSets {
 		if len(listenerSet.Spec.Listeners) > 64 {
@@ -178,13 +178,13 @@ func (o *GatewayAPIOutput) fixRewritesPerMatch() {
 func (o *GatewayAPIOutput) finishDelegation() error {
 
 	// for all edge routetables we need to go and update labels on the httproutes to support delegation
-	updatedHTTPRoutes := map[string]*snapshot.HTTPRouteWrapper{}
+	updatedHTTPRoutes := map[types.NamespacedName]*snapshot.HTTPRouteWrapper{}
 	for _, rtt := range o.edgeCache.RouteTables() {
 		routesToUpdate := o.processRouteForDelegation(rtt.Spec.Routes)
 
 		for _, r := range routesToUpdate {
 			// check to see if we already matched on this httproute
-			updatedHTTPRoute, found := updatedHTTPRoutes[snapshot.NameNamespaceIndex(r.Name, r.Namespace)]
+			updatedHTTPRoute, found := updatedHTTPRoutes[r.Index()]
 
 			if found {
 				delegateValue := updatedHTTPRoute.Labels["delegation.gateway.solo.io/label"]
@@ -193,7 +193,7 @@ func (o *GatewayAPIOutput) finishDelegation() error {
 					continue
 				}
 			}
-			updatedHTTPRoutes[snapshot.NameNamespaceIndex(r.Name, r.Namespace)] = r
+			updatedHTTPRoutes[r.Index()] = r
 		}
 	}
 	for _, vs := range o.edgeCache.VirtualServices() {
@@ -201,7 +201,7 @@ func (o *GatewayAPIOutput) finishDelegation() error {
 
 		for _, r := range routesToUpdate {
 			// check to see if we already matched on this httproute
-			updatedHTTPRoute, found := updatedHTTPRoutes[snapshot.NameNamespaceIndex(r.Name, r.Namespace)]
+			updatedHTTPRoute, found := updatedHTTPRoutes[r.Index()]
 
 			if found {
 				delegateValue := updatedHTTPRoute.Labels["delegation.gateway.solo.io/label"]
@@ -210,7 +210,7 @@ func (o *GatewayAPIOutput) finishDelegation() error {
 					continue
 				}
 			}
-			updatedHTTPRoutes[snapshot.NameNamespaceIndex(r.Name, r.Namespace)] = r
+			updatedHTTPRoutes[r.Index()] = r
 		}
 
 	}
@@ -291,19 +291,16 @@ func namespaceMatch(namespace string, namespaces []string) bool {
 // TODO we should only combine route options in the same namespace
 func (o *GatewayAPIOutput) combineRouteOptions() {
 	totalRouteOptions := len(o.gatewayAPICache.RouteOptions)
-	var routeOptionKeys []string
+	var routeOptionKeys []types.NamespacedName
 	for key, _ := range o.gatewayAPICache.RouteOptions {
 		routeOptionKeys = append(routeOptionKeys, key)
 	}
-	duplicates := map[string][]string{}
+	duplicates := map[types.NamespacedName][]types.NamespacedName{}
 
 	// go through each namespace and only work on ones that match
 	for _, primaryKey := range routeOptionKeys {
-		primaryKeyNs := strings.Split(primaryKey, "/")
-
 		for _, secondaryKey := range routeOptionKeys {
-			secondaryKeyNs := strings.Split(secondaryKey, "/")
-			if primaryKeyNs[0] != secondaryKeyNs[0] {
+			if primaryKey.Namespace != secondaryKey.Namespace {
 				// skip all keys not in the same namespace
 				continue
 			}
@@ -333,7 +330,7 @@ func (o *GatewayAPIOutput) combineRouteOptions() {
 	}
 
 	// for every duplicate we need to create a new name and then do a replace
-	replacementMap := map[string]string{}
+	replacementMap := map[types.NamespacedName]string{}
 	combined := 0
 	for primaryKey, dups := range duplicates {
 		newName := fmt.Sprintf("shared-%s", RandStringRunes(8))
@@ -359,8 +356,7 @@ func (o *GatewayAPIOutput) combineRouteOptions() {
 		for _, rule := range route.Spec.Rules {
 			for _, filter := range rule.Filters {
 				if filter.ExtensionRef != nil && filter.ExtensionRef.Kind == "RouteOption" {
-					nameNamespace := fmt.Sprintf("%s/%s", route.Namespace, filter.ExtensionRef.Name)
-					newName, found := replacementMap[nameNamespace]
+					newName, found := replacementMap[types.NamespacedName{Name: string(filter.ExtensionRef.Name), Namespace: route.Namespace}]
 					if found {
 						filter.ExtensionRef.Name = gwv1.ObjectName(newName)
 					}

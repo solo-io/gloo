@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 
+	"k8s.io/apimachinery/pkg/types"
+
 	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/snapshot"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
@@ -160,41 +162,41 @@ func NewGatewayAPIOutput() *GatewayAPIOutput {
 
 type GatewayAPICache struct {
 	YamlObjects         []*snapshot.YAMLWrapper
-	HTTPRoutes          map[string]*snapshot.HTTPRouteWrapper
-	RouteOptions        map[string]*snapshot.RouteOptionWrapper
-	VirtualHostOptions  map[string]*snapshot.VirtualHostOptionWrapper
-	ListenerOptions     map[string]*snapshot.ListenerOptionWrapper
-	HTTPListenerOptions map[string]*snapshot.HTTPListenerOptionWrapper
-	DirectResponses     map[string]*snapshot.DirectResponseWrapper
+	HTTPRoutes          map[types.NamespacedName]*snapshot.HTTPRouteWrapper
+	RouteOptions        map[types.NamespacedName]*snapshot.RouteOptionWrapper
+	VirtualHostOptions  map[types.NamespacedName]*snapshot.VirtualHostOptionWrapper
+	ListenerOptions     map[types.NamespacedName]*snapshot.ListenerOptionWrapper
+	HTTPListenerOptions map[types.NamespacedName]*snapshot.HTTPListenerOptionWrapper
+	DirectResponses     map[types.NamespacedName]*snapshot.DirectResponseWrapper
 
-	Upstreams    map[string]*snapshot.UpstreamWrapper
-	AuthConfigs  map[string]*snapshot.AuthConfigWrapper
-	Gateways     map[string]*snapshot.GatewayWrapper
-	ListenerSets map[string]*snapshot.ListenerSetWrapper
-	Settings     map[string]*snapshot.SettingsWrapper
+	Upstreams    map[types.NamespacedName]*snapshot.UpstreamWrapper
+	AuthConfigs  map[types.NamespacedName]*snapshot.AuthConfigWrapper
+	Gateways     map[types.NamespacedName]*snapshot.GatewayWrapper
+	ListenerSets map[types.NamespacedName]*snapshot.ListenerSetWrapper
+	Settings     map[types.NamespacedName]*snapshot.SettingsWrapper
 }
 
 func (g *GatewayAPICache) AddSettings(s *snapshot.SettingsWrapper) {
 	if g.Settings == nil {
-		g.Settings = make(map[string]*snapshot.SettingsWrapper)
+		g.Settings = make(map[types.NamespacedName]*snapshot.SettingsWrapper)
 	}
 	g.Settings[s.Index()] = s
 }
-func (g *GatewayAPICache) GetGateway(name string, namespace string) *snapshot.GatewayWrapper {
+func (g *GatewayAPICache) GetGateway(namespacedName types.NamespacedName) *snapshot.GatewayWrapper {
 	if g.Gateways == nil {
 		return nil
 	}
-	return g.Gateways[snapshot.NameNamespaceIndex(name, namespace)]
+	return g.Gateways[namespacedName]
 }
 func (g *GatewayAPICache) AddGateway(gw *snapshot.GatewayWrapper) {
 	if g.Gateways == nil {
-		g.Gateways = make(map[string]*snapshot.GatewayWrapper)
+		g.Gateways = make(map[types.NamespacedName]*snapshot.GatewayWrapper)
 	}
 	g.Gateways[gw.Index()] = gw
 }
 func (g *GatewayAPICache) AddDirectResponse(d *snapshot.DirectResponseWrapper) {
 	if g.DirectResponses == nil {
-		g.DirectResponses = make(map[string]*snapshot.DirectResponseWrapper)
+		g.DirectResponses = make(map[types.NamespacedName]*snapshot.DirectResponseWrapper)
 	}
 	g.DirectResponses[d.Index()] = d
 }
@@ -207,49 +209,49 @@ func (g *GatewayAPICache) AddYAML(y *snapshot.YAMLWrapper) {
 
 func (g *GatewayAPICache) AddHTTPRoute(route *snapshot.HTTPRouteWrapper) {
 	if g.HTTPRoutes == nil {
-		g.HTTPRoutes = make(map[string]*snapshot.HTTPRouteWrapper)
+		g.HTTPRoutes = make(map[types.NamespacedName]*snapshot.HTTPRouteWrapper)
 	}
 	g.HTTPRoutes[route.Index()] = route
 }
 func (g *GatewayAPICache) AddRouteOption(r *snapshot.RouteOptionWrapper) {
 	if g.RouteOptions == nil {
-		g.RouteOptions = make(map[string]*snapshot.RouteOptionWrapper)
+		g.RouteOptions = make(map[types.NamespacedName]*snapshot.RouteOptionWrapper)
 	}
 	g.RouteOptions[r.Index()] = r
 }
 func (g *GatewayAPICache) AddVirtualHostOption(v *snapshot.VirtualHostOptionWrapper) {
 	if g.VirtualHostOptions == nil {
-		g.VirtualHostOptions = make(map[string]*snapshot.VirtualHostOptionWrapper)
+		g.VirtualHostOptions = make(map[types.NamespacedName]*snapshot.VirtualHostOptionWrapper)
 	}
 	g.VirtualHostOptions[v.Index()] = v
 }
 func (g *GatewayAPICache) AddListenerOption(l *snapshot.ListenerOptionWrapper) {
 	if g.ListenerOptions == nil {
-		g.ListenerOptions = make(map[string]*snapshot.ListenerOptionWrapper)
+		g.ListenerOptions = make(map[types.NamespacedName]*snapshot.ListenerOptionWrapper)
 	}
 	g.ListenerOptions[l.Index()] = l
 }
 func (g *GatewayAPICache) AddHTTPListenerOption(h *snapshot.HTTPListenerOptionWrapper) {
 	if g.HTTPListenerOptions == nil {
-		g.HTTPListenerOptions = make(map[string]*snapshot.HTTPListenerOptionWrapper)
+		g.HTTPListenerOptions = make(map[types.NamespacedName]*snapshot.HTTPListenerOptionWrapper)
 	}
 	g.HTTPListenerOptions[h.Index()] = h
 }
 func (g *GatewayAPICache) AddUpstream(u *snapshot.UpstreamWrapper) {
 	if g.Upstreams == nil {
-		g.Upstreams = make(map[string]*snapshot.UpstreamWrapper)
+		g.Upstreams = make(map[types.NamespacedName]*snapshot.UpstreamWrapper)
 	}
 	g.Upstreams[u.Index()] = u
 }
 func (g *GatewayAPICache) AddAuthConfig(a *snapshot.AuthConfigWrapper) {
 	if g.AuthConfigs == nil {
-		g.AuthConfigs = make(map[string]*snapshot.AuthConfigWrapper)
+		g.AuthConfigs = make(map[types.NamespacedName]*snapshot.AuthConfigWrapper)
 	}
 	g.AuthConfigs[a.Index()] = a
 }
 func (g *GatewayAPICache) AddListenerSet(l *snapshot.ListenerSetWrapper) {
 	if g.ListenerSets == nil {
-		g.ListenerSets = make(map[string]*snapshot.ListenerSetWrapper)
+		g.ListenerSets = make(map[types.NamespacedName]*snapshot.ListenerSetWrapper)
 	}
 	g.ListenerSets[l.Index()] = l
 }

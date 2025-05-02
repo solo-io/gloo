@@ -16,7 +16,7 @@ import (
 type Wrapper interface {
 	GetName() string
 	GetNamespace() string
-	Index() string
+	Index() types.NamespacedName
 	GetLabels() map[string]string
 	GetObjectKind() schema.ObjectKind
 	FileOrigin() string
@@ -60,8 +60,8 @@ func (w *YAMLWrapper) HasFileOrigin(fileOrigin string) *YAMLWrapper {
 	w.fileOrigin = fileOrigin
 	return w
 }
-func (w *YAMLWrapper) Index() string {
-	return types.NamespacedName{Name: "unknown", Namespace: "unknown"}.String()
+func (w *YAMLWrapper) Index() types.NamespacedName {
+	return types.NamespacedName{Name: "unknown", Namespace: "unknown"}
 }
 
 type HTTPRouteWrapper struct {
@@ -76,8 +76,8 @@ func NewHTTPRouteWrapper(httpRoute *gwv1.HTTPRoute, fileOrigin string) *HTTPRout
 	}
 }
 
-func (w *HTTPRouteWrapper) Index() string {
-	return types.NamespacedName{Name: w.Name, Namespace: w.Name}.String()
+func (w *HTTPRouteWrapper) Index() types.NamespacedName {
+	return types.NamespacedName{Name: w.Name, Namespace: w.Namespace}
 }
 
 func (w *HTTPRouteWrapper) FileOrigin() string {
@@ -100,8 +100,8 @@ func NewSettingsWrapper(settings *glookube.Settings, fileOrigin string) *Setting
 	}
 }
 
-func (w *SettingsWrapper) Index() string {
-	return types.NamespacedName{Name: w.Name, Namespace: w.Name}.String()
+func (w *SettingsWrapper) Index() types.NamespacedName {
+	return types.NamespacedName{Name: w.Name, Namespace: w.Namespace}
 }
 func (w *SettingsWrapper) FileOrigin() string {
 	return w.fileOrigin
@@ -125,8 +125,8 @@ func NewRouteOptionWrapper(opt *gatewaykube.RouteOption, fileOrigin string) *Rou
 	}
 }
 
-func (w *RouteOptionWrapper) Index() string {
-	return types.NamespacedName{Name: w.Name, Namespace: w.Name}.String()
+func (w *RouteOptionWrapper) Index() types.NamespacedName {
+	return types.NamespacedName{Name: w.Name, Namespace: w.Namespace}
 }
 
 func (w *RouteOptionWrapper) FileOrigin() string {
@@ -149,8 +149,8 @@ func NewVirtualHostOptionWrapper(opt *gatewaykube.VirtualHostOption, fileOrigin 
 	}
 }
 
-func (w *VirtualHostOptionWrapper) Index() string {
-	return types.NamespacedName{Name: w.Name, Namespace: w.Name}.String()
+func (w *VirtualHostOptionWrapper) Index() types.NamespacedName {
+	return types.NamespacedName{Name: w.Name, Namespace: w.Namespace}
 }
 func (w *VirtualHostOptionWrapper) FileOrigin() string {
 	return w.fileOrigin
@@ -172,8 +172,8 @@ func NewGatewayParametersWrapper(params *v1alpha1.GatewayParameters, fileOrigin 
 	}
 }
 
-func (w *GatewayParametersWrapper) Index() string {
-	return types.NamespacedName{Name: w.Name, Namespace: w.Name}.String()
+func (w *GatewayParametersWrapper) Index() types.NamespacedName {
+	return types.NamespacedName{Name: w.Name, Namespace: w.Namespace}
 }
 func (w *GatewayParametersWrapper) FileOrigin() string {
 	return w.fileOrigin
@@ -195,8 +195,8 @@ func NewListenerOptionWrapper(opt *gatewaykube.ListenerOption, fileOrigin string
 	}
 }
 
-func (w *ListenerOptionWrapper) Index() string {
-	return types.NamespacedName{Name: w.Name, Namespace: w.Name}.String()
+func (w *ListenerOptionWrapper) Index() types.NamespacedName {
+	return types.NamespacedName{Name: w.Name, Namespace: w.Namespace}
 }
 func (w *ListenerOptionWrapper) FileOrigin() string {
 	return w.fileOrigin
@@ -217,8 +217,8 @@ func NewHTTPListenerOptionWrapper(opt *gatewaykube.HttpListenerOption, fileOrigi
 		fileOrigin:         fileOrigin,
 	}
 }
-func (w *HTTPListenerOptionWrapper) Index() string {
-	return types.NamespacedName{Name: w.Name, Namespace: w.Name}.String()
+func (w *HTTPListenerOptionWrapper) Index() types.NamespacedName {
+	return types.NamespacedName{Name: w.Name, Namespace: w.Namespace}
 }
 func (w *HTTPListenerOptionWrapper) FileOrigin() string {
 	return w.fileOrigin
@@ -240,8 +240,8 @@ func NewUpstreamWrapper(upstream *glookube.Upstream, fileOrigin string) *Upstrea
 	}
 }
 
-func (w *UpstreamWrapper) Index() string {
-	return types.NamespacedName{Name: w.Name, Namespace: w.Name}.String()
+func (w *UpstreamWrapper) Index() types.NamespacedName {
+	return types.NamespacedName{Name: w.Name, Namespace: w.Namespace}
 }
 func (w *UpstreamWrapper) FileOrigin() string {
 	return w.fileOrigin
@@ -264,8 +264,8 @@ func NewAuthConfigWrapper(authConfig *v1.AuthConfig, fileOrigin string) *AuthCon
 	}
 }
 
-func (w *AuthConfigWrapper) Index() string {
-	return types.NamespacedName{Name: w.Name, Namespace: w.Name}.String()
+func (w *AuthConfigWrapper) Index() types.NamespacedName {
+	return types.NamespacedName{Name: w.Name, Namespace: w.Namespace}
 }
 func (w *AuthConfigWrapper) FileOrigin() string {
 	return w.fileOrigin
@@ -287,8 +287,8 @@ func NewGatewayWrapper(gw *gwv1.Gateway, fileOrigin string) *GatewayWrapper {
 	}
 }
 
-func (w *GatewayWrapper) Index() string {
-	return types.NamespacedName{Name: w.Name, Namespace: w.Name}.String()
+func (w *GatewayWrapper) Index() types.NamespacedName {
+	return types.NamespacedName{Name: w.Name, Namespace: w.Namespace}
 }
 func (w *GatewayWrapper) FileOrigin() string {
 	return w.fileOrigin
@@ -310,8 +310,8 @@ func NewListenerSetWrapper(listenerSet *apixv1a1.XListenerSet, fileOrigin string
 	}
 }
 
-func (w *ListenerSetWrapper) Index() string {
-	return types.NamespacedName{Name: w.Name, Namespace: w.Name}.String()
+func (w *ListenerSetWrapper) Index() types.NamespacedName {
+	return types.NamespacedName{Name: w.Name, Namespace: w.Namespace}
 }
 func (w *ListenerSetWrapper) FileOrigin() string {
 	return w.fileOrigin
@@ -333,8 +333,8 @@ func newRouteTableWrapper(routeTable *gatewaykube.RouteTable, fileOrigin string)
 	}
 }
 
-func (w *RouteTableWrapper) Index() string {
-	return types.NamespacedName{Name: w.Name, Namespace: w.Name}.String()
+func (w *RouteTableWrapper) Index() types.NamespacedName {
+	return types.NamespacedName{Name: w.Name, Namespace: w.Namespace}
 }
 func (w *RouteTableWrapper) FileOrigin() string {
 	return w.fileOrigin
@@ -358,8 +358,8 @@ func NewVirtualServiceWrapper(virtualService *gatewaykube.VirtualService, fileOr
 	}
 }
 
-func (w *VirtualServiceWrapper) Index() string {
-	return types.NamespacedName{Name: w.Name, Namespace: w.Name}.String()
+func (w *VirtualServiceWrapper) Index() types.NamespacedName {
+	return types.NamespacedName{Name: w.Name, Namespace: w.Namespace}
 }
 func (w *VirtualServiceWrapper) FileOrigin() string {
 	return w.fileOrigin
@@ -383,8 +383,8 @@ func NewGlooGatewayWrapper(gateway *gatewaykube.Gateway, fileOrigin string) *Glo
 	}
 }
 
-func (w *GlooGatewayWrapper) Index() string {
-	return types.NamespacedName{Name: w.Name, Namespace: w.Name}.String()
+func (w *GlooGatewayWrapper) Index() types.NamespacedName {
+	return types.NamespacedName{Name: w.Name, Namespace: w.Namespace}
 }
 func (w *GlooGatewayWrapper) FileOrigin() string {
 	return w.fileOrigin
@@ -406,8 +406,8 @@ func NewDirectResponseWrapper(resp *v1alpha1.DirectResponse, fileOrigin string) 
 	}
 }
 
-func (w *DirectResponseWrapper) Index() string {
-	return types.NamespacedName{Name: w.Name, Namespace: w.Name}.String()
+func (w *DirectResponseWrapper) Index() types.NamespacedName {
+	return types.NamespacedName{Name: w.Name, Namespace: w.Namespace}
 }
 func (w *DirectResponseWrapper) FileOrigin() string {
 	return w.fileOrigin

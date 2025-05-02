@@ -3,6 +3,8 @@ package usage
 import (
 	"fmt"
 
+	"k8s.io/apimachinery/pkg/types"
+
 	api "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	gatewaykube "github.com/solo-io/gloo/projects/gateway/pkg/api/v1/kube/apis/gateway.solo.io/v1"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/snapshot"
@@ -105,7 +107,7 @@ func (f *FeatureCalculator) processVirtualService(service *gatewaykube.VirtualSe
 					// same namespace as the reference object
 					namespace = service.Namespace
 				}
-				vho, found := f.Configs.VirtualHostOptions()[snapshot.NameNamespaceIndex(ref.GetName(), namespace)]
+				vho, found := f.Configs.VirtualHostOptions()[types.NamespacedName{Name: ref.GetName(), Namespace: namespace}]
 				if !found {
 					fmt.Printf("WARNING: No route options found for kind %s: %s/%s\n", "VirtualService", service.Namespace, service.Name)
 				}
@@ -185,7 +187,7 @@ func (f *FeatureCalculator) processRoute(route *api.Route, parentName string, pa
 					// same namespace as the reference object
 					namespace = parentNamespace
 				}
-				upstream, found := f.Configs.Upstreams()[snapshot.NameNamespaceIndex(route.GetRouteAction().GetSingle().GetUpstream().GetName(), namespace)]
+				upstream, found := f.Configs.Upstreams()[types.NamespacedName{Name: route.GetRouteAction().GetSingle().GetUpstream().GetName(), Namespace: namespace}]
 				if !found {
 					fmt.Printf("WARNING: No upstream found for kind %s: %s/%s\n", parentKind, parentNamespace, parentName)
 				} else {
@@ -240,7 +242,7 @@ func (f *FeatureCalculator) processRoute(route *api.Route, parentName string, pa
 				// same namespace as the reference object
 				namespace = parentNamespace
 			}
-			ro, found := f.Configs.RouteOptions()[snapshot.NameNamespaceIndex(ref.GetName(), namespace)]
+			ro, found := f.Configs.RouteOptions()[types.NamespacedName{Name: ref.GetName(), Namespace: namespace}]
 			if !found {
 				fmt.Printf("WARNING: No route options found for kind %s: %s/%s\n", parentKind, parentNamespace, parentName)
 			}
@@ -618,7 +620,7 @@ func (f *FeatureCalculator) processRouteOptions(options *v1.RouteOptions, parent
 				// same namespace as the reference object
 				namespace = parentNamespace
 			}
-			authConfig, found := f.Configs.AuthConfigs()[snapshot.NameNamespaceIndex(options.GetExtauth().GetConfigRef().GetName(), namespace)]
+			authConfig, found := f.Configs.AuthConfigs()[types.NamespacedName{Name: options.GetExtauth().GetConfigRef().GetName(), Namespace: namespace}]
 			if !found {
 				fmt.Printf("WARNING: No auth config found for kind %s: %s/%s\n", parentKind, parentNamespace, parentName)
 			}
@@ -778,7 +780,7 @@ func (f *FeatureCalculator) processVirtualHostOptions(options *v1.VirtualHostOpt
 				// same namespace as the reference object
 				namespace = parentNamespace
 			}
-			authConfig, found := f.Configs.AuthConfigs()[snapshot.NameNamespaceIndex(options.GetExtauth().GetConfigRef().GetName(), namespace)]
+			authConfig, found := f.Configs.AuthConfigs()[types.NamespacedName{Name: options.GetExtauth().GetConfigRef().GetName(), Namespace: namespace}]
 			if !found {
 				fmt.Printf("WARNING: No auth config found for kind %s: %s/%s\n", parentKind, parentNamespace, parentName)
 			}

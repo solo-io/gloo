@@ -202,20 +202,16 @@ func (o *GatewayAPIOutput) createNamespaces(dir string) error {
 	namespaces := map[string]bool{}
 	// iterate through all main objects and find unique namespaces, references shouldnt be needed
 	for namespaceName := range o.gatewayAPICache.Gateways {
-		namespace := strings.Split(namespaceName, "/")[0]
-		namespaces[namespace] = true
+		namespaces[namespaceName.Namespace] = true
 	}
 	for namespaceName := range o.gatewayAPICache.ListenerSets {
-		namespace := strings.Split(namespaceName, "/")[0]
-		namespaces[namespace] = true
+		namespaces[namespaceName.Namespace] = true
 	}
 	for namespaceName := range o.gatewayAPICache.HTTPRoutes {
-		namespace := strings.Split(namespaceName, "/")[0]
-		namespaces[namespace] = true
+		namespaces[namespaceName.Namespace] = true
 	}
 	for namespaceName := range o.gatewayAPICache.Upstreams {
-		namespace := strings.Split(namespaceName, "/")[0]
-		namespaces[namespace] = true
+		namespaces[namespaceName.Namespace] = true
 	}
 	f, err := os.Create(fmt.Sprintf("%s/namespaces.yaml", dir))
 	if err != nil {

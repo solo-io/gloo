@@ -5,7 +5,7 @@ import (
 	"os"
 )
 
-func (o *GatewayAPIOutput) printMetrics(filesEvaluated int) {
+func (o *GatewayAPIOutput) PrintMetrics(filesEvaluated int) {
 
 	_, _ = fmt.Fprintf(os.Stdout, "-------------------------------------")
 

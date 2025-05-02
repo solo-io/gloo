@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	"k8s.io/apimachinery/pkg/types"
+
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/snapshot"
 
 	gloogwv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
@@ -148,11 +150,11 @@ func (o *GatewayAPIOutput) convertVirtualServiceListener(vs *snapshot.VirtualSer
 		delegateOptions := vs.Spec.VirtualHost.GetOptionsConfigRefs().GetDelegateOptions()
 		for _, delegateOption := range delegateOptions {
 			// check to see if this already exists in gatewayAPI cache, if not move it over from edge cache
-			vho, exists := o.gatewayAPICache.VirtualHostOptions[snapshot.NameNamespaceIndex(delegateOption.Name, delegateOption.Namespace)]
+			vho, exists := o.gatewayAPICache.VirtualHostOptions[types.NamespacedName{Name: delegateOption.Name, Namespace: delegateOption.Namespace}]
 			if !exists {
-				vho, exists = o.edgeCache.VirtualHostOptions()[snapshot.NameNamespaceIndex(delegateOption.Name, delegateOption.Namespace)]
+				vho, exists = o.edgeCache.VirtualHostOptions()[types.NamespacedName{Name: delegateOption.Name, Namespace: delegateOption.Namespace}]
 				if !exists {
-					o.AddErrorFromWrapper(ERROR_TYPE_UNKNOWN_REFERENCE, vs, "references VirtualHostOption %s that does not exist", snapshot.NameNamespaceIndex(delegateOption.Name, delegateOption.Namespace))
+					o.AddErrorFromWrapper(ERROR_TYPE_UNKNOWN_REFERENCE, vs, "references VirtualHostOption %s that does not exist", types.NamespacedName{Name: delegateOption.Name, Namespace: delegateOption.Namespace})
 					continue
 				}
 			}
@@ -244,7 +246,7 @@ func (o *GatewayAPIOutput) generateGatewaysFromProxyNames(glooGateway *snapshot.
 
 	for _, proxyName := range glooGateway.Gateway.Spec.ProxyNames {
 		// check to see if we already created the Gateway, if we did then just move on
-		existingGw := o.gatewayAPICache.GetGateway(proxyName, glooGateway.Gateway.Namespace)
+		existingGw := o.gatewayAPICache.GetGateway(types.NamespacedName{Name: proxyName, Namespace: glooGateway.Gateway.Namespace})
 		if existingGw == nil {
 			// create a new gateway
 			gwGateway := &gwv1.Gateway{
@@ -418,7 +420,7 @@ func (o *GatewayAPIOutput) convertRouteOptions(
 		if options.GetExtauth() != nil && options.GetExtauth().GetConfigRef() != nil {
 			// we need to copy over the auth config ref if it exists
 			ref := options.GetExtauth().GetConfigRef()
-			ac, exists := o.edgeCache.AuthConfigs()[snapshot.NameNamespaceIndex(ref.GetName(), ref.GetNamespace())]
+			ac, exists := o.edgeCache.AuthConfigs()[types.NamespacedName{Name: ref.GetName(), Namespace: ref.GetNamespace()}]
 			if !exists {
 				o.AddErrorFromWrapper(ERROR_TYPE_UNKNOWN_REFERENCE, wrapper, "did not find AuthConfig %s/%s for delegated route option reference", ref.GetName(), ref.GetNamespace())
 			}
@@ -557,7 +559,7 @@ func (o *GatewayAPIOutput) convertRouteToRule(r *gloogwv1.Route, wrapper snapsho
 				},
 			})
 			// grab that route option and add it to the cache
-			ro, exists := o.edgeCache.RouteOptions()[snapshot.NameNamespaceIndex(delegateOptions.GetName(), delegateOptions.GetNamespace())]
+			ro, exists := o.edgeCache.RouteOptions()[types.NamespacedName{Name: delegateOptions.GetName(), Namespace: delegateOptions.GetNamespace()}]
 			if !exists {
 				o.AddErrorFromWrapper(ERROR_TYPE_UNKNOWN_REFERENCE, wrapper, "did not find RouteOption %s/%s for delegated route option reference", delegateOptions.GetNamespace(), delegateOptions.GetName())
 			}
@@ -566,7 +568,7 @@ func (o *GatewayAPIOutput) convertRouteToRule(r *gloogwv1.Route, wrapper snapsho
 			if ro.Spec.GetOptions() != nil && ro.Spec.GetOptions().GetExtauth() != nil && ro.Spec.GetOptions().GetExtauth().GetConfigRef() != nil {
 				// we need to copy over the auth config ref if it exists
 				ref := ro.Spec.GetOptions().GetExtauth().GetConfigRef()
-				ac, exists := o.edgeCache.AuthConfigs()[snapshot.NameNamespaceIndex(ref.GetName(), ref.GetNamespace())]
+				ac, exists := o.edgeCache.AuthConfigs()[types.NamespacedName{Name: ref.GetName(), Namespace: ref.GetNamespace()}]
 				if !exists {
 					o.AddErrorFromWrapper(ERROR_TYPE_UNKNOWN_REFERENCE, ro, "did not find AuthConfig %s/%s for delegated route option reference", ref.GetName(), ref.GetNamespace())
 				}
@@ -776,7 +778,7 @@ func (o *GatewayAPIOutput) generateBackendRefForSingleUpstream(r *gloogwv1.Route
 		upstreamNs = wrapper.GetNamespace()
 	}
 
-	up = o.edgeCache.GetUpstream(upstream.GetName(), upstreamNs)
+	up = o.edgeCache.GetUpstream(types.NamespacedName{Name: upstream.GetName(), Namespace: upstreamNs})
 
 	if up == nil {
 		// unknown reference to backend
