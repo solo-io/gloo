@@ -83,7 +83,6 @@ spec:
         
 ### Log filter state in gRPC access logs
 
-Enable grpc access logging of filter state with
 You can enable logging of the filter state when performing gRPC access logging. The filter state logger calls the `FilterState::Object::serializeAsProto` to serialize the filter state object. 
 
 You can enable the filter in your Helm values file or a Gateway resource directly. 
