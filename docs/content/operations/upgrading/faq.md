@@ -46,7 +46,13 @@ Review the following changes made to Gloo Gateway in version {{< readfile file="
 
 ### Breaking changes
 
-No breaking changes are reported for this release.
+**Envoy version 1.32/ 1.33 upgrade**
+
+The Envoy dependency in Gloo Gateway 1.19 was upgraded from 1.31.x to 1.33.x. This change includes the following breaking changes. For more information about these changes, see the [Envoy changelog documentation](https://www.envoyproxy.io/docs/envoy/latest/version_history/v1.33/v1.33).
+
+* **Trust internal addresses**: By default Envoy is configured to trust internal addresses. However, in an upcoming release of Envoy, this behavior is changed and internal addresses must be added to the `internal_address_config` for Envoy to trust them. For example, if you have tooling, such as probes on your private network, make sure to include these IP addresses or CIDR ranges in the `internal_address_config` field. To try out or enable this upcoming behavior change, you can set the `envoy.reloadable_features.explicit_internal_address_config` runtime guard to `true`. For more information, see the related [pull request](https://github.com/envoyproxy/envoy/pull/36221/files) in Envoy.
+* **Access log handlers**: Access log handlers that are added by filters are now evaluated before access log handlers that are configured in the `access_log` configuration. To disable this behavior, you can set the `envoy.reloadable_features.filter_access_loggers_first` runtime guard flag to `false`.
+* **Cluster name change in Kuberetes Gateway API**: When using the Kubernetes Gateway API alongside Gloo Edge APIs and you route to Kubernetes Services or Upstreams, the Envoy cluster name format is chnaged to extract more about the service. The new format uses underscores to list service details, such as `upstreamName_upstreamNs_svcNs_svcName_svcPort`. If you enabled the Kubernetes Gateway API integration with `kubeGateway.enabled=true`, both the Gloo Edge and Kubernetes Gateway API proxies use the same format for these clusters. 
 
 ## New features
 
@@ -205,11 +211,6 @@ Starting in version 1.19.0, Gloo Gateway can now run on Kubernetes 1.32. For mor
 
 Starting in version 1.19.0, Gloo Gateway can now run with Istio 1.25. For more information about supported Kubernetes, Envoy, and Istio versions, see [Supported versions]({{% versioned_link_path fromRoot="/reference/support/" %}}).
 
-### Envoy version 1.32/ 1.33 upgrade
-
-The Envoy dependency in Gloo Gateway 1.19 was upgraded from 1.31.x to 1.33.x. For more information about these changes, see the [Envoy changelog documentation](https://www.envoyproxy.io/docs/envoy/latest/version_history/v1.33/v1.33).
-
-
 <!-- ggv2-related changes:
 ggv2 - Disable Istio Envoy proxy from running by default and only rely on proxyless Istio agent mtls integration. Note: Although this is a change to the default behavior of the istio integration, this should not have any impact on most users as the sidecar proxy was unused in the data path. (https://github.com/solo-io/solo-projects/issues/5711)
 
@@ -344,7 +345,8 @@ Review the following summary of important new, deprecated, or removed CLI option
 
 **New CLI commands or options**:
 
-* [`glooctl debug`]({{< versioned_link_path fromRoot="/reference/cli/glooctl_debug/" >}}) and [`glooctl debug yaml`]({{< versioned_link_path fromRoot="/reference/cli/glooctl_debug_yaml/" >}}): Collect Kubernetes, Gloo Gateway controller, and Envoy information from your environment, such as logs, YAML manifests, metrics, and snapshots. This information can be used to debug issues in your environment or to provide this information to the Solo.io support team. 
+* [`glooctl debug`]({{< versioned_link_path fromRoot="/reference/cli/glooctl_debug/" >}}) and [`glooctl debug yaml`]({{< versioned_link_path fromRoot="/reference/cli/glooctl_debug_yaml/" >}}): Collect Kubernetes, Gloo Gateway controller, and Envoy information from your environment, such as logs, YAML manifests, metrics, and snapshots. This information can be used to debug issues in your environment or to provide this information to the Solo.io support team.
+* [`glooctl gateway api convert`]({{< versioned_link_path fromRoot="/reference/cli/glooctl_gateway-api_convert/" >}}): Use this command to convert Gloo Edge APIs to Kubernetes Gateway API YAML files so that you can preview and run the migration to Gloo Gateway with the Kubernetes Gateway API. 
 
 <!-->
 As part of the {{< readfile file="static/content/version_geoss_latest.md" markdown="true">}} release, no CLI changes were introduced.
