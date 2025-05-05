@@ -167,7 +167,7 @@ For more information, see the [Access logging API]({{% versioned_link_path fromR
 
 ### Match conditions on validation webhook
 
-You can now specify match condititions on the Gloo Gateway or Kubernetes validating admission webhook level to filter the resources that you want to include or exclude from validation. Match conditions are written in [CEL (Common Expression Language)](https://cel.dev) language. 
+You can now specify match conditions on the Gloo Gateway or Kubernetes validating admission webhook level to filter the resources that you want to include or exclude from validation. Match conditions are written in [CEL (Common Expression Language)](https://cel.dev). 
 
 Examples: 
 
