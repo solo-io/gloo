@@ -48,7 +48,7 @@ Review the following changes made to Gloo Gateway in version {{< readfile file="
 
 **Envoy version 1.32/ 1.33 upgrade**
 
-The Envoy dependency in Gloo Gateway 1.19 was upgraded from 1.31.x to 1.33.x. This change includes the following breaking changes. For more information about these changes, see the [Envoy changelog documentation](https://www.envoyproxy.io/docs/envoy/latest/version_history/v1.33/v1.33).
+The Envoy dependency in Gloo Gateway 1.19 was upgraded from 1.31.x to 1.33.x. This change includes the following upstream breaking changes. For more information about these changes, see the [Envoy changelog documentation](https://www.envoyproxy.io/docs/envoy/latest/version_history/v1.33/v1.33).
 
 * **Trust internal addresses**: By default Envoy is configured to trust internal addresses. However, in an upcoming release of Envoy, this behavior is changed and internal addresses must be added to the `internal_address_config` for Envoy to trust them. For example, if you have tooling, such as probes on your private network, make sure to include these IP addresses or CIDR ranges in the `internal_address_config` field. To try out or enable this upcoming behavior change, you can set the `envoy.reloadable_features.explicit_internal_address_config` runtime guard to `true`. For more information, see the related [pull request](https://github.com/envoyproxy/envoy/pull/36221/files) in Envoy.
 * **Access log handlers**: Access log handlers that are added by filters are now evaluated before access log handlers that are configured in the `access_log` configuration. To disable this behavior, you can set the `envoy.reloadable_features.filter_access_loggers_first` runtime guard flag to `false`.
