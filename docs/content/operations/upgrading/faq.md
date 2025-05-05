@@ -46,7 +46,7 @@ Review the following changes made to Gloo Gateway in version {{< readfile file="
 
 ### Breaking changes
 
-**Envoy version 1.32/ 1.33 upgrade**
+**Envoy version upgrade**
 
 The Envoy dependency in Gloo Gateway 1.19 was upgraded from 1.31.x to 1.33.x. This change includes the following upstream breaking changes. For more information about these changes, see the [Envoy changelog documentation](https://www.envoyproxy.io/docs/envoy/latest/version_history/v1.33/v1.33).
 
