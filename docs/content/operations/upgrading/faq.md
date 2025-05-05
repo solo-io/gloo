@@ -46,24 +46,7 @@ Review the following changes made to Gloo Gateway in version {{< readfile file="
 
 ### Breaking changes
 
-**Envoy version 1.31 upgrade**
-
-The Envoy dependency in Gloo Gateway 1.18 was upgraded from 1.29.x to 1.31.x. This upgrade includes the following changes. For more information about these changes, see the [Envoy changelog documentation](https://www.envoyproxy.io/docs/envoy/latest/version_history/v1.31/v1.31).
-* **Opencensus**: Opencensus was marked as deprecated in previous Envoy releases. Starting in the 1.31.x Envoy release, Opencensus is now disabled by default. If Opencensus is set, Envoy rejects the configuration. You can use Envoy's [layered_runtime](https://github.com/envoyproxy/envoy/blob/38530270d6cb3a3a71a9b70b3de55854750b75a9/configs/using_deprecated_config.yaml) section to enable deprecated configuration so that you can continue using Opencensus. However, note that Opencensus is completely removed in Envoy version 1.32.x.
-* **JWT tokens**: The behavior for extracting JWT tokens changed in the 1.29.x Envoy release. Previously, the JWT token was cut into non-base64 characters. Now, the entire JWT token is passed for validation. You can no longer revert this change by setting `envoy.reloadable_features.token_passed_entirely` to `false` as this option was removed in the 1.31.x Envoy release.
-* **JWT_authn**: Provider URIs that are defined in the `jwt_authn` section are now validated for RFC-compliance. Envoy might fail to start correctly if non-compliant URIs are found. If the URI validation is too strict, you can temporarily disable it by setting the runtime guard `envoy.reloadable_features.jwt_authn_validate_uri` to false. Common URI issues that were previously ignored, include: 
-    - Hostname contains `_` (underscore character)
-    - URL contains non-English characters (ASCII code > 127)
-    - URL contains an unencoded ` ` (space character)
-    - URL contains TAB (ASCII code 9) or FormFeed (ASCII code 12) characters
-* **JWT_authn**: The provider [forward](https://www.envoyproxy.io/docs/envoy/v1.31.2/api-v3/extensions/filters/http/jwt_authn/v3/config.proto#envoy-v3-api-field-extensions-filters-http-jwt-authn-v3-jwtprovider-forward) configuration changed. Previously, JWTs could only be removed from headers. Starting in Envoy version 1.31.x, JWTs can now be removed from query parameters. You can temporarily revert this change by setting `envoy.reloadable_features.jwt_authn_remove_jwt_from_query_params` to `false`.
-* **access_log**: The following access log format specifiers changed: 
-    - The upstream connection address is now used for the `%UPSTREAM_REMOTE_ADDRESS%`, `%UPSTREAM_REMOTE_PORT%` and `%UPSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%` access log format specifiers. Previously, the upstream host address was used. You can temporarily revert this change by setting the runtime guard `envoy.reloadable_features.upstream_remote_address_use_connection` to `false`.
-    - The `%UPSTREAM_CLUSTER_RAW%` access log formatter was added to log the original upstream cluster name, regardless of whether `alt_stat_name` is set.
-    - SNIs are automatically sanitized for potential log injection. The invalid characters are replaced by `_` with an `invalid:` marker. To disable this feature, set `envoy.reloadable_features.sanitize_sni_in_access_log` is set to `false`.
-* **YAML parsing**: The behavior for parsing YAML configuration changed. Previously, malformed boolean values and fraction objects that set `true` or `false` as a string value, are no longer interpreted as a boolean value. You can revert this change by setting `envoy.reloadable_features.reject_invalid_yaml` to `false`.
-* **HTTP/2**: HTTP/2 colon prefixed headers are now sanitized by Envoy. Previously, sanitation was performed by the `nghttp2` library, which caused pseudo headers with upper case letters to fail validation. Now, these pseudo headers pass validation. You can temporarily revert this change by setting the runtime guard `envoy.reloadable_features.sanitize_http2_headers_without_nghttp2` to `false`. 
-* **Local ratelimit**: The token bucket implementation changed. Previously, a timer-based token bucket was used to assign tokens to connections. In Envoy 1.31.x, the new AtomicToken bucket is used that is no longer timer-based. Tokens are now automatically refilled when the token bucket is accessed. Because of this change, the `x-ratelimit-reset` header is no longer sent. You can temporarily revert this change by setting the runtime guard `envoy.reloadable_features.no_timer_based_rate_limit_token_bucket` to `false`.
+No breaking changes are reported for this release
 
 ## New features
 
@@ -215,9 +198,17 @@ gateway:
 
 For more information, see the Helm reference for [OSS]({{< versioned_link_path fromRoot="/reference/helm_chart_values/open_source_helm_chart_values/" >}}) and [Enterprise]({{< versioned_link_path fromRoot="/reference/helm_chart_values/enterprise_helm_chart_values/" >}}).
 
-### Kubernetes 1.30 and 1.31 support 
+### Kubernetes 1.32 support 
 
-Starting in version 1.18.0, Gloo Gateway can now run on Kubernetes 1.30 and 1.31. For more information about supported Kubernetes, Envoy, and Istio versions, see [Supported versions]({{% versioned_link_path fromRoot="/reference/support/" %}}).
+Starting in version 1.19.0, Gloo Gateway can now run on Kubernetes 1.32. For more information about supported Kubernetes, Envoy, and Istio versions, see [Supported versions]({{% versioned_link_path fromRoot="/reference/support/" %}}).
+
+### Istio 1.25 support
+
+Starting in version 1.19.0, Gloo Gateway can now run with Istio 1.25. For more information about supported Kubernetes, Envoy, and Istio versions, see [Supported versions]({{% versioned_link_path fromRoot="/reference/support/" %}}).
+
+### Envoy version 1.32/ 1.33 upgrade
+
+The Envoy dependency in Gloo Gateway 1.19 was upgraded from 1.31.x to 1.33.x. For more information about these changes, see the [Envoy changelog documentation](https://www.envoyproxy.io/docs/envoy/latest/version_history/v1.33/v1.33).
 
 
 <!-- ggv2-related changes:
@@ -251,12 +242,7 @@ The following lists consist of the changes that were initially introduced with t
 
 **New or improved features**:
 
-* **Apply JWT policy at the route-level**: Now, you can apply JWT policies to specific routes by configuring the `jwtProvidersStaged` settings in the route option. Previously, JWT policies applied at the gateway level and were configured in only the VirtualHost option. With this new feature, you can apply JWT policies at both the route and gateway level. For more information and example steps, see [Route-level JWT policy]({{< versioned_link_path fromRoot="/security/auth/jwt/route-jwt-policy/" >}}).
-
 **Deprecated features**:
-
-* **GraphQL integration**: The [GraphQL integration]({{< versioned_link_path fromRoot="/guides/graphql/" >}}) is deprecated in Gloo Gateway 1.18 and will be removed in a future release.
-* **Plugin Auth**: The [Plugin Auth]({{< versioned_link_path fromRoot="/guides/security/auth/extauth/plugin_auth/" >}}) feature is deprecated in Gloo Gateway 1.18 and will be removed in a future release. Consider using the [Passthrough Auth]({{< versioned_link_path fromRoot="/guides/security/auth/extauth/passthrough_auth/" >}}) feature instead.
 
 <!--
 **Removed features**:
