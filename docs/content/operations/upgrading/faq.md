@@ -46,7 +46,7 @@ Review the following changes made to Gloo Gateway in version {{< readfile file="
 
 ### Breaking changes
 
-No breaking changes are reported for this release
+No breaking changes are reported for this release.
 
 ## New features
 
