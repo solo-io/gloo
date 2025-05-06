@@ -130,7 +130,7 @@ func (ml *MergedListeners) appendHttpListener(
 		if lis.port == finalPort {
 			// concatenate the names on the parent output listener/filterchain
 			// TODO is this valid listener name?
-			lis.name += "~" + listenerName
+			// lis.name += "~" + listenerName
 			if lis.httpFilterChain != nil {
 				lis.httpFilterChain.parents = append(lis.httpFilterChain.parents, parent)
 			} else {
@@ -177,7 +177,7 @@ func (ml *MergedListeners) appendHttpsListener(
 		if lis.port == finalPort {
 			// concatenate the names on the parent output listener
 			// TODO is this valid listener name?
-			lis.name += "~" + listenerName
+			// lis.name += "~" + listenerName
 			lis.httpsFilterChains = append(lis.httpsFilterChains, mfc)
 			return
 		}
@@ -239,7 +239,7 @@ func (ml *MergedListeners) AppendTcpListener(
 	for _, lis := range ml.Listeners {
 		if lis.port == finalPort {
 			// concatenate the names on the parent output listener
-			lis.name += "~" + listenerName
+			// lis.name += "~" + listenerName
 			lis.TcpFilterChains = append(lis.TcpFilterChains, fc)
 			return
 		}
@@ -402,7 +402,7 @@ func (ml *MergedListeners) AppendTlsListener(
 	for _, lis := range ml.Listeners {
 		if lis.port == finalPort {
 			// concatenate the names on the parent output listener
-			lis.name += "~" + listenerName
+			// lis.name += "~" + listenerName
 			lis.TcpFilterChains = append(lis.TcpFilterChains, fc)
 			return
 		}
