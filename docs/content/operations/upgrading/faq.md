@@ -46,69 +46,172 @@ Review the following changes made to Gloo Gateway in version {{< readfile file="
 
 ### Breaking changes
 
-**Envoy version 1.31 upgrade**
+**Envoy version upgrade**
 
-The Envoy dependency in Gloo Gateway 1.18 was upgraded from 1.29.x to 1.31.x. This upgrade includes the following changes. For more information about these changes, see the [Envoy changelog documentation](https://www.envoyproxy.io/docs/envoy/latest/version_history/v1.31/v1.31).
-* **Opencensus**: Opencensus was marked as deprecated in previous Envoy releases. Starting in the 1.31.x Envoy release, Opencensus is now disabled by default. If Opencensus is set, Envoy rejects the configuration. You can use Envoy's [layered_runtime](https://github.com/envoyproxy/envoy/blob/38530270d6cb3a3a71a9b70b3de55854750b75a9/configs/using_deprecated_config.yaml) section to enable deprecated configuration so that you can continue using Opencensus. However, note that Opencensus is completely removed in Envoy version 1.32.x.
-* **JWT tokens**: The behavior for extracting JWT tokens changed in the 1.29.x Envoy release. Previously, the JWT token was cut into non-base64 characters. Now, the entire JWT token is passed for validation. You can no longer revert this change by setting `envoy.reloadable_features.token_passed_entirely` to `false` as this option was removed in the 1.31.x Envoy release.
-* **JWT_authn**: Provider URIs that are defined in the `jwt_authn` section are now validated for RFC-compliance. Envoy might fail to start correctly if non-compliant URIs are found. If the URI validation is too strict, you can temporarily disable it by setting the runtime guard `envoy.reloadable_features.jwt_authn_validate_uri` to false. Common URI issues that were previously ignored, include: 
-    - Hostname contains `_` (underscore character)
-    - URL contains non-English characters (ASCII code > 127)
-    - URL contains an unencoded ` ` (space character)
-    - URL contains TAB (ASCII code 9) or FormFeed (ASCII code 12) characters
-* **JWT_authn**: The provider [forward](https://www.envoyproxy.io/docs/envoy/v1.31.2/api-v3/extensions/filters/http/jwt_authn/v3/config.proto#envoy-v3-api-field-extensions-filters-http-jwt-authn-v3-jwtprovider-forward) configuration changed. Previously, JWTs could only be removed from headers. Starting in Envoy version 1.31.x, JWTs can now be removed from query parameters. You can temporarily revert this change by setting `envoy.reloadable_features.jwt_authn_remove_jwt_from_query_params` to `false`.
-* **access_log**: The following access log format specifiers changed: 
-    - The upstream connection address is now used for the `%UPSTREAM_REMOTE_ADDRESS%`, `%UPSTREAM_REMOTE_PORT%` and `%UPSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%` access log format specifiers. Previously, the upstream host address was used. You can temporarily revert this change by setting the runtime guard `envoy.reloadable_features.upstream_remote_address_use_connection` to `false`.
-    - The `%UPSTREAM_CLUSTER_RAW%` access log formatter was added to log the original upstream cluster name, regardless of whether `alt_stat_name` is set.
-    - SNIs are automatically sanitized for potential log injection. The invalid characters are replaced by `_` with an `invalid:` marker. To disable this feature, set `envoy.reloadable_features.sanitize_sni_in_access_log` is set to `false`.
-* **YAML parsing**: The behavior for parsing YAML configuration changed. Previously, malformed boolean values and fraction objects that set `true` or `false` as a string value, are no longer interpreted as a boolean value. You can revert this change by setting `envoy.reloadable_features.reject_invalid_yaml` to `false`.
-* **HTTP/2**: HTTP/2 colon prefixed headers are now sanitized by Envoy. Previously, sanitation was performed by the `nghttp2` library, which caused pseudo headers with upper case letters to fail validation. Now, these pseudo headers pass validation. You can temporarily revert this change by setting the runtime guard `envoy.reloadable_features.sanitize_http2_headers_without_nghttp2` to `false`. 
-* **Local ratelimit**: The token bucket implementation changed. Previously, a timer-based token bucket was used to assign tokens to connections. In Envoy 1.31.x, the new AtomicToken bucket is used that is no longer timer-based. Tokens are now automatically refilled when the token bucket is accessed. Because of this change, the `x-ratelimit-reset` header is no longer sent. You can temporarily revert this change by setting the runtime guard `envoy.reloadable_features.no_timer_based_rate_limit_token_bucket` to `false`.
+The Envoy dependency in Gloo Gateway 1.19 was upgraded from 1.31.x to 1.33.x. This change includes the following upstream breaking changes. For more information about these changes, see the [Envoy changelog documentation](https://www.envoyproxy.io/docs/envoy/latest/version_history/v1.33/v1.33).
+
+* **Trust internal addresses**: Envoy sanitizes certain headers and statistics for non-trusted addresses. By default, Envoy is configured to trust internal addresses that adhere to the RFC1918 standard. However, in Envoy 1.33, this behavior is changed. RFC1918 addresses must now be added to the HCM `internal_address_config` for Envoy to trust them. For example, if you have tooling, such as probes on your private network, make sure to include these IP addresses or CIDR ranges in the internal address config. To try out or enable this change, you can set the `envoy.reloadable_features.explicit_internal_address_config` runtime guard to `true`. For more information, see the related [pull request](https://github.com/envoyproxy/envoy/pull/36221/files) in Envoy.
+* **Access log handlers**: Access log handlers that are added by filters are now evaluated before access log handlers that are configured in the `access_log` configuration. To disable this behavior, you can set the `envoy.reloadable_features.filter_access_loggers_first` runtime guard flag to `false`.
+* **Cluster name change in Kuberetes Gateway API**: When using the Kubernetes Gateway API alongside Gloo Edge APIs and you route to Kubernetes Services or Upstreams, the Envoy cluster name format is changed to extract more details about the service. The new format uses underscores to list service details, such as `upstreamName_upstreamNs_svcNs_svcName_svcPort`. If you enabled the Kubernetes Gateway API integration with `kubeGateway.enabled=true`, both the Gloo Edge and Kubernetes Gateway API proxies use the same format for these cluster names.
+* **Extproc tracing changes**: In previous releases, tracing spans that were generated by the extProc filter were sampled by default. Now, these traces are not automatically sampled. Instead, the tracing decision is inherited from the parent span.
+* **Opencensus tracing extension removed**: Support for the Opencensus tracing extension is removed in Envoy 1.33. 
+* **Opentracing extension removed**: Support for the Opentracing extension is removed in Envoy 1.32. For more information, see the related [Envoy issue](https://github.com/envoyproxy/envoy/issues/27401). 
+
 
 ## New features
 
-### Watch namespace based on label 
+### Set authority header for gRPC OpenTelemetry collectors
 
-Previously, the namespaces that you wanted Gloo Gateway to watch for resources needed to be provided as a static list via the `watchNamespaces` setting in the Settings resource and had to be updated manually every time a namespace was added or deleted. Starting in 1.18.0, you can now define the namespaces that you want to watch by using the `WatchNamespaceSelectors` option on the Settings CR. This way, Gloo Gateway automatically includes new namespaces that have the required selectors. 
+When referencing a gRPC OpenTelemetry collector in your Gateway, Gloo Gateway automatically generates an Envoy configuration that sets the cluster name as the `:authority` pseudo-header. If your collector expects a different `:authority` header, you can specify that by setting the `spec.httpGateway.options.httpConnectionManagerSettings.tracing.openTelemetryConfig.grpcService.authority` value on your Gateway as shown in the following example. 
 
-Label selectors can use exact matches or an `In`, `NotIn`, `Exists`, or `DoesNotExist` expression. You can also chain label selectors to form logical `AND` or `OR` expressions as shown in the following example. 
-
-```yaml
-settings: 
-  watchNamespaceSelectors: 
-    - matchLabels: 
-        label: match
-    - matchLabels: 
-        label: and
-    - matchExpressions: 
-      - key: expression
-        operator: In
-        values: 
-          - and
-```
+{{< highlight yaml "hl_lines=23-24" >}}
+apiVersion: gateway.solo.io/v1
+kind: Gateway
+metadata:
+  labels:
+    app: gloo
+    app.kubernetes.io/name: gateway-proxy-tracing-authority
+  name: gateway-proxy-tracing-authority
+spec:
+  bindAddress: '::'
+  bindPort: 18082
+  proxyNames:
+    - gateway-proxy
+  httpGateway:
+    virtualServiceSelector:
+      gateway-type: tracing
+    options:
+      httpConnectionManagerSettings:
+        tracing:
+          openTelemetryConfig:
+            collectorUpstreamRef:
+              name: opentelemetry-collector
+              namespace: default
+            grpcService:
+              authority: my-authority
+{{< /highlight >}}
         
-{{% notice note %}}
-If you specify both the `watchNamespaces` and `watchNamespaceSelectors` setting, the `watchNamespaces` setting takes precedence.  
-{{% /notice %}}
+### Log filter state in gRPC access logs
 
-For more information, see [Specify namespaces to watch for Kuberenetes services and Gloo Gateway CRs]({{% versioned_link_path fromRoot="/installation/advanced_configuration/multiple-gloo-installs/#specify-namespaces-to-watch-for-kuberenetes-services-and-gloo-gateway-crs " %}}).
+You can enable logging of the filter state when performing gRPC access logging. The filter state logger calls the `FilterState::Object::serializeAsProto` to serialize the filter state object. 
 
-### ARM images
+You can enable the filter in your Helm values file or a Gateway resource directly. 
 
-In Gloo Gateway Enterprise, ARM images are now supported for Gloo Gateway components. An image that is tagged with -arm is compatible with ARM64 architectures. Note that ARM images are currently not published for VMs.
+{{< tabs >}}
+{{% tab name="Helm" %}}
+The following example adds the modsecurity object from a WAF policy to the filter state object in the access log. 
+```yaml
+gloo:
+  accessLogger:
+    enabled: true
+    image:
+      registry: quay.io/solo-io
+      tag: 1.0.0-ci1
+  gatewayProxies:
+    gatewayProxy:
+      gatewaySettings:
+        customHttpGateway:
+          options:
+            waf:
+              auditLogging:
+                action: ALWAYS
+                location: FILTER_STATE
+              customInterventionMessage: 'ModSecurity intervention! Custom message details here..'
+              ruleSets:
+              - ruleStr: |
+                  # Turn rule engine on
+                  SecRuleEngine On
+                  SecRule REQUEST_HEADERS:User-Agent "scammer" "deny,status:403,id:107,phase:1,msg:'blocked scammer'"
+        accessLoggingService:
+          accessLog:
+          - grpcService:
+              logName: example
+              staticClusterName: access_log_cluster
+              filterStateObjectsToLog:
+              - io.solo.modsecurity.audit_log
+```
+{{% /tab %}}
+{{% tab name="Gateway resource" %}}
+The following example adds the modsecurity object from a WAF policy to the filter state object in the access log. 
+```yaml  
+apiVersion: gateway.solo.io/v1
+kind: Gateway
+metadata:
+  name: gateway-proxy
+  namespace: gloo-system
+spec:
+  bindAddress: '::'
+  bindPort: 8080
+  proxyNames: 
+    - gateway-proxy
+  httpGateway: 
+    options:
+      waf:
+        customInterventionMessage: 'ModSecurity intervention! Custom message details here..'
+        ruleSets:
+        - ruleStr: |
+            # Turn rule engine on
+            SecRuleEngine On
+            SecRule REQUEST_HEADERS:User-Agent "scammer" "deny,status:403,id:107,phase:1,msg:'blocked scammer'" 
+  useProxyProto: false
+  options:
+    accessLoggingService:
+      accessLog:
+      - grpcService:
+          logName: example
+          staticClusterName: access_log_cluster
+          filterStateObjectsToLog:
+          - io.solo.modsecurity.audit_log
+```
 
-### Kubernetes 1.30 and 1.31 support 
+{{% /tab %}}
+{{< /tabs >}}
 
-Starting in version 1.18.0, Gloo Gateway can now run on Kubernetes 1.30 and 1.31. For more information about supported Kubernetes, Envoy, and Istio versions, see [Supported versions]({{% versioned_link_path fromRoot="/reference/support/" %}}).
+Example access log output: 
+```
+"filter_state_objects":{"io.solo.modsecurity.audit_log":{"type_url":"type.googleapis.com/google.protobuf.StringValue","value":"Ct0DLS0tQS0tClsxMC9NYXIvMjAyNToxNDoyNTowMSArMDAwMF0gMTc0MTYxNjcwMTQ1LjkwMTMzMCAxMjcuMC4wLjEgMzg5NTQgIDAKLS0tQi0tCkdFVCAvYWxsLXBldHMgSFRUUC8xLjEKOm1ldGhvZDogR0VUCmhvc3Q6IGxvY2FsaG9zdDo4MDgwCjpwYXRoOiAvYWxsLXBldHMKOmF1dGhvcml0eTogbG9jYWxob3N0OjgwODAKeC1mb3J3YXJkZWQtcHJvdG86IGh0dHAKOnNjaGVtZTogaHR0cAp1c2VyLWFnZW50OiBjdXJsLzguMTEuMAphY2NlcHQ6ICovKgp4LXJlcXVlc3QtaWQ6IDUwZTBjZTVmLTk0NjktNGQ3NS1hMzUxLWU4MmI0ODFlYTFmYgoKLS0tRi0tCkhUVFAvMS4xIDIwMAo6c3RhdHVzOiAyMDAKY29udGVudC10eXBlOiBhcHBsaWNhdGlvbi94bWwKZGF0ZTogTW9uLCAxMCBNYXIgMjAyNSAxNDoyNTowMSBHTVQKY29udGVudC1sZW5ndGg6IDg2CngtZW52b3ktdXBzdHJlYW0tc2VydmljZS10aW1lOiAyCgotLS1ILS0KCi0tLVotLQoK"}}}
+```
 
-### Front channel logout
+For more information, see the [Access logging API]({{% versioned_link_path fromRoot="/reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/options/als/als.proto.sk/" %}}). 
 
-You can configure a front channel logout path on an AuthConfig that configures OIDC authorization code for your apps.
 
-Front channel logout is a security mechanism that is used in the context of Single Sign-On (SSO) and Identity and Access Management (IAM) systems to ensure that when a user logs out of one app or service, they are also automatically logged out of the Identity Provider (IdP) and therefore all related apps and services in a secure and synchronized manner. Without front channel logout, the user is logged out of the requested app only.
+### Match conditions on validation webhook
 
-For more information, see [Front channel logout]({{% versioned_link_path fromRoot="/guides/security/auth/extauth/oauth/#front-channel-logout" %}}).
+You can now specify match conditions on the Gloo Gateway or Kubernetes validating admission webhook level to filter the resources that you want to include or exclude from validation. Match conditions are written in [CEL (Common Expression Language)](https://cel.dev). 
 
+Examples: 
+
+To exclude secrets or other resources with the `foo` label on the Kubernetes validating admission webhook, add the following values to your Helm values file. 
+```yaml
+gateway:
+  validation:
+    kubeCoreFailurePolicy: Fail # For "strict" validation mode, fail the validation if webhook server is not available
+    kubeCoreMatchConditions:
+    - name: 'not-a-secret-or-secret-with-foo-label-key'
+       expression: 'request.resource.resource != "secrets" || ("labels" in oldObject.metadata && "foo" in oldObject.metadata.labels)'
+```
+
+To exclude all Upstream resources on the Gloo Gateway validating admission webhook, add the following values to your Helm values file.  
+```yaml
+gateway:
+  validation:
+    failurePolicy: Fail # For "strict" validation mode, fail the validation if webhook server is not available
+    matchConditions:
+      - name: skip-upstreams
+        expression: '!(request.resource.group == "gloo.solo.io" && request.resource.resource == "upstreams")' # Match non-upstream resources.
+    webhook:
+      skipDeleteValidationResources: []
+```
+
+For more information, see the Helm reference for [OSS]({{< versioned_link_path fromRoot="/reference/helm_chart_values/open_source_helm_chart_values/" >}}) and [Enterprise]({{< versioned_link_path fromRoot="/reference/helm_chart_values/enterprise_helm_chart_values/" >}}).
+
+### Kubernetes 1.32 support 
+
+Starting in version 1.19.0, Gloo Gateway can now run on Kubernetes 1.32. For more information about supported Kubernetes, Envoy, and Istio versions, see [Supported versions]({{% versioned_link_path fromRoot="/reference/support/" %}}).
+
+### Istio 1.25 support
+
+Starting in version 1.19.0, Gloo Gateway can now run with Istio 1.25. For more information about supported Kubernetes, Envoy, and Istio versions, see [Supported versions]({{% versioned_link_path fromRoot="/reference/support/" %}}).
 
 <!-- ggv2-related changes:
 ggv2 - Disable Istio Envoy proxy from running by default and only rely on proxyless Istio agent mtls integration. Note: Although this is a change to the default behavior of the istio integration, this should not have any impact on most users as the sidecar proxy was unused in the data path. (https://github.com/solo-io/solo-projects/issues/5711)
@@ -131,6 +234,8 @@ Check the changelogs for the type of Gloo Gateway deployment that you have. Focu
 You can use the changelogs' built-in [comparison tool]({{< versioned_link_path fromRoot="/reference/changelog/open_source/#compareversions" >}}) to compare between your current version and the version that you want to upgrade to.
 {{% /notice %}}
 
+<!--
+
 ### Feature changes {#features}
 
 Review the following summary of important new, deprecated, or removed features.
@@ -141,65 +246,8 @@ The following lists consist of the changes that were initially introduced with t
 
 **New or improved features**:
 
-* **Apply JWT policy at the route-level**: Now, you can apply JWT policies to specific routes by configuring the `jwtProvidersStaged` settings in the route option. Previously, JWT policies applied at the gateway level and were configured in only the VirtualHost option. With this new feature, you can apply JWT policies at both the route and gateway level. For more information and example steps, see [Route-level JWT policy]({{< versioned_link_path fromRoot="/security/auth/jwt/route-jwt-policy/" >}}).
-
 **Deprecated features**:
 
-* **GraphQL integration**: The [GraphQL integration]({{< versioned_link_path fromRoot="/guides/graphql/" >}}) is deprecated in Gloo Gateway 1.18 and will be removed in a future release.
-* **Plugin Auth**: The [Plugin Auth]({{< versioned_link_path fromRoot="/guides/security/auth/extauth/plugin_auth/" >}}) feature is deprecated in Gloo Gateway 1.18 and will be removed in a future release. Consider using the [Passthrough Auth]({{< versioned_link_path fromRoot="/guides/security/auth/extauth/passthrough_auth/" >}}) feature instead.
-
-<!--
-**Removed features**:
-N/A
--->
-
-<!-- ggv2-related changes:
-ggv2 - Added support for settings.gloo.istioOptions.enableAutoMtls to implement auto mTLS via Envoy transportsocketmatch. (https://github.com/solo-io/solo-projects/issues/5695)
-
-ggv2 - Support policy attachment for RouteOption resources (https://github.com/solo-io/solo-projects/issues/5714)
-
-ggv2 - Add new GatewayParameters CRD to allow configuration of dynamically provisioned proxies in Gloo Gateway. (https://github.com/solo-io/solo-projects/issues/5909)
-
-ggv2 - RouteOption resources used for policy attachment (via targetRef) will now have their status correctly set based on the result of translation (https://github.com/solo-io/solo-projects/issues/5934)
-
-ggv2 - Introduce targetRef field to VirtualHostOption resource. This will allow users of the Kubernetes Gateway API to specify which Gateway resource, and optionally which Listeners on that resource will be affected by the VirtualHostOption (https://github.com/solo-io/solo-projects/issues/6002)
-
-ggv2 - Introduce VirtualHostOption plugin for the Kubernetes Gateway API integration. This plugin will honor VirtualHostOption resources and when translating K8s Gateway resources and apply their contents to the appropriate sections of the final proxy object. (https://github.com/solo-io/solo-projects/issues/6002)
-
-ggv2 - Route delegation: explicitly pass route's hostnames to plugins so that delegatee (child) routes without hostnames can be associated with their corresponding hostnames. (https://github.com/solo-io/solo-projects/issues/6121)
-
-ggv2 - Route delegation: enable HTTP route delegation with Gateway API, such that a parent route may delegate routing decisions to other routes that match the parent route rules consisting of path prefix, headers, and query parameters. (https://github.com/solo-io/solo-projects/issues/6121)
-
-edge, yes (issue open for full docs) - Adds the API for a new enterprise only feature designed to allow authenticating requests using tokens from the google metadata service before sending the requests upstreams. This feature will be exposed as a new Upstream type. (https://github.com/solo-io/gloo/issues/6828)
-
-ggv2 - Upstream Support: enable the use of Gloo Edge v1 Upstreams as destinations for using routes and mirror policy from the K8s Gateway API. (https://github.com/solo-io/solo-projects/issues/6129)
-
-ggv2 - Add VirtualHostOptions status tracking for Kubernetes Gateways (https://github.com/solo-io/solo-projects/issues/6044)
-
-ggv2 - This change implements policy inheritance, specifically Additionally, it does the following:
-Refactors the RouteOption query API to perform merging
-Translator tests for the many scenarios of policy inheritance.
-Converts delegation translator test to a table-driven test.
-E2e tests to verify the inheritance and merge functionality. (https://github.com/solo-io/solo-projects/issues/6161)
-
-ggv2 - Adds webhook validation for Gloo Gateway Policies (e.g. RouteOption and VirtualHostOption) when used with Kubernetes Gateway API (https://github.com/solo-io/solo-projects/issues/6063)
-
-ggv2 - Introduced a new default GatewayParameters which is associated with a GatewayClass and represents the default values applied to Gateways created from that GatewayClass that don't otherwise have a specific GatewayParameters attached. (https://github.com/solo-io/solo-projects/issues/6107)
-
-ggv2 - gateway2: enable self-managed Gateways Adds capability to integrate self-managed gateways It adds a selfManaged field to the GatewayParameters
-
-ggv2 - New CRDs added for ListenerOption and HttpListenerOption resources (https://github.com/solo-io/solo-projects/issues/5941)
-
-ggv2 - Add ListenerOption as a policy resource for use with Kube Gateway API objects.
-
-ggv2 - Add API for adding metadata to endpoints in static/failover upstreams. This metadata can
-
-ggv2 - Add support for the envoy.http.stateful_session.header filter This support has been added via a new HTTPListener option, stateful_session which can be used to configure the filter. Envoy notes about this filter: - Stateful sessions can result in imbalanced load across upstreams and allow external actors to direct requests to specific upstream hosts. Operators should carefully consider the security and reliability implications of stateful sessions before enabling this feature. - This extension is functional but has not had substantial production burn time, use only with this caveat. - This extension has an unknown security posture and should only be used in deployments where both the downstream and upstream are trusted. (https://github.com/solo-io/gloo/issues/9104)
-
-ggv2 - Enables routing to AWS Lambda and Azure Function upstreams via the GGv2 API. (https://github.com/solo-io/solo-projects/issues/6160)
-
-ggv2 - dd HttpListenerOption policy for use with Kube Gateway API resources (https://github.com/solo-io/solo-projects/issues/6319)
--->
 
 ### Helm changes {#helm}
 
@@ -220,7 +268,7 @@ ggv2 - Add k8s Gateway Istio integration values to the Gloo Gateway Helm chart u
 ggv2 - Rename the kube gateway envoy container image helm value from kubeGateway.gatewayParameters.glooGateway.image to kubeGateway.gatewayParameters.glooGateway.envoyContainer.image. (https://github.com/solo-io/solo-projects/issues/6107)
 
 ggv2 - Introduce gateway.validation.webhook.enablePolicyApi which controls whether or not RouteOptions and VirtualHostOptions CRs are subject to validation. By default, this value is true. The validation of these Policy APIs only runs if the Kubernetes Gateway integration is enabled (kubeGateway.enabled). (https://github.com/solo-io/solo-projects/issues/6352)
--->
+
 
 ### CRD changes {#crd}
 
@@ -229,7 +277,7 @@ New CRDs are automatically applied to your cluster when performing a `helm insta
 Review the following summary of important new, deprecated, or removed CRD updates. For full details, see the [changelogs](#changelogs).
 
 As part of the {{< readfile file="static/content/version_geoss_latest.md" markdown="true">}} release, no CRD changes were introduced.
-<!--
+
 **New and updated CRDs**:
 
 
@@ -249,12 +297,8 @@ Review the following summary of important new, deprecated, or removed CLI option
 
 **New CLI commands or options**:
 
-* `glooctl proxy snapshot`: [Create a snapshot of the current state in Envoy]({{% versioned_link_path fromRoot="/reference/cli/glooctl_proxy_snapshot/" %}}) for the purpose of simplified issue reporting and triaging.
-
-<!-->
-As part of the {{< readfile file="static/content/version_geoss_latest.md" markdown="true">}} release, no CLI changes were introduced.
-
-**Changed behavior**:-->
+* [`glooctl debug`]({{< versioned_link_path fromRoot="/reference/cli/glooctl_debug/" >}}) and [`glooctl debug yaml`]({{< versioned_link_path fromRoot="/reference/cli/glooctl_debug_yaml/" >}}): Collect Kubernetes, Gloo Gateway controller, and Envoy information from your environment, such as logs, YAML manifests, metrics, and snapshots. This information can be used to debug issues in your environment or to provide this information to the Solo.io support team.
+* [`glooctl gateway api convert`]({{< versioned_link_path fromRoot="/reference/cli/glooctl_gateway-api_convert/" >}}): Use this command to convert Gloo Edge APIs to Kubernetes Gateway API YAML files so that you can preview and run the migration to Gloo Gateway with the Kubernetes Gateway API. 
 
 
 ## Frequently-asked questions {#faqs}
