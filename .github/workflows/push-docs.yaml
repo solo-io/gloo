@@ -137,6 +137,8 @@ jobs:
       run: |
         pushd docs || exit 1
         cp ../gloo/docs/content/reference/cli/glooctl_check.md content/en/gateway/${{ steps.version-variables.outputs.directory }}/reference/cli/glooctl_check.md
+        cp ../gloo/docs/content/reference/cli/glooctl_debug.md content/en/gateway/${{ steps.version-variables.outputs.directory }}/reference/cli/glooctl_debug.md
+        cp ../gloo/docs/content/reference/cli/glooctl_debug_yaml.md content/en/gateway/${{ steps.version-variables.outputs.directory }}/reference/cli/glooctl_debug_yaml.md
         cp ../gloo/docs/content/reference/cli/glooctl_install_gateway.md content/en/gateway/${{ steps.version-variables.outputs.directory }}/reference/cli/glooctl_install_gateway.md
         cp ../gloo/docs/content/reference/cli/glooctl_install_gateway_enterprise.md content/en/gateway/${{ steps.version-variables.outputs.directory }}/reference/cli/glooctl_install_gateway_enterprise.md
         cp ../gloo/docs/content/reference/cli/glooctl_uninstall.md content/en/gateway/${{ steps.version-variables.outputs.directory }}/reference/cli/glooctl_uninstall.md
