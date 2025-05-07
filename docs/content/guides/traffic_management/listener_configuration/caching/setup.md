@@ -38,7 +38,7 @@ Create a caching server during Gloo Gateway Enterprise installation time, and sp
 
 3. Optional: You can also check the debug logs to verify that caching is enabled.
    ```sh
-   glooctl debug logs
+   kubectl logs -f -n gloo-system -l gloo=gloo
    ```
    Search the output for `caching` to verify that you have log entries similar to the following:
    ```json
