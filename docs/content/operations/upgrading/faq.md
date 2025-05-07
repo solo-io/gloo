@@ -199,7 +199,7 @@ gateway:
       expression: '!(request.kind.kind == "Secret" && "labels" in object.metadata && "foo" in object.metadata.labels)'
 ```
 
-For more information, see [Exclude resources from validation]({{< versioned_link_path fromRoot="/guides/traffic_management/configuration_validation/admission_control/#exclude-resources-from-validation" >}})
+For more information, see [Exclude resources from validation]({{< versioned_link_path fromRoot="/guides/traffic_management/configuration_validation/admission_control/#exclude-resources-from-validation" >}}).
 
 ### Send gateway access logs to OTel collector
 
