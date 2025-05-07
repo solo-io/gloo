@@ -951,7 +951,7 @@ func concatenateListenerName(a string, b string) string {
 	if len(a) > maxLength {
 		return a
 	}
-	// Do not trim to 64 so we have the complete listener names if we need to check the envoy config dump
+	// Do not trim so we have the complete listener names if we need to check the envoy config dump
 	return fmt.Sprintf("%s~%s", a, b)
 }
 
