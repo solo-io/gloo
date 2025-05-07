@@ -49,6 +49,44 @@ Checking Proxies... OK
 No problems detected.
 ```
 
+### Create a Gloo Gateway debug report
+
+Use the `glooctl debug` command to collect Kubernetes, Gloo Gateway controller, and Envoy state information from your environment and to store it in a local `debug` directory. This information is useful to debug failures in your environment. 
+
+The command greps the following resources: 
+* Kubernetes cluster state
+* Logs from all pods in the given namespaces
+* YAML manifests of all Solo.io custom resources in the given namespaces
+* Gloo controller logs, metrics, xds snapshot, and krt snapshots
+* Envoy config dump, stats, clusters, and listeners
+
+To generate a debug report for the `gloo-system` namespace, run the following command. Note that depending on the size of you environment, it might take a few minutes for the information to be collected and stored in your local directory. 
+
+```sh
+glooctl debug -N gloo-system
+```
+
+Example output: 
+```
+? This command will overwrite the "debug" directory, if present. Are you sure you want to proceed? [y/N]:  y
+Finished writing Kubernetes state information to the "debug" directory.
+found controller pods: gloo-55c998d85b-c7zsr
+Finished writing Gloo Gateway controller state information to the "debug" directory.
+no gloo=gateway-proxy pods found in namespace gloo-system
+found proxies: gateway-proxy-844ff8bc4d-dh4pn
+Finished writing Envoy state information to the "debug" directory.
+Finished writing Envoy state information to the "debug" directory.
+Finished writing Envoy state information to the "debug" directory.
+```
+
+The following output shows a sample content for `debug` directory after you ran the `glooctl debug` command.  
+```
+authconfigs.enterprise.gloo.solo.io   gloo-55c998d85b-c7zsr.xds_snapshot.log    gateway-proxy-6f666dbc78-k2zzx.listeners.log   gateway-proxy-844ff8bc4d-dh4pn.clusters.log    gateway-proxy-844ff8bc4d-dh4pn.config.log               settings.gloo.solo.io
+gateways.gateway.solo.io    gloo-proxy-http-844ff8bc4d-dh4pn.listeners.log   upstreams.gloo.solo.io
+gloo-55c998d85b-c7zsr.controller.log    gateway-proxy-844ff8bc4d-dh4pn.stats.log               
+gloo-55c998d85b-c7zsr.krt_snapshot.log
+```
+
 ### Verify the Envoy configuration in the Gloo Gateway xDS server
 
 When you deploy virtual service, gateway, or route table resources, these resources are translated into valid Envoy configuration and made available to the gateway proxies in your cluster. As part of the translation process, Gloo Gateway creates an internal proxy resource that includes all of the Envoy configuration that you want to apply to the proxies. This proxy is sent to the Gloo Gateway xDS server. 
@@ -72,6 +110,10 @@ Gloo Gateway is based on Envoy proxies. If requests are handled incorrectly, use
    kubectl get routetable <routetable-name> -n <namespace> -o yaml
    kubectl get gateway <gateway-name> -n <namespace> -o yaml
    ```
+   
+   {{% notice tip %}}
+   To list all Gloo Gateway custom resources in your environment across all namespaces, run `kubectl get gloo-gateway -A`
+   {{% /notice %}}
 
 2. If the resources seem to be ok, you can check any referenced upstreams to verify that they are configured correctly. In particular, check that the following settings are correct:
    * Label selectors for the app service
@@ -266,11 +308,7 @@ Each component logs the sync loops that it runs, such as syncing with various en
 You can fetch the latest logs for all the components with the following command:
 
 ```bash
-glooctl debug logs
-# save the logs to a file
-glooctl debug logs -f gloo.log
-# only print errors
-glooctl debug logs --errors-only
+glooctl debug -N gloo-system
 ```
 
 Likely you just want to see each individual components logs. You can use `kubectl logs` command for that. For example, to see the `gloo` components logs:
@@ -417,8 +455,8 @@ The following endpoints are then available:
 Again, if all else fails, you can capture the state of Gloo Gateway configurations and logs and join us on our Slack (https://slack.solo.io) and one of our engineers will be able to help:
 
 ```bash
-glooctl debug logs -f gloo-logs.log
-glooctl debug yaml -f gloo-yamls.yaml
+glooctl debug -N gloo-system 
+glooctl debug -N <namespace>
 ```
 
 These commands dump all the relevant configuration into `gloo-logs.log` and `gloo-yamls.yaml` files, which gives a complete picture of your Gloo Gateway deployment. 

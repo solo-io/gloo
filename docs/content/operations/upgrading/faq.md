@@ -179,31 +179,55 @@ For more information, see the [Access logging API]({{% versioned_link_path fromR
 
 You can now specify match conditions on the Gloo Gateway or Kubernetes validating admission webhook level to filter the resources that you want to include or exclude from validation. Match conditions are written in [CEL (Common Expression Language)](https://cel.dev). 
 
-Examples: 
-
-To exclude secrets or other resources with the `foo` label on the Kubernetes validating admission webhook, add the following values to your Helm values file. 
+For example to exclude a secret with the label "foo" from being validated with the Kubernetes webhook, add the following values to your Helm values file. 
 ```yaml
 gateway:
   validation:
     kubeCoreFailurePolicy: Fail # For "strict" validation mode, fail the validation if webhook server is not available
     kubeCoreMatchConditions:
     - name: 'not-a-secret-or-secret-with-foo-label-key'
-       expression: 'request.resource.resource != "secrets" || ("labels" in oldObject.metadata && "foo" in oldObject.metadata.labels)'
+      expression: '!(request.kind.kind == "Secret" && "labels" in object.metadata && "foo" in object.metadata.labels)'
 ```
 
-To exclude all Upstream resources on the Gloo Gateway validating admission webhook, add the following values to your Helm values file.  
+To exclude these secrets from the Gloo Gateway validation webhook, add the following values. 
 ```yaml
 gateway:
   validation:
-    failurePolicy: Fail # For "strict" validation mode, fail the validation if webhook server is not available
+    FailurePolicy: Fail # For "strict" validation mode, fail the validation if webhook server is not available
     matchConditions:
-      - name: skip-upstreams
-        expression: '!(request.resource.group == "gloo.solo.io" && request.resource.resource == "upstreams")' # Match non-upstream resources.
-    webhook:
-      skipDeleteValidationResources: []
+    - name: 'not-a-secret-or-secret-with-foo-label-key'
+      expression: '!(request.kind.kind == "Secret" && "labels" in object.metadata && "foo" in object.metadata.labels)'
 ```
 
-For more information, see the Helm reference for [OSS]({{< versioned_link_path fromRoot="/reference/helm_chart_values/open_source_helm_chart_values/" >}}) and [Enterprise]({{< versioned_link_path fromRoot="/reference/helm_chart_values/enterprise_helm_chart_values/" >}}).
+For more information, see [Exclude resources from validation]({{< versioned_link_path fromRoot="/guides/traffic_management/configuration_validation/admission_control/#exclude-resources-from-validation" >}})
+
+### Send gateway access logs to OTel collector
+
+You can configure your Gateway to send access logs to an OpenTelemetry collector as shown in the following example. 
+
+```yaml
+apiVersion: gateway.solo.io/v1
+kind: Gateway
+metadata:
+  name: gateway-proxy
+  namespace: gloo-system
+spec:
+  bindAddress: '::'
+  bindPort: 8080
+  httpGateway: {}
+  proxyNames:
+  - gateway-proxy
+  useProxyProto: false
+  options:
+    accessLoggingService:
+      accessLog:
+        - openTelemetryService:
+            logName: example
+            collector:
+              endpoint: otel-collector.default.svc.cluster.local:4317
+```
+
+For more information and additional settings, see the [Access log API]({{< versioned_link_path fromRoot="/reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/options/als/als.proto.sk/#opentelemetryservice" >}}).
 
 ### Kubernetes 1.32 support 
 
@@ -218,6 +242,21 @@ ggv2 - Disable Istio Envoy proxy from running by default and only rely on proxyl
 
 ggv2 - glooctl get proxy will not work if you have persisted Proxy CRs in etcD and you are querying and older server version (1.16 and below). In general, we recommend that you keep your client and server versions in sync. You can verify the client/server versions you are currently running by calling glooctl version. (https://github.com/solo-io/gloo/pull/9226)
 -->
+
+### New common category for CRs
+
+A new common category was added to all Gloo Gateway custom resources. This common category allows you to easily list all Gloo Gateway custom resources in your environment. 
+
+To list all Gloo Gateway resources across all namespaces:. 
+
+```sh
+kubectl get gloo-gateway -A
+```
+
+To list all enterprise custom resources only: 
+```sh
+kubectl get solo-io -A
+```
 
 ### Changelogs
 
