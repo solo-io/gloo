@@ -9,9 +9,9 @@ listeners:
     sources:
     - resourceKind: gateway.networking.k8s.io/Gateway
       resourceRef:
-        name: tcp
+        name: listener~8080
         namespace: default
-  name: tcp
+  name: listener~8080
 metadata:
   labels:
     created_by: gloo-kube-gateway-api

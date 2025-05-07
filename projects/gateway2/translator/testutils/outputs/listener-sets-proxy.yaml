@@ -3,13 +3,13 @@ listeners:
     httpFilterChains:
     - matcher: {}
       virtualHostRefs:
-      - http~example_com
+      - listener~8080~example_com
     httpResources:
       virtualHosts:
-        http~example_com:
+        listener~8080~example_com:
           domains:
           - example.com
-          name: http~example_com
+          name: listener~8080~example_com
           routes:
           - matchers:
             - prefix: /
@@ -28,21 +28,21 @@ listeners:
     sources:
     - resourceKind: gateway.networking.k8s.io/Gateway
       resourceRef:
-        name: http
+        name: listener~8080
         namespace: default
-  name: http
+  name: listener~8080
 - aggregateListener:
     httpFilterChains:
     - matcher: {}
       virtualHostRefs:
-      - default/bar-listenerset/bar~bar_example_com
-      - default/bar-listenerset/bar~example_com
+      - listener~8082~bar_example_com
+      - listener~8082~example_com
     httpResources:
       virtualHosts:
-        default/bar-listenerset/bar~bar_example_com:
+        listener~8082~bar_example_com:
           domains:
           - bar.example.com
-          name: default/bar-listenerset/bar~bar_example_com
+          name: listener~8082~bar_example_com
           routes:
           - matchers:
             - headers:
@@ -69,10 +69,10 @@ listeners:
                   ref:
                     name: bar-svc
                     namespace: default
-        default/bar-listenerset/bar~example_com:
+        listener~8082~example_com:
           domains:
           - example.com
-          name: default/bar-listenerset/bar~example_com
+          name: listener~8082~example_com
           routes:
           - matchers:
             - prefix: /
@@ -91,21 +91,21 @@ listeners:
     sources:
     - resourceKind: gateway.networking.k8s.io/Gateway
       resourceRef:
-        name: default/bar-listenerset/bar
+        name: listener~8082
         namespace: default
-  name: default/bar-listenerset/bar
+  name: listener~8082
 - aggregateListener:
     httpFilterChains:
     - matcher: {}
       virtualHostRefs:
-      - default/foo-listenerset/foo~example_com
-      - default/foo-listenerset/foo~foo_example_com
+      - listener~8081~example_com
+      - listener~8081~foo_example_com
     httpResources:
       virtualHosts:
-        default/foo-listenerset/foo~example_com:
+        listener~8081~example_com:
           domains:
           - example.com
-          name: default/foo-listenerset/foo~example_com
+          name: listener~8081~example_com
           routes:
           - matchers:
             - prefix: /
@@ -118,10 +118,10 @@ listeners:
                   ref:
                     name: example-svc
                     namespace: default
-        default/foo-listenerset/foo~foo_example_com:
+        listener~8081~foo_example_com:
           domains:
           - foo.example.com
-          name: default/foo-listenerset/foo~foo_example_com
+          name: listener~8081~foo_example_com
           routes:
           - matchers:
             - prefix: /login
@@ -140,9 +140,9 @@ listeners:
     sources:
     - resourceKind: gateway.networking.k8s.io/Gateway
       resourceRef:
-        name: default/foo-listenerset/foo
+        name: listener~8081
         namespace: default
-  name: default/foo-listenerset/foo
+  name: listener~8081
 metadata:
   labels:
     created_by: gloo-kube-gateway-api
