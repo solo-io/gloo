@@ -2,6 +2,7 @@ package listener_options
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -54,26 +55,25 @@ func (s *testingSuite) TestConfigureListenerOptions() {
 
 func (s *testingSuite) TestConfigureListenerOptionsWithSectionedTargetRefs() {
 	type bufferLimitForListener struct {
-		sectionName string
-		port        int
-		limit       int
+		port  int
+		limit int
 	}
 
 	// Setup the expected buffer limits for each listener
 	bufferLimitsForListeners := map[string][]*bufferLimitForListener{
 		proxy1ServiceFqdn: {
-			{sectionName: "http", port: gw1port1, limit: 32000},
-			{sectionName: "other", port: gw1port2, limit: 42000},
+			{port: gw1port1, limit: 32000},
+			{port: gw1port2, limit: 42000},
 		},
 		proxy2ServiceFqdn: {
-			{sectionName: "http", port: gw2port1, limit: 0},
-			{sectionName: "other", port: gw2port2, limit: 32000},
+			{port: gw2port1, limit: 0},
+			{port: gw2port2, limit: 32000},
 		},
 	}
 
 	if listenerset.RequiredCrdExists(s.TestInstallation) {
-		bufferLimitsForListeners[proxy1ServiceFqdn] = append(bufferLimitsForListeners[proxy1ServiceFqdn], &bufferLimitForListener{sectionName: "default/gw-1/listener-1", port: ls1port1, limit: 42000})
-		bufferLimitsForListeners[proxy1ServiceFqdn] = append(bufferLimitsForListeners[proxy1ServiceFqdn], &bufferLimitForListener{sectionName: "default/gw-1/listener-2", port: ls1port2, limit: 21000})
+		bufferLimitsForListeners[proxy1ServiceFqdn] = append(bufferLimitsForListeners[proxy1ServiceFqdn], &bufferLimitForListener{port: ls1port1, limit: 42000})
+		bufferLimitsForListeners[proxy1ServiceFqdn] = append(bufferLimitsForListeners[proxy1ServiceFqdn], &bufferLimitForListener{port: ls1port2, limit: 21000})
 	}
 
 	objectMetaForListener := map[string]metav1.ObjectMeta{
@@ -99,7 +99,7 @@ func (s *testingSuite) TestConfigureListenerOptionsWithSectionedTargetRefs() {
 			s.TestInstallation.AssertionsT(s.T()).AssertEnvoyAdminApi(
 				s.Ctx,
 				objectMetaForListener[host],
-				listenerBufferLimitAssertionForSection(s.TestInstallation, s.T(), limit.sectionName, limit.limit),
+				listenerBufferLimitAssertionForListener(s.TestInstallation, s.T(), fmt.Sprintf("listener~%d", limit.port), limit.limit),
 			)
 		}
 	}
@@ -108,7 +108,7 @@ func (s *testingSuite) TestConfigureListenerOptionsWithSectionedTargetRefs() {
 func listenerBufferLimitAssertion(testInstallation *e2e.TestInstallation, t *testing.T) func(ctx context.Context, adminClient *admincli.Client) {
 	return func(ctx context.Context, adminClient *admincli.Client) {
 		testInstallation.AssertionsT(t).Gomega.Eventually(func(g gomega.Gomega) {
-			listener, err := adminClient.GetSingleListenerFromDynamicListeners(ctx, "http")
+			listener, err := adminClient.GetSingleListenerFromDynamicListeners(ctx, "listener~8080")
 			g.Expect(err).NotTo(gomega.HaveOccurred(), "error getting listener")
 			g.Expect(listener.GetPerConnectionBufferLimitBytes().GetValue()).To(gomega.BeEquivalentTo(42000))
 		}).
@@ -119,10 +119,10 @@ func listenerBufferLimitAssertion(testInstallation *e2e.TestInstallation, t *tes
 	}
 }
 
-func listenerBufferLimitAssertionForSection(testInstallation *e2e.TestInstallation, t *testing.T, sectionName string, expectedValue int) func(ctx context.Context, adminClient *admincli.Client) {
+func listenerBufferLimitAssertionForListener(testInstallation *e2e.TestInstallation, t *testing.T, name string, expectedValue int) func(ctx context.Context, adminClient *admincli.Client) {
 	return func(ctx context.Context, adminClient *admincli.Client) {
 		testInstallation.AssertionsT(t).Gomega.Eventually(func(g gomega.Gomega) {
-			listener, err := adminClient.GetSingleListenerFromDynamicListeners(ctx, sectionName)
+			listener, err := adminClient.GetSingleListenerFromDynamicListeners(ctx, name)
 			g.Expect(err).NotTo(gomega.HaveOccurred(), "error getting listener")
 			g.Expect(listener.GetPerConnectionBufferLimitBytes().GetValue()).To(gomega.BeEquivalentTo(expectedValue))
 		}).
