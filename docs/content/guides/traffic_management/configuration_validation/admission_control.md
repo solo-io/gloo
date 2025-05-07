@@ -298,7 +298,7 @@ For more information about how to use the match conditions in the validation web
     * invalid gateway: gateway must contain gatewayType
    ```
 
-5. Apply the RouteOption with a `foo` label. This time, the matching condition is met and the resource is excluded from validation. 
+5. Apply the Gateway with a `foo` label. This time, the matching condition is met and the resource is excluded from validation. 
    ```yaml
    kubectl apply --dry-run=server -f- <<EOF 
    apiVersion: gateway.solo.io/v1
