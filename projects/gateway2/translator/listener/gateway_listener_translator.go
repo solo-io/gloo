@@ -12,7 +12,6 @@ import (
 	"google.golang.org/protobuf/types/known/wrapperspb"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/util/validation"
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
 	gwv1a2 "sigs.k8s.io/gateway-api/apis/v1alpha2"
 	gwxv1a1 "sigs.k8s.io/gateway-api/apisx/v1alpha1"
@@ -124,14 +123,11 @@ func (ml *MergedListeners) appendHttpListener(
 	fc := &httpFilterChain{
 		parents: []httpFilterChainParent{parent},
 	}
-	listenerName := generateListenerName(listener, listenerSet)
+	listenerName := generateListenerName(listener)
 	finalPort := gwv1.PortNumber(ports.TranslatePort(uint16(listener.Port)))
 
 	for _, lis := range ml.Listeners {
 		if lis.port == finalPort {
-			// concatenate the names on the parent output listener/filterchain
-			// TODO is this valid listener name?
-			lis.name = concatenateListenerName(lis.name, listenerName)
 			if lis.httpFilterChain != nil {
 				lis.httpFilterChain.parents = append(lis.httpFilterChain.parents, parent)
 			} else {
@@ -173,12 +169,9 @@ func (ml *MergedListeners) appendHttpsListener(
 	// during both lookup and when appending the listener.
 	finalPort := gwv1.PortNumber(ports.TranslatePort(uint16(listener.Port)))
 
-	listenerName := generateListenerName(listener, listenerSet)
+	listenerName := generateListenerName(listener)
 	for _, lis := range ml.Listeners {
 		if lis.port == finalPort {
-			// concatenate the names on the parent output listener
-			// TODO is this valid listener name?
-			lis.name = concatenateListenerName(lis.name, listenerName)
 			lis.httpsFilterChains = append(lis.httpsFilterChains, mfc)
 			return
 		}
@@ -234,13 +227,11 @@ func (ml *MergedListeners) AppendTcpListener(
 	fc := tcpFilterChain{
 		parents: []tcpFilterChainParent{parent},
 	}
-	listenerName := generateListenerName(listener, listenerSet)
+	listenerName := generateListenerName(listener)
 	finalPort := gwv1.PortNumber(ports.TranslatePort(uint16(listener.Port)))
 
 	for _, lis := range ml.Listeners {
 		if lis.port == finalPort {
-			// concatenate the names on the parent output listener
-			lis.name = concatenateListenerName(lis.name, listenerName)
 			lis.TcpFilterChains = append(lis.TcpFilterChains, fc)
 			return
 		}
@@ -397,13 +388,11 @@ func (ml *MergedListeners) AppendTlsListener(
 		tls:       listener.TLS,
 		sniDomain: listener.Hostname,
 	}
-	listenerName := generateListenerName(listener, listenerSet)
+	listenerName := generateListenerName(listener)
 	finalPort := gwv1.PortNumber(ports.TranslatePort(uint16(listener.Port)))
 
 	for _, lis := range ml.Listeners {
 		if lis.port == finalPort {
-			// concatenate the names on the parent output listener
-			lis.name = concatenateListenerName(lis.name, listenerName)
 			lis.TcpFilterChains = append(lis.TcpFilterChains, fc)
 			return
 		}
@@ -941,24 +930,7 @@ func makeVhostName(
 	return utils.SanitizeForEnvoy(ctx, parentName+"~"+domain, "vHost")
 }
 
-func concatenateListenerName(a string, b string) string {
-	// Set a max length to prevent the a listener name from getting too long
-	// (Eg: when the same protocol/port combo is defined in 1000+ listeners)
-	// Although there isn't a max length requirement in envoy, having a listener with a super long name
-	// can lead to memory issues at scale
-	// Ref: https://github.com/kubernetes-sigs/gateway-api/blob/1e14dd602df6c0bad62c0e7f83dd2c7d1d2d6886/apis/v1/shared_types.go#L628
-	maxLength := validation.DNS1123SubdomainMaxLength
-	if len(a) > maxLength {
-		return a
-	}
-	// Do not trim so we have the complete listener names if we need to check the envoy config dump
-	return fmt.Sprintf("%s~%s", a, b)
-}
-
-func generateListenerName(listener gwv1.Listener, listenerSet *gwxv1a1.XListenerSet) string {
-	listenerName := string(listener.Name)
-	if listenerSet != nil {
-		listenerName = query.GenerateRouteKey(listenerSet, string(listener.Name))
-	}
-	return listenerName
+func generateListenerName(listener gwv1.Listener) string {
+	// Add a ~ to make sure the name won't collide with user provided names in other listeners
+	return fmt.Sprintf("listener~%d", listener.Port)
 }
