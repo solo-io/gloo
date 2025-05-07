@@ -79,7 +79,7 @@ Finished writing Envoy state information to the "debug" directory.
 Finished writing Envoy state information to the "debug" directory.
 ```
 
-The following output shows a sample content for `debug` directory after you ran the `glooctl debug` command.  
+The following output shows sample content for the `debug` directory after you ran the `glooctl debug` command.  
 ```
 authconfigs.enterprise.gloo.solo.io   gloo-55c998d85b-c7zsr.xds_snapshot.log    gateway-proxy-6f666dbc78-k2zzx.listeners.log   gateway-proxy-844ff8bc4d-dh4pn.clusters.log    gateway-proxy-844ff8bc4d-dh4pn.config.log               settings.gloo.solo.io
 gateways.gateway.solo.io    gloo-proxy-http-844ff8bc4d-dh4pn.listeners.log   upstreams.gloo.solo.io
