@@ -2337,7 +2337,7 @@ type OidcAuthorizationCode struct {
 	IdentityToken *OidcAuthorizationCode_IdentityToken `protobuf:"bytes,24,opt,name=identity_token,json=identityToken,proto3" json:"identity_token,omitempty"`
 	// +kubebuilder:validation:XValidation:rule="has(self.clientSecret) || has(self.privateKeyJwt)",message="Must specify clientSecret or privateKeyJwt"
 	ClientAuthentication *OidcAuthorizationCode_ClientAuthentication `protobuf:"bytes,25,opt,name=client_authentication,json=clientAuthentication,proto3" json:"client_authentication,omitempty"`
-	// Types that are valid to be assigned to Provider:
+	// Types that are assignable to Provider:
 	//
 	//	*OidcAuthorizationCode_Default_
 	//	*OidcAuthorizationCode_Azure
@@ -2345,8 +2345,6 @@ type OidcAuthorizationCode struct {
 	// Configuration for front channel logout. This is used to log out the user from multiple apps/clients associated with one OpenId Provider (OP).
 	// The path is registered with the OP and is called for each app/client that the user is logged into when the logout endpoint is called.
 	FrontChannelLogout *OidcAuthorizationCode_FrontChannelLogout `protobuf:"bytes,28,opt,name=front_channel_logout,json=frontChannelLogout,proto3" json:"front_channel_logout,omitempty"`
-	unknownFields      protoimpl.UnknownFields
-	sizeCache          protoimpl.SizeCache
 }
 
 func (x *OidcAuthorizationCode) Reset() {
@@ -2550,27 +2548,23 @@ func (x *OidcAuthorizationCode) GetClientAuthentication() *OidcAuthorizationCode
 	return nil
 }
 
-func (x *OidcAuthorizationCode) GetProvider() isOidcAuthorizationCode_Provider {
-	if x != nil {
-		return x.Provider
+func (m *OidcAuthorizationCode) GetProvider() isOidcAuthorizationCode_Provider {
+	if m != nil {
+		return m.Provider
 	}
 	return nil
 }
 
 func (x *OidcAuthorizationCode) GetDefault() *OidcAuthorizationCode_Default {
-	if x != nil {
-		if x, ok := x.Provider.(*OidcAuthorizationCode_Default_); ok {
-			return x.Default
-		}
+	if x, ok := x.GetProvider().(*OidcAuthorizationCode_Default_); ok {
+		return x.Default
 	}
 	return nil
 }
 
 func (x *OidcAuthorizationCode) GetAzure() *Azure {
-	if x != nil {
-		if x, ok := x.Provider.(*OidcAuthorizationCode_Azure); ok {
-			return x.Azure
-		}
+	if x, ok := x.GetProvider().(*OidcAuthorizationCode_Azure); ok {
+		return x.Azure
 	}
 	return nil
 }
@@ -2599,7 +2593,10 @@ func (*OidcAuthorizationCode_Default_) isOidcAuthorizationCode_Provider() {}
 func (*OidcAuthorizationCode_Azure) isOidcAuthorizationCode_Provider() {}
 
 type PlainOAuth2 struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
 	// Your client ID as registered with the issuer
 	//
 	// +kubebuilder:validation:Required
@@ -2611,7 +2608,7 @@ type PlainOAuth2 struct {
 	// Extra query parameters to apply to the Ext-Auth service's authorization request to the identity provider.
 	// These parameters can be useful for flows such as [PKCE](https://www.oauth.com/oauth2-servers/pkce/authorization-request/)
 	// to set the `code_challenge` and `code_challenge_method`.
-	AuthEndpointQueryParams map[string]string `protobuf:"bytes,3,rep,name=auth_endpoint_query_params,json=authEndpointQueryParams,proto3" json:"auth_endpoint_query_params,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	AuthEndpointQueryParams map[string]string `protobuf:"bytes,3,rep,name=auth_endpoint_query_params,json=authEndpointQueryParams,proto3" json:"auth_endpoint_query_params,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
 	// Where to redirect after successful auth, if Gloo can't determine the original URL.
 	// Set this field to your publicly available app URL.
 	//
@@ -2635,7 +2632,7 @@ type PlainOAuth2 struct {
 	// Extra query parameters to apply to the Ext-Auth service's token request to the identity provider.
 	// These parameters can be useful for flows such as [PKCE](https://www.oauth.com/oauth2-servers/pkce/authorization-request/)
 	// to set the `code_verifier`.
-	TokenEndpointQueryParams map[string]string `protobuf:"bytes,9,rep,name=token_endpoint_query_params,json=tokenEndpointQueryParams,proto3" json:"token_endpoint_query_params,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	TokenEndpointQueryParams map[string]string `protobuf:"bytes,9,rep,name=token_endpoint_query_params,json=tokenEndpointQueryParams,proto3" json:"token_endpoint_query_params,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
 	// URL to redirect to after logout.
 	// Set this field to a publicly available URL. If not provided, this value defaults to the `app_url` value.
 	AfterLogoutUrl string `protobuf:"bytes,10,opt,name=after_logout_url,json=afterLogoutUrl,proto3" json:"after_logout_url,omitempty"`
@@ -2656,8 +2653,6 @@ type PlainOAuth2 struct {
 	// Generally the client secret is required and AuthConfigs will be rejected if it isn't set.
 	// However certain implementations of the PKCE flow do not use a client secret (including Okta) so this setting allows configuring Oauth2 without a client secret.
 	DisableClientSecret *wrapperspb.BoolValue `protobuf:"bytes,14,opt,name=disable_client_secret,json=disableClientSecret,proto3" json:"disable_client_secret,omitempty"`
-	unknownFields       protoimpl.UnknownFields
-	sizeCache           protoimpl.SizeCache
 }
 
 func (x *PlainOAuth2) Reset() {
@@ -2807,17 +2802,18 @@ func (x *PlainOAuth2) GetDisableClientSecret() *wrapperspb.BoolValue {
 // If the JWT has been successfully validated, its set of claims will be added to the
 // `AuthorizationRequest` state under the "jwtAccessToken" key.
 type JwtValidation struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// Types that are valid to be assigned to JwksSourceSpecifier:
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// Types that are assignable to JwksSourceSpecifier:
 	//
 	//	*JwtValidation_RemoteJwks_
 	//	*JwtValidation_LocalJwks_
 	JwksSourceSpecifier isJwtValidation_JwksSourceSpecifier `protobuf_oneof:"jwks_source_specifier"`
 	// Allow only tokens that have been issued by this principal (i.e. whose "iss" claim matches this value).
 	// If empty, issuer validation will be skipped.
-	Issuer        string `protobuf:"bytes,3,opt,name=issuer,proto3" json:"issuer,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	Issuer string `protobuf:"bytes,3,opt,name=issuer,proto3" json:"issuer,omitempty"`
 }
 
 func (x *JwtValidation) Reset() {
@@ -2850,27 +2846,23 @@ func (*JwtValidation) Descriptor() ([]byte, []int) {
 	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_rawDescGZIP(), []int{25}
 }
 
-func (x *JwtValidation) GetJwksSourceSpecifier() isJwtValidation_JwksSourceSpecifier {
-	if x != nil {
-		return x.JwksSourceSpecifier
+func (m *JwtValidation) GetJwksSourceSpecifier() isJwtValidation_JwksSourceSpecifier {
+	if m != nil {
+		return m.JwksSourceSpecifier
 	}
 	return nil
 }
 
 func (x *JwtValidation) GetRemoteJwks() *JwtValidation_RemoteJwks {
-	if x != nil {
-		if x, ok := x.JwksSourceSpecifier.(*JwtValidation_RemoteJwks_); ok {
-			return x.RemoteJwks
-		}
+	if x, ok := x.GetJwksSourceSpecifier().(*JwtValidation_RemoteJwks_); ok {
+		return x.RemoteJwks
 	}
 	return nil
 }
 
 func (x *JwtValidation) GetLocalJwks() *JwtValidation_LocalJwks {
-	if x != nil {
-		if x, ok := x.JwksSourceSpecifier.(*JwtValidation_LocalJwks_); ok {
-			return x.LocalJwks
-		}
+	if x, ok := x.GetJwksSourceSpecifier().(*JwtValidation_LocalJwks_); ok {
+		return x.LocalJwks
 	}
 	return nil
 }
@@ -2907,7 +2899,10 @@ func (*JwtValidation_LocalJwks_) isJwtValidation_JwksSourceSpecifier() {}
 // are required. Unless disable_client_secret is set, when only one is provided, the config will be rejected.
 // These values will be encoded in a basic auth header in order to authenticate the client.
 type IntrospectionValidation struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
 	// The URL for the [OAuth2.0 Token Introspection](https://datatracker.ietf.org/doc/html/rfc7662) endpoint.
 	// If provided, the (opaque) access token provided or received from the oauth authorization endpoint
 	// will be validated against this endpoint, or locally cached responses for this access token.
@@ -2930,8 +2925,6 @@ type IntrospectionValidation struct {
 	UserIdAttributeName string `protobuf:"bytes,4,opt,name=user_id_attribute_name,json=userIdAttributeName,proto3" json:"user_id_attribute_name,omitempty"`
 	// Allows setting a client id but not a client secret.
 	DisableClientSecret *wrapperspb.BoolValue `protobuf:"bytes,5,opt,name=disable_client_secret,json=disableClientSecret,proto3" json:"disable_client_secret,omitempty"`
-	unknownFields       protoimpl.UnknownFields
-	sizeCache           protoimpl.SizeCache
 }
 
 func (x *IntrospectionValidation) Reset() {
@@ -3000,8 +2993,11 @@ func (x *IntrospectionValidation) GetDisableClientSecret() *wrapperspb.BoolValue
 }
 
 type AccessTokenValidation struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// Types that are valid to be assigned to ValidationType:
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// Types that are assignable to ValidationType:
 	//
 	//	*AccessTokenValidation_IntrospectionUrl
 	//	*AccessTokenValidation_Jwt
@@ -3019,7 +3015,7 @@ type AccessTokenValidation struct {
 	CacheTimeout *durationpb.Duration `protobuf:"bytes,5,opt,name=cache_timeout,json=cacheTimeout,proto3" json:"cache_timeout,omitempty"`
 	// Optional criteria for validating the scopes of a token.
 	//
-	// Types that are valid to be assigned to ScopeValidation:
+	// Types that are assignable to ScopeValidation:
 	//
 	//	*AccessTokenValidation_RequiredScopes
 	ScopeValidation isAccessTokenValidation_ScopeValidation `protobuf_oneof:"scope_validation"`
