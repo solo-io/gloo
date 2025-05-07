@@ -1,0 +1,4 @@
+changelog:
+- type: NON_USER_FACING
+  description: Increase the max message size of the grpc server to accomodate thousands of listenersets. Also limit the lenght of the listener name passed to envoy.
+
