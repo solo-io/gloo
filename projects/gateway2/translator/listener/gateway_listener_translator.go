@@ -12,6 +12,7 @@ import (
 	"google.golang.org/protobuf/types/known/wrapperspb"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/validation"
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
 	gwv1a2 "sigs.k8s.io/gateway-api/apis/v1alpha2"
 	gwxv1a1 "sigs.k8s.io/gateway-api/apisx/v1alpha1"
@@ -130,7 +131,7 @@ func (ml *MergedListeners) appendHttpListener(
 		if lis.port == finalPort {
 			// concatenate the names on the parent output listener/filterchain
 			// TODO is this valid listener name?
-			// lis.name += "~" + listenerName
+			lis.name = concatenateListenerName(lis.name, listenerName)
 			if lis.httpFilterChain != nil {
 				lis.httpFilterChain.parents = append(lis.httpFilterChain.parents, parent)
 			} else {
@@ -177,7 +178,7 @@ func (ml *MergedListeners) appendHttpsListener(
 		if lis.port == finalPort {
 			// concatenate the names on the parent output listener
 			// TODO is this valid listener name?
-			// lis.name += "~" + listenerName
+			lis.name = concatenateListenerName(lis.name, listenerName)
 			lis.httpsFilterChains = append(lis.httpsFilterChains, mfc)
 			return
 		}
@@ -239,7 +240,7 @@ func (ml *MergedListeners) AppendTcpListener(
 	for _, lis := range ml.Listeners {
 		if lis.port == finalPort {
 			// concatenate the names on the parent output listener
-			// lis.name += "~" + listenerName
+			lis.name = concatenateListenerName(lis.name, listenerName)
 			lis.TcpFilterChains = append(lis.TcpFilterChains, fc)
 			return
 		}
@@ -402,7 +403,7 @@ func (ml *MergedListeners) AppendTlsListener(
 	for _, lis := range ml.Listeners {
 		if lis.port == finalPort {
 			// concatenate the names on the parent output listener
-			// lis.name += "~" + listenerName
+			lis.name = concatenateListenerName(lis.name, listenerName)
 			lis.TcpFilterChains = append(lis.TcpFilterChains, fc)
 			return
 		}
@@ -938,6 +939,20 @@ func makeVhostName(
 	domain string,
 ) string {
 	return utils.SanitizeForEnvoy(ctx, parentName+"~"+domain, "vHost")
+}
+
+func concatenateListenerName(a string, b string) string {
+	// Set a max length to prevent the a listener name from getting too long
+	// (Eg: when the same protocol/port combo is defined in 1000+ listeners)
+	// Although there isn't a max length requirement in envoy, having a listener with a super long name
+	// can lead to memory issues at scale
+	// Ref: https://github.com/kubernetes-sigs/gateway-api/blob/1e14dd602df6c0bad62c0e7f83dd2c7d1d2d6886/apis/v1/shared_types.go#L628
+	maxLength := validation.DNS1123SubdomainMaxLength
+	if len(a) > maxLength {
+		return a
+	}
+	// Do not trim to 64 so we have the complete listener names if we need to check the envoy config dump
+	return fmt.Sprintf("%s~%s", a, b)
 }
 
 func generateListenerName(listener gwv1.Listener, listenerSet *gwxv1a1.XListenerSet) string {
