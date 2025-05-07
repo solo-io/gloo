@@ -338,7 +338,9 @@ func (s *setupSyncer) Setup(ctx context.Context, kubeCache kube.SharedCache, mem
 	var xdsPort int32
 	switch settings.GetConfigSource().(type) {
 	case *v1.Settings_KubernetesConfigSource:
-		glooService, err := GetControlPlaneService(ctx, writeNamespace, opts.KubeServiceClient)
+		// Since the installation namespace and the write namespace can be different, we pass the installation namespace
+		// to fetch the service
+		glooService, err := GetControlPlaneService(ctx, namespaces.GetPodNamespace(), opts.KubeServiceClient)
 		if err != nil {
 			return err
 		}

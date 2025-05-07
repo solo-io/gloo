@@ -6,6 +6,18 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
+func SetListenerSources(listener *v1.Listener, sources []*v1.SourceMetadata_SourceRef) {
+	meta := listener.GetMetadataStatic()
+	if meta == nil {
+		meta = &v1.SourceMetadata{}
+	}
+	listener.OpaqueMetadata = &v1.Listener_MetadataStatic{
+		MetadataStatic: &v1.SourceMetadata{
+			Sources: sources,
+		},
+	}
+}
+
 func AppendSourceToListener(listener *v1.Listener, source client.Object) {
 	meta := listener.GetMetadataStatic()
 	if meta == nil {

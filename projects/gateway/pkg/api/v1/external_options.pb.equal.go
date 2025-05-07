@@ -188,6 +188,16 @@ func (m *ListenerOption) Equal(that interface{}) bool {
 		return false
 	}
 
+	if h, ok := interface{}(m.GetNamespacedStatuses()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetNamespacedStatuses()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetNamespacedStatuses(), target.GetNamespacedStatuses()) {
+			return false
+		}
+	}
+
 	if h, ok := interface{}(m.GetMetadata()).(equality.Equalizer); ok {
 		if !h.Equal(target.GetMetadata()) {
 			return false
@@ -247,6 +257,16 @@ func (m *HttpListenerOption) Equal(that interface{}) bool {
 		return m == nil
 	} else if m == nil {
 		return false
+	}
+
+	if h, ok := interface{}(m.GetNamespacedStatuses()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetNamespacedStatuses()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetNamespacedStatuses(), target.GetNamespacedStatuses()) {
+			return false
+		}
 	}
 
 	if h, ok := interface{}(m.GetMetadata()).(equality.Equalizer); ok {

@@ -1,0 +1,52 @@
+---
+apiVersion: gateway.solo.io/v1
+kind: Gateway
+metadata:
+  labels:
+    app: gloo
+  name: gateway-proxy-access-log
+spec:
+  bindAddress: '::'
+  bindPort: 8085
+  httpGateway: {}
+  proxyNames:
+  - gateway-proxy
+  ssl: false
+  useProxyProto: false
+  options:
+    accessLoggingService:
+      accessLog:
+        - openTelemetryService:
+            logName: example
+            collector:
+              endpoint: otel-collector.default.svc.cluster.local:4317
+              authority: authority.example.com
+              insecure: true
+            body:
+              stringValue: "%REQ(USER-AGENT)%"
+            attributes:
+              values:
+                - key: "foo"
+                  value:
+                    stringValue: "bar"
+                - key: "bar"
+                  value:
+                    kvlistValue:
+                      values:
+                        - key: "baz"
+                          value:
+                            stringValue: "qux"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway-proxy-access-log
+spec:
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: 8085
+  selector:
+    gloo: gateway-proxy
+  type: ClusterIP
