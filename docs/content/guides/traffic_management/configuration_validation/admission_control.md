@@ -229,7 +229,7 @@ EOF
 
 ## Exclude resources from validation
 
-When you enable resource validation, all supported resource types are automatically scanned and validated when you attempt to create, update, or delete them. You might not want all of the resources to be validated and explicitely exclude certain resource types or resources with specific labels. You can set match conditions in your resource validation configuration to accomplish this task. 
+When you enable resource validation, all supported resource types are automatically scanned and validated when you attempt to create, update, or delete them. However, you might not want all of the resources to be validated, but instead want to explicitly exclude certain resource types or resources with specific labels. You can set match conditions in your resource validation configuration to accomplish this task. 
 
 Match conditions are written in [CEL](https://cel.dev). To target a particular resource, your CEL expression must adhere to the syntax of the validation API. For more information, see the [Validation API reference](#validation-api-reference).
 
