@@ -1137,6 +1137,13 @@ spec:
                                       namespace:
                                         type: string
                                     type: object
+                                  grpcService:
+                                    properties:
+                                      authority:
+                                        type: string
+                                    type: object
+                                  serviceName:
+                                    type: string
                                 type: object
                               requestHeadersForTags:
                                 items:
@@ -1817,6 +1824,13 @@ spec:
                                       namespace:
                                         type: string
                                     type: object
+                                  grpcService:
+                                    properties:
+                                      authority:
+                                        type: string
+                                    type: object
+                                  serviceName:
+                                    type: string
                                 type: object
                               requestHeadersForTags:
                                 items:
@@ -3163,6 +3177,13 @@ spec:
                                                 namespace:
                                                   type: string
                                               type: object
+                                            grpcService:
+                                              properties:
+                                                authority:
+                                                  type: string
+                                              type: object
+                                            serviceName:
+                                              type: string
                                           type: object
                                         requestHeadersForTags:
                                           items:

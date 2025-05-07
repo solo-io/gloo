@@ -35,6 +35,8 @@ func (m *OpenTelemetryConfig) Clone() proto.Message {
 	}
 	target = &OpenTelemetryConfig{}
 
+	target.ServiceName = m.GetServiceName()
+
 	switch m.CollectorCluster.(type) {
 
 	case *OpenTelemetryConfig_CollectorUpstreamRef:
@@ -56,6 +58,35 @@ func (m *OpenTelemetryConfig) Clone() proto.Message {
 		}
 
 	}
+
+	switch m.ServiceType.(type) {
+
+	case *OpenTelemetryConfig_GrpcService:
+
+		if h, ok := interface{}(m.GetGrpcService()).(clone.Cloner); ok {
+			target.ServiceType = &OpenTelemetryConfig_GrpcService{
+				GrpcService: h.Clone().(*GrpcService),
+			}
+		} else {
+			target.ServiceType = &OpenTelemetryConfig_GrpcService{
+				GrpcService: proto.Clone(m.GetGrpcService()).(*GrpcService),
+			}
+		}
+
+	}
+
+	return target
+}
+
+// Clone function
+func (m *GrpcService) Clone() proto.Message {
+	var target *GrpcService
+	if m == nil {
+		return target
+	}
+	target = &GrpcService{}
+
+	target.Authority = m.GetAuthority()
 
 	return target
 }

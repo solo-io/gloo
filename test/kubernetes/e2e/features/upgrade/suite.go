@@ -5,12 +5,15 @@ import (
 	"path/filepath"
 	"time"
 
+	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/solo-io/gloo/test/kubernetes/e2e"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/tests/base"
 	"github.com/solo-io/gloo/test/kubernetes/testutils/helper"
 	"github.com/solo-io/skv2/codegen/util"
+	appsv1 "k8s.io/api/apps/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var _ e2e.NewSuiteFunc = NewTestingSuite
@@ -48,12 +51,22 @@ func (s *testingSuite) BeforeTest(suiteName, testName string) {
 	}...),
 		helper.WithCRDs(filepath.Join(s.TestHelper.RootDir, "install", "helm", "gloo", "crds")))
 	s.TestInstallation.Assertions.Require.NoError(err)
+
+	// apply manifests, if any
+	s.BaseTestingSuite.BeforeTest(suiteName, testName)
 }
 
 func (s *testingSuite) AfterTest(suiteName, testName string) {
 	s.TestInstallation.UninstallGlooGateway(s.Ctx, func(ctx context.Context) error {
 		return s.TestHelper.UninstallGlooAll()
 	})
+}
+
+func (s *testingSuite) TestDifferentWatchAndInstallNamespace() {
+	s.UpgradeWithCustomValuesFile(filepath.Join(util.MustGetThisDir(), "testdata/manifests", "different-watch-install-namespace.yaml"))
+	s.TestInstallation.Assertions.EventuallyRunningReplicas(s.Ctx, s.glooDeployment().ObjectMeta, Equal(1))
+	settings := s.GetKubectlOutput("-n", s.TestInstallation.Metadata.InstallNamespace, "get", "settings", "default", "-o", "yaml")
+	s.TestInstallation.Assertions.Assert.Contains(settings, "discoveryNamespace: default")
 }
 
 func (s *testingSuite) TestUpdateValidationServerGrpcMaxSizeBytes() {
@@ -113,4 +126,14 @@ func (s *testingSuite) UpgradeWithCustomValuesFile(valuesFile string) {
 		"--values", valuesFile,
 	}...))
 	s.TestInstallation.Assertions.Require.NoError(err)
+}
+
+func (s *testingSuite) glooDeployment() *appsv1.Deployment {
+	return &appsv1.Deployment{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: s.TestInstallation.Metadata.InstallNamespace,
+			Name:      "gloo",
+			Labels:    map[string]string{"gloo": "gloo"},
+		},
+	}
 }
