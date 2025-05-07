@@ -277,7 +277,7 @@ For more information about how to use the match conditions in the validation web
       --version {{< readfile file="static/content/version_gee_latest.md" markdown="true">}}
       ```
 
-4. Try to apply the same RouteOption resource again. Verify that the RouteOption is still denied. Because the resource does not have a `foo` label, it does not match the matching condition. 
+4. Try to apply the same Gateway resource again. Verify that the Gateway is still denied. Because the resource does not have a `foo` label, it does not match the matching condition. 
    ```yaml
    kubectl apply --dry-run=server -f- <<EOF 
    apiVersion: gateway.solo.io/v1
