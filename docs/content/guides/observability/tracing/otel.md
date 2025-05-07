@@ -109,6 +109,10 @@ This guide uses the Zipkin tracing platform as an example to show how to set up 
              body: 'hello world'
    EOF
    ```
+   
+   {{% notice note %}}
+   When referencing a gRPC OpenTelemetry collector in your Gateway, Gloo Gateway automatically generates an Envoy configuration that sets the cluster name as the `:authority` pseudo-header. If your collector expects a different `:authority` header, you can specify that by setting the `spec.httpGateway.options.httpConnectionManagerSettings.tracing.openTelemetryConfig.grpcService.authority` value on your Gateway. 
+   {{% /notice %}}
 
 6. In three separate terminals, port-forward and view logs for the deployed services.
    1. Port-forward the gateway proxy on port 8080.
