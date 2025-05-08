@@ -15,6 +15,6 @@ listeners:
     sources:
     - resourceKind: gateway.networking.k8s.io/Gateway
       resourceRef:
-        name: http
+        name: listener~80
         namespace: default
-  name: http
+  name: listener~80

@@ -1,7 +1,7 @@
 ---
 listeners:
 - aggregateListener:
-    httpFilterChains: 
+    httpFilterChains:
     - matcher: {}
     httpResources: {}
   bindAddress: '::'
@@ -10,9 +10,9 @@ listeners:
     sources:
     - resourceKind: gateway.networking.k8s.io/Gateway
       resourceRef:
-        name: http-httpbin~http-bookinfo
+        name: listener~80
         namespace: default
-  name: http-httpbin~http-bookinfo
+  name: listener~80
 metadata:
   labels:
     created_by: gloo-kube-gateway-api
