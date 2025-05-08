@@ -8,9 +8,9 @@ listeners:
     sources:
     - resourceKind: gateway.networking.k8s.io/Gateway
       resourceRef:
-        name: https-httpbin~https-bookinfo
+        name: listener~443
         namespace: default
-  name: https-httpbin~https-bookinfo
+  name: listener~443
 metadata:
   labels:
     created_by: gloo-kube-gateway-api

@@ -253,25 +253,25 @@ func parentRefMatchListener(ref *apiv1.ParentReference, l *apiv1.Listener) bool 
 //   - HTTPRoute
 //   - TCPRoute
 //   - TLSRoute
-func getParentRefsForResource(gw client.Object, obj client.Object) []apiv1.ParentReference {
+func getParentRefsForResource(resource client.Object, obj client.Object) []apiv1.ParentReference {
 	var ret []apiv1.ParentReference
 
 	switch route := obj.(type) {
 	case *apiv1.HTTPRoute:
 		for _, pRef := range route.Spec.ParentRefs {
-			if isParentRefForResource(&pRef, gw, route.Namespace) {
+			if isParentRefForResource(&pRef, resource, route.Namespace) {
 				ret = append(ret, pRef)
 			}
 		}
 	case *apiv1alpha2.TCPRoute:
 		for _, pRef := range route.Spec.ParentRefs {
-			if isParentRefForResource(&pRef, gw, route.Namespace) {
+			if isParentRefForResource(&pRef, resource, route.Namespace) {
 				ret = append(ret, pRef)
 			}
 		}
 	case *apiv1alpha2.TLSRoute:
 		for _, pRef := range route.Spec.ParentRefs {
-			if isParentRefForResource(&pRef, gw, route.Namespace) {
+			if isParentRefForResource(&pRef, resource, route.Namespace) {
 				ret = append(ret, pRef)
 			}
 		}
@@ -324,10 +324,9 @@ func isParentRefForResource(pRef *apiv1.ParentReference, resource client.Object,
 		return false
 	}
 
-	ret := false
 	switch typed := resource.(type) {
 	case *apiv1.Gateway:
-		ret = isParentRefForGw(pRef, typed, defaultNs)
+		return isParentRefForGw(pRef, typed, defaultNs)
 	case *apixv1alpha1.XListenerSet:
 		// Check if the route belongs to the parent gateway. If so accept it
 		parentRef := getParentGatewayRef(typed)
@@ -337,10 +336,15 @@ func isParentRefForResource(pRef *apiv1.ParentReference, resource client.Object,
 				Name:      parentRef.Name,
 			},
 		}
-		ret = isParentRefForGw(pRef, parentGW, defaultNs)
+		gatewayRoute := isParentRefForGw(pRef, parentGW, defaultNs)
 
-		// Maybe it was just attached to the listener set and not the gateway
-		if !ret {
+		// If it is attached to the gateway but has a section name, it won't attach to the listener set
+		if gatewayRoute {
+			if pRef.SectionName != nil && *pRef.SectionName != "" {
+				return false
+			}
+		} else {
+			// Is it attached to a listener set and not a gateway ?
 			if pRef.Group != nil && *pRef.Group != apixv1alpha1.GroupName {
 				return false
 			}
@@ -352,13 +356,15 @@ func isParentRefForResource(pRef *apiv1.ParentReference, resource client.Object,
 			if pRef.Namespace != nil {
 				ns = string(*pRef.Namespace)
 			}
-			ret = ns == typed.Namespace && string(pRef.Name) == typed.Name
+			// Does it attach to this resource ?
+			return ns == typed.Namespace && string(pRef.Name) == typed.Name
 		}
+
+		// If it is attached to the gateway but has no section name, it applies to the listener set also
+		return gatewayRoute
 	default:
 		return false
 	}
-
-	return ret
 }
 
 func hostnameIntersect(l *apiv1.Listener, routeHostnames []apiv1.Hostname) (bool, []string) {
