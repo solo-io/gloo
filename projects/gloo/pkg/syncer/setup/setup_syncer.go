@@ -3,6 +3,7 @@ package setup
 import (
 	"context"
 	"fmt"
+	"math"
 	"net"
 	"net/http"
 	"os"
@@ -127,6 +128,7 @@ func NewSetupFuncWithRunAndExtensions(runFunc RunFunc, setupOpts *bootstrap.Setu
 		extensions: extensions,
 		makeGrpcServer: func(ctx context.Context, options ...grpc.ServerOption) *grpc.Server {
 			serverOpts := []grpc.ServerOption{
+				grpc.MaxRecvMsgSize(math.MaxInt32),
 				grpc.StreamInterceptor(
 					grpc_middleware.ChainStreamServer(
 						grpc_ctxtags.StreamServerInterceptor(),
