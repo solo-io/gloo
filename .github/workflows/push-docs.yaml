@@ -73,7 +73,7 @@ jobs:
         # USE THIS SECTION AFTER 1.19.0 IS CUT
         # We do not yet have a docs directory for 1.20 bc for docs, 1.19 is still considered 'main'
         # and 1.18 'latest' until 1.19.0 is cut. For that reason we can't yet flip 1.20 to main
-        # and 1.19 to latest. Must switch to the following after 1.19.0 is cut.
+        # and 1.19 to latest. Can switch to the following though after 1.19.0 is cut.
         # if [[ "${{ steps.lts-version.outputs.lts }}" == "main" ]]; then
         #   minor="1.20"
         #   directory="main"
