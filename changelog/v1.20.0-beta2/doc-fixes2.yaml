@@ -1,3 +1,5 @@
 changelog:
-  - type: NON_USER_FACING
-    description: Weekly doc fixes and updates to push-docs workflow.
+- type: NON_USER_FACING
+  description: >-
+    Weekly doc fixes and updates to push-docs workflow.
+    skipCI-kube-tests:true
