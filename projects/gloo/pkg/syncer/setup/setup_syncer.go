@@ -3,6 +3,7 @@ package setup
 import (
 	"context"
 	"fmt"
+	"math"
 	"net"
 	"net/http"
 	"os"
@@ -127,6 +128,7 @@ func NewSetupFuncWithRunAndExtensions(runFunc RunFunc, setupOpts *bootstrap.Setu
 		extensions: extensions,
 		makeGrpcServer: func(ctx context.Context, options ...grpc.ServerOption) *grpc.Server {
 			serverOpts := []grpc.ServerOption{
+				grpc.MaxRecvMsgSize(math.MaxInt32),
 				grpc.StreamInterceptor(
 					grpc_middleware.ChainStreamServer(
 						grpc_ctxtags.StreamServerInterceptor(),
@@ -338,7 +340,9 @@ func (s *setupSyncer) Setup(ctx context.Context, kubeCache kube.SharedCache, mem
 	var xdsPort int32
 	switch settings.GetConfigSource().(type) {
 	case *v1.Settings_KubernetesConfigSource:
-		glooService, err := GetControlPlaneService(ctx, writeNamespace, opts.KubeServiceClient)
+		// Since the installation namespace and the write namespace can be different, we pass the installation namespace
+		// to fetch the service
+		glooService, err := GetControlPlaneService(ctx, namespaces.GetPodNamespace(), opts.KubeServiceClient)
 		if err != nil {
 			return err
 		}

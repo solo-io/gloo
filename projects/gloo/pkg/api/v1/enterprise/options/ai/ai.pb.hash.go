@@ -272,6 +272,28 @@ func (m *UpstreamSpec) Hash(hasher hash.Hash64) (uint64, error) {
 			}
 		}
 
+	case *UpstreamSpec_Bedrock_:
+
+		if h, ok := interface{}(m.GetBedrock()).(safe_hasher.SafeHasher); ok {
+			if _, err = hasher.Write([]byte("Bedrock")); err != nil {
+				return 0, err
+			}
+			if _, err = h.Hash(hasher); err != nil {
+				return 0, err
+			}
+		} else {
+			if fieldValue, err := hashstructure.Hash(m.GetBedrock(), nil); err != nil {
+				return 0, err
+			} else {
+				if _, err = hasher.Write([]byte("Bedrock")); err != nil {
+					return 0, err
+				}
+				if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
+					return 0, err
+				}
+			}
+		}
+
 	}
 
 	return hasher.Sum64(), nil
@@ -1276,6 +1298,174 @@ func (m *UpstreamSpec_Anthropic) Hash(hasher hash.Hash64) (uint64, error) {
 // Deprecated: due to hashing implemention only using field values. The omission
 // of the field name in the hash calculation can lead to hash collisions.
 // Prefer the HashUnique function instead.
+func (m *UpstreamSpec_Bedrock) Hash(hasher hash.Hash64) (uint64, error) {
+	if m == nil {
+		return 0, nil
+	}
+	if hasher == nil {
+		hasher = fnv.New64()
+	}
+	var err error
+	if _, err = hasher.Write([]byte("ai.options.gloo.solo.io.github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ai.UpstreamSpec_Bedrock")); err != nil {
+		return 0, err
+	}
+
+	if h, ok := interface{}(m.GetCredentialProvider()).(safe_hasher.SafeHasher); ok {
+		if _, err = hasher.Write([]byte("CredentialProvider")); err != nil {
+			return 0, err
+		}
+		if _, err = h.Hash(hasher); err != nil {
+			return 0, err
+		}
+	} else {
+		if fieldValue, err := hashstructure.Hash(m.GetCredentialProvider(), nil); err != nil {
+			return 0, err
+		} else {
+			if _, err = hasher.Write([]byte("CredentialProvider")); err != nil {
+				return 0, err
+			}
+			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
+				return 0, err
+			}
+		}
+	}
+
+	if h, ok := interface{}(m.GetCustomHost()).(safe_hasher.SafeHasher); ok {
+		if _, err = hasher.Write([]byte("CustomHost")); err != nil {
+			return 0, err
+		}
+		if _, err = h.Hash(hasher); err != nil {
+			return 0, err
+		}
+	} else {
+		if fieldValue, err := hashstructure.Hash(m.GetCustomHost(), nil); err != nil {
+			return 0, err
+		} else {
+			if _, err = hasher.Write([]byte("CustomHost")); err != nil {
+				return 0, err
+			}
+			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
+				return 0, err
+			}
+		}
+	}
+
+	if _, err = hasher.Write([]byte(m.GetModel())); err != nil {
+		return 0, err
+	}
+
+	if _, err = hasher.Write([]byte(m.GetRegion())); err != nil {
+		return 0, err
+	}
+
+	return hasher.Sum64(), nil
+}
+
+// Hash function
+//
+// Deprecated: due to hashing implemention only using field values. The omission
+// of the field name in the hash calculation can lead to hash collisions.
+// Prefer the HashUnique function instead.
+func (m *UpstreamSpec_AwsCredentialProvider) Hash(hasher hash.Hash64) (uint64, error) {
+	if m == nil {
+		return 0, nil
+	}
+	if hasher == nil {
+		hasher = fnv.New64()
+	}
+	var err error
+	if _, err = hasher.Write([]byte("ai.options.gloo.solo.io.github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ai.UpstreamSpec_AwsCredentialProvider")); err != nil {
+		return 0, err
+	}
+
+	switch m.AuthTokenSource.(type) {
+
+	case *UpstreamSpec_AwsCredentialProvider_SecretRef:
+
+		if h, ok := interface{}(m.GetSecretRef()).(safe_hasher.SafeHasher); ok {
+			if _, err = hasher.Write([]byte("SecretRef")); err != nil {
+				return 0, err
+			}
+			if _, err = h.Hash(hasher); err != nil {
+				return 0, err
+			}
+		} else {
+			if fieldValue, err := hashstructure.Hash(m.GetSecretRef(), nil); err != nil {
+				return 0, err
+			} else {
+				if _, err = hasher.Write([]byte("SecretRef")); err != nil {
+					return 0, err
+				}
+				if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
+					return 0, err
+				}
+			}
+		}
+
+	case *UpstreamSpec_AwsCredentialProvider_Inline:
+
+		if h, ok := interface{}(m.GetInline()).(safe_hasher.SafeHasher); ok {
+			if _, err = hasher.Write([]byte("Inline")); err != nil {
+				return 0, err
+			}
+			if _, err = h.Hash(hasher); err != nil {
+				return 0, err
+			}
+		} else {
+			if fieldValue, err := hashstructure.Hash(m.GetInline(), nil); err != nil {
+				return 0, err
+			} else {
+				if _, err = hasher.Write([]byte("Inline")); err != nil {
+					return 0, err
+				}
+				if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
+					return 0, err
+				}
+			}
+		}
+
+	}
+
+	return hasher.Sum64(), nil
+}
+
+// Hash function
+//
+// Deprecated: due to hashing implemention only using field values. The omission
+// of the field name in the hash calculation can lead to hash collisions.
+// Prefer the HashUnique function instead.
+func (m *UpstreamSpec_AWSInline) Hash(hasher hash.Hash64) (uint64, error) {
+	if m == nil {
+		return 0, nil
+	}
+	if hasher == nil {
+		hasher = fnv.New64()
+	}
+	var err error
+	if _, err = hasher.Write([]byte("ai.options.gloo.solo.io.github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ai.UpstreamSpec_AWSInline")); err != nil {
+		return 0, err
+	}
+
+	if _, err = hasher.Write([]byte(m.GetAccessKeyId())); err != nil {
+		return 0, err
+	}
+
+	if _, err = hasher.Write([]byte(m.GetSecretAccessKey())); err != nil {
+		return 0, err
+	}
+
+	if _, err = hasher.Write([]byte(m.GetSessionToken())); err != nil {
+		return 0, err
+	}
+
+	return hasher.Sum64(), nil
+}
+
+// Hash function
+//
+// Deprecated: due to hashing implemention only using field values. The omission
+// of the field name in the hash calculation can lead to hash collisions.
+// Prefer the HashUnique function instead.
 func (m *UpstreamSpec_MultiPool) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -1458,6 +1648,28 @@ func (m *UpstreamSpec_MultiPool_Backend) Hash(hasher hash.Hash64) (uint64, error
 				return 0, err
 			} else {
 				if _, err = hasher.Write([]byte("VertexAi")); err != nil {
+					return 0, err
+				}
+				if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
+					return 0, err
+				}
+			}
+		}
+
+	case *UpstreamSpec_MultiPool_Backend_Bedrock:
+
+		if h, ok := interface{}(m.GetBedrock()).(safe_hasher.SafeHasher); ok {
+			if _, err = hasher.Write([]byte("Bedrock")); err != nil {
+				return 0, err
+			}
+			if _, err = h.Hash(hasher); err != nil {
+				return 0, err
+			}
+		} else {
+			if fieldValue, err := hashstructure.Hash(m.GetBedrock(), nil); err != nil {
+				return 0, err
+			} else {
+				if _, err = hasher.Write([]byte("Bedrock")); err != nil {
 					return 0, err
 				}
 				if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {

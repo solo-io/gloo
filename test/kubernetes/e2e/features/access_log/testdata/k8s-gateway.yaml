@@ -1,0 +1,44 @@
+---
+kind: Gateway
+apiVersion: gateway.networking.k8s.io/v1
+metadata:
+  name: gw
+spec:
+  gatewayClassName: gloo-gateway
+  listeners:
+    - protocol: HTTP
+      port: 8080
+      name: http
+---
+apiVersion: gateway.solo.io/v1
+kind: ListenerOption
+metadata:
+  name: access-logging
+spec:
+  targetRefs:
+  - group: gateway.networking.k8s.io
+    kind: Gateway
+    name: gw
+  options:
+    accessLoggingService:
+      accessLog:
+        - openTelemetryService:
+            logName: example
+            collector:
+              endpoint: otel-collector.default.svc.cluster.local:4317
+              authority: authority.example.com
+              insecure: true
+            body:
+              stringValue: "%REQ(USER-AGENT)%"
+            attributes:
+              values:
+                - key: "foo"
+                  value:
+                    stringValue: "bar"
+                - key: "bar"
+                  value:
+                    kvlistValue:
+                      values:
+                        - key: "baz"
+                          value:
+                            stringValue: "qux"

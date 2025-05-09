@@ -193,6 +193,7 @@ rules:
   - routetables
   - virtualhostoptions
   - routeoptions
+  - listeneroptions
   verbs:
   - get
   - list

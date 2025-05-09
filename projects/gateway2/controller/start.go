@@ -143,6 +143,12 @@ func NewControllerBuilder(ctx context.Context, cfg StartConfig) (*ControllerBuil
 		gatewaykubev1.SchemeGroupVersion.WithResource("virtualhostoptions"),
 		krt.WithName("VirtualHostOption"))
 
+	listenerOptionCollection := proxy_syncer.SetupCollectionDynamic[gatewaykubev1.ListenerOption](
+		ctx,
+		cfg.Client,
+		gatewaykubev1.SchemeGroupVersion.WithResource("listeneroptions"),
+		krt.WithName("ListenerOption"))
+
 	routeOptionCollection := proxy_syncer.SetupCollectionDynamic[gatewaykubev1.RouteOption](
 		ctx,
 		cfg.Client,
@@ -165,6 +171,7 @@ func NewControllerBuilder(ctx context.Context, cfg StartConfig) (*ControllerBuil
 			AugmentedPods:               cfg.AugmentedPods,
 			RouteOptionCollection:       routeOptionCollection,
 			VirtualHostOptionCollection: virtualHostOptionCollection,
+			ListenerOptionCollection:    listenerOptionCollection,
 			AuthConfigCollection:        authConfigCollection,
 		},
 		StatusReporter: cfg.KubeGwStatusReporter,

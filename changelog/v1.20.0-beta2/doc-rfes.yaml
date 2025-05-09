@@ -1,0 +1,6 @@
+changelog:
+- type: NON_USER_FACING
+  resolvesIssue: true
+  description: >-
+    Adds 1.19 RFEs and release notes.
+    skipCI-kube-tests:true

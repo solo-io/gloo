@@ -25,6 +25,7 @@ type ResourceClients interface {
 	VirtualServiceClient() gatewayv1.VirtualServiceClient
 	RateLimitConfigClient() v1alpha1.RateLimitConfigClient
 	GatewayClient() gatewayv1.GatewayClient
+	ListenerOptionClient() gatewayv1.ListenerOptionClient
 }
 
 type Clients struct {
@@ -35,6 +36,7 @@ type Clients struct {
 	virtualServiceClient    gatewayv1.VirtualServiceClient
 	rateLimitConfigClient   v1alpha1.RateLimitConfigClient
 	gatewayClient           gatewayv1.GatewayClient
+	listenerOptionClient    gatewayv1.ListenerOptionClient
 }
 
 func NewResourceClients(ctx context.Context, clusterCtx *cluster.Context) (ResourceClients, error) {
@@ -106,6 +108,16 @@ func NewResourceClients(ctx context.Context, clusterCtx *cluster.Context) (Resou
 		return nil, err
 	}
 
+	loClientFactory := &factory.KubeResourceClientFactory{
+		Crd:         gatewayv1.ListenerOptionCrd,
+		Cfg:         clusterCtx.RestConfig,
+		SharedCache: sharedClientCache,
+	}
+	loClient, err := gatewayv1.NewListenerOptionClient(ctx, loClientFactory)
+	if err != nil {
+		return nil, err
+	}
+
 	return &Clients{
 		routeOptionClient:       routeOptionClient,
 		serviceClient:           serviceClient,
@@ -114,6 +126,7 @@ func NewResourceClients(ctx context.Context, clusterCtx *cluster.Context) (Resou
 		virtualServiceClient:    virtualServiceClient,
 		rateLimitConfigClient:   rlcClient,
 		gatewayClient:           gwClient,
+		listenerOptionClient:    loClient,
 	}, nil
 }
 
@@ -143,4 +156,8 @@ func (c *Clients) RateLimitConfigClient() v1alpha1.RateLimitConfigClient {
 
 func (c *Clients) GatewayClient() gatewayv1.GatewayClient {
 	return c.gatewayClient
+}
+
+func (c *Clients) ListenerOptionClient() gatewayv1.ListenerOptionClient {
+	return c.listenerOptionClient
 }

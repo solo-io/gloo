@@ -22,6 +22,9 @@ weight: 5
 - [Publisher](#publisher)
 - [Mistral](#mistral)
 - [Anthropic](#anthropic)
+- [Bedrock](#bedrock)
+- [AwsCredentialProvider](#awscredentialprovider)
+- [AWSInline](#awsinline)
 - [MultiPool](#multipool)
 - [Backend](#backend)
 - [Priority](#priority)
@@ -140,18 +143,20 @@ AI Gateway is an Enterprise-only feature that requires a Gloo Gateway Enterprise
 "multi": .ai.options.gloo.solo.io.UpstreamSpec.MultiPool
 "gemini": .ai.options.gloo.solo.io.UpstreamSpec.Gemini
 "vertexAi": .ai.options.gloo.solo.io.UpstreamSpec.VertexAI
+"bedrock": .ai.options.gloo.solo.io.UpstreamSpec.Bedrock
 
 ```
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `openai` | [.ai.options.gloo.solo.io.UpstreamSpec.OpenAI](../ai.proto.sk/#openai) | Configure an [OpenAI](https://platform.openai.com/docs/overview) backend. Only one of `openai`, `mistral`, `anthropic`, `azureOpenai`, `multi`, `gemini`, or `vertexAi` can be set. |
-| `mistral` | [.ai.options.gloo.solo.io.UpstreamSpec.Mistral](../ai.proto.sk/#mistral) | Configure a [Mistral AI](https://docs.mistral.ai/getting-started/quickstart/) backend. Only one of `mistral`, `openai`, `anthropic`, `azureOpenai`, `multi`, `gemini`, or `vertexAi` can be set. |
-| `anthropic` | [.ai.options.gloo.solo.io.UpstreamSpec.Anthropic](../ai.proto.sk/#anthropic) | Configure an [Anthropic](https://docs.anthropic.com/en/release-notes/api) backend. Only one of `anthropic`, `openai`, `mistral`, `azureOpenai`, `multi`, `gemini`, or `vertexAi` can be set. |
-| `azureOpenai` | [.ai.options.gloo.solo.io.UpstreamSpec.AzureOpenAI](../ai.proto.sk/#azureopenai) | Configure an [Azure OpenAI](https://learn.microsoft.com/en-us/azure/ai-services/openai/) backend. Only one of `azureOpenai`, `openai`, `mistral`, `anthropic`, `multi`, `gemini`, or `vertexAi` can be set. |
-| `multi` | [.ai.options.gloo.solo.io.UpstreamSpec.MultiPool](../ai.proto.sk/#multipool) | Configure backends for multiple LLM providers in one logical endpoint. Only one of `multi`, `openai`, `mistral`, `anthropic`, `azureOpenai`, `gemini`, or `vertexAi` can be set. |
-| `gemini` | [.ai.options.gloo.solo.io.UpstreamSpec.Gemini](../ai.proto.sk/#gemini) | Configure a [Gemini](https://ai.google.dev/gemini-api/docs) backend. Only one of `gemini`, `openai`, `mistral`, `anthropic`, `azureOpenai`, `multi`, or `vertexAi` can be set. |
-| `vertexAi` | [.ai.options.gloo.solo.io.UpstreamSpec.VertexAI](../ai.proto.sk/#vertexai) | Configure a [Vertex AI](https://cloud.google.com/vertex-ai/docs) backend. Only one of `vertexAi`, `openai`, `mistral`, `anthropic`, `azureOpenai`, `multi`, or `gemini` can be set. |
+| `openai` | [.ai.options.gloo.solo.io.UpstreamSpec.OpenAI](../ai.proto.sk/#openai) | Configure an [OpenAI](https://platform.openai.com/docs/overview) backend. Only one of `openai`, `mistral`, `anthropic`, `azureOpenai`, `multi`, `gemini`, `vertexAi`, or `bedrock` can be set. |
+| `mistral` | [.ai.options.gloo.solo.io.UpstreamSpec.Mistral](../ai.proto.sk/#mistral) | Configure a [Mistral AI](https://docs.mistral.ai/getting-started/quickstart/) backend. Only one of `mistral`, `openai`, `anthropic`, `azureOpenai`, `multi`, `gemini`, `vertexAi`, or `bedrock` can be set. |
+| `anthropic` | [.ai.options.gloo.solo.io.UpstreamSpec.Anthropic](../ai.proto.sk/#anthropic) | Configure an [Anthropic](https://docs.anthropic.com/en/release-notes/api) backend. Only one of `anthropic`, `openai`, `mistral`, `azureOpenai`, `multi`, `gemini`, `vertexAi`, or `bedrock` can be set. |
+| `azureOpenai` | [.ai.options.gloo.solo.io.UpstreamSpec.AzureOpenAI](../ai.proto.sk/#azureopenai) | Configure an [Azure OpenAI](https://learn.microsoft.com/en-us/azure/ai-services/openai/) backend. Only one of `azureOpenai`, `openai`, `mistral`, `anthropic`, `multi`, `gemini`, `vertexAi`, or `bedrock` can be set. |
+| `multi` | [.ai.options.gloo.solo.io.UpstreamSpec.MultiPool](../ai.proto.sk/#multipool) | Configure backends for multiple LLM providers in one logical endpoint. Only one of `multi`, `openai`, `mistral`, `anthropic`, `azureOpenai`, `gemini`, `vertexAi`, or `bedrock` can be set. |
+| `gemini` | [.ai.options.gloo.solo.io.UpstreamSpec.Gemini](../ai.proto.sk/#gemini) | Configure a [Gemini](https://ai.google.dev/gemini-api/docs) backend. Only one of `gemini`, `openai`, `mistral`, `anthropic`, `azureOpenai`, `multi`, `vertexAi`, or `bedrock` can be set. |
+| `vertexAi` | [.ai.options.gloo.solo.io.UpstreamSpec.VertexAI](../ai.proto.sk/#vertexai) | Configure a [Vertex AI](https://cloud.google.com/vertex-ai/docs) backend. Only one of `vertexAi`, `openai`, `mistral`, `anthropic`, `azureOpenai`, `multi`, `gemini`, or `bedrock` can be set. |
+| `bedrock` | [.ai.options.gloo.solo.io.UpstreamSpec.Bedrock](../ai.proto.sk/#bedrock) | Configure a [Bedrock](https://aws.amazon.com/bedrock/) backend. Only one of `bedrock`, `openai`, `mistral`, `anthropic`, `azureOpenai`, `multi`, `gemini`, or `vertexAi` can be set. |
 
 
 
@@ -345,6 +350,73 @@ Settings for the [Anthropic](https://docs.anthropic.com/en/release-notes/api) LL
 
 
 ---
+### Bedrock
+
+ 
+Settings for the Bedrock LLM provider
+
+```yaml
+"credentialProvider": .ai.options.gloo.solo.io.UpstreamSpec.AwsCredentialProvider
+"customHost": .ai.options.gloo.solo.io.UpstreamSpec.CustomHost
+"model": string
+"region": string
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+| `credentialProvider` | [.ai.options.gloo.solo.io.UpstreamSpec.AwsCredentialProvider](../ai.proto.sk/#awscredentialprovider) | The authorization config used to access authenticated AWS Bedrock services. |
+| `customHost` | [.ai.options.gloo.solo.io.UpstreamSpec.CustomHost](../ai.proto.sk/#customhost) | Optional: Send requests to a custom host and port, such as to proxy the request, or to use a different backend that is API-compliant with the upstream version. Note: For AWS Bedrock, if custom_host is set, host_rewrite will be used to override the Host header before signing the request. |
+| `model` | `string` | Optional: Sets the model-id name. If unset, the model name is taken from the request. |
+| `region` | `string` | Required: region string. The region is a string for the standard AWS region for the service that hosts the HTTP endpoint. The `AWS_SIGV4` signing algorithm is currently used by default. For more regions, see the AWS docs <https://docs.aws.amazon.com/general/latest/gr/rande.html> Example: us-west-2 NOTE: Multiple regions are not currently supported. |
+
+
+
+
+---
+### AwsCredentialProvider
+
+ 
+AwsCredentialProvider provider for signing the request.
+
+```yaml
+"secretRef": .core.solo.io.ResourceRef
+"inline": .ai.options.gloo.solo.io.UpstreamSpec.AWSInline
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+| `secretRef` | [.core.solo.io.ResourceRef](../../../../../../../../../solo-kit/api/v1/ref.proto.sk/#resourceref) | Store the ``AWS_ACCESS_KEY_ID``, ``AWS_SECRET_ACCESS_KEY``, and the optional ``AWS_SESSION_TOKEN`` in a Kubernetes secret in the same namespace as the Upstream. Then, refer to the secret in the Upstream configuration. Only one of `secretRef` or `inline` can be set. |
+| `inline` | [.ai.options.gloo.solo.io.UpstreamSpec.AWSInline](../ai.proto.sk/#awsinline) | Uses inlined AWS credentials for``AWS_ACCESS_KEY_ID``, ``AWS_SECRET_ACCESS_KEY``, and the optional ``AWS_SESSION_TOKEN``. Only one of `inline` or `secretRef` can be set. |
+
+
+
+
+---
+### AWSInline
+
+ 
+Configuration to use an inline AWS credential. This is an equivalent to setting the well-known
+environment variables ``AWS_ACCESS_KEY_ID``, ``AWS_SECRET_ACCESS_KEY``, and the optional ``AWS_SESSION_TOKEN``.
+
+```yaml
+"accessKeyId": string
+"secretAccessKey": string
+"sessionToken": string
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+| `accessKeyId` | `string` | The AWS access key ID, which identifies the user and account. |
+| `secretAccessKey` | `string` | The AWS secret access key, which is used to sign the request. |
+| `sessionToken` | `string` | The AWS session token. This value is required only when using temporary credentials, such as from STS or an assumed role. |
+
+
+
+
+---
 ### MultiPool
 
  
@@ -404,17 +476,19 @@ An entry represeting an LLM provider backend that the AI Gateway routes requests
 "azureOpenai": .ai.options.gloo.solo.io.UpstreamSpec.AzureOpenAI
 "gemini": .ai.options.gloo.solo.io.UpstreamSpec.Gemini
 "vertexAi": .ai.options.gloo.solo.io.UpstreamSpec.VertexAI
+"bedrock": .ai.options.gloo.solo.io.UpstreamSpec.Bedrock
 
 ```
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `openai` | [.ai.options.gloo.solo.io.UpstreamSpec.OpenAI](../ai.proto.sk/#openai) | Configure an [OpenAI](https://platform.openai.com/docs/overview) backend. Only one of `openai`, `mistral`, `anthropic`, `azureOpenai`, `gemini`, or `vertexAi` can be set. |
-| `mistral` | [.ai.options.gloo.solo.io.UpstreamSpec.Mistral](../ai.proto.sk/#mistral) | Configure a [Mistral AI](https://docs.mistral.ai/getting-started/quickstart/) backend. Only one of `mistral`, `openai`, `anthropic`, `azureOpenai`, `gemini`, or `vertexAi` can be set. |
-| `anthropic` | [.ai.options.gloo.solo.io.UpstreamSpec.Anthropic](../ai.proto.sk/#anthropic) | Configure an [Anthropic](https://docs.anthropic.com/en/release-notes/api) backend. Only one of `anthropic`, `openai`, `mistral`, `azureOpenai`, `gemini`, or `vertexAi` can be set. |
-| `azureOpenai` | [.ai.options.gloo.solo.io.UpstreamSpec.AzureOpenAI](../ai.proto.sk/#azureopenai) | Configure an [Azure OpenAI](https://learn.microsoft.com/en-us/azure/ai-services/openai/) backend. Only one of `azureOpenai`, `openai`, `mistral`, `anthropic`, `gemini`, or `vertexAi` can be set. |
-| `gemini` | [.ai.options.gloo.solo.io.UpstreamSpec.Gemini](../ai.proto.sk/#gemini) | Configure a [Gemini](https://ai.google.dev/gemini-api/docs) backend. Only one of `gemini`, `openai`, `mistral`, `anthropic`, `azureOpenai`, or `vertexAi` can be set. |
-| `vertexAi` | [.ai.options.gloo.solo.io.UpstreamSpec.VertexAI](../ai.proto.sk/#vertexai) | Configure a [Vertex AI](https://cloud.google.com/vertex-ai/docs) backend. Only one of `vertexAi`, `openai`, `mistral`, `anthropic`, `azureOpenai`, or `gemini` can be set. |
+| `openai` | [.ai.options.gloo.solo.io.UpstreamSpec.OpenAI](../ai.proto.sk/#openai) | Configure an [OpenAI](https://platform.openai.com/docs/overview) backend. Only one of `openai`, `mistral`, `anthropic`, `azureOpenai`, `gemini`, `vertexAi`, or `bedrock` can be set. |
+| `mistral` | [.ai.options.gloo.solo.io.UpstreamSpec.Mistral](../ai.proto.sk/#mistral) | Configure a [Mistral AI](https://docs.mistral.ai/getting-started/quickstart/) backend. Only one of `mistral`, `openai`, `anthropic`, `azureOpenai`, `gemini`, `vertexAi`, or `bedrock` can be set. |
+| `anthropic` | [.ai.options.gloo.solo.io.UpstreamSpec.Anthropic](../ai.proto.sk/#anthropic) | Configure an [Anthropic](https://docs.anthropic.com/en/release-notes/api) backend. Only one of `anthropic`, `openai`, `mistral`, `azureOpenai`, `gemini`, `vertexAi`, or `bedrock` can be set. |
+| `azureOpenai` | [.ai.options.gloo.solo.io.UpstreamSpec.AzureOpenAI](../ai.proto.sk/#azureopenai) | Configure an [Azure OpenAI](https://learn.microsoft.com/en-us/azure/ai-services/openai/) backend. Only one of `azureOpenai`, `openai`, `mistral`, `anthropic`, `gemini`, `vertexAi`, or `bedrock` can be set. |
+| `gemini` | [.ai.options.gloo.solo.io.UpstreamSpec.Gemini](../ai.proto.sk/#gemini) | Configure a [Gemini](https://ai.google.dev/gemini-api/docs) backend. Only one of `gemini`, `openai`, `mistral`, `anthropic`, `azureOpenai`, `vertexAi`, or `bedrock` can be set. |
+| `vertexAi` | [.ai.options.gloo.solo.io.UpstreamSpec.VertexAI](../ai.proto.sk/#vertexai) | Configure a [Vertex AI](https://cloud.google.com/vertex-ai/docs) backend. Only one of `vertexAi`, `openai`, `mistral`, `anthropic`, `azureOpenai`, `gemini`, or `bedrock` can be set. |
+| `bedrock` | [.ai.options.gloo.solo.io.UpstreamSpec.Bedrock](../ai.proto.sk/#bedrock) | Configure a [Bedrock](https://aws.amazon.com/bedrock/) backend. Only one of `bedrock`, `openai`, `mistral`, `anthropic`, `azureOpenai`, `gemini`, or `vertexAi` can be set. |
 
 
 

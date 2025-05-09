@@ -4,7 +4,7 @@ on:
   # allow for version to be manually specified under actions page
   workflow_dispatch: {}
   schedule:
-    # Monday 4am EST so as to hope for this to complete prior to a 9 AM check 
+    # Monday 4am EST so as to hope for this to complete prior to a 9 AM check
     - cron: "0 8 * * 1"
 
 env:
@@ -18,7 +18,7 @@ jobs:
     steps:
       - name: Install Trivy (latest)
         run: |
-          TRIVY_VERSION=$(curl --silent "https://api.github.com/repos/aquasecurity/trivy/releases/latest" | grep '"tag_name":' | sed -E 's/.*"v([^"]+)".*/\1/') 
+          TRIVY_VERSION=$(curl --silent "https://api.github.com/repos/aquasecurity/trivy/releases/latest" | grep '"tag_name":' | sed -E 's/.*"v([^"]+)".*/\1/')
           echo Using Trivy v${TRIVY_VERSION}
           wget https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/trivy_${TRIVY_VERSION}_Linux-64bit.deb
           sudo dpkg -i trivy_${TRIVY_VERSION}_Linux-64bit.deb
@@ -37,8 +37,8 @@ jobs:
         env:
           SCAN_DIR: _output/scans
           IMAGE_REGISTRY: quay.io/solo-io
-          # ON_LTS_UPDATE - bump version
-          MIN_SCANNED_VERSION: 'v1.15.0' # ⚠️ you should also change docs-gen.yaml ⚠️
+          # ON_LTS_UPDATE - bump lts version in the repo variables
+          MIN_SCANNED_VERSION: ${{ vars.LATEST_STABLE_MINUS_THREE_BRANCH }}  # ⚠️ you should also change trivy-analysis-scheduled.yaml ⚠️
         run: |
           mkdir -p $SCAN_DIR
           make run-security-scan

@@ -35,6 +35,7 @@ type CoreCollections struct {
 	AuthConfigCollection        krt.Collection[*extauthkubev1.AuthConfig]
 	RouteOptionCollection       krt.Collection[*gatewaykubev1.RouteOption]
 	VirtualHostOptionCollection krt.Collection[*gatewaykubev1.VirtualHostOption]
+	ListenerOptionCollection    krt.Collection[*gatewaykubev1.ListenerOption]
 }
 
 // K8sGatewayExtensionsFactoryParameters contains the parameters required to start Gloo K8s Gateway Extensions (including Translator Plugins)
@@ -89,6 +90,7 @@ func (e *k8sGatewayExtensions) CreatePluginRegistry(_ context.Context) registry.
 		e.mgr.GetClient(),
 		e.collections.RouteOptionCollection,
 		e.collections.VirtualHostOptionCollection,
+		e.collections.ListenerOptionCollection,
 		e.statusReporter,
 	)
 	return registry.NewPluginRegistry(plugins)

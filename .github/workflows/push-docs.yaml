@@ -44,25 +44,26 @@ jobs:
           version=${{ inputs.branch }}
         fi
         echo "lts=$version" >> $GITHUB_OUTPUT
+    # ON_LTS_UPDATE - bump version
     - name: Set version variables
       id: version-variables
       run: |
         minor=""
         directory=""
         if [[ "${{ steps.lts-version.outputs.lts }}" == "main" ]]; then
-          minor="1.19"
+          minor="1.20"
           directory="main"
-        elif [[ "${{ steps.lts-version.outputs.lts }}" == "v1.19.x" ]]; then
+        elif [[ "${{ steps.lts-version.outputs.lts }}" == "${{ vars.LATEST_STABLE_BRANCH }}" ]]; then
           minor="1.19"
-          directory="main"
-        elif [[ "${{ steps.lts-version.outputs.lts }}" == "v1.18.x" ]]; then
-          minor="1.18"
           directory="latest"
-        elif [[ "${{ steps.lts-version.outputs.lts }}" == "v1.17.x" ]]; then
+        elif [[ "${{ steps.lts-version.outputs.lts }}" == "${{ vars.LATEST_STABLE_MINUS_ONE_BRANCH }}" ]]; then
+          minor="1.18"
+          directory="${{ vars.LATEST_STABLE_MINUS_ONE_BRANCH }}"
+        elif [[ "${{ steps.lts-version.outputs.lts }}" == "${{ vars.LATEST_STABLE_MINUS_TWO_BRANCH }}" ]]; then
           minor="1.17"
-          directory="1.17.x"
+          directory="${{ vars.LATEST_STABLE_MINUS_TWO_BRANCH }}"
         else
-          minor="1.19"
+          minor="1.20"
           directory="main"
         fi
         echo "minor=${minor}" >> $GITHUB_OUTPUT
@@ -136,6 +137,8 @@ jobs:
       run: |
         pushd docs || exit 1
         cp ../gloo/docs/content/reference/cli/glooctl_check.md content/en/gateway/${{ steps.version-variables.outputs.directory }}/reference/cli/glooctl_check.md
+        cp ../gloo/docs/content/reference/cli/glooctl_debug.md content/en/gateway/${{ steps.version-variables.outputs.directory }}/reference/cli/glooctl_debug.md
+        cp ../gloo/docs/content/reference/cli/glooctl_debug_yaml.md content/en/gateway/${{ steps.version-variables.outputs.directory }}/reference/cli/glooctl_debug_yaml.md
         cp ../gloo/docs/content/reference/cli/glooctl_install_gateway.md content/en/gateway/${{ steps.version-variables.outputs.directory }}/reference/cli/glooctl_install_gateway.md
         cp ../gloo/docs/content/reference/cli/glooctl_install_gateway_enterprise.md content/en/gateway/${{ steps.version-variables.outputs.directory }}/reference/cli/glooctl_install_gateway_enterprise.md
         cp ../gloo/docs/content/reference/cli/glooctl_uninstall.md content/en/gateway/${{ steps.version-variables.outputs.directory }}/reference/cli/glooctl_uninstall.md
