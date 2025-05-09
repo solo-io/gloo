@@ -9,6 +9,9 @@ on:
       branch:
         description: 'LTS branch to execute the workflow for, such as v1.17.x, or main. Supported ONLY for v1.17.x and later (1.16.x and earlier are not in the new docs repo).'
         required: true
+      tag:
+        description: 'Version tag, such as v1.18.1-beta3'
+        required: true
   repository_dispatch:
     types: [glooe-release-created]
 
@@ -21,9 +24,10 @@ jobs:
       - name: The glooe-release-created event is received when a relase is cut in solo-projects repo
         id: dispatch-receiver
         run: |
-          dispatch_lts=""
-          payload="${{ github.event.client_payload.lts }}"
-          echo "dispatch_lts=$payload" >> $GITHUB_OUTPUT
+          dispatch_lts="${{ github.event.client_payload.lts }}"
+          dispatch_tag="${{ github.event.client_payload.tag }}"
+          echo "dispatch_lts=$dispatch_lts" >> $GITHUB_OUTPUT
+          echo "dispatch_tag=$dispatch_tag" >> $GITHUB_OUTPUT
 
   copy-docs:
     runs-on: ubuntu-latest
@@ -44,6 +48,7 @@ jobs:
           version=${{ inputs.branch }}
         fi
         echo "lts=$version" >> $GITHUB_OUTPUT
+    # ON_LTS_UPDATE - bump version
     - name: Set version variables
       id: version-variables
       run: |
@@ -64,7 +69,27 @@ jobs:
         else
           minor="1.19"
           directory="main"
-        fi
+        fi        
+        # USE THIS SECTION AFTER 1.19.0 IS CUT
+        # We do not yet have a docs directory for 1.20 bc for docs, 1.19 is still considered 'main'
+        # and 1.18 'latest' until 1.19.0 is cut. For that reason we can't yet flip 1.20 to main
+        # and 1.19 to latest. Can switch to the following though after 1.19.0 is cut.
+        # if [[ "${{ steps.lts-version.outputs.lts }}" == "main" ]]; then
+        #   minor="1.20"
+        #   directory="main"
+        # elif [[ "${{ steps.lts-version.outputs.lts }}" == "${{ vars.LATEST_STABLE_BRANCH }}" ]]; then
+        #   minor="1.19"
+        #   directory="latest"
+        # elif [[ "${{ steps.lts-version.outputs.lts }}" == "${{ vars.LATEST_STABLE_MINUS_ONE_BRANCH }}" ]]; then
+        #   minor="1.18"
+        #   directory="${{ vars.LATEST_STABLE_MINUS_ONE_BRANCH }}"
+        # elif [[ "${{ steps.lts-version.outputs.lts }}" == "${{ vars.LATEST_STABLE_MINUS_TWO_BRANCH }}" ]]; then
+        #   minor="1.17"
+        #   directory="${{ vars.LATEST_STABLE_MINUS_TWO_BRANCH }}"
+        # else
+        #   minor="1.20"
+        #   directory="main"
+        # fi
         echo "minor=${minor}" >> $GITHUB_OUTPUT
         echo "directory=${directory}" >> $GITHUB_OUTPUT
     - name: Checkout docs repo
@@ -82,6 +107,43 @@ jobs:
         token: ${{ secrets.DOCS_TOKEN }}
         path: gloo
         ref: ${{ steps.lts-version.outputs.lts }}
+    # Searches in the version conrefs (assets/conrefs/versions) for any instances of the previous tag for the minor version, like 1.19.0-beta3, and replaces them with the current tag, like 1.19.0-beta4.
+    - name: Bump version conrefs
+      run: |
+        pushd docs || exit 1
+
+        MINOR_VERSION="${{ steps.version-variables.outputs.minor }}"
+        NEW_VERSION="${{ github.event.release.tag_name || inputs.tag || needs.receiver.outputs.dispatch_tag }}"
+        TARGET_DIR="assets/conrefs/versions"
+
+        # Escape periods in minor version (e.g., 1.19 → 1\.19)
+        MINOR_VERSION_ESCAPED="${MINOR_VERSION//./\\.}"
+
+        # Remove leading 'v' from new version if present
+        if [[ "$NEW_VERSION" == v* ]]; then
+          TRIMMED_NEW_VERSION="${NEW_VERSION:1}"
+        else
+          TRIMMED_NEW_VERSION="$NEW_VERSION"
+        fi
+        
+        # Escape & in replacement string for sed
+        SAFE_NEW_VERSION="${TRIMMED_NEW_VERSION//&/\\&}"
+        OLD_VERSION_REGEX="}}${MINOR_VERSION_ESCAPED}\\.\\d+(?:-[a-zA-Z0-9]+)?\\{\\{"
+
+        # Determine file pattern based on NEW_VERSION
+        if [[ "$NEW_VERSION" == "${{ needs.receiver.outputs.dispatch_tag }}" ]]; then
+          FILE_PATTERN="gloo_oss_*.md"
+        else
+          FILE_PATTERN="gloo_patch_*.md"
+        fi
+
+        # Run sed replacement on matching files
+        find "$TARGET_DIR" -type f -name "$FILE_PATTERN" -exec \
+          sed -E -i "s/\}\}${MINOR_VERSION_ESCAPED}\.[0-9]+(-[a-zA-Z0-9]+)?\{\{/}}${SAFE_NEW_VERSION}{{/g" {} \;
+
+        echo "Replaced versions matching '$OLD_VERSION_REGEX' with '$TRIMMED_NEW_VERSION' in $TARGET_DIR/$FILE_PATTERN"
+
+        popd || exit 1
     - name: Generate docs
       env:
         GITHUB_TOKEN: ${{ secrets.DOCS_TOKEN }}
