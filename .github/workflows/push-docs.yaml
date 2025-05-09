@@ -55,22 +55,41 @@ jobs:
         minor=""
         directory=""
         if [[ "${{ steps.lts-version.outputs.lts }}" == "main" ]]; then
-          minor="1.20"
-          directory="main"
-        elif [[ "${{ steps.lts-version.outputs.lts }}" == "${{ vars.LATEST_STABLE_BRANCH }}" ]]; then
           minor="1.19"
-          directory="latest"
-        elif [[ "${{ steps.lts-version.outputs.lts }}" == "${{ vars.LATEST_STABLE_MINUS_ONE_BRANCH }}" ]]; then
-          minor="1.18"
-          directory="${{ vars.LATEST_STABLE_MINUS_ONE_BRANCH }}"
-        elif [[ "${{ steps.lts-version.outputs.lts }}" == "${{ vars.LATEST_STABLE_MINUS_TWO_BRANCH }}" ]]; then
-          minor="1.17"
-          directory="${{ vars.LATEST_STABLE_MINUS_TWO_BRANCH }}"
-        else
-          minor="1.20"
           directory="main"
-        fi
-        echo "minor=${minor}" >> $GITHUB_OUTPUT
+        elif [[ "${{ steps.lts-version.outputs.lts }}" == "v1.19.x" ]]; then
+          minor="1.19"
+          directory="main"
+        elif [[ "${{ steps.lts-version.outputs.lts }}" == "v1.18.x" ]]; then
+          minor="1.18"
+          directory="latest"
+        elif [[ "${{ steps.lts-version.outputs.lts }}" == "v1.17.x" ]]; then
+          minor="1.17"
+          directory="1.17.x"
+        else
+          minor="1.19"
+          directory="main"
+        fi        
+        # USE THIS SECTION AFTER 1.19.0 IS CUT
+        # We do not yet have a docs directory for 1.20 bc for docs, 1.19 is still considered 'main'
+        # and 1.18 'latest' until 1.19.0 is cut. For that reason we can't yet flip 1.20 to main
+        # and 1.19 to latest. Can switch to the following though after 1.19.0 is cut.
+        # if [[ "${{ steps.lts-version.outputs.lts }}" == "main" ]]; then
+        #   minor="1.20"
+        #   directory="main"
+        # elif [[ "${{ steps.lts-version.outputs.lts }}" == "${{ vars.LATEST_STABLE_BRANCH }}" ]]; then
+        #   minor="1.19"
+        #   directory="latest"
+        # elif [[ "${{ steps.lts-version.outputs.lts }}" == "${{ vars.LATEST_STABLE_MINUS_ONE_BRANCH }}" ]]; then
+        #   minor="1.18"
+        #   directory="${{ vars.LATEST_STABLE_MINUS_ONE_BRANCH }}"
+        # elif [[ "${{ steps.lts-version.outputs.lts }}" == "${{ vars.LATEST_STABLE_MINUS_TWO_BRANCH }}" ]]; then
+        #   minor="1.17"
+        #   directory="${{ vars.LATEST_STABLE_MINUS_TWO_BRANCH }}"
+        # else
+        #   minor="1.20"
+        #   directory="main"
+        # fi        echo "minor=${minor}" >> $GITHUB_OUTPUT
         echo "directory=${directory}" >> $GITHUB_OUTPUT
     - name: Checkout docs repo
       uses: actions/checkout@v4
