@@ -50,7 +50,9 @@ Review the following changes made to Gloo Gateway in version {{< readfile file="
 
 In version 1.18.7 and later, a bug was identified in the Gloo Gateway control plane and discovery pods. If you configured Gloo Gateway to write and discover configuration in a namespace that is different from the Gloo Gateway installation namespace by using the `gloo.settings.writeNamespace` and `gloo.settings.discoveryNamespace` settings in your Helm values file, the control plane and discovery pods go into a `CrashLoopBackOff` state. 
 
-Users that currently configure a `writeNamespace` or `discoveryNamespace` are advised to not upgrade to version 1.18.7. 
+{{% notice warning %}}
+Users that currently configure a `writeNamespace` or `discoveryNamespace` are advised to not upgrade to versions 1.18.7 - 1.18.10. Note that this bug is fixed in version 1.18.11.  
+{{% /notice %}}
 
 For example, if Gloo Gateway is installed in the `gloo-system` namespace, but you configured the `writeNamespace` and `discoveryNamespace` to be `gg-write`, you see errors similar to the following:
 
@@ -72,8 +74,6 @@ Discovery pod example:
 │ discovery/pkg/fds/setup.Main\n\t/home/runner/work/solo-projects/solo-projects/projects/discovery/pkg/fds/setup/setup.go:14\nmain.run.func2\n\t/home/runner/work/solo-projects/solo-projects/projects/discovery/cmd │
 │ /main.go:23"}
 ```
-
-Note that this bug is planned to be fixed in a future release. 
 
 **Envoy version 1.31 upgrade**
 
