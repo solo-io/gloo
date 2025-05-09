@@ -21,9 +21,10 @@ jobs:
       - name: The glooe-release-created event is received when a relase is cut in solo-projects repo
         id: dispatch-receiver
         run: |
-          dispatch_lts=""
-          payload="${{ github.event.client_payload.lts }}"
-          echo "dispatch_lts=$payload" >> $GITHUB_OUTPUT
+          dispatch_lts="${{ github.event.client_payload.lts }}"
+          dispatch_tag="${{ github.event.client_payload.tag }}"
+          echo "dispatch_lts=$dispatch_lts" >> $GITHUB_OUTPUT
+          echo "dispatch_tag=$dispatch_tag" >> $GITHUB_OUTPUT
 
   copy-docs:
     runs-on: ubuntu-latest
@@ -83,6 +84,43 @@ jobs:
         token: ${{ secrets.DOCS_TOKEN }}
         path: gloo
         ref: ${{ steps.lts-version.outputs.lts }}
+    # Searches in the version conrefs (assets/conrefs/versions) for any instances of the previous tag for the minor version, like 1.19.0-beta3, and replaces them with the current tag, like 1.19.0-beta4.
+    - name: Bump version conrefs
+      run: |
+        pushd docs || exit 1
+
+        MINOR_VERSION="${{ steps.version-variables.outputs.minor }}"
+        NEW_VERSION="${{ github.event.release.tag_name || inputs.tag || needs.receiver.outputs.dispatch_tag }}"
+        TARGET_DIR="assets/conrefs/versions"
+
+        # Escape periods in minor version (e.g., 1.19 → 1\.19)
+        MINOR_VERSION_ESCAPED="${MINOR_VERSION//./\\.}"
+
+        # Remove leading 'v' from new version if present
+        if [[ "$NEW_VERSION" == v* ]]; then
+          TRIMMED_NEW_VERSION="${NEW_VERSION:1}"
+        else
+          TRIMMED_NEW_VERSION="$NEW_VERSION"
+        fi
+        
+        # Escape & in replacement string for sed
+        SAFE_NEW_VERSION="${TRIMMED_NEW_VERSION//&/\\&}"
+        OLD_VERSION_REGEX="}}${MINOR_VERSION_ESCAPED}\\.\\d+(?:-[a-zA-Z0-9]+)?\\{\\{"
+
+        # Determine file pattern based on NEW_VERSION
+        if [[ "$NEW_VERSION" == "${{ needs.receiver.outputs.dispatch_tag }}" ]]; then
+          FILE_PATTERN="gloo_oss_*.md"
+        else
+          FILE_PATTERN="gloo_patch_*.md"
+        fi
+
+        # Run sed replacement on matching files
+        find "$TARGET_DIR" -type f -name "$FILE_PATTERN" -exec \
+          sed -E -i "s/\}\}${MINOR_VERSION_ESCAPED}\.[0-9]+(-[a-zA-Z0-9]+)?\{\{/}}${SAFE_NEW_VERSION}{{/g" {} \;
+
+        echo "Replaced versions matching '$OLD_VERSION_REGEX' with '$TRIMMED_NEW_VERSION' in $TARGET_DIR/$FILE_PATTERN"
+
+        popd || exit 1
     - name: Generate docs
       env:
         GITHUB_TOKEN: ${{ secrets.DOCS_TOKEN }}
