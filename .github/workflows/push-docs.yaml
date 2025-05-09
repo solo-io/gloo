@@ -9,6 +9,9 @@ on:
       branch:
         description: 'LTS branch to execute the workflow for, such as v1.17.x, or main. Supported ONLY for v1.17.x and later (1.16.x and earlier are not in the new docs repo).'
         required: true
+      tag:
+        description: 'Version tag, such as v1.18.1-beta3'
+        required: true
   repository_dispatch:
     types: [glooe-release-created]
 
