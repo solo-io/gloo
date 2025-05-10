@@ -276,9 +276,9 @@ Starting with Gloo Gateway 1.15, extractors support multiple different modes of 
 
 |Mode|Description|Configuration validation|
 |--|--|--|
-|`EXTRACT` (default)|Extract the value of the specified capturing group from the source. This is the standard behavior of extractors prior to this version. The `regex` expression must match the entire source. Only the value in the specified `subgroup` is extracted. |If the extractor mode is set to `Extract`, the `replacement_text` must not be set. If set, the configuration is rejected.|
-|`SINGLE_REPLACE`|Replace the value of the n-th capturing group, where n is the value selected by `subgroup`, with the text specified in `replacement_text`. The `regex` expression must match the entire source for the replacement to work. The `subgroup` specifies which part of the match to replace.|The `replacement_text` must be set. If not set, the configuration is rejected.|
-|`REPLACE_ALL`|Replace all occurrences of the pattern specified in the `regex` field within the source with the text specified in `replacement_text`. The `regex` can match any part of the source. All matches are replaced.|The `subgroup` field must not be set. If set, the configuration is rejected. In addition, the `replacement_text` must be set. If not set, the configuration is rejected.  |
+|`EXTRACT` (default)|Extract the value of the specified capturing group from the source. This is the standard behavior of extractors prior to this version. The `regex` expression must match the entire source. Only the value in the specified `subgroup` is extracted. |If the extractor mode is set to `Extract`, the `replacementText` must not be set. If set, the configuration is rejected.|
+|`SINGLE_REPLACE`|Replace the value of the n-th capturing group, where n is the value selected by `subgroup`, with the text specified in `replacementText`. The `regex` expression must match the entire source for the replacement to work. The `subgroup` specifies which part of the match to replace.|The `replacementText` must be set. If not set, the configuration is rejected.|
+|`REPLACE_ALL`|Replace all occurrences of the pattern specified in the `regex` field within the source with the text specified in `replacementText`. The `regex` can match any part of the source. All matches are replaced.|The `subgroup` field must not be set. If set, the configuration is rejected. In addition, the `replacementText` must be set. If not set, the configuration is rejected.  |
 
 ##### Extractor Example - Single Replace Mode
 
@@ -290,7 +290,7 @@ extractors:
   BananaToOrange:
     body: {}
     mode: SINGLE_REPLACE
-    replacement_text: 'orange'
+    replacementText: 'orange'
     regex: '.*(banana).*'
     subgroup: 1
 body: 
@@ -302,9 +302,9 @@ In this configuration:
  - `body: {}` indicates that the request/response body will be used as input to the extractor.
  - `regex: '.*(banana).*'` is designed to match the entire source, and capture the word `banana` in the first capturing group.
  - `mode: SINGLE_REPLACE` specifies the operation mode, indicating a single replace operation.
- - `replacement_text: 'orange'` replaces the content in the first capturing group with the text `orange`.
+ - `replacementText: 'orange'` replaces the content in the first capturing group with the text `orange`.
  - `subgroup: 1` specifies that the replacement should only apply to the first captured group, which is banana in this case.
- - `body.text` adds the string with the `replacement_text` text back to the body.
+ - `body.text` adds the string with the `replacementText` text back to the body.
 
 In this case, if the extractor processes a body containing the text `Fruits: [apple, pear, banana, pineapple]`
 
@@ -319,7 +319,7 @@ extractors:
     body: {}
     regex: 'foo'
     mode: REPLACE_ALL
-    replacement_text: 'bar'
+    replacementText: 'bar'
 body: 
   text: '{{ FooToBar }}'
 ```
@@ -329,8 +329,8 @@ In this configuration:
  - `body: {}` indicates that the request/response body will be used as input to the extractor.
  - `regex: 'foo'` specifies the pattern to match.
  - `mode: REPLACE_ALL` specifies the mode of operation.
- - `replacement_text: 'bar'` specifies the text to replace the matched pattern with.
- - `body.text` adds the string with the `replacement_text` text back to the body.
+ - `replacementText: 'bar'` specifies the text to replace the matched pattern with.
+ - `body.text` adds the string with the `replacementText` text back to the body.
 
 In this case, if the extractor processes a body containing the text `foo foo foo`, the result will be `bar bar bar`.
 
