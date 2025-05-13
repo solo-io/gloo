@@ -1,6 +1,5 @@
 changelog:
   - type: NON_USER_FACING
-    issueLink:
     resolvesIssue: false
     description: >-
       Allow name of kube context to be changed via env variable
