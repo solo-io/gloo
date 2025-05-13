@@ -4,4 +4,3 @@ changelog:
     Bump changelog to v1.19.0 GA release
 
     skipCI-kube-tests:true
-    skipCI-docs-build:true
