@@ -394,9 +394,8 @@ spec:
               endpoint: otel-collector.default.svc.cluster.local:4317
 ```
 
-{{% notice note %}}
-You may want to add additional configuration for the {{% protobuf name="als.options.gloo.solo.io.OpenTelemetryService" display="openTelemetryService"%}}.
-{{% /notice %}}
+For more information and additional settings, see the [Access log API]({{< versioned_link_path fromRoot="/reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/options/als/als.proto.sk/#opentelemetryservice" >}}).
+
 
 ## Configuring multiple access logs 
 

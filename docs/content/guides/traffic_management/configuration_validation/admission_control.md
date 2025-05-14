@@ -227,6 +227,98 @@ EOF
    , error: command ""/usr/local/bin/envoy" "--mode" "validate" "--config-path" "/dev/fd/0" "-l" "critical" "--log-format" "%v"" failed with error: exit status 1
    ```
 
+## Exclude resources from validation
+
+When you enable resource validation, all supported resource types are automatically scanned and validated when you attempt to create, update, or delete them. However, you might not want all of the resources to be validated, but instead want to explicitly exclude certain resource types or resources with specific labels. You can set match conditions in your resource validation configuration to accomplish this task. 
+
+Match conditions are written in [CEL](https://cel.dev). To target a particular resource, your CEL expression must adhere to the syntax of the validation API. For more information, see the [Validation API reference](#validation-api-reference).
+
+For more information about how to use the match conditions in the validation webhook and find other match condition examples, see the [Kubernetes documentation](https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/#matching-requests-matchconditions). 
+
+1. Follow the [steps to enable resource validation](#enable-strict-resource-validation). 
+2. Try to create an invalid Gateway resource and verify that the resource configuration is denied. 
+   ```yaml
+   kubectl apply --dry-run=server -f- <<EOF 
+   apiVersion: gateway.solo.io/v1
+   kind: Gateway
+   metadata:
+     name: gateway-without-type
+     namespace: gloo-system
+   spec:
+     bindAddress: '::'
+   EOF
+   ```
+   
+   Example output: 
+   ```
+   Error from server: error when creating "STDIN": admission webhook "gloo.gloo-system.svc" denied the request: resource incompatible with current Gloo snapshot: [Validating *v1.Gateway failed: 1 error occurred:
+    * Validating *v1.Gateway failed: validating *v1.Gateway name:"gateway-without-type"  namespace:"gloo-system": could not render proxy: 2 errors occurred:
+    * invalid resource gloo-system.gateway-without-type
+    * invalid gateway: gateway must contain gatewayType
+   ```
+
+3. Add a match condition to your Gloo Gateway installation to exclude Gateways from being validated. In this example, you exclude all Gateway resources with a `gateway.solo.io` API group that also have a `foo` label. 
+   1. In your Helm values file, add the following values. 
+      ```yaml
+      gloo:
+        gateway:
+          validation:
+            enabled: true
+            alwaysAcceptResources: false  
+            failurePolicy: Fail 
+            matchConditions:
+            - name: skip-gateways
+              expression: '!(request.kind.group == "gateway.solo.io" && request.kind.kind == "Gateway" && "labels" in object.metadata && "foo" in object.metadata.labels)'  
+      ```
+   2. Upgrade your Gloo Gateway installation. 
+      ```sh
+      helm upgrade -n gloo-system gloo glooe/gloo-ee \
+      --values gloo-gateway.yaml \
+      --version {{< readfile file="static/content/version_gee_latest.md" markdown="true">}}
+      ```
+
+4. Try to apply the same Gateway resource again. Verify that the Gateway is still denied. Because the resource does not have a `foo` label, it does not match the matching condition. 
+   ```yaml
+   kubectl apply --dry-run=server -f- <<EOF 
+   apiVersion: gateway.solo.io/v1
+   kind: Gateway
+   metadata:
+     name: gateway-without-type
+     namespace: gloo-system
+   spec:
+     bindAddress: '::'
+   EOF
+   ```
+   
+   Example output: 
+   ```
+   Error from server: error when creating "STDIN": admission webhook "gloo.gloo-system.svc" denied the request: resource incompatible with current Gloo snapshot: [Validating *v1.Gateway failed: 1 error occurred:
+    * Validating *v1.Gateway failed: validating *v1.Gateway name:"gateway-without-type"  namespace:"gloo-system": could not render proxy: 2 errors occurred:
+    * invalid resource gloo-system.gateway-without-type
+    * invalid gateway: gateway must contain gatewayType
+   ```
+
+5. Apply the Gateway with a `foo` label. This time, the matching condition is met and the resource is excluded from validation. 
+   ```yaml
+   kubectl apply --dry-run=server -f- <<EOF 
+   apiVersion: gateway.solo.io/v1
+   kind: Gateway
+   metadata:
+     name: gateway-without-type
+     namespace: gloo-system
+     labels: 
+       foo: bar
+   spec:
+     bindAddress: '::'
+   EOF
+   ```
+   
+   Example output: 
+   ```
+   gateway.gateway.solo.io/gateway-without-type created (server dry run)
+   ```
+
+
 ## View the current validating admission webhook configuration
 
 You can check whether strict or permissive validation is enabled in your Gloo Gateway installation by checking the {{< protobuf name="gloo.solo.io.Settings" display="Settings">}} resource. 

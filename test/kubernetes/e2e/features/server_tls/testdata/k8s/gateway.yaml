@@ -19,6 +19,18 @@ spec:
           from: All
     - protocol: HTTPS
       port: 443
+      name: other
+      hostname: "other.example.com"
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: tls-secret-2
+            kind: Secret
+      allowedRoutes:
+        namespaces:
+          from: All
+    - protocol: HTTPS
+      port: 443
       name: oneway
       hostname: "oneway.example.com"
       tls:

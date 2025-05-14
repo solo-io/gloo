@@ -123,14 +123,11 @@ func (ml *MergedListeners) appendHttpListener(
 	fc := &httpFilterChain{
 		parents: []httpFilterChainParent{parent},
 	}
-	listenerName := generateListenerName(listener, listenerSet)
+	listenerName := generateListenerName(listener)
 	finalPort := gwv1.PortNumber(ports.TranslatePort(uint16(listener.Port)))
 
 	for _, lis := range ml.Listeners {
 		if lis.port == finalPort {
-			// concatenate the names on the parent output listener/filterchain
-			// TODO is this valid listener name?
-			lis.name += "~" + listenerName
 			if lis.httpFilterChain != nil {
 				lis.httpFilterChain.parents = append(lis.httpFilterChain.parents, parent)
 			} else {
@@ -172,12 +169,9 @@ func (ml *MergedListeners) appendHttpsListener(
 	// during both lookup and when appending the listener.
 	finalPort := gwv1.PortNumber(ports.TranslatePort(uint16(listener.Port)))
 
-	listenerName := generateListenerName(listener, listenerSet)
+	listenerName := generateListenerName(listener)
 	for _, lis := range ml.Listeners {
 		if lis.port == finalPort {
-			// concatenate the names on the parent output listener
-			// TODO is this valid listener name?
-			lis.name += "~" + listenerName
 			lis.httpsFilterChains = append(lis.httpsFilterChains, mfc)
 			return
 		}
@@ -233,13 +227,11 @@ func (ml *MergedListeners) AppendTcpListener(
 	fc := tcpFilterChain{
 		parents: []tcpFilterChainParent{parent},
 	}
-	listenerName := generateListenerName(listener, listenerSet)
+	listenerName := generateListenerName(listener)
 	finalPort := gwv1.PortNumber(ports.TranslatePort(uint16(listener.Port)))
 
 	for _, lis := range ml.Listeners {
 		if lis.port == finalPort {
-			// concatenate the names on the parent output listener
-			lis.name += "~" + listenerName
 			lis.TcpFilterChains = append(lis.TcpFilterChains, fc)
 			return
 		}
@@ -396,13 +388,11 @@ func (ml *MergedListeners) AppendTlsListener(
 		tls:       listener.TLS,
 		sniDomain: listener.Hostname,
 	}
-	listenerName := generateListenerName(listener, listenerSet)
+	listenerName := generateListenerName(listener)
 	finalPort := gwv1.PortNumber(ports.TranslatePort(uint16(listener.Port)))
 
 	for _, lis := range ml.Listeners {
 		if lis.port == finalPort {
-			// concatenate the names on the parent output listener
-			lis.name += "~" + listenerName
 			lis.TcpFilterChains = append(lis.TcpFilterChains, fc)
 			return
 		}
@@ -940,10 +930,7 @@ func makeVhostName(
 	return utils.SanitizeForEnvoy(ctx, parentName+"~"+domain, "vHost")
 }
 
-func generateListenerName(listener gwv1.Listener, listenerSet *gwxv1a1.XListenerSet) string {
-	listenerName := string(listener.Name)
-	if listenerSet != nil {
-		listenerName = query.GenerateRouteKey(listenerSet, string(listener.Name))
-	}
-	return listenerName
+func generateListenerName(listener gwv1.Listener) string {
+	// Add a ~ to make sure the name won't collide with user provided names in other listeners
+	return fmt.Sprintf("listener~%d", listener.Port)
 }
