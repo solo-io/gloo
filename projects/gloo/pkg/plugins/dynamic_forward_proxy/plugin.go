@@ -122,6 +122,7 @@ func generateCustomDynamicForwardProxyCluster(listenerCfg *dynamic_forward_proxy
 					MaxPendingRequests: &wrappers.UInt32Value{Value: 12345},
 					MaxRequests:        &wrappers.UInt32Value{Value: 12345},
 					MaxRetries:         &wrappers.UInt32Value{Value: 12345},
+					TrackRemaining:     true,
 				},
 			},
 		},
