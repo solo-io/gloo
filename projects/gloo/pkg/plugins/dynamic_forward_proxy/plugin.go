@@ -118,10 +118,10 @@ func generateCustomDynamicForwardProxyCluster(listenerCfg *dynamic_forward_proxy
 		CircuitBreakers: &envoy_config_cluster_v3.CircuitBreakers{
 			Thresholds: []*envoy_config_cluster_v3.CircuitBreakers_Thresholds{
 				{
-					MaxConnections:     &wrappers.UInt32Value{Value: 1},
-					MaxPendingRequests: &wrappers.UInt32Value{Value: 1},
-					MaxRequests:        &wrappers.UInt32Value{Value: 1},
-					MaxRetries:         &wrappers.UInt32Value{Value: 1},
+					MaxConnections:     &wrappers.UInt32Value{Value: 5},
+					MaxPendingRequests: &wrappers.UInt32Value{Value: 5},
+					MaxRequests:        &wrappers.UInt32Value{Value: 5},
+					MaxRetries:         &wrappers.UInt32Value{Value: 5},
 					TrackRemaining:     true,
 					Priority:           envoy_config_core_v3.RoutingPriority(envoy_config_core_v3.RoutingPriority_HIGH),
 				},
