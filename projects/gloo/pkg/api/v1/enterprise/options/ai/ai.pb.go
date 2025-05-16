@@ -26,6 +26,9 @@ const (
 )
 
 // The type of publisher model to use. Currently, only Google is supported.
+// {{% notice note %}}
+// The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/1.18.x/ai/). It is not supported with the Gloo Edge API.
+// {{% /notice %}}
 type UpstreamSpec_VertexAI_Publisher int32
 
 const (
@@ -70,6 +73,9 @@ func (UpstreamSpec_VertexAI_Publisher) EnumDescriptor() ([]byte, []int) {
 }
 
 // The type of route to the LLM provider API.
+// {{% notice note %}}
+// The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/1.18.x/ai/). It is not supported with the Gloo Edge API.
+// {{% /notice %}}
 type RouteSettings_RouteType int32
 
 const (
@@ -119,6 +125,9 @@ func (RouteSettings_RouteType) EnumDescriptor() ([]byte, []int) {
 }
 
 // The caching mode to use for the request and response lifecycle.
+// {{% notice note %}}
+// The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/1.18.x/ai/). It is not supported with the Gloo Edge API.
+// {{% /notice %}}
 type SemanticCache_Mode int32
 
 const (
@@ -171,6 +180,9 @@ func (SemanticCache_Mode) EnumDescriptor() ([]byte, []int) {
 // Built-in regex patterns for specific types of strings in prompts.
 // For example, if you specify `CREDIT_CARD`, any credit card numbers
 // in the request or response are matched.
+// {{% notice note %}}
+// The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/1.18.x/ai/). It is not supported with the Gloo Edge API.
+// {{% /notice %}}
 type AIPromptGuard_Regex_BuiltIn int32
 
 const (
@@ -229,6 +241,9 @@ func (AIPromptGuard_Regex_BuiltIn) EnumDescriptor() ([]byte, []int) {
 
 // The action to take if a regex pattern is matched in a request or response.
 // This setting applies only to request matches. Response matches are always masked by default.
+// {{% notice note %}}
+// The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/1.18.x/ai/). It is not supported with the Gloo Edge API.
+// {{% /notice %}}
 type AIPromptGuard_Regex_Action int32
 
 const (
@@ -278,6 +293,9 @@ func (AIPromptGuard_Regex_Action) EnumDescriptor() ([]byte, []int) {
 }
 
 // The header string match type.
+// {{% notice note %}}
+// The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/1.18.x/ai/). It is not supported with the Gloo Edge API.
+// {{% /notice %}}
 type AIPromptGuard_Webhook_HeaderMatch_MatchType int32
 
 const (
@@ -340,6 +358,9 @@ func (AIPromptGuard_Webhook_HeaderMatch_MatchType) EnumDescriptor() ([]byte, []i
 
 // The authorization token that the AI gateway uses to access the LLM provider API.
 // This token is automatically sent in a request header, depending on the LLM provider.
+// {{% notice note %}}
+// The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/1.18.x/ai/). It is not supported with the Gloo Edge API.
+// {{% /notice %}}
 type SingleAuthToken struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -454,12 +475,12 @@ func (*SingleAuthToken_Passthrough_) isSingleAuthToken_AuthTokenSource() {}
 // and prompt enrichment, are configured at the route level in the
 // [`spec.options.ai` section of the RouteOptions resource](#routesettings).
 //
-// To get started, see [About Gloo AI Gateway]({{% versioned_link_path fromRoot="/ai/overview/" %}}).
+// To get started, see [About Gloo AI Gateway](https://docs.solo.io/gateway/1.18.x/ai/overview/).
 // For more information about the Upstream resource, see the
 // [API reference]({{% versioned_link_path fromRoot="/reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/upstream.proto.sk/" %}}).
 //
 // {{% notice note %}}
-// AI Gateway is an Enterprise-only feature that requires a Gloo Gateway Enterprise license with an AI Gateway add-on.
+// The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/1.18.x/ai/). It is not supported with the Gloo Edge API.
 // {{% /notice %}}
 type UpstreamSpec struct {
 	state         protoimpl.MessageState
@@ -623,6 +644,10 @@ func (*UpstreamSpec_VertexAi) isUpstreamSpec_Llm() {}
 // retrieval augmented generation (RAG), and semantic caching, are applicable only
 // for routes that send requests to an LLM provider backend.
 //
+// {{% notice note %}}
+// The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/1.18.x/ai/). It is not supported with the Gloo Edge API.
+// {{% /notice %}}
+//
 // For more information about the RouteOptions resource, see the
 // [API reference]({{% versioned_link_path fromRoot="/reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/route_options.proto.sk/" %}}).
 type RouteSettings struct {
@@ -728,6 +753,10 @@ func (x *RouteSettings) GetRouteType() RouteSettings_RouteType {
 // Provide defaults to merge with user input fields.
 // Defaults do _not_ override the user input fields, unless you explicitly set `override` to `true`.
 //
+// {{% notice note %}}
+// The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/1.18.x/ai/). It is not supported with the Gloo Edge API.
+// {{% /notice %}}
+//
 // Example overriding the system field for Anthropic:
 // ```yaml
 // # Anthropic doesn't support a system chat type
@@ -812,6 +841,9 @@ func (x *FieldDefault) GetOverride() bool {
 }
 
 // Configuration settings for a Postgres datastore.
+// {{% notice note %}}
+// The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/1.18.x/ai/). It is not supported with the Gloo Edge API.
+// {{% /notice %}}
 type Postgres struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -870,6 +902,9 @@ func (x *Postgres) GetCollectionName() string {
 }
 
 // Configuration of the API used to generate the embedding.
+// {{% notice note %}}
+// The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/1.18.x/ai/). It is not supported with the Gloo Edge API.
+// {{% /notice %}}
 type Embedding struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -957,6 +992,10 @@ func (*Embedding_AzureOpenai) isEmbedding_Embedding() {}
 // Results might vary depending on the embedding mechanism used, as well
 // as the similarity threshold set. Semantic caching reduces the number of requests
 // to the LLM provider, improves the response time, and reduces costs.
+//
+// {{% notice note %}}
+// The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/1.18.x/ai/). It is not supported with the Gloo Edge API.
+// {{% /notice %}}
 //
 // Example configuring a route to use a `redis` datastore and OpenAI for RAG:
 // ```yaml
@@ -1066,6 +1105,10 @@ func (x *SemanticCache) GetDistanceThreshold() float32 {
 // This can be used to improve the quality of the generated text.
 //
 // {{% notice note %}}
+// The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/1.18.x/ai/). It is not supported with the Gloo Edge API.
+// {{% /notice %}}
+//
+// {{% notice note %}}
 // The same embedding mechanism that was used for the initial
 // creation of the context datasets must be used for the prompt.
 // {{% /notice %}}
@@ -1089,7 +1132,7 @@ func (x *SemanticCache) GetDistanceThreshold() float32 {
 //
 // {{% notice tip %}}
 // For an extended example that includes deploying a vector database with a context dataset,
-// check out the [Retrieval augmented generation (RAG) tutorial](https://docs.solo.io/gateway/main/ai/tutorials/rag/).
+// check out the [Retrieval augmented generation (RAG) tutorial](https://docs.solo.io/gateway/1.18.x/ai/tutorials/rag/).
 // {{% /notice %}}
 type RAG struct {
 	state         protoimpl.MessageState
@@ -1157,6 +1200,10 @@ func (x *RAG) GetPromptTemplate() string {
 
 // Enrich requests sent to the LLM provider by appending and prepending system prompts.
 // This can be configured only for LLM providers that use the CHAT API type.
+//
+// {{% notice note %}}
+// The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/1.18.x/ai/). It is not supported with the Gloo Edge API.
+// {{% /notice %}}
 //
 // Prompt enrichment allows you to add additional context to the prompt before sending it to the model.
 // Unlike RAG or other dynamic context methods, prompt enrichment is static and is applied to every request.
@@ -1251,6 +1298,10 @@ func (x *AIPromptEnrichment) GetAppend() []*AIPromptEnrichment_Message {
 // Prompt guards can be used to reject requests based on the content of the prompt, as well as
 // mask responses based on the content of the response.
 //
+// {{% notice note %}}
+// The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/1.18.x/ai/). It is not supported with the Gloo Edge API.
+// {{% /notice %}}
+//
 // This example rejects any request prompts that contain
 // the string "credit card", and masks any credit card numbers in the response.
 // ```yaml
@@ -1329,6 +1380,9 @@ func (x *AIPromptGuard) GetResponse() *AIPromptGuard_Response {
 // Configuration for passthrough of the existing token.
 // Currently, specifying an empty object (`passthrough: {}`)
 // indicates that passthrough will be used for auth.
+// {{% notice note %}}
+// The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/1.18.x/ai/). It is not supported with the Gloo Edge API.
+// {{% /notice %}}
 type SingleAuthToken_Passthrough struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -1367,6 +1421,9 @@ func (*SingleAuthToken_Passthrough) Descriptor() ([]byte, []int) {
 
 // Send requests to a custom host and port, such as to proxy the request,
 // or to use a different backend that is API-compliant with the upstream version.
+// {{% notice note %}}
+// The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/1.18.x/ai/). It is not supported with the Gloo Edge API.
+// {{% /notice %}}
 type UpstreamSpec_CustomHost struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -1433,6 +1490,9 @@ func (x *UpstreamSpec_CustomHost) GetHostname() *wrapperspb.StringValue {
 }
 
 // Settings for the [OpenAI](https://platform.openai.com/docs/overview) LLM provider.
+// {{% notice note %}}
+// The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/1.18.x/ai/). It is not supported with the Gloo Edge API.
+// {{% /notice %}}
 type UpstreamSpec_OpenAI struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -1505,6 +1565,9 @@ func (x *UpstreamSpec_OpenAI) GetModel() string {
 // Settings for the [Azure OpenAI](https://learn.microsoft.com/en-us/azure/ai-services/openai/) LLM provider.
 // To find the values for the endpoint, deployment name, and API version, you can check the fields of an API request, such as
 // `https://{endpoint}/openai/deployments/{deployment_name}/chat/completions?api-version={api_version}`.
+// {{% notice note %}}
+// The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/1.18.x/ai/). It is not supported with the Gloo Edge API.
+// {{% /notice %}}
 type UpstreamSpec_AzureOpenAI struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -1608,6 +1671,9 @@ func (*UpstreamSpec_AzureOpenAI_AuthToken) isUpstreamSpec_AzureOpenAI_AuthTokenS
 // Settings for the [Gemini](https://ai.google.dev/gemini-api/docs) LLM provider.
 // To find the values for the model and API version, you can check the fields of an API request, such as
 // `https://generativelanguage.googleapis.com/{version}/models/{model}:generateContent?key={api_key}`.
+// {{% notice note %}}
+// The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/1.18.x/ai/). It is not supported with the Gloo Edge API.
+// {{% /notice %}}
 type UpstreamSpec_Gemini struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -1701,6 +1767,9 @@ func (*UpstreamSpec_Gemini_AuthToken) isUpstreamSpec_Gemini_AuthTokenSource() {}
 // Settings for the [Vertex AI](https://cloud.google.com/vertex-ai/docs) LLM provider.
 // To find the values for the project ID, project location, and publisher, you can check the fields of an API request, such as
 // `https://{LOCATION}-aiplatform.googleapis.com/{VERSION}/projects/{PROJECT_ID}/locations/{LOCATION}/publishers/{PROVIDER}/<model-path>`.
+// {{% notice note %}}
+// The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/1.18.x/ai/). It is not supported with the Gloo Edge API.
+// {{% /notice %}}
 type UpstreamSpec_VertexAI struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -1828,6 +1897,9 @@ type UpstreamSpec_VertexAI_AuthToken struct {
 func (*UpstreamSpec_VertexAI_AuthToken) isUpstreamSpec_VertexAI_AuthTokenSource() {}
 
 // Settings for the [Mistral AI](https://docs.mistral.ai/getting-started/quickstart/) LLM provider.
+// {{% notice note %}}
+// The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/1.18.x/ai/). It is not supported with the Gloo Edge API.
+// {{% /notice %}}
 type UpstreamSpec_Mistral struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -1898,6 +1970,9 @@ func (x *UpstreamSpec_Mistral) GetModel() string {
 }
 
 // Settings for the [Anthropic](https://docs.anthropic.com/en/release-notes/api) LLM provider.
+// {{% notice note %}}
+// The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/1.18.x/ai/). It is not supported with the Gloo Edge API.
+// {{% /notice %}}
 type UpstreamSpec_Anthropic struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -1980,6 +2055,10 @@ func (x *UpstreamSpec_Anthropic) GetModel() string {
 // This method can be useful for creating one logical endpoint that is backed
 // by multiple hosts or models.
 //
+// {{% notice note %}}
+// The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/1.18.x/ai/). It is not supported with the Gloo Edge API.
+// {{% /notice %}}
+//
 // In the `priorities` section, the order of `pool` entries defines the priority of the backend endpoints.
 // The `pool` entries can either define a list of backends or a single backend.
 // Note: Only two levels of nesting are permitted. Any nested entries after the second level are ignored.
@@ -2055,6 +2134,9 @@ func (x *UpstreamSpec_MultiPool) GetPriorities() []*UpstreamSpec_MultiPool_Prior
 }
 
 // An entry represeting an LLM provider backend that the AI Gateway routes requests to.
+// {{% notice note %}}
+// The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/1.18.x/ai/). It is not supported with the Gloo Edge API.
+// {{% /notice %}}
 type UpstreamSpec_MultiPool_Backend struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -2197,6 +2279,9 @@ func (*UpstreamSpec_MultiPool_Backend_Gemini) isUpstreamSpec_MultiPool_Backend_L
 func (*UpstreamSpec_MultiPool_Backend_VertexAi) isUpstreamSpec_MultiPool_Backend_Llm() {}
 
 // The order of `pool` entries within this section defines the priority of the backend endpoints.
+// {{% notice note %}}
+// The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/1.18.x/ai/). It is not supported with the Gloo Edge API.
+// {{% /notice %}}
 type UpstreamSpec_MultiPool_Priority struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -2244,6 +2329,9 @@ func (x *UpstreamSpec_MultiPool_Priority) GetPool() []*UpstreamSpec_MultiPool_Ba
 }
 
 // Embedding settings for the OpenAI provider.
+// {{% notice note %}}
+// The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/1.18.x/ai/). It is not supported with the Gloo Edge API.
+// {{% /notice %}}
 type Embedding_OpenAI struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -2313,6 +2401,9 @@ type Embedding_OpenAI_AuthToken struct {
 func (*Embedding_OpenAI_AuthToken) isEmbedding_OpenAI_AuthTokenSource() {}
 
 // Embedding settings for the Azure OpenAI provider.
+// {{% notice note %}}
+// The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/1.18.x/ai/). It is not supported with the Gloo Edge API.
+// {{% /notice %}}
 type Embedding_AzureOpenAI struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -2411,6 +2502,9 @@ type Embedding_AzureOpenAI_AuthToken struct {
 func (*Embedding_AzureOpenAI_AuthToken) isEmbedding_AzureOpenAI_AuthTokenSource() {}
 
 // Settings for a Redis database.
+// {{% notice note %}}
+// The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/1.18.x/ai/). It is not supported with the Gloo Edge API.
+// {{% /notice %}}
 type SemanticCache_Redis struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -2473,6 +2567,9 @@ func (x *SemanticCache_Redis) GetScoreThreshold() float32 {
 }
 
 // Settings for a Weaviate database.
+// {{% notice note %}}
+// The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/1.18.x/ai/). It is not supported with the Gloo Edge API.
+// {{% /notice %}}
 type SemanticCache_Weaviate struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -2550,6 +2647,9 @@ func (x *SemanticCache_Weaviate) GetInsecure() bool {
 }
 
 // Data store from which to cache the request and response pairs.
+// {{% notice note %}}
+// The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/1.18.x/ai/). It is not supported with the Gloo Edge API.
+// {{% /notice %}}
 type SemanticCache_DataStore struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -2631,6 +2731,9 @@ func (*SemanticCache_DataStore_Redis) isSemanticCache_DataStore_Datastore() {}
 
 func (*SemanticCache_DataStore_Weaviate) isSemanticCache_DataStore_Datastore() {}
 
+// {{% notice note %}}
+// The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/1.18.x/ai/). It is not supported with the Gloo Edge API.
+// {{% /notice %}}
 type RAG_DataStore struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -2698,6 +2801,9 @@ type RAG_DataStore_Postgres struct {
 func (*RAG_DataStore_Postgres) isRAG_DataStore_Datastore() {}
 
 // An entry for a message to prepend or append to each prompt.
+// {{% notice note %}}
+// The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/1.18.x/ai/). It is not supported with the Gloo Edge API.
+// {{% /notice %}}
 type AIPromptEnrichment_Message struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -2755,6 +2861,9 @@ func (x *AIPromptEnrichment_Message) GetContent() string {
 }
 
 // Regular expression (regex) matching for prompt guards and data masking.
+// {{% notice note %}}
+// The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/1.18.x/ai/). It is not supported with the Gloo Edge API.
+// {{% /notice %}}
 type AIPromptGuard_Regex struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -2823,6 +2932,9 @@ func (x *AIPromptGuard_Regex) GetAction() AIPromptGuard_Regex_Action {
 }
 
 // Configure a webhook to forward requests or responses to for prompt guarding.
+// {{% notice note %}}
+// The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/1.18.x/ai/). It is not supported with the Gloo Edge API.
+// {{% /notice %}}
 type AIPromptGuard_Webhook struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -2895,6 +3007,9 @@ func (x *AIPromptGuard_Webhook) GetForwardHeaders() []*AIPromptGuard_Webhook_Hea
 //
 // You can configure an moderation endpoint either as a standalone prompt guard setting
 // or in addition to other request and response guard settings.
+// {{% notice note %}}
+// The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/1.18.x/ai/). It is not supported with the Gloo Edge API.
+// {{% /notice %}}
 type AIPromptGuard_Moderation struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -2965,6 +3080,9 @@ type AIPromptGuard_Moderation_Openai struct {
 func (*AIPromptGuard_Moderation_Openai) isAIPromptGuard_Moderation_Moderation() {}
 
 // Prompt guards to apply to requests sent by the client.
+// {{% notice note %}}
+// The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/1.18.x/ai/). It is not supported with the Gloo Edge API.
+// {{% /notice %}}
 type AIPromptGuard_Request struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -3041,6 +3159,9 @@ func (x *AIPromptGuard_Request) GetModeration() *AIPromptGuard_Moderation {
 }
 
 // Prompt guards to apply to responses returned by the LLM provider.
+// {{% notice note %}}
+// The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/1.18.x/ai/). It is not supported with the Gloo Edge API.
+// {{% /notice %}}
 type AIPromptGuard_Response struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -3097,6 +3218,9 @@ func (x *AIPromptGuard_Response) GetWebhook() *AIPromptGuard_Webhook {
 }
 
 // Regular expression (regex) matching for prompt guards and data masking.
+// {{% notice note %}}
+// The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/1.18.x/ai/). It is not supported with the Gloo Edge API.
+// {{% /notice %}}
 type AIPromptGuard_Regex_RegexMatch struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -3153,6 +3277,9 @@ func (x *AIPromptGuard_Regex_RegexMatch) GetName() string {
 }
 
 // Describes how to match a given string in HTTP headers. Match is case-sensitive.
+// {{% notice note %}}
+// The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/1.18.x/ai/). It is not supported with the Gloo Edge API.
+// {{% /notice %}}
 type AIPromptGuard_Webhook_HeaderMatch struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -3209,6 +3336,9 @@ func (x *AIPromptGuard_Webhook_HeaderMatch) GetMatchType() AIPromptGuard_Webhook
 }
 
 // Configure an OpenAI moderation endpoint.
+// {{% notice note %}}
+// The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/1.18.x/ai/). It is not supported with the Gloo Edge API.
+// {{% /notice %}}
 type AIPromptGuard_Moderation_OpenAI struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -3292,6 +3422,9 @@ func (*AIPromptGuard_Moderation_OpenAI_AuthToken) isAIPromptGuard_Moderation_Ope
 
 // A custom response to return to the client if request content
 // is matched against a regex pattern and the action is `REJECT`.
+// {{% notice note %}}
+// The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/1.18.x/ai/). It is not supported with the Gloo Edge API.
+// {{% /notice %}}
 type AIPromptGuard_Request_CustomResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
