@@ -123,6 +123,7 @@ func generateCustomDynamicForwardProxyCluster(listenerCfg *dynamic_forward_proxy
 					MaxRequests:        &wrappers.UInt32Value{Value: 3},
 					MaxRetries:         &wrappers.UInt32Value{Value: 3},
 					TrackRemaining:     true,
+					Priority:           envoy_config_core_v3.RoutingPriority(envoy_config_core_v3.RoutingPriority_HIGH),
 				},
 			},
 		},
