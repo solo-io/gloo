@@ -118,20 +118,12 @@ func generateCustomDynamicForwardProxyCluster(listenerCfg *dynamic_forward_proxy
 		CircuitBreakers: &envoy_config_cluster_v3.CircuitBreakers{
 			Thresholds: []*envoy_config_cluster_v3.CircuitBreakers_Thresholds{
 				{
-					MaxConnections:     &wrappers.UInt32Value{Value: 5},
-					MaxPendingRequests: &wrappers.UInt32Value{Value: 5},
-					MaxRequests:        &wrappers.UInt32Value{Value: 5},
-					MaxRetries:         &wrappers.UInt32Value{Value: 5},
+					MaxConnections:     &wrappers.UInt32Value{Value: 4294967295},
+					MaxPendingRequests: &wrappers.UInt32Value{Value: 4294967295},
+					MaxRequests:        &wrappers.UInt32Value{Value: 4294967295},
+					MaxRetries:         &wrappers.UInt32Value{Value: 4294967295},
 					TrackRemaining:     true,
-					Priority:           envoy_config_core_v3.RoutingPriority(envoy_config_core_v3.RoutingPriority_HIGH),
-				},
-				{
-					MaxConnections:     &wrappers.UInt32Value{Value: 5},
-					MaxPendingRequests: &wrappers.UInt32Value{Value: 5},
-					MaxRequests:        &wrappers.UInt32Value{Value: 5},
-					MaxRetries:         &wrappers.UInt32Value{Value: 5},
-					TrackRemaining:     true,
-					Priority:           envoy_config_core_v3.RoutingPriority(envoy_config_core_v3.RoutingPriority_DEFAULT),
+					//Priority:           envoy_config_core_v3.RoutingPriority(envoy_config_core_v3.RoutingPriority_DEFAULT),
 				},
 			},
 		},
