@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/solo-io/gloo/pkg/schemes"
+	"github.com/solo-io/gloo/test/testutils"
 
 	"k8s.io/apimachinery/pkg/runtime"
 
@@ -29,7 +30,10 @@ func MustKindContextWithScheme(clusterName string, scheme *runtime.Scheme) *Cont
 		clusterName = "kind"
 	}
 
-	kubeCtx := fmt.Sprintf("kind-%s", clusterName)
+	kubeCtx := os.Getenv(testutils.KubeCtx)
+	if len(kubeCtx) == 0 {
+		kubeCtx = fmt.Sprintf("kind-%s", clusterName)
+	}
 
 	restCfg, err := kubeutils.GetRestConfigWithKubeContext(kubeCtx)
 	if err != nil {
