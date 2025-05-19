@@ -22,6 +22,7 @@ import (
 	envoy_extensions_filters_http_dynamic_forward_proxy_v3 "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/http/dynamic_forward_proxy/v3"
 	"github.com/golang/protobuf/ptypes/duration"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	v1_circuitbreaker "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/circuit_breaker"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/dynamic_forward_proxy"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/pluginutils"
