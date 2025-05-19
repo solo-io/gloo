@@ -86,5 +86,9 @@ func (m *CircuitBreakerConfig) Equal(that interface{}) bool {
 		}
 	}
 
+	if m.GetTrackRemaining() != target.GetTrackRemaining() {
+		return false
+	}
+
 	return true
 }

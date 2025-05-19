@@ -35,6 +35,7 @@ for the meaning of these values.
 "maxPendingRequests": .google.protobuf.UInt32Value
 "maxRequests": .google.protobuf.UInt32Value
 "maxRetries": .google.protobuf.UInt32Value
+"trackRemaining": bool
 
 ```
 
@@ -44,6 +45,7 @@ for the meaning of these values.
 | `maxPendingRequests` | [.google.protobuf.UInt32Value](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/u-int-32-value) |  |
 | `maxRequests` | [.google.protobuf.UInt32Value](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/u-int-32-value) |  |
 | `maxRetries` | [.google.protobuf.UInt32Value](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/u-int-32-value) |  |
+| `trackRemaining` | `bool` |  |
 
 
 

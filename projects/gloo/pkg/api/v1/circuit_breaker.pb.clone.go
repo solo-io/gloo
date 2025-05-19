@@ -59,5 +59,7 @@ func (m *CircuitBreakerConfig) Clone() proto.Message {
 		target.MaxRetries = proto.Clone(m.GetMaxRetries()).(*google_golang_org_protobuf_types_known_wrapperspb.UInt32Value)
 	}
 
+	target.TrackRemaining = m.GetTrackRemaining()
+
 	return target
 }
