@@ -4,13 +4,13 @@ listeners:
     httpFilterChains:
     - matcher: {}
       virtualHostRefs:
-      - http~example_com
+      - listener~80~example_com
     httpResources:
       virtualHosts:
-        http~example_com:
+        listener~80~example_com:
           domains:
           - example.com
-          name: http~example_com
+          name: listener~80~example_com
           routes:
           - matchers:
             - prefix: /a/1
@@ -56,12 +56,12 @@ listeners:
                     namespace: infra
   bindAddress: '::'
   bindPort: 8080
-  name: http
+  name: listener~80
   metadataStatic:
     sources:
     - resourceKind: gateway.networking.k8s.io/Gateway
       resourceRef:
-        name: http
+        name: listener~80
         namespace: infra
 metadata:
   labels:

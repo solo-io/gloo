@@ -40,7 +40,8 @@ func NewK8sTestingSuite(ctx context.Context, testInst *e2e.TestInstallation) sui
 }
 
 var manifests = map[string]func() ([]byte, error){
-	"tls_secret":         tlsSecret1Manifest,
+	"tls_secret1":        tlsSecret1Manifest,
+	"tls_secret2":        tlsSecret2Manifest,
 	"tls_secret_with_ca": tlsSecretWithCaManifest,
 	"gateway":            gatewayManifest,
 	"http_route":         httpRouteManifest,
@@ -103,6 +104,15 @@ func (s *k8sServerTlsTestingSuite) TestOneWayServerTlsFailsWithoutOneWayTls() {
 // loop assumes that mTLS is desired if the secret contains a CA cert unless oneWayTls is set.
 func (s *k8sServerTlsTestingSuite) TestOneWayServerTlsWorksWithOneWayTls() {
 	s.assertEventualResponse("oneway.example.com", &matchers.HttpResponse{
+		StatusCode: http.StatusOK,
+	})
+}
+
+func (s *k8sServerTlsTestingSuite) TestTlsWorksWithMultipleHostNames() {
+	s.assertEventualResponse("standard.example.com", &matchers.HttpResponse{
+		StatusCode: http.StatusOK,
+	})
+	s.assertEventualResponse("other.example.com", &matchers.HttpResponse{
 		StatusCode: http.StatusOK,
 	})
 }

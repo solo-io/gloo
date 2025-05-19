@@ -32,9 +32,9 @@ listeners:
     sources:
     - resourceKind: gateway.networking.k8s.io/Gateway
       resourceRef:
-        name: tls
+        name: listener~8443
         namespace: default
-  name: tls
+  name: listener~8443
 metadata:
   labels:
     created_by: gloo-kube-gateway-api

@@ -4,14 +4,14 @@ listeners:
     httpFilterChains:
     - matcher: {}
       virtualHostRefs:
-      - http~example_com
-      - http~foo_com
+      - listener~80~example_com
+      - listener~80~foo_com
     httpResources:
       virtualHosts:
-        http~example_com:
+        listener~80~example_com:
           domains:
           - example.com
-          name: http~example_com
+          name: listener~80~example_com
           routes:
           - matchers:
             - prefix: /
@@ -24,10 +24,10 @@ listeners:
                   ref:
                     name: example-svc
                     namespace: infra
-        http~foo_com:
+        listener~80~foo_com:
           domains:
           - foo.com
-          name: http~foo_com
+          name: listener~80~foo_com
           routes:
           - matchers:
             - prefix: /a/1
@@ -46,9 +46,9 @@ listeners:
     sources:
     - resourceKind: gateway.networking.k8s.io/Gateway
       resourceRef:
-        name: http
+        name: listener~80
         namespace: infra
-  name: http
+  name: listener~80
 metadata:
   labels:
     created_by: gloo-kube-gateway-api

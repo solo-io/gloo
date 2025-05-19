@@ -3,13 +3,13 @@ listeners:
     httpFilterChains:
     - matcher: {}
       virtualHostRefs:
-      - http~example_com
+      - listener~8080~example_com
     httpResources:
       virtualHosts:
-        http~example_com:
+        listener~8080~example_com:
           domains:
           - example.com
-          name: http~example_com
+          name: listener~8080~example_com
           routes:
           - matchers:
             - prefix: /
@@ -29,9 +29,9 @@ listeners:
     sources:
     - resourceKind: gateway.networking.k8s.io/Gateway
       resourceRef:
-        name: http
+        name: listener~8080
         namespace: default
-  name: http
+  name: listener~8080
 metadata:
   labels:
     created_by: gloo-kube-gateway-api
