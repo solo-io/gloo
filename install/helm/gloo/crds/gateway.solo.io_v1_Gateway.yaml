@@ -264,6 +264,31 @@ spec:
                         type: object
                       dynamicForwardProxy:
                         properties:
+                          circuitBreakers:
+                            properties:
+                              maxConnections:
+                                maximum: 4294967295
+                                minimum: 0
+                                nullable: true
+                                type: integer
+                              maxPendingRequests:
+                                maximum: 4294967295
+                                minimum: 0
+                                nullable: true
+                                type: integer
+                              maxRequests:
+                                maximum: 4294967295
+                                minimum: 0
+                                nullable: true
+                                type: integer
+                              maxRetries:
+                                maximum: 4294967295
+                                minimum: 0
+                                nullable: true
+                                type: integer
+                              trackRemaining:
+                                type: boolean
+                            type: object
                           dnsCacheConfig:
                             properties:
                               appleDns:
@@ -2304,6 +2329,31 @@ spec:
                                   type: object
                                 dynamicForwardProxy:
                                   properties:
+                                    circuitBreakers:
+                                      properties:
+                                        maxConnections:
+                                          maximum: 4294967295
+                                          minimum: 0
+                                          nullable: true
+                                          type: integer
+                                        maxPendingRequests:
+                                          maximum: 4294967295
+                                          minimum: 0
+                                          nullable: true
+                                          type: integer
+                                        maxRequests:
+                                          maximum: 4294967295
+                                          minimum: 0
+                                          nullable: true
+                                          type: integer
+                                        maxRetries:
+                                          maximum: 4294967295
+                                          minimum: 0
+                                          nullable: true
+                                          type: integer
+                                        trackRemaining:
+                                          type: boolean
+                                      type: object
                                     dnsCacheConfig:
                                       properties:
                                         appleDns:
