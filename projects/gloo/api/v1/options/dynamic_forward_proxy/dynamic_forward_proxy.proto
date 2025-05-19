@@ -13,7 +13,7 @@ import "google/protobuf/duration.proto";
 import "google/protobuf/wrappers.proto";
 import "github.com/solo-io/gloo/projects/gloo/api/external/envoy/config/core/v3/address.proto";
 import "github.com/solo-io/gloo/projects/gloo/api/v1/ssl/ssl.proto";
-import "github.com/solo-io/gloo/projects/gloo/api/v1/circuit_breaker.proto";
+import "github.com/solo-io/gloo/projects/gloo/api/v1/circuit_breaker/circuit_breaker.proto";
 
 // Configuration for the dynamic forward proxy HTTP filter. See the :ref:`architecture overview
 // <arch_overview_http_dynamic_forward_proxy>` for more information.
