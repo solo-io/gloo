@@ -12,11 +12,17 @@ option (extproto.clone_all) = true;
 
 // The authorization token that the AI gateway uses to access the LLM provider API.
 // This token is automatically sent in a request header, depending on the LLM provider.
+// {{% notice note %}}
+// The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/main/ai/). It is not supported with the Gloo Edge API.
+// {{% /notice %}}
 message SingleAuthToken {
 
   // Configuration for passthrough of the existing token.
   // Currently, specifying an empty object (`passthrough: {}`)
   // indicates that passthrough will be used for auth.
+  // {{% notice note %}}
+  // The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/main/ai/). It is not supported with the Gloo Edge API.
+  // {{% /notice %}}
   message Passthrough {
     // Use a message to allow for future expansion
   }
@@ -41,6 +47,9 @@ message SingleAuthToken {
   }
 }
 
+// {{% notice note %}}
+// The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/main/ai/). It is not supported with the Gloo Edge API.
+// {{% /notice %}}
 enum ApiJsonSchema {
   NOT_SET = 0;
   ANTHROPIC = 1;
@@ -56,17 +65,20 @@ enum ApiJsonSchema {
 // and prompt enrichment, are configured at the route level in the
 // [`spec.options.ai` section of the RouteOptions resource](#routesettings).
 //
-// To get started, see [About Gloo AI Gateway]({{% versioned_link_path fromRoot="/ai/overview/" %}}).
+// To get started, see [About Gloo AI Gateway](https://docs.solo.io/gateway/latest/ai/overview/).
 // For more information about the Upstream resource, see the
 // [API reference]({{% versioned_link_path fromRoot="/reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/upstream.proto.sk/" %}}).
 //
 // {{% notice note %}}
-// AI Gateway is an Enterprise-only feature that requires a Gloo Gateway Enterprise license with an AI Gateway add-on.
+// The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/main/ai/). It is not supported with the Gloo Edge API.
 // {{% /notice %}}
 message UpstreamSpec {
 
   // Send requests to a custom host and port, such as to proxy the request,
   // or to use a different backend that is API-compliant with the upstream version.
+  // {{% notice note %}}
+  // The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/main/ai/). It is not supported with the Gloo Edge API.
+  // {{% /notice %}}
   message CustomHost {
     // Custom host or IP address to send the traffic requests to.
     string host = 1;
@@ -78,6 +90,9 @@ message UpstreamSpec {
   }
 
   // Settings for the [OpenAI](https://platform.openai.com/docs/overview) LLM provider.
+  // {{% notice note %}}
+  // The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/main/ai/). It is not supported with the Gloo Edge API.
+  // {{% /notice %}}
   message OpenAI {
     // The authorization token that the AI gateway uses to access the OpenAI API.
     // This token is automatically sent in the `Authorization` header of the
@@ -95,6 +110,9 @@ message UpstreamSpec {
   // Settings for the [Azure OpenAI](https://learn.microsoft.com/en-us/azure/ai-services/openai/) LLM provider.
   // To find the values for the endpoint, deployment name, and API version, you can check the fields of an API request, such as
   // `https://{endpoint}/openai/deployments/{deployment_name}/chat/completions?api-version={api_version}`.
+  // {{% notice note %}}
+  // The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/main/ai/). It is not supported with the Gloo Edge API.
+  // {{% /notice %}}  
   message AzureOpenAI {
     // The authorization token that the AI gateway uses to access the Azure OpenAI API.
     // This token is automatically sent in the `api-key` header of the request.
@@ -119,6 +137,9 @@ message UpstreamSpec {
   // Settings for the [Gemini](https://ai.google.dev/gemini-api/docs) LLM provider.
   // To find the values for the model and API version, you can check the fields of an API request, such as
   // `https://generativelanguage.googleapis.com/{version}/models/{model}:generateContent?key={api_key}`.
+  // {{% notice note %}}
+  // The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/main/ai/). It is not supported with the Gloo Edge API.
+  // {{% /notice %}}
   message Gemini {
     // The authorization token that the AI gateway uses to access the Gemini API.
     // This token is automatically sent in the `x-goog-api-key` header of the request.
@@ -140,6 +161,9 @@ message UpstreamSpec {
   // Settings for the [Vertex AI](https://cloud.google.com/vertex-ai/docs) LLM provider.
   // To find the values for the project ID, project location, and publisher, you can check the fields of an API request, such as
   // `https://{LOCATION}-aiplatform.googleapis.com/{VERSION}/projects/{PROJECT_ID}/locations/{LOCATION}/publishers/{PROVIDER}/<model-path>`.
+  // {{% notice note %}}
+  // The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/main/ai/). It is not supported with the Gloo Edge API.
+  // {{% /notice %}}
   message VertexAI {
     // The authorization token that the AI gateway uses to access the Vertex AI API.
     // This token is automatically sent in the `key` header of the request.
@@ -164,6 +188,9 @@ message UpstreamSpec {
     string model_path = 6;
 
     // The type of publisher model to use. Currently, only Google is supported.
+    // {{% notice note %}}
+    // The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/main/ai/). It is not supported with the Gloo Edge API.
+    // {{% /notice %}}
     enum Publisher {
       GOOGLE = 0;
     }
@@ -176,6 +203,9 @@ message UpstreamSpec {
   }
 
   // Settings for the [Mistral AI](https://docs.mistral.ai/getting-started/quickstart/) LLM provider.
+  // {{% notice note %}}
+  // The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/main/ai/). It is not supported with the Gloo Edge API.
+  // {{% /notice %}}
   message Mistral {
     // The authorization token that the AI gateway uses to access the OpenAI API.
     // This token is automatically sent in the `Authorization` header of the
@@ -191,6 +221,9 @@ message UpstreamSpec {
   }
 
   // Settings for the [Anthropic](https://docs.anthropic.com/en/release-notes/api) LLM provider.
+  // {{% notice note %}}
+  // The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/main/ai/). It is not supported with the Gloo Edge API.
+  // {{% /notice %}}
   message Anthropic {
     // The authorization token that the AI gateway uses to access the Anthropic API.
     // This token is automatically sent in the `x-api-key` header of the request.
@@ -209,6 +242,9 @@ message UpstreamSpec {
   }
 
   // Settings for the Bedrock LLM provider
+  // {{% notice note %}}
+  // The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/main/ai/). It is not supported with the Gloo Edge API.
+  // {{% /notice %}}
   message Bedrock {
     // The authorization config used to access authenticated AWS Bedrock services.
     AwsCredentialProvider credential_provider = 1;
@@ -234,6 +270,9 @@ message UpstreamSpec {
   }
 
   // AwsCredentialProvider provider for signing the request.
+  // {{% notice note %}}
+  // The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/main/ai/). It is not supported with the Gloo Edge API.
+  // {{% /notice %}}
   message AwsCredentialProvider {
     oneof auth_token_source {
       // Store the ``AWS_ACCESS_KEY_ID``, ``AWS_SECRET_ACCESS_KEY``, and the optional ``AWS_SESSION_TOKEN`` in a Kubernetes secret in
@@ -249,6 +288,9 @@ message UpstreamSpec {
 
   // Configuration to use an inline AWS credential. This is an equivalent to setting the well-known
   // environment variables ``AWS_ACCESS_KEY_ID``, ``AWS_SECRET_ACCESS_KEY``, and the optional ``AWS_SESSION_TOKEN``.
+  // {{% notice note %}}
+  // The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/main/ai/). It is not supported with the Gloo Edge API.
+  // {{% /notice %}}
   message AWSInline {
     // The AWS access key ID, which identifies the user and account.
     string access_key_id = 1;
@@ -263,6 +305,10 @@ message UpstreamSpec {
   // Configure backends for multiple hosts or models from the same provider in one Upstream resource.
   // This method can be useful for creating one logical endpoint that is backed
   // by multiple hosts or models.
+  //
+  // {{% notice note %}}
+  // The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/main/ai/). It is not supported with the Gloo Edge API.
+  // {{% /notice %}}
   //
   // In the `priorities` section, the order of `pool` entries defines the priority of the backend endpoints.
   // The `pool` entries can either define a list of backends or a single backend.
@@ -292,6 +338,9 @@ message UpstreamSpec {
   // ```
   message MultiPool {
     // An entry represeting an LLM provider backend that the AI Gateway routes requests to.
+    // {{% notice note %}}
+    // The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/main/ai/). It is not supported with the Gloo Edge API.
+    // {{% /notice %}}
     message Backend {
       oneof llm {
         // Configure an [OpenAI](https://platform.openai.com/docs/overview) backend.
@@ -312,6 +361,9 @@ message UpstreamSpec {
     }
 
     // The order of `pool` entries within this section defines the priority of the backend endpoints.
+    // {{% notice note %}}
+    // The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/main/ai/). It is not supported with the Gloo Edge API.
+    // {{% /notice %}}
     message Priority {
       // A list of LLM provider backends within a single endpoint pool entry.
       repeated Backend pool = 1;
@@ -349,6 +401,9 @@ message UpstreamSpec {
 //
 // For more information about the RouteOptions resource, see the
 // [API reference]({{% versioned_link_path fromRoot="/reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/route_options.proto.sk/" %}}).
+// {{% notice note %}}
+// The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/main/ai/). It is not supported with the Gloo Edge API.
+// {{% /notice %}}
 message RouteSettings {
 
   // Enrich requests sent to the LLM provider by appending and prepending system prompts.
@@ -376,6 +431,9 @@ message RouteSettings {
   repeated FieldDefault defaults = 5;
 
   // The type of route to the LLM provider API.
+  // {{% notice note %}}
+  // The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/main/ai/). It is not supported with the Gloo Edge API.
+  // {{% /notice %}}
   enum RouteType {
     // The LLM generates the full response before responding to a client.
     CHAT = 0;
@@ -389,6 +447,10 @@ message RouteSettings {
 
 // Provide defaults to merge with user input fields.
 // Defaults do _not_ override the user input fields, unless you explicitly set `override` to `true`.
+//
+// {{% notice note %}}
+// The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/main/ai/). It is not supported with the Gloo Edge API.
+// {{% /notice %}}
 //
 // Example overriding the system field for Anthropic:
 // ```yaml
@@ -417,6 +479,9 @@ message FieldDefault {
 }
 
 // Configuration settings for a Postgres datastore.
+// {{% notice note %}}
+// The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/main/ai/). It is not supported with the Gloo Edge API.
+// {{% /notice %}}
 message Postgres {
   // Connection string to the Postgres database. For example, to use a vector database
   // deployed to your cluster, your connection string might look similar to
@@ -427,9 +492,15 @@ message Postgres {
 }
 
 // Configuration of the API used to generate the embedding.
+// {{% notice note %}}
+// The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/main/ai/). It is not supported with the Gloo Edge API.
+// {{% /notice %}}
 message Embedding {
 
   // Embedding settings for the OpenAI provider.
+  // {{% notice note %}}
+  // The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/main/ai/). It is not supported with the Gloo Edge API.
+  // {{% /notice %}}
   message OpenAI {
     oneof auth_token_source {
       // The authorization token that the AI gateway uses to access the OpenAI API.
@@ -442,6 +513,9 @@ message Embedding {
   }
 
   // Embedding settings for the Azure OpenAI provider.
+  // {{% notice note %}}
+  // The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/main/ai/). It is not supported with the Gloo Edge API.
+  // {{% /notice %}}
   message AzureOpenAI {
     oneof auth_token_source {
       // The authorization token that the AI gateway uses to access the Azure OpenAI API.
@@ -476,6 +550,10 @@ message Embedding {
 // as the similarity threshold set. Semantic caching reduces the number of requests
 // to the LLM provider, improves the response time, and reduces costs.
 //
+// {{% notice note %}}
+// The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/main/ai/). It is not supported with the Gloo Edge API.
+// {{% /notice %}}
+//
 // Example configuring a route to use a `redis` datastore and OpenAI for RAG:
 // ```yaml
 // semanticCache:
@@ -492,6 +570,9 @@ message Embedding {
 message SemanticCache {
 
   // Settings for a Redis database.
+  // {{% notice note %}}
+  // The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/main/ai/). It is not supported with the Gloo Edge API.
+  // {{% /notice %}}
   message Redis {
     // Connection string to the Redis database, such as `redis://172.17.0.1:6379`.
     string connection_string = 1;
@@ -507,6 +588,9 @@ message SemanticCache {
   }
 
   // Settings for a Weaviate database.
+  // {{% notice note %}}
+  // The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/main/ai/). It is not supported with the Gloo Edge API.
+  // {{% /notice %}}
   message Weaviate {
     // Connection string to the Weaviate database.
     // Do not include the scheme. For example, the format
@@ -522,6 +606,9 @@ message SemanticCache {
   }
 
   // Data store from which to cache the request and response pairs.
+  // {{% notice note %}}
+  // The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/main/ai/). It is not supported with the Gloo Edge API.
+  // {{% /notice %}}
   message DataStore {
     oneof datastore {
       // Settings for a Redis database.
@@ -531,6 +618,9 @@ message SemanticCache {
     }
   }
   // The caching mode to use for the request and response lifecycle.
+  // {{% notice note %}}
+  // The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/main/ai/). It is not supported with the Gloo Edge API.
+  // {{% /notice %}}
   enum Mode {
     // Read and write to the cache as a part of the request and response lifecycle.
     READ_WRITE = 0;
@@ -562,6 +652,10 @@ message SemanticCache {
 // This can be used to improve the quality of the generated text.
 //
 // {{% notice note %}}
+// The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/main/ai/). It is not supported with the Gloo Edge API.
+// {{% /notice %}}
+//
+// {{% notice note %}}
 // The same embedding mechanism that was used for the initial
 // creation of the context datasets must be used for the prompt.
 // {{% /notice %}}
@@ -586,6 +680,9 @@ message SemanticCache {
 // check out the [Retrieval augmented generation (RAG) tutorial](https://docs.solo.io/gateway/main/ai/tutorials/rag/).
 // {{% /notice %}}
 message RAG {
+  // {{% notice note %}}
+  // The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/main/ai/). It is not supported with the Gloo Edge API.
+  // {{% /notice %}}
   message DataStore {
     oneof datastore {
       // Configuration settings for a Postgres datastore.
@@ -603,6 +700,9 @@ message RAG {
 // Enrich requests sent to the LLM provider by appending and prepending system prompts.
 // This can be configured only for LLM providers that use the CHAT API type.
 //
+// {{% notice note %}}
+// The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/main/ai/). It is not supported with the Gloo Edge API.
+// {{% /notice %}}
 // Prompt enrichment allows you to add additional context to the prompt before sending it to the model.
 // Unlike RAG or other dynamic context methods, prompt enrichment is static and is applied to every request.
 //
@@ -635,6 +735,9 @@ message RAG {
 // ```
 message AIPromptEnrichment {
   // An entry for a message to prepend or append to each prompt.
+  // {{% notice note %}}
+  // The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/main/ai/). It is not supported with the Gloo Edge API.
+  // {{% /notice %}} 
   message Message {
     // Role of the message. The available roles depend on the backend
     // LLM provider model, such as `SYSTEM` or `USER` in the OpenAI API.
@@ -651,6 +754,9 @@ message AIPromptEnrichment {
 // Set up prompt guards to block unwanted requests to the LLM provider and mask sensitive data.
 // Prompt guards can be used to reject requests based on the content of the prompt, as well as
 // mask responses based on the content of the response.
+// {{% notice note %}}
+// The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/main/ai/). It is not supported with the Gloo Edge API.
+// {{% /notice %}}
 //
 // This example rejects any request prompts that contain
 // the string "credit card", and masks any credit card numbers in the response.
@@ -673,10 +779,16 @@ message AIPromptEnrichment {
 message AIPromptGuard {
 
   // Regular expression (regex) matching for prompt guards and data masking.
+  // {{% notice note %}}
+  // The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/main/ai/). It is not supported with the Gloo Edge API.
+  // {{% /notice %}}
   message Regex {
     // Built-in regex patterns for specific types of strings in prompts.
     // For example, if you specify `CREDIT_CARD`, any credit card numbers
     // in the request or response are matched.
+    // {{% notice note %}}
+    // The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/main/ai/). It is not supported with the Gloo Edge API.
+    // {{% /notice %}}
     enum BuiltIn {
       // Default regex matching for Social Security numbers.
       SSN = 0;
@@ -689,6 +801,9 @@ message AIPromptGuard {
     }
 
     // Regular expression (regex) matching for prompt guards and data masking.
+    // {{% notice note %}}
+    // The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/main/ai/). It is not supported with the Gloo Edge API.
+    // {{% /notice %}}
     message RegexMatch {
       // The regex pattern to match against the request or response.
       string pattern = 1;
@@ -704,6 +819,9 @@ message AIPromptGuard {
 
     // The action to take if a regex pattern is matched in a request or response.
     // This setting applies only to request matches. Response matches are always masked by default.
+    // {{% notice note %}}
+    // The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/main/ai/). It is not supported with the Gloo Edge API.
+    // {{% /notice %}}
     enum Action {
       // Mask the matched data in the request.
       MASK = 0;
@@ -717,14 +835,23 @@ message AIPromptGuard {
   }
 
   // Configure a webhook to forward requests or responses to for prompt guarding.
+  // {{% notice note %}}
+  // The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/main/ai/). It is not supported with the Gloo Edge API.
+  // {{% /notice %}}
   message Webhook {
     // Host to send the traffic to.
     string host = 1;
     // Port to send the traffic to
     uint32 port = 2;
     // Describes how to match a given string in HTTP headers. Match is case-sensitive.
+    // {{% notice note %}}
+    // The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/main/ai/). It is not supported with the Gloo Edge API.
+    // {{% /notice %}}
     message HeaderMatch {
       // The header string match type.
+      // {{% notice note %}}
+      // The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/main/ai/). It is not supported with the Gloo Edge API.
+      // {{% /notice %}}
       enum MatchType {
         // The string must match exactly the specified string.
         EXACT = 0;
@@ -754,8 +881,14 @@ message AIPromptGuard {
   //
   // You can configure an moderation endpoint either as a standalone prompt guard setting
   // or in addition to other request and response guard settings.
+  // {{% notice note %}}
+  // The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/main/ai/). It is not supported with the Gloo Edge API.
+  // {{% /notice %}}
   message Moderation {
       // Configure an OpenAI moderation endpoint.
+      // {{% notice note %}}
+      // The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/main/ai/). It is not supported with the Gloo Edge API.
+      // {{% /notice %}}
       message OpenAI {
         // The name of the OpenAI moderation model to use. Defaults to
         // [`omni-moderation-latest`](https://platform.openai.com/docs/guides/moderation).
@@ -781,9 +914,15 @@ message AIPromptGuard {
   }
 
   // Prompt guards to apply to requests sent by the client.
+  // {{% notice note %}}
+  // The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/main/ai/). It is not supported with the Gloo Edge API.
+  // {{% /notice %}}
   message Request {
     // A custom response to return to the client if request content
     // is matched against a regex pattern and the action is `REJECT`.
+    // {{% notice note %}}
+    // The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/main/ai/). It is not supported with the Gloo Edge API.
+    // {{% /notice %}}
     message CustomResponse {
       // A custom response message to return to the client. If not specified, defaults to
       // "The request was rejected due to inappropriate content".
@@ -808,6 +947,9 @@ message AIPromptGuard {
   }
 
   // Prompt guards to apply to responses returned by the LLM provider.
+  // {{% notice note %}}
+  // The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/main/ai/). It is not supported with the Gloo Edge API.
+  // {{% /notice %}}
   message Response {
     // Regular expression (regex) matching for prompt guards and data masking.
     Regex regex = 1;
