@@ -13,7 +13,7 @@ import "google/protobuf/duration.proto";
 import "google/protobuf/wrappers.proto";
 import "github.com/solo-io/gloo/projects/gloo/api/external/envoy/config/core/v3/address.proto";
 import "github.com/solo-io/gloo/projects/gloo/api/v1/ssl/ssl.proto";
-//import "github.com/solo-io/gloo/projects/gloo/api/v1/circuit_breaker.proto";
+import "github.com/solo-io/gloo/projects/gloo/api/v1/circuit_breaker.proto";
 
 // Configuration for the dynamic forward proxy HTTP filter. See the :ref:`architecture overview
 // <arch_overview_http_dynamic_forward_proxy>` for more information.
@@ -36,7 +36,7 @@ message FilterConfig {
   // Circuit breakers for this proxy. if not set, the defaults ones from the Gloo settings will be used.
   // if those are not set, [envoy's defaults](https://www.envoyproxy.io/docs/envoy/latest/api-v3/config/cluster/v3/circuit_breaker.proto#envoy-api-msg-cluster-circuitbreakers)
   // will be used.
- // CircuitBreakerConfig circuit_breakers = 4;
+  CircuitBreakerConfig circuit_breakers = 4;
 }
 
 // Configuration of circuit breakers for resolver.
