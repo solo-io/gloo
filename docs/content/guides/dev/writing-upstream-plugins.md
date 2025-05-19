@@ -126,7 +126,7 @@ option (extproto.equal_all) = true;
 
 import "github.com/solo-io/gloo/projects/gloo/api/v1/ssl/ssl.proto";
 import "github.com/solo-io/gloo/projects/gloo/api/v1/extensions.proto";
-import "github.com/solo-io/gloo/projects/gloo/api/v1/circuit_breaker.proto";
+github.com/solo-io/gloo/projects/gloo/api/v1/circuit_breaker/circuit_breaker.proto
 import "github.com/solo-io/gloo/projects/gloo/api/v1/load_balancer.proto";
 import "github.com/solo-io/gloo/projects/gloo/api/v1/connection.proto";
 

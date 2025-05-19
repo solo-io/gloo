@@ -47,6 +47,7 @@ var (
 )
 
 type plugin struct {
+	settings      *v1.Settings
 	filterHashMap map[string]*dynamic_forward_proxy.FilterConfig
 }
 
@@ -99,6 +100,9 @@ func generateCustomDynamicForwardProxyCluster(listenerCfg *dynamic_forward_proxy
 	if err != nil {
 		return nil, err
 	}
+
+	circuitBreakers := getCircuitBreakers(listenerCfg, params.Settings)
+
 	out := &envoy_config_cluster_v3.Cluster{
 		Name:           GetGeneratedClusterName(listenerCfg),
 		ConnectTimeout: &duration.Duration{Seconds: 5},
@@ -109,6 +113,7 @@ func generateCustomDynamicForwardProxyCluster(listenerCfg *dynamic_forward_proxy
 				TypedConfig: typedConfig,
 			},
 		},
+		CircuitBreakers: circuitBreakers,
 	}
 
 	if sslConfig := listenerCfg.GetSslConfig(); sslConfig != nil && params.Snapshot != nil {
@@ -127,6 +132,31 @@ func generateCustomDynamicForwardProxyCluster(listenerCfg *dynamic_forward_proxy
 		}
 	}
 	return out, nil
+}
+func getCircuitBreakers(listenerCfg *dynamic_forward_proxy.FilterConfig, settings *v1.Settings) *envoy_config_cluster_v3.CircuitBreakers {
+	if listenerCfg.GetCircuitBreakers() != nil {
+		return convertCircuitBreakers(listenerCfg.GetCircuitBreakers())
+	}
+
+	if settings.GetGloo().GetCircuitBreakers() != nil {
+		return convertCircuitBreakers(settings.GetGloo().GetCircuitBreakers())
+	}
+
+	return &envoy_config_cluster_v3.CircuitBreakers{}
+}
+
+func convertCircuitBreakers(cfg *v1_circuitbreaker.CircuitBreakerConfig) *envoy_config_cluster_v3.CircuitBreakers {
+	return &envoy_config_cluster_v3.CircuitBreakers{
+		Thresholds: []*envoy_config_cluster_v3.CircuitBreakers_Thresholds{
+			{
+				MaxConnections:     cfg.GetMaxConnections(),
+				MaxPendingRequests: cfg.GetMaxPendingRequests(),
+				MaxRequests:        cfg.GetMaxRequests(),
+				MaxRetries:         cfg.GetMaxRetries(),
+				TrackRemaining:     cfg.GetTrackRemaining(),
+			},
+		},
+	}
 }
 
 func GetGeneratedClusterName(dfpListenerCfg *dynamic_forward_proxy.FilterConfig) string {
@@ -397,6 +427,7 @@ func (p *plugin) Name() string {
 	return ExtensionName
 }
 
-func (p *plugin) Init(_ plugins.InitParams) {
+func (p *plugin) Init(params plugins.InitParams) {
 	p.filterHashMap = map[string]*dynamic_forward_proxy.FilterConfig{}
+	p.settings = params.Settings
 }
