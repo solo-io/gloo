@@ -17,4 +17,5 @@ message CircuitBreakerConfig {
     google.protobuf.UInt32Value max_pending_requests = 2;
     google.protobuf.UInt32Value max_requests = 3;
     google.protobuf.UInt32Value max_retries = 4;
+    bool  track_remaining = 5;
 }
