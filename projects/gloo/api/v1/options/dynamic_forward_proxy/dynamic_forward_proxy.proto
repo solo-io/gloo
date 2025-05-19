@@ -36,7 +36,7 @@ message FilterConfig {
   // Circuit breakers for this proxy. if not set, the defaults ones from the Gloo settings will be used.
   // if those are not set, [envoy's defaults](https://www.envoyproxy.io/docs/envoy/latest/api-v3/config/cluster/v3/circuit_breaker.proto#envoy-api-msg-cluster-circuitbreakers)
   // will be used.
-  CircuitBreakerConfig circuit_breakers = 4;
+  .gloo.solo.io.CircuitBreakerConfig circuit_breakers = 4;
 }
 
 // Configuration of circuit breakers for resolver.
