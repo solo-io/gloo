@@ -2,9 +2,9 @@
 // versions:
 // 	protoc-gen-go v1.36.6
 // 	protoc        v3.6.1
-// source: github.com/solo-io/gloo/projects/gloo/api/v1/circuit_breaker.proto
+// source: github.com/solo-io/gloo/projects/gloo/api/v1/circuit_breaker/circuit_breaker.proto
 
-package v1
+package circuit_breaker
 
 import (
 	reflect "reflect"
@@ -40,7 +40,7 @@ type CircuitBreakerConfig struct {
 
 func (x *CircuitBreakerConfig) Reset() {
 	*x = CircuitBreakerConfig{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_circuit_breaker_proto_msgTypes[0]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_circuit_breaker_circuit_breaker_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -52,7 +52,7 @@ func (x *CircuitBreakerConfig) String() string {
 func (*CircuitBreakerConfig) ProtoMessage() {}
 
 func (x *CircuitBreakerConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_circuit_breaker_proto_msgTypes[0]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_circuit_breaker_circuit_breaker_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -65,7 +65,7 @@ func (x *CircuitBreakerConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CircuitBreakerConfig.ProtoReflect.Descriptor instead.
 func (*CircuitBreakerConfig) Descriptor() ([]byte, []int) {
-	return file_github_com_solo_io_gloo_projects_gloo_api_v1_circuit_breaker_proto_rawDescGZIP(), []int{0}
+	return file_github_com_solo_io_gloo_projects_gloo_api_v1_circuit_breaker_circuit_breaker_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *CircuitBreakerConfig) GetMaxConnections() *wrapperspb.UInt32Value {
@@ -103,37 +103,37 @@ func (x *CircuitBreakerConfig) GetTrackRemaining() bool {
 	return false
 }
 
-var File_github_com_solo_io_gloo_projects_gloo_api_v1_circuit_breaker_proto protoreflect.FileDescriptor
+var File_github_com_solo_io_gloo_projects_gloo_api_v1_circuit_breaker_circuit_breaker_proto protoreflect.FileDescriptor
 
-const file_github_com_solo_io_gloo_projects_gloo_api_v1_circuit_breaker_proto_rawDesc = "" +
+const file_github_com_solo_io_gloo_projects_gloo_api_v1_circuit_breaker_circuit_breaker_proto_rawDesc = "" +
 	"\n" +
-	"Bgithub.com/solo-io/gloo/projects/gloo/api/v1/circuit_breaker.proto\x12\fgloo.solo.io\x1a\x1egoogle/protobuf/wrappers.proto\x1a\x12extproto/ext.proto\"\xd6\x02\n" +
+	"Rgithub.com/solo-io/gloo/projects/gloo/api/v1/circuit_breaker/circuit_breaker.proto\x12\fgloo.solo.io\x1a\x1egoogle/protobuf/wrappers.proto\x1a\x12extproto/ext.proto\"\xd6\x02\n" +
 	"\x14CircuitBreakerConfig\x12E\n" +
 	"\x0fmax_connections\x18\x01 \x01(\v2\x1c.google.protobuf.UInt32ValueR\x0emaxConnections\x12N\n" +
 	"\x14max_pending_requests\x18\x02 \x01(\v2\x1c.google.protobuf.UInt32ValueR\x12maxPendingRequests\x12?\n" +
 	"\fmax_requests\x18\x03 \x01(\v2\x1c.google.protobuf.UInt32ValueR\vmaxRequests\x12=\n" +
 	"\vmax_retries\x18\x04 \x01(\v2\x1c.google.protobuf.UInt32ValueR\n" +
 	"maxRetries\x12'\n" +
-	"\x0ftrack_remaining\x18\x05 \x01(\bR\x0etrackRemainingB>\xb8\xf5\x04\x01\xc0\xf5\x04\x01\xd0\xf5\x04\x01Z0github.com/solo-io/gloo/projects/gloo/pkg/api/v1b\x06proto3"
+	"\x0ftrack_remaining\x18\x05 \x01(\bR\x0etrackRemainingBN\xb8\xf5\x04\x01\xc0\xf5\x04\x01\xd0\xf5\x04\x01Z@github.com/solo-io/gloo/projects/gloo/pkg/api/v1/circuit_breakerb\x06proto3"
 
 var (
-	file_github_com_solo_io_gloo_projects_gloo_api_v1_circuit_breaker_proto_rawDescOnce sync.Once
-	file_github_com_solo_io_gloo_projects_gloo_api_v1_circuit_breaker_proto_rawDescData []byte
+	file_github_com_solo_io_gloo_projects_gloo_api_v1_circuit_breaker_circuit_breaker_proto_rawDescOnce sync.Once
+	file_github_com_solo_io_gloo_projects_gloo_api_v1_circuit_breaker_circuit_breaker_proto_rawDescData []byte
 )
 
-func file_github_com_solo_io_gloo_projects_gloo_api_v1_circuit_breaker_proto_rawDescGZIP() []byte {
-	file_github_com_solo_io_gloo_projects_gloo_api_v1_circuit_breaker_proto_rawDescOnce.Do(func() {
-		file_github_com_solo_io_gloo_projects_gloo_api_v1_circuit_breaker_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_github_com_solo_io_gloo_projects_gloo_api_v1_circuit_breaker_proto_rawDesc), len(file_github_com_solo_io_gloo_projects_gloo_api_v1_circuit_breaker_proto_rawDesc)))
+func file_github_com_solo_io_gloo_projects_gloo_api_v1_circuit_breaker_circuit_breaker_proto_rawDescGZIP() []byte {
+	file_github_com_solo_io_gloo_projects_gloo_api_v1_circuit_breaker_circuit_breaker_proto_rawDescOnce.Do(func() {
+		file_github_com_solo_io_gloo_projects_gloo_api_v1_circuit_breaker_circuit_breaker_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_github_com_solo_io_gloo_projects_gloo_api_v1_circuit_breaker_circuit_breaker_proto_rawDesc), len(file_github_com_solo_io_gloo_projects_gloo_api_v1_circuit_breaker_circuit_breaker_proto_rawDesc)))
 	})
-	return file_github_com_solo_io_gloo_projects_gloo_api_v1_circuit_breaker_proto_rawDescData
+	return file_github_com_solo_io_gloo_projects_gloo_api_v1_circuit_breaker_circuit_breaker_proto_rawDescData
 }
 
-var file_github_com_solo_io_gloo_projects_gloo_api_v1_circuit_breaker_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
-var file_github_com_solo_io_gloo_projects_gloo_api_v1_circuit_breaker_proto_goTypes = []any{
+var file_github_com_solo_io_gloo_projects_gloo_api_v1_circuit_breaker_circuit_breaker_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
+var file_github_com_solo_io_gloo_projects_gloo_api_v1_circuit_breaker_circuit_breaker_proto_goTypes = []any{
 	(*CircuitBreakerConfig)(nil),   // 0: gloo.solo.io.CircuitBreakerConfig
 	(*wrapperspb.UInt32Value)(nil), // 1: google.protobuf.UInt32Value
 }
-var file_github_com_solo_io_gloo_projects_gloo_api_v1_circuit_breaker_proto_depIdxs = []int32{
+var file_github_com_solo_io_gloo_projects_gloo_api_v1_circuit_breaker_circuit_breaker_proto_depIdxs = []int32{
 	1, // 0: gloo.solo.io.CircuitBreakerConfig.max_connections:type_name -> google.protobuf.UInt32Value
 	1, // 1: gloo.solo.io.CircuitBreakerConfig.max_pending_requests:type_name -> google.protobuf.UInt32Value
 	1, // 2: gloo.solo.io.CircuitBreakerConfig.max_requests:type_name -> google.protobuf.UInt32Value
@@ -145,26 +145,28 @@ var file_github_com_solo_io_gloo_projects_gloo_api_v1_circuit_breaker_proto_depI
 	0, // [0:4] is the sub-list for field type_name
 }
 
-func init() { file_github_com_solo_io_gloo_projects_gloo_api_v1_circuit_breaker_proto_init() }
-func file_github_com_solo_io_gloo_projects_gloo_api_v1_circuit_breaker_proto_init() {
-	if File_github_com_solo_io_gloo_projects_gloo_api_v1_circuit_breaker_proto != nil {
+func init() {
+	file_github_com_solo_io_gloo_projects_gloo_api_v1_circuit_breaker_circuit_breaker_proto_init()
+}
+func file_github_com_solo_io_gloo_projects_gloo_api_v1_circuit_breaker_circuit_breaker_proto_init() {
+	if File_github_com_solo_io_gloo_projects_gloo_api_v1_circuit_breaker_circuit_breaker_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_github_com_solo_io_gloo_projects_gloo_api_v1_circuit_breaker_proto_rawDesc), len(file_github_com_solo_io_gloo_projects_gloo_api_v1_circuit_breaker_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_github_com_solo_io_gloo_projects_gloo_api_v1_circuit_breaker_circuit_breaker_proto_rawDesc), len(file_github_com_solo_io_gloo_projects_gloo_api_v1_circuit_breaker_circuit_breaker_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   1,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_github_com_solo_io_gloo_projects_gloo_api_v1_circuit_breaker_proto_goTypes,
-		DependencyIndexes: file_github_com_solo_io_gloo_projects_gloo_api_v1_circuit_breaker_proto_depIdxs,
-		MessageInfos:      file_github_com_solo_io_gloo_projects_gloo_api_v1_circuit_breaker_proto_msgTypes,
+		GoTypes:           file_github_com_solo_io_gloo_projects_gloo_api_v1_circuit_breaker_circuit_breaker_proto_goTypes,
+		DependencyIndexes: file_github_com_solo_io_gloo_projects_gloo_api_v1_circuit_breaker_circuit_breaker_proto_depIdxs,
+		MessageInfos:      file_github_com_solo_io_gloo_projects_gloo_api_v1_circuit_breaker_circuit_breaker_proto_msgTypes,
 	}.Build()
-	File_github_com_solo_io_gloo_projects_gloo_api_v1_circuit_breaker_proto = out.File
-	file_github_com_solo_io_gloo_projects_gloo_api_v1_circuit_breaker_proto_goTypes = nil
-	file_github_com_solo_io_gloo_projects_gloo_api_v1_circuit_breaker_proto_depIdxs = nil
+	File_github_com_solo_io_gloo_projects_gloo_api_v1_circuit_breaker_circuit_breaker_proto = out.File
+	file_github_com_solo_io_gloo_projects_gloo_api_v1_circuit_breaker_circuit_breaker_proto_goTypes = nil
+	file_github_com_solo_io_gloo_projects_gloo_api_v1_circuit_breaker_circuit_breaker_proto_depIdxs = nil
 }

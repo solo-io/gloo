@@ -14,6 +14,7 @@ import (
 	_ "github.com/envoyproxy/protoc-gen-validate/validate"
 	cluster "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/api/v2/cluster"
 	core1 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/api/v2/core"
+	circuit_breaker "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/circuit_breaker"
 	ai "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ai"
 	gcp "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/gcp"
 	aws "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/aws"
@@ -108,7 +109,7 @@ type Upstream struct {
 	// Circuit breakers for this upstream. if not set, the defaults ones from the Gloo settings will be used.
 	// if those are not set, [envoy's defaults](https://www.envoyproxy.io/docs/envoy/latest/api-v3/config/cluster/v3/circuit_breaker.proto#envoy-api-msg-cluster-circuitbreakers)
 	// will be used.
-	CircuitBreakers *CircuitBreakerConfig `protobuf:"bytes,5,opt,name=circuit_breakers,json=circuitBreakers,proto3" json:"circuit_breakers,omitempty"`
+	CircuitBreakers *circuit_breaker.CircuitBreakerConfig `protobuf:"bytes,5,opt,name=circuit_breakers,json=circuitBreakers,proto3" json:"circuit_breakers,omitempty"`
 	// Settings for the load balancer that sends requests to the Upstream. The load balancing method is set to round robin by default.
 	LoadBalancerConfig *LoadBalancerConfig       `protobuf:"bytes,6,opt,name=load_balancer_config,json=loadBalancerConfig,proto3" json:"load_balancer_config,omitempty"`
 	HealthChecks       []*core1.HealthCheck      `protobuf:"bytes,8,rep,name=health_checks,json=healthChecks,proto3" json:"health_checks,omitempty"`
@@ -272,7 +273,7 @@ func (x *Upstream) GetSslConfig() *ssl.UpstreamSslConfig {
 	return nil
 }
 
-func (x *Upstream) GetCircuitBreakers() *CircuitBreakerConfig {
+func (x *Upstream) GetCircuitBreakers() *circuit_breaker.CircuitBreakerConfig {
 	if x != nil {
 		return x.CircuitBreakers
 	}
@@ -768,7 +769,7 @@ var File_github_com_solo_io_gloo_projects_gloo_api_v1_upstream_proto protoreflec
 
 const file_github_com_solo_io_gloo_projects_gloo_api_v1_upstream_proto_rawDesc = "" +
 	"\n" +
-	";github.com/solo-io/gloo/projects/gloo/api/v1/upstream.proto\x12\fgloo.solo.io\x1a\x12extproto/ext.proto\x1a1github.com/solo-io/solo-kit/api/v1/metadata.proto\x1a:github.com/solo-io/gloo/projects/gloo/api/v1/ssl/ssl.proto\x1aBgithub.com/solo-io/gloo/projects/gloo/api/v1/circuit_breaker.proto\x1a@github.com/solo-io/gloo/projects/gloo/api/v1/load_balancer.proto\x1a=github.com/solo-io/gloo/projects/gloo/api/v1/connection.proto\x1aWgithub.com/solo-io/gloo/projects/gloo/api/external/envoy/api/v2/core/health_check.proto\x1a/github.com/solo-io/solo-kit/api/v1/status.proto\x1a_github.com/solo-io/gloo/projects/gloo/api/external/envoy/api/v2/cluster/outlier_detection.proto\x1a1github.com/solo-io/solo-kit/api/v1/solo-kit.proto\x1aHgithub.com/solo-io/gloo/projects/gloo/api/v1/options/static/static.proto\x1aDgithub.com/solo-io/gloo/projects/gloo/api/v1/options/pipe/pipe.proto\x1aPgithub.com/solo-io/gloo/projects/gloo/api/v1/options/kubernetes/kubernetes.proto\x1aBgithub.com/solo-io/gloo/projects/gloo/api/v1/options/aws/aws.proto\x1aFgithub.com/solo-io/gloo/projects/gloo/api/v1/options/azure/azure.proto\x1aHgithub.com/solo-io/gloo/projects/gloo/api/v1/options/consul/consul.proto\x1aJgithub.com/solo-io/gloo/projects/gloo/api/v1/options/aws/ec2/aws_ec2.proto\x1a;github.com/solo-io/gloo/projects/gloo/api/v1/failover.proto\x1aMgithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/gcp/gcp.proto\x1aKgithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/ai/ai.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1egoogle/protobuf/wrappers.proto\x1a\x17validate/validate.proto\"\xb4\x15\n" +
+	";github.com/solo-io/gloo/projects/gloo/api/v1/upstream.proto\x12\fgloo.solo.io\x1a\x12extproto/ext.proto\x1a1github.com/solo-io/solo-kit/api/v1/metadata.proto\x1a:github.com/solo-io/gloo/projects/gloo/api/v1/ssl/ssl.proto\x1aRgithub.com/solo-io/gloo/projects/gloo/api/v1/circuit_breaker/circuit_breaker.proto\x1a@github.com/solo-io/gloo/projects/gloo/api/v1/load_balancer.proto\x1a=github.com/solo-io/gloo/projects/gloo/api/v1/connection.proto\x1aWgithub.com/solo-io/gloo/projects/gloo/api/external/envoy/api/v2/core/health_check.proto\x1a/github.com/solo-io/solo-kit/api/v1/status.proto\x1a_github.com/solo-io/gloo/projects/gloo/api/external/envoy/api/v2/cluster/outlier_detection.proto\x1a1github.com/solo-io/solo-kit/api/v1/solo-kit.proto\x1aHgithub.com/solo-io/gloo/projects/gloo/api/v1/options/static/static.proto\x1aDgithub.com/solo-io/gloo/projects/gloo/api/v1/options/pipe/pipe.proto\x1aPgithub.com/solo-io/gloo/projects/gloo/api/v1/options/kubernetes/kubernetes.proto\x1aBgithub.com/solo-io/gloo/projects/gloo/api/v1/options/aws/aws.proto\x1aFgithub.com/solo-io/gloo/projects/gloo/api/v1/options/azure/azure.proto\x1aHgithub.com/solo-io/gloo/projects/gloo/api/v1/options/consul/consul.proto\x1aJgithub.com/solo-io/gloo/projects/gloo/api/v1/options/aws/ec2/aws_ec2.proto\x1a;github.com/solo-io/gloo/projects/gloo/api/v1/failover.proto\x1aMgithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/gcp/gcp.proto\x1aKgithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/ai/ai.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1egoogle/protobuf/wrappers.proto\x1a\x17validate/validate.proto\"\xb4\x15\n" +
 	"\bUpstream\x12W\n" +
 	"\x13namespaced_statuses\x18\x17 \x01(\v2 .core.solo.io.NamespacedStatusesB\x04\xb8\xf5\x04\x01R\x12namespacedStatuses\x122\n" +
 	"\bmetadata\x18\x02 \x01(\v2\x16.core.solo.io.MetadataR\bmetadata\x12N\n" +
@@ -838,35 +839,35 @@ func file_github_com_solo_io_gloo_projects_gloo_api_v1_upstream_proto_rawDescGZI
 var file_github_com_solo_io_gloo_projects_gloo_api_v1_upstream_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_github_com_solo_io_gloo_projects_gloo_api_v1_upstream_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
 var file_github_com_solo_io_gloo_projects_gloo_api_v1_upstream_proto_goTypes = []any{
-	(Upstream_ClusterProtocolSelection)(0), // 0: gloo.solo.io.Upstream.ClusterProtocolSelection
-	(*Upstream)(nil),                       // 1: gloo.solo.io.Upstream
-	(*DiscoveryMetadata)(nil),              // 2: gloo.solo.io.DiscoveryMetadata
-	(*HeaderValue)(nil),                    // 3: gloo.solo.io.HeaderValue
-	(*PreconnectPolicy)(nil),               // 4: gloo.solo.io.PreconnectPolicy
-	nil,                                    // 5: gloo.solo.io.DiscoveryMetadata.LabelsEntry
-	(*core.NamespacedStatuses)(nil),        // 6: core.solo.io.NamespacedStatuses
-	(*core.Metadata)(nil),                  // 7: core.solo.io.Metadata
-	(*ssl.UpstreamSslConfig)(nil),          // 8: gloo.solo.io.UpstreamSslConfig
-	(*CircuitBreakerConfig)(nil),           // 9: gloo.solo.io.CircuitBreakerConfig
-	(*LoadBalancerConfig)(nil),             // 10: gloo.solo.io.LoadBalancerConfig
-	(*core1.HealthCheck)(nil),              // 11: solo.io.envoy.api.v2.core.HealthCheck
-	(*cluster.OutlierDetection)(nil),       // 12: solo.io.envoy.api.v2.cluster.OutlierDetection
-	(*kubernetes.UpstreamSpec)(nil),        // 13: kubernetes.options.gloo.solo.io.UpstreamSpec
-	(*static.UpstreamSpec)(nil),            // 14: static.options.gloo.solo.io.UpstreamSpec
-	(*pipe.UpstreamSpec)(nil),              // 15: pipe.options.gloo.solo.io.UpstreamSpec
-	(*aws.UpstreamSpec)(nil),               // 16: aws.options.gloo.solo.io.UpstreamSpec
-	(*azure.UpstreamSpec)(nil),             // 17: azure.options.gloo.solo.io.UpstreamSpec
-	(*consul.UpstreamSpec)(nil),            // 18: consul.options.gloo.solo.io.UpstreamSpec
-	(*ec2.UpstreamSpec)(nil),               // 19: aws_ec2.options.gloo.solo.io.UpstreamSpec
-	(*gcp.UpstreamSpec)(nil),               // 20: gcp.options.gloo.solo.io.UpstreamSpec
-	(*ai.UpstreamSpec)(nil),                // 21: ai.options.gloo.solo.io.UpstreamSpec
-	(*Failover)(nil),                       // 22: gloo.solo.io.Failover
-	(*ConnectionConfig)(nil),               // 23: gloo.solo.io.ConnectionConfig
-	(*wrapperspb.BoolValue)(nil),           // 24: google.protobuf.BoolValue
-	(*wrapperspb.UInt32Value)(nil),         // 25: google.protobuf.UInt32Value
-	(*wrapperspb.StringValue)(nil),         // 26: google.protobuf.StringValue
-	(*durationpb.Duration)(nil),            // 27: google.protobuf.Duration
-	(*wrapperspb.DoubleValue)(nil),         // 28: google.protobuf.DoubleValue
+	(Upstream_ClusterProtocolSelection)(0),       // 0: gloo.solo.io.Upstream.ClusterProtocolSelection
+	(*Upstream)(nil),                             // 1: gloo.solo.io.Upstream
+	(*DiscoveryMetadata)(nil),                    // 2: gloo.solo.io.DiscoveryMetadata
+	(*HeaderValue)(nil),                          // 3: gloo.solo.io.HeaderValue
+	(*PreconnectPolicy)(nil),                     // 4: gloo.solo.io.PreconnectPolicy
+	nil,                                          // 5: gloo.solo.io.DiscoveryMetadata.LabelsEntry
+	(*core.NamespacedStatuses)(nil),              // 6: core.solo.io.NamespacedStatuses
+	(*core.Metadata)(nil),                        // 7: core.solo.io.Metadata
+	(*ssl.UpstreamSslConfig)(nil),                // 8: gloo.solo.io.UpstreamSslConfig
+	(*circuit_breaker.CircuitBreakerConfig)(nil), // 9: gloo.solo.io.CircuitBreakerConfig
+	(*LoadBalancerConfig)(nil),                   // 10: gloo.solo.io.LoadBalancerConfig
+	(*core1.HealthCheck)(nil),                    // 11: solo.io.envoy.api.v2.core.HealthCheck
+	(*cluster.OutlierDetection)(nil),             // 12: solo.io.envoy.api.v2.cluster.OutlierDetection
+	(*kubernetes.UpstreamSpec)(nil),              // 13: kubernetes.options.gloo.solo.io.UpstreamSpec
+	(*static.UpstreamSpec)(nil),                  // 14: static.options.gloo.solo.io.UpstreamSpec
+	(*pipe.UpstreamSpec)(nil),                    // 15: pipe.options.gloo.solo.io.UpstreamSpec
+	(*aws.UpstreamSpec)(nil),                     // 16: aws.options.gloo.solo.io.UpstreamSpec
+	(*azure.UpstreamSpec)(nil),                   // 17: azure.options.gloo.solo.io.UpstreamSpec
+	(*consul.UpstreamSpec)(nil),                  // 18: consul.options.gloo.solo.io.UpstreamSpec
+	(*ec2.UpstreamSpec)(nil),                     // 19: aws_ec2.options.gloo.solo.io.UpstreamSpec
+	(*gcp.UpstreamSpec)(nil),                     // 20: gcp.options.gloo.solo.io.UpstreamSpec
+	(*ai.UpstreamSpec)(nil),                      // 21: ai.options.gloo.solo.io.UpstreamSpec
+	(*Failover)(nil),                             // 22: gloo.solo.io.Failover
+	(*ConnectionConfig)(nil),                     // 23: gloo.solo.io.ConnectionConfig
+	(*wrapperspb.BoolValue)(nil),                 // 24: google.protobuf.BoolValue
+	(*wrapperspb.UInt32Value)(nil),               // 25: google.protobuf.UInt32Value
+	(*wrapperspb.StringValue)(nil),               // 26: google.protobuf.StringValue
+	(*durationpb.Duration)(nil),                  // 27: google.protobuf.Duration
+	(*wrapperspb.DoubleValue)(nil),               // 28: google.protobuf.DoubleValue
 }
 var file_github_com_solo_io_gloo_projects_gloo_api_v1_upstream_proto_depIdxs = []int32{
 	6,  // 0: gloo.solo.io.Upstream.namespaced_statuses:type_name -> core.solo.io.NamespacedStatuses
@@ -918,7 +919,6 @@ func file_github_com_solo_io_gloo_projects_gloo_api_v1_upstream_proto_init() {
 	if File_github_com_solo_io_gloo_projects_gloo_api_v1_upstream_proto != nil {
 		return
 	}
-	file_github_com_solo_io_gloo_projects_gloo_api_v1_circuit_breaker_proto_init()
 	file_github_com_solo_io_gloo_projects_gloo_api_v1_load_balancer_proto_init()
 	file_github_com_solo_io_gloo_projects_gloo_api_v1_connection_proto_init()
 	file_github_com_solo_io_gloo_projects_gloo_api_v1_failover_proto_init()
