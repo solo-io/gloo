@@ -769,7 +769,7 @@ Settings specific to the gloo (Envoy xDS server) controller
 | ----- | ---- | ----------- | 
 | `xdsBindAddr` | `string` | Where the `gloo` xDS server should bind. Defaults to `0.0.0.0:9977`. |
 | `validationBindAddr` | `string` | Where the `gloo` validation server should bind. Defaults to `0.0.0.0:9988`. |
-| `circuitBreakers` | [.gloo.solo.io.CircuitBreakerConfig](../circuit_breaker/circuit_breaker.proto.sk/#circuitbreakerconfig) | Default circuit breaker configuration to use for upstream requests, when not provided by specific upstream. |
+| `circuitBreakers` | [.gloo.solo.io.CircuitBreakerConfig](../circuit_breaker.proto.sk/#circuitbreakerconfig) | Default circuit breaker configuration to use for upstream requests, when not provided by specific upstream. |
 | `endpointsWarmingTimeout` | [.google.protobuf.Duration](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/duration) | Timeout to get initial snapshot of resources. If set to zero, Gloo will not wait for initial snapshot - if nonzero and gloo could not fetch it's initial snapshot before the timeout reached, gloo will panic. If unset, Gloo defaults to 5 minutes. |
 | `awsOptions` | [.gloo.solo.io.GlooOptions.AWSOptions](../settings.proto.sk/#awsoptions) |  |
 | `invalidConfigPolicy` | [.gloo.solo.io.GlooOptions.InvalidConfigPolicy](../settings.proto.sk/#invalidconfigpolicy) | set these options to fine-tune the way Gloo handles invalid user configuration. |

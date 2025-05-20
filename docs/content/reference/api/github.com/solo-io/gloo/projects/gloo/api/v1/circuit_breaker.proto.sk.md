@@ -26,6 +26,7 @@ weight: 5
 ### CircuitBreakerConfig
 
  
+DEPRECATED: Use github.com/solo-io/gloo/projects/gloo/api/v1/circuit_breaker/circuit_breaker.proto
 CircuitBreakerConfig contains the options for customizing circuit breaking behavior.
 See the [envoy docs](https://www.envoyproxy.io/docs/envoy/v1.14.1/api-v2/api/v2/cluster/circuit_breaker.proto#envoy-api-msg-cluster-circuitbreakers)
 for the meaning of these values.
@@ -35,6 +36,7 @@ for the meaning of these values.
 "maxPendingRequests": .google.protobuf.UInt32Value
 "maxRequests": .google.protobuf.UInt32Value
 "maxRetries": .google.protobuf.UInt32Value
+"trackRemaining": bool
 
 ```
 
@@ -44,6 +46,7 @@ for the meaning of these values.
 | `maxPendingRequests` | [.google.protobuf.UInt32Value](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/u-int-32-value) |  |
 | `maxRequests` | [.google.protobuf.UInt32Value](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/u-int-32-value) |  |
 | `maxRetries` | [.google.protobuf.UInt32Value](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/u-int-32-value) |  |
+| `trackRemaining` | `bool` |  |
 
 
 
