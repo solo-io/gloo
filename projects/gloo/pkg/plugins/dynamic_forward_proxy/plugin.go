@@ -102,8 +102,6 @@ func generateCustomDynamicForwardProxyCluster(listenerCfg *dynamic_forward_proxy
 		return nil, err
 	}
 
-	circuitBreakers := getCircuitBreakers(listenerCfg, params.Settings)
-
 	out := &envoy_config_cluster_v3.Cluster{
 		Name:           GetGeneratedClusterName(listenerCfg),
 		ConnectTimeout: &duration.Duration{Seconds: 5},
@@ -114,7 +112,11 @@ func generateCustomDynamicForwardProxyCluster(listenerCfg *dynamic_forward_proxy
 				TypedConfig: typedConfig,
 			},
 		},
-		CircuitBreakers: circuitBreakers,
+	}
+
+	circuitBreakers := getCircuitBreakers(listenerCfg, params.Settings)
+	if circuitBreakers != nil {
+		out.CircuitBreakers = circuitBreakers
 	}
 
 	if sslConfig := listenerCfg.GetSslConfig(); sslConfig != nil && params.Snapshot != nil {
@@ -143,7 +145,7 @@ func getCircuitBreakers(listenerCfg *dynamic_forward_proxy.FilterConfig, setting
 		return convertCircuitBreakers(settings.GetGloo().GetCircuitBreakers())
 	}
 
-	return &envoy_config_cluster_v3.CircuitBreakers{}
+	return nil
 }
 
 func convertCircuitBreakers(cfg *v1_circuitbreaker.CircuitBreakerConfig) *envoy_config_cluster_v3.CircuitBreakers {

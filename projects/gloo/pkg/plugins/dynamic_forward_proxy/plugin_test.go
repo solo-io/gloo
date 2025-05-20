@@ -295,14 +295,10 @@ var _ = Describe("dynamic forward proxy plugin", func() {
 			Expect(clusters).To(HaveLen(1))
 
 			circuitBreaker := clusters[0].GetCircuitBreakers()
-			Expect(circuitBreaker).NotTo(BeNil())
-
 			Expect(circuitBreaker).To(BeEquivalentTo(expectedCbc))
 
 		},
-			Entry("no config", nil, nil, &envoy_config_cluster_v3.CircuitBreakers{
-				Thresholds: ([]*envoy_config_cluster_v3.CircuitBreakers_Thresholds)(nil),
-			}),
+			Entry("no config", nil, nil, nil),
 			Entry("only defined in settings", settingsCbc, nil, cbFromSettings),
 			Entry("only defined in dfp config", nil, dfpCbc, cbFromDfpcb),
 			Entry("defined in both", settingsCbc, dfpCbc, cbFromDfpcb),
