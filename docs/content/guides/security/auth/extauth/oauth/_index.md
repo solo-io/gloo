@@ -175,7 +175,7 @@ If the authorization server has a service error, Gloo logs out the user, but doe
 Gloo also supports Front Channel Logout [RFC](https://openid.net/specs/openid-connect-frontchannel-1_0-final.html). Front channel logout is used when the OpenId provider is handling multiple logged in sessions and the logout endpoint should log out of all of them. The endpoint defined in `frontChannelLogout.path`
 is registered with the OP and is called for each application when the user goes to the `logoutPath` endpoint. Like `logoutPath`, `frontChannelLogout.path` is a relative URL. 
 
-When front channel logout is used, `logoutPath` intiates the logout and `frontChannelLogout.path` handles the per-session deletion of the user session and cookie and the revoking the access token.
+The following diagram shows how the logout and front channel logout paths work together. The `logoutPath` initiates the logout. The `frontChannelLogout.path` handles the per-session deletion of the user session and cookie, and revokes the access token.
 
 ![Front Channel Logout Flow]({{% versioned_link_path fromRoot="/img/front-channel-logout.png" %}})
 
