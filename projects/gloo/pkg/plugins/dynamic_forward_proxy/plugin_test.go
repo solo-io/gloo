@@ -12,12 +12,14 @@ import (
 	. "github.com/onsi/gomega"
 	v32 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/config/core/v3"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	v1_circuitbreaker "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/circuit_breaker"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/dynamic_forward_proxy"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/ssl"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	. "github.com/solo-io/gloo/projects/gloo/pkg/plugins/dynamic_forward_proxy"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
+	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
 	"github.com/solo-io/solo-kit/test/matchers"
 )
 
@@ -216,5 +218,90 @@ var _ = Describe("dynamic forward proxy plugin", func() {
 			Expect(expectedName1).NotTo(Equal(expectedName2))
 		})
 
+		var (
+			settingsCbc = &v1.Settings{
+				Gloo: &v1.GlooOptions{
+					CircuitBreakers: &v1_circuitbreaker.CircuitBreakerConfig{
+						MaxConnections:     &wrappers.UInt32Value{Value: 1000},
+						MaxPendingRequests: &wrappers.UInt32Value{Value: 1000},
+						MaxRequests:        &wrappers.UInt32Value{Value: 1000},
+						MaxRetries:         &wrappers.UInt32Value{Value: 1000},
+						TrackRemaining:     true,
+					},
+				},
+			}
+
+			dfpCbc = &v1_circuitbreaker.CircuitBreakerConfig{
+				MaxConnections:     &wrappers.UInt32Value{Value: 2000},
+				MaxPendingRequests: &wrappers.UInt32Value{Value: 2000},
+				MaxRequests:        &wrappers.UInt32Value{Value: 2000},
+				MaxRetries:         &wrappers.UInt32Value{Value: 2000},
+				TrackRemaining:     true,
+			}
+
+			cbFromSettings = &envoy_config_cluster_v3.CircuitBreakers{
+				Thresholds: []*envoy_config_cluster_v3.CircuitBreakers_Thresholds{
+					{
+						MaxConnections:     &wrappers.UInt32Value{Value: 1000},
+						MaxPendingRequests: &wrappers.UInt32Value{Value: 1000},
+						MaxRequests:        &wrappers.UInt32Value{Value: 1000},
+						MaxRetries:         &wrappers.UInt32Value{Value: 1000},
+						TrackRemaining:     true,
+					},
+				},
+			}
+
+			cbFromDfpcb = &envoy_config_cluster_v3.CircuitBreakers{
+				Thresholds: []*envoy_config_cluster_v3.CircuitBreakers_Thresholds{
+					{
+						MaxConnections:     &wrappers.UInt32Value{Value: 2000},
+						MaxPendingRequests: &wrappers.UInt32Value{Value: 2000},
+						MaxRequests:        &wrappers.UInt32Value{Value: 2000},
+						MaxRetries:         &wrappers.UInt32Value{Value: 2000},
+						TrackRemaining:     true,
+					},
+				},
+			}
+		)
+
+		DescribeTable("Translates CircuitBreakers", func(
+			settings *v1.Settings,
+			dfpConfig *v1_circuitbreaker.CircuitBreakerConfig,
+			expectedCbc *envoy_config_cluster_v3.CircuitBreakers) {
+
+			//create dummy snapshot
+			params.Snapshot = &gloosnapshot.ApiSnapshot{}
+			if settings != nil {
+				params.Settings = settings
+			}
+
+			reports := reporter.ResourceReports{}
+
+			// create plugin
+			p := NewPlugin()
+			p.Init(initParams)
+
+			// inform plugin of listener
+			listener1 := listener.Clone().(*v1.HttpListener)
+			if dfpConfig != nil {
+				listener1.Options.DynamicForwardProxy.CircuitBreakers = dfpConfig
+			}
+			_, err := p.HttpFilters(params, listener1)
+			Expect(err).NotTo(HaveOccurred())
+
+			// use plugin to compute expected envoy cluster
+			clusters, _, _, _, _ := p.GeneratedResources(params, nil, nil, nil, nil)
+			Expect(reports).To(BeEmpty())
+			Expect(clusters).To(HaveLen(1))
+
+			circuitBreaker := clusters[0].GetCircuitBreakers()
+			Expect(circuitBreaker).To(BeEquivalentTo(expectedCbc))
+
+		},
+			Entry("no config", nil, nil, nil),
+			Entry("only defined in settings", settingsCbc, nil, cbFromSettings),
+			Entry("only defined in dfp config", nil, dfpCbc, cbFromDfpcb),
+			Entry("defined in both", settingsCbc, dfpCbc, cbFromDfpcb),
+		)
 	})
 })

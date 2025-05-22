@@ -11,6 +11,7 @@ import (
 	sync "sync"
 
 	aws "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/aws"
+	circuit_breaker "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/circuit_breaker"
 	caching "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/caching"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
 	extproc "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extproc"
@@ -901,7 +902,7 @@ type GlooOptions struct {
 	ValidationBindAddr string `protobuf:"bytes,2,opt,name=validation_bind_addr,json=validationBindAddr,proto3" json:"validation_bind_addr,omitempty"`
 	// Default circuit breaker configuration to use for upstream requests,
 	// when not provided by specific upstream.
-	CircuitBreakers *CircuitBreakerConfig `protobuf:"bytes,3,opt,name=circuit_breakers,json=circuitBreakers,proto3" json:"circuit_breakers,omitempty"`
+	CircuitBreakers *circuit_breaker.CircuitBreakerConfig `protobuf:"bytes,3,opt,name=circuit_breakers,json=circuitBreakers,proto3" json:"circuit_breakers,omitempty"`
 	// Timeout to get initial snapshot of resources. If set to zero, Gloo will not wait for initial
 	// snapshot - if nonzero and gloo could not fetch it's initial snapshot before the timeout
 	// reached, gloo will panic. If unset, Gloo defaults to 5 minutes.
@@ -1008,7 +1009,7 @@ func (x *GlooOptions) GetValidationBindAddr() string {
 	return ""
 }
 
-func (x *GlooOptions) GetCircuitBreakers() *CircuitBreakerConfig {
+func (x *GlooOptions) GetCircuitBreakers() *circuit_breaker.CircuitBreakerConfig {
 	if x != nil {
 		return x.CircuitBreakers
 	}
@@ -3679,10 +3680,11 @@ var file_github_com_solo_io_gloo_projects_gloo_api_v1_settings_proto_rawDesc = [
 	0x70, 0x72, 0x6f, 0x6a, 0x65, 0x63, 0x74, 0x73, 0x2f, 0x67, 0x6c, 0x6f, 0x6f, 0x2f, 0x61, 0x70,
 	0x69, 0x2f, 0x76, 0x31, 0x2f, 0x65, 0x6e, 0x74, 0x65, 0x72, 0x70, 0x72, 0x69, 0x73, 0x65, 0x2f,
 	0x6f, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x2f, 0x72, 0x62, 0x61, 0x63, 0x2f, 0x72, 0x62, 0x61,
-	0x63, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x1a, 0x42, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e,
+	0x63, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x1a, 0x52, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e,
 	0x63, 0x6f, 0x6d, 0x2f, 0x73, 0x6f, 0x6c, 0x6f, 0x2d, 0x69, 0x6f, 0x2f, 0x67, 0x6c, 0x6f, 0x6f,
 	0x2f, 0x70, 0x72, 0x6f, 0x6a, 0x65, 0x63, 0x74, 0x73, 0x2f, 0x67, 0x6c, 0x6f, 0x6f, 0x2f, 0x61,
 	0x70, 0x69, 0x2f, 0x76, 0x31, 0x2f, 0x63, 0x69, 0x72, 0x63, 0x75, 0x69, 0x74, 0x5f, 0x62, 0x72,
+	0x65, 0x61, 0x6b, 0x65, 0x72, 0x2f, 0x63, 0x69, 0x72, 0x63, 0x75, 0x69, 0x74, 0x5f, 0x62, 0x72,
 	0x65, 0x61, 0x6b, 0x65, 0x72, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x1a, 0x3a, 0x67, 0x69, 0x74,
 	0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x73, 0x6f, 0x6c, 0x6f, 0x2d, 0x69, 0x6f, 0x2f,
 	0x67, 0x6c, 0x6f, 0x6f, 0x2f, 0x70, 0x72, 0x6f, 0x6a, 0x65, 0x63, 0x74, 0x73, 0x2f, 0x67, 0x6c,
@@ -4598,7 +4600,7 @@ var file_github_com_solo_io_gloo_projects_gloo_api_v1_settings_proto_goTypes = [
 	(*core.NamespacedStatuses)(nil),                       // 52: core.solo.io.NamespacedStatuses
 	(*extproc.Settings)(nil),                              // 53: extproc.options.gloo.solo.io.Settings
 	(*ssl.SslParameters)(nil),                             // 54: gloo.solo.io.SslParameters
-	(*CircuitBreakerConfig)(nil),                          // 55: gloo.solo.io.CircuitBreakerConfig
+	(*circuit_breaker.CircuitBreakerConfig)(nil),          // 55: gloo.solo.io.CircuitBreakerConfig
 	(*wrapperspb.BoolValue)(nil),                          // 56: google.protobuf.BoolValue
 	(*wrapperspb.UInt32Value)(nil),                        // 57: google.protobuf.UInt32Value
 	(*core.ResourceRef)(nil),                              // 58: core.solo.io.ResourceRef
@@ -4727,7 +4729,6 @@ func file_github_com_solo_io_gloo_projects_gloo_api_v1_settings_proto_init() {
 		return
 	}
 	file_github_com_solo_io_gloo_projects_gloo_api_v1_extensions_proto_init()
-	file_github_com_solo_io_gloo_projects_gloo_api_v1_circuit_breaker_proto_init()
 	file_github_com_solo_io_gloo_projects_gloo_api_v1_settings_proto_msgTypes[0].OneofWrappers = []any{
 		(*Settings_KubernetesConfigSource)(nil),
 		(*Settings_DirectoryConfigSource)(nil),
