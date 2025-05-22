@@ -375,6 +375,7 @@ spec:
 					prepareMakefile(namespace, glootestutils.HelmValues{
 						ValuesArgs: []string{
 							"gloo.deployment.extraGlooLabels.foo=bar",
+							"discovery.enabled=true",
 							"discovery.deployment.extraDiscoveryLabels.foo=bar",
 							"gatewayProxies.gatewayProxy.podTemplate.extraGatewayProxyLabels.foo=bar",
 							"accessLogger.enabled=true", // required to test accessLogger
@@ -743,6 +744,7 @@ spec:
 				It("should be able to expose http-monitoring port on all relevant deployments", func() {
 					prepareMakefile(namespace, glootestutils.HelmValues{
 						ValuesArgs: []string{
+							"discovery.enabled=true",
 							// to enable accessLogger deployment
 							"gateway.enabled=true",
 							"accessLogger.enabled=true",
@@ -5273,6 +5275,7 @@ metadata:
 						discoveryServiceAccount.ObjectMeta.Annotations = map[string]string{"foo": "bar", "bar": "baz"}
 						prepareMakefile(namespace, glootestutils.HelmValues{
 							ValuesArgs: []string{
+								"discovery.enabled=true",
 								"discovery.serviceAccount.extraAnnotations.foo=bar",
 								"discovery.serviceAccount.extraAnnotations.bar=baz",
 								"discovery.serviceAccount.disableAutomount=true",
@@ -5328,13 +5331,18 @@ metadata:
 					})
 
 					It("has a creates a deployment", func() {
-						prepareMakefile(namespace, glootestutils.HelmValues{})
+						prepareMakefile(namespace, glootestutils.HelmValues{
+							ValuesArgs: []string{
+								"discovery.enabled=true",
+							},
+						})
 						testManifest.ExpectDeploymentAppsV1(discoveryDeployment)
 					})
 
 					It("can set both requests and limits", func() {
 						prepareMakefile(namespace, glootestutils.HelmValues{
 							ValuesArgs: []string{
+								"discovery.enabled=true",
 								"discovery.deployment.resources.limits.memory=2Mi",
 								"discovery.deployment.resources.limits.cpu=3m",
 								"discovery.deployment.resources.requests.memory=4Mi",
@@ -5378,6 +5386,7 @@ metadata:
 					It("can set requests only", func() {
 						prepareMakefile(namespace, glootestutils.HelmValues{
 							ValuesArgs: []string{
+								"discovery.enabled=true",
 								"discovery.deployment.resources.requests.memory=6Mi",
 								"discovery.deployment.resources.requests.cpu=7m",
 							},
@@ -5415,6 +5424,7 @@ metadata:
 						deploy.Spec.Template.Spec.ServiceAccountName = "discovery"
 						prepareMakefile(namespace, glootestutils.HelmValues{
 							ValuesArgs: []string{
+								"discovery.enabled=true",
 								"discovery.deployment.image.pullPolicy=Always",
 								"discovery.deployment.image.registry=gcr.io/solo-public",
 							},
@@ -5425,6 +5435,7 @@ metadata:
 						discoveryDeployment.Spec.Template.Spec.Containers[0].Image = expectedImage
 						prepareMakefile(namespace, glootestutils.HelmValues{
 							ValuesArgs: []string{
+								"discovery.enabled=true",
 								"global.image.variant=" + variant,
 								"discovery.deployment.image.tag=1.2.3",
 								"discovery.deployment.image.repository=discovery-ee",
@@ -5446,7 +5457,10 @@ metadata:
 							GetLogLevelEnvVar("debug"),
 						)
 						prepareMakefile(namespace, glootestutils.HelmValues{
-							ValuesArgs: []string{"discovery.logLevel=debug"},
+							ValuesArgs: []string{
+								"discovery.enabled=true",
+								"discovery.logLevel=debug",
+							},
 						})
 						testManifest.ExpectDeploymentAppsV1(discoveryDeployment)
 					})
@@ -5458,6 +5472,7 @@ metadata:
 						)
 						prepareMakefile(namespace, glootestutils.HelmValues{
 							ValuesArgs: []string{
+								"discovery.enabled=true",
 								"discovery.deployment.customEnv[0].Name=TEST_EXTRA_ENV_VAR",
 								"discovery.deployment.customEnv[0].Value=test",
 							},
@@ -5467,7 +5482,10 @@ metadata:
 
 					It("allows setting custom runAsUser", func() {
 						prepareMakefile(namespace, glootestutils.HelmValues{
-							ValuesArgs: []string{"discovery.deployment.runAsUser=10102"},
+							ValuesArgs: []string{
+								"discovery.enabled=true",
+								"discovery.deployment.runAsUser=10102",
+							},
 						})
 						uid := int64(10102)
 						discoveryDeployment.Spec.Template.Spec.SecurityContext.RunAsUser = &uid
@@ -5477,7 +5495,10 @@ metadata:
 
 					It("allows removing pod security context", func() {
 						prepareMakefile(namespace, glootestutils.HelmValues{
-							ValuesArgs: []string{"discovery.deployment.enablePodSecurityContext=false"},
+							ValuesArgs: []string{
+								"discovery.enabled=true",
+								"discovery.deployment.enablePodSecurityContext=false",
+							},
 						})
 						discoveryDeployment.Spec.Template.Spec.SecurityContext = nil
 						testManifest.ExpectDeploymentAppsV1(discoveryDeployment)
@@ -5487,6 +5508,7 @@ metadata:
 						settings := makeUnstructureFromTemplateFile("fixtures/settings/graphql_fds_disabled.yaml", namespace)
 						prepareMakefile(namespace, glootestutils.HelmValues{
 							ValuesArgs: []string{
+								"discovery.enabled=true",
 								"discovery.fdsOptions.graphqlEnabled=false",
 							},
 						})
@@ -5497,6 +5519,7 @@ metadata:
 						settings := makeUnstructureFromTemplateFile("fixtures/settings/uds_disabled.yaml", namespace)
 						prepareMakefile(namespace, glootestutils.HelmValues{
 							ValuesArgs: []string{
+								"discovery.enabled=true",
 								"discovery.udsOptions.enabled=false",
 							},
 						})
@@ -5507,6 +5530,7 @@ metadata:
 						settings := makeUnstructureFromTemplateFile("fixtures/settings/watched_discovery_labels.yaml", namespace)
 						prepareMakefile(namespace, glootestutils.HelmValues{
 							ValuesArgs: []string{
+								"discovery.enabled=true",
 								"discovery.udsOptions.watchLabels.A=B",
 							},
 						})
@@ -5517,6 +5541,7 @@ metadata:
 						settings := makeUnstructureFromTemplateFile("fixtures/settings/translate_empty_gateway.yaml", namespace)
 						prepareMakefile(namespace, glootestutils.HelmValues{
 							ValuesArgs: []string{
+								"discovery.enabled=true",
 								"gateway.validation.enabled=false",
 								"gateway.translateEmptyGateways=true",
 							},
@@ -5533,6 +5558,7 @@ metadata:
 						It("via global values", func() {
 							prepareMakefile(namespace, glootestutils.HelmValues{
 								ValuesArgs: []string{
+									"discovery.enabled=true",
 									fmt.Sprintf("global.image.pullSecret=%s", pullSecretName),
 								},
 							})
@@ -5543,6 +5569,7 @@ metadata:
 						It("via podTemplate values", func() {
 							prepareMakefile(namespace, glootestutils.HelmValues{
 								ValuesArgs: []string{
+									"discovery.enabled=true",
 									fmt.Sprintf("discovery.deployment.image.pullSecret=%s", pullSecretName),
 								},
 							})
@@ -5554,6 +5581,7 @@ metadata:
 							prepareMakefile(namespace, glootestutils.HelmValues{
 								ValuesArgs: []string{
 									"global.image.pullSecret=wrong",
+									"discovery.enabled=true",
 									fmt.Sprintf("discovery.deployment.image.pullSecret=%s", pullSecretName),
 								},
 							})
@@ -6293,7 +6321,7 @@ metadata:
 						Expect(resources.NumResources()).To(Equal(1))
 					},
 					Entry("gloo deployment", "Deployment", "gloo", "gloo.deployment"),
-					Entry("discovery deployment", "Deployment", "discovery", "discovery.deployment"),
+					Entry("discovery deployment", "Deployment", "discovery", "discovery.deployment", "discovery.enabled=true"),
 					Entry("ingress deployment", "Deployment", "ingress", "ingress.deployment", "ingress.enabled=true"),
 					Entry("cluster-ingress deployment", "Deployment", "clusteringress-proxy", "settings.integrations.knative.proxy", "settings.integrations.knative.version=0.7.0", "settings.integrations.knative.enabled=true"),
 					Entry("knative external proxy deployment", "Deployment", "knative-external-proxy", "settings.integrations.knative.proxy", "settings.integrations.knative.version=0.9.0", "settings.integrations.knative.enabled=true"),
@@ -6551,7 +6579,7 @@ metadata:
 					Entry("1-gloo-deployment-envoy-sidecar", "gloo", "envoy-sidecar", "Deployment", "global.glooMtls.envoy.securityContext", "global.glooMtls.enabled=true"),
 					Entry("1-gloo-deployment-sds", "gloo", "sds", "Deployment", "global.glooMtls.sds.securityContext", "global.glooMtls.enabled=true"),
 					Entry("19-gloo-mtls-certgen-job.yaml", "gloo-mtls-certgen", "certgen", "Job", "gateway.certGenJob.containerSecurityContext", "global.glooMtls.enabled=true"),
-					Entry("3-discovery-deployment.yaml", "discovery", "discovery", "Deployment", "discovery.deployment.discoveryContainerSecurityContext"),
+					Entry("3-discovery-deployment.yaml", "discovery", "discovery", "Deployment", "discovery.deployment.discoveryContainerSecurityContext", "discovery.enabled=true"),
 					Entry("5-resource-cleanup-job.yaml", "gloo-resource-cleanup", "kubectl", "Job", "gateway.rolloutJob.containerSecurityContext"),
 					Entry("5-resource-migration-job.yaml", "gloo-resource-migration", "kubectl", "Job", "gateway.rolloutJob.containerSecurityContext"),
 					Entry("5-resource-rollout-check-job.yaml", "gloo-resource-rollout-check", "kubectl", "Job", "gateway.rolloutJob.containerSecurityContext"),
@@ -6658,7 +6686,7 @@ metadata:
 					Entry("1-gloo-deployment-envoy-sidecar", "gloo", "envoy-sidecar", "Deployment", "global.glooMtls.envoy.securityContext", "global.glooMtls.enabled=true"),
 					Entry("1-gloo-deployment-sds", "gloo", "sds", "Deployment", "global.glooMtls.sds.securityContext", "global.glooMtls.enabled=true"),
 					Entry("19-gloo-mtls-certgen-job.yaml", "gloo-mtls-certgen", "certgen", "Job", "gateway.certGenJob.containerSecurityContext", "global.glooMtls.enabled=true"),
-					Entry("3-discovery-deployment.yaml", "discovery", "discovery", "Deployment", "discovery.deployment.discoveryContainerSecurityContext"),
+					Entry("3-discovery-deployment.yaml", "discovery", "discovery", "Deployment", "discovery.deployment.discoveryContainerSecurityContext", "discovery.enabled=true"),
 					Entry("5-resource-cleanup-job.yaml", "gloo-resource-cleanup", "kubectl", "Job", "gateway.rolloutJob.containerSecurityContext"),
 					Entry("5-resource-migration-job.yaml", "gloo-resource-migration", "kubectl", "Job", "gateway.rolloutJob.containerSecurityContext"),
 					Entry("5-resource-rollout-check-job.yaml", "gloo-resource-rollout-check", "kubectl", "Job", "gateway.rolloutJob.containerSecurityContext"),
@@ -6770,7 +6798,7 @@ metadata:
 					}
 				},
 					Entry("1-gloo-deployment", "gloo", "gloo.deployment.podSecurityContext", false),
-					Entry("3-discovery-deployment", "discovery", "discovery.deployment", true, "discovery.deployment.enablePodSecurityContext=true"),
+					Entry("3-discovery-deployment", "discovery", "discovery.deployment", true, "discovery.deployment.enablePodSecurityContext=true", "discovery.enabled=true"),
 					Entry("7-gateway-proxy-deployment", "gateway-proxy", "gatewayProxies.gatewayProxy.podTemplate.podSecurityContext", true, "gatewayProxies.gatewayProxy.podTemplate.enablePodSecurityContext=true"),
 				)
 
@@ -7122,8 +7150,8 @@ metadata:
 					Entry("1-gloo-deployment", "gloo.deployment.kubeResourceOverride"),
 					Entry("2-gloo-service", "gloo.service.kubeResourceOverride"),
 					Entry("2-gloo-service-account", "gloo.serviceAccount.kubeResourceOverride"),
-					Entry("3-discovery-deployment", "discovery.deployment.kubeResourceOverride"),
-					Entry("3-discovery-service-account", "discovery.serviceAccount.kubeResourceOverride"),
+					Entry("3-discovery-deployment", "discovery.deployment.kubeResourceOverride", "discovery.enabled=true"),
+					Entry("3-discovery-service-account", "discovery.serviceAccount.kubeResourceOverride", "discovery.enabled=true"),
 					Entry("5-gateway-validation-webhook-configuration", "gateway.validation.webhook.kubeResourceOverride"),
 					Entry("6-access-logger-deployment", "accessLogger.deployment.kubeResourceOverride", "accessLogger.enabled=true"),
 					Entry("6-access-logger-service", "accessLogger.service.kubeResourceOverride", "accessLogger.enabled=true"),

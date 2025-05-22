@@ -280,6 +280,8 @@ func installGloo(testHelper *helper.SoloTestHelper, fromRelease string, strictVa
 		"--version", fromRelease)
 
 	args = append(args, "-n", testHelper.InstallNamespace,
+		// Discovery is disabled by default
+		"discovery.enabled=true",
 		// As most CD tools wait for resources to be ready before marking the release as successful,
 		// we're emulating that here by passing these two flags.
 		// This way we ensure that we indirectly add support for CD tools
@@ -343,6 +345,8 @@ func upgradeGloo(testHelper *helper.SoloTestHelper, chartUri string, targetRelea
 	defer cleanupFunc()
 
 	var args = []string{"upgrade", testHelper.HelmChartName, chartUri,
+		// Discovery is disabled by default
+		"discovery.enabled=true",
 		// As most CD tools wait for resources to be ready before marking the release as successful,
 		// we're emulating that here by passing these two flags.
 		// This way we ensure that we indirectly add support for CD tools
