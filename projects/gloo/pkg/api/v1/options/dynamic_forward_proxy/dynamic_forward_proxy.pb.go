@@ -13,6 +13,7 @@ import (
 
 	_ "github.com/envoyproxy/protoc-gen-validate/validate"
 	v3 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/config/core/v3"
+	circuit_breaker "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/circuit_breaker"
 	ssl "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/ssl"
 	_ "github.com/solo-io/protoc-gen-ext/extproto"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
@@ -169,6 +170,13 @@ func (x *FilterConfig) GetSaveUpstreamAddress() bool {
 func (x *FilterConfig) GetSslConfig() *ssl.UpstreamSslConfig {
 	if x != nil {
 		return x.SslConfig
+	}
+	return nil
+}
+
+func (x *FilterConfig) GetCircuitBreakers() *circuit_breaker.CircuitBreakerConfig {
+	if x != nil {
+		return x.CircuitBreakers
 	}
 	return nil
 }
@@ -789,44 +797,46 @@ func file_github_com_solo_io_gloo_projects_gloo_api_v1_options_dynamic_forward_p
 var file_github_com_solo_io_gloo_projects_gloo_api_v1_options_dynamic_forward_proxy_dynamic_forward_proxy_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_github_com_solo_io_gloo_projects_gloo_api_v1_options_dynamic_forward_proxy_dynamic_forward_proxy_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
 var file_github_com_solo_io_gloo_projects_gloo_api_v1_options_dynamic_forward_proxy_dynamic_forward_proxy_proto_goTypes = []any{
-	(DnsLookupFamily)(0),            // 0: dfp.options.gloo.solo.io.DnsLookupFamily
-	(*FilterConfig)(nil),            // 1: dfp.options.gloo.solo.io.FilterConfig
-	(*DnsCacheCircuitBreakers)(nil), // 2: dfp.options.gloo.solo.io.DnsCacheCircuitBreakers
-	(*DnsCacheConfig)(nil),          // 3: dfp.options.gloo.solo.io.DnsCacheConfig
-	(*RefreshRate)(nil),             // 4: dfp.options.gloo.solo.io.RefreshRate
-	(*PerRouteConfig)(nil),          // 5: dfp.options.gloo.solo.io.PerRouteConfig
-	(*DnsResolverOptions)(nil),      // 6: dfp.options.gloo.solo.io.DnsResolverOptions
-	(*CaresDnsResolverConfig)(nil),  // 7: dfp.options.gloo.solo.io.CaresDnsResolverConfig
-	(*AppleDnsResolverConfig)(nil),  // 8: dfp.options.gloo.solo.io.AppleDnsResolverConfig
-	(*ssl.UpstreamSslConfig)(nil),   // 9: gloo.solo.io.UpstreamSslConfig
-	(*wrapperspb.UInt32Value)(nil),  // 10: google.protobuf.UInt32Value
-	(*durationpb.Duration)(nil),     // 11: google.protobuf.Duration
-	(*v3.SocketAddress)(nil),        // 12: solo.io.envoy.config.core.v3.SocketAddress
-	(*v3.Address)(nil),              // 13: solo.io.envoy.config.core.v3.Address
+	(DnsLookupFamily)(0),                         // 0: dfp.options.gloo.solo.io.DnsLookupFamily
+	(*FilterConfig)(nil),                         // 1: dfp.options.gloo.solo.io.FilterConfig
+	(*DnsCacheCircuitBreakers)(nil),              // 2: dfp.options.gloo.solo.io.DnsCacheCircuitBreakers
+	(*DnsCacheConfig)(nil),                       // 3: dfp.options.gloo.solo.io.DnsCacheConfig
+	(*RefreshRate)(nil),                          // 4: dfp.options.gloo.solo.io.RefreshRate
+	(*PerRouteConfig)(nil),                       // 5: dfp.options.gloo.solo.io.PerRouteConfig
+	(*DnsResolverOptions)(nil),                   // 6: dfp.options.gloo.solo.io.DnsResolverOptions
+	(*CaresDnsResolverConfig)(nil),               // 7: dfp.options.gloo.solo.io.CaresDnsResolverConfig
+	(*AppleDnsResolverConfig)(nil),               // 8: dfp.options.gloo.solo.io.AppleDnsResolverConfig
+	(*ssl.UpstreamSslConfig)(nil),                // 9: gloo.solo.io.UpstreamSslConfig
+	(*circuit_breaker.CircuitBreakerConfig)(nil), // 10: gloo.solo.io.CircuitBreakerConfig
+	(*wrapperspb.UInt32Value)(nil),               // 11: google.protobuf.UInt32Value
+	(*durationpb.Duration)(nil),                  // 12: google.protobuf.Duration
+	(*v3.SocketAddress)(nil),                     // 13: solo.io.envoy.config.core.v3.SocketAddress
+	(*v3.Address)(nil),                           // 14: solo.io.envoy.config.core.v3.Address
 }
 var file_github_com_solo_io_gloo_projects_gloo_api_v1_options_dynamic_forward_proxy_dynamic_forward_proxy_proto_depIdxs = []int32{
 	3,  // 0: dfp.options.gloo.solo.io.FilterConfig.dns_cache_config:type_name -> dfp.options.gloo.solo.io.DnsCacheConfig
 	9,  // 1: dfp.options.gloo.solo.io.FilterConfig.ssl_config:type_name -> gloo.solo.io.UpstreamSslConfig
-	10, // 2: dfp.options.gloo.solo.io.DnsCacheCircuitBreakers.max_pending_requests:type_name -> google.protobuf.UInt32Value
-	0,  // 3: dfp.options.gloo.solo.io.DnsCacheConfig.dns_lookup_family:type_name -> dfp.options.gloo.solo.io.DnsLookupFamily
-	11, // 4: dfp.options.gloo.solo.io.DnsCacheConfig.dns_refresh_rate:type_name -> google.protobuf.Duration
-	11, // 5: dfp.options.gloo.solo.io.DnsCacheConfig.host_ttl:type_name -> google.protobuf.Duration
-	10, // 6: dfp.options.gloo.solo.io.DnsCacheConfig.max_hosts:type_name -> google.protobuf.UInt32Value
-	4,  // 7: dfp.options.gloo.solo.io.DnsCacheConfig.dns_failure_refresh_rate:type_name -> dfp.options.gloo.solo.io.RefreshRate
-	2,  // 8: dfp.options.gloo.solo.io.DnsCacheConfig.dns_cache_circuit_breaker:type_name -> dfp.options.gloo.solo.io.DnsCacheCircuitBreakers
-	7,  // 9: dfp.options.gloo.solo.io.DnsCacheConfig.cares_dns:type_name -> dfp.options.gloo.solo.io.CaresDnsResolverConfig
-	8,  // 10: dfp.options.gloo.solo.io.DnsCacheConfig.apple_dns:type_name -> dfp.options.gloo.solo.io.AppleDnsResolverConfig
-	12, // 11: dfp.options.gloo.solo.io.DnsCacheConfig.preresolve_hostnames:type_name -> solo.io.envoy.config.core.v3.SocketAddress
-	11, // 12: dfp.options.gloo.solo.io.DnsCacheConfig.dns_query_timeout:type_name -> google.protobuf.Duration
-	11, // 13: dfp.options.gloo.solo.io.RefreshRate.base_interval:type_name -> google.protobuf.Duration
-	11, // 14: dfp.options.gloo.solo.io.RefreshRate.max_interval:type_name -> google.protobuf.Duration
-	13, // 15: dfp.options.gloo.solo.io.CaresDnsResolverConfig.resolvers:type_name -> solo.io.envoy.config.core.v3.Address
-	6,  // 16: dfp.options.gloo.solo.io.CaresDnsResolverConfig.dns_resolver_options:type_name -> dfp.options.gloo.solo.io.DnsResolverOptions
-	17, // [17:17] is the sub-list for method output_type
-	17, // [17:17] is the sub-list for method input_type
-	17, // [17:17] is the sub-list for extension type_name
-	17, // [17:17] is the sub-list for extension extendee
-	0,  // [0:17] is the sub-list for field type_name
+	10, // 2: dfp.options.gloo.solo.io.FilterConfig.circuit_breakers:type_name -> gloo.solo.io.CircuitBreakerConfig
+	11, // 3: dfp.options.gloo.solo.io.DnsCacheCircuitBreakers.max_pending_requests:type_name -> google.protobuf.UInt32Value
+	0,  // 4: dfp.options.gloo.solo.io.DnsCacheConfig.dns_lookup_family:type_name -> dfp.options.gloo.solo.io.DnsLookupFamily
+	12, // 5: dfp.options.gloo.solo.io.DnsCacheConfig.dns_refresh_rate:type_name -> google.protobuf.Duration
+	12, // 6: dfp.options.gloo.solo.io.DnsCacheConfig.host_ttl:type_name -> google.protobuf.Duration
+	11, // 7: dfp.options.gloo.solo.io.DnsCacheConfig.max_hosts:type_name -> google.protobuf.UInt32Value
+	4,  // 8: dfp.options.gloo.solo.io.DnsCacheConfig.dns_failure_refresh_rate:type_name -> dfp.options.gloo.solo.io.RefreshRate
+	2,  // 9: dfp.options.gloo.solo.io.DnsCacheConfig.dns_cache_circuit_breaker:type_name -> dfp.options.gloo.solo.io.DnsCacheCircuitBreakers
+	7,  // 10: dfp.options.gloo.solo.io.DnsCacheConfig.cares_dns:type_name -> dfp.options.gloo.solo.io.CaresDnsResolverConfig
+	8,  // 11: dfp.options.gloo.solo.io.DnsCacheConfig.apple_dns:type_name -> dfp.options.gloo.solo.io.AppleDnsResolverConfig
+	13, // 12: dfp.options.gloo.solo.io.DnsCacheConfig.preresolve_hostnames:type_name -> solo.io.envoy.config.core.v3.SocketAddress
+	12, // 13: dfp.options.gloo.solo.io.DnsCacheConfig.dns_query_timeout:type_name -> google.protobuf.Duration
+	12, // 14: dfp.options.gloo.solo.io.RefreshRate.base_interval:type_name -> google.protobuf.Duration
+	12, // 15: dfp.options.gloo.solo.io.RefreshRate.max_interval:type_name -> google.protobuf.Duration
+	14, // 16: dfp.options.gloo.solo.io.CaresDnsResolverConfig.resolvers:type_name -> solo.io.envoy.config.core.v3.Address
+	6,  // 17: dfp.options.gloo.solo.io.CaresDnsResolverConfig.dns_resolver_options:type_name -> dfp.options.gloo.solo.io.DnsResolverOptions
+	18, // [18:18] is the sub-list for method output_type
+	18, // [18:18] is the sub-list for method input_type
+	18, // [18:18] is the sub-list for extension type_name
+	18, // [18:18] is the sub-list for extension extendee
+	0,  // [0:18] is the sub-list for field type_name
 }
 
 func init() {
