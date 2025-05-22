@@ -70,6 +70,16 @@ func (m *FilterConfig) Equal(that interface{}) bool {
 		}
 	}
 
+	if h, ok := interface{}(m.GetCircuitBreakers()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetCircuitBreakers()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetCircuitBreakers(), target.GetCircuitBreakers()) {
+			return false
+		}
+	}
+
 	return true
 }
 
