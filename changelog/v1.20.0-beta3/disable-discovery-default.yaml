@@ -1,4 +1,4 @@
 changelog:
-- type: HELM
+- type: BREAKING_CHANGE
   issueLink: https://github.com/solo-io/solo-projects/issues/7292
   description: Disable discovery by default for helm installs and upgrades.
