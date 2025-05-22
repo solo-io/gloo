@@ -73,6 +73,7 @@ jobs:
           minor="1.20"
           directory="main"
         fi
+        echo "minor=${minor}" >> $GITHUB_OUTPUT
         echo "directory=${directory}" >> $GITHUB_OUTPUT
     - name: Checkout docs repo
       uses: actions/checkout@v4
