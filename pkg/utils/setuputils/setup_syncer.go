@@ -3,7 +3,6 @@ package setuputils
 import (
 	"context"
 	"slices"
-	"strings"
 
 	"github.com/solo-io/gloo/pkg/bootstrap/leaderelector"
 	"github.com/solo-io/gloo/pkg/utils/statsutils"
@@ -67,12 +66,10 @@ func (s *SetupSyncer) Sync(ctx context.Context, snap *v1.SetupSnapshot) error {
 	watchedNamespaces := settingsutil.GetNamespacesToWatch(settings)
 	contextutils.LoggerFrom(ctx).Debugw("received updated list of namespaces to watch", zap.Any("namespaces", watchedNamespaces))
 
-	watchedNamespacesStr := strings.Join(watchedNamespaces, ",")
 	statsutils.Measure(
 		ctx,
 		mNamespacesWatched,
 		int64(len(watchedNamespaces)),
-		tag.Insert(namespacesWatchedKey, watchedNamespacesStr),
 	)
 
 	statsutils.MeasureOne(
