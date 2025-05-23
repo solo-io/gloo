@@ -15,6 +15,8 @@ import (
 
 	github_com_solo_io_gloo_projects_gloo_pkg_api_external_envoy_config_core_v3 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/config/core/v3"
 
+	github_com_solo_io_gloo_projects_gloo_pkg_api_v1_circuit_breaker "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/circuit_breaker"
+
 	github_com_solo_io_gloo_projects_gloo_pkg_api_v1_ssl "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/ssl"
 
 	google_golang_org_protobuf_types_known_durationpb "google.golang.org/protobuf/types/known/durationpb"
@@ -53,6 +55,12 @@ func (m *FilterConfig) Clone() proto.Message {
 		target.SslConfig = h.Clone().(*github_com_solo_io_gloo_projects_gloo_pkg_api_v1_ssl.UpstreamSslConfig)
 	} else {
 		target.SslConfig = proto.Clone(m.GetSslConfig()).(*github_com_solo_io_gloo_projects_gloo_pkg_api_v1_ssl.UpstreamSslConfig)
+	}
+
+	if h, ok := interface{}(m.GetCircuitBreakers()).(clone.Cloner); ok {
+		target.CircuitBreakers = h.Clone().(*github_com_solo_io_gloo_projects_gloo_pkg_api_v1_circuit_breaker.CircuitBreakerConfig)
+	} else {
+		target.CircuitBreakers = proto.Clone(m.GetCircuitBreakers()).(*github_com_solo_io_gloo_projects_gloo_pkg_api_v1_circuit_breaker.CircuitBreakerConfig)
 	}
 
 	return target
