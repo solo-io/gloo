@@ -414,6 +414,8 @@ gatewayProxies:
         options:
           buffer:
             maxRequestBytes: 999999
+discovery:
+  enabled: true
 `))
 	Expect(err).NotTo(HaveOccurred())
 

@@ -63,13 +63,13 @@ var _ = Describe("RBAC Test", func() {
 					format.MaxLength = 0
 				})
 				It("correctly assigns permissions for single-namespace gloo", func() {
-					prepareMakefile("namespace.create=true", "global.glooRbac.namespaced=true")
+					prepareMakefile("namespace.create=true", "global.glooRbac.namespaced=true", "discovery.enabled=true")
 					permissions := GetServiceAccountPermissions("gloo-system")
 					testManifest.ExpectPermissions(permissions)
 				})
 
 				It("correctly assigns permissions for cluster-scoped gloo", func() {
-					prepareMakefile("namespace.create=true", "global.glooRbac.namespaced=false")
+					prepareMakefile("namespace.create=true", "global.glooRbac.namespaced=false", "discovery.enabled=true")
 					permissions := GetServiceAccountPermissions("")
 					testManifest.ExpectPermissions(permissions)
 				})
@@ -149,7 +149,7 @@ var _ = Describe("RBAC Test", func() {
 					It("role binding", func() {
 						resourceBuilder.Name += "-binding-" + namespace
 						resourceBuilder.RoleRef.Name += "-" + namespace
-						prepareMakefile("global.glooRbac.namespaced=false")
+						prepareMakefile("discovery.enabled=true", "global.glooRbac.namespaced=false")
 						testManifest.ExpectClusterRoleBinding(resourceBuilder.GetClusterRoleBinding())
 					})
 
@@ -173,7 +173,7 @@ var _ = Describe("RBAC Test", func() {
 
 					It("role binding", func() {
 						resourceBuilder.Name += "-binding"
-						prepareMakefile("global.glooRbac.namespaced=true")
+						prepareMakefile("discovery.enabled=true", "global.glooRbac.namespaced=true")
 						testManifest.ExpectRoleBinding(resourceBuilder.GetRoleBinding())
 					})
 
@@ -222,7 +222,7 @@ var _ = Describe("RBAC Test", func() {
 					It("role binding", func() {
 						resourceBuilder.Name += "-binding-" + namespace
 						resourceBuilder.RoleRef.Name += "-" + namespace
-						prepareMakefile("global.glooRbac.namespaced=false")
+						prepareMakefile("discovery.enabled=true", "global.glooRbac.namespaced=false")
 						testManifest.ExpectClusterRoleBinding(resourceBuilder.GetClusterRoleBinding())
 					})
 
@@ -246,7 +246,7 @@ var _ = Describe("RBAC Test", func() {
 
 					It("role binding", func() {
 						resourceBuilder.Name += "-binding"
-						prepareMakefile("global.glooRbac.namespaced=true")
+						prepareMakefile("discovery.enabled=true", "global.glooRbac.namespaced=true")
 						testManifest.ExpectRoleBinding(resourceBuilder.GetRoleBinding())
 					})
 
@@ -382,7 +382,7 @@ var _ = Describe("RBAC Test", func() {
 					It("role binding", func() {
 						resourceBuilder.Name += "-binding-" + namespace
 						resourceBuilder.RoleRef.Name += "-" + namespace
-						prepareMakefile("global.glooRbac.namespaced=false")
+						prepareMakefile("discovery.enabled=true", "global.glooRbac.namespaced=false")
 						testManifest.ExpectClusterRoleBinding(resourceBuilder.GetClusterRoleBinding())
 					})
 				})
@@ -399,7 +399,7 @@ var _ = Describe("RBAC Test", func() {
 
 					It("role binding", func() {
 						resourceBuilder.Name += "-binding"
-						prepareMakefile("global.glooRbac.namespaced=true")
+						prepareMakefile("discovery.enabled=true", "global.glooRbac.namespaced=true")
 						testManifest.ExpectRoleBinding(resourceBuilder.GetRoleBinding())
 					})
 				})
@@ -442,7 +442,7 @@ var _ = Describe("RBAC Test", func() {
 					It("role binding", func() {
 						resourceBuilder.Name += "-binding-" + namespace
 						resourceBuilder.RoleRef.Name += "-" + namespace
-						prepareMakefile("global.glooRbac.namespaced=false")
+						prepareMakefile("discovery.enabled=true", "global.glooRbac.namespaced=false")
 						testManifest.ExpectClusterRoleBinding(resourceBuilder.GetClusterRoleBinding())
 					})
 
@@ -466,7 +466,7 @@ var _ = Describe("RBAC Test", func() {
 
 					It("role binding", func() {
 						resourceBuilder.Name += "-binding"
-						prepareMakefile("global.glooRbac.namespaced=true")
+						prepareMakefile("discovery.enabled=true", "global.glooRbac.namespaced=true")
 						testManifest.ExpectRoleBinding(resourceBuilder.GetRoleBinding())
 					})
 
@@ -523,7 +523,7 @@ var _ = Describe("RBAC Test", func() {
 					It("role binding", func() {
 						resourceBuilder.Name += "-binding-" + namespace
 						resourceBuilder.RoleRef.Name += "-" + namespace
-						prepareMakefile("global.glooRbac.namespaced=false")
+						prepareMakefile("discovery.enabled=true", "global.glooRbac.namespaced=false")
 						testManifest.ExpectClusterRoleBinding(resourceBuilder.GetClusterRoleBinding())
 					})
 
@@ -547,7 +547,7 @@ var _ = Describe("RBAC Test", func() {
 
 					It("role binding", func() {
 						resourceBuilder.Name += "-binding"
-						prepareMakefile("global.glooRbac.namespaced=true")
+						prepareMakefile("discovery.enabled=true", "global.glooRbac.namespaced=true")
 						testManifest.ExpectRoleBinding(resourceBuilder.GetRoleBinding())
 					})
 
