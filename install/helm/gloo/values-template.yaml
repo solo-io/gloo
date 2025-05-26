@@ -113,7 +113,7 @@ gloo:
     runAsUser: 10101
     serviceAccount: {}
 discovery:
-  enabled: true
+  enabled: false
   fdsMode: WHITELIST
   serviceAccount: {}
   deployment:

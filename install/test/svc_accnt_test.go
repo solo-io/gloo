@@ -42,7 +42,7 @@ var _ = Describe("SVC Accnt Test", func() {
 			})
 
 			It("discovery", func() {
-				prepareMakefile("discovery", []string{"global.glooRbac.namespaced=false"})
+				prepareMakefile("discovery", []string{"discovery.enabled=true", "global.glooRbac.namespaced=false"})
 				testManifest.ExpectServiceAccount(resourceBuilder.GetServiceAccount())
 			})
 
