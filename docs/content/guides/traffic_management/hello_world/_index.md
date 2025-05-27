@@ -1,13 +1,13 @@
 ---
 title: Hello World
 weight: 10
-description: Follow this guide for hands on, step-by-step tutorial for creating your first Virtual Service and routing rules in Kubernetes.
+description: Follow this guide for a hands-on, step-by-step tutorial about creating your first Virtual Service and routing rules in Kubernetes.
 ---
 
-In this guide, we will introduce Gloo Gateway's *Upstream* and *Virtual Service* concepts by accomplishing the following tasks:
+In this guide, you deploy a sample Pet Store app to learn about some key Gloo Gateway concepts, including *Upstream* and *Virtual Service*.
 
-* Deploy a REST service to Kubernetes using the Pet Store sample application
-* Observe that Gloo Gateway's Discovery system finds the Pet Store service and creates an Upstream Custom Resource (CR) for it
+* Deploy a REST service to Kubernetes as part of the Pet Store sample app
+* Enable Gloo Gateway's Discovery system to find the Pet Store service and create an Upstream custom resource (CR) for it
 * Create a Virtual Service and add routes sending traffic to specific paths on the Pet Store Upstream based on incoming web requests
 * Verify Gloo Gateway correctly configures Envoy to route to the Upstream
 * Test the routes by submitting web requests using `curl`
@@ -18,30 +18,36 @@ If there are no routes configured, Envoy will not be listening on the gateway po
 
 ---
 
-## Preparing the Environment
+## Before you begin
 
-To follow along in this guide, you will need to fulfill a few prerequisites.  
+1. Create a [Kubernetes cluster]({{< versioned_link_path fromRoot="/installation/platform_configuration/cluster_setup/" >}}).
 
-### Prerequisite Software
+2. [Install Gloo Gateway]({{< versioned_link_path fromRoot="/installation/gateway/kubernetes" >}}).
 
-Your local system should have `kubectl` and `glooctl` installed, and you should have access to a Kubernetes deployment to install Gloo Gateway.
+3. Make sure that you have the following command line tools installed.
+   
+   * [`kubectl`](https://kubernetes.io/docs/tasks/tools/install-kubectl/)
+   * `glooctl`
 
-* [`kubectl`](https://kubernetes.io/docs/tasks/tools/install-kubectl/)
-* `glooctl`
-* Kubernetes v1.11.3+ deployed somewhere. [Minikube](https://kubernetes.io/docs/tasks/tools/install-minikube/) is a
-great way to get a cluster up quickly.
+---
 
-### Install Gloo Gateway and glooctl
+## Enable service discovery {#service-discovery}
 
-The [linked guide]({{< versioned_link_path fromRoot="/installation/gateway/kubernetes" >}}) walks you through the process of installing `glooctl` locally and installing Gloo Gateway on Kubernetes to the default `gloo-system` namespace.
+Gloo Gateway has a special custom resource called an *Upstream* that represents a service in your Kubernetes cluster. Similar to an [Envoy cluster](https://www.envoyproxy.io/docs/envoy/latest/api-v3/config/cluster/v3/cluster.proto), an Upstream is a resource that you can use to define what traffic goes to (the destination), as well as how the traffic goes (the policy).
 
-Once you have completed the installation of `glooctl` and Gloo Gateway, you are now ready to deploy an example application and configure routing.
+Gloo Gateway can automatically create Upstream resources for Kubernetes services that it detects in your cluster. Additionally, it can discover the OpenAPI (Swagger) spec of the Pet Store app and populate the Upstream with the available REST endpoints.
+
+Enable discovery mode by updating the Settings. For more options, see the [Discovery guide]({{< versioned_link_path fromRoot="/installation/advanced_configuration/fds_mode/" >}}).
+
+```bash
+kubectl patch settings -n gloo-system default --type=merge --patch '{"spec":{"discovery":{"fdsMode":"BLACKLIST","enabled":true}}}'
+```
 
 --- 
 
-## Example Application Setup
+## Set up the sample Pet Store app {#petstore}
 
-On your Kubernetes installation, you will deploy the Pet Store Application and validate this it is operational.
+In your Kubernetes cluster, deploy the sample Pet Store app. The following video provides an overview of the steps you take.
 
 <video controls loop>
   <source src="https://solo-docs.s3.us-east-2.amazonaws.com/gloo/videos/helloworld_deploy.mp4" type="video/mp4">
@@ -49,12 +55,16 @@ On your Kubernetes installation, you will deploy the Pet Store Application and v
 
 ### Deploy the Pet Store Application
 
-Let's deploy the Pet Store Application on Kubernetes using a YAML file hosted on GitHub. The deployment will stand up the Pet Store container and expose the Pet Store API through a Kubernetes service.
+Let's deploy the Pet Store app on Kubernetes with a YAML configuration file on GitHub. The configuration file includes two main Kubernetes resources:
+
+* A Deployment that creates the Pet Store container
+* A Service that exposes the Pet Store API
 
 ```shell
 kubectl apply -f https://raw.githubusercontent.com/solo-io/gloo/v1.13.x/example/petstore/petstore.yaml
 ```
 
+Example output:
 ```console
 deployment.extensions/petstore created
 service/petstore created
@@ -62,29 +72,34 @@ service/petstore created
 
 ### Verify the Pet Store Application
 
-Now let's verify the pod running the Pet Store application launched successfully the petstore service has been created:
+Now, let's verify that the pod that runs the Pet Store app is running and the service is created.
 
-```shell
-kubectl -n default get pods
-```
-```console
-NAME                READY  STATUS   RESTARTS  AGE
-petstore-####-####  1/1    Running  0         30s
-```
-If the pod is not yet running, run the `kubectl -n default get pods -w` command and wait until it is. Then enter `Ctrl-C` to break out of the wait loop.
+1. Check the pod status. If the pod is not yet running, run the `kubectl -n default get pods -w` command and wait until it is. Then enter `Ctrl+C` or `Cmd+C` to exit the wait loop.
 
-Let's verify that the petstore service has been created as well.
+   ```shell
+   kubectl -n default get pods
+   ```
+   
+   Example output:
 
-```shell
-kubectl -n default get svc petstore
-```
+   ```console
+   NAME                READY  STATUS   RESTARTS  AGE
+   petstore-####-####  1/1    Running  0         30s
+   ```
 
-Note that the service does not have an external IP address. It is only accessible within the Kubernetes cluster.
 
-```console
-NAME      TYPE       CLUSTER-IP   EXTERNAL-IP  PORT(S)   AGE
-petstore  ClusterIP  10.XX.XX.XX  <none>       8080/TCP  1m
-```
+2. Verify that the petstore service is created.
+
+   ```shell
+   kubectl -n default get svc petstore
+   ```
+   
+   Example output: Note that the service does not have an external IP address. It is only accessible within the Kubernetes cluster.
+   
+   ```console
+   NAME      TYPE       CLUSTER-IP   EXTERNAL-IP  PORT(S)   AGE
+   petstore  ClusterIP  10.XX.XX.XX  <none>       8080/TCP  1m
+   ```
 
 ### Verify the Upstream for the Pet Store Application
 
@@ -167,13 +182,13 @@ status:
       state: 1
 ```
 
-By default the upstream created is rather simple. It represents a specific kubernetes service. However, the petstore application is a swagger service. Gloo Gateway can discover this swagger spec, but by default Gloo Gateway's function discovery features are turned off to improve performance. To enable Function Discovery Service (fds) on our petstore, we need to label the namespace.
+By default, the created Upstream is rather simple. It represents a specific Kubernetes service. However, the Pet Store app is a Swagger service. Gloo Gateway can discover this swagger spec, but by default Gloo Gateway's function discovery features are turned off to improve performance. To enable Function Discovery Service (FDS) on our Pet Store app, we need to label the namespace.
 
 ```shell
 kubectl label namespace default  discovery.solo.io/function_discovery=enabled
 ```
 
-Now Gloo Gateway's function discovery will discover the swagger spec. Fds populated our Upstream with the available rest endpoints it implements.
+Now, FDS discovers the Swagger spec and populates the Upstream with the available REST endpoints that the Pet Store app implements.
 
 ```shell
 glooctl get upstream default-petstore-8080
