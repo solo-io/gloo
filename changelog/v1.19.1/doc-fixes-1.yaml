@@ -1,0 +1,6 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >-
+      Updates a bug in the push-docs workflow and bumps doc version conrefs.
+      skipCI-kube-tests:true
+      skipCI-docs-build:true
