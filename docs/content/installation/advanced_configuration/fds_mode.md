@@ -263,54 +263,64 @@ spec:
 
 ### FDS modes
 
-FDS can run in one of 3 modes:
+FDS can run in one of three modes:
 
-* `BLACKLIST`: The most liberal FDS polling policy. Using this mode, FDS will poll any service unless its namespace or the service itself is explicitly blacklisted.
-* `WHITELIST`: A more restricted FDS polling policy. Using this mode, FDS will poll only those services who either live in an explicitly whitelisted namespace, or themselves are are explicitly whitelisted. *`WHITELIST` is the default mode for FDS*.
-* `DISABLED`: FDS will not run. **Upstream Discovery Service** (UDS) will still run as normal.
+* `BLACKLIST`: The most liberal FDS polling policy. FDS polls all services, unless the service or the service's namespace is blacklisted.
+* `WHITELIST` (default mode): A more restrictive FDS polling policy. FDS polls only services that are either whitelisted or exist in a whitelisted namespace.
+* `DISABLED`: FDS does not run (the default mode). UDS continues to run as normal, if enabled.
 
 ### Blacklisting namespaces and upstreams
 
-When running in `BLACKLIST` mode, blacklist upstreams by adding the following label:
+When running in `BLACKLIST` mode, blacklist upstreams by adding the disabled label. This label can be applied to namespaces and upstreams.
+
+Label:
 
 `discovery.solo.io/function_discovery=disabled`.
 
-E.g. with
+Example commands:
 
 ```bash
 kubectl label namespace default discovery.solo.io/function_discovery=disabled
 kubectl label upstream -n myapp myupstream discovery.solo.io/function_discovery=disabled
 
-# if the Upstream was discovered and is managed by UDS (Upstream Discovery Service)
-# then you can add the label to the service and it will propagate to the Upstream
+# if the Upstream was discovered and is managed by UDS
+# then you can add the label to the service, which propagates to the Upstream
 kubectl label service -n myapp myservice discovery.solo.io/function_discovery=disabled
 ```
 
-This label can be applied to namespaces and upstreams.
-
-To enable FDS for specific upstreams in a blacklisted namespace:
+To enable FDS for specific upstreams in a blacklisted namespace, use the enabled label:
 
 `discovery.solo.io/function_discovery=enabled`
 
+Example command:
+
+```bash
+kubectl label upstream -n default upstream-fds discovery.solo.io/function_discovery=enabled
+```
+
 ### Whitelisting namespaces and upstreams
 
-When running in `WHITELIST` mode, whitelist `Upstreams` by adding the following label:
+When running in `WHITELIST` mode, whitelist `Upstreams` by adding the enabled label. This label can be applied to namespaces and upstreams.
 
 `discovery.solo.io/function_discovery=enabled`.
 
-E.g. with
+Example commands:
 
 ```bash
 kubectl label namespace default discovery.solo.io/function_discovery=enabled
 kubectl label upstream -n myapp myupstream discovery.solo.io/function_discovery=enabled
 
-# if the Upstream was discovered and is managed by UDS (Upstream Discovery Service)
-# then you can add the label to the service and it will propagate to the Upstream
+# if the Upstream was discovered and is managed by UDS
+# then you can add the label to the service, which propagates to the Upstream
 kubectl label service -n myapp myservice discovery.solo.io/function_discovery=enabled
 ```
 
-This label can be applied to namespaces and upstreams.
-
-To disable FDS for specific services/upstreams in a whitelisted namespace:
+To disable FDS for specific services/upstreams in a whitelisted namespace, use the disabled label:
 
 `discovery.solo.io/function_discovery=disabled`
+
+Example command:
+
+```bash
+kubectl label upstream -n default upstream-fds discovery.solo.io/function_discovery=disabled
+```

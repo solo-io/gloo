@@ -37,7 +37,7 @@ Gloo Gateway has a special custom resource called an *Upstream* that represents 
 
 Gloo Gateway can automatically create Upstream resources for Kubernetes services that it detects in your cluster. Additionally, it can discover the OpenAPI (Swagger) spec of the Pet Store app and populate the Upstream with the available REST endpoints.
 
-Enable discovery mode by updating the Settings. For more options, see the [Discovery guide]({{< versioned_link_path fromRoot="/installation/advanced_configuration/fds_mode/" >}}).
+For performance reasons at scale, discovery is disabled by default. To try out the feature, enable discovery mode by updating the Settings. For more options, see the [Discovery guide]({{< versioned_link_path fromRoot="/installation/advanced_configuration/fds_mode/" >}}).
 
 ```bash
 kubectl patch settings -n gloo-system default --type=merge --patch '{"spec":{"discovery":{"fdsMode":"BLACKLIST","enabled":true}}}'
