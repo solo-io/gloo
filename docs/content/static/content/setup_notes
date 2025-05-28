@@ -1,8 +1,6 @@
-This guide assumes that you have deployed Gloo to the `gloo-system` namespace and that the `glooctl` command line utility
-is installed on your machine. `glooctl` provides several convenient functions to view, manipulate, and debug Gloo resources;
-in particular, it is worth mentioning the following command, which we will use each time we need to retrieve the URL of
-the Gloo Gateway that is running inside your cluster:
+Before you begin, this guide assumes that you have the following setup.
 
-```shell
-glooctl proxy url
-```
+1. [Install Gloo Gateway]({{< versioned_link_path fromRoot="/installation/gateway/kubernetes" >}}) in the `gloo-system` namespace.
+2. Enable [discovery mode for Gloo Gateway]({{< versioned_link_path fromRoot="/installation/advanced_configuration/fds_mode/" >}}). If not, make sure that you created any Upstream resources with the appropriate functions.
+3. Install the `glooctl` command line tool.
+4. Identify the URL of the gateway proxy that you want to use for this guide, such as with the `glooctl proxy` command. Note that if you are testing in a local cluster such as Kind, you must use the custom localhost port that you configured instead of `glooctl proxy`, such as `http://localhost:31500`.

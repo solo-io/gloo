@@ -1,0 +1,7 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >-
+      Update docs for discovery disabled by default.
+
+      skipCI-kube-tests:true
+      skipCI-docs-build:true
