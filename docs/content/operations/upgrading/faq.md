@@ -48,7 +48,7 @@ Review the following changes made to Gloo Gateway in version {{< readfile file="
 
 <!--For 1.20 -->
 
-**Discovery disabled by default in 1.20**: To improve performance, discovery is now disabled by default. This change means that Upstreams are no longer automatically created for discovered Kubernetes services. If you want to continue using discovery, set `discovery.enabled=true` in your Helm values file before upgrading. For more information, see the [Discovery guide]({{< versioned_link_path fromRoot="/installation/advanced_configuration/fds_mode/" >}}).
+**Discovery disabled by default in 1.20**: To improve performance, discovery is now disabled by default. This change means that Upstreams are no longer automatically created for discovered Kubernetes services. If you want to continue using discovery, set `discovery.enabled=true` (or `gloo.discovery.enabled` in Gloo Gateway Enterprise) in your Helm values file before upgrading. For more information, see the [Discovery guide]({{< versioned_link_path fromRoot="/installation/advanced_configuration/fds_mode/" >}}).
 
 <!--From 1.19 -->
 
@@ -303,7 +303,7 @@ Review the following summary of important new, deprecated, or removed Helm field
 
 **Updated Helm fields**:
 
-* **discovery.enabled=false**: To improve performance, discovery is now disabled by default. This change means that Upstreams are no longer automatically created for discovered Kubernetes services. If you want to continue using discovery, set `discovery.enabled=true` in your Helm values file before upgrading. For more information, see the [Discovery guide]({{< versioned_link_path fromRoot="/installation/advanced_configuration/fds_mode/" >}}).
+* **discovery.enabled=false**: To improve performance, discovery is now disabled by default. This change means that Upstreams are no longer automatically created for discovered Kubernetes services. If you want to continue using discovery, set `discovery.enabled=true` (or `gloo.discovery.enabled` in Gloo Gateway Enterprise) in your Helm values file before upgrading. For more information, see the [Discovery guide]({{< versioned_link_path fromRoot="/installation/advanced_configuration/fds_mode/" >}}).
 
 <!--GGv2 changes:
 

@@ -71,7 +71,7 @@ You can enable UDS mode with Helm or the Settings CR in the `gloo-system` namesp
 
 {{< tabs >}} 
 {{% tab name="Helm values file" %}}
-Add the `discovery.enabled=true` setting to your Helm overrides file:
+Add the `discovery.enabled=true` setting to your Helm overrides file. For Gloo Gateway Enterprise, remember to set discovery under the `gloo` section, such as `gloo.discovery.enabled=true`.
 
 ```yaml
 settings:
@@ -83,7 +83,7 @@ discovery:
 {{% /tab %}}
 
 {{% tab name="Helm CLI" %}}
-Add the following CLI flags to `helm install|template` commands:
+Add the following CLI flags to `helm install|template` commands. For Gloo Gateway Enterprise, remember to set discovery under the `gloo` section, such as `gloo.discovery.enabled=true`.
 
 ```bash
 helm install|template ... --set settings.create=true --set discovery.enabled=true
@@ -199,7 +199,7 @@ You can enable FDS mode with Helm or the Settings CR in the `gloo-system` namesp
 
 {{< tabs >}} 
 {{% tab name="Helm values file" %}}
-Add the `discovery.fdsMode` setting to your Helm overrides file:
+Add the `discovery.fdsMode` setting to your Helm overrides file. For Gloo Gateway Enterprise, remember to set discovery under the `gloo` section, such as `gloo.discovery.fdsMode=BLACKLIST`.
 
 ```yaml
 settings:
@@ -213,7 +213,7 @@ discovery:
 {{% /tab %}}
 
 {{% tab name="Helm CLI" %}}
-Add the following CLI flags to `helm install|template` commands:
+Add the following CLI flags to `helm install|template` commands. For Gloo Gateway Enterprise, remember to set discovery under the `gloo` section, such as `gloo.discovery.fdsMode=BLACKLIST`.
 
 ```bash
 helm install|template ... --set settings.create=true --set discovery.fdsMode=BLACKLIST
