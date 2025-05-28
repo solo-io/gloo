@@ -61,7 +61,7 @@ Let's deploy the Pet Store app on Kubernetes with a YAML configuration file on G
 * A Service that exposes the Pet Store API
 
 ```shell
-kubectl apply -f https://raw.githubusercontent.com/solo-io/gloo/v1.13.x/example/petstore/petstore.yaml
+kubectl apply -f https://raw.githubusercontent.com/solo-io/gloo/main/example/petstore/petstore.yaml
 ```
 
 Example output:
