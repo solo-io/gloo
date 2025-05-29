@@ -1,0 +1,7 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    issueLink:
+    resolvesIssue: false
+    dependencyOwner: solo-io
+    dependencyRepo: envoy-gloo-ee
+    dependencyTag: 1.34.0-patch1
