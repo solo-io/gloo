@@ -1,0 +1,6 @@
+changelog:
+  - type: NON_USER_FACING
+    resolvesIssue: false
+    description: >-
+      Add additional clarification to the docs for front channel logout.
+      skipCI-kube-tests:true
