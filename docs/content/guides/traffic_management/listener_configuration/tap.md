@@ -236,6 +236,6 @@ You can optionally remove the resources that you created as part of this guide.
 kubectl delete deployment sample-tap-server-http -n gloo-system
 kubectl delete service sample-tap-server-http -n gloo-system
 kubectl delete upstream sample-tap-server-http -n gloo-system
-kubectl delete -f https://raw.githubusercontent.com/solo-io/gloo/v1.13.x/example/petstore/petstore.yaml
+kubectl apply -f https://raw.githubusercontent.com/solo-io/gloo/main/example/petstore/petstore.yaml
 ```
 
