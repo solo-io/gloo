@@ -14,6 +14,7 @@ weight: 5
 - [SingleAuthToken](#singleauthtoken)
 - [Passthrough](#passthrough)
 - [UpstreamSpec](#upstreamspec)
+- [UrlOverride](#urloverride)
 - [CustomHost](#customhost)
 - [OpenAI](#openai)
 - [AzureOpenAI](#azureopenai)
@@ -163,10 +164,30 @@ The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://
 
 
 ---
+### UrlOverride
+
+ 
+Override the URL used to send requests to the LLM Provider
+
+```yaml
+"fullUrl": string
+"basePath": string
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+| `fullUrl` | `string` | fullUrl overrides the complete URL in the Chat Completion request going to the LLM Provider. If this includes query parameters, they will be preserved and sent to the LLM Provider as well. For the OpenAI platform API (eg /v1/embeddings) bypass feature, this setting is ignored. Only one of `fullUrl` or `basePath` can be set. |
+| `basePath` | `string` | basePath will be prepended to the request URL going to the LLM Provider. The OpenAI platform API bypass feature also supports this, so use this setting if the provider is a proxy or supports full OpenAI API but only need a base path. Only one of `basePath` or `fullUrl` can be set. |
+
+
+
+
+---
 ### CustomHost
 
  
-Send requests to a custom host and port, such as to proxy the request,
+Send requests to a custom host and port, such as to proxy the request and customize the chat completion path,
 or to use a different backend that is API-compliant with the upstream version.
 {{% notice note %}}
 The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/latest/ai/). It is not supported with the Gloo Edge API.
@@ -176,6 +197,7 @@ The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://
 "host": string
 "port": int
 "hostname": .google.protobuf.StringValue
+"urlOverride": .ai.options.gloo.solo.io.UpstreamSpec.UrlOverride
 
 ```
 
@@ -184,6 +206,7 @@ The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://
 | `host` | `string` | Custom host or IP address to send the traffic requests to. |
 | `port` | `int` | Custom port to send the traffic requests to. |
 | `hostname` | [.google.protobuf.StringValue](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/string-value) | Optional: hostname used to set the SNI (if is secure connection) and the host request header. If hostname is not set, host will be used instead. |
+| `urlOverride` | [.ai.options.gloo.solo.io.UpstreamSpec.UrlOverride](../ai.proto.sk/#urloverride) | Optional: urlOverride allows customization of the request URL to the custom host. |
 
 
 

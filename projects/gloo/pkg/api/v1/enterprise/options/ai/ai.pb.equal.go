@@ -688,6 +688,57 @@ func (m *SingleAuthToken_Passthrough) Equal(that interface{}) bool {
 }
 
 // Equal function
+func (m *UpstreamSpec_UrlOverride) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*UpstreamSpec_UrlOverride)
+	if !ok {
+		that2, ok := that.(UpstreamSpec_UrlOverride)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	switch m.Override.(type) {
+
+	case *UpstreamSpec_UrlOverride_FullUrl:
+		if _, ok := target.Override.(*UpstreamSpec_UrlOverride_FullUrl); !ok {
+			return false
+		}
+
+		if strings.Compare(m.GetFullUrl(), target.GetFullUrl()) != 0 {
+			return false
+		}
+
+	case *UpstreamSpec_UrlOverride_BasePath:
+		if _, ok := target.Override.(*UpstreamSpec_UrlOverride_BasePath); !ok {
+			return false
+		}
+
+		if strings.Compare(m.GetBasePath(), target.GetBasePath()) != 0 {
+			return false
+		}
+
+	default:
+		// m is nil but target is not nil
+		if m.Override != target.Override {
+			return false
+		}
+	}
+
+	return true
+}
+
+// Equal function
 func (m *UpstreamSpec_CustomHost) Equal(that interface{}) bool {
 	if that == nil {
 		return m == nil
@@ -722,6 +773,16 @@ func (m *UpstreamSpec_CustomHost) Equal(that interface{}) bool {
 		}
 	} else {
 		if !proto.Equal(m.GetHostname(), target.GetHostname()) {
+			return false
+		}
+	}
+
+	if h, ok := interface{}(m.GetUrlOverride()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetUrlOverride()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetUrlOverride(), target.GetUrlOverride()) {
 			return false
 		}
 	}
