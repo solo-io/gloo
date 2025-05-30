@@ -1,0 +1,8 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/solo-projects/issues/7832
+    resolvesIssue: false
+    description: >-
+      Suppress warnings for some deprecated APIs used in the Gateway.
+      If logs are set to debug (such as in testing), these warnings can still be found.
+      Envoy's deprecation period for many of these APIs is extremely long, sometimes over half a decade.
