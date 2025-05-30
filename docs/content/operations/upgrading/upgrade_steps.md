@@ -61,7 +61,7 @@ kubectl apply -f gloo-ee/charts/gloo-fed/crds
 
 2. Check the [Helm changes]({{% versioned_link_path fromRoot="/operations/upgrading/faq/#helm" %}}) to see whether there are new, deprecated, or removed Helm settings you might address before you upgrade to {{< readfile file="static/content/version_geoss_latest_minor.md" markdown="true">}}, such as the following.
    
-   * Now, `discovery.enabled` defaults to `false`. To keep using discovery to create Upstreams from your Kubernetes services, set to `true`.
+   * Now, `discovery.enabled` (or `gloo.discovery.enabled` in Gloo Gateway Enterprise) defaults to `false`. To keep using discovery to create Upstreams from your Kubernetes services, set to `true`.
    
    1. Get the Helm values file for your current installation.
       {{< tabs >}}
