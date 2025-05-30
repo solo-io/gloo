@@ -177,8 +177,8 @@ Override the URL used to send requests to the LLM Provider
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `fullUrl` | `string` | Overrides the complete URL in the Chat Completion request going to the LLM Provider. If this includes query parameters, they will be preserved and sent to the LLM Provider as well. For the OpenAI platform API (eg /v1/embeddings) bypass feature, this setting is ignored. Only one of `fullUrl` or `basePath` can be set. |
-| `basePath` | `string` | The base path will be prepended to the request URL going to the LLM Provider. The OpenAI platform API bypass feature also supports this, so use this setting if the provider is a proxy or supports full OpenAI API but only need a base path. Only one of `basePath` or `fullUrl` can be set. |
+| `fullUrl` | `string` | Overrides the complete URL in the Chat Completion request going to the LLM Provider. If this includes query parameters, they will be preserved and sent to the LLM Provider as well. For the OpenAI platform API (eg /v1/embeddings) passthrough feature, this setting is ignored. Only one of `fullUrl` or `basePath` can be set. |
+| `basePath` | `string` | The base path will be prepended to the request URL going to the LLM Provider. The OpenAI platform API passthrough feature also supports this, so use this setting if the provider is a proxy or supports full OpenAI API but only need a base path. Only one of `basePath` or `fullUrl` can be set. |
 
 
 

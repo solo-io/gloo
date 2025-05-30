@@ -1562,13 +1562,13 @@ type isUpstreamSpec_UrlOverride_OverrideType interface {
 type UpstreamSpec_UrlOverride_FullUrl struct {
 	// Overrides the complete URL in the Chat Completion request going to the LLM Provider.
 	// If this includes query parameters, they will be preserved and sent to the LLM Provider as well.
-	// For the OpenAI platform API (eg /v1/embeddings) bypass feature, this setting is ignored.
+	// For the OpenAI platform API (eg /v1/embeddings) passthrough feature, this setting is ignored.
 	FullUrl string `protobuf:"bytes,1,opt,name=full_url,json=fullUrl,proto3,oneof"`
 }
 
 type UpstreamSpec_UrlOverride_BasePath struct {
 	// The base path will be prepended to the request URL going to the LLM Provider.
-	// The OpenAI platform API bypass feature also supports this, so use this setting if the provider is a proxy
+	// The OpenAI platform API passthrough feature also supports this, so use this setting if the provider is a proxy
 	// or supports full OpenAI API but only need a base path
 	BasePath string `protobuf:"bytes,2,opt,name=base_path,json=basePath,proto3,oneof"`
 }
