@@ -1,0 +1,6 @@
+changelog:
+- tyoe: FIX
+  issueLink: https://github.com/solo-io/solo-projects/issues/8319
+  resolvesIssue: false
+  description: Fix a bug in the gloo_solo_io_namespaces_watched metric that errors when the list of namespaces watched is large.
+
