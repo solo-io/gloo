@@ -893,7 +893,7 @@ func (m *UpstreamSpec_UrlOverride) HashUnique(hasher hash.Hash64) (uint64, error
 		return 0, err
 	}
 
-	switch m.Override.(type) {
+	switch m.OverrideType.(type) {
 
 	case *UpstreamSpec_UrlOverride_FullUrl:
 

@@ -177,8 +177,8 @@ Override the URL used to send requests to the LLM Provider
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `fullUrl` | `string` | fullUrl overrides the complete URL in the Chat Completion request going to the LLM Provider. If this includes query parameters, they will be preserved and sent to the LLM Provider as well. For the OpenAI platform API (eg /v1/embeddings) bypass feature, this setting is ignored. Only one of `fullUrl` or `basePath` can be set. |
-| `basePath` | `string` | basePath will be prepended to the request URL going to the LLM Provider. The OpenAI platform API bypass feature also supports this, so use this setting if the provider is a proxy or supports full OpenAI API but only need a base path. Only one of `basePath` or `fullUrl` can be set. |
+| `fullUrl` | `string` | Overrides the complete URL in the Chat Completion request going to the LLM Provider. If this includes query parameters, they will be preserved and sent to the LLM Provider as well. For the OpenAI platform API (eg /v1/embeddings) bypass feature, this setting is ignored. Only one of `fullUrl` or `basePath` can be set. |
+| `basePath` | `string` | The base path will be prepended to the request URL going to the LLM Provider. The OpenAI platform API bypass feature also supports this, so use this setting if the provider is a proxy or supports full OpenAI API but only need a base path. Only one of `basePath` or `fullUrl` can be set. |
 
 
 
@@ -206,7 +206,7 @@ The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://
 | `host` | `string` | Custom host or IP address to send the traffic requests to. |
 | `port` | `int` | Custom port to send the traffic requests to. |
 | `hostname` | [.google.protobuf.StringValue](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/string-value) | Optional: hostname used to set the SNI (if is secure connection) and the host request header. If hostname is not set, host will be used instead. |
-| `urlOverride` | [.ai.options.gloo.solo.io.UpstreamSpec.UrlOverride](../ai.proto.sk/#urloverride) | Optional: urlOverride allows customization of the request URL to the custom host. |
+| `urlOverride` | [.ai.options.gloo.solo.io.UpstreamSpec.UrlOverride](../ai.proto.sk/#urloverride) | Optional: override of the request URL to the custom host. |
 
 
 

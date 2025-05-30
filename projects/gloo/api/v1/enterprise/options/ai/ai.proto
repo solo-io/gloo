@@ -76,16 +76,16 @@ message UpstreamSpec {
 
   // Override the URL used to send requests to the LLM Provider
   message UrlOverride {
-    oneof override {
-      // fullUrl overrides the complete URL in the Chat Completion request going to the LLM Provider.
+    oneof override_type {
+      // Overrides the complete URL in the Chat Completion request going to the LLM Provider.
       // If this includes query parameters, they will be preserved and sent to the LLM Provider as well.
       // For the OpenAI platform API (eg /v1/embeddings) bypass feature, this setting is ignored. 
-      string fullUrl = 1;
+      string full_url = 1;
 
-      // basePath will be prepended to the request URL going to the LLM Provider.
+      // The base path will be prepended to the request URL going to the LLM Provider.
       // The OpenAI platform API bypass feature also supports this, so use this setting if the provider is a proxy 
       // or supports full OpenAI API but only need a base path
-      string basePath = 2;
+      string base_path = 2;
     }
   }
 
@@ -103,8 +103,8 @@ message UpstreamSpec {
     // If hostname is not set, host will be used instead 
     google.protobuf.StringValue hostname = 3;
 
-    // Optional: urlOverride allows customization of the request URL to the custom host
-    UrlOverride urlOverride = 4;
+    // Optional: override of the request URL to the custom host
+    UrlOverride url_override = 4;
   }
 
   // Settings for the [OpenAI](https://platform.openai.com/docs/overview) LLM provider.

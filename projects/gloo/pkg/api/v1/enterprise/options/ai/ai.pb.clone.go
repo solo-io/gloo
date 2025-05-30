@@ -433,17 +433,17 @@ func (m *UpstreamSpec_UrlOverride) Clone() proto.Message {
 	}
 	target = &UpstreamSpec_UrlOverride{}
 
-	switch m.Override.(type) {
+	switch m.OverrideType.(type) {
 
 	case *UpstreamSpec_UrlOverride_FullUrl:
 
-		target.Override = &UpstreamSpec_UrlOverride_FullUrl{
+		target.OverrideType = &UpstreamSpec_UrlOverride_FullUrl{
 			FullUrl: m.GetFullUrl(),
 		}
 
 	case *UpstreamSpec_UrlOverride_BasePath:
 
-		target.Override = &UpstreamSpec_UrlOverride_BasePath{
+		target.OverrideType = &UpstreamSpec_UrlOverride_BasePath{
 			BasePath: m.GetBasePath(),
 		}
 

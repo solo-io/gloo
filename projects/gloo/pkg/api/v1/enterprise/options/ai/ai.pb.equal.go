@@ -708,10 +708,10 @@ func (m *UpstreamSpec_UrlOverride) Equal(that interface{}) bool {
 		return false
 	}
 
-	switch m.Override.(type) {
+	switch m.OverrideType.(type) {
 
 	case *UpstreamSpec_UrlOverride_FullUrl:
-		if _, ok := target.Override.(*UpstreamSpec_UrlOverride_FullUrl); !ok {
+		if _, ok := target.OverrideType.(*UpstreamSpec_UrlOverride_FullUrl); !ok {
 			return false
 		}
 
@@ -720,7 +720,7 @@ func (m *UpstreamSpec_UrlOverride) Equal(that interface{}) bool {
 		}
 
 	case *UpstreamSpec_UrlOverride_BasePath:
-		if _, ok := target.Override.(*UpstreamSpec_UrlOverride_BasePath); !ok {
+		if _, ok := target.OverrideType.(*UpstreamSpec_UrlOverride_BasePath); !ok {
 			return false
 		}
 
@@ -730,7 +730,7 @@ func (m *UpstreamSpec_UrlOverride) Equal(that interface{}) bool {
 
 	default:
 		// m is nil but target is not nil
-		if m.Override != target.Override {
+		if m.OverrideType != target.OverrideType {
 			return false
 		}
 	}
