@@ -843,7 +843,7 @@ func (m *SingleAuthToken_Passthrough) Hash(hasher hash.Hash64) (uint64, error) {
 // Deprecated: due to hashing implemention only using field values. The omission
 // of the field name in the hash calculation can lead to hash collisions.
 // Prefer the HashUnique function instead.
-func (m *UpstreamSpec_UrlOverride) Hash(hasher hash.Hash64) (uint64, error) {
+func (m *UpstreamSpec_PathOverride) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
 	}
@@ -851,19 +851,19 @@ func (m *UpstreamSpec_UrlOverride) Hash(hasher hash.Hash64) (uint64, error) {
 		hasher = fnv.New64()
 	}
 	var err error
-	if _, err = hasher.Write([]byte("ai.options.gloo.solo.io.github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ai.UpstreamSpec_UrlOverride")); err != nil {
+	if _, err = hasher.Write([]byte("ai.options.gloo.solo.io.github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ai.UpstreamSpec_PathOverride")); err != nil {
 		return 0, err
 	}
 
 	switch m.OverrideType.(type) {
 
-	case *UpstreamSpec_UrlOverride_FullUrl:
+	case *UpstreamSpec_PathOverride_FullPath:
 
-		if _, err = hasher.Write([]byte(m.GetFullUrl())); err != nil {
+		if _, err = hasher.Write([]byte(m.GetFullPath())); err != nil {
 			return 0, err
 		}
 
-	case *UpstreamSpec_UrlOverride_BasePath:
+	case *UpstreamSpec_PathOverride_BasePath:
 
 		if _, err = hasher.Write([]byte(m.GetBasePath())); err != nil {
 			return 0, err
@@ -920,18 +920,18 @@ func (m *UpstreamSpec_CustomHost) Hash(hasher hash.Hash64) (uint64, error) {
 		}
 	}
 
-	if h, ok := interface{}(m.GetUrlOverride()).(safe_hasher.SafeHasher); ok {
-		if _, err = hasher.Write([]byte("UrlOverride")); err != nil {
+	if h, ok := interface{}(m.GetPathOverride()).(safe_hasher.SafeHasher); ok {
+		if _, err = hasher.Write([]byte("PathOverride")); err != nil {
 			return 0, err
 		}
 		if _, err = h.Hash(hasher); err != nil {
 			return 0, err
 		}
 	} else {
-		if fieldValue, err := hashstructure.Hash(m.GetUrlOverride(), nil); err != nil {
+		if fieldValue, err := hashstructure.Hash(m.GetPathOverride(), nil); err != nil {
 			return 0, err
 		} else {
-			if _, err = hasher.Write([]byte("UrlOverride")); err != nil {
+			if _, err = hasher.Write([]byte("PathOverride")); err != nil {
 				return 0, err
 			}
 			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {

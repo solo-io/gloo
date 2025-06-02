@@ -74,17 +74,21 @@ enum ApiJsonSchema {
 // {{% /notice %}}
 message UpstreamSpec {
 
-  // Override the URL used to send requests to the LLM Provider
-  message UrlOverride {
+  // Override the path used to send requests to the LLM provider. For example, you might need to go through a proxy
+  // and, as such, have a different path than the default for the LLM provider.
+  message PathOverride {
     oneof override_type {
-      // Overrides the complete URL in the Chat Completion request going to the LLM Provider.
-      // If this includes query parameters, they will be preserved and sent to the LLM Provider as well.
-      // For the OpenAI platform API (eg /v1/embeddings) passthrough feature, this setting is ignored. 
-      string full_url = 1;
+      // Override the complete path and query parameters(if any) for the Chat request that is sent to the LLM provider.
+      // Any query parameters in this setting are preserved and sent to the LLM provider. The query parameters in the original request
+      // will be removed when this option is used. 
+      // For the OpenAI platform API passthrough feature (such as to endpoints like `/v1/embeddings`), this setting is ignored.
+      // Instead, use the base_path setting. 
+      string full_path = 1;
 
-      // The base path will be prepended to the request URL going to the LLM Provider.
-      // The OpenAI platform API passthrough feature also supports this, so use this setting if the provider is a proxy 
-      // or supports full OpenAI API but only need a base path
+      // Instead of replacing the full path, prepend this base_path to the request path that is sent to the LLM provider.
+      // The OpenAI platform API passthrough feature supports customizing the base path, as such, you might use this setting if your provider
+      // is a proxy to OpenAI or otherwise supports the OpenAI API on a different path.
+      // For example, you can change the expected path of requests to the `/v1/*` APIs to `/openai/v1/*` APIs by setting the base path to `/openai`.
       string base_path = 2;
     }
   }
@@ -103,8 +107,8 @@ message UpstreamSpec {
     // If hostname is not set, host will be used instead 
     google.protobuf.StringValue hostname = 3;
 
-    // Optional: override of the request URL to the custom host
-    UrlOverride url_override = 4;
+    // Optional: override of the request path and query parameters to the custom host
+    PathOverride path_override = 4;
   }
 
   // Settings for the [OpenAI](https://platform.openai.com/docs/overview) LLM provider.

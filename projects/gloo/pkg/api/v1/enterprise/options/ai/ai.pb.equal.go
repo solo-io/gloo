@@ -688,14 +688,14 @@ func (m *SingleAuthToken_Passthrough) Equal(that interface{}) bool {
 }
 
 // Equal function
-func (m *UpstreamSpec_UrlOverride) Equal(that interface{}) bool {
+func (m *UpstreamSpec_PathOverride) Equal(that interface{}) bool {
 	if that == nil {
 		return m == nil
 	}
 
-	target, ok := that.(*UpstreamSpec_UrlOverride)
+	target, ok := that.(*UpstreamSpec_PathOverride)
 	if !ok {
-		that2, ok := that.(UpstreamSpec_UrlOverride)
+		that2, ok := that.(UpstreamSpec_PathOverride)
 		if ok {
 			target = &that2
 		} else {
@@ -710,17 +710,17 @@ func (m *UpstreamSpec_UrlOverride) Equal(that interface{}) bool {
 
 	switch m.OverrideType.(type) {
 
-	case *UpstreamSpec_UrlOverride_FullUrl:
-		if _, ok := target.OverrideType.(*UpstreamSpec_UrlOverride_FullUrl); !ok {
+	case *UpstreamSpec_PathOverride_FullPath:
+		if _, ok := target.OverrideType.(*UpstreamSpec_PathOverride_FullPath); !ok {
 			return false
 		}
 
-		if strings.Compare(m.GetFullUrl(), target.GetFullUrl()) != 0 {
+		if strings.Compare(m.GetFullPath(), target.GetFullPath()) != 0 {
 			return false
 		}
 
-	case *UpstreamSpec_UrlOverride_BasePath:
-		if _, ok := target.OverrideType.(*UpstreamSpec_UrlOverride_BasePath); !ok {
+	case *UpstreamSpec_PathOverride_BasePath:
+		if _, ok := target.OverrideType.(*UpstreamSpec_PathOverride_BasePath); !ok {
 			return false
 		}
 
@@ -777,12 +777,12 @@ func (m *UpstreamSpec_CustomHost) Equal(that interface{}) bool {
 		}
 	}
 
-	if h, ok := interface{}(m.GetUrlOverride()).(equality.Equalizer); ok {
-		if !h.Equal(target.GetUrlOverride()) {
+	if h, ok := interface{}(m.GetPathOverride()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetPathOverride()) {
 			return false
 		}
 	} else {
-		if !proto.Equal(m.GetUrlOverride(), target.GetUrlOverride()) {
+		if !proto.Equal(m.GetPathOverride(), target.GetPathOverride()) {
 			return false
 		}
 	}

@@ -1488,32 +1488,33 @@ func (*SingleAuthToken_Passthrough) Descriptor() ([]byte, []int) {
 	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_rawDescGZIP(), []int{0, 0}
 }
 
-// Override the URL used to send requests to the LLM Provider
-type UpstreamSpec_UrlOverride struct {
+// Override the path used to send requests to the LLM provider. For example, you might need to go through a proxy
+// and, as such, have a different path than the default for the LLM provider.
+type UpstreamSpec_PathOverride struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Types that are valid to be assigned to OverrideType:
 	//
-	//	*UpstreamSpec_UrlOverride_FullUrl
-	//	*UpstreamSpec_UrlOverride_BasePath
-	OverrideType  isUpstreamSpec_UrlOverride_OverrideType `protobuf_oneof:"override_type"`
+	//	*UpstreamSpec_PathOverride_FullPath
+	//	*UpstreamSpec_PathOverride_BasePath
+	OverrideType  isUpstreamSpec_PathOverride_OverrideType `protobuf_oneof:"override_type"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *UpstreamSpec_UrlOverride) Reset() {
-	*x = UpstreamSpec_UrlOverride{}
+func (x *UpstreamSpec_PathOverride) Reset() {
+	*x = UpstreamSpec_PathOverride{}
 	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *UpstreamSpec_UrlOverride) String() string {
+func (x *UpstreamSpec_PathOverride) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*UpstreamSpec_UrlOverride) ProtoMessage() {}
+func (*UpstreamSpec_PathOverride) ProtoMessage() {}
 
-func (x *UpstreamSpec_UrlOverride) ProtoReflect() protoreflect.Message {
+func (x *UpstreamSpec_PathOverride) ProtoReflect() protoreflect.Message {
 	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1525,57 +1526,60 @@ func (x *UpstreamSpec_UrlOverride) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use UpstreamSpec_UrlOverride.ProtoReflect.Descriptor instead.
-func (*UpstreamSpec_UrlOverride) Descriptor() ([]byte, []int) {
+// Deprecated: Use UpstreamSpec_PathOverride.ProtoReflect.Descriptor instead.
+func (*UpstreamSpec_PathOverride) Descriptor() ([]byte, []int) {
 	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_rawDescGZIP(), []int{1, 0}
 }
 
-func (x *UpstreamSpec_UrlOverride) GetOverrideType() isUpstreamSpec_UrlOverride_OverrideType {
+func (x *UpstreamSpec_PathOverride) GetOverrideType() isUpstreamSpec_PathOverride_OverrideType {
 	if x != nil {
 		return x.OverrideType
 	}
 	return nil
 }
 
-func (x *UpstreamSpec_UrlOverride) GetFullUrl() string {
+func (x *UpstreamSpec_PathOverride) GetFullPath() string {
 	if x != nil {
-		if x, ok := x.OverrideType.(*UpstreamSpec_UrlOverride_FullUrl); ok {
-			return x.FullUrl
+		if x, ok := x.OverrideType.(*UpstreamSpec_PathOverride_FullPath); ok {
+			return x.FullPath
 		}
 	}
 	return ""
 }
 
-func (x *UpstreamSpec_UrlOverride) GetBasePath() string {
+func (x *UpstreamSpec_PathOverride) GetBasePath() string {
 	if x != nil {
-		if x, ok := x.OverrideType.(*UpstreamSpec_UrlOverride_BasePath); ok {
+		if x, ok := x.OverrideType.(*UpstreamSpec_PathOverride_BasePath); ok {
 			return x.BasePath
 		}
 	}
 	return ""
 }
 
-type isUpstreamSpec_UrlOverride_OverrideType interface {
-	isUpstreamSpec_UrlOverride_OverrideType()
+type isUpstreamSpec_PathOverride_OverrideType interface {
+	isUpstreamSpec_PathOverride_OverrideType()
 }
 
-type UpstreamSpec_UrlOverride_FullUrl struct {
-	// Overrides the complete URL in the Chat Completion request going to the LLM Provider.
-	// If this includes query parameters, they will be preserved and sent to the LLM Provider as well.
-	// For the OpenAI platform API (eg /v1/embeddings) passthrough feature, this setting is ignored.
-	FullUrl string `protobuf:"bytes,1,opt,name=full_url,json=fullUrl,proto3,oneof"`
+type UpstreamSpec_PathOverride_FullPath struct {
+	// Override the complete path and query parameters(if any) for the Chat request that is sent to the LLM provider.
+	// Any query parameters in this setting are preserved and sent to the LLM provider. The query parameters in the original request
+	// will be removed when this option is used.
+	// For the OpenAI platform API passthrough feature (such as to endpoints like `/v1/embeddings`), this setting is ignored.
+	// Instead, use the base_path setting.
+	FullPath string `protobuf:"bytes,1,opt,name=full_path,json=fullPath,proto3,oneof"`
 }
 
-type UpstreamSpec_UrlOverride_BasePath struct {
-	// The base path will be prepended to the request URL going to the LLM Provider.
-	// The OpenAI platform API passthrough feature also supports this, so use this setting if the provider is a proxy
-	// or supports full OpenAI API but only need a base path
+type UpstreamSpec_PathOverride_BasePath struct {
+	// Instead of replacing the full path, prepend this base_path to the request path that is sent to the LLM provider.
+	// The OpenAI platform API passthrough feature supports customizing the base path, as such, you might use this setting if your provider
+	// is a proxy to OpenAI or otherwise supports the OpenAI API on a different path.
+	// For example, you can change the expected path of requests to the `/v1/*` APIs to `/openai/v1/*` APIs by setting the base path to `/openai`.
 	BasePath string `protobuf:"bytes,2,opt,name=base_path,json=basePath,proto3,oneof"`
 }
 
-func (*UpstreamSpec_UrlOverride_FullUrl) isUpstreamSpec_UrlOverride_OverrideType() {}
+func (*UpstreamSpec_PathOverride_FullPath) isUpstreamSpec_PathOverride_OverrideType() {}
 
-func (*UpstreamSpec_UrlOverride_BasePath) isUpstreamSpec_UrlOverride_OverrideType() {}
+func (*UpstreamSpec_PathOverride_BasePath) isUpstreamSpec_PathOverride_OverrideType() {}
 
 // Send requests to a custom host and port, such as to proxy the request and customize the chat completion path,
 // or to use a different backend that is API-compliant with the upstream version.
@@ -1591,8 +1595,8 @@ type UpstreamSpec_CustomHost struct {
 	// Optional: hostname used to set the SNI (if is secure connection) and the host request header.
 	// If hostname is not set, host will be used instead
 	Hostname *wrapperspb.StringValue `protobuf:"bytes,3,opt,name=hostname,proto3" json:"hostname,omitempty"`
-	// Optional: override of the request URL to the custom host
-	UrlOverride   *UpstreamSpec_UrlOverride `protobuf:"bytes,4,opt,name=url_override,json=urlOverride,proto3" json:"url_override,omitempty"`
+	// Optional: override of the request path and query parameters to the custom host
+	PathOverride  *UpstreamSpec_PathOverride `protobuf:"bytes,4,opt,name=path_override,json=pathOverride,proto3" json:"path_override,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1648,9 +1652,9 @@ func (x *UpstreamSpec_CustomHost) GetHostname() *wrapperspb.StringValue {
 	return nil
 }
 
-func (x *UpstreamSpec_CustomHost) GetUrlOverride() *UpstreamSpec_UrlOverride {
+func (x *UpstreamSpec_CustomHost) GetPathOverride() *UpstreamSpec_PathOverride {
 	if x != nil {
-		return x.UrlOverride
+		return x.PathOverride
 	}
 	return nil
 }
@@ -3675,7 +3679,7 @@ const file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai
 	"secret_ref\x18\x02 \x01(\v2\x19.core.solo.io.ResourceRefH\x00R\tsecretRef\x12X\n" +
 	"\vpassthrough\x18\x03 \x01(\v24.ai.options.gloo.solo.io.SingleAuthToken.PassthroughH\x00R\vpassthrough\x1a\r\n" +
 	"\vPassthroughB\x13\n" +
-	"\x11auth_token_source\"\x80\x17\n" +
+	"\x11auth_token_source\"\x86\x17\n" +
 	"\fUpstreamSpec\x12F\n" +
 	"\x06openai\x18\x01 \x01(\v2,.ai.options.gloo.solo.io.UpstreamSpec.OpenAIH\x00R\x06openai\x12I\n" +
 	"\amistral\x18\x02 \x01(\v2-.ai.options.gloo.solo.io.UpstreamSpec.MistralH\x00R\amistral\x12O\n" +
@@ -3683,17 +3687,17 @@ const file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai
 	"\fazure_openai\x18\x04 \x01(\v21.ai.options.gloo.solo.io.UpstreamSpec.AzureOpenAIH\x00R\vazureOpenai\x12G\n" +
 	"\x05multi\x18\x05 \x01(\v2/.ai.options.gloo.solo.io.UpstreamSpec.MultiPoolH\x00R\x05multi\x12F\n" +
 	"\x06gemini\x18\x06 \x01(\v2,.ai.options.gloo.solo.io.UpstreamSpec.GeminiH\x00R\x06gemini\x12M\n" +
-	"\tvertex_ai\x18\a \x01(\v2..ai.options.gloo.solo.io.UpstreamSpec.VertexAIH\x00R\bvertexAi\x1aZ\n" +
-	"\vUrlOverride\x12\x1b\n" +
-	"\bfull_url\x18\x01 \x01(\tH\x00R\afullUrl\x12\x1d\n" +
+	"\tvertex_ai\x18\a \x01(\v2..ai.options.gloo.solo.io.UpstreamSpec.VertexAIH\x00R\bvertexAi\x1a]\n" +
+	"\fPathOverride\x12\x1d\n" +
+	"\tfull_path\x18\x01 \x01(\tH\x00R\bfullPath\x12\x1d\n" +
 	"\tbase_path\x18\x02 \x01(\tH\x00R\bbasePathB\x0f\n" +
-	"\roverride_type\x1a\xc4\x01\n" +
+	"\roverride_type\x1a\xc7\x01\n" +
 	"\n" +
 	"CustomHost\x12\x12\n" +
 	"\x04host\x18\x01 \x01(\tR\x04host\x12\x12\n" +
 	"\x04port\x18\x02 \x01(\rR\x04port\x128\n" +
-	"\bhostname\x18\x03 \x01(\v2\x1c.google.protobuf.StringValueR\bhostname\x12T\n" +
-	"\furl_override\x18\x04 \x01(\v21.ai.options.gloo.solo.io.UpstreamSpec.UrlOverrideR\vurlOverride\x1a\xba\x01\n" +
+	"\bhostname\x18\x03 \x01(\v2\x1c.google.protobuf.StringValueR\bhostname\x12W\n" +
+	"\rpath_override\x18\x04 \x01(\v22.ai.options.gloo.solo.io.UpstreamSpec.PathOverrideR\fpathOverride\x1a\xba\x01\n" +
 	"\x06OpenAI\x12G\n" +
 	"\n" +
 	"auth_token\x18\x01 \x01(\v2(.ai.options.gloo.solo.io.SingleAuthTokenR\tauthToken\x12Q\n" +
@@ -3931,7 +3935,7 @@ var file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_p
 	(*AIPromptEnrichment)(nil),                       // 15: ai.options.gloo.solo.io.AIPromptEnrichment
 	(*AIPromptGuard)(nil),                            // 16: ai.options.gloo.solo.io.AIPromptGuard
 	(*SingleAuthToken_Passthrough)(nil),              // 17: ai.options.gloo.solo.io.SingleAuthToken.Passthrough
-	(*UpstreamSpec_UrlOverride)(nil),                 // 18: ai.options.gloo.solo.io.UpstreamSpec.UrlOverride
+	(*UpstreamSpec_PathOverride)(nil),                // 18: ai.options.gloo.solo.io.UpstreamSpec.PathOverride
 	(*UpstreamSpec_CustomHost)(nil),                  // 19: ai.options.gloo.solo.io.UpstreamSpec.CustomHost
 	(*UpstreamSpec_OpenAI)(nil),                      // 20: ai.options.gloo.solo.io.UpstreamSpec.OpenAI
 	(*UpstreamSpec_AzureOpenAI)(nil),                 // 21: ai.options.gloo.solo.io.UpstreamSpec.AzureOpenAI
@@ -3991,7 +3995,7 @@ var file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_p
 	39, // 25: ai.options.gloo.solo.io.AIPromptGuard.request:type_name -> ai.options.gloo.solo.io.AIPromptGuard.Request
 	40, // 26: ai.options.gloo.solo.io.AIPromptGuard.response:type_name -> ai.options.gloo.solo.io.AIPromptGuard.Response
 	47, // 27: ai.options.gloo.solo.io.UpstreamSpec.CustomHost.hostname:type_name -> google.protobuf.StringValue
-	18, // 28: ai.options.gloo.solo.io.UpstreamSpec.CustomHost.url_override:type_name -> ai.options.gloo.solo.io.UpstreamSpec.UrlOverride
+	18, // 28: ai.options.gloo.solo.io.UpstreamSpec.CustomHost.path_override:type_name -> ai.options.gloo.solo.io.UpstreamSpec.PathOverride
 	7,  // 29: ai.options.gloo.solo.io.UpstreamSpec.OpenAI.auth_token:type_name -> ai.options.gloo.solo.io.SingleAuthToken
 	19, // 30: ai.options.gloo.solo.io.UpstreamSpec.OpenAI.custom_host:type_name -> ai.options.gloo.solo.io.UpstreamSpec.CustomHost
 	7,  // 31: ai.options.gloo.solo.io.UpstreamSpec.AzureOpenAI.auth_token:type_name -> ai.options.gloo.solo.io.SingleAuthToken
@@ -4060,8 +4064,8 @@ func file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_
 		(*Embedding_AzureOpenai)(nil),
 	}
 	file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[11].OneofWrappers = []any{
-		(*UpstreamSpec_UrlOverride_FullUrl)(nil),
-		(*UpstreamSpec_UrlOverride_BasePath)(nil),
+		(*UpstreamSpec_PathOverride_FullPath)(nil),
+		(*UpstreamSpec_PathOverride_BasePath)(nil),
 	}
 	file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[14].OneofWrappers = []any{
 		(*UpstreamSpec_AzureOpenAI_AuthToken)(nil),

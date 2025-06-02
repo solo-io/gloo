@@ -14,7 +14,7 @@ weight: 5
 - [SingleAuthToken](#singleauthtoken)
 - [Passthrough](#passthrough)
 - [UpstreamSpec](#upstreamspec)
-- [UrlOverride](#urloverride)
+- [PathOverride](#pathoverride)
 - [CustomHost](#customhost)
 - [OpenAI](#openai)
 - [AzureOpenAI](#azureopenai)
@@ -164,21 +164,22 @@ The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://
 
 
 ---
-### UrlOverride
+### PathOverride
 
  
-Override the URL used to send requests to the LLM Provider
+Override the path used to send requests to the LLM provider. For example, you might need to go through a proxy
+and, as such, have a different path than the default for the LLM provider.
 
 ```yaml
-"fullUrl": string
+"fullPath": string
 "basePath": string
 
 ```
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `fullUrl` | `string` | Overrides the complete URL in the Chat Completion request going to the LLM Provider. If this includes query parameters, they will be preserved and sent to the LLM Provider as well. For the OpenAI platform API (eg /v1/embeddings) passthrough feature, this setting is ignored. Only one of `fullUrl` or `basePath` can be set. |
-| `basePath` | `string` | The base path will be prepended to the request URL going to the LLM Provider. The OpenAI platform API passthrough feature also supports this, so use this setting if the provider is a proxy or supports full OpenAI API but only need a base path. Only one of `basePath` or `fullUrl` can be set. |
+| `fullPath` | `string` | Override the complete path and query parameters(if any) for the Chat request that is sent to the LLM provider. Any query parameters in this setting are preserved and sent to the LLM provider. The query parameters in the original request will be removed when this option is used. For the OpenAI platform API passthrough feature (such as to endpoints like `/v1/embeddings`), this setting is ignored. Instead, use the base_path setting. Only one of `fullPath` or `basePath` can be set. |
+| `basePath` | `string` | Instead of replacing the full path, prepend this base_path to the request path that is sent to the LLM provider. The OpenAI platform API passthrough feature supports customizing the base path, as such, you might use this setting if your provider is a proxy to OpenAI or otherwise supports the OpenAI API on a different path. For example, you can change the expected path of requests to the `/v1/*` APIs to `/openai/v1/*` APIs by setting the base path to `/openai`. Only one of `basePath` or `fullPath` can be set. |
 
 
 
@@ -197,7 +198,7 @@ The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://
 "host": string
 "port": int
 "hostname": .google.protobuf.StringValue
-"urlOverride": .ai.options.gloo.solo.io.UpstreamSpec.UrlOverride
+"pathOverride": .ai.options.gloo.solo.io.UpstreamSpec.PathOverride
 
 ```
 
@@ -206,7 +207,7 @@ The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://
 | `host` | `string` | Custom host or IP address to send the traffic requests to. |
 | `port` | `int` | Custom port to send the traffic requests to. |
 | `hostname` | [.google.protobuf.StringValue](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/string-value) | Optional: hostname used to set the SNI (if is secure connection) and the host request header. If hostname is not set, host will be used instead. |
-| `urlOverride` | [.ai.options.gloo.solo.io.UpstreamSpec.UrlOverride](../ai.proto.sk/#urloverride) | Optional: override of the request URL to the custom host. |
+| `pathOverride` | [.ai.options.gloo.solo.io.UpstreamSpec.PathOverride](../ai.proto.sk/#pathoverride) | Optional: override of the request path and query parameters to the custom host. |
 
 
 
