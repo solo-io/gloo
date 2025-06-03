@@ -7,12 +7,13 @@ import (
 	v1 "github.com/census-instrumentation/opencensus-proto/gen-go/trace/v1"
 	envoy_config_core_v3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	envoytrace "github.com/envoyproxy/go-control-plane/envoy/config/trace/v3"
-	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
-	envoytracegloo "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/config/trace/v3"
-	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"go.uber.org/zap"
+
+	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
+	envoytracegloo "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/config/trace/v3"
+	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 )
 
 // Converts between Envoy and Gloo/solokit versions of envoy protos
@@ -71,6 +72,7 @@ func ToEnvoyZipkinConfiguration(glooZipkinConfig *envoytracegloo.ZipkinConfig, c
 // will log a warning and return a service.name string to help identify the issue.
 func GetGatewayNameFromParent(ctx context.Context, parent *gloov1.Listener) string {
 
+	contextutils.LoggerFrom(ctx).Infow("testing by kasunttttttttt", zap.Any("listener", parent))
 	switch metadata := parent.GetOpaqueMetadata().(type) {
 	// Deprecated metadata format. This is not an expected condition, as it is the control plane's responsibility to set this field,
 	// and it no longer uses the deprecated API
@@ -81,6 +83,7 @@ func GetGatewayNameFromParent(ctx context.Context, parent *gloov1.Listener) stri
 	case *gloov1.Listener_MetadataStatic:
 		gateways := []string{}
 		for _, source := range metadata.MetadataStatic.GetSources() {
+			contextutils.LoggerFrom(ctx).Infow("testing by kasunttttttttt", zap.Any("source", source))
 			if isResourceGateway(source) {
 				gateways = append(gateways, source.GetResourceRef().GetName())
 			}
