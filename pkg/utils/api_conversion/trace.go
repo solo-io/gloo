@@ -84,6 +84,10 @@ func GetGatewayNameFromParent(ctx context.Context, parent *gloov1.Listener) stri
 		gateways := []string{}
 		for _, source := range metadata.MetadataStatic.GetSources() {
 			contextutils.LoggerFrom(ctx).Infow("testing by kasunttttttttt", zap.Any("source", source))
+			contextutils.LoggerFrom(ctx).Infow("testing by kasunttttttttt", zap.Any("GetResourceKind", source.GetResourceKind()), zap.Any("GetResourceName", source.GetResourceRef().GetName()))
+			contextutils.LoggerFrom(ctx).Infow("testing by kasunttttttttt", zap.Any("gateways", gatewayKindsMap()))
+			contextutils.LoggerFrom(ctx).Infow("testing by kasunttttttttt", zap.Any("kind", resources.Kind(new(gatewayv1.Gateway))))
+
 			if isResourceGateway(source) {
 				gateways = append(gateways, source.GetResourceRef().GetName())
 			}
