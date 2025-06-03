@@ -132,6 +132,7 @@ func (p *plugin) ApplyListenerPlugin(
 
 	// The merged option should be applied to the VirtualHosts, and the sources should be tracked
 	// per VirtualHostOption that affected the merged result
+	listenerutils.AppendSourceToListener(outListener, listenerCtx.Gateway)
 	for _, opt := range optionsUsed {
 		for _, v := range aggListener.GetHttpResources().GetVirtualHosts() {
 			v.Options = merged.Spec.GetOptions()
