@@ -14,7 +14,6 @@ import (
 	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	envoytracegloo "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/config/trace/v3"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
-	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
 )
 
 // Converts between Envoy and Gloo/solokit versions of envoy protos
@@ -124,8 +123,7 @@ func isResourceGateway(resource *gloov1.SourceMetadata_SourceRef) bool {
 
 func gatewayKindsMap() map[string]bool {
 	return map[string]bool{
-		resources.Kind(new(gatewayv1.Gateway)): true,
-		(gwv1.Gateway{}).Kind:                  true,
+		new(gatewayv1.Gateway).GroupVersionKind().Kind: true,
 	}
 }
 
