@@ -59,7 +59,7 @@ var _ = Describe("HttpConnectionManagerSettings", func() {
 				logs, err := testContext.EnvoyInstance().Logs()
 				g.Expect(err).NotTo(HaveOccurred())
 				g.Expect(logs).NotTo(ContainSubstring("Didn't find a registered implementation"))
-			})
+			}).Should(Succeed())
 		})
 	})
 })
