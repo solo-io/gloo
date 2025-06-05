@@ -189,7 +189,6 @@ var _ = Describe("Plugin", func() {
 		typedConfigOutput := &envoyuuid.UuidRequestIdConfig{}
 		err = cfg.RequestIdExtension.GetTypedConfig().UnmarshalTo(typedConfigOutput)
 		Expect(err).NotTo(HaveOccurred())
-		// Expect(typedConfigOutput).To(MatchProto(settings.UuidRequestIdConfig))
 		Expect(typedConfigOutput.GetPackTraceReason().GetValue()).To(Equal(settings.UuidRequestIdConfig.GetPackTraceReason().GetValue()))
 		Expect(typedConfigOutput.GetUseRequestIdForTraceSampling().GetValue()).To(Equal(settings.UuidRequestIdConfig.GetUseRequestIdForTraceSampling().GetValue()))
 

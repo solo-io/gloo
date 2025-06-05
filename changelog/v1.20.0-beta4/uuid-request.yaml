@@ -1,6 +1,8 @@
 changelog:
   - type: FIX
-    issueLink:
+    issueLink: https://github.com/solo-io/solo-projects/issues/8354
     resolvesIssue: false
     description: >-
-      ""
+      Setting the `uuidRequestIdConfig` in the `HttpConnectionManagerSettings` now correctly sets the `RequestIdExtension` in the `HttpConnectionManager` filter.
+
+      Previously, setting the `uuidRequestIdConfig` in the `HttpConnectionManagerSettings` would lead to the listener being rejected with the error `Didn't find a registered implementation for type: 'hcm.options.gloo.solo.io.HttpConnectionManagerSettings.UuidRequestIdConfigSettings'`.
