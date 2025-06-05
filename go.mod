@@ -1,6 +1,6 @@
 module github.com/solo-io/gloo
 
-go 1.24.0
+go 1.23.7
 
 // Note for developers: upgrading go will also require upgrading go in the following files:
 // ./cloudbuild-cache.yaml,
@@ -48,17 +48,17 @@ require (
 	github.com/saiskee/gettercheck v0.0.0-20210820204958-38443d06ebe0
 	github.com/sergi/go-diff v1.1.0
 	github.com/solo-io/go-list-licenses v0.1.4
-	github.com/solo-io/go-utils v0.28.4
-	github.com/solo-io/k8s-utils v0.10.0
-	github.com/solo-io/protoc-gen-ext v0.1.0
-	github.com/solo-io/protoc-gen-openapi v0.3.0
-	github.com/solo-io/skv2 v0.43.0
+	github.com/solo-io/go-utils v0.25.3
+	github.com/solo-io/k8s-utils v0.7.2
+	github.com/solo-io/protoc-gen-ext v0.0.18
+	github.com/solo-io/protoc-gen-openapi v0.2.4
+	github.com/solo-io/skv2 v0.39.1
 
 	// Pinned to the `sa-k8s-1.29-bump` tag of solo-apis on `gloo-main` branch
 	// Ref: https://github.com/solo-io/gloo/pull/9463/files#r1594409655 && https://solo-io-corp.slack.com/archives/C03MFATU265/p1716913420716729?thread_ts=1716476992.938679&cid=C03MFATU265
 	// as to why it is now based off `gloo-main` and not `gloo-repo-branch`
 	github.com/solo-io/solo-apis v0.0.0-20240528173540-7879b7d12cb9
-	github.com/solo-io/solo-kit v0.38.0
+	github.com/solo-io/solo-kit v0.35.6
 	github.com/spf13/afero v1.9.2
 	github.com/spf13/cobra v1.8.1
 	github.com/spf13/pflag v1.0.5
@@ -98,7 +98,6 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/mccutchen/go-httpbin/v2 v2.15.0
 	github.com/quasilyte/go-ruleguard/dsl v0.3.22
-	github.com/solo-io/cue v0.4.7
 	github.com/stretchr/testify v1.9.0
 	golang.org/x/exp v0.0.0-20231006140011-7918f672742d
 	google.golang.org/genproto/googleapis/api v0.0.0-20231120223509-83a465c0220f
@@ -279,7 +278,7 @@ require (
 	github.com/ryanuber/go-glob v1.0.0 // indirect
 	github.com/shopspring/decimal v1.3.1 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
-	github.com/solo-io/anyvendor v0.2.0 // indirect
+	github.com/solo-io/anyvendor v0.0.4 // indirect
 	github.com/spf13/cast v1.5.0 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/subosito/gotenv v1.2.0 // indirect
