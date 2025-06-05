@@ -1,0 +1,40 @@
+{
+  // Renovate configuration for Gloo project
+  // This file extends the root renovate.json with GitHub-specific settings
+  
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  
+  // Extend the base configuration from root
+  "extends": [
+    "local>solo-io/gloo"
+  ],
+  
+  // GitHub-specific settings
+  "platformAutomerge": true,
+  "gitAuthor": "renovate[bot] <29139614+renovate[bot]@users.noreply.github.com>",
+  
+  // Custom branch naming for better organization
+  "branchPrefix": "renovate/",
+  "branchTopic": "{{{depNameSanitized}}}-{{{newMajor}}}{{#if separateMinorPatch}}{{#if isPatch}}.{{{newMinor}}}{{/if}}{{/if}}.x{{#if isLockfileUpdate}}-lockfile{{/if}}",
+  
+  // Enhanced commit messages
+  "commitMessageTopic": "{{depName}}",
+  "commitMessageExtra": "to v{{newVersion}}",
+  "commitMessageSuffix": "",
+  
+  // PR settings
+  "prTitle": "deps: {{#if isSingleDepType}}{{depType}} {{/if}}{{#if isPin}}Pin{{else}}Update{{/if}} dependency {{depName}} to {{#if isRange}}{{newValue}}{{else}}v{{newVersion}}{{/if}}",
+  "prBodyTemplate": "{{{header}}}{{{table}}}{{{notes}}}{{{changelogs}}}{{{controls}}}{{{footer}}}",
+  
+  // Additional package rules specific to GitHub workflows
+  "packageRules": [
+    {
+      "description": "Gloo-specific CI image updates",
+      "matchFileNames": [".github/workflows/**"],
+      "matchPackagePatterns": ["gcr.io/solo-public", "quay.io/solo-io"],
+      "groupName": "Gloo CI images",
+      "reviewers": ["@solo-io/gloo-ci"],
+      "schedule": ["before 6am on monday"]
+    }
+  ]
+} 

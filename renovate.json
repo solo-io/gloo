@@ -1,0 +1,104 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:base",
+    "group:monorepos",
+    "group:recommended",
+    ":dependencyDashboard",
+    ":semanticCommits",
+    ":separatePatchReleases"
+  ],
+  "timezone": "America/Los_Angeles",
+  "schedule": [
+    "before 6am on monday"
+  ],
+  "prHourlyLimit": 3,
+  "prConcurrentLimit": 5,
+  "rebaseWhen": "conflicted",
+  "assignees": ["@solo-io/gloo-maintainers"],
+  "reviewers": ["@solo-io/gloo-maintainers"],
+  "labels": ["dependencies", "renovate"],
+  "commitMessagePrefix": "deps:",
+  "packageRules": [
+    {
+      "description": "Group Go dependencies",
+      "matchManagers": ["gomod"],
+      "groupName": "Go dependencies",
+      "schedule": ["before 6am on monday"],
+      "minimumReleaseAge": "3 days"
+    },
+    {
+      "description": "Group solo-io dependencies",
+      "matchPackagePatterns": ["^github.com/solo-io/"],
+      "groupName": "solo-io dependencies",
+      "schedule": ["before 6am on monday"],
+      "minimumReleaseAge": "1 day"
+    },
+    {
+      "description": "Group Kubernetes dependencies",
+      "matchPackagePatterns": ["^k8s.io/", "^sigs.k8s.io/"],
+      "groupName": "Kubernetes dependencies",
+      "schedule": ["before 6am on monday"],
+      "minimumReleaseAge": "7 days"
+    },
+    {
+      "description": "Group Envoy dependencies",
+      "matchPackagePatterns": ["envoy", "^github.com/envoyproxy/"],
+      "groupName": "Envoy dependencies",
+      "schedule": ["before 6am on monday"],
+      "minimumReleaseAge": "7 days"
+    },
+    {
+      "description": "Group GitHub Actions",
+      "matchManagers": ["github-actions"],
+      "groupName": "GitHub Actions",
+      "schedule": ["before 6am on monday"],
+      "minimumReleaseAge": "3 days",
+      "automerge": true,
+      "automergeType": "pr"
+    },
+    {
+      "description": "Group Docker images",
+      "matchManagers": ["dockerfile", "docker-compose"],
+      "groupName": "Docker images",
+      "schedule": ["before 6am on monday"],
+      "minimumReleaseAge": "3 days"
+    },
+    {
+      "description": "Group Helm charts",
+      "matchManagers": ["helm-values", "helmv3"],
+      "groupName": "Helm dependencies",
+      "schedule": ["before 6am on monday"],
+      "minimumReleaseAge": "3 days"
+    },
+    {
+      "description": "Auto-merge patch updates for non-critical dependencies",
+      "matchUpdateTypes": ["patch"],
+      "excludePackagePatterns": [
+        "^k8s.io/",
+        "^sigs.k8s.io/",
+        "envoy",
+        "^github.com/envoyproxy/",
+        "^github.com/solo-io/"
+      ],
+      "automerge": true,
+      "automergeType": "pr",
+      "minimumReleaseAge": "3 days"
+    },
+    {
+      "description": "Pin Go version updates",
+      "matchDepNames": ["go"],
+      "rangeStrategy": "pin",
+      "schedule": ["before 6am on monday"],
+      "minimumReleaseAge": "14 days"
+    }
+  ],
+  "vulnerabilityAlerts": {
+    "enabled": true,
+    "schedule": ["at any time"]
+  },
+  "osvVulnerabilityAlerts": true,
+  "separateMinorPatch": true,
+  "separateMajorMinor": true,
+  "ignorePresets": [":prHourlyLimit2"]
+} 
