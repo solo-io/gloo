@@ -4,5 +4,5 @@ changelog:
     dependencyOwner: golang
     dependencyRepo: go
     dependencyTag: v1.24.1
-    issueLink: https://github.com/solo-io/solo-projects/issues/7958
+    issueLink: https://github.com/solo-io/solo-projects/issues/8101
     resolvesIssue: false
