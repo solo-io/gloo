@@ -16,13 +16,13 @@ func JSONContains(expectedJSON any) gomega.OmegaMatcher {
 
 	expectedBytes, ok := expectedJSON.([]byte)
 	if !ok {
-		return gomega.BeFalseBecause("expected value must be a byte slice")
+		return gomega.BeFalseBecause("%s", "expected value must be a byte slice")
 	}
 
 	var expected map[string]any
 	err := json.Unmarshal(expectedBytes, &expected)
 	if err != nil {
-		return gomega.BeFalseBecause(err.Error())
+		return gomega.BeFalseBecause("%s", err.Error())
 	}
 
 	matchers = append(matchers, ContainsDeepMapElements(expected))
