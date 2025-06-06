@@ -12,7 +12,7 @@ Developing on Gloo Gateway requires the following to be installed on your system
 
 - [`make`](https://www.gnu.org/software/make/)
 - [`git`](https://git-scm.com/)
-- [`go`](https://golang.org/) (`solo-io` projects are built using version `1.24.0`)
+- [`go`](https://golang.org/) (`solo-io` projects are built using version `1.24.1`)
 - `protoc` (`solo-io` projects are built using version `3.6.1`)
 - Standard development tools like `gcc`
 
