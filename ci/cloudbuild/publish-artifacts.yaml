@@ -108,9 +108,9 @@ steps:
   waitFor:
   - 'gcr-auth'
 
-# Run make targets to build and push docker images to GCR
+# Run make targets to retag and push docker images to GCR
 - name: 'gcr.io/$PROJECT_ID/go-mod-make:0.12.1'
-  id: 'publish-docker-extended-gcr'
+  id: 'docker-push-extended-gcr'
   dir: *dir
   args:
   - publish-docker

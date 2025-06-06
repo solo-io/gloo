@@ -61,7 +61,7 @@ func GlooctlCheckEventuallyHealthy(offset int, namespace string, timeoutInterval
 			return errors.Wrap(err, "glooctl check detected a problem with the installation")
 		}
 		return nil
-	}, timeoutInterval, "5s").Should(BeNil())
+	}, timeoutInterval, "5s").Should(Succeed())
 }
 
 func EventuallyReachesConsistentState(installNamespace string) {
