@@ -110,7 +110,7 @@ func deployKnativeTestService(filePath string) {
 	// See: https://github.com/istio/istio/pull/7743/files
 	EventuallyWithOffset(1, func() error {
 		return exec.RunCommandInput(string(b), testHelper.RootDir, true, "kubectl", "apply", "-f", "-")
-	}, "30s", "5s").Should(BeNil())
+	}, "30s", "5s").Should(Succeed())
 }
 
 func deleteKnativeTestService(filePath string) error {

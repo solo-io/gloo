@@ -33,7 +33,7 @@ type P struct {
 
 func (p P) AppendCheck(name string) {
 	if p.OutputType.IsTable() {
-		fmt.Printf(name)
+		fmt.Print(name)
 	} else if p.OutputType.IsJSON() {
 		cr := CheckStatus{Name: sanitizeName(name)}
 		p.CheckResult.Resources = append(p.CheckResult.Resources, cr)
@@ -43,7 +43,7 @@ func (p P) AppendCheck(name string) {
 func (p P) AppendStatus(name string, status string) {
 
 	if p.OutputType.IsTable() {
-		fmt.Printf(status + "\n")
+		fmt.Print(status + "\n")
 	} else if p.OutputType.IsJSON() {
 		for i := range p.CheckResult.Resources {
 			if p.CheckResult.Resources[i].Name == name {
@@ -56,7 +56,7 @@ func (p P) AppendStatus(name string, status string) {
 
 func (p P) AppendMessage(message string) {
 	if p.OutputType.IsTable() {
-		fmt.Printf(message + "\n")
+		fmt.Print(message + "\n")
 	} else if p.OutputType.IsJSON() {
 		p.CheckResult.Messages = append(p.CheckResult.Messages, strings.ReplaceAll(message, "\n", ""))
 	}
