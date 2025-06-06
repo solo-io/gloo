@@ -12,6 +12,7 @@ import (
 
 	"github.com/golang/protobuf/ptypes/wrappers"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	v1_circuitbreaker "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/circuit_breaker"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options"
 	kubeplugin "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/kubernetes"
 	rest "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/rest"
@@ -552,7 +553,7 @@ var _ = Describe("UdsConvert", func() {
 						}
 					}`,
 				}, &v1.Upstream{
-					CircuitBreakers: &v1.CircuitBreakerConfig{
+					CircuitBreakers: &v1_circuitbreaker.CircuitBreakerConfig{
 						MaxConnections: &wrappers.UInt32Value{
 							Value: 2048,
 						},
@@ -653,7 +654,7 @@ var _ = Describe("UdsConvert", func() {
 						}
 					}`,
 				}, &v1.Upstream{
-					CircuitBreakers: &v1.CircuitBreakerConfig{
+					CircuitBreakers: &v1_circuitbreaker.CircuitBreakerConfig{
 						MaxConnections: &wrappers.UInt32Value{
 							Value: 2048,
 						},
