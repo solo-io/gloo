@@ -438,6 +438,33 @@ func (m *SingleAuthToken_Passthrough) Clone() proto.Message {
 }
 
 // Clone function
+func (m *UpstreamSpec_PathOverride) Clone() proto.Message {
+	var target *UpstreamSpec_PathOverride
+	if m == nil {
+		return target
+	}
+	target = &UpstreamSpec_PathOverride{}
+
+	switch m.OverrideType.(type) {
+
+	case *UpstreamSpec_PathOverride_FullPath:
+
+		target.OverrideType = &UpstreamSpec_PathOverride_FullPath{
+			FullPath: m.GetFullPath(),
+		}
+
+	case *UpstreamSpec_PathOverride_BasePath:
+
+		target.OverrideType = &UpstreamSpec_PathOverride_BasePath{
+			BasePath: m.GetBasePath(),
+		}
+
+	}
+
+	return target
+}
+
+// Clone function
 func (m *UpstreamSpec_CustomHost) Clone() proto.Message {
 	var target *UpstreamSpec_CustomHost
 	if m == nil {
@@ -453,6 +480,12 @@ func (m *UpstreamSpec_CustomHost) Clone() proto.Message {
 		target.Hostname = h.Clone().(*google_golang_org_protobuf_types_known_wrapperspb.StringValue)
 	} else {
 		target.Hostname = proto.Clone(m.GetHostname()).(*google_golang_org_protobuf_types_known_wrapperspb.StringValue)
+	}
+
+	if h, ok := interface{}(m.GetPathOverride()).(clone.Cloner); ok {
+		target.PathOverride = h.Clone().(*UpstreamSpec_PathOverride)
+	} else {
+		target.PathOverride = proto.Clone(m.GetPathOverride()).(*UpstreamSpec_PathOverride)
 	}
 
 	return target
