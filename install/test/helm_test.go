@@ -6228,7 +6228,7 @@ metadata:
 								a = getFieldFromUnstructured(u, append(prefixPath, "spec", "parallelism")...)
 								Expect(a).To(Equal(int64(PARALLELISM)))
 								a = getFieldFromUnstructured(u, append(prefixPath, "spec", "manualSelector")...)
-								Expect(a).To(Equal(MANUAL_SELECTOR))
+								Expect(a).To(BeTrue())
 								return true
 							}
 							return false
