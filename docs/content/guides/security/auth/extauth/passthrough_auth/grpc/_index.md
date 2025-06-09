@@ -246,11 +246,7 @@ spec:
 
 ## Sharing state with other auth steps
 
-{{% notice note %}}
-The sharing state feature was introduced with **Gloo Gateway Enterprise**, release 1.6.10. If you are using an earlier version, this will not work.
-{{% /notice %}}
-
-A common requirement is to be able to share state between the passthrough service, and other auth steps (either custom plugins, or our built-in authentication) . When writing a custom auth plugin, this is possible, and the steps to achieve it are [outlined here]({{< versioned_link_path fromRoot="/guides/dev/writing_auth_plugins#sharing-state-between-steps" >}}). We support this requirement by leveraging request and response metadata.
+A common requirement is to be able to share state between the passthrough service and other auth steps, such as built-in authentication. Gloo Gateway supports this requirement by leveraging request and response metadata.
 
 We provide some example implementations in the Gloo Gateway repository at `docs/examples/grpc-passthrough-auth/pkg/auth/v3/auth-with-state.go`.
 
