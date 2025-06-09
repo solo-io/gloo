@@ -115,9 +115,9 @@ jobs:
 
         # Determine file pattern based on NEW_VERSION
         if [[ "$NEW_VERSION" == "${{ needs.receiver.outputs.dispatch_tag }}" ]]; then
-          FILE_PATTERN="gloo_oss_*.md"
-        else
           FILE_PATTERN="gloo_patch_*.md"
+        else
+          FILE_PATTERN="gloo_oss_*.md"
         fi
 
         # Run sed replacement on matching files

@@ -7,6 +7,7 @@ import (
 	envoycore "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	envoyhttp "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/http_connection_manager/v3"
 	envoy_extensions_http_header_formatters_preserve_case_v3 "github.com/envoyproxy/go-control-plane/envoy/extensions/http/header_formatters/preserve_case/v3"
+	envoyuuid "github.com/envoyproxy/go-control-plane/envoy/extensions/request_id/uuid/v3"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	errors "github.com/rotisserie/eris"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
@@ -18,7 +19,6 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/utils/upgradeconfig"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	"github.com/solo-io/go-utils/contextutils"
-	"google.golang.org/protobuf/types/known/anypb"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
@@ -204,15 +204,18 @@ func (p *plugin) ProcessHcmNetworkFilter(params plugins.Params, _ *v1.Listener, 
 	}
 
 	if in.GetUuidRequestIdConfig() != nil {
-		// Create a new empty request id extension if none present
-		if out.GetRequestIdExtension() == nil {
-			out.RequestIdExtension = &envoyhttp.RequestIDExtension{}
+		config := &envoyuuid.UuidRequestIdConfig{
+			PackTraceReason:              in.GetUuidRequestIdConfig().GetPackTraceReason(),
+			UseRequestIdForTraceSampling: in.GetUuidRequestIdConfig().GetUseRequestIdForTraceSampling(),
 		}
 
-		var err error
-		// No errors should occur when marshaling
-		if out.GetRequestIdExtension().TypedConfig, err = anypb.New(in.GetUuidRequestIdConfig()); err != nil {
+		typedConfig, err := utils.MessageToAny(config)
+		if err != nil {
 			return err
+		}
+
+		out.RequestIdExtension = &envoyhttp.RequestIDExtension{
+			TypedConfig: typedConfig,
 		}
 	}
 

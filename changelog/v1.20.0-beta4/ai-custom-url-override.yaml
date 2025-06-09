@@ -1,0 +1,6 @@
+changelog:
+  - type: NEW_FEATURE
+    issueLink: https://github.com/solo-io/solo-projects/issues/8305
+    resolvesIssue: false
+    description: >-
+      [AI] proto file change to support path override in custom host
