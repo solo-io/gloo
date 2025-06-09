@@ -4,4 +4,4 @@ changelog:
     resolvesIssue: false
     dependencyOwner: solo-io
     dependencyRepo: envoy-gloo-ee
-    dependencyTag: 1.34.0-patch1
+    dependencyTag: 1.34.1-patch2
