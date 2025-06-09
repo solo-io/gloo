@@ -125,7 +125,7 @@ func (x UpstreamSpec_VertexAI_Publisher) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use UpstreamSpec_VertexAI_Publisher.Descriptor instead.
 func (UpstreamSpec_VertexAI_Publisher) EnumDescriptor() ([]byte, []int) {
-	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_rawDescGZIP(), []int{1, 4, 0}
+	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_rawDescGZIP(), []int{1, 5, 0}
 }
 
 // The type of route to the LLM provider API.
@@ -1503,7 +1503,100 @@ func (*SingleAuthToken_Passthrough) Descriptor() ([]byte, []int) {
 	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_rawDescGZIP(), []int{0, 0}
 }
 
-// Send requests to a custom host and port, such as to proxy the request,
+// Override the path used to send requests to the LLM provider. For example, you might need to go through a proxy
+// and, as such, have a different path than the default for the LLM provider.
+type UpstreamSpec_PathOverride struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Types that are valid to be assigned to OverrideType:
+	//
+	//	*UpstreamSpec_PathOverride_FullPath
+	//	*UpstreamSpec_PathOverride_BasePath
+	OverrideType  isUpstreamSpec_PathOverride_OverrideType `protobuf_oneof:"override_type"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpstreamSpec_PathOverride) Reset() {
+	*x = UpstreamSpec_PathOverride{}
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpstreamSpec_PathOverride) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpstreamSpec_PathOverride) ProtoMessage() {}
+
+func (x *UpstreamSpec_PathOverride) ProtoReflect() protoreflect.Message {
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpstreamSpec_PathOverride.ProtoReflect.Descriptor instead.
+func (*UpstreamSpec_PathOverride) Descriptor() ([]byte, []int) {
+	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_rawDescGZIP(), []int{1, 0}
+}
+
+func (x *UpstreamSpec_PathOverride) GetOverrideType() isUpstreamSpec_PathOverride_OverrideType {
+	if x != nil {
+		return x.OverrideType
+	}
+	return nil
+}
+
+func (x *UpstreamSpec_PathOverride) GetFullPath() string {
+	if x != nil {
+		if x, ok := x.OverrideType.(*UpstreamSpec_PathOverride_FullPath); ok {
+			return x.FullPath
+		}
+	}
+	return ""
+}
+
+func (x *UpstreamSpec_PathOverride) GetBasePath() string {
+	if x != nil {
+		if x, ok := x.OverrideType.(*UpstreamSpec_PathOverride_BasePath); ok {
+			return x.BasePath
+		}
+	}
+	return ""
+}
+
+type isUpstreamSpec_PathOverride_OverrideType interface {
+	isUpstreamSpec_PathOverride_OverrideType()
+}
+
+type UpstreamSpec_PathOverride_FullPath struct {
+	// Override the complete path and query parameters(if any) for the Chat request that is sent to the LLM provider.
+	// Any query parameters in this setting are preserved and sent to the LLM provider. The query parameters in the original request
+	// will be removed when this option is used.
+	// For the OpenAI platform API passthrough feature (such as to endpoints like `/v1/embeddings`), this setting is ignored.
+	// Instead, use the base_path setting.
+	FullPath string `protobuf:"bytes,1,opt,name=full_path,json=fullPath,proto3,oneof"`
+}
+
+type UpstreamSpec_PathOverride_BasePath struct {
+	// Instead of replacing the full path, prepend this base_path to the request path that is sent to the LLM provider.
+	// The OpenAI platform API passthrough feature supports customizing the base path, as such, you might use this setting if your provider
+	// is a proxy to OpenAI or otherwise supports the OpenAI API on a different path.
+	// For example, you can change the expected path of requests to the `/v1/*` APIs to `/openai/v1/*` APIs by setting the base path to `/openai`.
+	BasePath string `protobuf:"bytes,2,opt,name=base_path,json=basePath,proto3,oneof"`
+}
+
+func (*UpstreamSpec_PathOverride_FullPath) isUpstreamSpec_PathOverride_OverrideType() {}
+
+func (*UpstreamSpec_PathOverride_BasePath) isUpstreamSpec_PathOverride_OverrideType() {}
+
+// Send requests to a custom host and port, such as to proxy the request and customize the chat completion path,
 // or to use a different backend that is API-compliant with the upstream version.
 // {{% notice note %}}
 // The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/main/ai/). It is not supported with the Gloo Edge API.
@@ -1516,14 +1609,16 @@ type UpstreamSpec_CustomHost struct {
 	Port uint32 `protobuf:"varint,2,opt,name=port,proto3" json:"port,omitempty"`
 	// Optional: hostname used to set the SNI (if is secure connection) and the host request header.
 	// If hostname is not set, host will be used instead
-	Hostname      *wrapperspb.StringValue `protobuf:"bytes,3,opt,name=hostname,proto3" json:"hostname,omitempty"`
+	Hostname *wrapperspb.StringValue `protobuf:"bytes,3,opt,name=hostname,proto3" json:"hostname,omitempty"`
+	// Optional: override of the request path and query parameters to the custom host
+	PathOverride  *UpstreamSpec_PathOverride `protobuf:"bytes,4,opt,name=path_override,json=pathOverride,proto3" json:"path_override,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *UpstreamSpec_CustomHost) Reset() {
 	*x = UpstreamSpec_CustomHost{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[11]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1535,7 +1630,7 @@ func (x *UpstreamSpec_CustomHost) String() string {
 func (*UpstreamSpec_CustomHost) ProtoMessage() {}
 
 func (x *UpstreamSpec_CustomHost) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[11]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1548,7 +1643,7 @@ func (x *UpstreamSpec_CustomHost) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpstreamSpec_CustomHost.ProtoReflect.Descriptor instead.
 func (*UpstreamSpec_CustomHost) Descriptor() ([]byte, []int) {
-	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_rawDescGZIP(), []int{1, 0}
+	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_rawDescGZIP(), []int{1, 1}
 }
 
 func (x *UpstreamSpec_CustomHost) GetHost() string {
@@ -1568,6 +1663,13 @@ func (x *UpstreamSpec_CustomHost) GetPort() uint32 {
 func (x *UpstreamSpec_CustomHost) GetHostname() *wrapperspb.StringValue {
 	if x != nil {
 		return x.Hostname
+	}
+	return nil
+}
+
+func (x *UpstreamSpec_CustomHost) GetPathOverride() *UpstreamSpec_PathOverride {
+	if x != nil {
+		return x.PathOverride
 	}
 	return nil
 }
@@ -1595,7 +1697,7 @@ type UpstreamSpec_OpenAI struct {
 
 func (x *UpstreamSpec_OpenAI) Reset() {
 	*x = UpstreamSpec_OpenAI{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[12]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1607,7 +1709,7 @@ func (x *UpstreamSpec_OpenAI) String() string {
 func (*UpstreamSpec_OpenAI) ProtoMessage() {}
 
 func (x *UpstreamSpec_OpenAI) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[12]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1620,7 +1722,7 @@ func (x *UpstreamSpec_OpenAI) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpstreamSpec_OpenAI.ProtoReflect.Descriptor instead.
 func (*UpstreamSpec_OpenAI) Descriptor() ([]byte, []int) {
-	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_rawDescGZIP(), []int{1, 1}
+	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_rawDescGZIP(), []int{1, 2}
 }
 
 func (x *UpstreamSpec_OpenAI) GetAuthToken() *SingleAuthToken {
@@ -1674,7 +1776,7 @@ type UpstreamSpec_AzureOpenAI struct {
 
 func (x *UpstreamSpec_AzureOpenAI) Reset() {
 	*x = UpstreamSpec_AzureOpenAI{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[13]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1686,7 +1788,7 @@ func (x *UpstreamSpec_AzureOpenAI) String() string {
 func (*UpstreamSpec_AzureOpenAI) ProtoMessage() {}
 
 func (x *UpstreamSpec_AzureOpenAI) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[13]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1699,7 +1801,7 @@ func (x *UpstreamSpec_AzureOpenAI) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpstreamSpec_AzureOpenAI.ProtoReflect.Descriptor instead.
 func (*UpstreamSpec_AzureOpenAI) Descriptor() ([]byte, []int) {
-	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_rawDescGZIP(), []int{1, 2}
+	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_rawDescGZIP(), []int{1, 3}
 }
 
 func (x *UpstreamSpec_AzureOpenAI) GetAuthTokenSource() isUpstreamSpec_AzureOpenAI_AuthTokenSource {
@@ -1778,7 +1880,7 @@ type UpstreamSpec_Gemini struct {
 
 func (x *UpstreamSpec_Gemini) Reset() {
 	*x = UpstreamSpec_Gemini{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[14]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1790,7 +1892,7 @@ func (x *UpstreamSpec_Gemini) String() string {
 func (*UpstreamSpec_Gemini) ProtoMessage() {}
 
 func (x *UpstreamSpec_Gemini) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[14]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1803,7 +1905,7 @@ func (x *UpstreamSpec_Gemini) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpstreamSpec_Gemini.ProtoReflect.Descriptor instead.
 func (*UpstreamSpec_Gemini) Descriptor() ([]byte, []int) {
-	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_rawDescGZIP(), []int{1, 3}
+	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_rawDescGZIP(), []int{1, 4}
 }
 
 func (x *UpstreamSpec_Gemini) GetAuthTokenSource() isUpstreamSpec_Gemini_AuthTokenSource {
@@ -1885,7 +1987,7 @@ type UpstreamSpec_VertexAI struct {
 
 func (x *UpstreamSpec_VertexAI) Reset() {
 	*x = UpstreamSpec_VertexAI{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[15]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1897,7 +1999,7 @@ func (x *UpstreamSpec_VertexAI) String() string {
 func (*UpstreamSpec_VertexAI) ProtoMessage() {}
 
 func (x *UpstreamSpec_VertexAI) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[15]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1910,7 +2012,7 @@ func (x *UpstreamSpec_VertexAI) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpstreamSpec_VertexAI.ProtoReflect.Descriptor instead.
 func (*UpstreamSpec_VertexAI) Descriptor() ([]byte, []int) {
-	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_rawDescGZIP(), []int{1, 4}
+	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_rawDescGZIP(), []int{1, 5}
 }
 
 func (x *UpstreamSpec_VertexAI) GetAuthTokenSource() isUpstreamSpec_VertexAI_AuthTokenSource {
@@ -2013,7 +2115,7 @@ type UpstreamSpec_Mistral struct {
 
 func (x *UpstreamSpec_Mistral) Reset() {
 	*x = UpstreamSpec_Mistral{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[16]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2025,7 +2127,7 @@ func (x *UpstreamSpec_Mistral) String() string {
 func (*UpstreamSpec_Mistral) ProtoMessage() {}
 
 func (x *UpstreamSpec_Mistral) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[16]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2038,7 +2140,7 @@ func (x *UpstreamSpec_Mistral) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpstreamSpec_Mistral.ProtoReflect.Descriptor instead.
 func (*UpstreamSpec_Mistral) Descriptor() ([]byte, []int) {
-	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_rawDescGZIP(), []int{1, 5}
+	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_rawDescGZIP(), []int{1, 6}
 }
 
 func (x *UpstreamSpec_Mistral) GetAuthToken() *SingleAuthToken {
@@ -2088,7 +2190,7 @@ type UpstreamSpec_Anthropic struct {
 
 func (x *UpstreamSpec_Anthropic) Reset() {
 	*x = UpstreamSpec_Anthropic{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[17]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2100,7 +2202,7 @@ func (x *UpstreamSpec_Anthropic) String() string {
 func (*UpstreamSpec_Anthropic) ProtoMessage() {}
 
 func (x *UpstreamSpec_Anthropic) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[17]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2113,7 +2215,7 @@ func (x *UpstreamSpec_Anthropic) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpstreamSpec_Anthropic.ProtoReflect.Descriptor instead.
 func (*UpstreamSpec_Anthropic) Descriptor() ([]byte, []int) {
-	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_rawDescGZIP(), []int{1, 6}
+	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_rawDescGZIP(), []int{1, 7}
 }
 
 func (x *UpstreamSpec_Anthropic) GetAuthToken() *SingleAuthToken {
@@ -2174,7 +2276,7 @@ type UpstreamSpec_Bedrock struct {
 
 func (x *UpstreamSpec_Bedrock) Reset() {
 	*x = UpstreamSpec_Bedrock{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[18]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2186,7 +2288,7 @@ func (x *UpstreamSpec_Bedrock) String() string {
 func (*UpstreamSpec_Bedrock) ProtoMessage() {}
 
 func (x *UpstreamSpec_Bedrock) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[18]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2199,7 +2301,7 @@ func (x *UpstreamSpec_Bedrock) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpstreamSpec_Bedrock.ProtoReflect.Descriptor instead.
 func (*UpstreamSpec_Bedrock) Descriptor() ([]byte, []int) {
-	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_rawDescGZIP(), []int{1, 7}
+	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_rawDescGZIP(), []int{1, 8}
 }
 
 func (x *UpstreamSpec_Bedrock) GetCredentialProvider() *UpstreamSpec_AwsCredentialProvider {
@@ -2247,7 +2349,7 @@ type UpstreamSpec_AwsCredentialProvider struct {
 
 func (x *UpstreamSpec_AwsCredentialProvider) Reset() {
 	*x = UpstreamSpec_AwsCredentialProvider{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[19]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2259,7 +2361,7 @@ func (x *UpstreamSpec_AwsCredentialProvider) String() string {
 func (*UpstreamSpec_AwsCredentialProvider) ProtoMessage() {}
 
 func (x *UpstreamSpec_AwsCredentialProvider) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[19]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2272,7 +2374,7 @@ func (x *UpstreamSpec_AwsCredentialProvider) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use UpstreamSpec_AwsCredentialProvider.ProtoReflect.Descriptor instead.
 func (*UpstreamSpec_AwsCredentialProvider) Descriptor() ([]byte, []int) {
-	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_rawDescGZIP(), []int{1, 8}
+	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_rawDescGZIP(), []int{1, 9}
 }
 
 func (x *UpstreamSpec_AwsCredentialProvider) GetAuthTokenSource() isUpstreamSpec_AwsCredentialProvider_AuthTokenSource {
@@ -2340,7 +2442,7 @@ type UpstreamSpec_AWSInline struct {
 
 func (x *UpstreamSpec_AWSInline) Reset() {
 	*x = UpstreamSpec_AWSInline{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[20]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2352,7 +2454,7 @@ func (x *UpstreamSpec_AWSInline) String() string {
 func (*UpstreamSpec_AWSInline) ProtoMessage() {}
 
 func (x *UpstreamSpec_AWSInline) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[20]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2365,7 +2467,7 @@ func (x *UpstreamSpec_AWSInline) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpstreamSpec_AWSInline.ProtoReflect.Descriptor instead.
 func (*UpstreamSpec_AWSInline) Descriptor() ([]byte, []int) {
-	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_rawDescGZIP(), []int{1, 9}
+	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_rawDescGZIP(), []int{1, 10}
 }
 
 func (x *UpstreamSpec_AWSInline) GetAccessKeyId() string {
@@ -2435,7 +2537,7 @@ type UpstreamSpec_MultiPool struct {
 
 func (x *UpstreamSpec_MultiPool) Reset() {
 	*x = UpstreamSpec_MultiPool{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[21]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2447,7 +2549,7 @@ func (x *UpstreamSpec_MultiPool) String() string {
 func (*UpstreamSpec_MultiPool) ProtoMessage() {}
 
 func (x *UpstreamSpec_MultiPool) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[21]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2460,7 +2562,7 @@ func (x *UpstreamSpec_MultiPool) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpstreamSpec_MultiPool.ProtoReflect.Descriptor instead.
 func (*UpstreamSpec_MultiPool) Descriptor() ([]byte, []int) {
-	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_rawDescGZIP(), []int{1, 10}
+	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_rawDescGZIP(), []int{1, 11}
 }
 
 func (x *UpstreamSpec_MultiPool) GetPriorities() []*UpstreamSpec_MultiPool_Priority {
@@ -2492,7 +2594,7 @@ type UpstreamSpec_MultiPool_Backend struct {
 
 func (x *UpstreamSpec_MultiPool_Backend) Reset() {
 	*x = UpstreamSpec_MultiPool_Backend{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[22]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2504,7 +2606,7 @@ func (x *UpstreamSpec_MultiPool_Backend) String() string {
 func (*UpstreamSpec_MultiPool_Backend) ProtoMessage() {}
 
 func (x *UpstreamSpec_MultiPool_Backend) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[22]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2517,7 +2619,7 @@ func (x *UpstreamSpec_MultiPool_Backend) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpstreamSpec_MultiPool_Backend.ProtoReflect.Descriptor instead.
 func (*UpstreamSpec_MultiPool_Backend) Descriptor() ([]byte, []int) {
-	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_rawDescGZIP(), []int{1, 10, 0}
+	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_rawDescGZIP(), []int{1, 11, 0}
 }
 
 func (x *UpstreamSpec_MultiPool_Backend) GetLlm() isUpstreamSpec_MultiPool_Backend_Llm {
@@ -2657,7 +2759,7 @@ type UpstreamSpec_MultiPool_Priority struct {
 
 func (x *UpstreamSpec_MultiPool_Priority) Reset() {
 	*x = UpstreamSpec_MultiPool_Priority{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[23]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2669,7 +2771,7 @@ func (x *UpstreamSpec_MultiPool_Priority) String() string {
 func (*UpstreamSpec_MultiPool_Priority) ProtoMessage() {}
 
 func (x *UpstreamSpec_MultiPool_Priority) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[23]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2682,7 +2784,7 @@ func (x *UpstreamSpec_MultiPool_Priority) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpstreamSpec_MultiPool_Priority.ProtoReflect.Descriptor instead.
 func (*UpstreamSpec_MultiPool_Priority) Descriptor() ([]byte, []int) {
-	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_rawDescGZIP(), []int{1, 10, 1}
+	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_rawDescGZIP(), []int{1, 11, 1}
 }
 
 func (x *UpstreamSpec_MultiPool_Priority) GetPool() []*UpstreamSpec_MultiPool_Backend {
@@ -2708,7 +2810,7 @@ type Embedding_OpenAI struct {
 
 func (x *Embedding_OpenAI) Reset() {
 	*x = Embedding_OpenAI{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[24]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2720,7 +2822,7 @@ func (x *Embedding_OpenAI) String() string {
 func (*Embedding_OpenAI) ProtoMessage() {}
 
 func (x *Embedding_OpenAI) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[24]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2790,7 +2892,7 @@ type Embedding_AzureOpenAI struct {
 
 func (x *Embedding_AzureOpenAI) Reset() {
 	*x = Embedding_AzureOpenAI{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[25]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2802,7 +2904,7 @@ func (x *Embedding_AzureOpenAI) String() string {
 func (*Embedding_AzureOpenAI) ProtoMessage() {}
 
 func (x *Embedding_AzureOpenAI) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[25]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2889,7 +2991,7 @@ type SemanticCache_Redis struct {
 
 func (x *SemanticCache_Redis) Reset() {
 	*x = SemanticCache_Redis{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[26]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2901,7 +3003,7 @@ func (x *SemanticCache_Redis) String() string {
 func (*SemanticCache_Redis) ProtoMessage() {}
 
 func (x *SemanticCache_Redis) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[26]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2954,7 +3056,7 @@ type SemanticCache_Weaviate struct {
 
 func (x *SemanticCache_Weaviate) Reset() {
 	*x = SemanticCache_Weaviate{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[27]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2966,7 +3068,7 @@ func (x *SemanticCache_Weaviate) String() string {
 func (*SemanticCache_Weaviate) ProtoMessage() {}
 
 func (x *SemanticCache_Weaviate) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[27]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3027,7 +3129,7 @@ type SemanticCache_DataStore struct {
 
 func (x *SemanticCache_DataStore) Reset() {
 	*x = SemanticCache_DataStore{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[28]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3039,7 +3141,7 @@ func (x *SemanticCache_DataStore) String() string {
 func (*SemanticCache_DataStore) ProtoMessage() {}
 
 func (x *SemanticCache_DataStore) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[28]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3113,7 +3215,7 @@ type RAG_DataStore struct {
 
 func (x *RAG_DataStore) Reset() {
 	*x = RAG_DataStore{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[29]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3125,7 +3227,7 @@ func (x *RAG_DataStore) String() string {
 func (*RAG_DataStore) ProtoMessage() {}
 
 func (x *RAG_DataStore) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[29]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3185,7 +3287,7 @@ type AIPromptEnrichment_Message struct {
 
 func (x *AIPromptEnrichment_Message) Reset() {
 	*x = AIPromptEnrichment_Message{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[30]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3197,7 +3299,7 @@ func (x *AIPromptEnrichment_Message) String() string {
 func (*AIPromptEnrichment_Message) ProtoMessage() {}
 
 func (x *AIPromptEnrichment_Message) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[30]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3248,7 +3350,7 @@ type AIPromptGuard_Regex struct {
 
 func (x *AIPromptGuard_Regex) Reset() {
 	*x = AIPromptGuard_Regex{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[31]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3260,7 +3362,7 @@ func (x *AIPromptGuard_Regex) String() string {
 func (*AIPromptGuard_Regex) ProtoMessage() {}
 
 func (x *AIPromptGuard_Regex) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[31]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3315,7 +3417,7 @@ type AIPromptGuard_Webhook struct {
 
 func (x *AIPromptGuard_Webhook) Reset() {
 	*x = AIPromptGuard_Webhook{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[32]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3327,7 +3429,7 @@ func (x *AIPromptGuard_Webhook) String() string {
 func (*AIPromptGuard_Webhook) ProtoMessage() {}
 
 func (x *AIPromptGuard_Webhook) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[32]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3390,7 +3492,7 @@ type AIPromptGuard_Moderation struct {
 
 func (x *AIPromptGuard_Moderation) Reset() {
 	*x = AIPromptGuard_Moderation{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[33]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3402,7 +3504,7 @@ func (x *AIPromptGuard_Moderation) String() string {
 func (*AIPromptGuard_Moderation) ProtoMessage() {}
 
 func (x *AIPromptGuard_Moderation) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[33]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3467,7 +3569,7 @@ type AIPromptGuard_Request struct {
 
 func (x *AIPromptGuard_Request) Reset() {
 	*x = AIPromptGuard_Request{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[34]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3479,7 +3581,7 @@ func (x *AIPromptGuard_Request) String() string {
 func (*AIPromptGuard_Request) ProtoMessage() {}
 
 func (x *AIPromptGuard_Request) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[34]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3539,7 +3641,7 @@ type AIPromptGuard_Response struct {
 
 func (x *AIPromptGuard_Response) Reset() {
 	*x = AIPromptGuard_Response{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[35]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3551,7 +3653,7 @@ func (x *AIPromptGuard_Response) String() string {
 func (*AIPromptGuard_Response) ProtoMessage() {}
 
 func (x *AIPromptGuard_Response) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[35]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3597,7 +3699,7 @@ type AIPromptGuard_Regex_RegexMatch struct {
 
 func (x *AIPromptGuard_Regex_RegexMatch) Reset() {
 	*x = AIPromptGuard_Regex_RegexMatch{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[36]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3609,7 +3711,7 @@ func (x *AIPromptGuard_Regex_RegexMatch) String() string {
 func (*AIPromptGuard_Regex_RegexMatch) ProtoMessage() {}
 
 func (x *AIPromptGuard_Regex_RegexMatch) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[36]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3655,7 +3757,7 @@ type AIPromptGuard_Webhook_HeaderMatch struct {
 
 func (x *AIPromptGuard_Webhook_HeaderMatch) Reset() {
 	*x = AIPromptGuard_Webhook_HeaderMatch{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[37]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3667,7 +3769,7 @@ func (x *AIPromptGuard_Webhook_HeaderMatch) String() string {
 func (*AIPromptGuard_Webhook_HeaderMatch) ProtoMessage() {}
 
 func (x *AIPromptGuard_Webhook_HeaderMatch) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[37]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3719,7 +3821,7 @@ type AIPromptGuard_Moderation_OpenAI struct {
 
 func (x *AIPromptGuard_Moderation_OpenAI) Reset() {
 	*x = AIPromptGuard_Moderation_OpenAI{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[38]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[39]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3731,7 +3833,7 @@ func (x *AIPromptGuard_Moderation_OpenAI) String() string {
 func (*AIPromptGuard_Moderation_OpenAI) ProtoMessage() {}
 
 func (x *AIPromptGuard_Moderation_OpenAI) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[38]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[39]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3801,7 +3903,7 @@ type AIPromptGuard_Request_CustomResponse struct {
 
 func (x *AIPromptGuard_Request_CustomResponse) Reset() {
 	*x = AIPromptGuard_Request_CustomResponse{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[39]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[40]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3813,7 +3915,7 @@ func (x *AIPromptGuard_Request_CustomResponse) String() string {
 func (*AIPromptGuard_Request_CustomResponse) ProtoMessage() {}
 
 func (x *AIPromptGuard_Request_CustomResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[39]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[40]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3854,7 +3956,7 @@ const file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai
 	"secret_ref\x18\x02 \x01(\v2\x19.core.solo.io.ResourceRefH\x00R\tsecretRef\x12X\n" +
 	"\vpassthrough\x18\x03 \x01(\v24.ai.options.gloo.solo.io.SingleAuthToken.PassthroughH\x00R\vpassthrough\x1a\r\n" +
 	"\vPassthroughB\x13\n" +
-	"\x11auth_token_source\"\x97\x1b\n" +
+	"\x11auth_token_source\"\xd0\x1c\n" +
 	"\fUpstreamSpec\x12F\n" +
 	"\x06openai\x18\x01 \x01(\v2,.ai.options.gloo.solo.io.UpstreamSpec.OpenAIH\x00R\x06openai\x12I\n" +
 	"\amistral\x18\x02 \x01(\v2-.ai.options.gloo.solo.io.UpstreamSpec.MistralH\x00R\amistral\x12O\n" +
@@ -3863,12 +3965,17 @@ const file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai
 	"\x05multi\x18\x05 \x01(\v2/.ai.options.gloo.solo.io.UpstreamSpec.MultiPoolH\x00R\x05multi\x12F\n" +
 	"\x06gemini\x18\x06 \x01(\v2,.ai.options.gloo.solo.io.UpstreamSpec.GeminiH\x00R\x06gemini\x12M\n" +
 	"\tvertex_ai\x18\a \x01(\v2..ai.options.gloo.solo.io.UpstreamSpec.VertexAIH\x00R\bvertexAi\x12I\n" +
-	"\abedrock\x18\b \x01(\v2-.ai.options.gloo.solo.io.UpstreamSpec.BedrockH\x00R\abedrock\x1an\n" +
+	"\abedrock\x18\b \x01(\v2-.ai.options.gloo.solo.io.UpstreamSpec.BedrockH\x00R\abedrock\x1a]\n" +
+	"\fPathOverride\x12\x1d\n" +
+	"\tfull_path\x18\x01 \x01(\tH\x00R\bfullPath\x12\x1d\n" +
+	"\tbase_path\x18\x02 \x01(\tH\x00R\bbasePathB\x0f\n" +
+	"\roverride_type\x1a\xc7\x01\n" +
 	"\n" +
 	"CustomHost\x12\x12\n" +
 	"\x04host\x18\x01 \x01(\tR\x04host\x12\x12\n" +
 	"\x04port\x18\x02 \x01(\rR\x04port\x128\n" +
-	"\bhostname\x18\x03 \x01(\v2\x1c.google.protobuf.StringValueR\bhostname\x1a\xba\x01\n" +
+	"\bhostname\x18\x03 \x01(\v2\x1c.google.protobuf.StringValueR\bhostname\x12W\n" +
+	"\rpath_override\x18\x04 \x01(\v22.ai.options.gloo.solo.io.UpstreamSpec.PathOverrideR\fpathOverride\x1a\xba\x01\n" +
 	"\x06OpenAI\x12G\n" +
 	"\n" +
 	"auth_token\x18\x01 \x01(\v2(.ai.options.gloo.solo.io.SingleAuthTokenR\tauthToken\x12Q\n" +
@@ -4102,7 +4209,7 @@ func file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_
 }
 
 var file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_enumTypes = make([]protoimpl.EnumInfo, 7)
-var file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes = make([]protoimpl.MessageInfo, 40)
+var file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes = make([]protoimpl.MessageInfo, 41)
 var file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_goTypes = []any{
 	(ApiJsonSchema)(0),                               // 0: ai.options.gloo.solo.io.ApiJsonSchema
 	(UpstreamSpec_VertexAI_Publisher)(0),             // 1: ai.options.gloo.solo.io.UpstreamSpec.VertexAI.Publisher
@@ -4122,116 +4229,118 @@ var file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_p
 	(*AIPromptEnrichment)(nil),                       // 15: ai.options.gloo.solo.io.AIPromptEnrichment
 	(*AIPromptGuard)(nil),                            // 16: ai.options.gloo.solo.io.AIPromptGuard
 	(*SingleAuthToken_Passthrough)(nil),              // 17: ai.options.gloo.solo.io.SingleAuthToken.Passthrough
-	(*UpstreamSpec_CustomHost)(nil),                  // 18: ai.options.gloo.solo.io.UpstreamSpec.CustomHost
-	(*UpstreamSpec_OpenAI)(nil),                      // 19: ai.options.gloo.solo.io.UpstreamSpec.OpenAI
-	(*UpstreamSpec_AzureOpenAI)(nil),                 // 20: ai.options.gloo.solo.io.UpstreamSpec.AzureOpenAI
-	(*UpstreamSpec_Gemini)(nil),                      // 21: ai.options.gloo.solo.io.UpstreamSpec.Gemini
-	(*UpstreamSpec_VertexAI)(nil),                    // 22: ai.options.gloo.solo.io.UpstreamSpec.VertexAI
-	(*UpstreamSpec_Mistral)(nil),                     // 23: ai.options.gloo.solo.io.UpstreamSpec.Mistral
-	(*UpstreamSpec_Anthropic)(nil),                   // 24: ai.options.gloo.solo.io.UpstreamSpec.Anthropic
-	(*UpstreamSpec_Bedrock)(nil),                     // 25: ai.options.gloo.solo.io.UpstreamSpec.Bedrock
-	(*UpstreamSpec_AwsCredentialProvider)(nil),       // 26: ai.options.gloo.solo.io.UpstreamSpec.AwsCredentialProvider
-	(*UpstreamSpec_AWSInline)(nil),                   // 27: ai.options.gloo.solo.io.UpstreamSpec.AWSInline
-	(*UpstreamSpec_MultiPool)(nil),                   // 28: ai.options.gloo.solo.io.UpstreamSpec.MultiPool
-	(*UpstreamSpec_MultiPool_Backend)(nil),           // 29: ai.options.gloo.solo.io.UpstreamSpec.MultiPool.Backend
-	(*UpstreamSpec_MultiPool_Priority)(nil),          // 30: ai.options.gloo.solo.io.UpstreamSpec.MultiPool.Priority
-	(*Embedding_OpenAI)(nil),                         // 31: ai.options.gloo.solo.io.Embedding.OpenAI
-	(*Embedding_AzureOpenAI)(nil),                    // 32: ai.options.gloo.solo.io.Embedding.AzureOpenAI
-	(*SemanticCache_Redis)(nil),                      // 33: ai.options.gloo.solo.io.SemanticCache.Redis
-	(*SemanticCache_Weaviate)(nil),                   // 34: ai.options.gloo.solo.io.SemanticCache.Weaviate
-	(*SemanticCache_DataStore)(nil),                  // 35: ai.options.gloo.solo.io.SemanticCache.DataStore
-	(*RAG_DataStore)(nil),                            // 36: ai.options.gloo.solo.io.RAG.DataStore
-	(*AIPromptEnrichment_Message)(nil),               // 37: ai.options.gloo.solo.io.AIPromptEnrichment.Message
-	(*AIPromptGuard_Regex)(nil),                      // 38: ai.options.gloo.solo.io.AIPromptGuard.Regex
-	(*AIPromptGuard_Webhook)(nil),                    // 39: ai.options.gloo.solo.io.AIPromptGuard.Webhook
-	(*AIPromptGuard_Moderation)(nil),                 // 40: ai.options.gloo.solo.io.AIPromptGuard.Moderation
-	(*AIPromptGuard_Request)(nil),                    // 41: ai.options.gloo.solo.io.AIPromptGuard.Request
-	(*AIPromptGuard_Response)(nil),                   // 42: ai.options.gloo.solo.io.AIPromptGuard.Response
-	(*AIPromptGuard_Regex_RegexMatch)(nil),           // 43: ai.options.gloo.solo.io.AIPromptGuard.Regex.RegexMatch
-	(*AIPromptGuard_Webhook_HeaderMatch)(nil),        // 44: ai.options.gloo.solo.io.AIPromptGuard.Webhook.HeaderMatch
-	(*AIPromptGuard_Moderation_OpenAI)(nil),          // 45: ai.options.gloo.solo.io.AIPromptGuard.Moderation.OpenAI
-	(*AIPromptGuard_Request_CustomResponse)(nil),     // 46: ai.options.gloo.solo.io.AIPromptGuard.Request.CustomResponse
-	(*core.ResourceRef)(nil),                         // 47: core.solo.io.ResourceRef
-	(*structpb.Value)(nil),                           // 48: google.protobuf.Value
-	(*wrapperspb.StringValue)(nil),                   // 49: google.protobuf.StringValue
+	(*UpstreamSpec_PathOverride)(nil),                // 18: ai.options.gloo.solo.io.UpstreamSpec.PathOverride
+	(*UpstreamSpec_CustomHost)(nil),                  // 19: ai.options.gloo.solo.io.UpstreamSpec.CustomHost
+	(*UpstreamSpec_OpenAI)(nil),                      // 20: ai.options.gloo.solo.io.UpstreamSpec.OpenAI
+	(*UpstreamSpec_AzureOpenAI)(nil),                 // 21: ai.options.gloo.solo.io.UpstreamSpec.AzureOpenAI
+	(*UpstreamSpec_Gemini)(nil),                      // 22: ai.options.gloo.solo.io.UpstreamSpec.Gemini
+	(*UpstreamSpec_VertexAI)(nil),                    // 23: ai.options.gloo.solo.io.UpstreamSpec.VertexAI
+	(*UpstreamSpec_Mistral)(nil),                     // 24: ai.options.gloo.solo.io.UpstreamSpec.Mistral
+	(*UpstreamSpec_Anthropic)(nil),                   // 25: ai.options.gloo.solo.io.UpstreamSpec.Anthropic
+	(*UpstreamSpec_Bedrock)(nil),                     // 26: ai.options.gloo.solo.io.UpstreamSpec.Bedrock
+	(*UpstreamSpec_AwsCredentialProvider)(nil),       // 27: ai.options.gloo.solo.io.UpstreamSpec.AwsCredentialProvider
+	(*UpstreamSpec_AWSInline)(nil),                   // 28: ai.options.gloo.solo.io.UpstreamSpec.AWSInline
+	(*UpstreamSpec_MultiPool)(nil),                   // 29: ai.options.gloo.solo.io.UpstreamSpec.MultiPool
+	(*UpstreamSpec_MultiPool_Backend)(nil),           // 30: ai.options.gloo.solo.io.UpstreamSpec.MultiPool.Backend
+	(*UpstreamSpec_MultiPool_Priority)(nil),          // 31: ai.options.gloo.solo.io.UpstreamSpec.MultiPool.Priority
+	(*Embedding_OpenAI)(nil),                         // 32: ai.options.gloo.solo.io.Embedding.OpenAI
+	(*Embedding_AzureOpenAI)(nil),                    // 33: ai.options.gloo.solo.io.Embedding.AzureOpenAI
+	(*SemanticCache_Redis)(nil),                      // 34: ai.options.gloo.solo.io.SemanticCache.Redis
+	(*SemanticCache_Weaviate)(nil),                   // 35: ai.options.gloo.solo.io.SemanticCache.Weaviate
+	(*SemanticCache_DataStore)(nil),                  // 36: ai.options.gloo.solo.io.SemanticCache.DataStore
+	(*RAG_DataStore)(nil),                            // 37: ai.options.gloo.solo.io.RAG.DataStore
+	(*AIPromptEnrichment_Message)(nil),               // 38: ai.options.gloo.solo.io.AIPromptEnrichment.Message
+	(*AIPromptGuard_Regex)(nil),                      // 39: ai.options.gloo.solo.io.AIPromptGuard.Regex
+	(*AIPromptGuard_Webhook)(nil),                    // 40: ai.options.gloo.solo.io.AIPromptGuard.Webhook
+	(*AIPromptGuard_Moderation)(nil),                 // 41: ai.options.gloo.solo.io.AIPromptGuard.Moderation
+	(*AIPromptGuard_Request)(nil),                    // 42: ai.options.gloo.solo.io.AIPromptGuard.Request
+	(*AIPromptGuard_Response)(nil),                   // 43: ai.options.gloo.solo.io.AIPromptGuard.Response
+	(*AIPromptGuard_Regex_RegexMatch)(nil),           // 44: ai.options.gloo.solo.io.AIPromptGuard.Regex.RegexMatch
+	(*AIPromptGuard_Webhook_HeaderMatch)(nil),        // 45: ai.options.gloo.solo.io.AIPromptGuard.Webhook.HeaderMatch
+	(*AIPromptGuard_Moderation_OpenAI)(nil),          // 46: ai.options.gloo.solo.io.AIPromptGuard.Moderation.OpenAI
+	(*AIPromptGuard_Request_CustomResponse)(nil),     // 47: ai.options.gloo.solo.io.AIPromptGuard.Request.CustomResponse
+	(*core.ResourceRef)(nil),                         // 48: core.solo.io.ResourceRef
+	(*structpb.Value)(nil),                           // 49: google.protobuf.Value
+	(*wrapperspb.StringValue)(nil),                   // 50: google.protobuf.StringValue
 }
 var file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_depIdxs = []int32{
-	47, // 0: ai.options.gloo.solo.io.SingleAuthToken.secret_ref:type_name -> core.solo.io.ResourceRef
+	48, // 0: ai.options.gloo.solo.io.SingleAuthToken.secret_ref:type_name -> core.solo.io.ResourceRef
 	17, // 1: ai.options.gloo.solo.io.SingleAuthToken.passthrough:type_name -> ai.options.gloo.solo.io.SingleAuthToken.Passthrough
-	19, // 2: ai.options.gloo.solo.io.UpstreamSpec.openai:type_name -> ai.options.gloo.solo.io.UpstreamSpec.OpenAI
-	23, // 3: ai.options.gloo.solo.io.UpstreamSpec.mistral:type_name -> ai.options.gloo.solo.io.UpstreamSpec.Mistral
-	24, // 4: ai.options.gloo.solo.io.UpstreamSpec.anthropic:type_name -> ai.options.gloo.solo.io.UpstreamSpec.Anthropic
-	20, // 5: ai.options.gloo.solo.io.UpstreamSpec.azure_openai:type_name -> ai.options.gloo.solo.io.UpstreamSpec.AzureOpenAI
-	28, // 6: ai.options.gloo.solo.io.UpstreamSpec.multi:type_name -> ai.options.gloo.solo.io.UpstreamSpec.MultiPool
-	21, // 7: ai.options.gloo.solo.io.UpstreamSpec.gemini:type_name -> ai.options.gloo.solo.io.UpstreamSpec.Gemini
-	22, // 8: ai.options.gloo.solo.io.UpstreamSpec.vertex_ai:type_name -> ai.options.gloo.solo.io.UpstreamSpec.VertexAI
-	25, // 9: ai.options.gloo.solo.io.UpstreamSpec.bedrock:type_name -> ai.options.gloo.solo.io.UpstreamSpec.Bedrock
+	20, // 2: ai.options.gloo.solo.io.UpstreamSpec.openai:type_name -> ai.options.gloo.solo.io.UpstreamSpec.OpenAI
+	24, // 3: ai.options.gloo.solo.io.UpstreamSpec.mistral:type_name -> ai.options.gloo.solo.io.UpstreamSpec.Mistral
+	25, // 4: ai.options.gloo.solo.io.UpstreamSpec.anthropic:type_name -> ai.options.gloo.solo.io.UpstreamSpec.Anthropic
+	21, // 5: ai.options.gloo.solo.io.UpstreamSpec.azure_openai:type_name -> ai.options.gloo.solo.io.UpstreamSpec.AzureOpenAI
+	29, // 6: ai.options.gloo.solo.io.UpstreamSpec.multi:type_name -> ai.options.gloo.solo.io.UpstreamSpec.MultiPool
+	22, // 7: ai.options.gloo.solo.io.UpstreamSpec.gemini:type_name -> ai.options.gloo.solo.io.UpstreamSpec.Gemini
+	23, // 8: ai.options.gloo.solo.io.UpstreamSpec.vertex_ai:type_name -> ai.options.gloo.solo.io.UpstreamSpec.VertexAI
+	26, // 9: ai.options.gloo.solo.io.UpstreamSpec.bedrock:type_name -> ai.options.gloo.solo.io.UpstreamSpec.Bedrock
 	15, // 10: ai.options.gloo.solo.io.RouteSettings.prompt_enrichment:type_name -> ai.options.gloo.solo.io.AIPromptEnrichment
 	16, // 11: ai.options.gloo.solo.io.RouteSettings.prompt_guard:type_name -> ai.options.gloo.solo.io.AIPromptGuard
 	14, // 12: ai.options.gloo.solo.io.RouteSettings.rag:type_name -> ai.options.gloo.solo.io.RAG
 	13, // 13: ai.options.gloo.solo.io.RouteSettings.semantic_cache:type_name -> ai.options.gloo.solo.io.SemanticCache
 	10, // 14: ai.options.gloo.solo.io.RouteSettings.defaults:type_name -> ai.options.gloo.solo.io.FieldDefault
 	2,  // 15: ai.options.gloo.solo.io.RouteSettings.route_type:type_name -> ai.options.gloo.solo.io.RouteSettings.RouteType
-	48, // 16: ai.options.gloo.solo.io.FieldDefault.value:type_name -> google.protobuf.Value
-	31, // 17: ai.options.gloo.solo.io.Embedding.openai:type_name -> ai.options.gloo.solo.io.Embedding.OpenAI
-	32, // 18: ai.options.gloo.solo.io.Embedding.azure_openai:type_name -> ai.options.gloo.solo.io.Embedding.AzureOpenAI
-	35, // 19: ai.options.gloo.solo.io.SemanticCache.datastore:type_name -> ai.options.gloo.solo.io.SemanticCache.DataStore
+	49, // 16: ai.options.gloo.solo.io.FieldDefault.value:type_name -> google.protobuf.Value
+	32, // 17: ai.options.gloo.solo.io.Embedding.openai:type_name -> ai.options.gloo.solo.io.Embedding.OpenAI
+	33, // 18: ai.options.gloo.solo.io.Embedding.azure_openai:type_name -> ai.options.gloo.solo.io.Embedding.AzureOpenAI
+	36, // 19: ai.options.gloo.solo.io.SemanticCache.datastore:type_name -> ai.options.gloo.solo.io.SemanticCache.DataStore
 	12, // 20: ai.options.gloo.solo.io.SemanticCache.embedding:type_name -> ai.options.gloo.solo.io.Embedding
 	3,  // 21: ai.options.gloo.solo.io.SemanticCache.mode:type_name -> ai.options.gloo.solo.io.SemanticCache.Mode
-	36, // 22: ai.options.gloo.solo.io.RAG.datastore:type_name -> ai.options.gloo.solo.io.RAG.DataStore
+	37, // 22: ai.options.gloo.solo.io.RAG.datastore:type_name -> ai.options.gloo.solo.io.RAG.DataStore
 	12, // 23: ai.options.gloo.solo.io.RAG.embedding:type_name -> ai.options.gloo.solo.io.Embedding
-	37, // 24: ai.options.gloo.solo.io.AIPromptEnrichment.prepend:type_name -> ai.options.gloo.solo.io.AIPromptEnrichment.Message
-	37, // 25: ai.options.gloo.solo.io.AIPromptEnrichment.append:type_name -> ai.options.gloo.solo.io.AIPromptEnrichment.Message
-	41, // 26: ai.options.gloo.solo.io.AIPromptGuard.request:type_name -> ai.options.gloo.solo.io.AIPromptGuard.Request
-	42, // 27: ai.options.gloo.solo.io.AIPromptGuard.response:type_name -> ai.options.gloo.solo.io.AIPromptGuard.Response
-	49, // 28: ai.options.gloo.solo.io.UpstreamSpec.CustomHost.hostname:type_name -> google.protobuf.StringValue
-	7,  // 29: ai.options.gloo.solo.io.UpstreamSpec.OpenAI.auth_token:type_name -> ai.options.gloo.solo.io.SingleAuthToken
-	18, // 30: ai.options.gloo.solo.io.UpstreamSpec.OpenAI.custom_host:type_name -> ai.options.gloo.solo.io.UpstreamSpec.CustomHost
-	7,  // 31: ai.options.gloo.solo.io.UpstreamSpec.AzureOpenAI.auth_token:type_name -> ai.options.gloo.solo.io.SingleAuthToken
-	7,  // 32: ai.options.gloo.solo.io.UpstreamSpec.Gemini.auth_token:type_name -> ai.options.gloo.solo.io.SingleAuthToken
-	7,  // 33: ai.options.gloo.solo.io.UpstreamSpec.VertexAI.auth_token:type_name -> ai.options.gloo.solo.io.SingleAuthToken
-	1,  // 34: ai.options.gloo.solo.io.UpstreamSpec.VertexAI.publisher:type_name -> ai.options.gloo.solo.io.UpstreamSpec.VertexAI.Publisher
-	0,  // 35: ai.options.gloo.solo.io.UpstreamSpec.VertexAI.json_schema:type_name -> ai.options.gloo.solo.io.ApiJsonSchema
-	7,  // 36: ai.options.gloo.solo.io.UpstreamSpec.Mistral.auth_token:type_name -> ai.options.gloo.solo.io.SingleAuthToken
-	18, // 37: ai.options.gloo.solo.io.UpstreamSpec.Mistral.custom_host:type_name -> ai.options.gloo.solo.io.UpstreamSpec.CustomHost
-	7,  // 38: ai.options.gloo.solo.io.UpstreamSpec.Anthropic.auth_token:type_name -> ai.options.gloo.solo.io.SingleAuthToken
-	18, // 39: ai.options.gloo.solo.io.UpstreamSpec.Anthropic.custom_host:type_name -> ai.options.gloo.solo.io.UpstreamSpec.CustomHost
-	26, // 40: ai.options.gloo.solo.io.UpstreamSpec.Bedrock.credential_provider:type_name -> ai.options.gloo.solo.io.UpstreamSpec.AwsCredentialProvider
-	18, // 41: ai.options.gloo.solo.io.UpstreamSpec.Bedrock.custom_host:type_name -> ai.options.gloo.solo.io.UpstreamSpec.CustomHost
-	47, // 42: ai.options.gloo.solo.io.UpstreamSpec.AwsCredentialProvider.secret_ref:type_name -> core.solo.io.ResourceRef
-	27, // 43: ai.options.gloo.solo.io.UpstreamSpec.AwsCredentialProvider.inline:type_name -> ai.options.gloo.solo.io.UpstreamSpec.AWSInline
-	30, // 44: ai.options.gloo.solo.io.UpstreamSpec.MultiPool.priorities:type_name -> ai.options.gloo.solo.io.UpstreamSpec.MultiPool.Priority
-	19, // 45: ai.options.gloo.solo.io.UpstreamSpec.MultiPool.Backend.openai:type_name -> ai.options.gloo.solo.io.UpstreamSpec.OpenAI
-	23, // 46: ai.options.gloo.solo.io.UpstreamSpec.MultiPool.Backend.mistral:type_name -> ai.options.gloo.solo.io.UpstreamSpec.Mistral
-	24, // 47: ai.options.gloo.solo.io.UpstreamSpec.MultiPool.Backend.anthropic:type_name -> ai.options.gloo.solo.io.UpstreamSpec.Anthropic
-	20, // 48: ai.options.gloo.solo.io.UpstreamSpec.MultiPool.Backend.azure_openai:type_name -> ai.options.gloo.solo.io.UpstreamSpec.AzureOpenAI
-	21, // 49: ai.options.gloo.solo.io.UpstreamSpec.MultiPool.Backend.gemini:type_name -> ai.options.gloo.solo.io.UpstreamSpec.Gemini
-	22, // 50: ai.options.gloo.solo.io.UpstreamSpec.MultiPool.Backend.vertex_ai:type_name -> ai.options.gloo.solo.io.UpstreamSpec.VertexAI
-	25, // 51: ai.options.gloo.solo.io.UpstreamSpec.MultiPool.Backend.bedrock:type_name -> ai.options.gloo.solo.io.UpstreamSpec.Bedrock
-	29, // 52: ai.options.gloo.solo.io.UpstreamSpec.MultiPool.Priority.pool:type_name -> ai.options.gloo.solo.io.UpstreamSpec.MultiPool.Backend
-	7,  // 53: ai.options.gloo.solo.io.Embedding.OpenAI.auth_token:type_name -> ai.options.gloo.solo.io.SingleAuthToken
-	7,  // 54: ai.options.gloo.solo.io.Embedding.AzureOpenAI.auth_token:type_name -> ai.options.gloo.solo.io.SingleAuthToken
-	33, // 55: ai.options.gloo.solo.io.SemanticCache.DataStore.redis:type_name -> ai.options.gloo.solo.io.SemanticCache.Redis
-	34, // 56: ai.options.gloo.solo.io.SemanticCache.DataStore.weaviate:type_name -> ai.options.gloo.solo.io.SemanticCache.Weaviate
-	11, // 57: ai.options.gloo.solo.io.RAG.DataStore.postgres:type_name -> ai.options.gloo.solo.io.Postgres
-	43, // 58: ai.options.gloo.solo.io.AIPromptGuard.Regex.matches:type_name -> ai.options.gloo.solo.io.AIPromptGuard.Regex.RegexMatch
-	4,  // 59: ai.options.gloo.solo.io.AIPromptGuard.Regex.builtins:type_name -> ai.options.gloo.solo.io.AIPromptGuard.Regex.BuiltIn
-	5,  // 60: ai.options.gloo.solo.io.AIPromptGuard.Regex.action:type_name -> ai.options.gloo.solo.io.AIPromptGuard.Regex.Action
-	44, // 61: ai.options.gloo.solo.io.AIPromptGuard.Webhook.forwardHeaders:type_name -> ai.options.gloo.solo.io.AIPromptGuard.Webhook.HeaderMatch
-	45, // 62: ai.options.gloo.solo.io.AIPromptGuard.Moderation.openai:type_name -> ai.options.gloo.solo.io.AIPromptGuard.Moderation.OpenAI
-	46, // 63: ai.options.gloo.solo.io.AIPromptGuard.Request.custom_response:type_name -> ai.options.gloo.solo.io.AIPromptGuard.Request.CustomResponse
-	38, // 64: ai.options.gloo.solo.io.AIPromptGuard.Request.regex:type_name -> ai.options.gloo.solo.io.AIPromptGuard.Regex
-	39, // 65: ai.options.gloo.solo.io.AIPromptGuard.Request.webhook:type_name -> ai.options.gloo.solo.io.AIPromptGuard.Webhook
-	40, // 66: ai.options.gloo.solo.io.AIPromptGuard.Request.moderation:type_name -> ai.options.gloo.solo.io.AIPromptGuard.Moderation
-	38, // 67: ai.options.gloo.solo.io.AIPromptGuard.Response.regex:type_name -> ai.options.gloo.solo.io.AIPromptGuard.Regex
-	39, // 68: ai.options.gloo.solo.io.AIPromptGuard.Response.webhook:type_name -> ai.options.gloo.solo.io.AIPromptGuard.Webhook
-	6,  // 69: ai.options.gloo.solo.io.AIPromptGuard.Webhook.HeaderMatch.match_type:type_name -> ai.options.gloo.solo.io.AIPromptGuard.Webhook.HeaderMatch.MatchType
-	7,  // 70: ai.options.gloo.solo.io.AIPromptGuard.Moderation.OpenAI.auth_token:type_name -> ai.options.gloo.solo.io.SingleAuthToken
-	71, // [71:71] is the sub-list for method output_type
-	71, // [71:71] is the sub-list for method input_type
-	71, // [71:71] is the sub-list for extension type_name
-	71, // [71:71] is the sub-list for extension extendee
-	0,  // [0:71] is the sub-list for field type_name
+	38, // 24: ai.options.gloo.solo.io.AIPromptEnrichment.prepend:type_name -> ai.options.gloo.solo.io.AIPromptEnrichment.Message
+	38, // 25: ai.options.gloo.solo.io.AIPromptEnrichment.append:type_name -> ai.options.gloo.solo.io.AIPromptEnrichment.Message
+	42, // 26: ai.options.gloo.solo.io.AIPromptGuard.request:type_name -> ai.options.gloo.solo.io.AIPromptGuard.Request
+	43, // 27: ai.options.gloo.solo.io.AIPromptGuard.response:type_name -> ai.options.gloo.solo.io.AIPromptGuard.Response
+	50, // 28: ai.options.gloo.solo.io.UpstreamSpec.CustomHost.hostname:type_name -> google.protobuf.StringValue
+	18, // 29: ai.options.gloo.solo.io.UpstreamSpec.CustomHost.path_override:type_name -> ai.options.gloo.solo.io.UpstreamSpec.PathOverride
+	7,  // 30: ai.options.gloo.solo.io.UpstreamSpec.OpenAI.auth_token:type_name -> ai.options.gloo.solo.io.SingleAuthToken
+	19, // 31: ai.options.gloo.solo.io.UpstreamSpec.OpenAI.custom_host:type_name -> ai.options.gloo.solo.io.UpstreamSpec.CustomHost
+	7,  // 32: ai.options.gloo.solo.io.UpstreamSpec.AzureOpenAI.auth_token:type_name -> ai.options.gloo.solo.io.SingleAuthToken
+	7,  // 33: ai.options.gloo.solo.io.UpstreamSpec.Gemini.auth_token:type_name -> ai.options.gloo.solo.io.SingleAuthToken
+	7,  // 34: ai.options.gloo.solo.io.UpstreamSpec.VertexAI.auth_token:type_name -> ai.options.gloo.solo.io.SingleAuthToken
+	1,  // 35: ai.options.gloo.solo.io.UpstreamSpec.VertexAI.publisher:type_name -> ai.options.gloo.solo.io.UpstreamSpec.VertexAI.Publisher
+	0,  // 36: ai.options.gloo.solo.io.UpstreamSpec.VertexAI.json_schema:type_name -> ai.options.gloo.solo.io.ApiJsonSchema
+	7,  // 37: ai.options.gloo.solo.io.UpstreamSpec.Mistral.auth_token:type_name -> ai.options.gloo.solo.io.SingleAuthToken
+	19, // 38: ai.options.gloo.solo.io.UpstreamSpec.Mistral.custom_host:type_name -> ai.options.gloo.solo.io.UpstreamSpec.CustomHost
+	7,  // 39: ai.options.gloo.solo.io.UpstreamSpec.Anthropic.auth_token:type_name -> ai.options.gloo.solo.io.SingleAuthToken
+	19, // 40: ai.options.gloo.solo.io.UpstreamSpec.Anthropic.custom_host:type_name -> ai.options.gloo.solo.io.UpstreamSpec.CustomHost
+	27, // 41: ai.options.gloo.solo.io.UpstreamSpec.Bedrock.credential_provider:type_name -> ai.options.gloo.solo.io.UpstreamSpec.AwsCredentialProvider
+	19, // 42: ai.options.gloo.solo.io.UpstreamSpec.Bedrock.custom_host:type_name -> ai.options.gloo.solo.io.UpstreamSpec.CustomHost
+	48, // 43: ai.options.gloo.solo.io.UpstreamSpec.AwsCredentialProvider.secret_ref:type_name -> core.solo.io.ResourceRef
+	28, // 44: ai.options.gloo.solo.io.UpstreamSpec.AwsCredentialProvider.inline:type_name -> ai.options.gloo.solo.io.UpstreamSpec.AWSInline
+	31, // 45: ai.options.gloo.solo.io.UpstreamSpec.MultiPool.priorities:type_name -> ai.options.gloo.solo.io.UpstreamSpec.MultiPool.Priority
+	20, // 46: ai.options.gloo.solo.io.UpstreamSpec.MultiPool.Backend.openai:type_name -> ai.options.gloo.solo.io.UpstreamSpec.OpenAI
+	24, // 47: ai.options.gloo.solo.io.UpstreamSpec.MultiPool.Backend.mistral:type_name -> ai.options.gloo.solo.io.UpstreamSpec.Mistral
+	25, // 48: ai.options.gloo.solo.io.UpstreamSpec.MultiPool.Backend.anthropic:type_name -> ai.options.gloo.solo.io.UpstreamSpec.Anthropic
+	21, // 49: ai.options.gloo.solo.io.UpstreamSpec.MultiPool.Backend.azure_openai:type_name -> ai.options.gloo.solo.io.UpstreamSpec.AzureOpenAI
+	22, // 50: ai.options.gloo.solo.io.UpstreamSpec.MultiPool.Backend.gemini:type_name -> ai.options.gloo.solo.io.UpstreamSpec.Gemini
+	23, // 51: ai.options.gloo.solo.io.UpstreamSpec.MultiPool.Backend.vertex_ai:type_name -> ai.options.gloo.solo.io.UpstreamSpec.VertexAI
+	26, // 52: ai.options.gloo.solo.io.UpstreamSpec.MultiPool.Backend.bedrock:type_name -> ai.options.gloo.solo.io.UpstreamSpec.Bedrock
+	30, // 53: ai.options.gloo.solo.io.UpstreamSpec.MultiPool.Priority.pool:type_name -> ai.options.gloo.solo.io.UpstreamSpec.MultiPool.Backend
+	7,  // 54: ai.options.gloo.solo.io.Embedding.OpenAI.auth_token:type_name -> ai.options.gloo.solo.io.SingleAuthToken
+	7,  // 55: ai.options.gloo.solo.io.Embedding.AzureOpenAI.auth_token:type_name -> ai.options.gloo.solo.io.SingleAuthToken
+	34, // 56: ai.options.gloo.solo.io.SemanticCache.DataStore.redis:type_name -> ai.options.gloo.solo.io.SemanticCache.Redis
+	35, // 57: ai.options.gloo.solo.io.SemanticCache.DataStore.weaviate:type_name -> ai.options.gloo.solo.io.SemanticCache.Weaviate
+	11, // 58: ai.options.gloo.solo.io.RAG.DataStore.postgres:type_name -> ai.options.gloo.solo.io.Postgres
+	44, // 59: ai.options.gloo.solo.io.AIPromptGuard.Regex.matches:type_name -> ai.options.gloo.solo.io.AIPromptGuard.Regex.RegexMatch
+	4,  // 60: ai.options.gloo.solo.io.AIPromptGuard.Regex.builtins:type_name -> ai.options.gloo.solo.io.AIPromptGuard.Regex.BuiltIn
+	5,  // 61: ai.options.gloo.solo.io.AIPromptGuard.Regex.action:type_name -> ai.options.gloo.solo.io.AIPromptGuard.Regex.Action
+	45, // 62: ai.options.gloo.solo.io.AIPromptGuard.Webhook.forwardHeaders:type_name -> ai.options.gloo.solo.io.AIPromptGuard.Webhook.HeaderMatch
+	46, // 63: ai.options.gloo.solo.io.AIPromptGuard.Moderation.openai:type_name -> ai.options.gloo.solo.io.AIPromptGuard.Moderation.OpenAI
+	47, // 64: ai.options.gloo.solo.io.AIPromptGuard.Request.custom_response:type_name -> ai.options.gloo.solo.io.AIPromptGuard.Request.CustomResponse
+	39, // 65: ai.options.gloo.solo.io.AIPromptGuard.Request.regex:type_name -> ai.options.gloo.solo.io.AIPromptGuard.Regex
+	40, // 66: ai.options.gloo.solo.io.AIPromptGuard.Request.webhook:type_name -> ai.options.gloo.solo.io.AIPromptGuard.Webhook
+	41, // 67: ai.options.gloo.solo.io.AIPromptGuard.Request.moderation:type_name -> ai.options.gloo.solo.io.AIPromptGuard.Moderation
+	39, // 68: ai.options.gloo.solo.io.AIPromptGuard.Response.regex:type_name -> ai.options.gloo.solo.io.AIPromptGuard.Regex
+	40, // 69: ai.options.gloo.solo.io.AIPromptGuard.Response.webhook:type_name -> ai.options.gloo.solo.io.AIPromptGuard.Webhook
+	6,  // 70: ai.options.gloo.solo.io.AIPromptGuard.Webhook.HeaderMatch.match_type:type_name -> ai.options.gloo.solo.io.AIPromptGuard.Webhook.HeaderMatch.MatchType
+	7,  // 71: ai.options.gloo.solo.io.AIPromptGuard.Moderation.OpenAI.auth_token:type_name -> ai.options.gloo.solo.io.SingleAuthToken
+	72, // [72:72] is the sub-list for method output_type
+	72, // [72:72] is the sub-list for method input_type
+	72, // [72:72] is the sub-list for extension type_name
+	72, // [72:72] is the sub-list for extension extendee
+	0,  // [0:72] is the sub-list for field type_name
 }
 
 func init() { file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_init() }
@@ -4258,20 +4367,24 @@ func file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_
 		(*Embedding_Openai)(nil),
 		(*Embedding_AzureOpenai)(nil),
 	}
-	file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[13].OneofWrappers = []any{
-		(*UpstreamSpec_AzureOpenAI_AuthToken)(nil),
+	file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[11].OneofWrappers = []any{
+		(*UpstreamSpec_PathOverride_FullPath)(nil),
+		(*UpstreamSpec_PathOverride_BasePath)(nil),
 	}
 	file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[14].OneofWrappers = []any{
-		(*UpstreamSpec_Gemini_AuthToken)(nil),
+		(*UpstreamSpec_AzureOpenAI_AuthToken)(nil),
 	}
 	file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[15].OneofWrappers = []any{
+		(*UpstreamSpec_Gemini_AuthToken)(nil),
+	}
+	file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[16].OneofWrappers = []any{
 		(*UpstreamSpec_VertexAI_AuthToken)(nil),
 	}
-	file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[19].OneofWrappers = []any{
+	file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[20].OneofWrappers = []any{
 		(*UpstreamSpec_AwsCredentialProvider_SecretRef)(nil),
 		(*UpstreamSpec_AwsCredentialProvider_Inline)(nil),
 	}
-	file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[22].OneofWrappers = []any{
+	file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[23].OneofWrappers = []any{
 		(*UpstreamSpec_MultiPool_Backend_Openai)(nil),
 		(*UpstreamSpec_MultiPool_Backend_Mistral)(nil),
 		(*UpstreamSpec_MultiPool_Backend_Anthropic)(nil),
@@ -4280,23 +4393,23 @@ func file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_
 		(*UpstreamSpec_MultiPool_Backend_VertexAi)(nil),
 		(*UpstreamSpec_MultiPool_Backend_Bedrock)(nil),
 	}
-	file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[24].OneofWrappers = []any{
+	file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[25].OneofWrappers = []any{
 		(*Embedding_OpenAI_AuthToken)(nil),
 	}
-	file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[25].OneofWrappers = []any{
+	file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[26].OneofWrappers = []any{
 		(*Embedding_AzureOpenAI_AuthToken)(nil),
 	}
-	file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[28].OneofWrappers = []any{
+	file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[29].OneofWrappers = []any{
 		(*SemanticCache_DataStore_Redis)(nil),
 		(*SemanticCache_DataStore_Weaviate)(nil),
 	}
-	file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[29].OneofWrappers = []any{
+	file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[30].OneofWrappers = []any{
 		(*RAG_DataStore_Postgres)(nil),
 	}
-	file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[33].OneofWrappers = []any{
+	file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[34].OneofWrappers = []any{
 		(*AIPromptGuard_Moderation_Openai)(nil),
 	}
-	file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[38].OneofWrappers = []any{
+	file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_msgTypes[39].OneofWrappers = []any{
 		(*AIPromptGuard_Moderation_OpenAI_AuthToken)(nil),
 	}
 	type x struct{}
@@ -4305,7 +4418,7 @@ func file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_rawDesc), len(file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_rawDesc)),
 			NumEnums:      7,
-			NumMessages:   40,
+			NumMessages:   41,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
