@@ -16,10 +16,10 @@ import (
 	sologatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	solokubev1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1/kube/apis/gateway.solo.io/v1"
 	gwquery "github.com/solo-io/gloo/projects/gateway2/query"
-	"github.com/solo-io/gloo/projects/gateway2/translator/plugins/utils"
+	utils "github.com/solo-io/gloo/projects/gateway2/translator/plugins/utils"
+	gwutils "github.com/solo-io/gloo/projects/gateway2/utils"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	glooutils "github.com/solo-io/gloo/projects/gloo/pkg/utils"
-	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 )
 
@@ -91,20 +91,11 @@ func (r *routeOptionQueries) GetRouteOptionForRouteRule(
 		return nilOptionIfEmpty(merged), sources, nil
 	}
 
-	// warn for multiple targetRefs until we actually support this
-	// TODO: remove this as part of https://github.com/solo-io/solo-projects/issues/6286
-	for i := range list.Items {
-		item := &list.Items[i]
-		if len(item.Spec.GetTargetRefs()) > 1 {
-			contextutils.LoggerFrom(ctx).Warnf(utils.MultipleTargetRefErrStr, item.GetNamespace(), item.GetName())
-		}
-	}
-
 	out := make([]*solokubev1.RouteOption, len(list.Items))
 	for i := range list.Items {
 		out[i] = &list.Items[i]
 	}
-	utils.SortByCreationTime(out)
+	gwutils.SortByCreationTime(out)
 	for _, opt := range out {
 		optionUsed := false
 		merged.Spec.Options, optionUsed = glooutils.ShallowMergeRouteOptions(merged.Spec.GetOptions(), opt.Spec.GetOptions())

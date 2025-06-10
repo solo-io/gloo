@@ -6,12 +6,14 @@ import (
 	"reflect"
 	"slices"
 
+	"github.com/solo-io/gloo/projects/gateway2/utils"
 	"github.com/solo-io/go-utils/contextutils"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
 	gwv1a2 "sigs.k8s.io/gateway-api/apis/v1alpha2"
+	gwxv1a1 "sigs.k8s.io/gateway-api/apisx/v1alpha1"
 )
 
 // TODO: refactor this struct + methods to better reflect the usage now in proxy_syncer
@@ -37,7 +39,7 @@ func (r *ReportMap) BuildGWStatus(ctx context.Context, gw gwv1.Gateway) *gwv1.Ga
 			// copy old condition from gw so LastTransitionTime is set correctly below by SetStatusCondition()
 			if oldLisStatusIndex != -1 {
 				if cond := meta.FindStatusCondition(gw.Status.Listeners[oldLisStatusIndex].Conditions, lisCondition.Type); cond != nil {
-					finalConditions = append(finalConditions, *cond)
+					meta.SetStatusCondition(&finalConditions, *cond)
 				}
 			}
 			meta.SetStatusCondition(&finalConditions, lisCondition)
@@ -54,7 +56,7 @@ func (r *ReportMap) BuildGWStatus(ctx context.Context, gw gwv1.Gateway) *gwv1.Ga
 
 		// copy old condition from gw so LastTransitionTime is set correctly below by SetStatusCondition()
 		if cond := meta.FindStatusCondition(gw.Status.Conditions, gwCondition.Type); cond != nil {
-			finalConditions = append(finalConditions, *cond)
+			meta.SetStatusCondition(&finalConditions, *cond)
 		}
 		meta.SetStatusCondition(&finalConditions, gwCondition)
 	}
@@ -62,7 +64,7 @@ func (r *ReportMap) BuildGWStatus(ctx context.Context, gw gwv1.Gateway) *gwv1.Ga
 	// them in the final list of conditions to preseve conditions we do not own
 	for _, condition := range gw.Status.Conditions {
 		if meta.FindStatusCondition(finalConditions, condition.Type) == nil {
-			finalConditions = append(finalConditions, condition)
+			meta.SetStatusCondition(&finalConditions, condition)
 		}
 	}
 
@@ -70,6 +72,84 @@ func (r *ReportMap) BuildGWStatus(ctx context.Context, gw gwv1.Gateway) *gwv1.Ga
 	finalGwStatus.Conditions = finalConditions
 	finalGwStatus.Listeners = finalListeners
 	return &finalGwStatus
+}
+
+func (r *ReportMap) BuildListenerSetStatus(ctx context.Context, ls gwxv1a1.XListenerSet) *gwxv1a1.ListenerSetStatus {
+	lsReport := r.ListenerSet(&ls)
+	if lsReport == nil {
+		return nil
+	}
+
+	finalListeners := make([]gwv1.ListenerStatus, 0, len(ls.Spec.Listeners))
+
+	// We check if the ls has been rejected since no status implies that it will be accepted later on
+	listenerSetRejected := func(lsReport *ListenerSetReport) bool {
+		if cond := meta.FindStatusCondition(lsReport.GetConditions(), string(gwv1.GatewayConditionAccepted)); cond != nil {
+			return cond.Status == metav1.ConditionFalse
+		}
+		return false
+	}
+
+	if !listenerSetRejected(lsReport) {
+		for _, l := range ls.Spec.Listeners {
+			lis := utils.ToListener(l)
+			lisReport := lsReport.listener(&lis)
+			addMissingListenerConditions(lisReport)
+
+			finalConditions := make([]metav1.Condition, 0, len(lisReport.Status.Conditions))
+			oldLisStatusIndex := slices.IndexFunc(ls.Status.Listeners, func(l gwxv1a1.ListenerEntryStatus) bool {
+				return l.Name == lis.Name
+			})
+			for _, lisCondition := range lisReport.Status.Conditions {
+				lisCondition.ObservedGeneration = lsReport.observedGeneration
+
+				// copy old condition from ls so LastTransitionTime is set correctly below by SetStatusCondition()
+				if oldLisStatusIndex != -1 {
+					if cond := meta.FindStatusCondition(ls.Status.Listeners[oldLisStatusIndex].Conditions, lisCondition.Type); cond != nil {
+						finalConditions = append(finalConditions, *cond)
+					}
+				}
+				meta.SetStatusCondition(&finalConditions, lisCondition)
+			}
+			lisReport.Status.Conditions = finalConditions
+			finalListeners = append(finalListeners, lisReport.Status)
+		}
+	}
+
+	addMissingListenerSetConditions(r.ListenerSet(&ls))
+
+	finalConditions := make([]metav1.Condition, 0)
+	for _, lsCondition := range lsReport.GetConditions() {
+		lsCondition.ObservedGeneration = lsReport.observedGeneration
+
+		// copy old condition from ls so LastTransitionTime is set correctly below by SetStatusCondition()
+		if cond := meta.FindStatusCondition(ls.Status.Conditions, lsCondition.Type); cond != nil {
+			finalConditions = append(finalConditions, *cond)
+		}
+		meta.SetStatusCondition(&finalConditions, lsCondition)
+	}
+	// If there are conditions on the Listener Set that are not owned by our reporter, include
+	// them in the final list of conditions to preseve conditions we do not own
+	for _, condition := range ls.Status.Conditions {
+		if meta.FindStatusCondition(finalConditions, condition.Type) == nil {
+			finalConditions = append(finalConditions, condition)
+		}
+	}
+
+	finalLsStatus := gwxv1a1.ListenerSetStatus{}
+	finalLsStatus.Conditions = finalConditions
+	fl := make([]gwxv1a1.ListenerEntryStatus, 0, len(finalListeners))
+	for i, f := range finalListeners {
+		fl = append(fl, gwxv1a1.ListenerEntryStatus{
+			Name:           f.Name,
+			Port:           ls.Spec.Listeners[i].Port,
+			SupportedKinds: f.SupportedKinds,
+			AttachedRoutes: f.AttachedRoutes,
+			Conditions:     f.Conditions,
+		})
+	}
+	finalLsStatus.Listeners = fl
+	return &finalLsStatus
 }
 
 // BuildRouteStatus returns a newly constructed and fully defined RouteStatus for the supplied route object
@@ -141,7 +221,7 @@ func (r *ReportMap) BuildRouteStatus(ctx context.Context, obj client.Object, cNa
 
 			// Copy old condition to preserve LastTransitionTime, if it exists
 			if cond := meta.FindStatusCondition(currentParentRefConditions, pCondition.Type); cond != nil {
-				finalConditions = append(finalConditions, *cond)
+				meta.SetStatusCondition(&finalConditions, *cond)
 			}
 			meta.SetStatusCondition(&finalConditions, pCondition)
 		}
@@ -149,7 +229,7 @@ func (r *ReportMap) BuildRouteStatus(ctx context.Context, obj client.Object, cNa
 		// them in the final list of conditions to preseve conditions we do not own
 		for _, condition := range currentParentRefConditions {
 			if meta.FindStatusCondition(finalConditions, condition.Type) == nil {
-				finalConditions = append(finalConditions, condition)
+				meta.SetStatusCondition(&finalConditions, condition)
 			}
 		}
 
@@ -177,6 +257,26 @@ func addMissingGatewayConditions(gwReport *GatewayReport) {
 	}
 	if cond := meta.FindStatusCondition(gwReport.GetConditions(), string(gwv1.GatewayConditionProgrammed)); cond == nil {
 		gwReport.SetCondition(GatewayCondition{
+			Type:   gwv1.GatewayConditionProgrammed,
+			Status: metav1.ConditionTrue,
+			Reason: gwv1.GatewayReasonProgrammed,
+		})
+	}
+}
+
+// Reports will initially only contain negative conditions found during translation,
+// so all missing conditions are assumed to be positive. Here we will add all missing conditions
+// to a given report, i.e. set healthy conditions
+func addMissingListenerSetConditions(lsReport *ListenerSetReport) {
+	if cond := meta.FindStatusCondition(lsReport.GetConditions(), string(gwv1.GatewayConditionAccepted)); cond == nil {
+		lsReport.SetCondition(GatewayCondition{
+			Type:   gwv1.GatewayConditionAccepted,
+			Status: metav1.ConditionTrue,
+			Reason: gwv1.GatewayReasonAccepted,
+		})
+	}
+	if cond := meta.FindStatusCondition(lsReport.GetConditions(), string(gwv1.GatewayConditionProgrammed)); cond == nil {
+		lsReport.SetCondition(GatewayCondition{
 			Type:   gwv1.GatewayConditionProgrammed,
 			Status: metav1.ConditionTrue,
 			Reason: gwv1.GatewayReasonProgrammed,

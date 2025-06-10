@@ -8,6 +8,7 @@ import (
 
 	envoy_config_cluster_v3 "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
 	envoy_config_core_v3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
+	envoy_config_listener_v3 "github.com/envoyproxy/go-control-plane/envoy/config/listener/v3"
 	"github.com/envoyproxy/go-control-plane/pkg/wellknown"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/duration"
@@ -70,28 +71,70 @@ func (t *translatorInstance) computeClusters(
 	return clusters, clusterToUpstreamMap
 }
 
-// This function is intented to be used when translating a single upstream outside of the context of a full snapshot.
+type ClusterResult struct {
+	Cluster *envoy_config_cluster_v3.Cluster
+
+	AdditionalClusters  []*envoy_config_cluster_v3.Cluster
+	AdditionalListeners []*envoy_config_listener_v3.Listener
+}
+
+// This function is intended to be used when translating a single upstream outside of the context of a full snapshot.
 // This happens in the kube gateway krt implementation.
 func (t *translatorInstance) TranslateCluster(
 	params plugins.Params,
 	upstream *v1.Upstream,
-) (*envoy_config_cluster_v3.Cluster, []error) {
+) (*ClusterResult, reporter.ResourceReports) {
 	t.lock.Lock()
 	defer t.lock.Unlock()
+
+	reports := reporter.ResourceReports{}
+
+	// prepare the normal upstream plugins for calling
 	for _, p := range t.pluginRegistry.GetUpstreamPlugins() {
 		p.Init(plugins.InitParams{Ctx: params.Ctx, Settings: t.settings})
 	}
+
+	// upstreams may create additional clusters and listeners, prepare
+	// the those plugins to be called
+	for _, p := range t.pluginRegistry.GetUpstreamGeneratedResourcesPlugins() {
+		p.Init(plugins.InitParams{Ctx: params.Ctx, Settings: t.settings})
+	}
+
 	// as we don't know if we have endpoints for this upstream,
-	// we will let the upstream plugins will set the cluster type
+	// we will let the upstream plugins set the cluster type
 	eds := false
-	c, err := t.computeCluster(params, upstream, eds)
+	c, errs := t.computeCluster(params, upstream, eds)
+	if errs != nil {
+		reports.AddErrors(upstream, errs...)
+		return nil, reports
+	}
+
 	if c != nil && c.GetEdsClusterConfig() != nil {
 		endpointClusterName, err2 := GetEndpointClusterName(c.GetName(), upstream)
 		if err2 == nil {
 			c.GetEdsClusterConfig().ServiceName = endpointClusterName
 		}
 	}
-	return c, err
+
+	clusterResult := &ClusterResult{
+		Cluster:             c,
+		AdditionalClusters:  []*envoy_config_cluster_v3.Cluster{},
+		AdditionalListeners: []*envoy_config_listener_v3.Listener{},
+	}
+
+	// call the upstream generated resources plugins
+	for _, p := range t.pluginRegistry.GetUpstreamGeneratedResourcesPlugins() {
+		additionalClusters, additionalListeners, err := p.UpstreamGeneratedResources(
+			params, upstream, c, reports)
+		if err != nil {
+			reports.AddError(upstream, err)
+			return nil, reports
+		}
+		clusterResult.AdditionalClusters = append(clusterResult.AdditionalClusters, additionalClusters...)
+		clusterResult.AdditionalListeners = append(clusterResult.AdditionalListeners, additionalListeners...)
+	}
+
+	return clusterResult, reports
 }
 
 func (t *translatorInstance) computeCluster(

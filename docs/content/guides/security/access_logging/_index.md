@@ -358,11 +358,44 @@ config (that Gloo Gateway stores in `gateway-proxy-envoy-config`) will need to i
 custom access log server. Once you have a named static cluster in your envoy config, you can reference it in 
 your **gateway** CRD. 
 
-The Gloo Gateway access logger was written to be customizable with callbacks, so it may provide a useful starting point. Feel free
-to open an issue in the Gloo Gateway repo to track improvements to the existing implementation. 
+The Gloo Gateway access logger was written to be customizable with callbacks, so it may provide a useful starting
+point. Feel free to open an issue in the Gloo Gateway repo to track improvements to the existing implementation. 
 
 To verify your Envoy access logging configuration, use `glooctl check`. If there is a problem configuring the Envoy 
 listener with your custom access logging server, it should be reported there. 
+
+## OpenTelemetry Access Logging
+
+Gloo Gateway also supports OpenTelemetry access logging. This feature is available in Gloo Gateway starting in `1.19.0`. 
+
+### Configuring the OpenTelemetry access logger
+
+This access logging service can now be used by configuring the **gateway** CRD:
+
+```yaml
+apiVersion: gateway.solo.io/v1
+kind: Gateway
+metadata:
+  name: gateway-proxy
+  namespace: gloo-system
+spec:
+  bindAddress: '::'
+  bindPort: 8080
+  httpGateway: {}
+  proxyNames:
+  - gateway-proxy
+  useProxyProto: false
+  options:
+    accessLoggingService:
+      accessLog:
+        - openTelemetryService:
+            logName: example
+            collector:
+              endpoint: otel-collector.default.svc.cluster.local:4317
+```
+
+For more information and additional settings, see the [Access log API]({{< versioned_link_path fromRoot="/reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/options/als/als.proto.sk/#opentelemetryservice" >}}).
+
 
 ## Configuring multiple access logs 
 

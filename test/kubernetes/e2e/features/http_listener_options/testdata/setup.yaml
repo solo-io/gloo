@@ -1,18 +1,18 @@
 kind: Gateway
 apiVersion: gateway.networking.k8s.io/v1
 metadata:
-  name: gw
+  name: gw-2
 spec:
   gatewayClassName: gloo-gateway
   listeners:
     - protocol: HTTP
-      port: 8080
+      port: 8083
       name: http
       allowedRoutes:
         namespaces:
           from: Same
     - protocol: HTTP
-      port: 8081
+      port: 8084
       name: other
       allowedRoutes:
         namespaces:
@@ -24,7 +24,21 @@ metadata:
   name: example-route
 spec:
   parentRefs:
-    - name: gw
+    - name: gw-1
+  hostnames:
+    - "example.com"
+  rules:
+    - backendRefs:
+        - name: example-svc
+          port: 8080
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: example-route-2
+spec:
+  parentRefs:
+    - name: gw-2
   hostnames:
     - "example.com"
   rules:
@@ -57,31 +71,3 @@ spec:
       ports:
         - containerPort: 80
           name: http-web-svc
----
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: curl
----
-apiVersion: v1
-kind: Pod
-metadata:
-  name: curl
-  namespace: curl
-  labels:
-    app: curl
-    version: v1
-spec:
-  containers:
-    - name: curl
-      image: curlimages/curl:7.83.1
-      imagePullPolicy: IfNotPresent
-      command:
-        - "tail"
-        - "-f"
-        - "/dev/null"
-      resources:
-        requests:
-          cpu: "100m"
-        limits:
-          cpu: "200m"

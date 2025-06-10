@@ -55,12 +55,19 @@ type legacyStatus struct {
 	routeErrors []*validation.RouteReport_Error
 }
 
+func newLegacyStatus() *legacyStatus {
+	return &legacyStatus{
+		subresourceStatus: map[string]*core.Status{},
+		routeErrors:       []*validation.RouteReport_Error{},
+	}
+}
+
 // holds status structure for each RouteOption we have processed and attached
 // this is used because a RouteOption is attached to a Route, but a Route may be
 // attached to multiple Gateways/Listeners, so we need a single status object
 // to contain the subresourceStatus for each Proxy it was translated too, but also
 // all the errors specifically encountered
-type legacyStatusCache = map[types.NamespacedName]legacyStatus
+type legacyStatusCache = map[types.NamespacedName]*legacyStatus
 
 type plugin struct {
 	gwQueries             gwquery.GatewayQueries
@@ -161,16 +168,36 @@ func (p *plugin) InitStatusPlugin(ctx context.Context, statusCtx *plugins.Status
 
 		// for this specific proxy, get all the route errors and their associated RouteOption sources
 		routeErrors := extractRouteErrors(proxyWithReport.Reports.ProxyReport)
-
 		for roKey := range routeErrors {
-
-			var newStatus legacyStatus
-			newStatus.subresourceStatus = make(map[string]*core.Status)
-
-			// update the cache
-			p.legacyStatusCache[roKey] = newStatus
+			p.legacyStatusCache[roKey] = newLegacyStatus()
 		}
 	}
+	return nil
+}
+
+// MergeStatusPlugin merges the status of the source plugin in to the current plugin.
+// This is used late in the proxy sync process to report the status of the RO when
+// it references multiple proxies/snapshots.
+func (p *plugin) MergeStatusPlugin(ctx context.Context, source any) error {
+	sourceStatusPlugin, ok := source.(*plugin)
+	if !ok {
+		return nil
+	}
+
+	for cacheKey, status := range sourceStatusPlugin.legacyStatusCache {
+		destStatus, ok := p.legacyStatusCache[cacheKey]
+		if !ok {
+			destStatus = newLegacyStatus()
+		}
+
+		destStatus.routeErrors = append(destStatus.routeErrors, status.routeErrors...)
+		for subresourceKey, subresourceStatus := range status.subresourceStatus {
+			destStatus.subresourceStatus[subresourceKey] = subresourceStatus
+		}
+
+		p.legacyStatusCache[cacheKey] = destStatus
+	}
+
 	return nil
 }
 
@@ -250,8 +277,7 @@ func (p *plugin) trackAcceptedRouteOptions(
 	sources []*gloov1.SourceMetadata_SourceRef,
 ) {
 	for _, source := range sources {
-		var newStatus legacyStatus
-		newStatus.subresourceStatus = make(map[string]*core.Status)
+		newStatus := newLegacyStatus()
 		p.legacyStatusCache[client.ObjectKey{
 			Namespace: source.GetResourceRef().GetNamespace(),
 			Name:      source.GetResourceRef().GetName(),

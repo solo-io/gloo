@@ -1,0 +1,16 @@
+apiVersion: gateway.solo.io/v1
+kind: ListenerOption
+metadata:
+  name: header-manipulation
+spec:
+  targetRefs:
+  - group: gateway.networking.k8s.io
+    kind: Gateway
+    name: gw-1
+    sectionName: http
+  - group: gateway.networking.k8s.io
+    kind: Gateway
+    name: gw-2
+    sectionName: other
+  options:
+    perConnectionBufferLimitBytes: 32000

@@ -1,0 +1,23 @@
+changelog:
+- type: NON_USER_FACING
+  description: Increase the max message size of the grpc server to accommodate thousands of listenersets. Also generate a unique envoy listener name instead of concatenating multiple gw listener names.
+- type: DEPENDENCY_BUMP
+  dependencyOwner: sigs.k8s.io
+  dependencyRepo: gateway-api
+  dependencyTag: v1.3.0
+- type: DEPENDENCY_BUMP
+  dependencyOwner: sigs.k8s.io
+  dependencyRepo: controller-runtime
+  dependencyTag: v0.20.4
+- type: DEPENDENCY_BUMP
+  dependencyOwner: golang.org/x
+  dependencyRepo: crypto
+  dependencyTag: v0.37.0
+- type: DEPENDENCY_BUMP
+  dependencyOwner: golang.org/x
+  dependencyRepo: sync
+  dependencyTag: v0.13.0
+- type: DEPENDENCY_BUMP
+  dependencyOwner: google.golang.org
+  dependencyRepo: grpc
+  dependencyTag: v1.71.1

@@ -1,14 +1,14 @@
 # Expected listeners when a TCPRoute contains an unsupported backendRef.
 ---
 listeners:
-- name: tcp
+- name: listener~8080
   bindAddress: "::"
   bindPort: 8080
   metadataStatic:
     sources:
     - resourceKind: gateway.networking.k8s.io/Gateway
       resourceRef:
-        name: tcp
+        name: listener~8080
         namespace: default
   aggregateListener:
     httpResources: {}

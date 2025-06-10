@@ -74,6 +74,12 @@ apis:
   als.options.gloo.solo.io.NotHealthCheckFilter:
     relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/options/als/als.proto.sk/#NotHealthCheckFilter
     package: als.options.gloo.solo.io
+  als.options.gloo.solo.io.OpenTelemetryGrpcCollector:
+    relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/options/als/als.proto.sk/#OpenTelemetryGrpcCollector
+    package: als.options.gloo.solo.io
+  als.options.gloo.solo.io.OpenTelemetryService:
+    relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/options/als/als.proto.sk/#OpenTelemetryService
+    package: als.options.gloo.solo.io
   als.options.gloo.solo.io.OrFilter:
     relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/options/als/als.proto.sk/#OrFilter
     package: als.options.gloo.solo.io
@@ -401,8 +407,14 @@ apis:
   envoy.api.v2.Resource:
     relativepath: reference/api/github.com/solo-io/solo-kit/api/external/envoy/api/v2/discovery.proto.sk/#Resource
     package: envoy.api.v2
+  envoy.api.v2.filter.http.AiTransformation:
+    relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/transformation/transformation.proto.sk/#AiTransformation
+    package: envoy.api.v2.filter.http
   envoy.api.v2.filter.http.Extraction:
     relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/transformation/transformation.proto.sk/#Extraction
+    package: envoy.api.v2.filter.http
+  envoy.api.v2.filter.http.FieldDefault:
+    relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/transformation/transformation.proto.sk/#FieldDefault
     package: envoy.api.v2.filter.http
   envoy.api.v2.filter.http.FilterTransformations:
     relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/transformation/transformation.proto.sk/#FilterTransformations
@@ -421,6 +433,9 @@ apis:
     package: envoy.api.v2.filter.http
   envoy.api.v2.filter.http.Passthrough:
     relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/transformation/transformation.proto.sk/#Passthrough
+    package: envoy.api.v2.filter.http
+  envoy.api.v2.filter.http.PromptEnrichment:
+    relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/transformation/transformation.proto.sk/#PromptEnrichment
     package: envoy.api.v2.filter.http
   envoy.api.v2.filter.http.ResponseMatcher:
     relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/transformation/transformation.proto.sk/#ResponseMatcher
@@ -1403,6 +1418,18 @@ apis:
   opencensus.proto.trace.TruncatableString:
     relativepath: reference/api/github.com/solo-io/solo-kit/api/external/trace.proto.sk/#TruncatableString
     package: opencensus.proto.trace
+  opentelemetry.proto.common.v1.AnyValue:
+    relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/external/opentelemetry/common/v1/common.proto.sk/#AnyValue
+    package: opentelemetry.proto.common.v1
+  opentelemetry.proto.common.v1.ArrayValue:
+    relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/external/opentelemetry/common/v1/common.proto.sk/#ArrayValue
+    package: opentelemetry.proto.common.v1
+  opentelemetry.proto.common.v1.KeyValue:
+    relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/external/opentelemetry/common/v1/common.proto.sk/#KeyValue
+    package: opentelemetry.proto.common.v1
+  opentelemetry.proto.common.v1.KeyValueList:
+    relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/external/opentelemetry/common/v1/common.proto.sk/#KeyValueList
+    package: opentelemetry.proto.common.v1
   options.gloo.solo.io.Selector:
     relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/options/subset_spec.proto.sk/#Selector
     package: options.gloo.solo.io

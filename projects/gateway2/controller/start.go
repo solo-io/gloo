@@ -18,6 +18,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 	gwv1a2 "sigs.k8s.io/gateway-api/apis/v1alpha2"
+	gwxv1a1 "sigs.k8s.io/gateway-api/apisx/v1alpha1"
 
 	gatewaykubev1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1/kube/apis/gateway.solo.io/v1"
 	"github.com/solo-io/gloo/projects/gateway2/deployer"
@@ -142,6 +143,12 @@ func NewControllerBuilder(ctx context.Context, cfg StartConfig) (*ControllerBuil
 		gatewaykubev1.SchemeGroupVersion.WithResource("virtualhostoptions"),
 		krt.WithName("VirtualHostOption"))
 
+	listenerOptionCollection := proxy_syncer.SetupCollectionDynamic[gatewaykubev1.ListenerOption](
+		ctx,
+		cfg.Client,
+		gatewaykubev1.SchemeGroupVersion.WithResource("listeneroptions"),
+		krt.WithName("ListenerOption"))
+
 	routeOptionCollection := proxy_syncer.SetupCollectionDynamic[gatewaykubev1.RouteOption](
 		ctx,
 		cfg.Client,
@@ -164,6 +171,7 @@ func NewControllerBuilder(ctx context.Context, cfg StartConfig) (*ControllerBuil
 			AugmentedPods:               cfg.AugmentedPods,
 			RouteOptionCollection:       routeOptionCollection,
 			VirtualHostOptionCollection: virtualHostOptionCollection,
+			ListenerOptionCollection:    listenerOptionCollection,
 			AuthConfigCollection:        authConfigCollection,
 		},
 		StatusReporter: cfg.KubeGwStatusReporter,
@@ -297,6 +305,15 @@ func getGatewayCRDs(restConfig *rest.Config) (sets.Set[string], error) {
 
 	if tlsRouteExists {
 		crds.Insert(wellknown.TLSRouteCRDName)
+	}
+
+	xListenerSetExists, err := glooschemes.CRDExists(restConfig, gwxv1a1.GroupVersion.Group, gwxv1a1.GroupVersion.Version, wellknown.XListenerSetKind)
+	if err != nil {
+		return nil, err
+	}
+
+	if xListenerSetExists {
+		crds.Insert(wellknown.XListenerSetKind)
 	}
 
 	return crds, nil

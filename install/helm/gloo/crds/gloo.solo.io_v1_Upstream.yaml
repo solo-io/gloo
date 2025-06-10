@@ -50,6 +50,13 @@ spec:
                           hostname:
                             nullable: true
                             type: string
+                          pathOverride:
+                            properties:
+                              basePath:
+                                type: string
+                              fullPath:
+                                type: string
+                            type: object
                           port:
                             maximum: 4294967295
                             minimum: 0
@@ -81,6 +88,51 @@ spec:
                       deploymentName:
                         type: string
                       endpoint:
+                        type: string
+                    type: object
+                  bedrock:
+                    properties:
+                      credentialProvider:
+                        properties:
+                          inline:
+                            properties:
+                              accessKeyId:
+                                type: string
+                              secretAccessKey:
+                                type: string
+                              sessionToken:
+                                type: string
+                            type: object
+                          secretRef:
+                            properties:
+                              name:
+                                type: string
+                              namespace:
+                                type: string
+                            type: object
+                        type: object
+                      customHost:
+                        properties:
+                          host:
+                            type: string
+                          hostname:
+                            nullable: true
+                            type: string
+                          pathOverride:
+                            properties:
+                              basePath:
+                                type: string
+                              fullPath:
+                                type: string
+                            type: object
+                          port:
+                            maximum: 4294967295
+                            minimum: 0
+                            type: integer
+                        type: object
+                      model:
+                        type: string
+                      region:
                         type: string
                     type: object
                   gemini:
@@ -127,6 +179,13 @@ spec:
                           hostname:
                             nullable: true
                             type: string
+                          pathOverride:
+                            properties:
+                              basePath:
+                                type: string
+                              fullPath:
+                                type: string
+                            type: object
                           port:
                             maximum: 4294967295
                             minimum: 0
@@ -166,6 +225,13 @@ spec:
                                           hostname:
                                             nullable: true
                                             type: string
+                                          pathOverride:
+                                            properties:
+                                              basePath:
+                                                type: string
+                                              fullPath:
+                                                type: string
+                                            type: object
                                           port:
                                             maximum: 4294967295
                                             minimum: 0
@@ -197,6 +263,51 @@ spec:
                                       deploymentName:
                                         type: string
                                       endpoint:
+                                        type: string
+                                    type: object
+                                  bedrock:
+                                    properties:
+                                      credentialProvider:
+                                        properties:
+                                          inline:
+                                            properties:
+                                              accessKeyId:
+                                                type: string
+                                              secretAccessKey:
+                                                type: string
+                                              sessionToken:
+                                                type: string
+                                            type: object
+                                          secretRef:
+                                            properties:
+                                              name:
+                                                type: string
+                                              namespace:
+                                                type: string
+                                            type: object
+                                        type: object
+                                      customHost:
+                                        properties:
+                                          host:
+                                            type: string
+                                          hostname:
+                                            nullable: true
+                                            type: string
+                                          pathOverride:
+                                            properties:
+                                              basePath:
+                                                type: string
+                                              fullPath:
+                                                type: string
+                                            type: object
+                                          port:
+                                            maximum: 4294967295
+                                            minimum: 0
+                                            type: integer
+                                        type: object
+                                      model:
+                                        type: string
+                                      region:
                                         type: string
                                     type: object
                                   gemini:
@@ -243,6 +354,13 @@ spec:
                                           hostname:
                                             nullable: true
                                             type: string
+                                          pathOverride:
+                                            properties:
+                                              basePath:
+                                                type: string
+                                              fullPath:
+                                                type: string
+                                            type: object
                                           port:
                                             maximum: 4294967295
                                             minimum: 0
@@ -274,6 +392,13 @@ spec:
                                           hostname:
                                             nullable: true
                                             type: string
+                                          pathOverride:
+                                            properties:
+                                              basePath:
+                                                type: string
+                                              fullPath:
+                                                type: string
+                                            type: object
                                           port:
                                             maximum: 4294967295
                                             minimum: 0
@@ -300,6 +425,9 @@ spec:
                                                 type: string
                                             type: object
                                         type: object
+                                      jsonSchema:
+                                        type: string
+                                        x-kubernetes-int-or-string: true
                                       location:
                                         type: string
                                       model:
@@ -340,6 +468,13 @@ spec:
                           hostname:
                             nullable: true
                             type: string
+                          pathOverride:
+                            properties:
+                              basePath:
+                                type: string
+                              fullPath:
+                                type: string
+                            type: object
                           port:
                             maximum: 4294967295
                             minimum: 0
@@ -366,6 +501,9 @@ spec:
                                 type: string
                             type: object
                         type: object
+                      jsonSchema:
+                        type: string
+                        x-kubernetes-int-or-string: true
                       location:
                         type: string
                       model:

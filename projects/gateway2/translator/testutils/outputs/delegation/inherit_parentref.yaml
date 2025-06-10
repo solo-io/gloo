@@ -1,0 +1,59 @@
+---
+listeners:
+- aggregateListener:
+    httpFilterChains:
+    - matcher: {}
+      virtualHostRefs:
+      - listener~80~example_com
+    httpResources:
+      virtualHosts:
+        listener~80~example_com:
+          domains:
+          - example.com
+          name: listener~80~example_com
+          routes:
+          - matchers:
+            - exact: /a/bar
+              headers:
+              - name: header1
+                value: val1
+              methods:
+              - POST
+              queryParameters:
+              - name: query1
+                value: val1
+            name: httproute-route-b-a-0-0
+            options: {}
+            routeAction:
+              single:
+                kube:
+                  port: 8080
+                  ref:
+                    name: svc-a
+                    namespace: a
+          - matchers:
+            - prefix: /
+            options: {}
+            name: httproute-example-route-infra-0-0
+            routeAction:
+              single:
+                kube:
+                  port: 80
+                  ref:
+                    name: example-svc
+                    namespace: infra
+  bindAddress: '::'
+  bindPort: 8080
+  metadataStatic:
+    sources:
+    - resourceKind: gateway.networking.k8s.io/Gateway
+      resourceRef:
+        name: listener~80
+        namespace: infra
+  name: listener~80
+metadata:
+  labels:
+    created_by: gloo-kube-gateway-api
+    gateway_namespace: infra
+  name: infra-example-gateway
+  namespace: gloo-system

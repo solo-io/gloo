@@ -6,13 +6,12 @@ import (
 
 	solokubev1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1/kube/apis/gateway.solo.io/v1"
 	"github.com/solo-io/gloo/projects/gateway2/translator/plugins/utils"
-	"github.com/solo-io/go-utils/contextutils"
+	"github.com/solo-io/gloo/projects/gateway2/wellknown"
 	skv2corev1 "github.com/solo-io/skv2/pkg/api/core.skv2.solo.io/v1"
 	"k8s.io/apimachinery/pkg/fields"
-	"k8s.io/apimachinery/pkg/types"
-
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
+	apixv1a1 "sigs.k8s.io/gateway-api/apisx/v1alpha1"
 )
 
 type ListenerOptionQueries interface {
@@ -20,16 +19,24 @@ type ListenerOptionQueries interface {
 	// the listener resides and have either targeted the listener with section name or omitted section name.
 	// The returned ListenerOption list is sorted by specificity in the order of
 	//
-	// - older with section name
-	//
-	// - newer with section name
-	//
-	// - older without section name
-	//
-	// - newer without section name
+	// ListenerSet targets:
+	//     - older with section name
+	//     - newer with section name
+	//     - older without section name
+	//     - newer without section name
+	// Gateway targets:
+	//     - older with section name
+	//     - newer with section name
+	//     - older without section name
+	//     - newer without section name
 	//
 	// Note that currently, only ListenerOptions in the same namespace as the Gateway can be attached.
-	GetAttachedListenerOptions(ctx context.Context, listener *gwv1.Listener, parentGw *gwv1.Gateway) ([]*solokubev1.ListenerOption, error)
+	GetAttachedListenerOptions(
+		ctx context.Context,
+		listener *gwv1.Listener,
+		parentGw *gwv1.Gateway,
+		parentListenerSet *apixv1a1.XListenerSet,
+	) ([]*solokubev1.ListenerOption, error)
 }
 
 type listenerOptionQueries struct {
@@ -56,46 +63,62 @@ func (r *listenerOptionQueries) GetAttachedListenerOptions(
 	ctx context.Context,
 	listener *gwv1.Listener,
 	parentGw *gwv1.Gateway,
+	parentListenerSet *apixv1a1.XListenerSet,
 ) ([]*solokubev1.ListenerOption, error) {
 	if parentGw.GetName() == "" || parentGw.GetNamespace() == "" {
 		return nil, fmt.Errorf("parent gateway must have name and namespace; received name: %s, namespace: %s", parentGw.GetName(), parentGw.GetNamespace())
 	}
-	nn := types.NamespacedName{
+
+	nnk := utils.NamespacedNameKind{
 		Namespace: parentGw.Namespace,
 		Name:      parentGw.Name,
+		Kind:      wellknown.GatewayKind,
 	}
+
 	list := &solokubev1.ListenerOptionList{}
 	if err := r.c.List(
 		ctx,
 		list,
-		client.MatchingFieldsSelector{Selector: fields.OneTermEqualSelector(ListenerOptionTargetField, nn.String())},
+		client.MatchingFieldsSelector{Selector: fields.OneTermEqualSelector(ListenerOptionTargetField, nnk.String())},
 		client.InNamespace(parentGw.GetNamespace()),
 	); err != nil {
 		return nil, err
 	}
 
-	if len(list.Items) == 0 {
+	listListenerSet := &solokubev1.ListenerOptionList{}
+	if parentListenerSet != nil {
+		nnkListenerSet := utils.NamespacedNameKind{
+			Namespace: parentListenerSet.GetNamespace(),
+			Name:      parentListenerSet.GetName(),
+			Kind:      wellknown.XListenerSetKind,
+		}
+		if err := r.c.List(
+			ctx,
+			listListenerSet,
+			client.MatchingFieldsSelector{Selector: fields.OneTermEqualSelector(ListenerOptionTargetField, nnkListenerSet.String())},
+			client.InNamespace(parentListenerSet.GetNamespace()),
+		); err != nil {
+			return nil, err
+		}
+	}
+
+	allItems := append(list.Items, listListenerSet.Items...)
+	if len(allItems) == 0 {
 		return nil, nil
 	}
 
-	policies := buildWrapperType(ctx, list)
-	orderedPolicies := utils.GetPrioritizedListenerPolicies(policies, listener)
+	policies := buildWrapperType(allItems)
+	orderedPolicies := utils.GetPrioritizedListenerPolicies(policies, listener, parentGw.Name, parentListenerSet)
+
 	return orderedPolicies, nil
 }
 
 func buildWrapperType(
-	ctx context.Context,
-	list *solokubev1.ListenerOptionList,
+	items []solokubev1.ListenerOption,
 ) []utils.PolicyWithSectionedTargetRefs[*solokubev1.ListenerOption] {
 	policies := []utils.PolicyWithSectionedTargetRefs[*solokubev1.ListenerOption]{}
-	for i := range list.Items {
-		item := &list.Items[i]
-
-		// warn for multiple targetRefs until we actually support this
-		// TODO: remove this as part of https://github.com/solo-io/solo-projects/issues/6286
-		if len(item.Spec.GetTargetRefs()) > 1 {
-			contextutils.LoggerFrom(ctx).Warnf(utils.MultipleTargetRefErrStr, item.GetNamespace(), item.GetName())
-		}
+	for i := range items {
+		item := &items[i]
 
 		policy := listenerOptionPolicy{
 			obj: item,

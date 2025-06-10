@@ -86,7 +86,7 @@ Get the Argo CD applications that define the installation of Gloo Gateway by usi
 
 ## Product-specific details
 
-### Control plane
+Use the built-in Gloo Gateway tools to generate a debug report that includes all the logs and configurations for the Gloo Gateway control and data plane components. 
 
 1. Capture the output of the `glooctl check` command.
     <br>Typically, the command output indicates any errors in the control plane components or associated resources, such as in the following example.
@@ -112,64 +112,13 @@ Get the Argo CD applications that define the installation of Gloo Gateway by usi
     * proxy check was skipped due to an error in checking deployments
     * xds metrics check was skipped due to an error in checking deployment
     ```
-2. Collect the logs for various control plane components, such as `gloo`, `gloo-fed`, `redis`, or `observability` by using the `debug` log level (if possible). The components vary depending on your Gloo Gateway setup and can be found in the `gloo-system` namespace. At a minimum, include the logs for the `gloo` pod in your support request. 
-    <br>To enable the `debug` log level, see [Debugging control plane]({{< versioned_link_path fromRoot="/operations/debugging_gloo/#debugging-the-control-plane" >}}).
-    <br><br>Follow the steps below to get the logs for the `gloo` controller pod.
-    1. Set the log level to `debug`.
-        ```shell
-        kubectl port-forward deploy/gloo -n <controlplaneNamespace> 9091:9091 > /dev/null 2>&1 &
-        PID=$!
-        curl -X PUT -H "Content-Type: application/json" -d '{"level": "debug"}' http://localhost:9091/logging
-        ```
-    2. Capture the logs when reproducing the issue.
-        ```shell
-        kubectl logs -f deploy/gloo -n <controlplaneNamespace> > gloo.log
-        ```
-    3. After you capture the logs, reset the log level to `info`.
-        ```shell
-        curl -X PUT -H "Content-Type: application/json" -d '{"level": "info"}' http://localhost:9091/logging
-        kill -9 $PID
-        ```
-    Repeat these steps for all the control plane components.
 
-### Data plane
+2. Create a Gloo Gateway debug report that collects the logs and configuration for various control plane components, such as `gloo`, `gloo-fed`, `redis`, or `observability` by using the `glooctl debug` command. The components vary depending on your Gloo Gateway setup and can be found in the `gloo-system` namespace. The command stores all the information collected in a local `debug` directory. Make sure to include these files in your support ticket. 
+   ```sh
+   glooctl debug -N gloo-system
+   ```
 
-1. Capture the xDS configuration that is currently served.
-   ```shell
-   glooctl proxy served-config -n <controlplaneNamespace> > served-config.yaml
-   ```
-2. Get the configuration that is served in the `gateway-proxy` Envoy pod(s). 
-   <br>For more information, see [Dumping Envoy configuration]({{< versioned_link_path fromRoot="/operations/debugging_gloo/#dumping-envoy-configuration" >}}).
-   ```shell
-   kubectl port-forward deploy/gateway-proxy -n <proxyNamespace> 19000:19000 > /dev/null 2>&1 &
-   PID=$!
-   curl -s localhost:19000/config_dump\?include_eds > gateway-config.json
-   kill -9 $PID
-   ```
-3. Get the access log(s) for failed request from the `gateway-proxy` pod(s). If access logging is not enabled, refer to [this guide]({{< versioned_link_path fromRoot="/guides/security/access_logging" >}}) to enable it.
-4. If possible, collect the logs from the `gateway-proxy` Envoy pod(s) in `debug` log level for the failed request.
-   {{% notice tip %}}
-   The `gateway-proxy` component comes with several loggers. Setting the log level to `debug` for all loggers can get very noisy. Instead, you can change the log level for a specific logger only. For more information, see [Viewing Envoy logs]({{< versioned_link_path fromRoot="/operations/debugging_gloo/#viewing-envoy-logs" >}}).
-   {{% /notice %}}
-   1. Choose the logger that you want to get logs for. For a list of available loggers, see [Viewing Envoy logs]({{< versioned_link_path fromRoot="/operations/debugging_gloo/#viewing-envoy-logs" >}}).
-   2. Port-forward the `gateway-proxy` pod  on port 19000.
-        ```shell
-        kubectl -n gloo-system port-forward deploy/gateway-proxy 19000 &
-        ```
-    3. Change the log level to `debug` for the selected logger. The following example changes the log level for the `grpc` logger. 
-        ```shell
-        curl -X POST "127.0.0.1:19000/logging?grpc=debug"
-        ```
-        
-    4. Capture the logs when reproducing the issue. 
-        ```shell
-        kubectl logs -f deploy/gateway-proxy -n gloo-system > gateway-proxy.log
-        ```
-    3. After you capture the logs, reset the log level to `info`.
-        ```shell
-        curl -X POST "127.0.0.1:19000/logging?grpc=info"
-        ```
-5. Gather the stats from the proxy pod(s).
-   ```shell
-   glooctl proxy stats > proxy-stats.log
+3. If you experience issues in a specific namespace, make sure to also capture the logs and configurations for these resources. 
+   ```sh
+   glooctl debug -N <namespace>
    ```

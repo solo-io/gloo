@@ -18,7 +18,9 @@ import (
 	"github.com/solo-io/gloo/test/kubernetes/testutils/helper"
 	"github.com/solo-io/skv2/codegen/util"
 	"github.com/stretchr/testify/suite"
+	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 )
 
@@ -57,7 +59,7 @@ func (s *testingSuite) BeforeTest(suiteName, testName string) {
 		"--values", s.TestInstallation.Metadata.ValuesManifestFile,
 	}...),
 		helper.WithCRDs(filepath.Join(s.TestHelper.RootDir, "install", "helm", "gloo", "crds")))
-	s.TestInstallation.Assertions.Require.NoError(err)
+	s.TestInstallation.AssertionsT(s.T()).Require.NoError(err)
 
 	// apply manifests, if any
 	s.BaseTestingSuite.BeforeTest(suiteName, testName)
@@ -72,17 +74,24 @@ func (s *testingSuite) AfterTest(suiteName, testName string) {
 	})
 }
 
+func (s *testingSuite) TestDifferentWatchAndInstallNamespace() {
+	s.UpgradeWithCustomValuesFile(filepath.Join(util.MustGetThisDir(), "testdata/manifests", "different-watch-install-namespace.yaml"))
+	s.TestInstallation.AssertionsT(s.T()).EventuallyRunningReplicas(s.Ctx, s.glooDeployment().ObjectMeta, Equal(1))
+	settings := s.GetKubectlOutput("-n", s.TestInstallation.Metadata.InstallNamespace, "get", "settings", "default", "-o", "yaml")
+	s.TestInstallation.AssertionsT(s.T()).Assert.Contains(settings, "discoveryNamespace: default")
+}
+
 func (s *testingSuite) TestUpdateValidationServerGrpcMaxSizeBytes() {
 	// Verify that it was installed with the appropriate settings
 	settings := s.GetKubectlOutput("-n", s.TestInstallation.Metadata.InstallNamespace, "get", "settings", "default", "-o", "yaml")
-	s.TestInstallation.Assertions.Assert.Contains(settings, "invalidRouteResponseCode: 404")
+	s.TestInstallation.AssertionsT(s.T()).Assert.Contains(settings, "invalidRouteResponseCode: 404")
 
 	s.UpgradeWithCustomValuesFile(filepath.Join(util.MustGetThisDir(), "testdata/manifests", "server-grpc-max-size-bytes.yaml"))
 
 	// Verify that the changes in helm reflected in the settings CR
 	settings = s.GetKubectlOutput("-n", s.TestInstallation.Metadata.InstallNamespace, "get", "settings", "default", "-o", "yaml")
-	s.TestInstallation.Assertions.Assert.Contains(settings, "invalidRouteResponseCode: 404")
-	s.TestInstallation.Assertions.Assert.Contains(settings, "validationServerGrpcMaxSizeBytes: 5000000")
+	s.TestInstallation.AssertionsT(s.T()).Assert.Contains(settings, "invalidRouteResponseCode: 404")
+	s.TestInstallation.AssertionsT(s.T()).Assert.Contains(settings, "validationServerGrpcMaxSizeBytes: 5000000")
 }
 
 func (s *testingSuite) TestAddSecondGatewayProxySeparateNamespace() {
@@ -95,12 +104,12 @@ func (s *testingSuite) TestAddSecondGatewayProxySeparateNamespace() {
 	// Ensures deployment is created for both default namespace and external one
 	// Note - name of external deployments is kebab-case of gatewayProxies NAME helm value
 	deployments := s.GetKubectlOutput("-n", s.TestInstallation.Metadata.InstallNamespace, "get", "deployment", "-A")
-	s.TestInstallation.Assertions.Assert.Contains(deployments, "gateway-proxy")
-	s.TestInstallation.Assertions.Assert.Contains(deployments, "proxy-external")
+	s.TestInstallation.AssertionsT(s.T()).Assert.Contains(deployments, "gateway-proxy")
+	s.TestInstallation.AssertionsT(s.T()).Assert.Contains(deployments, "proxy-external")
 
 	// Ensures service account is created for the external namespace
 	serviceAccounts := s.GetKubectlOutput("get", "serviceaccount", "-n", externalNamespace)
-	s.TestInstallation.Assertions.Assert.Contains(serviceAccounts, "gateway-proxy")
+	s.TestInstallation.AssertionsT(s.T()).Assert.Contains(serviceAccounts, "gateway-proxy")
 
 	// Ensures namespace is cleaned up before continuing
 	s.GetKubectlOutput("delete", "ns", externalNamespace)
@@ -112,7 +121,7 @@ func (s *testingSuite) TestValidationWebhookCABundle() {
 		// Ensure the webhook caBundle should be the same as the secret's root ca value
 		secretCert := s.GetKubectlOutput("-n", s.TestInstallation.Metadata.InstallNamespace, "get", "secrets", "gateway-validation-certs", "-o", "jsonpath='{.data.ca\\.crt}'")
 		webhookCABundle := s.GetKubectlOutput("-n", s.TestInstallation.Metadata.InstallNamespace, "get", "validatingWebhookConfiguration", "gloo-gateway-validation-webhook-"+s.TestInstallation.Metadata.InstallNamespace, "-o", "jsonpath='{.webhooks[0].clientConfig.caBundle}'")
-		s.TestInstallation.Assertions.Assert.Equal(webhookCABundle, secretCert)
+		s.TestInstallation.AssertionsT(s.T()).Assert.Equal(webhookCABundle, secretCert)
 	}
 
 	ensureWebhookCABundleMatchesSecretsRootCAValue()
@@ -138,7 +147,7 @@ func (s *testingSuite) TestZeroDowntimeUpgrade() {
 			types.NamespacedName{Name: glooProxyObjectMeta.Name, Namespace: glooProxyObjectMeta.Namespace},
 			svc)
 		s.Require().NoError(err)
-		s.TestInstallation.Assertions.Gomega.Expect(svc.GetLabels()).To(
+		s.TestInstallation.AssertionsT(s.T()).Gomega.Expect(svc.GetLabels()).To(
 			HaveKeyWithValue("new-service-label-key", "new-service-label-val"))
 
 		// now restart the deployment and make sure there's still no downtime
@@ -152,13 +161,13 @@ func (s *testingSuite) UpgradeWithCustomValuesFile(valuesFile string) {
 		// Do not reuse the existing values as we need to install the new chart with the new version of the images
 		"--values", valuesFile,
 	}...))
-	s.TestInstallation.Assertions.Require.NoError(err)
+	s.TestInstallation.AssertionsT(s.T()).Require.NoError(err)
 }
 
 // waitProxyRunning waits until the proxy pod is running and able to receive traffic
 func (s *testingSuite) waitProxyRunning() {
-	s.TestInstallation.Assertions.EventuallyRunningReplicas(s.Ctx, glooProxyObjectMeta, Equal(1))
-	s.TestInstallation.Assertions.AssertEventualCurlResponse(
+	s.TestInstallation.AssertionsT(s.T()).EventuallyRunningReplicas(s.Ctx, glooProxyObjectMeta, Equal(1))
+	s.TestInstallation.AssertionsT(s.T()).AssertEventualCurlResponse(
 		s.Ctx,
 		defaults.CurlPodExecOpt,
 		[]curl.Option{
@@ -250,4 +259,14 @@ func (s *testingSuite) ensureZeroDowntimeDuringAction(actionFunc func(), numRequ
 	// Verify that there were no errors
 	Expect(cmd.Output()).To(ContainSubstring(fmt.Sprintf("[200]	%d responses", numRequests)))
 	Expect(cmd.Output()).ToNot(ContainSubstring("Error distribution"))
+}
+
+func (s *testingSuite) glooDeployment() *appsv1.Deployment {
+	return &appsv1.Deployment{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: s.TestInstallation.Metadata.InstallNamespace,
+			Name:      "gloo",
+			Labels:    map[string]string{"gloo": "gloo"},
+		},
+	}
 }

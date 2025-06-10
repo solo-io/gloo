@@ -7,6 +7,7 @@ import (
 
 	envoy_config_bootstrap "github.com/envoyproxy/go-control-plane/envoy/config/bootstrap/v3"
 	_ "github.com/envoyproxy/go-control-plane/envoy/extensions/upstreams/http/v3"
+	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/types"
@@ -14,6 +15,8 @@ import (
 	"github.com/solo-io/gloo/pkg/version"
 	gw2_v1alpha1 "github.com/solo-io/gloo/projects/gateway2/api/v1alpha1"
 	"github.com/solo-io/gloo/projects/gateway2/deployer"
+	"github.com/solo-io/gloo/projects/gateway2/query/mocks"
+	translator_types "github.com/solo-io/gloo/projects/gateway2/translator/types"
 	"github.com/solo-io/gloo/projects/gateway2/wellknown"
 	wellknownkube "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/kube/wellknown"
 	glooutils "github.com/solo-io/gloo/projects/gloo/pkg/utils"
@@ -33,6 +36,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	api "sigs.k8s.io/gateway-api/apis/v1"
+	gwxv1a1 "sigs.k8s.io/gateway-api/apisx/v1alpha1"
 
 	// TODO BML tests in this suite fail if this no-op import is not imported first.
 	//
@@ -42,6 +46,11 @@ import (
 	// There is some import within this package that this suite relies on. Chasing that down is
 	// *hard* tho due to the import tree, and best done in a followup.
 	_ "github.com/solo-io/gloo/projects/gloo/pkg/translator"
+)
+
+var (
+	ctrl    *gomock.Controller
+	queries *mocks.MockGatewayQueries
 )
 
 // testBootstrap implements resources.Resource in order to use protoutils.UnmarshalYAML
@@ -285,6 +294,20 @@ var _ = Describe("Deployer", func() {
 		}
 	)
 
+	BeforeEach(func() {
+		ctrl = gomock.NewController(GinkgoT())
+		queries = mocks.NewMockGatewayQueries(ctrl)
+
+		queries.EXPECT().
+			ConsolidateGateway(gomock.Any(), gomock.Any()).
+			DoAndReturn(func(ctx context.Context, gw *api.Gateway) (*translator_types.ConsolidatedGateway, error) {
+				return &translator_types.ConsolidatedGateway{
+					Gateway: gw,
+				}, nil
+			}).
+			AnyTimes()
+	})
+
 	Context("default case", func() {
 
 		It("should work with empty params", func() {
@@ -320,7 +343,7 @@ var _ = Describe("Deployer", func() {
 				ControlPlane: deployer.ControlPlaneInfo{
 					XdsHost: "something.cluster.local", XdsPort: 1234,
 				},
-			})
+			}, queries)
 			Expect(err).NotTo(HaveOccurred())
 
 			gw := &api.Gateway{
@@ -365,7 +388,7 @@ var _ = Describe("Deployer", func() {
 					StsClusterName:                  stsClusterName,
 					StsUri:                          stsUri,
 				},
-			})
+			}, queries)
 			Expect(err).NotTo(HaveOccurred())
 
 			// run deployer and get the ConfigMap that was created
@@ -390,7 +413,7 @@ var _ = Describe("Deployer", func() {
 					XdsHost: "something.cluster.local", XdsPort: 1234,
 				},
 				Aws: nil,
-			})
+			}, queries)
 			Expect(err).NotTo(HaveOccurred())
 
 			// run deployer and get the ConfigMap that was created
@@ -419,7 +442,7 @@ var _ = Describe("Deployer", func() {
 					StsClusterName:                  stsClusterName,
 					StsUri:                          stsUri,
 				},
-			})
+			}, queries)
 			Expect(err).NotTo(HaveOccurred())
 
 			// run deployer and get the ConfigMap that was created
@@ -445,7 +468,7 @@ var _ = Describe("Deployer", func() {
 		})
 
 		DescribeTable("gets correct gvks", func(inputs *deployer.Inputs, expectedGvks []schema.GroupVersionKind) {
-			d, err := deployer.NewDeployer(newFakeClientWithObjs(gwc, defaultGatewayParams()), inputs)
+			d, err := deployer.NewDeployer(newFakeClientWithObjs(gwc, defaultGatewayParams()), inputs, queries)
 			Expect(err).NotTo(HaveOccurred())
 			gvks, err := d.GetGvksToWatch(context.Background())
 			Expect(err).NotTo(HaveOccurred())
@@ -500,7 +523,7 @@ var _ = Describe("Deployer", func() {
 				ControlPlane: deployer.ControlPlaneInfo{
 					XdsHost: "something.cluster.local", XdsPort: 1234,
 				},
-			})
+			}, queries)
 			Expect(err).NotTo(HaveOccurred())
 
 			d2, err := deployer.NewDeployer(newFakeClientWithObjs(gwc, defaultGatewayParams()), &deployer.Inputs{
@@ -509,7 +532,7 @@ var _ = Describe("Deployer", func() {
 				ControlPlane: deployer.ControlPlaneInfo{
 					XdsHost: "something.cluster.local", XdsPort: 1234,
 				},
-			})
+			}, queries)
 			Expect(err).NotTo(HaveOccurred())
 
 			gw1 := &api.Gateway{
@@ -940,6 +963,12 @@ var _ = Describe("Deployer", func() {
 				))
 				return nil
 			}
+
+			fullyDefinedGatewayParamsWithTopologySpreadConstraints = func() *gw2_v1alpha1.GatewayParameters {
+				params := fullyDefinedGatewayParameters(wellknown.DefaultGatewayParametersName, defaultNamespace)
+				params.Spec.Kube.PodTemplate.TopologySpreadConstraints = getTopologySpreadConstraints()
+				return params
+			}
 		)
 
 		// fullyDefinedValidationWithoutRunAsUser doesn't check "runAsUser"
@@ -1196,6 +1225,18 @@ var _ = Describe("Deployer", func() {
 			return generalAiAndSdsValidationFunc(objs, inp, true) // true: don't expect null runAsUser
 		}
 
+		validateGatewayParamsWithTopologySpreadConstraints := func(objs clientObjects, inp *input) error {
+			err := fullyDefinedValidationWithoutRunAsUser(objs, inp)
+			if err != nil {
+				return err
+			}
+
+			dep := objs.findDeployment(defaultNamespace, defaultDeploymentName)
+			Expect(dep.Spec.Template.Spec.TopologySpreadConstraints).To(BeEquivalentTo(getTopologySpreadConstraints()))
+
+			return nil
+		}
+
 		DescribeTable("create and validate objs", func(inp *input, expected *expectedOutput) {
 			checkErr := func(err, expectedErr error) (shouldReturn bool) {
 				GinkgoHelper()
@@ -1238,7 +1279,7 @@ var _ = Describe("Deployer", func() {
 				Data: mtlsSecretData(),
 			}
 
-			d, err := deployer.NewDeployer(newFakeClientWithObjs(gwc, defaultGwp, overrideGwp, secret), inp.dInputs)
+			d, err := deployer.NewDeployer(newFakeClientWithObjs(gwc, defaultGwp, overrideGwp, secret), inp.dInputs, queries)
 			if checkErr(err, expected.newDeployerErr) {
 				return
 			}
@@ -1292,6 +1333,7 @@ var _ = Describe("Deployer", func() {
 			}, &expectedOutput{
 				validationFunc: fullyDefinedValidationFloatingUserId,
 			}),
+
 			Entry("correct deployment with sds and AI extension enabled", &input{
 				dInputs:     istioEnabledDeployerInputs(),
 				gw:          defaultGatewayWithGatewayParams(gwpOverrideName),
@@ -1566,7 +1608,110 @@ var _ = Describe("Deployer", func() {
 					return validateGatewayParametersPropagation(objs, defaultGatewayParamsWithSds(), mtlsEnabled)
 				},
 			}),
+
+			Entry("Defining GatewayParameters with TopologySpreadConstraints", &input{
+				dInputs:    istioEnabledDeployerInputs(),
+				gw:         defaultGateway(),
+				defaultGwp: fullyDefinedGatewayParamsWithTopologySpreadConstraints(),
+			}, &expectedOutput{
+				validationFunc: validateGatewayParamsWithTopologySpreadConstraints,
+			}),
 		)
+	})
+
+	Context("with listener sets", func() {
+
+		var (
+			listenerSetName string = "ls-1"
+			listenerName    string = "listener-1"
+			listenerSetPort int32  = 4567
+			listenerPort    int32  = 1234
+		)
+
+		BeforeEach(func() {
+			queries = mocks.NewMockGatewayQueries(ctrl)
+			queries.EXPECT().
+				ConsolidateGateway(gomock.Any(), gomock.Any()).
+				DoAndReturn(func(ctx context.Context, gw *api.Gateway) (*translator_types.ConsolidatedGateway, error) {
+					return &translator_types.ConsolidatedGateway{
+						Gateway: gw,
+						AllowedListenerSets: []*gwxv1a1.XListenerSet{
+							{
+								ObjectMeta: metav1.ObjectMeta{
+									Name:      listenerSetName,
+									Namespace: defaultNamespace,
+								},
+								Spec: gwxv1a1.ListenerSetSpec{
+									Listeners: []gwxv1a1.ListenerEntry{
+										{
+											Name: api.SectionName(listenerName),
+											Port: gwxv1a1.PortNumber(listenerSetPort),
+										},
+									},
+								},
+							},
+						},
+					}, nil
+				}).
+				AnyTimes()
+		})
+
+		It("exposes all necessary ports", func() {
+			d, err := deployer.NewDeployer(newFakeClientWithObjs(defaultGatewayClass(), defaultGatewayParams()), &deployer.Inputs{
+				ControllerName: wellknown.GatewayControllerName,
+				Dev:            false,
+				ControlPlane: deployer.ControlPlaneInfo{
+					XdsHost: "something.cluster.local", XdsPort: 1234,
+				},
+			}, queries)
+			Expect(err).NotTo(HaveOccurred())
+
+			allNamespaces := api.NamespacesFromAll
+			gw := &api.Gateway{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "foo",
+					Namespace: defaultNamespace,
+					UID:       "1235",
+				},
+				TypeMeta: metav1.TypeMeta{
+					Kind:       "Gateway",
+					APIVersion: "gateway.solo.io/v1beta1",
+				},
+				Spec: api.GatewaySpec{
+					GatewayClassName: wellknown.GatewayClassName,
+					AllowedListeners: &api.AllowedListeners{
+						Namespaces: &api.ListenerNamespaces{
+							From: &allNamespaces,
+						},
+					},
+					Listeners: []api.Listener{
+						{
+							Name: api.SectionName(listenerName),
+							Port: api.PortNumber(listenerPort),
+						},
+					},
+				},
+			}
+
+			var objs clientObjects
+			objs, err = d.GetObjsToDeploy(context.Background(), gw)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(objs).To(HaveLen(4))
+			Expect(objs.findConfigMap(defaultNamespace, proxyName(gw.Name))).ToNot(BeNil())
+			Expect(objs.findServiceAccount(defaultNamespace, proxyName(gw.Name))).ToNot(BeNil())
+
+			servicePorts := objs.findService(defaultNamespace, proxyName(gw.Name)).Spec.Ports
+			Expect(servicePorts[0].Name).To(Equal(listenerName))
+			Expect(servicePorts[0].Port).To(Equal(listenerPort))
+			Expect(servicePorts[1].Name).To(Equal(fmt.Sprintf("1-%s", listenerName)))
+			Expect(servicePorts[1].Port).To(Equal(listenerSetPort))
+
+			deploymentPorts := objs.findDeployment(defaultNamespace, proxyName(gw.Name)).Spec.Template.Spec.Containers[0].Ports
+			Expect(deploymentPorts[0].Name).To(Equal(listenerName))
+			Expect(deploymentPorts[0].ContainerPort).To(Equal(listenerPort))
+			Expect(deploymentPorts[1].Name).To(Equal(fmt.Sprintf("1-%s", listenerName)))
+			Expect(deploymentPorts[1].ContainerPort).To(Equal(listenerSetPort))
+		})
 	})
 })
 
@@ -1776,5 +1921,18 @@ func generateReadinessProbe() *corev1.Probe {
 		InitialDelaySeconds: 5,
 		PeriodSeconds:       5,
 		FailureThreshold:    2,
+	}
+}
+
+func getTopologySpreadConstraints() []corev1.TopologySpreadConstraint {
+	return []corev1.TopologySpreadConstraint{
+		{
+			MaxSkew:           1,
+			TopologyKey:       "kubernetes.io/hostname",
+			WhenUnsatisfiable: corev1.DoNotSchedule,
+			LabelSelector: &metav1.LabelSelector{
+				MatchLabels: map[string]string{"pod-label": "default"},
+			},
+		},
 	}
 }

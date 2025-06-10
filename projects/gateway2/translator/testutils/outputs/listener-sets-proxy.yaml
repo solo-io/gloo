@@ -1,0 +1,151 @@
+listeners:
+- aggregateListener:
+    httpFilterChains:
+    - matcher: {}
+      virtualHostRefs:
+      - listener~8080~example_com
+    httpResources:
+      virtualHosts:
+        listener~8080~example_com:
+          domains:
+          - example.com
+          name: listener~8080~example_com
+          routes:
+          - matchers:
+            - prefix: /
+            name: httproute-example-route-default-0-0
+            options: {}
+            routeAction:
+              single:
+                kube:
+                  port: 80
+                  ref:
+                    name: example-svc
+                    namespace: default
+  bindAddress: '::'
+  bindPort: 8080
+  metadataStatic:
+    sources:
+    - resourceKind: gateway.networking.k8s.io/Gateway
+      resourceRef:
+        name: listener~8080
+        namespace: default
+  name: listener~8080
+- aggregateListener:
+    httpFilterChains:
+    - matcher: {}
+      virtualHostRefs:
+      - listener~8082~bar_example_com
+      - listener~8082~example_com
+    httpResources:
+      virtualHosts:
+        listener~8082~bar_example_com:
+          domains:
+          - bar.example.com
+          name: listener~8082~bar_example_com
+          routes:
+          - matchers:
+            - headers:
+              - name: env
+                value: canary
+              prefix: /
+            name: httproute-bar-route-default-0-0
+            options: {}
+            routeAction:
+              single:
+                kube:
+                  port: 8080
+                  ref:
+                    name: bar-svc-canary
+                    namespace: default
+          - matchers:
+            - prefix: /
+            name: httproute-bar-route-default-1-0
+            options: {}
+            routeAction:
+              single:
+                kube:
+                  port: 8080
+                  ref:
+                    name: bar-svc
+                    namespace: default
+        listener~8082~example_com:
+          domains:
+          - example.com
+          name: listener~8082~example_com
+          routes:
+          - matchers:
+            - prefix: /
+            name: httproute-example-route-default-0-0
+            options: {}
+            routeAction:
+              single:
+                kube:
+                  port: 80
+                  ref:
+                    name: example-svc
+                    namespace: default
+  bindAddress: '::'
+  bindPort: 8082
+  metadataStatic:
+    sources:
+    - resourceKind: gateway.networking.k8s.io/Gateway
+      resourceRef:
+        name: listener~8082
+        namespace: default
+  name: listener~8082
+- aggregateListener:
+    httpFilterChains:
+    - matcher: {}
+      virtualHostRefs:
+      - listener~8081~example_com
+      - listener~8081~foo_example_com
+    httpResources:
+      virtualHosts:
+        listener~8081~example_com:
+          domains:
+          - example.com
+          name: listener~8081~example_com
+          routes:
+          - matchers:
+            - prefix: /
+            name: httproute-example-route-default-0-0
+            options: {}
+            routeAction:
+              single:
+                kube:
+                  port: 80
+                  ref:
+                    name: example-svc
+                    namespace: default
+        listener~8081~foo_example_com:
+          domains:
+          - foo.example.com
+          name: listener~8081~foo_example_com
+          routes:
+          - matchers:
+            - prefix: /login
+            name: httproute-foo-route-default-0-0
+            options: {}
+            routeAction:
+              single:
+                kube:
+                  port: 8080
+                  ref:
+                    name: foo-svc
+                    namespace: default
+  bindAddress: '::'
+  bindPort: 8081
+  metadataStatic:
+    sources:
+    - resourceKind: gateway.networking.k8s.io/Gateway
+      resourceRef:
+        name: listener~8081
+        namespace: default
+  name: listener~8081
+metadata:
+  labels:
+    created_by: gloo-kube-gateway-api
+    gateway_namespace: default
+  name: default-example-gateway
+  namespace: gloo-system

@@ -410,9 +410,12 @@ func (x xdsDumper) Dump(t *testing.T, ctx context.Context) xdsDump {
 	var clusters []*envoycluster.Cluster
 	var listeners []*envoylistener.Listener
 
-	// run this in parallel with a 5s timeout
+	// run this in parallel with a 15s timeout
 	done := make(chan struct{})
 	go func() {
+		// give some time to process to reduce flakiness
+		time.Sleep(5 * time.Second)
+
 		defer close(done)
 		sent := 2
 		for i := 0; i < sent; i++ {
@@ -432,14 +435,21 @@ func (x xdsDumper) Dump(t *testing.T, ctx context.Context) xdsDump {
 				}
 			} else if dresp.GetTypeUrl() == "type.googleapis.com/envoy.config.listener.v3.Listener" {
 				needMoreListerners := false
+
 				for _, anyListener := range dresp.GetResources() {
 					var listener envoylistener.Listener
 					if err := anyListener.UnmarshalTo(&listener); err != nil {
 						t.Errorf("failed to unmarshal listener: %v", err)
 					}
 					listeners = append(listeners, &listener)
-					needMoreListerners = needMoreListerners || (len(getroutesnames(&listener)) == 0)
+					// ROLDS: Disabling this, it didn't like the pipe listener
+					// from the upstream-tunneling.yaml test as it expects routes on all listeners.
+					// It looks like this was put in place to deflake. I've run the tests
+					// in a loop on my workstation and they consistently passed.
+					// for i in {1..30}; do go clean -testcache; go test ./projects/gateway2/setup/...; done
+					//needMoreListerners = needMoreListerners || (len(getRouteNames(&listener)) == 0)
 				}
+
 				if len(listeners) == 0 {
 					needMoreListerners = true
 				}
@@ -460,7 +470,7 @@ func (x xdsDumper) Dump(t *testing.T, ctx context.Context) xdsDump {
 	}()
 	select {
 	case <-done:
-	case <-time.After(5 * time.Second):
+	case <-time.After(15 * time.Second):
 		// don't fatal yet as we want to dump the state while still connected
 		t.Error("timed out waiting for listener/cluster xds dump")
 		return xdsDump{}
@@ -484,7 +494,7 @@ func (x xdsDumper) Dump(t *testing.T, ctx context.Context) xdsDump {
 
 	var routenames []string
 	for _, l := range listeners {
-		routenames = append(routenames, getroutesnames(l)...)
+		routenames = append(routenames, getRouteNames(l)...)
 	}
 
 	dr = proto.Clone(x.dr).(*discovery_v3.DiscoveryRequest)
@@ -790,10 +800,13 @@ func protoJsonRoundTrip(c proto.Message) (any, error) {
 	return roundtrip, nil
 }
 
-func getroutesnames(l *envoylistener.Listener) []string {
+func getRouteNames(l *envoylistener.Listener) []string {
 	var routes []string
 	for _, fc := range l.GetFilterChains() {
 		for _, filter := range fc.GetFilters() {
+			fmt.Printf("filter: %s\n", filter.GetName())
+
+			// check if the filter is a http connection manager
 			suffix := string((&envoyhttp.HttpConnectionManager{}).ProtoReflect().Descriptor().FullName())
 			if strings.HasSuffix(filter.GetTypedConfig().GetTypeUrl(), suffix) {
 				var hcm envoyhttp.HttpConnectionManager

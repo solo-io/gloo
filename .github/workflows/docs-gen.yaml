@@ -1,16 +1,19 @@
 name: Docs
 
 env:
+    # ON_LTS_UPDATE - bump lts version in the repo variables
+    MIN_SCANNED_VERSION: ${{ vars.LATEST_STABLE_MINUS_THREE_BRANCH }}  # ⚠️ you should also change trivy-analysis-scheduled.yaml ⚠️
+
     SLACK_DEBUG_TESTING: false      # when set to "true", send notifications to #slack-integration-testing.  Otherwise, post to #edge-team-bots
-    MIN_SCANNED_VERSION: 'v1.15.0'  # ⚠️ you should also change trivy-analysis-scheduled.yaml ⚠️
 on:
   push:
     branches:
     - 'main'
+    # ON_LTS_UPDATE - bump version
+    - 'v1.19.x'
     - 'v1.18.x'
     - 'v1.17.x'
     - 'v1.16.x'
-    - 'v1.15.x'
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
     branches:
@@ -22,7 +25,7 @@ on:
 jobs:
   prepare_env:
     name: Prepare Environment
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     timeout-minutes: 5
     outputs:
       should-build-docs: ${{ steps.build-strategy.outputs.build_value }}
@@ -89,7 +92,7 @@ jobs:
     if: needs.prepare_env.outputs.should-build-docs == 'true'
     env:
       VERSION: ${{ needs.prepare_env.outputs.version }}
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     timeout-minutes: 60
     steps:
     - name: Check out code into the Go module directory
@@ -114,22 +117,24 @@ jobs:
       # Do not publish docs if this workflow was triggered by a pull request
       # Only deploy if this was triggered by a push to main, or a successful trivy workflow_run
       if: ${{ github.event_name != 'pull_request' }}
-      uses: FirebaseExtended/action-hosting-deploy@main
+      uses: FirebaseExtended/action-hosting-deploy@v0
       with:
         repoToken: ${{ secrets.GITHUB_TOKEN }}
         firebaseServiceAccount: ${{ secrets.GC_FIREBASE_GHA_SA_JSON_KEY }}
         projectId: ${{ secrets.GC_FIREBASE_GHA_PROJECT_ID }}
         channelId: live
         entryPoint: ./docs/ci
+        firebaseToolsVersion: v13
     - name: Deploy to Firebase (preview)
       # Generate live preview of docs for PRs to main
       if: ${{ github.event_name == 'pull_request' }}
-      uses: FirebaseExtended/action-hosting-deploy@main
+      uses: FirebaseExtended/action-hosting-deploy@v0
       with:
         repoToken: ${{ secrets.GITHUB_TOKEN }}
         firebaseServiceAccount: ${{ secrets.GC_FIREBASE_GHA_SA_JSON_KEY }}
         projectId: ${{ secrets.GC_FIREBASE_GHA_PROJECT_ID }}
         entryPoint: ./docs/ci
+        firebaseToolsVersion: v13
     - name: Notify On Failure
       id: notify-on-failure
       if: ${{ github.event_name != 'pull_request' && failure() }}

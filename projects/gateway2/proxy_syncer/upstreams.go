@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	envoy_config_cluster_v3 "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
 	"github.com/solo-io/gloo/pkg/utils/settingsutil"
 	"github.com/solo-io/gloo/projects/gateway2/krtcollections"
 	ggv2utils "github.com/solo-io/gloo/projects/gateway2/utils"
@@ -14,6 +13,7 @@ import (
 	glookubev1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/kube/apis/gloo.solo.io/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/syncer/setup"
+	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
 	"github.com/solo-io/go-utils/contextutils"
 	envoycache "github.com/solo-io/solo-kit/pkg/api/v1/control-plane/cache"
 	"github.com/solo-io/solo-kit/pkg/api/v1/control-plane/resource"
@@ -25,10 +25,15 @@ import (
 )
 
 type uccWithCluster struct {
-	Client         krtcollections.UniqlyConnectedClient
-	Cluster        envoycache.Resource
-	ClusterVersion uint64
-	upstreamName   string
+	Client                  krtcollections.UniqlyConnectedClient
+	Cluster                 envoycache.Resource
+	ClusterVersion          uint64
+	AdditionalClusters      []envoycache.Resource
+	AdditionalClustersHash  uint64
+	AdditionalListeners     []envoycache.Resource
+	AdditionalListenersHash uint64
+
+	upstreamName string
 }
 
 func (c uccWithCluster) ResourceName() string {
@@ -91,19 +96,40 @@ func NewPerClientEnvoyClusters(
 				latestSnap.Secrets = append(latestSnap.Secrets, s.Inner)
 			}
 
-			c, version := translate(ctx, settings, translator, latestSnap, upstream)
-			if c == nil {
+			// TODO make sure that translate returns a nil result if cluster would have been nil previously
+			clusterResult, version := translate(ctx, settings, translator, latestSnap, upstream)
+			if clusterResult == nil {
 				continue
 			}
+
+			c := clusterResult.Cluster
 			if name != "" && c.GetEdsClusterConfig() != nil {
 				c.GetEdsClusterConfig().ServiceName = name
 			}
 
+			additionalClusters := make([]envoycache.Resource, 0, len(clusterResult.AdditionalClusters))
+			additionalClustersHash := uint64(0)
+			for _, additionalCluster := range clusterResult.AdditionalClusters {
+				additionalClusters = append(additionalClusters, resource.NewEnvoyResource(additionalCluster))
+				additionalClustersHash ^= ggv2utils.HashProto(additionalCluster)
+			}
+
+			additionalListeners := make([]envoycache.Resource, 0, len(clusterResult.AdditionalListeners))
+			additionalListenersHash := uint64(0)
+			for _, additionalListener := range clusterResult.AdditionalListeners {
+				additionalListeners = append(additionalListeners, resource.NewEnvoyResource(additionalListener))
+				additionalListenersHash ^= ggv2utils.HashProto(additionalListener)
+			}
+
 			uccWithClusterRet = append(uccWithClusterRet, uccWithCluster{
-				Client:         ucc,
-				Cluster:        resource.NewEnvoyResource(c),
-				ClusterVersion: version,
-				upstreamName:   up.ResourceName(),
+				Client:                  ucc,
+				Cluster:                 resource.NewEnvoyResource(c),
+				ClusterVersion:          version,
+				upstreamName:            up.ResourceName(),
+				AdditionalClusters:      additionalClusters,
+				AdditionalClustersHash:  additionalClustersHash,
+				AdditionalListeners:     additionalListeners,
+				AdditionalListenersHash: additionalListenersHash,
 			})
 		}
 		return uccWithClusterRet
@@ -118,7 +144,12 @@ func NewPerClientEnvoyClusters(
 	}
 }
 
-func translate(ctx context.Context, settings *gloov1.Settings, translator setup.TranslatorFactory, snap *gloosnapshot.ApiSnapshot, up *gloov1.Upstream) (*envoy_config_cluster_v3.Cluster, uint64) {
+func translate(
+	ctx context.Context, settings *gloov1.Settings,
+	translator setup.TranslatorFactory,
+	snap *gloosnapshot.ApiSnapshot,
+	up *gloov1.Upstream,
+) (*translator.ClusterResult, uint64) {
 	ctx = settingsutil.WithSettings(ctx, settings)
 
 	params := plugins.Params{
@@ -129,12 +160,15 @@ func translate(ctx context.Context, settings *gloov1.Settings, translator setup.
 	}
 
 	// false here should be ok - plugins should set eds on eds clusters.
-	cluster, _ := translator.NewClusterTranslator(ctx, settings).TranslateCluster(params, up)
-	if cluster == nil {
+	clusterResult, _ := translator.NewClusterTranslator(ctx, settings).TranslateCluster(params, up)
+	if clusterResult == nil {
+		// TODO: handle the reports coming from the translator
+		// this is a loose end that likely will not need to be resolved before the kgateway rebase
+		// as the Gloo translator is still used and remitting the reports
 		return nil, 0
 	}
 
-	return cluster, ggv2utils.HashProto(cluster)
+	return clusterResult, ggv2utils.HashProto(clusterResult.Cluster)
 }
 
 func ApplyDestRulesForUpstream(destrule *DestinationRuleWrapper, u *gloov1.Upstream) (*gloov1.Upstream, string) {

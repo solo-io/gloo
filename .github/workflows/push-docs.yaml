@@ -7,7 +7,10 @@ on:
   workflow_dispatch:
     inputs:
       branch:
-        description: 'LTS branch to execute the workflow for, such as v1.17.x, or main. Supported ONLY for 1.17.x and later (1.16.x and earlier are not in the new docs repo).'
+        description: 'LTS branch to execute the workflow for, such as v1.17.x, or main. Supported ONLY for v1.17.x and later (1.16.x and earlier are not in the new docs repo).'
+        required: true
+      tag:
+        description: 'Version tag, such as v1.18.1-beta3'
         required: true
   repository_dispatch:
     types: [glooe-release-created]
@@ -21,9 +24,10 @@ jobs:
       - name: The glooe-release-created event is received when a relase is cut in solo-projects repo
         id: dispatch-receiver
         run: |
-          dispatch_lts=""
-          payload="${{ github.event.client_payload.lts }}"
-          echo "dispatch_lts=$payload" >> $GITHUB_OUTPUT
+          dispatch_lts="${{ github.event.client_payload.lts }}"
+          dispatch_tag="${{ github.event.client_payload.tag }}"
+          echo "dispatch_lts=$dispatch_lts" >> $GITHUB_OUTPUT
+          echo "dispatch_tag=$dispatch_tag" >> $GITHUB_OUTPUT
 
   copy-docs:
     runs-on: ubuntu-latest
@@ -44,25 +48,29 @@ jobs:
           version=${{ inputs.branch }}
         fi
         echo "lts=$version" >> $GITHUB_OUTPUT
+    # ON_LTS_UPDATE - bump version
     - name: Set version variables
       id: version-variables
       run: |
         minor=""
         directory=""
         if [[ "${{ steps.lts-version.outputs.lts }}" == "main" ]]; then
-          minor="1.19"
+          minor="1.20"
+          directory="main"
+        elif [[ "${{ steps.lts-version.outputs.lts }}" == "v1.20.x" ]]; then
+          minor="1.20"
           directory="main"
         elif [[ "${{ steps.lts-version.outputs.lts }}" == "v1.19.x" ]]; then
           minor="1.19"
-          directory="main"
+          directory="latest"
         elif [[ "${{ steps.lts-version.outputs.lts }}" == "v1.18.x" ]]; then
           minor="1.18"
-          directory="latest"
+          directory="1.18.x"
         elif [[ "${{ steps.lts-version.outputs.lts }}" == "v1.17.x" ]]; then
           minor="1.17"
           directory="1.17.x"
         else
-          minor="1.19"
+          minor="1.20"
           directory="main"
         fi
         echo "minor=${minor}" >> $GITHUB_OUTPUT
@@ -82,19 +90,42 @@ jobs:
         token: ${{ secrets.DOCS_TOKEN }}
         path: gloo
         ref: ${{ steps.lts-version.outputs.lts }}
-    - name: Configure Git
-      run: |
-        git config --global user.email "github-runner-solo@github.com"
-        git config --global user.name "github-runner-solo"
-    - name: Create branch in docs repo
-      id: create-branch
+    # Searches in the version conrefs (assets/conrefs/versions) for any instances of the previous tag for the minor version, like 1.19.0-beta3, and replaces them with the current tag, like 1.19.0-beta4.
+    - name: Bump version conrefs
       run: |
         pushd docs || exit 1
-        git checkout main
-        git pull
-        branch="post-${{ steps.version-variables.outputs.minor }}-release-docs-copy"
-        git checkout -b ${branch}
-        echo "branch=${branch}" >> $GITHUB_OUTPUT
+
+        MINOR_VERSION="${{ steps.version-variables.outputs.minor }}"
+        NEW_VERSION="${{ github.event.release.tag_name || inputs.tag || needs.receiver.outputs.dispatch_tag }}"
+        TARGET_DIR="assets/conrefs/versions"
+
+        # Escape periods in minor version (e.g., 1.19 → 1\.19)
+        MINOR_VERSION_ESCAPED="${MINOR_VERSION//./\\.}"
+
+        # Remove leading 'v' from new version if present
+        if [[ "$NEW_VERSION" == v* ]]; then
+          TRIMMED_NEW_VERSION="${NEW_VERSION:1}"
+        else
+          TRIMMED_NEW_VERSION="$NEW_VERSION"
+        fi
+        
+        # Escape & in replacement string for sed
+        SAFE_NEW_VERSION="${TRIMMED_NEW_VERSION//&/\\&}"
+        OLD_VERSION_REGEX="}}${MINOR_VERSION_ESCAPED}\\.\\d+(?:-[a-zA-Z0-9]+)?\\{\\{"
+
+        # Determine file pattern based on NEW_VERSION
+        if [[ "$NEW_VERSION" == "${{ needs.receiver.outputs.dispatch_tag }}" ]]; then
+          FILE_PATTERN="gloo_patch_*.md"
+        else
+          FILE_PATTERN="gloo_oss_*.md"
+        fi
+
+        # Run sed replacement on matching files
+        find "$TARGET_DIR" -type f -name "$FILE_PATTERN" -exec \
+          sed -E -i "s/\}\}${MINOR_VERSION_ESCAPED}\.[0-9]+(-[a-zA-Z0-9]+)?\{\{/}}${SAFE_NEW_VERSION}{{/g" {} \;
+
+        echo "Replaced versions matching '$OLD_VERSION_REGEX' with '$TRIMMED_NEW_VERSION' in $TARGET_DIR/$FILE_PATTERN"
+
         popd || exit 1
     - name: Generate docs
       env:
@@ -150,6 +181,8 @@ jobs:
       run: |
         pushd docs || exit 1
         cp ../gloo/docs/content/reference/cli/glooctl_check.md content/en/gateway/${{ steps.version-variables.outputs.directory }}/reference/cli/glooctl_check.md
+        cp ../gloo/docs/content/reference/cli/glooctl_debug.md content/en/gateway/${{ steps.version-variables.outputs.directory }}/reference/cli/glooctl_debug.md
+        cp ../gloo/docs/content/reference/cli/glooctl_debug_yaml.md content/en/gateway/${{ steps.version-variables.outputs.directory }}/reference/cli/glooctl_debug_yaml.md
         cp ../gloo/docs/content/reference/cli/glooctl_install_gateway.md content/en/gateway/${{ steps.version-variables.outputs.directory }}/reference/cli/glooctl_install_gateway.md
         cp ../gloo/docs/content/reference/cli/glooctl_install_gateway_enterprise.md content/en/gateway/${{ steps.version-variables.outputs.directory }}/reference/cli/glooctl_install_gateway_enterprise.md
         cp ../gloo/docs/content/reference/cli/glooctl_uninstall.md content/en/gateway/${{ steps.version-variables.outputs.directory }}/reference/cli/glooctl_uninstall.md
@@ -164,52 +197,52 @@ jobs:
         sed -i '1,2d' assets/conrefs/pages/gateway/reference/gateway_parameters_${{ steps.version-variables.outputs.minor }}.md
         popd || exit 1
     - name: Push and create PR
+      uses: peter-evans/create-pull-request@v7
+      with:
+        base: main
+        body: 'Copy auto-generated docs from the gloo repo, post-release of Gloo Gateway ${{ steps.version-variables.outputs.minor }}'
+        branch: post-${{ steps.version-variables.outputs.minor }}-release-docs-copy
+        commit-message: 'Copy auto-generated docs from ${{ steps.version-variables.outputs.minor }}'
+        committer: github-runner-solo <github-runner-solo@github.com>
+        delete-branch: true
+        path: docs
+        team-reviewers: solo-io/solo-docs
+        title: '[Automated] Post-release docsgen for ${{ steps.version-variables.outputs.minor }}'
+        token: ${{ secrets.DOCS_TOKEN }}
+    - name: Notify in slack of success
+      if: success()
+      uses: slackapi/slack-github-action@v2.0.0
       env:
-        GITHUB_TOKEN: ${{ secrets.DOCS_TOKEN }}
-      run: |
-        pushd docs || exit 1
-        git add .
-        git commit -m "Copy auto-generated docs from the gloo repo, post-release of ${{ steps.version-variables.outputs.minor }}"
-        git push --set-upstream origin ${{ steps.create-branch.outputs.branch }}
-
-        gh pr create \
-          --title "[Automated] Post-release docsgen for ${{ steps.version-variables.outputs.minor }}" \
-          --body "Copy auto-generated docs from the gloo repo, post-release of ${{ steps.version-variables.outputs.minor }}" \
-          --base main \
-          --head ${{ steps.create-branch.outputs.branch }} \
-          --reviewer solo-io/solo-docs
-        popd || exit 1
-
-  slack-notification:
-    runs-on: ubuntu-latest
-    if: ${{ always() }}
-    needs: copy-docs
-    steps:
-    - name: Notify on workflow success
-      if: |
-        needs.copy-docs.result == 'success'
+        # channel: #doctopus-tests - https://solo-io-corp.slack.com/archives/C04DYBSJK0R
+        SLACK_CHANNEL_ID: C04DYBSJK0R
+        MESSAGE: "✅ *Success:* Automated copy of reference docs for ${{ steps.version-variables.outputs.minor }} was successful. <https://github.com/solo-io/docs/pulls|Review the PR>"
+      with:
+        method: chat.postMessage
+        token: ${{ secrets.SLACK_BOT_TOKEN }}
+        payload: |
+          channel: ${{ env.SLACK_CHANNEL_ID }}
+          text: ${{ env.MESSAGE }}
+          blocks:
+            - type: section
+              text:
+                type: mrkdwn
+                text: ${{ env.MESSAGE }}
+    - name: Notify in slack of failure
+      if: failure()
+      uses: slackapi/slack-github-action@v2.0.0
       env:
-        SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-        VERSION: ${{needs.copy-docs.outputs.minor}}
-      run: |
-        MESSAGE="✅ *Success:* Automated copy of reference docs for ${VERSION} was successful. <https://github.com/solo-io/docs/pulls|Review the PR>"
-
-        curl \
-          -d "text=$MESSAGE" \
-          -d "channel=doctopus-tests" \
-          -d "token=${SLACK_BOT_TOKEN}" \
-          -X POST https://slack.com/api/chat.postMessage
-    - name: Notify on workflow failure
-      if: |
-        needs.copy-docs.result == 'failure'
-      env:
-        SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-      run: |
-        JOB_URL=https://github.com/solo-io/gloo/actions/runs/${GITHUB_RUN_ID}
-        MESSAGE="❌ *Failure:* Automated copy of reference docs for ${VERSION} failed. <${JOB_URL}|Review the workflow failure>"
-
-        curl \
-          -d "text=$MESSAGE" \
-          -d "channel=doctopus-tests" \
-          -d "token=${SLACK_BOT_TOKEN}" \
-          -X POST https://slack.com/api/chat.postMessage
+        # channel: #doctopus-tests - https://solo-io-corp.slack.com/archives/C04DYBSJK0R
+        SLACK_CHANNEL_ID: C04DYBSJK0R
+        JOB_URL: https://github.com/solo-io/gloo-cli/actions/runs/${GITHUB_RUN_ID}
+        MESSAGE: "❌ *Failure:* Automated copy of reference docs for ${VERSION} failed. <${JOB_URL}|Review the workflow failure>"
+      with:
+        method: chat.postMessage
+        token: ${{ secrets.SLACK_BOT_TOKEN }}
+        payload: |
+          channel: ${{ env.SLACK_CHANNEL_ID }}
+          text: ${{ env.MESSAGE }}
+          blocks:
+            - type: section
+              text:
+                type: mrkdwn
+                text: ${{ env.MESSAGE }}

@@ -579,6 +579,14 @@ func (m *HttpListener) Hash(hasher hash.Hash64) (uint64, error) {
 
 	}
 
+	switch m.OpaqueMetadata.(type) {
+
+	case *HttpListener_Metadata:
+
+	case *HttpListener_MetadataStatic:
+
+	}
+
 	return hasher.Sum64(), nil
 }
 

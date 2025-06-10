@@ -29,12 +29,12 @@ Enable GraphQL functionality in your Gloo Gateway installation.
 
 ## Step 2: Enable API spec discovery for upstreams
 
-To allow Gloo Gateway to automatically discover API specifications, turn on FDS discovery. When discovery is enabled, Gloo Gateway automatically creates `graphqlapi` resources based on the discovered specifications. Discovery is supported for gRPC, OpenAPI, and GraphQL server upstreams.
+To allow Gloo Gateway to automatically discover API specifications, turn on Function Discovery Service (FDS) discovery. When discovery is enabled, Gloo Gateway automatically creates `graphqlapi` resources based on the discovered specifications. Discovery is supported for gRPC, OpenAPI, and GraphQL server upstreams.
+
+Note that this setting enables discovery for all upstreams. To enable discovery for only specified upstreams, see the [FDS guide]({{< versioned_link_path fromRoot="/installation/advanced_configuration/fds_mode/" >}}).
 
 ```sh
-kubectl patch settings -n gloo-system default --type=merge --patch '{"spec":{"discovery":{"fdsMode":"BLACKLIST"}}}'
+kubectl patch settings -n gloo-system default --type=merge --patch '{"spec":{"discovery":{"fdsMode":"BLACKLIST","enabled":true}}}'
 ```
-
-Note that this setting enables discovery for all upstreams. To enable discovery for only specified upstreams, see the [Function Discovery Service (FDS) guide]({{% versioned_link_path fromRoot="/installation/advanced_configuration/fds_mode/#function-discovery-service-fds" %}}).
 
 **Up next**: [Explore basic GraphQL service discovery with the Pet Store sample application.]({{% versioned_link_path fromRoot="/guides/graphql/getting_started/simple_discovery" %}})

@@ -65,14 +65,12 @@ func (s *SetupSyncer) Sync(ctx context.Context, snap *v1.SetupSnapshot) error {
 	}
 
 	watchedNamespaces := settingsutil.GetNamespacesToWatch(settings)
-	contextutils.LoggerFrom(ctx).Debugw("received updated list of namespaces to watch", zap.Any("namespaces", watchedNamespaces))
+	contextutils.LoggerFrom(ctx).Debugw("received updated list of namespaces to watch", zap.Any("namespaces", strings.Join(watchedNamespaces, ",")))
 
-	watchedNamespacesStr := strings.Join(watchedNamespaces, ",")
 	statsutils.Measure(
 		ctx,
 		mNamespacesWatched,
 		int64(len(watchedNamespaces)),
-		tag.Insert(namespacesWatchedKey, watchedNamespacesStr),
 	)
 
 	statsutils.MeasureOne(

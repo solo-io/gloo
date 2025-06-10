@@ -54,7 +54,7 @@ SOURCES := $(shell find . -name "*.go" | grep -v test.go)
 # for more information, see https://github.com/solo-io/gloo/pull/9633
 # and
 # https://soloio.slab.com/posts/extended-http-methods-design-doc-40j7pjeu
-ENVOY_GLOO_IMAGE ?= quay.io/solo-io/envoy-gloo:1.33.0-patch2
+ENVOY_GLOO_IMAGE ?= quay.io/solo-io/envoy-gloo:1.33.2-patch2
 LDFLAGS := "-X github.com/solo-io/gloo/pkg/version.Version=$(VERSION)"
 GCFLAGS ?=
 
@@ -401,6 +401,7 @@ generate-all-debug: generate-all
 # Generates all required code, cleaning and formatting as well; this target is executed in CI
 .PHONY: generated-code
 generated-code: check-go-version clean-solo-kit-gen ## Run all codegen and formatting as required by CI
+generated-code: install-go-tools
 generated-code: go-generate-all generate-cli-docs getter-check mod-tidy
 generated-code: verify-enterprise-protos generate-helm-files update-licenses
 generated-code: generate-crd-reference-docs
@@ -955,11 +956,11 @@ publish-docker: docker docker-push
 publish-helm-chart: generate-helm-files
 	@echo "Uploading helm chart to $(HELM_BUCKET) with name gloo-$(VERSION).tgz"
 	until $$(GENERATION=$$(gsutil ls -a $(HELM_BUCKET)/index.yaml | tail -1 | cut -f2 -d '#') && \
-					gsutil cp -v $(HELM_BUCKET)/index.yaml $(HELM_SYNC_DIR)/index.yaml && \
+					gsutil -h "Cache-Control:no-store,no-cache" cp -v $(HELM_BUCKET)/index.yaml $(HELM_SYNC_DIR)/index.yaml && \
 					helm package --destination $(HELM_SYNC_DIR)/charts $(HELM_DIR) >> /dev/null && \
 					helm repo index $(HELM_SYNC_DIR) --merge $(HELM_SYNC_DIR)/index.yaml && \
 					gsutil -m rsync $(HELM_SYNC_DIR)/charts $(HELM_BUCKET)/charts && \
-					gsutil -h x-goog-if-generation-match:"$$GENERATION" cp $(HELM_SYNC_DIR)/index.yaml $(HELM_BUCKET)/index.yaml); do \
+					gsutil -h "Cache-Control:no-store,no-cache" -h x-goog-if-generation-match:"$$GENERATION" cp $(HELM_SYNC_DIR)/index.yaml $(HELM_BUCKET)/index.yaml); do \
 		echo "Failed to upload new helm index (updated helm index since last download?). Trying again"; \
 		sleep 2; \
 	done

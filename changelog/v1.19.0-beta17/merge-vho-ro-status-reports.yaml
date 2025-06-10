@@ -1,0 +1,7 @@
+changelog:
+- type: FIX
+  description: >-
+    Fixed a bug with VirtualHostOptions and RouteOptions status reports
+    were not being merged correctly when they referenced multiple proxies.
+  issueLink: https://github.com/solo-io/solo-projects/issues/7980
+  resolvesIssue: false

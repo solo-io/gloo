@@ -235,6 +235,17 @@
 |kubeGateway.gatewayParameters.glooGateway.podTemplate.customLivenessProbe.successThreshold|int32|||
 |kubeGateway.gatewayParameters.glooGateway.podTemplate.customLivenessProbe.failureThreshold|int32|||
 |kubeGateway.gatewayParameters.glooGateway.podTemplate.customLivenessProbe.terminationGracePeriodSeconds|int64|||
+|kubeGateway.gatewayParameters.glooGateway.podTemplate.topologySpreadConstraints[].maxSkew|int32|||
+|kubeGateway.gatewayParameters.glooGateway.podTemplate.topologySpreadConstraints[].topologyKey|string|||
+|kubeGateway.gatewayParameters.glooGateway.podTemplate.topologySpreadConstraints[].whenUnsatisfiable|string|||
+|kubeGateway.gatewayParameters.glooGateway.podTemplate.topologySpreadConstraints[].labelSelector.matchLabels.NAME|string|||
+|kubeGateway.gatewayParameters.glooGateway.podTemplate.topologySpreadConstraints[].labelSelector.matchExpressions[].key|string|||
+|kubeGateway.gatewayParameters.glooGateway.podTemplate.topologySpreadConstraints[].labelSelector.matchExpressions[].operator|string|||
+|kubeGateway.gatewayParameters.glooGateway.podTemplate.topologySpreadConstraints[].labelSelector.matchExpressions[].values[]|string|||
+|kubeGateway.gatewayParameters.glooGateway.podTemplate.topologySpreadConstraints[].minDomains|int32|||
+|kubeGateway.gatewayParameters.glooGateway.podTemplate.topologySpreadConstraints[].nodeAffinityPolicy|string|||
+|kubeGateway.gatewayParameters.glooGateway.podTemplate.topologySpreadConstraints[].nodeTaintsPolicy|string|||
+|kubeGateway.gatewayParameters.glooGateway.podTemplate.topologySpreadConstraints[].matchLabelKeys[]|string|||
 |kubeGateway.portal.enabled|bool|false|Enable the Gloo Gateway Portal controller and web server.|
 |settings.watchNamespaces[]|string||whitelist of namespaces for Gloo Edge to watch for services and CRDs. Empty list means all namespaces. If this and WatchNamespaceSelectors are specified, this takes precedence and WatchNamespaceSelectors is ignored|
 |settings.watchNamespaceSelectors|interface||A list of Kubernetes selectors that specify the set of namespaces to restrict the namespaces that Gloo controllers take into consideration when watching for resources. Elements in the list are disjunctive (OR semantics), i.e. a namespace will be included if it matches any selector. An empty list means all namespaces. If this and WatchNamespaces are specified, WatchNamespaces takes precedence and this is ignored|
@@ -611,7 +622,7 @@
 |discovery.udsOptions.enabled|bool||Enable upstream discovery service. Defaults to true.|
 |discovery.udsOptions.watchLabels.NAME|string||Map of labels to watch. Only services which match all of the selectors specified here will be discovered by UDS.|
 |discovery.fdsOptions.graphqlEnabled|bool||Enable GraphQL schema generation on the function discovery service. Defaults to true.|
-|discovery.enabled|bool|true|enable Discovery features|
+|discovery.enabled|bool|false|enable Discovery features|
 |discovery.serviceAccount.extraAnnotations.NAME|string||extra annotations to add to the service account|
 |discovery.serviceAccount.disableAutomount|bool||disable automounting the service account to the gateway proxy. not mounting the token hardens the proxy container, but may interfere with service mesh integrations|
 |discovery.serviceAccount.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
