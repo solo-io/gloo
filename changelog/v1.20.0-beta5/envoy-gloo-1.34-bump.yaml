@@ -11,3 +11,9 @@ changelog:
     dependencyOwner: envoyproxy
     dependencyRepo: go-control-plane
     dependencyTag: v0.13.5-0.20250507123352-93990c5ec02f
+  - type: DEPENDENCY_BUMP
+    issueLink:
+    resolvesIssue: false
+    dependencyOwner: golang
+    dependencyRepo: go
+    dependencyTag: v1.24.4
