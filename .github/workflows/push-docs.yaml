@@ -20,6 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       dispatch_lts: ${{ steps.dispatch-receiver.outputs.dispatch_lts }}
+      dispatch_tag: ${{ steps.dispatch-receiver.outputs.dispatch_tag }}
     steps:
       - name: The glooe-release-created event is received when a relase is cut in solo-projects repo
         id: dispatch-receiver
