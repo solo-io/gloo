@@ -116,11 +116,6 @@ firebaseJson=$(cat <<EOF
         "type":"301"
       },
       {
-        "source": "/gloo-edge/:version/dev/writing_auth_plugins",
-        "destination": "/gloo-edge/:version/guides/dev/writing_auth_plugins/",
-        "type":"301"
-      },
-      {
         "source": "/gloo-edge/:version/enterprise/",
         "destination": "/gloo-edge/:version/",
         "type":"301"
@@ -223,11 +218,6 @@ firebaseJson=$(cat <<EOF
       {
         "source": "/gloo-edge/:version/guides/security/auth/opa/",
         "destination": "/gloo-edge/:version/guides/security/auth/extauth/opa/",
-        "type":"301"
-      },
-      {
-        "source": "/gloo-edge/:version/guides/security/auth/plugin_auth",
-        "destination": "/gloo-edge/:version/guides/security/auth/extauth/plugin_auth/",
         "type":"301"
       },
       {

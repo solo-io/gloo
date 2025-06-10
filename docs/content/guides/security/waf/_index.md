@@ -295,7 +295,7 @@ And view this configmap
 ## Apply the OWASP core rule set {#core-rule-set}
 
 {{% notice warning %}}
-Using the `rbl` modsecurity rule in Gloo Gateway will cause envoy performance issues and should be avoided. If `rbl` blacklisting is a requirement, an [extauth plugin]({{< versioned_link_path fromRoot="/guides/security/auth/extauth/plugin_auth">}}) can be used to query the rbl list and forbid spam IPs.
+Using the `rbl` modsecurity rule in Gloo Gateway will cause envoy performance issues and should be avoided.
 {{% /notice %}}
 
 As mentioned earlier, the main free ModSecurity rule set available is the OWASP Core Rule Set. As with all other rule sets, the Core Rule Set can be applied manually via the rule set configs, Gloo Gateway offers an easy way to apply the entire Core Rule Set, and configure it.
