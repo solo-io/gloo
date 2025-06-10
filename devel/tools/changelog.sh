@@ -97,7 +97,7 @@ EOF
     issueLink:
     resolvesIssue: false
     dependencyOwner: solo-io
-    dependencyRepo: envoy-gloo-ee
+    dependencyRepo: envoy-gloo
     dependencyTag: # 1.33.0-patch3
 EOF
     ;;
