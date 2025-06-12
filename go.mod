@@ -118,6 +118,8 @@ require (
 	sigs.k8s.io/structured-merge-diff/v4 v4.7.0
 )
 
+require github.com/prometheus/client_golang v1.20.5 // indirect
+
 require (
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/prometheus/client_golang v1.22.0 // indirect
