@@ -11,12 +11,8 @@ import (
 	"github.com/hashicorp/go-multierror"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-<<<<<<< HEAD
-	"github.com/solo-io/gloo/pkg/utils"
-=======
 	errors "github.com/rotisserie/eris"
-	"github.com/solo-io/gloo/pkg/utils/statsutils"
->>>>>>> e1548b279d ([1.17] mod: go 1.24.1 (#10873))
+	"github.com/solo-io/gloo/pkg/utils"
 	v1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gateway/pkg/translator"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/grpc/validation"

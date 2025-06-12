@@ -12,9 +12,10 @@ Developing on Gloo Edge requires the following to be installed on your system:
 
 - [`make`](https://www.gnu.org/software/make/)
 - [`git`](https://git-scm.com/)
-- [`go`](https://golang.org/) (`solo-io` projects are built using version `1.24.0`)
+- [`go`](https://golang.org/) (`solo-io` projects are built using version `1.16.3`)
 - `protoc` (`solo-io` projects are built using version `3.6.1`)
-- Standard development tools like `gcc`
+- the `github.com/gogo/protobuf` go package
+- standard development tools like `gcc`
 
 To install all the requirements, run the following:
 
@@ -23,16 +24,27 @@ On macOS:
 ```bash
 # install the Command Line Tools package if not already installed
 xcode-select --install
-# - other operating systems:
-# distro meta-packages, like "build-essential", should have what is required
 
-############################################
-# install version of go in go.mod
-############################################
-# - macOS:
-brew install go@1.24
-# - other operating systems:
-# follow directions at https://go.dev/doc/install
+# install protoc
+# note that you can also try simply running `make install-protoc` instead of running the below instructions
+curl -LO https://github.com/protocolbuffers/protobuf/releases/download/v3.6.1/protoc-3.6.1-osx-x86_64.zip
+unzip protoc-3.6.1-osx-x86_64.zip
+sudo mv bin/protoc /usr/local/bin/
+rm -rf bin include protoc-3.6.1-osx-x86_64.zip readme.txt
+
+# install go
+curl https://raw.githubusercontent.com/canha/golang-tools-install-script/master/goinstall.sh | bash
+
+# install gogo-proto
+go get -u github.com/gogo/protobuf/...
+
+```
+
+On Debian/Ubuntu linux:
+
+```bash
+# install make and unzip and build tools
+sudo apt install make unzip build-essential -y
 
 # install protoc
 # note that you can also try simply running `make install-protoc` instead of running the below instructions
