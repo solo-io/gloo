@@ -6,3 +6,7 @@ changelog:
     dependencyTag: v1.24.1
     issueLink: https://github.com/solo-io/solo-projects/issues/8101
     resolvesIssue: false
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: cloud-builders
+    dependencyTag: v0.12.1
