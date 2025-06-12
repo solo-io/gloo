@@ -259,7 +259,7 @@ func (i *Instance) GlooGatewayVirtualServices(gateway *GlooGatewayWrapper) ([]*V
 			Labels:      virtualService.Labels,
 			Annotations: virtualService.Annotations,
 		})
-		matches, err := translator.HttpGatewayContainsVirtualService(gateway.Gateway.Spec.GetHttpGateway(), vs, gateway.Gateway.Spec.Ssl)
+		matches, err := translator.HttpGatewayContainsVirtualService(gateway.Gateway.Spec.GetHttpGateway(), vs, gateway.Gateway.Spec.GetSsl())
 		if err != nil {
 			return nil, err
 		}

@@ -180,7 +180,7 @@ func (o *GatewayAPIOutput) finishDelegation() error {
 	// for all edge routetables we need to go and update labels on the httproutes to support delegation
 	updatedHTTPRoutes := map[types.NamespacedName]*snapshot.HTTPRouteWrapper{}
 	for _, rtt := range o.edgeCache.RouteTables() {
-		routesToUpdate := o.processRouteForDelegation(rtt.Spec.Routes)
+		routesToUpdate := o.processRouteForDelegation(rtt.Spec.GetRoutes())
 
 		for _, r := range routesToUpdate {
 			// check to see if we already matched on this httproute
@@ -197,7 +197,7 @@ func (o *GatewayAPIOutput) finishDelegation() error {
 		}
 	}
 	for _, vs := range o.edgeCache.VirtualServices() {
-		routesToUpdate := o.processRouteForDelegation(vs.Spec.VirtualHost.Routes)
+		routesToUpdate := o.processRouteForDelegation(vs.Spec.GetVirtualHost().GetRoutes())
 
 		for _, r := range routesToUpdate {
 			// check to see if we already matched on this httproute
@@ -259,9 +259,9 @@ func (o *GatewayAPIOutput) processRouteForDelegation(routes []*v1.Route) []*snap
 func routeMatchSelector(route *snapshot.HTTPRouteWrapper, selector *v1.RouteTableSelector) (string, bool) {
 
 	//check namespace first
-	if namespaceMatch(route.Namespace, selector.Namespaces) {
+	if namespaceMatch(route.Namespace, selector.GetNamespaces()) {
 		// check to see if any of the labels match the selector
-		for k, v := range selector.Labels {
+		for k, v := range selector.GetLabels() {
 			// see if the route has the label key in the selector
 			value, match := route.Labels[k]
 			if match {

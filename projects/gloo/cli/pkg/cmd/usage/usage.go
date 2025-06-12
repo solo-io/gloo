@@ -30,7 +30,7 @@ func generateGlooFeatureUsage(instance *snapshot.Instance) (map[API][]*UsageStat
 		if len(proxyNames) == 0 {
 			proxyNames["gateway-proxy"] = true
 		} else {
-			for _, proxyName := range gateway.Spec.ProxyNames {
+			for _, proxyName := range gateway.Spec.GetProxyNames() {
 				proxyNames[proxyName] = true
 			}
 		}
@@ -61,7 +61,7 @@ func (f *FeatureCalculator) processRouteTables(parentName string, parentNamespac
 
 func (f *FeatureCalculator) processRouteTable(table *gatewaykube.RouteTable, parentName string, parentNamespace string, proxyNames []string) error {
 	spec := table.Spec
-	if spec.GetWeight() != nil && spec.GetWeight().Value > 0 {
+	if spec.GetWeight() != nil && spec.GetWeight().GetValue() > 0 {
 		f.AddUsageStat(&UsageStat{
 			Type: ROUTE_TABLE_WEIGHTS,
 			Metadata: UsageMetadata{
@@ -101,7 +101,7 @@ func (f *FeatureCalculator) processVirtualService(service *gatewaykube.VirtualSe
 			f.processVirtualHostOptions(spec.GetVirtualHost().GetOptions(), service.Name, "VirtualService", service.Namespace, GlooEdgeAPI, proxyNames)
 		}
 		if spec.GetVirtualHost().GetOptionsConfigRefs() != nil {
-			for _, ref := range spec.GetVirtualHost().GetOptionsConfigRefs().DelegateOptions {
+			for _, ref := range spec.GetVirtualHost().GetOptionsConfigRefs().GetDelegateOptions() {
 				namespace := ref.GetNamespace()
 				if namespace == "" {
 					// same namespace as the reference object
@@ -111,13 +111,13 @@ func (f *FeatureCalculator) processVirtualService(service *gatewaykube.VirtualSe
 				if !found {
 					fmt.Printf("WARNING: No route options found for kind %s: %s/%s\n", "VirtualService", service.Namespace, service.Name)
 				}
-				f.processVirtualHostOptions(vho.Spec.Options, service.Name, "VirtualService", service.Namespace, GlooEdgeAPI, proxyNames)
+				f.processVirtualHostOptions(vho.Spec.GetOptions(), service.Name, "VirtualService", service.Namespace, GlooEdgeAPI, proxyNames)
 			}
 		}
 
 	}
 	if spec.GetSslConfig() != nil {
-		if len(spec.SslConfig.VerifySubjectAltName) > 0 {
+		if len(spec.GetSslConfig().GetVerifySubjectAltName()) > 0 {
 			//this isnt a great measure of mTLS but we cant see if the root-ca is provided in the secret
 			f.AddUsageStat(&UsageStat{
 				Type: MTLS,
@@ -236,7 +236,7 @@ func (f *FeatureCalculator) processRoute(route *api.Route, parentName string, pa
 		f.processRouteOptions(route.GetOptions(), parentName, parentKind, parentNamespace, GlooEdgeAPI, proxyNames)
 	}
 	if route.GetOptionsConfigRefs() != nil {
-		for _, ref := range route.GetOptionsConfigRefs().DelegateOptions {
+		for _, ref := range route.GetOptionsConfigRefs().GetDelegateOptions() {
 			namespace := ref.GetNamespace()
 			if namespace == "" {
 				// same namespace as the reference object
@@ -246,7 +246,7 @@ func (f *FeatureCalculator) processRoute(route *api.Route, parentName string, pa
 			if !found {
 				fmt.Printf("WARNING: No route options found for kind %s: %s/%s\n", parentKind, parentNamespace, parentName)
 			}
-			f.processRouteOptions(ro.Spec.Options, parentName, parentKind, parentNamespace, GlooEdgeAPI, proxyNames)
+			f.processRouteOptions(ro.Spec.GetOptions(), parentName, parentKind, parentNamespace, GlooEdgeAPI, proxyNames)
 		}
 	}
 	return nil
@@ -261,7 +261,7 @@ func (f *FeatureCalculator) processUpstream(upstream *glookube.Upstream, parentN
 	}
 	spec := upstream.Spec
 	if spec.GetSslConfig() != nil {
-		if len(spec.SslConfig.VerifySubjectAltName) > 0 {
+		if len(spec.GetSslConfig().GetVerifySubjectAltName()) > 0 {
 			//this isnt a great measure of mTLS but we cant see if the root-ca is provided in the secret
 			f.AddUsageStat(&UsageStat{
 				Type:     UPSTREAM_MTLS,
@@ -428,13 +428,13 @@ func (f *FeatureCalculator) processUpstream(upstream *glookube.Upstream, parentN
 			Metadata: defaultMetadata,
 		})
 	}
-	if spec.GetUseHttp2() != nil && spec.GetUseHttp2().Value {
+	if spec.GetUseHttp2() != nil && spec.GetUseHttp2().GetValue() {
 		f.AddUsageStat(&UsageStat{
 			Type:     UPSTREAM_HTTP2,
 			Metadata: defaultMetadata,
 		})
 	}
-	if spec.GetHttpProxyHostname() != nil && spec.GetHttpProxyHostname().Value != "" {
+	if spec.GetHttpProxyHostname() != nil && spec.GetHttpProxyHostname().GetValue() != "" {
 		f.AddUsageStat(&UsageStat{
 			Type:     UPSTREAM_HTTP_PROXY,
 			Metadata: defaultMetadata,
@@ -451,19 +451,19 @@ func (f *FeatureCalculator) processMatchers(matchers []*matchers.Matcher, parent
 		API:        parentAPI,
 	}
 	for _, matcher := range matchers {
-		if len(matcher.Headers) > 0 {
+		if len(matcher.GetHeaders()) > 0 {
 			f.AddUsageStat(&UsageStat{
 				Type:     HEADER_MATCHING,
 				Metadata: defaultMetadata,
 			})
 		}
-		if len(matcher.QueryParameters) > 0 {
+		if len(matcher.GetQueryParameters()) > 0 {
 			f.AddUsageStat(&UsageStat{
 				Type:     QUERY_PARAMETER_MATCHING,
 				Metadata: defaultMetadata,
 			})
 		}
-		if len(matcher.Methods) > 0 {
+		if len(matcher.GetMethods()) > 0 {
 			f.AddUsageStat(&UsageStat{
 				Type:     METHOD_MATCHING,
 				Metadata: defaultMetadata,
@@ -663,13 +663,13 @@ func (f *FeatureCalculator) processRouteOptions(options *v1.RouteOptions, parent
 			Metadata: defaultMetadata,
 		})
 	}
-	if options.IdleTimeout != nil {
+	if options.GetIdleTimeout() != nil {
 		f.AddUsageStat(&UsageStat{
 			Type:     IDLE_TIMEOUT,
 			Metadata: defaultMetadata,
 		})
 	}
-	if options.GetExtProc() != nil && options.GetExtProc().GetDisabled().Value != false {
+	if options.GetExtProc() != nil && options.GetExtProc().GetDisabled().GetValue() != false {
 		f.AddUsageStat(&UsageStat{
 			Type:     EXTERNAL_PROCESSING,
 			Metadata: defaultMetadata,
@@ -805,7 +805,7 @@ func (f *FeatureCalculator) processVirtualHostOptions(options *v1.VirtualHostOpt
 			Metadata: defaultMetadata,
 		})
 	}
-	if options.GetExtProc() != nil && options.GetExtProc().GetDisabled().Value != false {
+	if options.GetExtProc() != nil && options.GetExtProc().GetDisabled().GetValue() != false {
 		f.AddUsageStat(&UsageStat{
 			Type:     EXTERNAL_PROCESSING,
 			Metadata: defaultMetadata,
@@ -822,7 +822,7 @@ func (f *FeatureCalculator) processAuthConfig(config *snapshot.AuthConfigWrapper
 	}
 	spec := config.Spec
 
-	for _, cfg := range spec.Configs {
+	for _, cfg := range spec.GetConfigs() {
 
 		if cfg.GetOauth2() != nil {
 			f.AddUsageStat(&UsageStat{

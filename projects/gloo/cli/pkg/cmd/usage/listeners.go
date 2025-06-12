@@ -99,9 +99,9 @@ func (f *FeatureCalculator) processSettings(proxyNames []string) error {
 				Metadata: defaultMetadata,
 			})
 		}
-		if settings.Spec.GetSecretOptions() != nil && len(settings.Spec.GetSecretOptions().Sources) > 0 {
-			for _, source := range settings.Spec.GetSecretOptions().Sources {
-				switch source.Source.(type) {
+		if settings.Spec.GetSecretOptions() != nil && len(settings.Spec.GetSecretOptions().GetSources()) > 0 {
+			for _, source := range settings.Spec.GetSecretOptions().GetSources() {
+				switch source.GetSource().(type) {
 				case *gloov1.Settings_SecretOptions_Source_Kubernetes:
 					f.AddUsageStat(&UsageStat{
 						Type: KUBERNETES_SECRET_SOURCE_OPTIONS,
@@ -174,13 +174,13 @@ func (f *FeatureCalculator) processSettings(proxyNames []string) error {
 					})
 				}
 			}
-			if settings.Spec.GetDiscovery().GetUdsOptions() != nil && settings.Spec.GetDiscovery().GetUdsOptions().GetEnabled() != nil && settings.Spec.GetDiscovery().GetUdsOptions().GetEnabled().Value == true {
+			if settings.Spec.GetDiscovery().GetUdsOptions() != nil && settings.Spec.GetDiscovery().GetUdsOptions().GetEnabled() != nil && settings.Spec.GetDiscovery().GetUdsOptions().GetEnabled().GetValue() == true {
 				f.AddUsageStat(&UsageStat{
 					Type:     UDS_DISCOVERY,
 					Metadata: defaultMetadata,
 				})
 			}
-			if settings.Spec.GetDiscovery().GetFdsOptions() != nil && settings.Spec.GetDiscovery().GetFdsOptions().GraphqlEnabled != nil && settings.Spec.GetDiscovery().GetFdsOptions().GraphqlEnabled.Value == true {
+			if settings.Spec.GetDiscovery().GetFdsOptions() != nil && settings.Spec.GetDiscovery().GetFdsOptions().GetGraphqlEnabled() != nil && settings.Spec.GetDiscovery().GetFdsOptions().GetGraphqlEnabled().GetValue() == true {
 				f.AddUsageStat(&UsageStat{
 					Type:     GRAPHQL_FDS,
 					Metadata: defaultMetadata,
@@ -230,25 +230,25 @@ func (f *FeatureCalculator) processSettings(proxyNames []string) error {
 					Metadata: defaultMetadata,
 				})
 			}
-			if settings.Spec.GetGloo().GetDisableGrpcWeb() != nil && settings.Spec.GetGloo().GetDisableGrpcWeb().Value == true {
+			if settings.Spec.GetGloo().GetDisableGrpcWeb() != nil && settings.Spec.GetGloo().GetDisableGrpcWeb().GetValue() == true {
 				f.AddUsageStat(&UsageStat{
 					Type:     DISABLE_GRPC_WEB,
 					Metadata: defaultMetadata,
 				})
 			}
-			if settings.Spec.GetGloo().GetDisableProxyGarbageCollection() != nil && settings.Spec.GetGloo().GetDisableProxyGarbageCollection().Value == true {
+			if settings.Spec.GetGloo().GetDisableProxyGarbageCollection() != nil && settings.Spec.GetGloo().GetDisableProxyGarbageCollection().GetValue() == true {
 				f.AddUsageStat(&UsageStat{
 					Type:     DISABLE_PROXY_GARBAGE_COLLECTION,
 					Metadata: defaultMetadata,
 				})
 			}
-			if settings.Spec.GetGloo().GetRegexMaxProgramSize() != nil && settings.Spec.GetGloo().GetRegexMaxProgramSize().Value != 100 {
+			if settings.Spec.GetGloo().GetRegexMaxProgramSize() != nil && settings.Spec.GetGloo().GetRegexMaxProgramSize().GetValue() != 100 {
 				f.AddUsageStat(&UsageStat{
 					Type:     REGEX_MAX_PROGRAM_SIZE,
 					Metadata: defaultMetadata,
 				})
 			}
-			if settings.Spec.GetGloo().GetEnableRestEds() != nil && settings.Spec.GetGloo().GetEnableRestEds().Value == true {
+			if settings.Spec.GetGloo().GetEnableRestEds() != nil && settings.Spec.GetGloo().GetEnableRestEds().GetValue() == true {
 				f.AddUsageStat(&UsageStat{
 					Type:     REST_XDS_BIND_ADDR,
 					Metadata: defaultMetadata,
@@ -260,7 +260,7 @@ func (f *FeatureCalculator) processSettings(proxyNames []string) error {
 					Metadata: defaultMetadata,
 				})
 			}
-			if settings.Spec.GetGloo().GetRemoveUnusedFilters() != nil && settings.Spec.GetGloo().GetRemoveUnusedFilters().Value == true {
+			if settings.Spec.GetGloo().GetRemoveUnusedFilters() != nil && settings.Spec.GetGloo().GetRemoveUnusedFilters().GetValue() == true {
 				f.AddUsageStat(&UsageStat{
 					Type:     REMOVE_UNUSED_FILTERS,
 					Metadata: defaultMetadata,
@@ -272,13 +272,13 @@ func (f *FeatureCalculator) processSettings(proxyNames []string) error {
 					Metadata: defaultMetadata,
 				})
 			}
-			if settings.Spec.GetGloo().GetLogTransformationRequestResponseInfo() != nil && settings.Spec.GetGloo().GetLogTransformationRequestResponseInfo().Value == true {
+			if settings.Spec.GetGloo().GetLogTransformationRequestResponseInfo() != nil && settings.Spec.GetGloo().GetLogTransformationRequestResponseInfo().GetValue() == true {
 				f.AddUsageStat(&UsageStat{
 					Type:     LOG_TRANSFORMATION_REQUEST_RESPONSE_INFO,
 					Metadata: defaultMetadata,
 				})
 			}
-			if settings.Spec.GetGloo().GetTransformationEscapeCharacters() != nil && settings.Spec.GetGloo().GetTransformationEscapeCharacters().Value == true {
+			if settings.Spec.GetGloo().GetTransformationEscapeCharacters() != nil && settings.Spec.GetGloo().GetTransformationEscapeCharacters().GetValue() == true {
 				f.AddUsageStat(&UsageStat{
 					Type:     TRANSFORMATION_ESCAPE_CHARACTERS,
 					Metadata: defaultMetadata,
@@ -311,31 +311,31 @@ func (f *FeatureCalculator) processSettings(proxyNames []string) error {
 					Metadata: defaultMetadata,
 				})
 			}
-			if settings.Spec.GetGateway().GetVirtualServiceOptions() != nil && settings.Spec.GetGateway().GetVirtualServiceOptions().OneWayTls != nil && settings.Spec.GetGateway().GetVirtualServiceOptions().OneWayTls.Value == true {
+			if settings.Spec.GetGateway().GetVirtualServiceOptions() != nil && settings.Spec.GetGateway().GetVirtualServiceOptions().GetOneWayTls() != nil && settings.Spec.GetGateway().GetVirtualServiceOptions().GetOneWayTls().GetValue() == true {
 				f.AddUsageStat(&UsageStat{
 					Type:     GLOBAL_ONE_WAY_TLS,
 					Metadata: defaultMetadata,
 				})
 			}
-			if settings.Spec.GetGateway().GetPersistProxySpec() != nil && settings.Spec.GetGateway().GetPersistProxySpec().Value == true {
+			if settings.Spec.GetGateway().GetPersistProxySpec() != nil && settings.Spec.GetGateway().GetPersistProxySpec().GetValue() == true {
 				f.AddUsageStat(&UsageStat{
 					Type:     PERSIST_PROXY_SPEC,
 					Metadata: defaultMetadata,
 				})
 			}
-			if settings.Spec.GetGateway().GetEnableGatewayController() != nil && settings.Spec.GetGateway().GetEnableGatewayController().Value == false {
+			if settings.Spec.GetGateway().GetEnableGatewayController() != nil && settings.Spec.GetGateway().GetEnableGatewayController().GetValue() == false {
 				f.AddUsageStat(&UsageStat{
 					Type:     DISABLE_GATEWAY_CONTROLLER,
 					Metadata: defaultMetadata,
 				})
 			}
-			if settings.Spec.GetGateway().GetIsolateVirtualHostsBySslConfig() != nil && settings.Spec.GetGateway().GetIsolateVirtualHostsBySslConfig().Value == true {
+			if settings.Spec.GetGateway().GetIsolateVirtualHostsBySslConfig() != nil && settings.Spec.GetGateway().GetIsolateVirtualHostsBySslConfig().GetValue() == true {
 				f.AddUsageStat(&UsageStat{
 					Type:     ISOLATE_VIRTUAL_HOSTS_BY_SSL_CONFIG,
 					Metadata: defaultMetadata,
 				})
 			}
-			if settings.Spec.GetGateway().GetTranslateEmptyGateways() != nil && settings.Spec.GetGateway().GetTranslateEmptyGateways().Value == true {
+			if settings.Spec.GetGateway().GetTranslateEmptyGateways() != nil && settings.Spec.GetGateway().GetTranslateEmptyGateways().GetValue() == true {
 				f.AddUsageStat(&UsageStat{
 					Type:     TRANSLATE_EMPTY_GATEWAYS,
 					Metadata: defaultMetadata,
@@ -365,7 +365,7 @@ func (f *FeatureCalculator) processSettings(proxyNames []string) error {
 					Metadata: defaultMetadata,
 				})
 			}
-			if settings.Spec.GetRbac() != nil && settings.Spec.GetRbac().RequireRbac == true {
+			if settings.Spec.GetRbac() != nil && settings.Spec.GetRbac().GetRequireRbac() == true {
 				f.AddUsageStat(&UsageStat{
 					Type:     GLOBAL_RBAC,
 					Metadata: defaultMetadata,
@@ -434,11 +434,11 @@ func (f *FeatureCalculator) processGlooGateways() error {
 
 	for _, gateway := range f.Configs.GlooGateways() {
 		spec := gateway.Gateway.Spec
-		proxyNames := gateway.Spec.ProxyNames
+		proxyNames := gateway.Spec.GetProxyNames()
 		if len(proxyNames) == 0 {
 			proxyNames = append(proxyNames, "gateway-proxy")
 		}
-		if spec.UseProxyProto != nil && spec.UseProxyProto.Value == true {
+		if spec.GetUseProxyProto() != nil && spec.GetUseProxyProto().GetValue() == true {
 			f.AddUsageStat(&UsageStat{
 				Type: PROXY_PROTOCOL,
 				Metadata: UsageMetadata{
@@ -490,13 +490,13 @@ func (f *FeatureCalculator) processRouteConfigurationOptions(options *gloov1.Rou
 		Category:   listenerCatagory,
 		API:        GlooEdgeAPI,
 	}
-	if options.GetMostSpecificHeaderMutationsWins() != nil && options.GetMostSpecificHeaderMutationsWins().Value == true {
+	if options.GetMostSpecificHeaderMutationsWins() != nil && options.GetMostSpecificHeaderMutationsWins().GetValue() == true {
 		f.AddUsageStat(&UsageStat{
 			Type:     MOST_SPECIAL_HEADER_MUTATIONS_WINS,
 			Metadata: defaultMetadata,
 		})
 	}
-	if options.GetMaxDirectResponseBodySizeBytes() != nil && options.GetMaxDirectResponseBodySizeBytes().Value > 0 {
+	if options.GetMaxDirectResponseBodySizeBytes() != nil && options.GetMaxDirectResponseBodySizeBytes().GetValue() > 0 {
 		f.AddUsageStat(&UsageStat{
 			Type:     MAX_DIRECT_RESPONSE_BODY_SIZE,
 			Metadata: defaultMetadata,
@@ -512,31 +512,31 @@ func (f *FeatureCalculator) processListenerOptions(options *gloov1.ListenerOptio
 		Category:   listenerCatagory,
 		API:        parentAPI,
 	}
-	if options.SocketOptions != nil {
+	if options.GetSocketOptions() != nil {
 		f.AddUsageStat(&UsageStat{
 			Type:     SOCKET_OPTIONS,
 			Metadata: defaultMetadata,
 		})
 	}
-	if options.AccessLoggingService != nil {
+	if options.GetAccessLoggingService() != nil {
 		f.AddUsageStat(&UsageStat{
 			Type:     ACCESS_LOGGING,
 			Metadata: defaultMetadata,
 		})
 	}
-	if options.ConnectionBalanceConfig != nil {
+	if options.GetConnectionBalanceConfig() != nil {
 		f.AddUsageStat(&UsageStat{
 			Type:     CONNECTION_BALANCING,
 			Metadata: defaultMetadata,
 		})
 	}
-	if options.ListenerAccessLoggingService != nil {
+	if options.GetListenerAccessLoggingService() != nil {
 		f.AddUsageStat(&UsageStat{
 			Type:     EARLY_ACCESS_LOGGING,
 			Metadata: defaultMetadata,
 		})
 	}
-	if options.ProxyProtocol != nil {
+	if options.GetProxyProtocol() != nil {
 		f.AddUsageStat(&UsageStat{
 			Type:     PROXY_PROTOCOL,
 			Metadata: defaultMetadata,
@@ -553,7 +553,7 @@ func (f *FeatureCalculator) processTCPGateway(tcpGateway *gatewayv1.TcpGateway, 
 	}
 	if tcpGateway != nil {
 		for _, host := range tcpGateway.GetTcpHosts() {
-			if host.SslConfig != nil {
+			if host.GetSslConfig() != nil {
 				f.AddUsageStat(&UsageStat{
 					Type:     TLS_ROUTING,
 					Metadata: defaultMetadata,
@@ -565,13 +565,13 @@ func (f *FeatureCalculator) processTCPGateway(tcpGateway *gatewayv1.TcpGateway, 
 				})
 			}
 		}
-		if tcpGateway.GetOptions().LocalRatelimit != nil {
+		if tcpGateway.GetOptions().GetLocalRatelimit() != nil {
 			f.AddUsageStat(&UsageStat{
 				Type:     LOCAL_RATE_LIMITING,
 				Metadata: defaultMetadata,
 			})
 		}
-		if tcpGateway.GetOptions().ConnectionLimit != nil {
+		if tcpGateway.GetOptions().GetConnectionLimit() != nil {
 			f.AddUsageStat(&UsageStat{
 				Type:     CONNECTION_LIMIT,
 				Metadata: defaultMetadata,
