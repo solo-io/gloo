@@ -78,16 +78,16 @@ func folderExists(path string) bool {
 func (o *Options) addToFlags(flags *pflag.FlagSet) {
 	flags.StringVar(&o.ControlPlaneName, "gloo-control-plane", "", "Name of the Gloo control plane pod")
 	flags.StringVarP(&o.ControlPlaneNamespace, "gloo-control-plane-namespace", "n", "gloo-system", "Namespace of the Gloo control plane pod")
-	flags.StringVar(&o.InputFile, "input-file", "", "Convert single file to Gateway API")
+	flags.StringVar(&o.InputFile, "input-file", "", "Convert a single YAML file to the Gateway API")
 	flags.StringVar(&o.InputDir, "input-dir", "", "InputDir to read yaml/yml files recursively")
 	flags.StringVar(&o.GlooSnapshotFile, "input-snapshot", "", "Gloo input snapshot file location")
 	flags.BoolVar(&o.Stats, "print-stats", false, "Print stats about the conversion")
-	flags.BoolVar(&o.CombineRouteOptions, "combine-route-options", false, "Combine routeOptions that are exactly the same and share them among the HTTPRoutes")
-	flags.StringVar(&o.OutputDir, "output-dir", "./_output", "Output directory to write Gateway API configurations, it must not exist before or can be deleted/recreated with --recreate-output-dir")
-	flags.BoolVar(&o.RetainFolderStructure, "retain-input-folder-structure", false, "When writing the output write the Gateway API configurations in the same folder structure they were read from (input-dir only)")
-	flags.BoolVar(&o.IncludeUnknownResources, "include-unknown", false, "Copy unknown resources to output files (if files contain resources that are not Gloo APIs)")
-	flags.BoolVar(&o.DeleteOutputDir, "delete-output-dir", false, "Delete the output directory if it already exists")
-	flags.BoolVar(&o.CreateNamespaces, "create-namespaces", false, "Create namespaces for the objects in a file")
+	flags.BoolVar(&o.CombineRouteOptions, "combine-route-options", false, "Combine RouteOptions that are exactly the same and share them among the HTTPRoutes")
+	flags.StringVar(&o.OutputDir, "output-dir", "./_output", "Output directory to write Gateway API configurations to. The directory must not exist before starting the migration. To delete and recreate the output directory, use the --recreate-output-dir option")
+	flags.BoolVar(&o.RetainFolderStructure, "retain-input-folder-structure", false, "Arrange the generated Gateway API files in the same folder structure they were read from (input-dir only).")
+	flags.BoolVar(&o.IncludeUnknownResources, "include-unknown", false, "Copy non-Gloo Gateway resources to the output directory without changing them. ")
+	flags.BoolVar(&o.DeleteOutputDir, "delete-output-dir", false, "Delete the output directory if it already exists.")
+	flags.BoolVar(&o.CreateNamespaces, "create-namespaces", false, "Create namespaces for the objects in a file.")
 }
 
 type GatewayAPIOutput struct {
