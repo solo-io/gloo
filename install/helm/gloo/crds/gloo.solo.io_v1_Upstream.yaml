@@ -552,6 +552,8 @@ spec:
                     minimum: 0
                     nullable: true
                     type: integer
+                  trackRemaining:
+                    type: boolean
                 type: object
               connectionConfig:
                 properties:
