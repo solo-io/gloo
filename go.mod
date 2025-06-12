@@ -100,7 +100,6 @@ require (
 	github.com/google/go-cmp v0.7.0
 	github.com/google/uuid v1.6.0
 	github.com/mccutchen/go-httpbin/v2 v2.15.0
-	github.com/prometheus/client_golang v1.20.5
 	github.com/prometheus/client_model v0.6.1
 	github.com/prometheus/common v0.62.0
 	github.com/quasilyte/go-ruleguard/dsl v0.3.22
@@ -118,6 +117,8 @@ require (
 	sigs.k8s.io/controller-tools v0.17.3
 	sigs.k8s.io/structured-merge-diff/v4 v4.7.0
 )
+
+require github.com/prometheus/client_golang v1.20.5 // indirect
 
 require (
 	cel.dev/expr v0.19.1 // indirect
@@ -171,7 +172,7 @@ require (
 	github.com/evanphx/json-patch/v5 v5.9.11 // indirect
 	github.com/exponent-io/jsonpath v0.0.0-20210407135951-1de76d718b3f // indirect
 	github.com/fatih/camelcase v1.0.0 // indirect
-	github.com/fatih/color v1.18.0 // indirect
+	github.com/fatih/color v1.18.0
 	github.com/fgrosse/zaptest v1.1.0 // indirect
 	github.com/fxamacker/cbor/v2 v2.7.0 // indirect
 	github.com/gertd/go-pluralize v0.1.1 // indirect
@@ -339,7 +340,7 @@ require (
 	gopkg.in/square/go-jose.v2 v2.6.0 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
-	gopkg.in/yaml.v3 v3.0.1 // indirect
+	gopkg.in/yaml.v3 v3.0.1
 	k8s.io/apiserver v0.32.2 // indirect
 	k8s.io/cli-runtime v0.32.2 // indirect
 	k8s.io/component-helpers v0.32.2 // indirect
