@@ -3,19 +3,20 @@ package usage
 import (
 	"context"
 
-	"github.com/solo-io/gloo/pkg/utils/kubeutils"
-	v1 "k8s.io/api/core/v1"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
+
+	"github.com/solo-io/gloo/pkg/utils/kubeutils"
 )
 
-func calculateNodeResources(nodes []v1.Node) (*NodeResources, error) {
+func calculateNodeResources(nodes []corev1.Node) (*NodeResources, error) {
 	resources := &NodeResources{}
 
 	for _, node := range nodes {
 		// Calculate allocatable (actual capacity)
-		cpuAllocatable := node.Status.Allocatable[v1.ResourceCPU]
-		memoryAllocatable := node.Status.Allocatable[v1.ResourceMemory]
+		cpuAllocatable := node.Status.Allocatable[corev1.ResourceCPU]
+		memoryAllocatable := node.Status.Allocatable[corev1.ResourceMemory]
 
 		// Add to total capacity
 		resources.TotalCPUCores += cpuAllocatable.Value()

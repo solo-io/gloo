@@ -10,14 +10,15 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/rodaine/table"
+	corev1 "k8s.io/api/core/v1"
+
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/snapshot"
-	v1 "k8s.io/api/core/v1"
 )
 
 type K8sClusterInfo struct {
-	Nodes    []v1.Node    `json:"nodes"`
-	Pods     []v1.Pod     `json:"pods"`
-	Services []v1.Service `json:"services"`
+	Nodes    []corev1.Node    `json:"nodes"`
+	Pods     []corev1.Pod     `json:"pods"`
+	Services []corev1.Service `json:"services"`
 }
 type UsageStats struct {
 	GlooFeatureUsage map[API]*GlooFeatureUsage  `json:"glooFeatureUsage" yaml:"glooFeatureUsage"`

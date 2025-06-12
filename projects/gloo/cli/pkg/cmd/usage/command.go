@@ -10,6 +10,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
+
 	"github.com/solo-io/gloo/pkg/utils/envoyutils/admincli"
 	"github.com/solo-io/gloo/pkg/utils/kubeutils"
 	"github.com/solo-io/gloo/pkg/utils/kubeutils/kubectl"
@@ -18,11 +24,6 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/options"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/snapshot"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
-	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
-	v1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
 )
 
 type Options struct {
@@ -558,7 +559,7 @@ func findGlooProxyPods(opts *Options, tempDir string) (map[string]*ProxyInfo, er
 }
 
 // getProxyStats is used to get the stats for a proxy pod /stats endpoint
-func getProxyStats(tempDir string, pod *v1.Pod, opts *Options) (*Stats, error) {
+func getProxyStats(tempDir string, pod *corev1.Pod, opts *Options) (*Stats, error) {
 
 	// TODO we need to find all gloo proxies to grab the stats
 
@@ -608,7 +609,7 @@ func parseClusterStatsIntoEndpointInfo(file string) (*Clusters, error) {
 	}
 	return &clusters, nil
 }
-func getClusterStats(tempDir string, pod *v1.Pod, opts *Options) (*Clusters, error) {
+func getClusterStats(tempDir string, pod *corev1.Pod, opts *Options) (*Clusters, error) {
 
 	// TODO we need to find all gloo proxies to grab the stats
 
