@@ -1,0 +1,4 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >-
+      Update watch namespace test to use port 443 for upstream host to avoid inconsistent http behavior
