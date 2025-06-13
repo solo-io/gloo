@@ -85,12 +85,12 @@ var _ = Describe("dynamic forward proxy", func() {
 		It("should proxy http if dynamic forward proxy header provided on request", func() {
 			requestBuilder := testContext.GetHttpRequestBuilder().
 				WithPath("get").
-				WithHeader("x-rewrite-me", "postman-echo.com")
+				WithHeader("x-rewrite-me", "jsonplaceholder.typicode.com")
 
 			Eventually(func(g Gomega) {
 				g.Expect(testutils.DefaultHttpClient.Do(requestBuilder.Build())).Should(matchers.HaveHttpResponse(&matchers.HttpResponse{
 					StatusCode: http.StatusOK,
-					Body:       ContainSubstring(`"host": "postman-echo.com"`),
+					Body:       ContainSubstring(`"host": "jsonplaceholder.typicode.com"`),
 				}))
 			}, "10s", ".1s").Should(Succeed())
 		})
@@ -124,7 +124,7 @@ var _ = Describe("dynamic forward proxy", func() {
 										TransformationTemplate: &transformation.TransformationTemplate{
 											ParseBodyBehavior: transformation.TransformationTemplate_DontParse,
 											Headers: map[string]*transformation.InjaTemplate{
-												"x-rewrite-me": {Text: "postman-echo.com"},
+												"x-rewrite-me": {Text: "jsonplaceholder.typicode.com"},
 											},
 										},
 									},
@@ -152,7 +152,7 @@ var _ = Describe("dynamic forward proxy", func() {
 			Eventually(func(g Gomega) {
 				g.Expect(testutils.DefaultHttpClient.Do(requestBuilder.Build())).Should(matchers.HaveHttpResponse(&matchers.HttpResponse{
 					StatusCode: http.StatusOK,
-					Body:       ContainSubstring(`"host": "postman-echo.com"`),
+					Body:       ContainSubstring(`"host": "jsonplaceholder.typicode.com"`),
 				}))
 			}, "10s", ".1s").Should(Succeed())
 		})
