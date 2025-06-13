@@ -1,0 +1,6 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >-
+      Adds docs for setting circuit breakers on dynamic forward proxies. 
+      skipCI-kube-tests:true
+      skipCI-docs-build:true
