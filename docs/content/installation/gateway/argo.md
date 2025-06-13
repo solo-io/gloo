@@ -178,7 +178,7 @@ If you no longer need this quick-start Gloo Gateway environment, you can uninsta
 
 The Gloo Settings resource stays in a `Progressing` health status, which prevents updates from syncing. This is due to the Settings resource not returning a status, which became an issue in Argo CD version 7.8.x. 
 
-As a workaround, use Argo CD version 7.7.x. or add the following the following status override to your Argo CD `config-cm` file.
+As a workaround, use Argo CD version 7.7.x. or add the following status override to your Argo CD `config-cm` file.
 
 ```yaml
 resource.customizations.health.gloo.solo.io_Settings: |
