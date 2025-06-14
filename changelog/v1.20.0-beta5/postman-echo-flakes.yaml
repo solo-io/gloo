@@ -2,3 +2,5 @@ changelog:
   - type: NON_USER_FACING
     description: >-
       Update watch namespace test to use port 443 for upstream host to avoid inconsistent http behavior
+    issueLink: https://github.com/solo-io/solo-projects/issues/8385
+    resolvesIssue: false
