@@ -53,8 +53,7 @@ var _ = Describe("dynamic forward proxy", func() {
 		BeforeEach(func() {
 			gw := defaults2.DefaultGateway(writeNamespace)
 			gw.GetHttpGateway().Options = &gloov1.HttpListenerOptions{
-				DynamicForwardProxy: &dynamic_forward_proxy.FilterConfig{},
-				// pick up system defaults to resolve DNS
+				DynamicForwardProxy: &dynamic_forward_proxy.FilterConfig{}, // pick up system defaults to resolve DNS
 			}
 
 			vs := helpers.NewVirtualServiceBuilder().
@@ -102,8 +101,7 @@ var _ = Describe("dynamic forward proxy", func() {
 		BeforeEach(func() {
 			gw := defaults2.DefaultGateway(writeNamespace)
 			gw.GetHttpGateway().Options = &gloov1.HttpListenerOptions{
-				DynamicForwardProxy: &dynamic_forward_proxy.FilterConfig{},
-				// pick up system defaults to resolve DNS
+				DynamicForwardProxy: &dynamic_forward_proxy.FilterConfig{}, // pick up system defaults to resolve DNS
 			}
 			vs := helpers.NewVirtualServiceBuilder().
 				WithName(e2e.DefaultVirtualServiceName).
