@@ -1,6 +1,7 @@
 package e2e_test
 
 import (
+	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/solo-io/gloo/test/testutils"
 
 	"github.com/solo-io/gloo/test/gomega/matchers"
@@ -56,7 +57,9 @@ var _ = Describe("dynamic forward proxy", func() {
 			gw := defaults2.DefaultGateway(writeNamespace)
 			gw.GetHttpGateway().Options = &gloov1.HttpListenerOptions{
 				DynamicForwardProxy: &dynamic_forward_proxy.FilterConfig{
-					SslConfig: &ssl.UpstreamSslConfig{},
+					SslConfig: &ssl.UpstreamSslConfig{
+						OneWayTls: &wrappers.BoolValue{Value: true},
+					},
 				}, // pick up system defaults to resolve DNS
 			}
 
@@ -106,7 +109,9 @@ var _ = Describe("dynamic forward proxy", func() {
 			gw := defaults2.DefaultGateway(writeNamespace)
 			gw.GetHttpGateway().Options = &gloov1.HttpListenerOptions{
 				DynamicForwardProxy: &dynamic_forward_proxy.FilterConfig{
-					SslConfig: &ssl.UpstreamSslConfig{},
+					SslConfig: &ssl.UpstreamSslConfig{
+						OneWayTls: &wrappers.BoolValue{Value: true},
+					},
 				}, // pick up system defaults to resolve DNS
 			}
 			vs := helpers.NewVirtualServiceBuilder().
