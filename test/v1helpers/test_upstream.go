@@ -349,7 +349,7 @@ func TestUpstreamReachableWithOffset(offset int, envoyPort uint32, tu *TestUpstr
 			}
 			Fail("timeout testing upstream reachability")
 		case receivedRequest = <-tu.C:
-			if receivedRequest.Method == "POST" &&
+			if receivedRequest.Method == http.MethodPost &&
 				bytes.Equal(receivedRequest.Body, body) {
 				return
 			}
@@ -483,5 +483,5 @@ func ExpectGrpcHealthOK(rootca *string, envoyPort uint32, service string) {
 			return fmt.Errorf("%v is not SERVING", resp.GetStatus())
 		}
 		return nil
-	}, "30s", "1s").Should(BeNil())
+	}, "30s", "1s").Should(Succeed())
 }

@@ -7,11 +7,19 @@ import (
 	"reflect"
 	"sync"
 
-	gloov1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
 	"github.com/solo-io/go-utils/hashutils"
+
+	gloov1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
 
 	"github.com/hashicorp/go-multierror"
 	errors "github.com/rotisserie/eris"
+	"github.com/solo-io/go-utils/contextutils"
+	kubeCRDV1 "github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd/solo.io/v1"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
+	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
+	"github.com/solo-io/solo-kit/pkg/utils/kubeutils"
+	skProtoUtils "github.com/solo-io/solo-kit/pkg/utils/protoutils"
+
 	utils2 "github.com/solo-io/gloo/pkg/utils"
 	"github.com/solo-io/gloo/projects/gateway/pkg/translator"
 	"github.com/solo-io/gloo/projects/gateway/pkg/utils"
@@ -20,12 +28,6 @@ import (
 	syncerValidation "github.com/solo-io/gloo/projects/gloo/pkg/syncer/validation"
 	validationutils "github.com/solo-io/gloo/projects/gloo/pkg/utils/validation"
 	gloovalidation "github.com/solo-io/gloo/projects/gloo/pkg/validation"
-	"github.com/solo-io/go-utils/contextutils"
-	kubeCRDV1 "github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd/solo.io/v1"
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
-	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
-	"github.com/solo-io/solo-kit/pkg/utils/kubeutils"
-	skProtoUtils "github.com/solo-io/solo-kit/pkg/utils/protoutils"
 
 	"go.uber.org/zap"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -46,8 +48,10 @@ func (r *Reports) GetProxies() []*gloov1.Proxy {
 	return r.Proxies
 }
 
-type ProxyReports []*validation.ProxyReport
-type UpstreamReports []*validation.ResourceReport
+type (
+	ProxyReports    []*validation.ProxyReport
+	UpstreamReports []*validation.ResourceReport
+)
 
 // This error is a struct so it can be checked with errors.As
 type GlooValidationResponseLengthError struct {
@@ -76,7 +80,7 @@ var (
 	failedResourceReports          = "failed gloo validation resource reports"
 	failedExtensionResourceReports = "failed extension resource reports"
 	WrappedUnmarshalErr            = func(err error) error {
-		return errors.Wrapf(err, unmarshalErrMsg)
+		return errors.Wrap(err, unmarshalErrMsg)
 	}
 
 	proxyFailedGlooValidation = func(err error, proxy *gloov1.Proxy) error {
@@ -200,11 +204,10 @@ func (v *validator) Sync(ctx context.Context, snap *gloov1snap.ApiSnapshot) erro
 }
 
 func (v *validator) gatewayUpdate(snap *gloov1snap.ApiSnapshot) bool {
-
 	if v.latestSnapshot == nil {
 		return true
 	}
-	//look at the hash of resources that affect the gateway snapshot
+	// look at the hash of resources that affect the gateway snapshot
 	hashFunc := func(snap *gloov1snap.ApiSnapshot) (uint64, error) {
 		toHash := append([]interface{}{}, snap.VirtualHostOptions.AsInterfaces()...)
 		toHash = append(toHash, snap.VirtualServices.AsInterfaces()...)
@@ -294,9 +297,8 @@ func (v *validator) validateProxiesAndExtensions(ctx context.Context, snapshot *
 		proxy, reports := v.translator.Translate(ctx, proxyName, snapshot, gatewayList)
 
 		err := v.getErrorsFromResourceReports(reports)
-
 		if err != nil {
-			err = errors.Wrapf(err, couldNotRenderProxy)
+			err = errors.Wrap(err, couldNotRenderProxy)
 			errs = multierror.Append(errs, err)
 
 			if !opts.collectAllErrors {
@@ -352,7 +354,7 @@ func (v *validator) validateProxiesAndExtensions(ctx context.Context, snapshot *
 		// The returned value indicates whether to stop processing this proxy, but this is the end of the loop
 		err = v.getErrorsFromGlooValidation(glooReports)
 		if err != nil {
-			err = errors.Wrapf(err, failedResourceReports)
+			err = errors.Wrap(err, failedResourceReports)
 			errs = multierror.Append(errs, err)
 		}
 
@@ -364,9 +366,8 @@ func (v *validator) validateProxiesAndExtensions(ctx context.Context, snapshot *
 	if len(extensionReports) > 0 {
 		// Collect the errors from the reports
 		err = v.getErrorsFromResourceReports(extensionReports)
-
 		if err != nil {
-			err = errors.Wrapf(err, failedExtensionResourceReports)
+			err = errors.Wrap(err, failedExtensionResourceReports)
 			errs = multierror.Append(errs, err)
 		}
 	}
@@ -457,7 +458,7 @@ func (v *validator) validateSnapshot(opts *validationOptions) (*Reports, error) 
 
 	// Run the validation.
 	validationOutput := v.validateProxiesAndExtensions(ctx, snapshotClone, opts)
-	//errs := validationOutput.err // we use this one so often ,just pull it out
+	// errs := validationOutput.err // we use this one so often ,just pull it out
 
 	passedSnapshotValidation := false
 	// We want to compare the validation output if the retryValidation flag and we are currently not passing validation
@@ -552,7 +553,6 @@ func (v *validator) validateAgainstCurrentSnapshot(ctx context.Context, opts *va
 // validation of the modified snapshot (proxies, proxyReports, errors) is compared to the output of the validation of the original snapshot.
 // If outputs are the same, it is assumed that the modification did not degrade the system and  is accepted
 func (v *validator) compareValidationOutputs(ctx context.Context, opts *validationOptions, voMod, voNoMod validationOutput) bool {
-
 	sameErrors := compareErrors(voMod.err, voNoMod.err)
 	sameProxies := compareProxies(voMod.proxies, voNoMod.proxies)
 	sameReports := compareReports(voMod.proxyReports, voNoMod.proxyReports, v.allowWarnings)
@@ -716,7 +716,7 @@ func (v *validator) ValidateList(ctx context.Context, ul *unstructured.Unstructu
 	for _, item := range ul.Items {
 
 		// this will lock
-		var itemProxyReports, err = v.processItem(ctx, item)
+		itemProxyReports, err := v.processItem(ctx, item)
 
 		errs = multierror.Append(errs, err)
 		if itemProxyReports != nil && itemProxyReports.ProxyReports != nil {
@@ -798,9 +798,7 @@ func (v *validator) validateResource(opts *validationOptions) (*Reports, error) 
 // getErrorsFromGlooValidation returns errors from the Gloo validation reports. This function uses the reporter package to
 // extract errors and warnings from the reports and manually loops over the proxyReports' warnings and errors, applying the `allowWarnings` logic.
 func (v *validator) getErrorsFromGlooValidation(reports []*gloovalidation.GlooValidationReport) error {
-	var (
-		errs error
-	)
+	var errs error
 
 	for _, report := range reports {
 		err := v.getErrorsFromResourceReports(report.ResourceReports)

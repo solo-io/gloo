@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-multierror"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	errors "github.com/rotisserie/eris"
 	"github.com/solo-io/gloo/pkg/utils"
 	v1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gateway/pkg/translator"
@@ -1508,7 +1509,7 @@ func generateNone() reporter.ResourceReports {
 func generateChangeError() reporter.ResourceReports {
 	validateChangeErrCnt++
 	return generateTranslationReports(reporter.Report{
-		Errors: &multierror.Error{Errors: []error{fmt.Errorf(fmt.Sprintf(errStringF, validateChangeErrCnt))}},
+		Errors: &multierror.Error{Errors: []error{fmt.Errorf(errStringF, validateChangeErrCnt)}},
 	})
 }
 
@@ -1522,14 +1523,14 @@ func generateChangeWarn() reporter.ResourceReports {
 func generateChangeWarnSameError() reporter.ResourceReports {
 	validateChangeWarningCnt++
 	return generateTranslationReports(reporter.Report{
-		Errors: &multierror.Error{Errors: []error{fmt.Errorf(errString)}}, Warnings: []string{fmt.Sprintf(warnStringF, validateChangeWarningCnt)},
+		Errors: &multierror.Error{Errors: []error{errors.New(errString)}}, Warnings: []string{fmt.Sprintf(warnStringF, validateChangeWarningCnt)},
 	})
 }
 
 func generateSameWarnChangeError() reporter.ResourceReports {
 	validateChangeErrCnt++
 	return generateTranslationReports(reporter.Report{
-		Errors: &multierror.Error{Errors: []error{fmt.Errorf(fmt.Sprintf(errStringF, validateChangeErrCnt))}}, Warnings: []string{warnString},
+		Errors: &multierror.Error{Errors: []error{fmt.Errorf(errStringF, validateChangeErrCnt)}}, Warnings: []string{warnString},
 	})
 }
 
@@ -1537,7 +1538,7 @@ func generateChangeWarnChangeError() reporter.ResourceReports {
 	validateChangeErrCnt++
 	validateChangeWarningCnt++
 	return generateTranslationReports(reporter.Report{
-		Errors: &multierror.Error{Errors: []error{fmt.Errorf(fmt.Sprintf("r0err1-%d", validateChangeErrCnt))}}, Warnings: []string{fmt.Sprintf("r0warn1-%d", validateChangeWarningCnt)},
+		Errors: &multierror.Error{Errors: []error{fmt.Errorf("r0err1-%d", validateChangeErrCnt)}}, Warnings: []string{fmt.Sprintf("r0warn1-%d", validateChangeWarningCnt)},
 	})
 }
 

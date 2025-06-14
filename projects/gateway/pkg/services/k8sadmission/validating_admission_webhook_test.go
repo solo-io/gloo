@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
+	"errors"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -57,13 +57,13 @@ var _ = Describe("ValidatingAdmissionWebhook", func() {
 
 	setMockFunctions := func() {
 		mv.fValidateList = func(ctx context.Context, ul *unstructured.UnstructuredList, dryRun bool) (*validation.Reports, *multierror.Error) {
-			return reports(), &multierror.Error{Errors: []error{fmt.Errorf(errMsg)}}
+			return reports(), &multierror.Error{Errors: []error{errors.New(errMsg)}}
 		}
 		mv.fValidateModifiedGvk = func(ctx context.Context, gvk schema.GroupVersionKind, resource resources.Resource, dryRun bool) (*validation.Reports, error) {
-			return reports(), fmt.Errorf(errMsg)
+			return reports(), errors.New(errMsg)
 		}
 		mv.fValidateDeleteGvk = func(ctx context.Context, gvk schema.GroupVersionKind, resource resources.Resource, dryRun bool) error {
-			return fmt.Errorf(errMsg)
+			return errors.New(errMsg)
 		}
 	}
 

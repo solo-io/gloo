@@ -4,6 +4,7 @@ import (
 	"github.com/solo-io/gloo/test/testutils"
 
 	"github.com/solo-io/gloo/test/gomega/matchers"
+	"github.com/solo-io/gloo/test/gomega/transforms"
 
 	defaults2 "github.com/solo-io/gloo/projects/gateway/pkg/defaults"
 
@@ -90,7 +91,9 @@ var _ = Describe("dynamic forward proxy", func() {
 			Eventually(func(g Gomega) {
 				g.Expect(testutils.DefaultHttpClient.Do(requestBuilder.Build())).Should(matchers.HaveHttpResponse(&matchers.HttpResponse{
 					StatusCode: http.StatusOK,
-					Body:       ContainSubstring(`"host": "postman-echo.com"`),
+					Body: WithTransform(transforms.WithJsonBody(),
+						HaveKeyWithValue("headers", HaveKeyWithValue("host", "postman-echo.com")),
+					),
 				}))
 			}, "10s", ".1s").Should(Succeed())
 		})
@@ -152,7 +155,9 @@ var _ = Describe("dynamic forward proxy", func() {
 			Eventually(func(g Gomega) {
 				g.Expect(testutils.DefaultHttpClient.Do(requestBuilder.Build())).Should(matchers.HaveHttpResponse(&matchers.HttpResponse{
 					StatusCode: http.StatusOK,
-					Body:       ContainSubstring(`"host": "postman-echo.com"`),
+					Body: WithTransform(transforms.WithJsonBody(),
+						HaveKeyWithValue("headers", HaveKeyWithValue("host", "postman-echo.com")),
+					),
 				}))
 			}, "10s", ".1s").Should(Succeed())
 		})

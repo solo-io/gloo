@@ -60,7 +60,7 @@ var (
 	unmarshalErrMsg     = "could not unmarshal raw object"
 	UnmarshalErr        = errors.New(unmarshalErrMsg)
 	WrappedUnmarshalErr = func(err error) error {
-		return errors.Wrapf(err, unmarshalErrMsg)
+		return errors.Wrap(err, unmarshalErrMsg)
 	}
 	ListGVK = schema.GroupVersionKind{
 		Version: "v1",

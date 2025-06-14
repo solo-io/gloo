@@ -584,7 +584,7 @@ func scaleDeploymentTo(kubeClient kubernetes.Interface, deploymentToScale *appsv
 			return err
 		}
 		return nil
-	}, 60*time.Second, 2*time.Second).Should(BeNil())
+	}, 60*time.Second, 2*time.Second).Should(Succeed())
 
 	// Wait for expected running pod number
 	EventuallyWithOffset(1, func() error {
@@ -602,5 +602,5 @@ func scaleDeploymentTo(kubeClient kubernetes.Interface, deploymentToScale *appsv
 			return nil
 		}
 		return eris.Errorf("expected %d pods but found %d", replicas, len(pods.Items))
-	}, 60*time.Second, 1*time.Second).Should(BeNil())
+	}, 60*time.Second, 1*time.Second).Should(Succeed())
 }

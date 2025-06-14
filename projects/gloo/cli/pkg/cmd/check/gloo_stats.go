@@ -2,6 +2,7 @@ package check
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -99,12 +100,12 @@ func checkXdsMetrics(ctx context.Context, opts *options.Options, deployments *v1
 	if strings.TrimSpace(stats) == "" {
 		err := fmt.Sprint(errMessage+": could not find any metrics at", glooStatsPath, "endpoint of the "+customGlooDeploymentName+" deployment")
 		fmt.Println(err)
-		return fmt.Errorf(err)
+		return errors.New(err)
 	}
 
 	if !ResourcesSyncedOverXds(stats, customGlooDeploymentName) {
 		fmt.Println(errMessage)
-		return fmt.Errorf(errMessage)
+		return errors.New(errMessage)
 	}
 
 	for _, deployment := range deployments.Items {
