@@ -7,6 +7,7 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/api/v2/cluster"
 	envoycore_gloo "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/api/v2/core"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	v1_circuitbreaker "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/circuit_breaker"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/ssl"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/utils"
 	"github.com/solo-io/gloo/test/gomega/assertions"
@@ -21,7 +22,7 @@ var _ = Describe("UpdateUpstream", func() {
 		original := &gloov1.Upstream{
 			SslConfig:                               &ssl.UpstreamSslConfig{Sni: "testsni"},
 			DisableIstioAutoMtls:                    &wrappers.BoolValue{Value: true},
-			CircuitBreakers:                         &gloov1.CircuitBreakerConfig{MaxConnections: &wrappers.UInt32Value{Value: 6}},
+			CircuitBreakers:                         &v1_circuitbreaker.CircuitBreakerConfig{MaxConnections: &wrappers.UInt32Value{Value: 6}},
 			LoadBalancerConfig:                      &gloov1.LoadBalancerConfig{HealthyPanicThreshold: &wrappers.DoubleValue{Value: 7}},
 			ConnectionConfig:                        &gloov1.ConnectionConfig{MaxRequestsPerConnection: 8},
 			HealthChecks:                            []*envoycore_gloo.HealthCheck{{}},
@@ -56,7 +57,7 @@ var _ = Describe("UpdateUpstream", func() {
 			},
 		}
 		desiredDisableAutoMtls := &wrappers.BoolValue{Value: false}
-		desiredCircuitBreaker := &gloov1.CircuitBreakerConfig{MaxConnections: &wrappers.UInt32Value{Value: 6}}
+		desiredCircuitBreaker := &v1_circuitbreaker.CircuitBreakerConfig{MaxConnections: &wrappers.UInt32Value{Value: 6}}
 		desiredLoadBalancer := &gloov1.LoadBalancerConfig{HealthyPanicThreshold: &wrappers.DoubleValue{Value: 7}}
 		desiredConnectionConfig := &gloov1.ConnectionConfig{MaxRequestsPerConnection: 8}
 		desiredHealthChecks := []*envoycore_gloo.HealthCheck{{}}
@@ -86,7 +87,7 @@ var _ = Describe("UpdateUpstream", func() {
 		original := &gloov1.Upstream{
 			SslConfig:            &ssl.UpstreamSslConfig{Sni: "testsni"},
 			DisableIstioAutoMtls: &wrappers.BoolValue{Value: true},
-			CircuitBreakers:      &gloov1.CircuitBreakerConfig{MaxPendingRequests: &wrappers.UInt32Value{Value: 6}},
+			CircuitBreakers:      &v1_circuitbreaker.CircuitBreakerConfig{MaxPendingRequests: &wrappers.UInt32Value{Value: 6}},
 			LoadBalancerConfig:   &gloov1.LoadBalancerConfig{HealthyPanicThreshold: &wrappers.DoubleValue{Value: 9}},
 			ConnectionConfig:     &gloov1.ConnectionConfig{PerConnectionBufferLimitBytes: &wrappers.UInt32Value{Value: 10}},
 			HealthChecks:         []*envoycore_gloo.HealthCheck{{}, {}},
