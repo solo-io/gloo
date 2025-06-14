@@ -42,7 +42,7 @@ Name|Version|License
 [onsi/gomega](https://github.com/onsi/gomega)|v1.36.2|MIT License
 [pkg/browser](https://github.com/pkg/browser)|v0.0.0-20180916011732-0a3d74bf9ce4|BSD 2-clause "Simplified" License
 [pkg/errors](https://github.com/pkg/errors)|v0.9.1|BSD 2-clause "Simplified" License
-[prometheus/client_golang](https://github.com/prometheus/client_golang)|v1.20.5|Apache License 2.0
+[prometheus/client_golang](https://github.com/prometheus/client_golang)|v1.22.0|Apache License 2.0
 [prometheus/client_model](https://github.com/prometheus/client_model)|v0.6.1|Apache License 2.0
 [prometheus/common](https://github.com/prometheus/common)|v0.62.0|Apache License 2.0
 [go-ruleguard/dsl](https://github.com/quasilyte/go-ruleguard)|v0.3.22|BSD 3-clause "New" or "Revised" License
@@ -70,7 +70,7 @@ Name|Version|License
 [google.golang.org/grpc](https://google.golang.org/grpc)|v1.71.1|Apache License 2.0
 [google.golang.org/protobuf](https://google.golang.org/protobuf)|v1.36.6|BSD 3-clause "New" or "Revised" License
 [AlecAivazis/survey.v1](https://gopkg.in/AlecAivazis/survey.v1)|v1.8.7|MIT License
-[helm/v3](https://helm.sh/helm/v3)|v3.17.0|Apache License 2.0
+[helm/v3](https://helm.sh/helm/v3)|v3.17.3|Apache License 2.0
 [istio.io/api](https://istio.io/api)|v1.25.2-0.20250410212420-84c271001f68|Apache License 2.0
 [istio.io/client-go](https://istio.io/client-go)|v1.25.2-0.20250410213018-e5f6074bc228|Apache License 2.0
 [istio.io/istio](https://istio.io/istio)|v0.0.0-20250411142419-0d83506c2883|Apache License 2.0
@@ -84,7 +84,7 @@ Name|Version|License
 [k8s.io/utils](https://k8s.io/utils)|v0.0.0-20241104100929-3ea5e8cea738|Apache License 2.0
 [knative.dev/networking](https://knative.dev/networking)|v0.0.0-20211210083629-bace06e98aee|Apache License 2.0
 [knative.dev/pkg](https://knative.dev/pkg)|v0.0.0-20211206113427-18589ac7627e|Apache License 2.0
-[sigs.k8s.io/controller-runtime](https://sigs.k8s.io/controller-runtime)|v0.20.4|Apache License 2.0
+[sigs.k8s.io/controller-runtime](https://sigs.k8s.io/controller-runtime)|v0.21.0|Apache License 2.0
 [sigs.k8s.io/controller-tools](https://sigs.k8s.io/controller-tools)|v0.17.3|Apache License 2.0
 [sigs.k8s.io/gateway-api](https://sigs.k8s.io/gateway-api)|v1.3.0|Apache License 2.0
 [structured-merge-diff/v4](https://sigs.k8s.io/structured-merge-diff/v4)|v4.7.0|Apache License 2.0
