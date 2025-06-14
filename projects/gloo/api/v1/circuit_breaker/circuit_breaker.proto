@@ -1,6 +1,6 @@
 syntax = "proto3";
 package gloo.solo.io;
-option go_package = "github.com/solo-io/gloo/projects/gloo/pkg/api/v1";
+option go_package = "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/circuit_breaker";
 
 import "google/protobuf/wrappers.proto";
 import "extproto/ext.proto";
@@ -17,4 +17,5 @@ message CircuitBreakerConfig {
     google.protobuf.UInt32Value max_pending_requests = 2;
     google.protobuf.UInt32Value max_requests = 3;
     google.protobuf.UInt32Value max_retries = 4;
+    bool track_remaining = 5;
 }

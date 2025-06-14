@@ -1,0 +1,7 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/solo-projects/issues/8094
+    resolvesIssue: false
+    description: >-
+      For clusters generated for the dynamic forward proxy, the circuit breakers are now generated from the dfp config, if provided,
+      otherwise from the settings. If the circuitBreakers are not provided in either location, envoy will use the default circuit breakers.
