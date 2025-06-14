@@ -90,7 +90,7 @@ var _ = Describe("dynamic forward proxy", func() {
 			Eventually(func(g Gomega) {
 				g.Expect(testutils.DefaultHttpClient.Do(requestBuilder.Build())).Should(matchers.HaveHttpResponse(&matchers.HttpResponse{
 					StatusCode: http.StatusOK,
-					Body:       ContainSubstring(`"host":"postman-echo.com"`),
+					Body:       MatchRegexp(`"host":\s*"postman-echo.com"`),
 				}))
 			}, "10s", ".1s").Should(Succeed())
 		})
@@ -152,7 +152,7 @@ var _ = Describe("dynamic forward proxy", func() {
 			Eventually(func(g Gomega) {
 				g.Expect(testutils.DefaultHttpClient.Do(requestBuilder.Build())).Should(matchers.HaveHttpResponse(&matchers.HttpResponse{
 					StatusCode: http.StatusOK,
-					Body:       ContainSubstring(`"host":"postman-echo.com"`),
+					Body:       MatchRegexp(`"host":\s*"postman-echo.com"`),
 				}))
 			}, "10s", ".1s").Should(Succeed())
 		})
