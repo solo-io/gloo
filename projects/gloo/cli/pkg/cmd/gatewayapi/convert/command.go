@@ -8,6 +8,8 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/solo-io/gloo/projects/gloo/cli/pkg/snapshot"
+
 	"github.com/solo-io/gloo/pkg/utils/envoyutils/admincli"
 	"github.com/solo-io/gloo/pkg/utils/kubeutils/kubectl"
 	"github.com/solo-io/gloo/pkg/utils/kubeutils/portforward"
@@ -46,7 +48,7 @@ func RootCmd(op *options.Options) *cobra.Command {
 # To load a bunch of '*.yaml' or '*.yml' files in nested directories. You can also use the '--retain-input-folder-structure' option to keep the original file structure, which can be helpful in CI/CD pipelines.
   glooctl gateway-api convert --input-dir ./gloo-configs --output-dir ./_output --retain-input-folder-structure
 
-To download a Gloo Gateway snapshot from a running 'gloo' pod (verison 1.17+) and generate Gateway API YAML files from that snapshot. 
+# To download a Gloo Gateway snapshot from a running 'gloo' pod (verison 1.17+) and generate Gateway API YAML files from that snapshot. 
   kubectl -n gloo-system port-forward deploy/gloo 9091
   curl localhost:9091/snapshots/input > gg-input.json
   
@@ -77,17 +79,30 @@ func run(opts *Options) error {
 		return err
 	}
 
-	filesMetrics.Add(float64(len(foundFiles)))
-
 	output := NewGatewayAPIOutput()
-	var isSnapshotFile bool
-	if opts.GlooSnapshotFile != "" {
-		isSnapshotFile = true
+	var inputSnapshot *snapshot.Instance
+	snapshotFile := opts.GlooSnapshotFile
+
+	// the snapshot file comes from control plane
+	if opts.ControlPlaneName != "" {
+		snapshotFile = foundFiles[0]
 	}
 
-	if err := output.Load(foundFiles, isSnapshotFile); err != nil {
-		return err
+	if snapshotFile != "" {
+		inputSnapshot, err = snapshot.FromGlooSnapshot(snapshotFile)
+		if err != nil {
+			return err
+		}
+	} else {
+		// yaml files
+		// snapshot file
+		inputSnapshot, err = snapshot.FromYamlFiles(foundFiles)
+		if err != nil {
+			return err
+		}
 	}
+
+	output.edgeCache = inputSnapshot
 
 	fmt.Printf("Successfully loaded %d files\n", len(foundFiles))
 	// preprocessing
@@ -96,27 +111,24 @@ func run(opts *Options) error {
 	}
 
 	// now we need to convert the easy stuff like route tables
-	// preprocessing
 	if err := output.Convert(); err != nil {
 		return err
 	}
 	fmt.Printf("Processing complete, entering post processing...\n")
 
 	// now we need to convert the easy stuff like route tables
-	// preprocessing
 	if err := output.PostProcess(opts); err != nil {
 		return err
 	}
 	fmt.Printf("Post processing complete, writing to files...\n")
 
 	// now we need to convert the easy stuff like route tables
-	// preprocessing
 	if err := output.Write(opts); err != nil {
 		return err
 	}
 
 	if opts.Stats {
-		printMetrics(output)
+		output.PrintMetrics(len(foundFiles))
 	}
 
 	return nil
