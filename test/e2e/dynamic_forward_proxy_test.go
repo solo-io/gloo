@@ -9,6 +9,8 @@ import (
 
 	"net/http"
 
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/ssl"
+
 	"github.com/solo-io/gloo/test/e2e"
 	"github.com/solo-io/gloo/test/helpers"
 
@@ -53,7 +55,9 @@ var _ = Describe("dynamic forward proxy", func() {
 		BeforeEach(func() {
 			gw := defaults2.DefaultGateway(writeNamespace)
 			gw.GetHttpGateway().Options = &gloov1.HttpListenerOptions{
-				DynamicForwardProxy: &dynamic_forward_proxy.FilterConfig{}, // pick up system defaults to resolve DNS
+				DynamicForwardProxy: &dynamic_forward_proxy.FilterConfig{
+					SslConfig: &ssl.UpstreamSslConfig{},
+				}, // pick up system defaults to resolve DNS
 			}
 
 			vs := helpers.NewVirtualServiceBuilder().
@@ -85,12 +89,12 @@ var _ = Describe("dynamic forward proxy", func() {
 		It("should proxy http if dynamic forward proxy header provided on request", func() {
 			requestBuilder := testContext.GetHttpRequestBuilder().
 				WithPath("get").
-				WithHeader("x-rewrite-me", "echo.free.beeceptor.com")
+				WithHeader("x-rewrite-me", "postman-echo.com")
 
 			Eventually(func(g Gomega) {
 				g.Expect(testutils.DefaultHttpClient.Do(requestBuilder.Build())).Should(matchers.HaveHttpResponse(&matchers.HttpResponse{
 					StatusCode: http.StatusOK,
-					Body:       ContainSubstring(`"host": "echo.free.beeceptor.com"`),
+					Body:       ContainSubstring(`"host": "postman-echo.com"`),
 				}))
 			}, "10s", ".1s").Should(Succeed())
 		})
@@ -101,7 +105,9 @@ var _ = Describe("dynamic forward proxy", func() {
 		BeforeEach(func() {
 			gw := defaults2.DefaultGateway(writeNamespace)
 			gw.GetHttpGateway().Options = &gloov1.HttpListenerOptions{
-				DynamicForwardProxy: &dynamic_forward_proxy.FilterConfig{}, // pick up system defaults to resolve DNS
+				DynamicForwardProxy: &dynamic_forward_proxy.FilterConfig{
+					SslConfig: &ssl.UpstreamSslConfig{},
+				}, // pick up system defaults to resolve DNS
 			}
 			vs := helpers.NewVirtualServiceBuilder().
 				WithName(e2e.DefaultVirtualServiceName).
@@ -124,7 +130,7 @@ var _ = Describe("dynamic forward proxy", func() {
 										TransformationTemplate: &transformation.TransformationTemplate{
 											ParseBodyBehavior: transformation.TransformationTemplate_DontParse,
 											Headers: map[string]*transformation.InjaTemplate{
-												"x-rewrite-me": {Text: "echo.free.beeceptor.com"},
+												"x-rewrite-me": {Text: "postman-echo.com"},
 											},
 										},
 									},
@@ -152,7 +158,7 @@ var _ = Describe("dynamic forward proxy", func() {
 			Eventually(func(g Gomega) {
 				g.Expect(testutils.DefaultHttpClient.Do(requestBuilder.Build())).Should(matchers.HaveHttpResponse(&matchers.HttpResponse{
 					StatusCode: http.StatusOK,
-					Body:       ContainSubstring(`"host": "echo.free.beeceptor.com"`),
+					Body:       ContainSubstring(`"host": "postman-echo.com"`),
 				}))
 			}, "10s", ".1s").Should(Succeed())
 		})
