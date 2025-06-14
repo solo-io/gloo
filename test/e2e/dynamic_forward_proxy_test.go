@@ -56,11 +56,7 @@ var _ = Describe("dynamic forward proxy", func() {
 		BeforeEach(func() {
 			gw := defaults2.DefaultGateway(writeNamespace)
 			gw.GetHttpGateway().Options = &gloov1.HttpListenerOptions{
-				DynamicForwardProxy: &dynamic_forward_proxy.FilterConfig{
-					SslConfig: &ssl.UpstreamSslConfig{
-						OneWayTls: &wrappers.BoolValue{Value: true},
-					},
-				}, // pick up system defaults to resolve DNS
+				DynamicForwardProxy: &dynamic_forward_proxy.FilterConfig{}, // pick up system defaults to resolve DNS
 			}
 
 			vs := helpers.NewVirtualServiceBuilder().
@@ -97,7 +93,7 @@ var _ = Describe("dynamic forward proxy", func() {
 			Eventually(func(g Gomega) {
 				g.Expect(testutils.DefaultHttpClient.Do(requestBuilder.Build())).Should(matchers.HaveHttpResponse(&matchers.HttpResponse{
 					StatusCode: http.StatusOK,
-					Body:       ContainSubstring(`"host": "postman-echo.com"`),
+					Body:       ContainSubstring(`"host":"postman-echo.com"`),
 				}))
 			}, "10s", ".1s").Should(Succeed())
 		})
@@ -108,10 +104,7 @@ var _ = Describe("dynamic forward proxy", func() {
 		BeforeEach(func() {
 			gw := defaults2.DefaultGateway(writeNamespace)
 			gw.GetHttpGateway().Options = &gloov1.HttpListenerOptions{
-				DynamicForwardProxy: &dynamic_forward_proxy.FilterConfig{
-					SslConfig: &ssl.UpstreamSslConfig{
-						OneWayTls: &wrappers.BoolValue{Value: true},
-					},
+				DynamicForwardProxy: &dynamic_forward_proxy.FilterConfig{},
 				}, // pick up system defaults to resolve DNS
 			}
 			vs := helpers.NewVirtualServiceBuilder().
@@ -163,7 +156,7 @@ var _ = Describe("dynamic forward proxy", func() {
 			Eventually(func(g Gomega) {
 				g.Expect(testutils.DefaultHttpClient.Do(requestBuilder.Build())).Should(matchers.HaveHttpResponse(&matchers.HttpResponse{
 					StatusCode: http.StatusOK,
-					Body:       ContainSubstring(`"host": "postman-echo.com"`),
+					Body:       ContainSubstring(`"host":"postman-echo.com"`),
 				}))
 			}, "10s", ".1s").Should(Succeed())
 		})
