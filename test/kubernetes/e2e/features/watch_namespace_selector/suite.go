@@ -47,23 +47,23 @@ func (s *testingSuite) TestMatchExpressions() {
 
 func (s *testingSuite) testWatchNamespaceSelector(key, value string) {
 	// Ensure the install namespace is watched even if not specified
-	s.TestInstallation.AssertionsT(s.T()).CurlEventuallyRespondsWithStatus(s.Ctx, "install-ns/", http.StatusOK)
+	s.TestInstallation.Assertions.CurlEventuallyRespondsWithStatus(s.Ctx, "install-ns/", http.StatusOK)
 
 	// Ensure the namespace is not watched
 	s.TestInstallation.Actions.Kubectl().Execute(s.Ctx, "label", "ns", "random", key+"-")
 
 	// Ensure CRs defined in non watched-namespaces are not translated
-	s.TestInstallation.AssertionsT(s.T()).CurlEventuallyRespondsWithStatus(s.Ctx, "random/", http.StatusNotFound)
+	s.TestInstallation.Assertions.CurlEventuallyRespondsWithStatus(s.Ctx, "random/", http.StatusNotFound)
 
 	s.labelSecondNamespaceAsWatched(key, value)
 
 	// The VS defined in the random namespace should be translated
-	s.TestInstallation.AssertionsT(s.T()).CurlEventuallyRespondsWithStatus(s.Ctx, "random/", http.StatusOK)
+	s.TestInstallation.Assertions.CurlEventuallyRespondsWithStatus(s.Ctx, "random/", http.StatusOK)
 
 	s.unwatchNamespace(key)
 
 	// Ensure CRs defined in non watched-namespaces are not translated
-	s.TestInstallation.AssertionsT(s.T()).CurlConsistentlyRespondsWithStatus(s.Ctx, "random/", http.StatusNotFound)
+	s.TestInstallation.Assertions.CurlConsistentlyRespondsWithStatus(s.Ctx, "random/", http.StatusNotFound)
 }
 
 func (s *testingSuite) TestUnwatchedNamespaceValidation() {
@@ -96,7 +96,7 @@ func (s *testingSuite) TestWatchedNamespaceValidation() {
 	}, time.Minute*2, time.Second*10)
 
 	// The upstream defined in the random namespace should be translated and referenced
-	s.TestInstallation.AssertionsT(s.T()).CurlEventuallyRespondsWithStatus(s.Ctx, testUrl, http.StatusOK)
+	s.TestInstallation.Assertions.CurlEventuallyRespondsWithStatus(s.Ctx, testUrl, http.StatusOK)
 
 	// Trying to unwatch the namespace that has an upstream referenced in another namespace leads to an error
 	_, errOut, err := s.TestInstallation.Actions.Kubectl().Execute(s.Ctx, "label", "ns", "random", "label-")
@@ -120,7 +120,7 @@ func (s *testingSuite) TestWatchedNamespaceValidation() {
 	s.unwatchNamespace("label")
 
 	// The upstream defined in the random namespace should be translated and referenced
-	s.TestInstallation.AssertionsT(s.T()).CurlEventuallyRespondsWithStatus(s.Ctx, testUrl, http.StatusNotFound)
+	s.TestInstallation.Assertions.CurlEventuallyRespondsWithStatus(s.Ctx, testUrl, http.StatusNotFound)
 
 	// Optimists invent airplanes; pessimists invent parachutes
 	s.addInconsequentialLabelToSecondNamespace()
