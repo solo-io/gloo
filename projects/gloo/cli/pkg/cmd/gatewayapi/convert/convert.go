@@ -2,7 +2,6 @@ package convert
 
 import (
 	"fmt"
-	v32 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/type/v3"
 	"strings"
 
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/als"
@@ -191,10 +190,12 @@ func (o *GatewayAPIOutput) convertVirtualServiceListener(vs *snapshot.VirtualSer
 				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, vs, "VirtualHostOption %s references a listener set in a different namespace %s which is not supported", types.NamespacedName{Name: vs.GetName(), Namespace: vs.GetNamespace()}, types.NamespacedName{Name: listenerSet.GetName(), Namespace: listenerSet.GetNamespace()})
 			}
 			// add the target ref to the listener
-			gtp.GlooTrafficPolicy.Spec.TargetRefs = append(gtp.GlooTrafficPolicy.Spec.TargetRefs, kgateway.LocalPolicyTargetReference{
-				Group: apixv1a1.GroupName,
-				Kind:  "XListenerSet",
-				Name:  gwv1.ObjectName(listenerSet.Name),
+			gtp.GlooTrafficPolicy.Spec.TargetRefs = append(gtp.GlooTrafficPolicy.Spec.TargetRefs, kgateway.LocalPolicyTargetReferenceWithSectionName{
+				LocalPolicyTargetReference: kgateway.LocalPolicyTargetReference{
+					Group: apixv1a1.GroupName,
+					Kind:  "XListenerSet",
+					Name:  gwv1.ObjectName(listenerSet.Name),
+				},
 			})
 			o.gatewayAPICache.AddGlooTrafficPolicy(gtp)
 		}
@@ -242,7 +243,7 @@ func (o *GatewayAPIOutput) convertVirtualServiceListener(vs *snapshot.VirtualSer
 		//	vs.Spec.GetVirtualHost().GetOptions(),
 		// go through each option and add it to traffic policy
 
-		gtp.Spec = convertVHOOptionsToTrafficPolicySpec(vs.Spec.GetVirtualHost().GetOptions())
+		gtp.Spec = o.convertVHOOptionsToTrafficPolicySpec(vs.Spec.GetVirtualHost().GetOptions(), vs)
 
 		o.gatewayAPICache.AddGlooTrafficPolicy(snapshot.NewGlooTrafficPolicyWrapper(gtp, vs.FileOrigin()))
 	}
@@ -256,14 +257,14 @@ func (o *GatewayAPIOutput) convertVirtualHostOptionToGlooTrafficPolicy(vho *snap
 		Spec: gloogateway.GlooTrafficPolicySpec{},
 	}
 	if vho != nil {
-		policy.Spec = convertVHOOptionsToTrafficPolicySpec(vho.VirtualHostOption.Spec.Options)
+		policy.Spec = o.convertVHOOptionsToTrafficPolicySpec(vho.VirtualHostOption.Spec.Options, vho)
 	}
 
 	wrapper := snapshot.NewGlooTrafficPolicyWrapper(policy, vho.FileOrigin())
 	return wrapper
 }
 
-func (o *GatewayAPIOutput) convertVHOOptionsToTrafficPolicySpec(vho *gloov1.VirtualHostOptions, wrapper *snapshot.VirtualHostOptionWrapper) gloogateway.GlooTrafficPolicySpec {
+func (o *GatewayAPIOutput) convertVHOOptionsToTrafficPolicySpec(vho *gloov1.VirtualHostOptions, wrapper snapshot.Wrapper) gloogateway.GlooTrafficPolicySpec {
 
 	spec := gloogateway.GlooTrafficPolicySpec{
 		TrafficPolicySpec: kgateway.TrafficPolicySpec{
@@ -537,18 +538,18 @@ func (o *GatewayAPIOutput) convertListenerOptionAccessLogging(glooGateway *snaps
 					accessLog.Filter.OrFilter = []kgateway.FilterType{}
 				}
 				for _, filter := range edgeAccessLog.GetFilter().GetOrFilter().GetFilters() {
-					accessLog.Filter.AndFilter = append(accessLog.Filter.AndFilter, *convertAccessLogFitler(filter, glooGateway))
+					accessLog.Filter.AndFilter = append(accessLog.Filter.AndFilter, *o.convertAccessLogFitler(filter, glooGateway))
 				}
 			} else if edgeAccessLog.GetFilter().GetAndFilter() != nil {
 				if accessLog.Filter.AndFilter == nil {
 					accessLog.Filter.AndFilter = []kgateway.FilterType{}
 				}
 				for _, filter := range edgeAccessLog.GetFilter().GetAndFilter().GetFilters() {
-					accessLog.Filter.AndFilter = append(accessLog.Filter.AndFilter, *convertAccessLogFitler(filter, glooGateway))
+					accessLog.Filter.AndFilter = append(accessLog.Filter.AndFilter, *o.convertAccessLogFitler(filter, glooGateway))
 				}
 			} else {
 				// just and inline filter
-				accessLog.Filter.FilterType = convertAccessLogFitler(edgeAccessLog.GetFilter(), glooGateway)
+				accessLog.Filter.FilterType = o.convertAccessLogFitler(edgeAccessLog.GetFilter(), glooGateway)
 			}
 		}
 		listenerPolicy.Spec.AccessLog = append(listenerPolicy.Spec.AccessLog, accessLog)
@@ -816,7 +817,7 @@ func (o *GatewayAPIOutput) convertHTTPListenerOptions(options *gloov1.HttpListen
 
 	trafficPolicy.Spec = tps
 
-	o.gatewayAPICache.AddGlooTrafficPolicy(snapshot.NewGlooTrafficPolicyWrapper(trafficPolicy, glooGateway.FileOrigin()))
+	o.gatewayAPICache.AddGlooTrafficPolicy(snapshot.NewGlooTrafficPolicyWrapper(trafficPolicy, wrapper.FileOrigin()))
 }
 
 func (o *GatewayAPIOutput) convertVirtualServiceHTTPRoutes(vs *snapshot.VirtualServiceWrapper, glooGateway *snapshot.GlooGatewayWrapper, listenerName string) error {
@@ -879,13 +880,13 @@ func (o *GatewayAPIOutput) convertRouteOptions(
 		trafficPolicy = &gloogateway.GlooTrafficPolicy{
 			TypeMeta: metav1.TypeMeta{
 				Kind:       "GlooTrafficPolicy",
-				APIVersion: gloogateway.SchemeGroupVersion.String(),
+				APIVersion: gloogateway.GroupVersion.String(),
 			},
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      associationName,
 				Namespace: wrapper.GetNamespace(),
 			},
-			Spec: gloogateway.GlooTrafficPolicy{
+			Spec: gloogateway.GlooTrafficPolicySpec{
 				//TODO(nick): Convert each option to a GlooTrafficPolicySpec
 			},
 		}
@@ -951,12 +952,12 @@ func (o *GatewayAPIOutput) convertRouteToRule(r *gloogwv1.Route, wrapper snapsho
 			}
 		}
 
-		ro, filter := o.convertRouteOptions(options, r.GetName(), wrapper)
+		glooTrafficPolicy, filter := o.convertRouteOptions(options, r.GetName(), wrapper)
 		if filter != nil {
 			rr.Filters = append(rr.Filters, *filter)
 		}
-		if ro != nil {
-			o.gatewayAPICache.AddGlooTrafficPolicy(snapshot.NewGlooTrafficPolicyWrapper(options, r.GetName(), wrapper), wrapper.FileOrigin())
+		if glooTrafficPolicy != nil {
+			o.gatewayAPICache.AddGlooTrafficPolicy(snapshot.NewGlooTrafficPolicyWrapper(glooTrafficPolicy, wrapper.FileOrigin()))
 		}
 	}
 	// Process Route_Actions
@@ -1032,25 +1033,16 @@ func (o *GatewayAPIOutput) convertRouteToRule(r *gloogwv1.Route, wrapper snapsho
 
 	if r.GetOptionsConfigRefs() != nil && len(r.GetOptionsConfigRefs().GetDelegateOptions()) > 0 {
 		// these are references to other RouteOptions, we need to add them
-
 		for _, delegateOptions := range r.GetOptionsConfigRefs().GetDelegateOptions() {
 			if delegateOptions.GetNamespace() != wrapper.GetNamespace() {
 				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "delegates to route options not in same namespace (this does not work in Gateway API)")
 			}
-			rr.Filters = append(rr.Filters, gwv1.HTTPRouteFilter{
-				Type: gwv1.HTTPRouteFilterExtensionRef,
-				ExtensionRef: &gwv1.LocalObjectReference{
-					Group: glookube.GroupName,
-					Kind:  "RouteOption",
-					Name:  gwv1.ObjectName(delegateOptions.GetName()),
-				},
-			})
-			// grab that route option and add it to the cache
+
+			// grab that route option and convert it to GlooTrafficPolicy
 			ro, exists := o.edgeCache.RouteOptions()[types.NamespacedName{Name: delegateOptions.GetName(), Namespace: delegateOptions.GetNamespace()}]
 			if !exists {
 				o.AddErrorFromWrapper(ERROR_TYPE_UNKNOWN_REFERENCE, wrapper, "did not find RouteOption %s/%s for delegated route option reference", delegateOptions.GetNamespace(), delegateOptions.GetName())
 			}
-			o.gatewayAPICache.AddRouteOption(ro)
 
 			if ro.Spec.GetOptions() != nil && ro.Spec.GetOptions().GetExtauth() != nil && ro.Spec.GetOptions().GetExtauth().GetConfigRef() != nil {
 				// we need to copy over the auth config ref if it exists
@@ -1061,6 +1053,10 @@ func (o *GatewayAPIOutput) convertRouteToRule(r *gloogwv1.Route, wrapper snapsho
 				}
 				o.gatewayAPICache.AddAuthConfig(ac)
 			}
+
+			gtp, filter := o.convertRouteOptions(ro.RouteOption.Spec.GetOptions(), delegateOptions.GetName(), ro)
+			o.gatewayAPICache.AddGlooTrafficPolicy(snapshot.NewGlooTrafficPolicyWrapper(gtp, ro.FileOrigin()))
+			rr.Filters = append(rr.Filters, *filter)
 		}
 	}
 
@@ -1132,17 +1128,17 @@ func (o *GatewayAPIOutput) convertRedirect(r *gloogwv1.Route, wrapper snapshot.W
 	}
 	return rdf
 }
-func convertDirectResponse(action *gloov1.DirectResponseAction) *v1alpha1.DirectResponse {
+func convertDirectResponse(action *gloov1.DirectResponseAction) *kgateway.DirectResponse {
 	if action == nil {
 		return nil
 	}
-	dr := &v1alpha1.DirectResponse{
+	dr := &kgateway.DirectResponse{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "DirectResponse",
-			APIVersion: v1alpha1.GroupVersion.String(),
+			APIVersion: kgateway.GroupVersion.String(),
 		},
 		ObjectMeta: metav1.ObjectMeta{},
-		Spec: v1alpha1.DirectResponseSpec{
+		Spec: kgateway.DirectResponseSpec{
 			StatusCode: action.GetStatus(),
 			Body:       action.GetBody(),
 		},
