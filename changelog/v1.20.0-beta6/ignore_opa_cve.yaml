@@ -1,0 +1,6 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/solo-projects/issues/8386
+    resolvesIssue: false
+    description: >-
+      Add CVE-2025-46569, which only impacts OPA servers running in standalone mode, to the list of ignored CVEs, in .trivyignore.
