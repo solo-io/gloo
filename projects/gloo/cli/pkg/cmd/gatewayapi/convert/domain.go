@@ -201,6 +201,12 @@ func (g *GatewayAPICache) AddGateway(gw *snapshot.GatewayWrapper) {
 	}
 	g.Gateways[gw.Index()] = gw
 }
+func (g *GatewayAPICache) AddGatewayExtension(gew *snapshot.GatewayExtensionWrapper) {
+	if g.GatewayExtensions == nil {
+		g.GatewayExtensions = make(map[types.NamespacedName]*snapshot.GatewayExtensionWrapper)
+	}
+	g.GatewayExtensions[gew.Index()] = gew
+}
 func (g *GatewayAPICache) AddDirectResponse(d *snapshot.DirectResponseWrapper) {
 	if g.DirectResponses == nil {
 		g.DirectResponses = make(map[types.NamespacedName]*snapshot.DirectResponseWrapper)
