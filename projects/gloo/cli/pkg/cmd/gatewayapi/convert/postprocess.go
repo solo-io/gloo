@@ -2,6 +2,7 @@ package convert
 
 import (
 	"fmt"
+	"reflect"
 
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/snapshot"
 	"k8s.io/apimachinery/pkg/types"
@@ -12,7 +13,6 @@ import (
 	"k8s.io/utils/ptr"
 	"sigs.k8s.io/gateway-api/apisx/v1alpha1"
 
-	"github.com/golang/protobuf/proto"
 	v1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
 )
@@ -26,7 +26,7 @@ func (o *GatewayAPIOutput) PostProcess(opts *Options) error {
 
 	if opts.CombineRouteOptions {
 		fmt.Printf("Combining route options...\n")
-		o.combineRouteOptions()
+		o.combineGlooTrafficPolicies()
 	}
 	if opts.IncludeUnknownResources {
 		o.gatewayAPICache.YamlObjects = o.edgeCache.YAMLObjects()
@@ -291,18 +291,18 @@ func namespaceMatch(namespace string, namespaces []string) bool {
 	return false
 }
 
-// TODO we should only combine route options in the same namespace
-func (o *GatewayAPIOutput) combineRouteOptions() {
-	totalRouteOptions := len(o.gatewayAPICache.RouteOptions)
-	var routeOptionKeys []types.NamespacedName
-	for key, _ := range o.gatewayAPICache.RouteOptions {
-		routeOptionKeys = append(routeOptionKeys, key)
+// TODO(nick) : This is going to be an issue for any trafic policy that have a targetref. they will not be equal
+func (o *GatewayAPIOutput) combineGlooTrafficPolicies() {
+	totalGlooTrafficPolicies := len(o.gatewayAPICache.GlooTrafficPolicies)
+	var traffiPolicyPrimaryKeys []types.NamespacedName
+	for key, _ := range o.gatewayAPICache.GlooTrafficPolicies {
+		traffiPolicyPrimaryKeys = append(traffiPolicyPrimaryKeys, key)
 	}
 	duplicates := map[types.NamespacedName][]types.NamespacedName{}
 
 	// go through each namespace and only work on ones that match
-	for _, primaryKey := range routeOptionKeys {
-		for _, secondaryKey := range routeOptionKeys {
+	for _, primaryKey := range traffiPolicyPrimaryKeys {
+		for _, secondaryKey := range traffiPolicyPrimaryKeys {
 			if primaryKey.Namespace != secondaryKey.Namespace {
 				// skip all keys not in the same namespace
 				continue
@@ -311,23 +311,23 @@ func (o *GatewayAPIOutput) combineRouteOptions() {
 				// skip if its the same primaryKey
 				continue
 			}
-			ro, found1 := o.gatewayAPICache.RouteOptions[primaryKey]
+			ro, found1 := o.gatewayAPICache.GlooTrafficPolicies[primaryKey]
 			if !found1 {
 				// this primary primaryKey has already been removed
 				//fmt.Printf("primary key %s not found\n", primaryKey)
 				break
 			}
-			ro2, found2 := o.gatewayAPICache.RouteOptions[secondaryKey]
+			ro2, found2 := o.gatewayAPICache.GlooTrafficPolicies[secondaryKey]
 			if !found2 {
 				// move on to the next secondaryKey
 				continue
 			}
 
-			if proto.Equal(&ro.Spec, &ro2.Spec) {
+			if reflect.DeepEqual(&ro.Spec, &ro2.Spec) {
 				duplicates[primaryKey] = append(duplicates[primaryKey], secondaryKey)
 				//fmt.Printf("Route Option %s matches %s\n", primaryKey, secondaryKey)
 				// remove both of them from the list
-				delete(o.gatewayAPICache.RouteOptions, secondaryKey)
+				delete(o.gatewayAPICache.GlooTrafficPolicies, secondaryKey)
 			}
 		}
 	}
@@ -347,10 +347,10 @@ func (o *GatewayAPIOutput) combineRouteOptions() {
 		}
 
 		// create a new RouteOption with the new name
-		existingRO := o.gatewayAPICache.RouteOptions[primaryKey]
+		existingRO := o.gatewayAPICache.GlooTrafficPolicies[primaryKey]
 		existingRO.Name = newName
-		o.gatewayAPICache.AddRouteOption(existingRO)
-		delete(o.gatewayAPICache.RouteOptions, primaryKey)
+		o.gatewayAPICache.AddGlooTrafficPolicy(existingRO)
+		delete(o.gatewayAPICache.GlooTrafficPolicies, primaryKey)
 		combined++
 	}
 
@@ -358,7 +358,7 @@ func (o *GatewayAPIOutput) combineRouteOptions() {
 		var newRules []gwv1.HTTPRouteRule
 		for _, rule := range route.Spec.Rules {
 			for _, filter := range rule.Filters {
-				if filter.ExtensionRef != nil && filter.ExtensionRef.Kind == "RouteOption" {
+				if filter.ExtensionRef != nil && filter.ExtensionRef.Kind == "GlooTrafficPolicy" {
 					newName, found := replacementMap[types.NamespacedName{Name: string(filter.ExtensionRef.Name), Namespace: route.Namespace}]
 					if found {
 						filter.ExtensionRef.Name = gwv1.ObjectName(newName)
@@ -370,5 +370,5 @@ func (o *GatewayAPIOutput) combineRouteOptions() {
 		route.Spec.Rules = newRules
 		o.gatewayAPICache.HTTPRoutes[key] = route
 	}
-	fmt.Printf("Initial %d RouteOptions combined to %d\n", totalRouteOptions, combined)
+	fmt.Printf("Initial %d GlooTrafficPolicies combined to %d\n", totalGlooTrafficPolicies, combined)
 }
