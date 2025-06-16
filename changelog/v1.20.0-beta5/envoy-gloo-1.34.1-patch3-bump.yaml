@@ -1,7 +1,7 @@
 changelog:
   - type: DEPENDENCY_BUMP
     description: >-
-      Bump envoy-gloo vto 1.34.1-patch3
+      Bump envoy-gloo to v1.34.1-patch3
     dependencyOwner: solo-io
     dependencyRepo: envoy-gloo
     dependencyTag: v1.34.1-patch3
