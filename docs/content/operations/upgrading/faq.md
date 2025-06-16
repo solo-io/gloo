@@ -161,7 +161,7 @@ For more information, see [Specify namespaces to watch for Kuberenetes services 
 
 #### ARM images
 
-In Gloo Gateway Enterprise, ARM images are now supported for Gloo Gateway components. An image that is tagged with -arm is compatible with ARM64 architectures. Note that ARM images are currently not published for VMs.
+In Gloo Gateway Enterprise, ARM images are now supported for Gloo Gateway components. Note that ARM images are currently not published for VMs.
 
 #### Kubernetes 1.30 and 1.31 support 
 
