@@ -126,6 +126,7 @@ require (
 	github.com/pjbgf/sha1cd v0.3.0 // indirect
 	github.com/prometheus/client_golang v1.22.0 // indirect
 	github.com/skeema/knownhosts v1.3.0 // indirect
+	go.uber.org/automaxprocs v1.6.0 // indirect
 )
 
 require (
