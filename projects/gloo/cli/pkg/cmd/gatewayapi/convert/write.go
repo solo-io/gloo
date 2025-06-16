@@ -54,8 +54,8 @@ func (o *GatewayAPIOutput) Write(opts *Options) error {
 			return err
 		}
 	}
-	for _, r := range o.gatewayAPICache.RouteOptions {
-		yml, err := yaml.Marshal(r.RouteOption)
+	for _, r := range o.gatewayAPICache.GlooTrafficPolicies {
+		yml, err := yaml.Marshal(r.GlooTrafficPolicy)
 		if err != nil {
 			return err
 		}
@@ -63,8 +63,8 @@ func (o *GatewayAPIOutput) Write(opts *Options) error {
 			return err
 		}
 	}
-	for _, r := range o.gatewayAPICache.VirtualHostOptions {
-		yml, err := yaml.Marshal(r.VirtualHostOption)
+	for _, r := range o.gatewayAPICache.HTTPListenerPolicies {
+		yml, err := yaml.Marshal(r.HTTPListenerPolicy)
 		if err != nil {
 			return err
 		}
@@ -72,26 +72,8 @@ func (o *GatewayAPIOutput) Write(opts *Options) error {
 			return err
 		}
 	}
-	for _, r := range o.gatewayAPICache.ListenerOptions {
-		yml, err := yaml.Marshal(r.ListenerOption)
-		if err != nil {
-			return err
-		}
-		if err := writeObjectToFile(opts, r, yml); err != nil {
-			return err
-		}
-	}
-	for _, r := range o.gatewayAPICache.HTTPListenerOptions {
-		yml, err := yaml.Marshal(r.HttpListenerOption)
-		if err != nil {
-			return err
-		}
-		if err := writeObjectToFile(opts, r, yml); err != nil {
-			return err
-		}
-	}
-	for _, r := range o.gatewayAPICache.Upstreams {
-		yml, err := yaml.Marshal(r.Upstream)
+	for _, r := range o.gatewayAPICache.Backends {
+		yml, err := yaml.Marshal(r.Backend)
 		if err != nil {
 			return err
 		}
@@ -110,15 +92,6 @@ func (o *GatewayAPIOutput) Write(opts *Options) error {
 	}
 	for _, r := range o.gatewayAPICache.ListenerSets {
 		yml, err := yaml.Marshal(r.XListenerSet)
-		if err != nil {
-			return err
-		}
-		if err := writeObjectToFile(opts, r, yml); err != nil {
-			return err
-		}
-	}
-	for _, r := range o.gatewayAPICache.Settings {
-		yml, err := yaml.Marshal(r.Settings)
 		if err != nil {
 			return err
 		}
@@ -210,7 +183,7 @@ func (o *GatewayAPIOutput) createNamespaces(dir string) error {
 	for namespaceName := range o.gatewayAPICache.HTTPRoutes {
 		namespaces[namespaceName.Namespace] = true
 	}
-	for namespaceName := range o.gatewayAPICache.Upstreams {
+	for namespaceName := range o.gatewayAPICache.Backends {
 		namespaces[namespaceName.Namespace] = true
 	}
 	f, err := os.Create(fmt.Sprintf("%s/namespaces.yaml", dir))

@@ -409,6 +409,7 @@ replace (
 	k8s.io/kubectl => k8s.io/kubectl v0.32.2
 	k8s.io/metrics => k8s.io/metrics v0.32.2
 	k8s.io/utils => k8s.io/utils v0.0.0-20241104100929-3ea5e8cea738
+	sigs.k8s.io/controller-runtime => sigs.k8s.io/controller-runtime v0.20.4
 )
 
 exclude (
