@@ -14,6 +14,8 @@ description: Use Argo CD to automate the deployment and management of Gloo Gatew
    
 2. Create or use an existing Kubernetes cluster. 
 
+3. **Argo CD version 7.8 or later**: Review the [known issue](#settings-issue) with Argo CD version 7.8.x.
+
 ## Set up Argo CD
 
 1. Install Argo CD in your cluster. 
@@ -169,3 +171,21 @@ If you no longer need this quick-start Gloo Gateway environment, you can uninsta
    ```
 {{% /tab %}}
 {{< /tabs >}}
+
+## Known issues
+
+### Settings cannot sync {#settings-issue}
+
+The Gloo Settings resource stays in a `Progressing` health status, which prevents updates from syncing. This is due to the Settings resource not returning a status, which became an issue in Argo CD version 7.8.x. 
+
+As a workaround, use Argo CD version 7.7.x. or add the following status override to your Argo CD `config-cm` file.
+
+```yaml
+resource.customizations.health.gloo.solo.io_Settings: |
+   hs = {}
+   hs.status = "Healthy"
+   hs.message = "we are good"
+   return hs
+```
+
+For more details, see the open [gloo](https://github.com/solo-io/gloo/issues/10674) and [argo-cd](https://github.com/argoproj/argo-cd/issues/22102) GitHub issues.

@@ -120,6 +120,8 @@ Once you've installed Gloo Gateway, please be sure [to verify your installation]
 
 [Argo Continuous Delivery (Argo CD)](https://argo-cd.readthedocs.io/en/stable/) is a declarative, Kubernetes-native continuous deployment tool that can read and pull code from Git repositories and deploy it to your cluster. Because of that, you can integrate Argo CD into your GitOps pipeline to automate the deployment and synchronization of your apps. 
 
+Planning to use Argo CD version 7.8 or later? Review the [known issue]({{< versioned_link_path fromRoot="/installation/gateway/argo/#settings-issue" >}}) first.
+
 **Set up Argo CD**
 
 1. Install Argo CD in your cluster. 

@@ -7,5 +7,5 @@ spec:
   static:
     hosts:
     - addr: postman-echo.com
-      port: 80
+      port: 443
 
