@@ -698,10 +698,11 @@ func (o *GatewayAPIOutput) convertHTTPListenerOptions(options *gloov1.HttpListen
 	}
 	// go through each option in Gateway Options and convert to listener policy
 	if options.GetExtauth() != nil {
-
+		// These are global extAuthSettings that are also on the Settings Object.
+		//TODO(nick): Implement auth settings at GlooTrafficPolicy spec
 	}
 	if options.GetExtProc() != nil {
-
+		//TODO(nick): Implement ext proc settings at GlooTrafficPolicy spec
 	}
 
 	if options.GetHttpLocalRatelimit() != nil {
