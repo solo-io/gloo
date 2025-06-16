@@ -3,6 +3,8 @@ package snapshot
 import (
 	"k8s.io/apimachinery/pkg/types"
 
+	kgateway "github.com/kgateway-dev/kgateway/v2/api/v1alpha1"
+	gloogateway "github.com/solo-io/gloo-gateway/api/v1alpha1"
 	gatewaykube "github.com/solo-io/gloo/projects/gateway/pkg/api/v1/kube/apis/gateway.solo.io/v1"
 	"github.com/solo-io/gloo/projects/gateway2/api/v1alpha1"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1/kube/apis/enterprise.gloo.solo.io/v1"
@@ -183,6 +185,29 @@ func (w *GatewayParametersWrapper) HasFileOrigin(fileOrigin string) *GatewayPara
 	return w
 }
 
+type KGatewayParametersWrapper struct {
+	*kgateway.GatewayParameters
+	fileOrigin string
+}
+
+func NewKGatewayParametersWrapper(params *kgateway.GatewayParameters, fileOrigin string) *KGatewayParametersWrapper {
+	return &KGatewayParametersWrapper{
+		GatewayParameters: params,
+		fileOrigin:        fileOrigin,
+	}
+}
+
+func (w *KGatewayParametersWrapper) Index() types.NamespacedName {
+	return types.NamespacedName{Name: w.Name, Namespace: w.Namespace}
+}
+func (w *KGatewayParametersWrapper) FileOrigin() string {
+	return w.fileOrigin
+}
+func (w *KGatewayParametersWrapper) HasFileOrigin(fileOrigin string) *KGatewayParametersWrapper {
+	w.fileOrigin = fileOrigin
+	return w
+}
+
 type ListenerOptionWrapper struct {
 	*gatewaykube.ListenerOption
 	fileOrigin string
@@ -248,6 +273,30 @@ func (w *UpstreamWrapper) FileOrigin() string {
 }
 
 func (w *UpstreamWrapper) HasFileOrigin(fileOrigin string) *UpstreamWrapper {
+	w.fileOrigin = fileOrigin
+	return w
+}
+
+type BackendWrapper struct {
+	*kgateway.Backend
+	fileOrigin string
+}
+
+func NewBackendWrapper(backend *kgateway.Backend, fileOrigin string) *BackendWrapper {
+	return &BackendWrapper{
+		Backend:    backend,
+		fileOrigin: fileOrigin,
+	}
+}
+
+func (w *BackendWrapper) Index() types.NamespacedName {
+	return types.NamespacedName{Name: w.Name, Namespace: w.Namespace}
+}
+func (w *BackendWrapper) FileOrigin() string {
+	return w.fileOrigin
+}
+
+func (w *BackendWrapper) HasFileOrigin(fileOrigin string) *BackendWrapper {
 	w.fileOrigin = fileOrigin
 	return w
 }
@@ -395,11 +444,11 @@ func (w *GlooGatewayWrapper) HasFileOrigin(fileOrigin string) *GlooGatewayWrappe
 }
 
 type DirectResponseWrapper struct {
-	*v1alpha1.DirectResponse
+	*kgateway.DirectResponse
 	fileOrigin string
 }
 
-func NewDirectResponseWrapper(resp *v1alpha1.DirectResponse, fileOrigin string) *DirectResponseWrapper {
+func NewDirectResponseWrapper(resp *kgateway.DirectResponse, fileOrigin string) *DirectResponseWrapper {
 	return &DirectResponseWrapper{
 		DirectResponse: resp,
 		fileOrigin:     fileOrigin,
@@ -413,6 +462,75 @@ func (w *DirectResponseWrapper) FileOrigin() string {
 	return w.fileOrigin
 }
 func (w *DirectResponseWrapper) HasFileOrigin(fileOrigin string) *DirectResponseWrapper {
+	w.fileOrigin = fileOrigin
+	return w
+}
+
+type HTTPListenerPolicyWrapper struct {
+	*kgateway.HTTPListenerPolicy
+	fileOrigin string
+}
+
+func NewHTTPListenerPolicyWrapper(policy *kgateway.HTTPListenerPolicy, fileOrigin string) *HTTPListenerPolicyWrapper {
+	return &HTTPListenerPolicyWrapper{
+		HTTPListenerPolicy: policy,
+		fileOrigin:         fileOrigin,
+	}
+}
+
+func (w *HTTPListenerPolicyWrapper) Index() types.NamespacedName {
+	return types.NamespacedName{Name: w.Name, Namespace: w.Namespace}
+}
+func (w *HTTPListenerPolicyWrapper) FileOrigin() string {
+	return w.fileOrigin
+}
+func (w *HTTPListenerPolicyWrapper) HasFileOrigin(fileOrigin string) *HTTPListenerPolicyWrapper {
+	w.fileOrigin = fileOrigin
+	return w
+}
+
+type GlooTrafficPolicyWrapper struct {
+	*gloogateway.GlooTrafficPolicy
+	fileOrigin string
+}
+
+func NewGlooTrafficPolicyWrapper(policy *gloogateway.GlooTrafficPolicy, fileOrigin string) *GlooTrafficPolicyWrapper {
+	return &GlooTrafficPolicyWrapper{
+		GlooTrafficPolicy: policy,
+		fileOrigin:        fileOrigin,
+	}
+}
+
+func (w *GlooTrafficPolicyWrapper) Index() types.NamespacedName {
+	return types.NamespacedName{Name: w.Name, Namespace: w.Namespace}
+}
+func (w *GlooTrafficPolicyWrapper) FileOrigin() string {
+	return w.fileOrigin
+}
+func (w *GlooTrafficPolicyWrapper) HasFileOrigin(fileOrigin string) *GlooTrafficPolicyWrapper {
+	w.fileOrigin = fileOrigin
+	return w
+}
+
+type GatewayExtensionWrapper struct {
+	*kgateway.GatewayExtension
+	fileOrigin string
+}
+
+func NewGatewayExtensionWrapper(ge *kgateway.GatewayExtension, fileOrigin string) *GatewayExtensionWrapper {
+	return &GatewayExtensionWrapper{
+		GatewayExtension: ge,
+		fileOrigin:       fileOrigin,
+	}
+}
+
+func (w *GatewayExtensionWrapper) Index() types.NamespacedName {
+	return types.NamespacedName{Name: w.Name, Namespace: w.Namespace}
+}
+func (w *GatewayExtensionWrapper) FileOrigin() string {
+	return w.fileOrigin
+}
+func (w *GatewayExtensionWrapper) HasFileOrigin(fileOrigin string) *GatewayExtensionWrapper {
 	w.fileOrigin = fileOrigin
 	return w
 }

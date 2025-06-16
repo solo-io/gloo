@@ -2,21 +2,26 @@ package convert
 
 import (
 	"fmt"
+	v32 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/type/v3"
 	"strings"
+
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/als"
+	"k8s.io/apimachinery/pkg/runtime"
 
 	"k8s.io/apimachinery/pkg/types"
 
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/snapshot"
 
+	"encoding/json"
+
+	kgateway "github.com/kgateway-dev/kgateway/v2/api/v1alpha1"
+	gloogateway "github.com/solo-io/gloo-gateway/api/v1alpha1"
 	gloogwv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
-	gatewaykube "github.com/solo-io/gloo/projects/gateway/pkg/api/v1/kube/apis/gateway.solo.io/v1"
 	"github.com/solo-io/gloo/projects/gateway2/api/v1alpha1"
 	"github.com/solo-io/gloo/projects/gateway2/wellknown"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
 	glookube "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/kube/apis/gloo.solo.io/v1"
-	v3 "github.com/solo-io/skv2/pkg/api/core.skv2.solo.io/v1"
-	"google.golang.org/protobuf/types/known/wrapperspb"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/utils/ptr"
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
@@ -44,16 +49,38 @@ func (o *GatewayAPIOutput) Convert() error {
 	for _, upstream := range o.edgeCache.Upstreams() {
 		// Add all existing upstreams except for kube services which will be referenced directly
 		if upstream.Spec.GetKube() == nil {
-			o.gatewayAPICache.AddUpstream(upstream)
+			o.gatewayAPICache.AddBackend(convertUpstreamToBackend(upstream))
 		}
 	}
 
-	for _, settings := range o.edgeCache.Settings() {
-		o.gatewayAPICache.AddSettings(settings)
-	}
+	//TODO(nick): what do we do with settings?
+	// for _, settings := range o.edgeCache.Settings() {
+	// 	o.gatewayAPICache.AddSettings(settings)
+	// }
 
 	// copy over any existing options
 	return nil
+}
+
+// TODO(nick): this is a placeholder for now, we need to figure out how to convert the upstream to a backend
+func convertUpstreamToBackend(upstream *snapshot.UpstreamWrapper) *snapshot.BackendWrapper {
+	backend := &snapshot.BackendWrapper{
+		Backend: &kgateway.Backend{
+			TypeMeta: metav1.TypeMeta{
+				Kind:       "Backend",
+				APIVersion: kgateway.SchemeGroupVersion.String(),
+			},
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      upstream.GetName(),
+				Namespace: upstream.GetNamespace(),
+			},
+			Spec: kgateway.BackendSpec{
+				// Static: &kgateway.StaticBackend{
+				// },
+			},
+		},
+	}
+	return backend
 }
 
 func (o *GatewayAPIOutput) convertGatewayAndVirtualServices(glooGateway *snapshot.GlooGatewayWrapper) error {
@@ -146,58 +173,173 @@ func (o *GatewayAPIOutput) convertVirtualServiceListener(vs *snapshot.VirtualSer
 		}
 		listenerSet.Spec.Listeners = append(listenerSet.Spec.Listeners, entry)
 	}
+
 	if vs.Spec.GetVirtualHost().GetOptionsConfigRefs() != nil && len(vs.Spec.GetVirtualHost().GetOptionsConfigRefs().GetDelegateOptions()) > 0 {
 		delegateOptions := vs.Spec.GetVirtualHost().GetOptionsConfigRefs().GetDelegateOptions()
 		for _, delegateOption := range delegateOptions {
 			// check to see if this already exists in gatewayAPI cache, if not move it over from edge cache
-			vho, exists := o.gatewayAPICache.VirtualHostOptions[types.NamespacedName{Name: delegateOption.GetName(), Namespace: delegateOption.GetNamespace()}]
+			gtp, exists := o.gatewayAPICache.GlooTrafficPolicies[types.NamespacedName{Name: delegateOption.GetName(), Namespace: delegateOption.GetNamespace()}]
 			if !exists {
-				vho, exists = o.edgeCache.VirtualHostOptions()[types.NamespacedName{Name: delegateOption.GetName(), Namespace: delegateOption.GetNamespace()}]
+				vho, exists := o.edgeCache.VirtualHostOptions()[types.NamespacedName{Name: delegateOption.GetName(), Namespace: delegateOption.GetNamespace()}]
 				if !exists {
 					o.AddErrorFromWrapper(ERROR_TYPE_UNKNOWN_REFERENCE, vs, "references VirtualHostOption %s that does not exist", types.NamespacedName{Name: delegateOption.GetName(), Namespace: delegateOption.GetNamespace()})
 					continue
 				}
+				gtp = o.convertVirtualHostOptionToGlooTrafficPolicy(vho)
+			}
+			if listenerSet.Namespace != gtp.GlooTrafficPolicy.GetNamespace() {
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, vs, "VirtualHostOption %s references a listener set in a different namespace %s which is not supported", types.NamespacedName{Name: vs.GetName(), Namespace: vs.GetNamespace()}, types.NamespacedName{Name: listenerSet.GetName(), Namespace: listenerSet.GetNamespace()})
 			}
 			// add the target ref to the listener
-			vho.VirtualHostOption.Spec.TargetRefs = append(vho.VirtualHostOption.Spec.GetTargetRefs(), &v3.PolicyTargetReferenceWithSectionName{
-				Group:     apixv1a1.GroupName,
-				Kind:      "XListenerSet",
-				Name:      listenerSet.Name,
-				Namespace: wrapperspb.String(listenerSet.Namespace),
+			gtp.GlooTrafficPolicy.Spec.TargetRefs = append(gtp.GlooTrafficPolicy.Spec.TargetRefs, kgateway.LocalPolicyTargetReference{
+				Group: apixv1a1.GroupName,
+				Kind:  "XListenerSet",
+				Name:  gwv1.ObjectName(listenerSet.Name),
 			})
-			o.gatewayAPICache.AddVirtualHostOption(snapshot.NewVirtualHostOptionWrapper(vho.VirtualHostOption, vs.FileOrigin()))
+			o.gatewayAPICache.AddGlooTrafficPolicy(gtp)
 		}
 	}
 
 	// we need to get the virtualhostoptions and update their references
 	if vs.Spec.GetVirtualHost().GetOptions() != nil {
 		// create a separate virtualhost option and link it
-		vho := &gatewaykube.VirtualHostOption{
+		gtp := &gloogateway.GlooTrafficPolicy{
 			TypeMeta: metav1.TypeMeta{
-				Kind:       "VirtualHostOption",
-				APIVersion: gatewaykube.SchemeGroupVersion.String(),
+				Kind:       "GlooTrafficPolicy",
+				APIVersion: gloogateway.GroupVersion.String(),
 			},
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      listenerSet.Name,
 				Namespace: listenerSet.Namespace,
 			},
-			Spec: gloogwv1.VirtualHostOption{
-				Options: vs.Spec.GetVirtualHost().GetOptions(),
-				TargetRefs: []*v3.PolicyTargetReferenceWithSectionName{
-					{
-						Group:     apixv1a1.GroupName,
-						Kind:      "XListenerSet",
-						Name:      listenerSet.Name,
-						Namespace: wrapperspb.String(listenerSet.Namespace),
+			Spec: gloogateway.GlooTrafficPolicySpec{
+				TrafficPolicySpec: kgateway.TrafficPolicySpec{
+					TargetRefs: []kgateway.LocalPolicyTargetReferenceWithSectionName{
+						{
+							LocalPolicyTargetReference: kgateway.LocalPolicyTargetReference{
+								Group: apixv1a1.GroupName,
+								Kind:  "XListenerSet",
+								Name:  gwv1.ObjectName(listenerSet.Name),
+							},
+							SectionName: nil,
+						},
 					},
+					AI:             nil,
+					Transformation: nil,
+					ExtProc:        nil,
+					ExtAuth:        nil,
+					RateLimit:      nil,
 				},
+				Waf:                   nil,
+				Retry:                 nil,
+				Timeouts:              nil,
+				RateLimitEnterprise:   nil,
+				ExtAuthEnterprise:     nil,
+				StagedTransformations: nil,
 			},
 		}
-		o.gatewayAPICache.AddVirtualHostOption(snapshot.NewVirtualHostOptionWrapper(vho, vs.FileOrigin()))
+		//Options:
+		//	vs.Spec.GetVirtualHost().GetOptions(),
+		// go through each option and add it to traffic policy
+
+		gtp.Spec = convertVHOOptionsToTrafficPolicySpec(vs.Spec.GetVirtualHost().GetOptions())
+
+		o.gatewayAPICache.AddGlooTrafficPolicy(snapshot.NewGlooTrafficPolicyWrapper(gtp, vs.FileOrigin()))
 	}
 	o.gatewayAPICache.AddListenerSet(snapshot.NewListenerSetWrapper(listenerSet, vs.FileOrigin()))
 
 	return nil
+}
+
+func (o *GatewayAPIOutput) convertVirtualHostOptionToGlooTrafficPolicy(vho *snapshot.VirtualHostOptionWrapper) *snapshot.GlooTrafficPolicyWrapper {
+	policy := &gloogateway.GlooTrafficPolicy{
+		Spec: gloogateway.GlooTrafficPolicySpec{},
+	}
+	if vho != nil {
+		policy.Spec = convertVHOOptionsToTrafficPolicySpec(vho.VirtualHostOption.Spec.Options)
+	}
+
+	wrapper := snapshot.NewGlooTrafficPolicyWrapper(policy, vho.FileOrigin())
+	return wrapper
+}
+
+func (o *GatewayAPIOutput) convertVHOOptionsToTrafficPolicySpec(vho *gloov1.VirtualHostOptions, wrapper *snapshot.VirtualHostOptionWrapper) gloogateway.GlooTrafficPolicySpec {
+
+	spec := gloogateway.GlooTrafficPolicySpec{
+		TrafficPolicySpec: kgateway.TrafficPolicySpec{
+			TargetRefs:      nil,
+			TargetSelectors: nil,
+			AI:              nil,
+			Transformation:  nil,
+			ExtProc:         nil,
+			ExtAuth:         nil,
+			RateLimit:       nil,
+		},
+		Waf:                   nil,
+		Retry:                 nil,
+		Timeouts:              nil,
+		RateLimitEnterprise:   nil,
+		ExtAuthEnterprise:     nil,
+		StagedTransformations: nil,
+	}
+	if vho != nil {
+		if vho.GetCors() != nil {
+			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "CORS is not currently supported in GlooTrafficPolicy")
+		}
+		if vho.GetBufferPerRoute() != nil {
+			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "BufferPerRoute is not currently supported in GlooTrafficPolicy")
+		}
+		if vho.GetCsrf() != nil {
+			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "CSRF is not currently supported in GlooTrafficPolicy")
+		}
+		if vho.GetExtauth() != nil {
+
+			authConfigWrapper, exists := o.edgeCache.AuthConfigs()[types.NamespacedName{
+				Namespace: vho.GetExtauth().GetConfigRef().GetNamespace(),
+				Name:      vho.GetExtauth().GetConfigRef().GetName(),
+			}]
+			if !exists {
+				o.AddErrorFromWrapper(ERROR_TYPE_NO_REFERENCES, wrapper, "Unable to find referenced AuthConfig %s", types.NamespacedName{Namespace: vho.GetExtauth().GetConfigRef().GetNamespace(), Name: vho.GetExtauth().GetConfigRef().GetName()}.String())
+			} else {
+				//copy the auth config to gateway api cache if it doesnt already exist
+				_, exists = o.gatewayAPICache.AuthConfigs[types.NamespacedName{
+					Namespace: vho.GetExtauth().GetConfigRef().GetNamespace(),
+					Name:      vho.GetExtauth().GetConfigRef().GetName(),
+				}]
+				if !exists {
+					o.gatewayAPICache.AddAuthConfig(authConfigWrapper)
+				}
+			}
+
+			// TODO need to copy auth config over and reference it
+			spec.ExtAuthEnterprise = &gloogateway.ExtAuthEnterprise{
+				//TODO(nick): need to get the server reference but for now use the default
+				ExtensionRef: nil,
+				AuthConfigRef: gloogateway.AuthConfigRef{
+					Name:      vho.GetExtauth().GetConfigRef().GetName(),
+					Namespace: vho.GetExtauth().GetConfigRef().GetNamespace(),
+				},
+			}
+		}
+		if vho.GetDlp() != nil {
+			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "DLP is not currently supported in GlooTrafficPolicy")
+		}
+		if vho.GetExtProc() != nil {
+			// TODO may need to get settings to create the extension ref, or at least look it up
+			extProc := &kgateway.ExtProcPolicy{
+				ExtensionRef:   nil,
+				ProcessingMode: nil,
+			}
+
+			if vho.GetExtProc().GetOverrides() != nil {
+
+			}
+
+			spec.TrafficPolicySpec.ExtProc = extProc
+		}
+	}
+
+	return spec
 }
 
 func (o *GatewayAPIOutput) generateTLSConfiguration(vs *snapshot.VirtualServiceWrapper) *gwv1.GatewayTLSConfig {
@@ -281,56 +423,345 @@ func (o *GatewayAPIOutput) generateGatewaysFromProxyNames(glooGateway *snapshot.
 
 func (o *GatewayAPIOutput) convertListenerOptions(glooGateway *snapshot.GlooGatewayWrapper, proxyName string) {
 	options := glooGateway.Spec.GetOptions()
-	listenerOption := &gatewaykube.ListenerOption{
+	if options == nil {
+		return
+	}
+	listenerPolicy := &kgateway.HTTPListenerPolicy{
 		TypeMeta: metav1.TypeMeta{
-			Kind:       "ListenerOption",
-			APIVersion: gatewaykube.SchemeGroupVersion.String(),
+			Kind:       "ListenerPolicy",
+			APIVersion: kgateway.GroupVersion.String(),
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      glooGateway.GetName(),
 			Namespace: glooGateway.GetNamespace(),
 			Labels:    glooGateway.Gateway.Labels,
 		},
-		Spec: gloogwv1.ListenerOption{
-			Options: options,
+		Spec: kgateway.HTTPListenerPolicySpec{
+			TargetRefs: []kgateway.LocalPolicyTargetReference{
+				{
+					Group: gwv1.Group(gwv1.GroupVersion.Group),
+					Kind:  "Gateway",
+					Name:  gwv1.ObjectName(proxyName),
+				},
+			},
 		},
 	}
+	if options.GetExtensions() != nil {
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, glooGateway, "gloo edge listener option extensions are not supported for HTTPTrafficPolicy")
+	}
+	if options.GetSocketOptions() != nil {
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, glooGateway, "gloo edge listener option socket options are not supported for HTTPTrafficPolicy")
+	}
+	if options.GetAccessLoggingService() != nil {
+		o.convertListenerOptionAccessLogging(glooGateway, options, listenerPolicy)
+	}
+	if options.GetListenerAccessLoggingService() != nil {
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, glooGateway, "gloo edge listener option listenerAccessLoggingService is not supported for HTTPTrafficPolicy")
+	}
+	if options.GetConnectionBalanceConfig() != nil {
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, glooGateway, "gloo edge listener option connectionBalanceConfig is not supported for HTTPTrafficPolicy")
+	}
+	if options.GetPerConnectionBufferLimitBytes() != nil {
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, glooGateway, "gloo edge listener option perConnectionBufferLimitBytes is not supported for HTTPTrafficPolicy")
+	}
+	if options.GetProxyProtocol() != nil {
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, glooGateway, "gloo edge listener option proxyProtocol is not supported for HTTPTrafficPolicy")
+	}
+	if options.GetTcpStats() != nil {
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, glooGateway, "gloo edge listener option tcpStats is not supported for HTTPTrafficPolicy")
+	}
 
-	listenerOption.Spec.TargetRefs = append(listenerOption.Spec.GetTargetRefs(), &v3.PolicyTargetReferenceWithSectionName{
-		Group:     gwv1.GroupVersion.Group,
-		Kind:      "Gateway",
-		Name:      proxyName,
-		Namespace: wrapperspb.String(glooGateway.GetNamespace()),
-	})
-
-	o.gatewayAPICache.AddListenerOption(snapshot.NewListenerOptionWrapper(listenerOption, glooGateway.FileOrigin()))
+	o.gatewayAPICache.AddHTTPListenerPolicy(snapshot.NewHTTPListenerPolicyWrapper(listenerPolicy, glooGateway.FileOrigin()))
 }
 
+func (o *GatewayAPIOutput) convertListenerOptionAccessLogging(glooGateway *snapshot.GlooGatewayWrapper, options *gloov1.ListenerOptions, listenerPolicy *kgateway.HTTPListenerPolicy) {
+	accessLoggingService := options.GetAccessLoggingService()
+
+	for _, edgeAccessLog := range accessLoggingService.GetAccessLog() {
+		if listenerPolicy.Spec.AccessLog == nil {
+			listenerPolicy.Spec.AccessLog = []kgateway.AccessLog{}
+		}
+		accessLog := kgateway.AccessLog{
+			FileSink:    nil,
+			GrpcService: nil,
+			Filter:      nil,
+		}
+		if edgeAccessLog.GetFileSink() != nil {
+			fileSink := &kgateway.FileSink{
+				Path: edgeAccessLog.GetFileSink().Path,
+			}
+			if jsonFormat := edgeAccessLog.GetFileSink().GetJsonFormat(); jsonFormat != nil {
+				jsonBytes, err := json.Marshal(jsonFormat.AsMap())
+				if err != nil {
+					o.AddErrorFromWrapper(ERROR_TYPE_IGNORED, glooGateway, "unable to marshal json format for accessLoggingService %v", err)
+				} else {
+					fileSink.JsonFormat = &runtime.RawExtension{Raw: jsonBytes}
+				}
+			}
+			if edgeAccessLog.GetFileSink().GetStringFormat() != "" {
+				fileSink.StringFormat = edgeAccessLog.GetFileSink().GetStringFormat()
+			}
+			accessLog.FileSink = fileSink
+		}
+		if edgeAccessLog.GetGrpcService() != nil {
+			accessLog.GrpcService = &kgateway.GrpcService{
+				LogName:                         edgeAccessLog.GetGrpcService().LogName,
+				AdditionalRequestHeadersToLog:   edgeAccessLog.GetGrpcService().AdditionalRequestHeadersToLog,
+				AdditionalResponseHeadersToLog:  edgeAccessLog.GetGrpcService().AdditionalResponseHeadersToLog,
+				AdditionalResponseTrailersToLog: edgeAccessLog.GetGrpcService().AdditionalResponseTrailersToLog,
+			}
+
+			// backend Ref
+			switch edgeAccessLog.GetGrpcService().GetServiceRef().(type) {
+			case *als.GrpcService_StaticClusterName:
+				accessLog.GrpcService.BackendRef = &gwv1.BackendRef{
+					BackendObjectReference: gwv1.BackendObjectReference{
+						Name:      gwv1.ObjectName(edgeAccessLog.GetGrpcService().GetStaticClusterName()),
+						Namespace: ptr.To(gwv1.Namespace("UNKNOWN")),
+						Port:      ptr.To(gwv1.PortNumber(0)),
+					},
+				}
+				o.AddErrorFromWrapper(ERROR_TYPE_UNKNOWN_REFERENCE, glooGateway, "", edgeAccessLog.GetGrpcService().GetStaticClusterName())
+			}
+			if edgeAccessLog.GetGrpcService().GetFilterStateObjectsToLog() != nil {
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, glooGateway, "accessLoggingService grpcService has filterStateObjectsToLog but its not supported in kgateway")
+			}
+		}
+		if edgeAccessLog.GetFilter() != nil {
+			if accessLog.Filter == nil {
+				accessLog.Filter = &kgateway.AccessLogFilter{}
+			}
+			if edgeAccessLog.GetFilter().GetOrFilter() != nil {
+
+				if accessLog.Filter.OrFilter == nil {
+					accessLog.Filter.OrFilter = []kgateway.FilterType{}
+				}
+				for _, filter := range edgeAccessLog.GetFilter().GetOrFilter().GetFilters() {
+					accessLog.Filter.AndFilter = append(accessLog.Filter.AndFilter, *convertAccessLogFitler(filter, glooGateway))
+				}
+			} else if edgeAccessLog.GetFilter().GetAndFilter() != nil {
+				if accessLog.Filter.AndFilter == nil {
+					accessLog.Filter.AndFilter = []kgateway.FilterType{}
+				}
+				for _, filter := range edgeAccessLog.GetFilter().GetAndFilter().GetFilters() {
+					accessLog.Filter.AndFilter = append(accessLog.Filter.AndFilter, *convertAccessLogFitler(filter, glooGateway))
+				}
+			} else {
+				// just and inline filter
+				accessLog.Filter.FilterType = convertAccessLogFitler(edgeAccessLog.GetFilter(), glooGateway)
+			}
+		}
+		listenerPolicy.Spec.AccessLog = append(listenerPolicy.Spec.AccessLog, accessLog)
+	}
+}
+
+func (o *GatewayAPIOutput) convertAccessLogFitler(filter *als.AccessLogFilter, wrapper snapshot.Wrapper) *kgateway.FilterType {
+
+	filterType := &kgateway.FilterType{}
+
+	if filter.GetDurationFilter() != nil {
+		filterType.DurationFilter = &kgateway.DurationFilter{
+			Op:    kgateway.Op(filter.GetDurationFilter().GetComparison().Op),
+			Value: filter.GetDurationFilter().GetComparison().GetValue().GetDefaultValue(),
+		}
+	}
+	if filter.GetHeaderFilter() != nil && filter.GetHeaderFilter().GetHeader() != nil {
+		headerMatch := gwv1.HTTPHeaderMatch{
+			Name: gwv1.HTTPHeaderName(filter.GetHeaderFilter().GetHeader().Name),
+		}
+
+		if filter.GetHeaderFilter().GetHeader().GetExactMatch() != "" {
+			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "accessLoggingService grpcService has filterStateObjectsToLog but its not supported in kgateway")
+		}
+
+		if filter.GetHeaderFilter().GetHeader().GetInvertMatch() == true {
+			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "accessLoggingService filter header invert match is not supported in kgateway")
+		}
+
+		if filter.GetHeaderFilter().GetHeader().GetPresentMatch() == true {
+			// TODO(nick): is this supported in Gateway API?
+			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "accessLoggingService filter header range match match is not supported in kgateway")
+		}
+
+		if filter.GetHeaderFilter().GetHeader().GetPrefixMatch() != "" {
+			//	HeaderMatchExact             HeaderMatchType = "Exact"
+			//	HeaderMatchRegularExpression HeaderMatchType = "RegularExpression"
+			//TODO(nick): can someone verify this is the equivalent?
+			headerMatch.Type = ptr.To(gwv1.HeaderMatchRegularExpression)
+			headerMatch.Value = filter.GetHeaderFilter().GetHeader().GetPrefixMatch() + ".*"
+		}
+
+		if filter.GetHeaderFilter().GetHeader().GetRangeMatch() != nil {
+			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "accessLoggingService filter header range match match is not supported in kgateway")
+		}
+
+		if filter.GetHeaderFilter().GetHeader().GetSafeRegexMatch() != nil {
+			// Edge only supported Googles Regex (RE2) which might not be compatible with Gateway API regex
+			headerMatch.Type = ptr.To(gwv1.HeaderMatchRegularExpression)
+			headerMatch.Value = filter.GetHeaderFilter().GetHeader().GetSafeRegexMatch().Regex
+		}
+
+		if filter.GetHeaderFilter().GetHeader().GetSuffixMatch() != "" {
+			//TODO(nick): can someone verify this is the equivalent?
+			headerMatch.Type = ptr.To(gwv1.HeaderMatchRegularExpression)
+			headerMatch.Value = ".*" + filter.GetHeaderFilter().GetHeader().GetPrefixMatch()
+		}
+
+		filterType.HeaderFilter = &kgateway.HeaderFilter{
+			Header: headerMatch,
+		}
+	}
+
+	if filter.GetGrpcStatusFilter() != nil {
+		grpcFilter := &kgateway.GrpcStatusFilter{
+			Statuses: []kgateway.GrpcStatus{},
+			Exclude:  filter.GetGrpcStatusFilter().Exclude,
+		}
+		for _, status := range filter.GetGrpcStatusFilter().Statuses {
+			grpcFilter.Statuses = append(grpcFilter.Statuses, kgateway.GrpcStatus(status))
+		}
+		filterType.GrpcStatusFilter = grpcFilter
+	}
+
+	if filter.GetNotHealthCheckFilter() != nil {
+		//unsure if this is correct. it appears this just needs to exist to function?
+		filterType.NotHealthCheckFilter = true
+	}
+
+	if filter.GetResponseFlagFilter() != nil {
+		filterType.ResponseFlagFilter = &kgateway.ResponseFlagFilter{
+			Flags: filter.GetResponseFlagFilter().GetFlags(),
+		}
+	}
+
+	if filter.GetRuntimeFilter() != nil {
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "accessLoggingService runtimeFilter is not supported in kgateway")
+	}
+
+	if filter.GetTraceableFilter() != nil {
+		//unsure if this is correct. it appears this just needs to exist to function?
+		filterType.TraceableFilter = true
+	}
+
+	if filter.GetStatusCodeFilter() != nil {
+		filterType.StatusCodeFilter = &kgateway.StatusCodeFilter{
+			Op:    kgateway.Op(filter.GetStatusCodeFilter().GetComparison().GetOp()),
+			Value: filter.GetStatusCodeFilter().GetComparison().GetValue().GetDefaultValue(),
+		}
+	}
+
+	return nil
+}
+
+// convertHTTPListenerOptions - generates GlooTrafficPolicy applied to the Gateway
 func (o *GatewayAPIOutput) convertHTTPListenerOptions(glooGateway *snapshot.GlooGatewayWrapper, proxyName string) {
 	options := glooGateway.Spec.GetHttpGateway().GetOptions()
-	listenerOption := &gatewaykube.HttpListenerOption{
+	if options == nil {
+		return
+	}
+
+	trafficPolicy := &gloogateway.GlooTrafficPolicy{
 		TypeMeta: metav1.TypeMeta{
-			Kind:       "HttpListenerOption",
-			APIVersion: gatewaykube.SchemeGroupVersion.String(),
+			Kind:       "TrafficPolicy",
+			APIVersion: gloogateway.GroupVersion.String(),
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      glooGateway.GetName(),
 			Namespace: glooGateway.GetNamespace(),
 			Labels:    glooGateway.Gateway.Labels,
 		},
-		Spec: gloogwv1.HttpListenerOption{
-			Options: options,
+		Spec: gloogateway.GlooTrafficPolicySpec{
+			TrafficPolicySpec: kgateway.TrafficPolicySpec{
+				TargetRefs: []kgateway.LocalPolicyTargetReferenceWithSectionName{
+					{
+						LocalPolicyTargetReference: kgateway.LocalPolicyTargetReference{
+							Group: gwv1.Group(gwv1.GroupVersion.Group),
+							Kind:  "Gateway",
+							Name:  gwv1.ObjectName(proxyName),
+						},
+					},
+				},
+			},
 		},
 	}
+	// go through each option in Gateway Options and convert to listener policy
+	if options.GetExtauth() != nil {
 
-	listenerOption.Spec.TargetRefs = append(listenerOption.Spec.GetTargetRefs(), &v3.PolicyTargetReferenceWithSectionName{
-		Group:     gwv1.GroupVersion.Group,
-		Kind:      "Gateway",
-		Name:      proxyName,
-		Namespace: wrapperspb.String(glooGateway.GetNamespace()),
-	})
+	}
+	if options.GetDlp() != nil {
 
-	o.gatewayAPICache.AddHTTPListenerOption(snapshot.NewHTTPListenerOptionWrapper(listenerOption, glooGateway.FileOrigin()))
+	}
+	if options.GetCsrf() != nil {
+
+	}
+	if options.GetExtProc() != nil {
+
+	}
+	if options.GetBuffer() != nil {
+
+	}
+	if options.GetCaching() != nil {
+
+	}
+	if options.GetConnectionLimit() != nil {
+
+	}
+	if options.GetDisableExtProc() != nil {
+
+	}
+	if options.GetDynamicForwardProxy() != nil {
+
+	}
+	if options.GetExtensions() != nil {
+
+	}
+	if options.GetGrpcJsonTranscoder() != nil {
+
+	}
+	if options.GetGrpcWeb() != nil {
+
+	}
+	if options.GetGzip() != nil {
+
+	}
+	if options.GetHeaderValidationSettings() != nil {
+
+	}
+	if options.GetHealthCheck() != nil {
+
+	}
+	if options.GetHttpConnectionManagerSettings() != nil {
+
+	}
+	if options.GetHttpLocalRatelimit() != nil {
+
+	}
+	if options.GetNetworkLocalRatelimit() != nil {
+
+	}
+	if options.GetProxyLatency() != nil {
+
+	}
+	if options.GetRouter() != nil {
+
+	}
+	if options.GetSanitizeClusterHeader() != nil {
+
+	}
+	if options.GetStatefulSession() != nil {
+
+	}
+	if options.GetTap() != nil {
+
+	}
+	if options.GetWaf() != nil {
+
+	}
+	if options.GetWasm() != nil {
+
+	}
+
+	o.gatewayAPICache.AddGlooTrafficPolicy(snapshot.NewGlooTrafficPolicyWrapper(trafficPolicy, glooGateway.FileOrigin()))
 }
 
 func (o *GatewayAPIOutput) convertVirtualServiceHTTPRoutes(vs *snapshot.VirtualServiceWrapper, glooGateway *snapshot.GlooGatewayWrapper, listenerName string) error {
@@ -378,9 +809,9 @@ func (o *GatewayAPIOutput) convertRouteOptions(
 	options *gloov1.RouteOptions,
 	routeName string,
 	wrapper snapshot.Wrapper,
-) (*gatewaykube.RouteOption, *gwv1.HTTPRouteFilter) {
+) (*gloogateway.GlooTrafficPolicy, *gwv1.HTTPRouteFilter) {
 
-	var ro *gatewaykube.RouteOption
+	var trafficPolicy *gloogateway.GlooTrafficPolicy
 	var filter *gwv1.HTTPRouteFilter
 	associationID := RandStringRunes(RandomSuffix)
 	if routeName == "" {
@@ -388,32 +819,33 @@ func (o *GatewayAPIOutput) convertRouteOptions(
 	}
 	associationName := fmt.Sprintf("%s-%s", routeName, associationID)
 
-	// converts options to RouteOptions but we need to this for everything except prefixrewrite
+	// converts options to RouteOptions but we need to this for everything except prefixrewrite and a few others now
 	if isRouteOptionsSet(options) {
-		ro = &gatewaykube.RouteOption{
+		trafficPolicy = &gloogateway.GlooTrafficPolicy{
 			TypeMeta: metav1.TypeMeta{
-				Kind:       "RouteOption",
-				APIVersion: gatewaykube.SchemeGroupVersion.String(),
+				Kind:       "GlooTrafficPolicy",
+				APIVersion: gloogateway.SchemeGroupVersion.String(),
 			},
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      associationName,
 				Namespace: wrapper.GetNamespace(),
 			},
-			Spec: gloogwv1.RouteOption{
-				Options: options,
+			Spec: gloogateway.GlooTrafficPolicy{
+				//TODO(nick): Convert each option to a GlooTrafficPolicySpec
 			},
 		}
 
-		// Because we move rewrites to a filter we need to remove it from RouteOptions
-		if options.GetPrefixRewrite() != nil {
-			ro.Spec.GetOptions().PrefixRewrite = nil
-		}
+		//// Because we move rewrites to a filter we need to remove it from RouteOptions
+		// TODO: delete this because this was for RouteOption and not needed for GlooTrafficPolicy
+		//if options.GetPrefixRewrite() != nil {
+		//	trafficPolicy.Spec.GetOptions().PrefixRewrite = nil
+		//}
 
 		filter = &gwv1.HTTPRouteFilter{
 			Type: gwv1.HTTPRouteFilterExtensionRef,
 			ExtensionRef: &gwv1.LocalObjectReference{
 				Group: glookube.GroupName,
-				Kind:  "RouteOption",
+				Kind:  "GlooTrafficPolicy",
 				Name:  gwv1.ObjectName(associationName),
 			},
 		}
@@ -427,7 +859,7 @@ func (o *GatewayAPIOutput) convertRouteOptions(
 			o.gatewayAPICache.AddAuthConfig(ac)
 		}
 	}
-	return ro, filter
+	return trafficPolicy, filter
 }
 
 func (o *GatewayAPIOutput) convertRouteToRule(r *gloogwv1.Route, wrapper snapshot.Wrapper) (gwv1.HTTPRouteRule, error) {
@@ -469,7 +901,7 @@ func (o *GatewayAPIOutput) convertRouteToRule(r *gloogwv1.Route, wrapper snapsho
 			rr.Filters = append(rr.Filters, *filter)
 		}
 		if ro != nil {
-			o.gatewayAPICache.AddRouteOption(snapshot.NewRouteOptionWrapper(ro, wrapper.FileOrigin()))
+			o.gatewayAPICache.AddGlooTrafficPolicy(snapshot.NewGlooTrafficPolicyWrapper(options, r.GetName(), wrapper), wrapper.FileOrigin())
 		}
 	}
 	// Process Route_Actions
@@ -789,7 +1221,7 @@ func (o *GatewayAPIOutput) generateBackendRefForSingleUpstream(r *gloogwv1.Route
 				BackendObjectReference: gwv1.BackendObjectReference{
 					Name:      gwv1.ObjectName(upstream.GetName()),
 					Namespace: (*gwv1.Namespace)(ptr.To(upstreamNs)),
-					Kind:      (*gwv1.Kind)(ptr.To("Upstream")),
+					Kind:      (*gwv1.Kind)(ptr.To("Backend")),
 					Group:     (*gwv1.Group)(ptr.To(glookube.GroupName)),
 				},
 			},
@@ -801,7 +1233,7 @@ func (o *GatewayAPIOutput) generateBackendRefForSingleUpstream(r *gloogwv1.Route
 				BackendObjectReference: gwv1.BackendObjectReference{
 					Name:      gwv1.ObjectName(upstream.GetName()),
 					Namespace: (*gwv1.Namespace)(ptr.To(upstreamNs)),
-					Kind:      (*gwv1.Kind)(ptr.To("Upstream")),
+					Kind:      (*gwv1.Kind)(ptr.To("Backend")),
 					Group:     (*gwv1.Group)(ptr.To(glookube.GroupName)),
 				},
 			},
