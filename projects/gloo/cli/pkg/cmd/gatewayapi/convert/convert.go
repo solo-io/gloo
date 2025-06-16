@@ -413,7 +413,7 @@ func (o *GatewayAPIOutput) generateGatewaysFromProxyNames(glooGateway *snapshot.
 			o.gatewayAPICache.AddGateway(snapshot.NewGatewayWrapper(gwGateway, glooGateway.FileOrigin()))
 		}
 		if glooGateway.Spec.GetHttpGateway() != nil && glooGateway.Spec.GetHttpGateway().GetOptions() != nil {
-			o.convertHTTPListenerOptions(glooGateway, proxyName)
+			o.convertHTTPListenerOptions(glooGateway.Spec.GetHttpGateway().Options, glooGateway, proxyName)
 		}
 		if glooGateway.Spec.GetOptions() != nil && glooGateway.Spec.GetOptions() != nil {
 			o.convertListenerOptions(glooGateway, proxyName)
@@ -654,8 +654,7 @@ func (o *GatewayAPIOutput) convertAccessLogFitler(filter *als.AccessLogFilter, w
 }
 
 // convertHTTPListenerOptions - generates GlooTrafficPolicy applied to the Gateway
-func (o *GatewayAPIOutput) convertHTTPListenerOptions(glooGateway *snapshot.GlooGatewayWrapper, proxyName string) {
-	options := glooGateway.Spec.GetHttpGateway().GetOptions()
+func (o *GatewayAPIOutput) convertHTTPListenerOptions(options *gloov1.HttpListenerOptions, wrapper snapshot.Wrapper, proxyName string) {
 	if options == nil {
 		return
 	}
@@ -666,100 +665,155 @@ func (o *GatewayAPIOutput) convertHTTPListenerOptions(glooGateway *snapshot.Gloo
 			APIVersion: gloogateway.GroupVersion.String(),
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      glooGateway.GetName(),
-			Namespace: glooGateway.GetNamespace(),
-			Labels:    glooGateway.Gateway.Labels,
+			Name:      wrapper.GetName(),
+			Namespace: wrapper.GetNamespace(),
+			Labels:    wrapper.GetLabels(),
 		},
-		Spec: gloogateway.GlooTrafficPolicySpec{
-			TrafficPolicySpec: kgateway.TrafficPolicySpec{
-				TargetRefs: []kgateway.LocalPolicyTargetReferenceWithSectionName{
-					{
-						LocalPolicyTargetReference: kgateway.LocalPolicyTargetReference{
-							Group: gwv1.Group(gwv1.GroupVersion.Group),
-							Kind:  "Gateway",
-							Name:  gwv1.ObjectName(proxyName),
-						},
+	}
+
+	tps := gloogateway.GlooTrafficPolicySpec{
+		TrafficPolicySpec: kgateway.TrafficPolicySpec{
+			TargetRefs: []kgateway.LocalPolicyTargetReferenceWithSectionName{
+				{
+					LocalPolicyTargetReference: kgateway.LocalPolicyTargetReference{
+						Group: gwv1.Group(gwv1.GroupVersion.Group),
+						Kind:  "Gateway",
+						Name:  gwv1.ObjectName(proxyName),
 					},
 				},
 			},
+			TargetSelectors: nil,
+			AI:              nil,
+			Transformation:  nil,
+			ExtProc:         nil,
+			ExtAuth:         nil,
+			RateLimit:       nil,
 		},
+		Waf:                   nil,
+		Retry:                 nil,
+		Timeouts:              nil,
+		RateLimitEnterprise:   nil,
+		ExtAuthEnterprise:     nil,
+		StagedTransformations: nil,
 	}
 	// go through each option in Gateway Options and convert to listener policy
 	if options.GetExtauth() != nil {
 
 	}
-	if options.GetDlp() != nil {
-
-	}
-	if options.GetCsrf() != nil {
-
-	}
 	if options.GetExtProc() != nil {
 
 	}
-	if options.GetBuffer() != nil {
 
+	if options.GetHttpLocalRatelimit() != nil {
+		if options.GetHttpLocalRatelimit().GetEnableXRatelimitHeaders() != nil && options.GetHttpLocalRatelimit().GetEnableXRatelimitHeaders().GetValue() {
+			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "httpLocalRateLimit enableXRateLimitHeaders is not supported in kgateway")
+		}
+		if options.GetHttpLocalRatelimit().GetLocalRateLimitPerDownstreamConnection() != nil && options.GetHttpLocalRatelimit().GetLocalRateLimitPerDownstreamConnection().GetValue() {
+			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "httpLocalRateLimit localRateLimitPerDownstreamConnection is not supported in kgateway")
+		}
+		if options.GetHttpLocalRatelimit().GetDefaultLimit() != nil {
+			rl := &kgateway.RateLimit{
+				Local: &kgateway.LocalRateLimitPolicy{
+					TokenBucket: &kgateway.TokenBucket{
+						MaxTokens: options.GetHttpLocalRatelimit().GetDefaultLimit().GetMaxTokens(),
+					},
+				},
+			}
+			if options.GetHttpLocalRatelimit().GetDefaultLimit().GetTokensPerFill() != nil {
+				rl.Local.TokenBucket.TokensPerFill = ptr.To(options.GetHttpLocalRatelimit().GetDefaultLimit().GetTokensPerFill().GetValue())
+			}
+			if options.GetHttpLocalRatelimit().GetDefaultLimit().GetFillInterval() != nil {
+				rl.Local.TokenBucket.FillInterval = gwv1.Duration(options.GetHttpLocalRatelimit().GetDefaultLimit().GetFillInterval().AsDuration().String())
+			}
+			tps.TrafficPolicySpec.RateLimit = rl
+		}
 	}
-	if options.GetCaching() != nil {
 
-	}
-	if options.GetConnectionLimit() != nil {
-
+	if options.GetWaf() != nil {
+		waf := &gloogateway.Waf{
+			Disabled:      ptr.To(options.GetWaf().Disabled),
+			CustomMessage: options.GetWaf().CustomInterventionMessage,
+			Rules:         make([]gloogateway.WafRule, len(options.GetWaf().RuleSets)),
+		}
+		for _, r := range options.GetWaf().RuleSets {
+			waf.Rules = append(waf.Rules, gloogateway.WafRule{
+				RuleStr: r.RuleStr,
+			})
+			if r.Files != nil && len(r.Files) > 0 {
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "WAF files is not supported in kgateway")
+			}
+		}
+		tps.Waf = waf
 	}
 	if options.GetDisableExtProc() != nil {
-
-	}
-	if options.GetDynamicForwardProxy() != nil {
-
-	}
-	if options.GetExtensions() != nil {
-
-	}
-	if options.GetGrpcJsonTranscoder() != nil {
-
-	}
-	if options.GetGrpcWeb() != nil {
-
-	}
-	if options.GetGzip() != nil {
-
-	}
-	if options.GetHeaderValidationSettings() != nil {
-
-	}
-	if options.GetHealthCheck() != nil {
-
-	}
-	if options.GetHttpConnectionManagerSettings() != nil {
-
-	}
-	if options.GetHttpLocalRatelimit() != nil {
-
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "disableExtProc is not supported in kgateway")
 	}
 	if options.GetNetworkLocalRatelimit() != nil {
 
 	}
-	if options.GetProxyLatency() != nil {
+	if options.GetDlp() != nil {
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "dlp is not supported in kgateway")
+	}
+	if options.GetCsrf() != nil {
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "csrf is not supported in kgateway")
+	}
 
+	if options.GetBuffer() != nil {
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "buffer is not supported in kgateway")
+	}
+	if options.GetCaching() != nil {
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "caching is not supported in kgateway")
+	}
+	if options.GetConnectionLimit() != nil {
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "connectionlimit is not supported in kgateway")
+	}
+
+	if options.GetDynamicForwardProxy() != nil {
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "dynamicForwardProxy (DFP) is not supported in kgateway")
+	}
+	if options.GetExtensions() != nil {
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "gloo edge extensions is not supported in kgateway")
+	}
+	if options.GetGrpcJsonTranscoder() != nil {
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "grpcToJson is not supported in kgateway")
+	}
+	if options.GetGrpcWeb() != nil {
+		//TODO(nick) : GRPCWeb is enabled by default in edge. we need to verify the same in kgateway.
+		//o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, glooGateway, "grpcWeb is not supported in kgateway")
+	}
+	if options.GetGzip() != nil {
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "gzip is not supported in kgateway")
+	}
+	if options.GetHeaderValidationSettings() != nil {
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "header validation is not supported in kgateway")
+	}
+	if options.GetHealthCheck() != nil {
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "health check is not supported in kgateway")
+	}
+	if options.GetHttpConnectionManagerSettings() != nil {
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "httpConnectionManagerSettings is not supported in kgateway")
+	}
+
+	if options.GetProxyLatency() != nil {
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "proxy latency is not supported in kgateway")
 	}
 	if options.GetRouter() != nil {
-
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "router (envoy filter maps) is not supported in kgateway")
 	}
 	if options.GetSanitizeClusterHeader() != nil {
-
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "sanitize cluster header is not supported in kgateway")
 	}
 	if options.GetStatefulSession() != nil {
-
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "statefulSession is not supported in kgateway")
 	}
 	if options.GetTap() != nil {
-
-	}
-	if options.GetWaf() != nil {
-
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "Tap filter is not supported in kgateway")
 	}
 	if options.GetWasm() != nil {
-
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "WASM is not supported in kgateway")
 	}
+
+	trafficPolicy.Spec = tps
 
 	o.gatewayAPICache.AddGlooTrafficPolicy(snapshot.NewGlooTrafficPolicyWrapper(trafficPolicy, glooGateway.FileOrigin()))
 }
