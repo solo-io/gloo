@@ -12,9 +12,10 @@ require (
 	github.com/aws/aws-sdk-go v1.34.9
 	github.com/cncf/xds/go v0.0.0-20250121191232-2f005788dc42
 	github.com/cratonica/2goarray v0.0.0-20190331194516-514510793eaa
-	github.com/envoyproxy/go-control-plane/contrib v1.32.5-0.20250207140015-90270e3c85fd
-	github.com/envoyproxy/go-control-plane/envoy v1.32.5-0.20250211152746-ef139ef8ea6b
-	github.com/envoyproxy/go-control-plane/ratelimit v0.1.0
+	github.com/envoyproxy/go-control-plane v0.13.5-0.20250507123352-93990c5ec02f
+	github.com/envoyproxy/go-control-plane/contrib v1.32.5-0.20250507123352-93990c5ec02f
+	github.com/envoyproxy/go-control-plane/envoy v1.32.5-0.20250507123352-93990c5ec02f
+	github.com/envoyproxy/go-control-plane/ratelimit v0.1.1-0.20250507123352-93990c5ec02f
 	github.com/envoyproxy/protoc-gen-validate v1.2.1
 	github.com/form3tech-oss/jwt-go v3.2.5+incompatible
 	github.com/fsnotify/fsnotify v1.8.0
@@ -71,7 +72,7 @@ require (
 	golang.org/x/crypto v0.37.0
 	golang.org/x/sync v0.13.0
 	golang.org/x/tools v0.30.0
-	google.golang.org/grpc v1.71.1
+	google.golang.org/grpc v1.72.0
 	google.golang.org/protobuf v1.36.6
 	gopkg.in/AlecAivazis/survey.v1 v1.8.7
 	helm.sh/helm/v3 v3.17.0
@@ -93,24 +94,24 @@ require (
 require (
 	github.com/ahmetb/gen-crd-api-reference-docs v0.3.1-0.20240214155107-6cf1ede4da61
 	github.com/avast/retry-go/v4 v4.3.3
-	github.com/envoyproxy/go-control-plane v0.13.5-0.20250123154839-2a6715911fec
 	github.com/go-logr/zapr v1.3.0
 	github.com/golang-jwt/jwt/v4 v4.5.0
 	github.com/golang/mock v1.6.0
 	github.com/google/go-cmp v0.7.0
 	github.com/google/uuid v1.6.0
 	github.com/mccutchen/go-httpbin/v2 v2.15.0
-	github.com/prometheus/client_model v0.6.1
+	github.com/prometheus/client_golang v1.20.5
+	github.com/prometheus/client_model v0.6.2
 	github.com/prometheus/common v0.62.0
 	github.com/quasilyte/go-ruleguard/dsl v0.3.22
 	github.com/solo-io/cue v0.4.7
 	github.com/stoewer/go-strcase v1.3.0
 	github.com/stretchr/testify v1.10.0
-	go.opentelemetry.io/proto/otlp v1.5.0
+	go.opentelemetry.io/proto/otlp v1.6.0
 	golang.org/x/exp v0.0.0-20241215155358-4a5509556b9e
 	golang.org/x/mod v0.23.0
-	google.golang.org/genproto/googleapis/api v0.0.0-20250122153221-138b5a5a4fd4
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20250122153221-138b5a5a4fd4
+	google.golang.org/genproto/googleapis/api v0.0.0-20250428153025-10db94c68c34
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20250428153025-10db94c68c34
 	istio.io/api v1.25.2-0.20250410212420-84c271001f68
 	istio.io/client-go v1.25.2-0.20250410213018-e5f6074bc228
 	istio.io/istio v0.0.0-20250411142419-0d83506c2883
@@ -121,7 +122,7 @@ require (
 require github.com/prometheus/client_golang v1.20.5 // indirect
 
 require (
-	cel.dev/expr v0.19.1 // indirect
+	cel.dev/expr v0.20.0 // indirect
 	contrib.go.opencensus.io/exporter/prometheus v0.4.0 // indirect
 	cuelang.org/go v0.10.0 // indirect
 	dario.cat/mergo v1.0.1 // indirect
