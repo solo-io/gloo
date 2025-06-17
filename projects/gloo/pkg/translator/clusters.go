@@ -19,6 +19,7 @@ import (
 	"github.com/solo-io/gloo/pkg/utils/envutils"
 	"github.com/solo-io/gloo/projects/gloo/constants"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	v1_circuitbreaker "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/circuit_breaker"
 	v1_options "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/ssl"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
@@ -380,7 +381,7 @@ func validateCluster(c *envoy_config_cluster_v3.Cluster) error {
 }
 
 // Convert the first non nil circuit breaker.
-func getCircuitBreakers(cfgs ...*v1.CircuitBreakerConfig) *envoy_config_cluster_v3.CircuitBreakers {
+func getCircuitBreakers(cfgs ...*v1_circuitbreaker.CircuitBreakerConfig) *envoy_config_cluster_v3.CircuitBreakers {
 	for _, cfg := range cfgs {
 		if cfg != nil {
 			envoyCfg := &envoy_config_cluster_v3.CircuitBreakers{}

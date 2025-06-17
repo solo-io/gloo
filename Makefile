@@ -378,6 +378,7 @@ clean-solo-kit-gen:
 	find * -type f -name '*.pb.hash.go' -not -path "docs/*" -not -path "test/*" -exec rm {} \;
 	find * -type f -name '*.pb.equal.go' -not -path "docs/*" -not -path "test/*" -exec rm {} \;
 	find * -type f -name '*.pb.clone.go' -not -path "docs/*" -not -path "test/*" -exec rm {} \;
+	find * -type f -name '*.pb.uniquehash.go' -not -path "docs/*" -not -path "test/*" -exec rm {} \;
 
 .PHONY: clean-cli-docs
 clean-cli-docs:
