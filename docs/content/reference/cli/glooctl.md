@@ -54,5 +54,6 @@ glooctl is the unified CLI for Gloo.
 * [glooctl route](../glooctl_route)	 - subcommands for interacting with routes within virtual services
 * [glooctl uninstall](../glooctl_uninstall)	 - uninstall gloo
 * [glooctl upgrade](../glooctl_upgrade)	 - upgrade glooctl binary
+* [glooctl usage](../glooctl_usage)	 - Scan Gloo for feature usage
 * [glooctl version](../glooctl_version)	 - Print current version
 
