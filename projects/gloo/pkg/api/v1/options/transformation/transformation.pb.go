@@ -7,10 +7,6 @@
 package transformation
 
 import (
-	reflect "reflect"
-	sync "sync"
-	unsafe "unsafe"
-
 	xslt "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/transformers/xslt"
 	matchers "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
 	_ "github.com/solo-io/protoc-gen-ext/extproto"
@@ -18,6 +14,9 @@ import (
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	wrapperspb "google.golang.org/protobuf/types/known/wrapperspb"
+	reflect "reflect"
+	sync "sync"
+	unsafe "unsafe"
 )
 
 const (

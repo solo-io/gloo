@@ -7,10 +7,6 @@
 package options
 
 import (
-	reflect "reflect"
-	sync "sync"
-	unsafe "unsafe"
-
 	graphql "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/graphql"
 	grpc "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/grpc"
 	grpc_json "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/grpc_json"
@@ -18,6 +14,9 @@ import (
 	_ "github.com/solo-io/protoc-gen-ext/extproto"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	reflect "reflect"
+	sync "sync"
+	unsafe "unsafe"
 )
 
 const (

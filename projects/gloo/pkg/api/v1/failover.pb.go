@@ -7,10 +7,6 @@
 package v1
 
 import (
-	reflect "reflect"
-	sync "sync"
-	unsafe "unsafe"
-
 	_ "github.com/envoyproxy/protoc-gen-validate/validate"
 	ssl "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/ssl"
 	_ "github.com/solo-io/protoc-gen-ext/extproto"
@@ -18,6 +14,9 @@ import (
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	structpb "google.golang.org/protobuf/types/known/structpb"
 	wrapperspb "google.golang.org/protobuf/types/known/wrapperspb"
+	reflect "reflect"
+	sync "sync"
+	unsafe "unsafe"
 )
 
 const (

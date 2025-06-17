@@ -7,10 +7,6 @@
 package v1
 
 import (
-	reflect "reflect"
-	sync "sync"
-	unsafe "unsafe"
-
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	matchers "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
 	ssl "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/ssl"
@@ -19,6 +15,9 @@ import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	wrapperspb "google.golang.org/protobuf/types/known/wrapperspb"
+	reflect "reflect"
+	sync "sync"
+	unsafe "unsafe"
 )
 
 const (

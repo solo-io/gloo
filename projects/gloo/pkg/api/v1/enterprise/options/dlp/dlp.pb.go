@@ -7,10 +7,6 @@
 package dlp
 
 import (
-	reflect "reflect"
-	sync "sync"
-	unsafe "unsafe"
-
 	_ "github.com/envoyproxy/protoc-gen-validate/validate"
 	transformation_ee "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/transformation_ee"
 	matchers "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
@@ -18,6 +14,9 @@ import (
 	_type "github.com/solo-io/solo-kit/pkg/api/external/envoy/type"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	reflect "reflect"
+	sync "sync"
+	unsafe "unsafe"
 )
 
 const (
