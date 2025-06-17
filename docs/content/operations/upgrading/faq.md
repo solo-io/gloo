@@ -60,6 +60,12 @@ The Envoy dependency in Gloo Gateway 1.19 was upgraded from 1.31.x to 1.33.x. Th
 
 ## New features
 
+#### Set circuit breakers for dynamic forward proxies
+
+When using a dynamic forward proxy, Envoy sets a limit of 1024 connections for dynamically discovered upstreams. Starting in Gloo Gateway Enterprise version 1.19.3, you can override this setting by setting custom circuit breakers for your dynamic forward proxy. 
+
+For more information, see [Set circuit breakers for dynamically discovered upstreams]({{% versioned_link_path fromRoot="/guides/traffic_management/listener_configuration/http_connection_manager/dfp/#dfp-circuit-breakers" %}}). 
+
 ### Set authority header for gRPC OpenTelemetry collectors
 
 When referencing a gRPC OpenTelemetry collector in your Gateway, Gloo Gateway automatically generates an Envoy configuration that sets the cluster name as the `:authority` pseudo-header. If your collector expects a different `:authority` header, you can specify that by setting the `spec.httpGateway.options.httpConnectionManagerSettings.tracing.openTelemetryConfig.grpcService.authority` value on your Gateway as shown in the following example. 
