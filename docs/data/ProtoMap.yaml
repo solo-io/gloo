@@ -795,7 +795,7 @@ apis:
     relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/ssl/ssl.proto.sk/#CallCredentials
     package: gloo.solo.io
   gloo.solo.io.CircuitBreakerConfig:
-    relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/circuit_breaker.proto.sk/#CircuitBreakerConfig
+    relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/circuit_breaker/circuit_breaker.proto.sk/#CircuitBreakerConfig
     package: gloo.solo.io
   gloo.solo.io.ClientVersion:
     relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/grpc/version/version.proto.sk/#ClientVersion
