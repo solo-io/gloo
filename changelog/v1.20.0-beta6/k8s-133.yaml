@@ -4,6 +4,14 @@ changelog:
     Bump dependencies to support Kubernetes 1.33.1
   issueLink: https://github.com/solo-io/solo-projects/issues/8102
   resolvesIssue: false
+- type: NON_USER_FACING
+  issueLink: https://github.com/solo-io/solo-projects/issues/8392
+  resolvesIssue: false
+  description: Bump Go to 1.24.4
+- type: DEPENDENCY_BUMP
+  dependencyOwner: golang
+  dependencyRepo: go
+  dependencyTag: v1.24.4
 - type: DEPENDENCY_BUMP
   dependencyOwner: k8s.io
   dependencyRepo: api

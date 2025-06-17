@@ -83,7 +83,6 @@ require (
 	k8s.io/code-generator v0.33.1
 	k8s.io/component-base v0.33.1
 	k8s.io/kubectl v0.33.1
-	// k8s.io/utils v0.0.0-20241210054802-24370beab758
 	knative.dev/networking v0.0.0-20211210083629-bace06e98aee
 	knative.dev/pkg v0.0.0-20211206113427-18589ac7627e
 	sigs.k8s.io/controller-runtime v0.21.0
