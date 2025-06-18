@@ -7,6 +7,7 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extproc"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ratelimit"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/aws"
+	transformation2 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/transformation"
 	corev1 "k8s.io/api/core/v1"
 	"strings"
 
@@ -602,20 +603,20 @@ func (o *GatewayAPIOutput) convertVHOOptionsToTrafficPolicySpec(vho *gloov1.Virt
 
 	spec := gloogateway.GlooTrafficPolicySpec{
 		TrafficPolicySpec: kgateway.TrafficPolicySpec{
-			TargetRefs:      nil,
-			TargetSelectors: nil,
-			AI:              nil,
-			Transformation:  nil,
-			ExtProc:         nil,
-			ExtAuth:         nil,
-			RateLimit:       nil,
+			TargetRefs:      nil, // existing
+			TargetSelectors: nil, // existing
+			AI:              nil, // existing
+			Transformation:  nil, // existing
+			ExtProc:         nil, // existing
+			ExtAuth:         nil, // existing
+			RateLimit:       nil, // existing
 		},
-		Waf:                   nil,
-		Retry:                 nil,
-		Timeouts:              nil,
-		RateLimitEnterprise:   nil,
-		ExtAuthEnterprise:     nil,
-		StagedTransformations: nil,
+		Waf:                   nil, // existing
+		Retry:                 nil, // existing
+		Timeouts:              nil, // existing
+		RateLimitEnterprise:   nil, // existing
+		ExtAuthEnterprise:     nil, // existing
+		StagedTransformations: nil, // existing
 	}
 	if vho != nil {
 		if vho.GetExtauth() != nil {
@@ -690,7 +691,8 @@ func (o *GatewayAPIOutput) convertVHOOptionsToTrafficPolicySpec(vho *gloov1.Virt
 
 		}
 		if vho.GetStagedTransformations() != nil {
-
+			transformation := o.convertStagedTransformation(vho.GetStagedTransformations(), wrapper)
+			spec.StagedTransformations = transformation
 		}
 		if vho.GetJwt() != nil {
 
@@ -724,6 +726,39 @@ func (o *GatewayAPIOutput) convertVHOOptionsToTrafficPolicySpec(vho *gloov1.Virt
 		}
 	}
 	return spec
+}
+
+func (o *GatewayAPIOutput) convertStagedTransformation(transformation *transformation2.TransformationStages, wrapper snapshot.Wrapper) *gloogateway.StagedTransformations {
+	stagedTransformations := &gloogateway.StagedTransformations{}
+
+	if transformation.GetInheritTransformation() == true {
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "transformation inherit transformation is not supported in kgateway")
+	}
+	if transformation.GetRegular() != nil {
+		routing := o.convertRequestTransformation(transformation.GetEarly(), wrapper)
+		stagedTransformations.Early = routing
+	}
+	if transformation.GetRegular() != nil {
+		routing := o.convertRequestTransformation(transformation.GetRegular(), wrapper)
+		stagedTransformations.Regular = routing
+	}
+	if transformation.GetPostRouting() != nil {
+		routing := o.convertRequestTransformation(transformation.GetPostRouting(), wrapper)
+		stagedTransformations.PostRouting = routing
+	}
+
+	if transformation.GetLogRequestResponseInfo() != nil && transformation.GetLogRequestResponseInfo().GetValue() == true {
+		stagedTransformations.LogRequestResponseInfo = ptr.To(true)
+	}
+
+	if transformation.GetEscapeCharacters() != nil {
+		if transformation.GetEscapeCharacters().GetValue() {
+			stagedTransformations.EscapeCharacters = ptr.To(gloogateway.EscapeCharactersEscape)
+		} else {
+			stagedTransformations.EscapeCharacters = ptr.To(gloogateway.EscapeCharactersDontEscape)
+		}
+	}
+	return stagedTransformations
 }
 
 func (o *GatewayAPIOutput) generateTLSConfiguration(vs *snapshot.VirtualServiceWrapper) *gwv1.GatewayTLSConfig {
@@ -1067,19 +1102,19 @@ func (o *GatewayAPIOutput) convertHTTPListenerOptions(options *gloov1.HttpListen
 					},
 				},
 			},
-			TargetSelectors: nil,
-			AI:              nil,
-			Transformation:  nil,
-			ExtProc:         nil,
-			ExtAuth:         nil,
-			RateLimit:       nil,
+			TargetSelectors: nil, // existing
+			AI:              nil, // existing
+			Transformation:  nil, // existing
+			ExtProc:         nil, // existing
+			ExtAuth:         nil, // existing
+			RateLimit:       nil, // existing
 		},
-		Waf:                   nil,
-		Retry:                 nil,
-		Timeouts:              nil,
-		RateLimitEnterprise:   nil,
-		ExtAuthEnterprise:     nil,
-		StagedTransformations: nil,
+		Waf:                   nil, // existing
+		Retry:                 nil, // existing
+		Timeouts:              nil, // existing
+		RateLimitEnterprise:   nil, // existing
+		ExtAuthEnterprise:     nil, // existing
+		StagedTransformations: nil, // existing
 	}
 
 	// go through each option in Gateway Options and convert to listener policy
@@ -1499,20 +1534,20 @@ func (o *GatewayAPIOutput) convertRouteOptions(
 	if isRouteOptionsSet(options) {
 		gtpSpec := gloogateway.GlooTrafficPolicySpec{
 			TrafficPolicySpec: kgateway.TrafficPolicySpec{
-				TargetRefs:      nil,
-				TargetSelectors: nil,
-				AI:              nil,
-				Transformation:  nil,
-				ExtProc:         nil,
-				ExtAuth:         nil,
-				RateLimit:       nil,
+				TargetRefs:      nil, // existing
+				TargetSelectors: nil, // existing
+				AI:              nil, // existing
+				Transformation:  nil, // existing
+				ExtProc:         nil, // existing
+				ExtAuth:         nil, // existing
+				RateLimit:       nil, // existing
 			},
-			Waf:                   nil,
-			Retry:                 nil,
-			Timeouts:              nil,
-			RateLimitEnterprise:   nil,
-			ExtAuthEnterprise:     nil,
-			StagedTransformations: nil,
+			Waf:                   nil, // existing
+			Retry:                 nil, // existing
+			Timeouts:              nil, // existing
+			RateLimitEnterprise:   nil, // existing
+			ExtAuthEnterprise:     nil, // existing
+			StagedTransformations: nil, // existing
 		}
 
 		//Features Supported By GatewayAPI
@@ -1628,7 +1663,13 @@ func (o *GatewayAPIOutput) convertRouteOptions(
 		if options.GetRatelimitBasic() != nil {
 			//TODO (nick) : Implement Rate Limiting
 		}
+		if options.GetTransformations() != nil {
 
+		}
+		if options.GetStagedTransformations() != nil {
+			transformation := o.convertStagedTransformation(options.GetStagedTransformations(), wrapper)
+			gtpSpec.StagedTransformations = transformation
+		}
 		if options.GetDlp() != nil {
 			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "dlp is not supported in kgateway")
 		}
@@ -1684,6 +1725,7 @@ func (o *GatewayAPIOutput) convertRouteOptions(
 		if options.GetUpgrades() != nil {
 			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "upgrades is not supported in kgateway")
 		}
+
 		trafficPolicy = &gloogateway.GlooTrafficPolicy{
 			TypeMeta: metav1.TypeMeta{
 				Kind:       "GlooTrafficPolicy",
@@ -1698,6 +1740,215 @@ func (o *GatewayAPIOutput) convertRouteOptions(
 	}
 
 	return trafficPolicy, filter
+}
+
+func (o *GatewayAPIOutput) convertRequestTransformation(transformationRouting *transformation2.RequestResponseTransformations, wrapper snapshot.Wrapper) *gloogateway.RequestResponseTransformations {
+	routing := &gloogateway.RequestResponseTransformations{}
+	requestMatchers := o.convertRequestTransforms(transformationRouting.GetRequestTransforms(), wrapper)
+	routing.RequestTransforms = requestMatchers
+
+	responseMatchers := o.convertResponseTranforms(transformationRouting.GetResponseTransforms(), wrapper)
+	routing.ResponseTransforms = responseMatchers
+
+	return routing
+}
+func (o *GatewayAPIOutput) convertResponseTranforms(responseTransform []*transformation2.ResponseMatch, wrapper snapshot.Wrapper) []gloogateway.ResponseMatch {
+	responseMatchers := make([]gloogateway.ResponseMatch, len(responseTransform))
+	for _, rule := range responseTransform {
+		match := gloogateway.ResponseMatch{
+			Headers:             []gloogateway.TransformationHeaderMatcher{},
+			ResponseCodeDetails: ptr.To(rule.ResponseCodeDetails),
+		}
+		if rule.GetMatchers() != nil {
+			for _, header := range rule.GetMatchers() {
+				match.Headers = append(match.Headers, gloogateway.TransformationHeaderMatcher{
+					Name:        header.GetName(),
+					Value:       header.GetValue(),
+					Regex:       header.GetRegex(),
+					InvertMatch: header.GetInvertMatch(),
+				})
+			}
+		}
+		if rule.GetResponseTransformation() != nil {
+			transformation := o.convertTransformationMatch(rule.GetResponseTransformation())
+			match.Transformation = transformation
+		}
+
+		responseMatchers = append(responseMatchers, match)
+	}
+	return responseMatchers
+}
+func (o *GatewayAPIOutput) convertRequestTransforms(requestTranforms []*transformation2.RequestMatch, wrapper snapshot.Wrapper) []gloogateway.RequestMatcher {
+	requestMatchers := make([]gloogateway.RequestMatcher, len(requestTranforms))
+	for _, rule := range requestTranforms {
+		match := gloogateway.ResponseMatch{
+			Headers: []gloogateway.TransformationHeaderMatcher{},
+		}
+		if rule.GetClearRouteCache() == true {
+			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "transformation rule clearRouteCache is not supported in kgateway")
+		}
+		if rule.GetMatcher() != nil {
+			for _, header := range rule.GetMatcher().GetHeaders() {
+				match.Headers = append(match.Headers, gloogateway.TransformationHeaderMatcher{
+					Name:        header.GetName(),
+					Value:       header.GetValue(),
+					Regex:       header.GetRegex(),
+					InvertMatch: header.GetInvertMatch(),
+				})
+			}
+			if rule.GetMatcher().GetRegex() != "" {
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "transformation rule regex match is not supported in kgateway")
+			}
+			if rule.GetMatcher().GetConnectMatcher() != nil {
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "transformation rule connect match is not supported in kgateway")
+			}
+			if rule.GetMatcher().GetCaseSensitive() != nil {
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "transformation rule caseSensitive match is not supported in kgateway")
+			}
+			if rule.GetMatcher().GetExact() != nil {
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "transformation rule exact match is not supported in kgateway")
+			}
+			if rule.GetMatcher().GetMethods() != nil {
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "transformation rule methods match is not supported in kgateway")
+			}
+			if rule.GetMatcher().GetPrefix() != nil {
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "transformation rule prefix match is not supported in kgateway")
+			}
+			if rule.GetMatcher().GetQueryParameters() != nil {
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "transformation rule queryParameters match is not supported in kgateway")
+			}
+		}
+		if rule.GetRequestTransformation() != nil {
+			transformation := o.convertTransformationMatch(rule.GetRequestTransformation())
+			match.Transformation = transformation
+		}
+
+		requestMatchers = append(requestMatchers, match)
+	}
+	return requestMatchers
+}
+
+func (o *GatewayAPIOutput) convertTransformationMatch(rule *transformation2.Transformation) gloogateway.Transformation {
+	transformation := gloogateway.Transformation{
+		Template:   nil,
+		HeaderBody: nil,
+	}
+
+	// TODO fill this out and look for more options on Gloo edge transformation template
+	if rule.GetTransformationTemplate() != nil {
+		tt := rule.GetTransformationTemplate()
+		template := &gloogateway.TransformationTemplate{
+			AdvancedTemplates:     ptr.To(rule.GetTransformationTemplate().AdvancedTemplates),
+			Extractors:            nil,
+			Headers:               nil,
+			HeadersToAppend:       make([]gloogateway.HeaderToAppend, len(tt.GetHeadersToAppend())),
+			HeadersToRemove:       make([]string, len(tt.GetHeadersToRemove())),
+			BodyTransformation:    nil,
+			ParseBodyBehavior:     nil,
+			IgnoreErrorOnParse:    ptr.To(tt.GetIgnoreErrorOnParse()),
+			DynamicMetadataValues: make([]gloogateway.DynamicMetadataValue, len(tt.GetDynamicMetadataValues())),
+			EscapeCharacters:      nil,
+			SpanTransformer:       nil,
+		}
+		for name, ext := range tt.GetExtractors() {
+			if template.Extractors == nil {
+				template.Extractors = map[string]*gloogateway.Extraction{}
+			}
+			extraction := &gloogateway.Extraction{
+				ExtractionHeader: ptr.To(ext.GetHeader()),
+				Regex:            ext.GetRegex(),
+				Subgroup:         ptr.To(ext.GetSubgroup()),
+			}
+			if ext.GetBody() != nil {
+				extraction.ExtractionBody = ptr.To(true)
+			}
+			if ext.GetReplacementText() != nil {
+				extraction.ReplacementText = ptr.To(ext.GetReplacementText().Value)
+			}
+			switch ext.GetMode() {
+			case transformation2.Extraction_EXTRACT:
+				extraction.Mode = ptr.To(gloogateway.ModeExtract)
+			case transformation2.Extraction_SINGLE_REPLACE:
+				extraction.Mode = ptr.To(gloogateway.ModeSingleReplace)
+			case transformation2.Extraction_REPLACE_ALL:
+				extraction.Mode = ptr.To(gloogateway.ModeReplaceAll)
+			}
+			template.Extractors[name] = extraction
+		}
+		for name, header := range tt.GetHeaders() {
+			if template.Headers == nil {
+				template.Headers = make(map[string]gloogateway.InjaTemplate)
+			}
+			template.Headers[name] = gloogateway.InjaTemplate(header.String())
+		}
+		for _, hta := range tt.GetHeadersToAppend() {
+			h := gloogateway.HeaderToAppend{
+				Key: hta.Key,
+			}
+			if hta.Value != nil {
+				h.Value = gloogateway.InjaTemplate(hta.Value.String())
+			}
+			template.HeadersToAppend = append(template.HeadersToAppend, h)
+		}
+		for _, htr := range tt.GetHeadersToRemove() {
+			template.HeadersToRemove = append(template.HeadersToRemove, htr)
+		}
+		if tt.GetBody() != nil {
+			template.BodyTransformation = &gloogateway.BodyTransformation{
+				Type: gloogateway.BodyTransformationTypeBody,
+				Body: ptr.To(gloogateway.InjaTemplate(tt.GetBody().String())),
+			}
+		}
+		if tt.GetPassthrough() != nil {
+			template.BodyTransformation = &gloogateway.BodyTransformation{
+				Type: gloogateway.BodyTransformationTypePassthrough,
+				Body: ptr.To(gloogateway.InjaTemplate(tt.GetPassthrough().String())),
+			}
+		}
+		if tt.GetMergeExtractorsToBody() != nil {
+			template.BodyTransformation = &gloogateway.BodyTransformation{
+				Type: gloogateway.BodyTransformationTypeMergeExtractorsToBody,
+				Body: ptr.To(gloogateway.InjaTemplate(tt.GetMergeExtractorsToBody().String())),
+			}
+		}
+		if tt.GetMergeJsonKeys() != nil {
+			template.BodyTransformation = &gloogateway.BodyTransformation{
+				Type: gloogateway.BodyTransformationTypeMergeJsonKeys,
+				Body: ptr.To(gloogateway.InjaTemplate(tt.GetMergeJsonKeys().String())),
+			}
+		}
+		if tt.GetParseBodyBehavior() == transformation2.TransformationTemplate_ParseAsJson {
+			template.ParseBodyBehavior = ptr.To(gloogateway.ParseAsJson)
+		}
+		if tt.GetParseBodyBehavior() == transformation2.TransformationTemplate_DontParse {
+			template.ParseBodyBehavior = ptr.To(gloogateway.DontParse)
+		}
+		for _, m := range tt.GetDynamicMetadataValues() {
+			dm := gloogateway.DynamicMetadataValue{
+				MetadataNamespace: m.GetMetadataNamespace(),
+				Key:               m.GetKey(),
+				Value:             gloogateway.InjaTemplate(m.GetValue().String()),
+				JsonToProto:       ptr.to(m.JsonToProto),
+			}
+			if m.GetValue() != nil {
+				dm.Value = gloogateway.InjaTemplate(m.GetValue().String())
+			}
+			template.DynamicMetadataValues = append(template.DynamicMetadataValues, dm)
+		}
+		if tt.GetEscapeCharacters() != nil {
+			if tt.GetEscapeCharacters().GetValue() {
+				template.EscapeCharacters = ptr.To(gloogateway.EscapeCharactersEscape)
+			}
+		}
+		if tt.GetSpanTransformer() != nil && tt.GetSpanTransformer().GetName() != nil {
+			template.SpanTransformer = &gloogateway.SpanTransformer{
+				Name: gloogateway.InjaTemplate(tt.GetSpanTransformer().GetName().GetText()),
+			}
+		}
+
+		transformation.Template = template
+	}
+	return transformation
 }
 
 func (o *GatewayAPIOutput) generateAIPromptGuard(options *gloov1.RouteOptions, wrapper snapshot.Wrapper) *kgateway.AIPromptGuard {
