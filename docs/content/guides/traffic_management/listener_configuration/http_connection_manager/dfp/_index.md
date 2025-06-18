@@ -61,7 +61,7 @@ spec:
 
 By default, Envoy allows a maximum of 1024 connections to dynamically discovered upstreams. Starting in Gloo Gateway Enterprise version 1.19.3, you can override these settings by defining custom circuit breakers for your dynamic forward proxy. 
 
-1. Update your gateway proxy to add custom circuit breaker settings for your dynamic forward proxy. The following example overrides the default number of connections, requests, pending requests, and retries to 40,000. For more information, see the [Circuit breaker configuration]({{% versioned_link_path fromRoot="/reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/circuit_breaker/circuit_breaker.proto.sk/#circuitbreakerconfig" %}})
+1. Update your gateway proxy to add custom circuit breaker settings for your dynamic forward proxy. The following example overrides the default number of connections, requests, pending requests, and retries to 40,000. For more information, see the [Circuit breaker configuration]({{% versioned_link_path fromRoot="/reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/circuit_breaker/circuit_breaker.proto.sk/#circuitbreakerconfig" %}}).
 
    ```bash
    kubectl -n gloo-system patch gw/gateway-proxy --type merge -p "
