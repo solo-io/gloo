@@ -6,6 +6,7 @@ import (
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extproc"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ratelimit"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/aws"
 	corev1 "k8s.io/api/core/v1"
 	"strings"
 
@@ -33,12 +34,12 @@ import (
 )
 
 func (o *GatewayAPIOutput) Convert() error {
-	
+
 	// Convert upstreams to backends first so that we can reference them in the Settings and Routes
 	for _, upstream := range o.edgeCache.Upstreams() {
-		// Add all existing upstreams except for kube services which will be referenced directly
-		if upstream.Spec.GetKube() == nil {
-			o.gatewayAPICache.AddBackend(convertUpstreamToBackend(upstream))
+		backends := o.convertUpstreamToBackend(upstream)
+		for _, backend := range backends {
+			o.gatewayAPICache.AddBackend(backend)
 		}
 	}
 
@@ -53,7 +54,7 @@ func (o *GatewayAPIOutput) Convert() error {
 
 	for _, gateway := range o.edgeCache.GlooGateways() {
 		// We only translate virtual services for ones that match a gateway selector
-		// TODO in the future we could blindly convert VS and not attach it to anything
+		// TODO(nick) - in the future we could blindly convert VS and not attach it to anything
 		err := o.convertGatewayAndVirtualServices(gateway)
 		if err != nil {
 			return err
@@ -252,23 +253,179 @@ func (o *GatewayAPIOutput) convertSettings(settings *snapshot.SettingsWrapper) e
 	return nil
 }
 
-// TODO(nick): this is a placeholder for now, we need to figure out how to convert the upstream to a backend
-func convertUpstreamToBackend(upstream *snapshot.UpstreamWrapper) *snapshot.BackendWrapper {
+// TODO(nick): does aws backend support awsec2 upstream?
+func (o *GatewayAPIOutput) convertUpstreamToBackend(upstream *snapshot.UpstreamWrapper) []*snapshot.BackendWrapper {
+	backends := make([]*snapshot.BackendWrapper, 0)
+	// Add all existing upstreams except for kube services which will be referenced directly
+	if upstream.Spec.GetKube() != nil {
+		// do nothing, let it continue in case there were other policies attached to the kube that we can warn about
+	}
+	if upstream.Spec.GetAi() != nil {
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "gcp upstream is not supported in kgateway")
+	}
+
+	if upstream.Spec.GetAws() != nil {
+		if len(upstream.Spec.GetAws().GetLambdaFunctions()) > 0 {
+			backend := o.convertAWSBackend(upstream, nil)
+			backends = append(backends, backend)
+		} else {
+			for _, lambda := range upstream.Spec.GetAws().GetLambdaFunctions() {
+				backend := o.convertAWSBackend(upstream, lambda)
+				backends = append(backends, backend)
+			}
+		}
+	}
+	if upstream.Spec.GetStatic() != nil {
+		backend := &snapshot.BackendWrapper{
+			Backend: &kgateway.Backend{
+				TypeMeta: metav1.TypeMeta{
+					Kind:       "Backend",
+					APIVersion: kgateway.SchemeGroupVersion.String(),
+				},
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      upstream.GetName(),
+					Namespace: upstream.GetNamespace(),
+				},
+				Spec: kgateway.BackendSpec{
+					Type: kgateway.BackendTypeStatic,
+					Static: &kgateway.StaticBackend{
+						Hosts: make([]kgateway.Host, len(upstream.Spec.GetStatic().GetHosts())),
+					},
+				},
+			},
+		}
+		for _, hosts := range upstream.Spec.GetStatic().GetHosts() {
+			if hosts.GetHealthCheckConfig() != nil {
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "static upstream healthCheckConfig is not supported in kgateway")
+			}
+			if hosts.GetLoadBalancingWeight() != nil {
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "static upstream loadBalancingWeight is not supported in kgateway")
+			}
+			if hosts.GetSniAddr() != "" {
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "static upstream sni is not supported in kgateway")
+			}
+
+			backend.Spec.Static.Hosts = append(backend.Spec.Static.Hosts, kgateway.Host{
+				Host: hosts.GetAddr(),
+				Port: gwv1.PortNumber(hosts.GetPort()),
+			})
+		}
+
+		backends = append(backends, backend)
+	}
+	if upstream.Spec.GetAwsEc2() != nil {
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "awsec2 upstream is not supported in kgateway")
+	}
+
+	if upstream.Spec.GetConsul() != nil {
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "consul upstream is not supported in kgateway")
+	}
+	if upstream.Spec.GetAzure() != nil {
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "azure upstream is not supported in kgateway")
+	}
+	if upstream.Spec.GetGcp() != nil {
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "gcp upstream is not supported in kgateway")
+	}
+	if upstream.Spec.GetCircuitBreakers() != nil {
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "circuitBreakers is not supported in kgateway")
+	}
+	if upstream.Spec.GetConnectionConfig() != nil {
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "connectionConfig is not supported in kgateway")
+	}
+	if upstream.Spec.GetDiscoveryMetadata() != nil {
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "discoveryMetadata is not supported in kgateway")
+	}
+	if upstream.Spec.GetDnsRefreshRate() != nil {
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "dnsRefreshRate is not supported in kgateway")
+	}
+	if upstream.Spec.GetFailover() != nil {
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "failover is not supported in kgateway")
+	}
+	if upstream.Spec.GetHealthChecks() != nil {
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "healthChecks is not supported in kgateway")
+	}
+	if upstream.Spec.GetHttpConnectHeaders() != nil {
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "httpConnectHeaders is not supported in kgateway")
+	}
+	if upstream.Spec.GetHttpConnectSslConfig() != nil {
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "httpConnectSslConfig is not supported in kgateway")
+	}
+	if upstream.Spec.GetIgnoreHealthOnHostRemoval() != nil {
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "ignoreHealthOnHostRemoval is not supported in kgateway")
+	}
+	if upstream.Spec.GetInitialConnectionWindowSize() != nil {
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "initialConnectionWindowSize is not supported in kgateway")
+	}
+	if upstream.Spec.GetInitialStreamWindowSize() != nil {
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "initialStreamWindowSize is not supported in kgateway")
+	}
+	if upstream.Spec.GetHttpProxyHostname() != nil {
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "httpProxyHostname is not supported in kgateway")
+	}
+	if upstream.Spec.GetOutlierDetection() != nil {
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "outlierDetection is not supported in kgateway")
+	}
+	if upstream.Spec.GetOverrideStreamErrorOnInvalidHttpMessage() != nil {
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "overrideStreamErrorOnInvalidHttpMessage is not supported in kgateway")
+	}
+	if upstream.Spec.GetMaxConcurrentStreams() != nil {
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "maxConcurrentStreams is not supported in kgateway")
+	}
+	if upstream.Spec.GetPipe() != nil {
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "pipe is not supported in kgateway")
+	}
+	if upstream.Spec.GetPreconnectPolicy() != nil {
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "preconnectPolicy is not supported in kgateway")
+	}
+	if upstream.Spec.GetProxyProtocolVersion() != nil {
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "proxy protocol version is not supported in kgateway")
+	}
+	if upstream.Spec.GetRespectDnsTtl() != nil {
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "respectDnsTtl is not supported in kgateway")
+	}
+	if upstream.Spec.GetSslConfig() != nil {
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "sslConfig is not supported in kgateway")
+	}
+
+	return backends
+}
+func (o *GatewayAPIOutput) convertAWSBackend(upstream *snapshot.UpstreamWrapper, lambda *aws.LambdaFunctionSpec) *snapshot.BackendWrapper {
 	backend := &snapshot.BackendWrapper{
 		Backend: &kgateway.Backend{
 			TypeMeta: metav1.TypeMeta{
 				Kind:       "Backend",
-				APIVersion: kgateway.SchemeGroupVersion.String(),
+				APIVersion: kgateway.GroupVersion.String(),
 			},
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      upstream.GetName(),
 				Namespace: upstream.GetNamespace(),
 			},
 			Spec: kgateway.BackendSpec{
-				// Static: &kgateway.StaticBackend{
-				// },
+				Type: kgateway.BackendTypeAWS,
+				Aws: &kgateway.AwsBackend{
+					AccountId: upstream.Spec.GetAws().GetAwsAccountId(),
+					Region:    ptr.To(upstream.Spec.GetAws().GetRegion()),
+				},
 			},
 		},
+	}
+	if upstream.Spec.GetAws().GetSecretRef() != nil {
+		// if the upstream doesnt have the same namespace as the ARN secret we might have problems
+		if upstream.Spec.GetAws().GetSecretRef().GetNamespace() != "" && upstream.Spec.GetAws().GetSecretRef().GetNamespace() != upstream.GetNamespace() {
+			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "aws upstream references secret that exists in another namespace %s which is not supported", upstream.Spec.GetAws().GetSecretRef().GetNamespace())
+		}
+		backend.Spec.Aws.Auth = &kgateway.AwsAuth{
+			Type: kgateway.AwsAuthTypeSecret,
+			SecretRef: &corev1.LocalObjectReference{
+				Name: upstream.Spec.GetAws().GetSecretRef().GetName(),
+			},
+		}
+	}
+	if lambda != nil {
+		backend.Spec.Aws.Lambda = &kgateway.AwsLambda{
+			FunctionName: lambda.GetLambdaFunctionName(),
+			Qualifier:    lambda.GetQualifier(),
+		}
 	}
 	return backend
 }
@@ -1131,7 +1288,7 @@ func (o *GatewayAPIOutput) generateGatewayExtensionForRateLimit(rateLimitSetting
 			RateLimit: &kgateway.RateLimitProvider{},
 		},
 	}
-	
+
 	//TODO(nick): Implement RateLimitSettings - https://github.com/kgateway-dev/kgateway/issues/11424
 	if rateLimitSettings.GetRateLimitBeforeAuth() == true {
 		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "RateLimitSettings rateLimitBeforeAuth is not supported in kgateway")
@@ -1198,7 +1355,7 @@ func (o *GatewayAPIOutput) generateGatewayExtensionForExtAuth(extauth *v1.Settin
 			grpcService.Authority = ptr.To(extauth.GetGrpcService().GetAuthority())
 		}
 	}
-//TODO(nick): Implement ExtAuthSettings - https://github.com/kgateway-dev/kgateway/issues/11424
+	//TODO(nick): Implement ExtAuthSettings - https://github.com/kgateway-dev/kgateway/issues/11424
 	if extauth.GetClearRouteCache() == true {
 		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extAuth settings clearRouteCache is not supported in kgateway")
 	}
@@ -2323,17 +2480,17 @@ func doHttpRouteLabelsMatch(matches map[string]string, labels map[string]string)
 
 // This checks to see if any of the route options are set for ones that are not supported in Gateway API
 func isRouteOptionsSet(options *gloov1.RouteOptions) bool {
-		//Features Supported By GatewayAPI
-		// - RequestHeaderModifier
-		// - ResponseHeaderModifier
-		// - RequestRedirect
-		// - URLRewrite
-		// - Request Mirror
-		// - CORS
+	//Features Supported By GatewayAPI
+	// - RequestHeaderModifier
+	// - ResponseHeaderModifier
+	// - RequestRedirect
+	// - URLRewrite
+	// - Request Mirror
+	// - CORS
 	return options.GetExtProc() != nil || options.GetRetries() != nil || options.GetTimeout() != nil ||
 		options.GetStagedTransformations() != nil || options.GetAutoHostRewrite() != nil ||
 		options.GetFaults() != nil || options.GetExtensions() != nil || options.GetTracing() != nil || options.GetAppendXForwardedHost() != nil || options.GetLbHash() != nil || options.GetUpgrades() != nil ||
 		options.GetRatelimit() != nil || options.GetRatelimitBasic() != nil || options.GetWaf() != nil || options.GetJwtConfig() != nil || options.GetRbac() != nil ||
 		options.GetDlp() != nil || options.GetStagedTransformations() != nil || options.GetEnvoyMetadata() != nil || options.GetMaxStreamDuration() != nil ||
-		options.GetIdleTimeout() != nil || options.GetRegexRewrite() != nil || options.GetExtauth() != nil|| options.GetAi() != nil
+		options.GetIdleTimeout() != nil || options.GetRegexRewrite() != nil || options.GetExtauth() != nil || options.GetAi() != nil
 }
