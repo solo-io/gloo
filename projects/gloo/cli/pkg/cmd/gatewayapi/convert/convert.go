@@ -561,37 +561,23 @@ func (o *GatewayAPIOutput) convertVirtualServiceListener(vs *snapshot.VirtualSer
 				Name:      listenerSet.Name,
 				Namespace: listenerSet.Namespace,
 			},
-			Spec: gloogateway.GlooTrafficPolicySpec{
-				TrafficPolicySpec: kgateway.TrafficPolicySpec{
-					TargetRefs: []kgateway.LocalPolicyTargetReferenceWithSectionName{
-						{
-							LocalPolicyTargetReference: kgateway.LocalPolicyTargetReference{
-								Group: apixv1a1.GroupName,
-								Kind:  "XListenerSet",
-								Name:  gwv1.ObjectName(listenerSet.Name),
-							},
-							SectionName: nil,
-						},
-					},
-					AI:             nil,
-					Transformation: nil,
-					ExtProc:        nil,
-					ExtAuth:        nil,
-					RateLimit:      nil,
-				},
-				Waf:                   nil,
-				Retry:                 nil,
-				Timeouts:              nil,
-				RateLimitEnterprise:   nil,
-				ExtAuthEnterprise:     nil,
-				StagedTransformations: nil,
-			},
 		}
-		//Options:
-		//	vs.Spec.GetVirtualHost().GetOptions(),
 		// go through each option and add it to traffic policy
+		spec := o.convertVHOOptionsToTrafficPolicySpec(vs.Spec.GetVirtualHost().GetOptions(), vs)
 
-		gtp.Spec = o.convertVHOOptionsToTrafficPolicySpec(vs.Spec.GetVirtualHost().GetOptions(), vs)
+		// attach the xListenerSet to the GlooTrafficPolicy
+		if spec.TrafficPolicySpec.TargetRefs == nil {
+			spec.TrafficPolicySpec.TargetRefs = []kgateway.LocalPolicyTargetReferenceWithSectionName{}
+		}
+		spec.TrafficPolicySpec.TargetRefs = append(spec.TrafficPolicySpec.TargetRefs, kgateway.LocalPolicyTargetReferenceWithSectionName{
+			LocalPolicyTargetReference: kgateway.LocalPolicyTargetReference{
+				Group: apixv1a1.GroupName,
+				Kind:  "XListenerSet",
+				Name:  gwv1.ObjectName(listenerSet.Name),
+			},
+		})
+
+		gtp.Spec = spec
 
 		o.gatewayAPICache.AddGlooTrafficPolicy(snapshot.NewGlooTrafficPolicyWrapper(gtp, vs.FileOrigin()))
 	}
@@ -632,17 +618,7 @@ func (o *GatewayAPIOutput) convertVHOOptionsToTrafficPolicySpec(vho *gloov1.Virt
 		StagedTransformations: nil,
 	}
 	if vho != nil {
-		if vho.GetCors() != nil {
-			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "CORS is not currently supported in GlooTrafficPolicy")
-		}
-		if vho.GetBufferPerRoute() != nil {
-			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "BufferPerRoute is not currently supported in GlooTrafficPolicy")
-		}
-		if vho.GetCsrf() != nil {
-			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "CSRF is not currently supported in GlooTrafficPolicy")
-		}
 		if vho.GetExtauth() != nil {
-
 			authConfigWrapper, exists := o.edgeCache.AuthConfigs()[types.NamespacedName{
 				Namespace: vho.GetExtauth().GetConfigRef().GetNamespace(),
 				Name:      vho.GetExtauth().GetConfigRef().GetName(),
@@ -650,7 +626,7 @@ func (o *GatewayAPIOutput) convertVHOOptionsToTrafficPolicySpec(vho *gloov1.Virt
 			if !exists {
 				o.AddErrorFromWrapper(ERROR_TYPE_NO_REFERENCES, wrapper, "Unable to find referenced AuthConfig %s", types.NamespacedName{Namespace: vho.GetExtauth().GetConfigRef().GetNamespace(), Name: vho.GetExtauth().GetConfigRef().GetName()}.String())
 			} else {
-				//copy the auth config to gateway api cache if it doesnt already exist
+				//copy the auth config to gateway api cache if it doesn't already exist
 				_, exists = o.gatewayAPICache.AuthConfigs[types.NamespacedName{
 					Namespace: vho.GetExtauth().GetConfigRef().GetNamespace(),
 					Name:      vho.GetExtauth().GetConfigRef().GetName(),
@@ -660,9 +636,7 @@ func (o *GatewayAPIOutput) convertVHOOptionsToTrafficPolicySpec(vho *gloov1.Virt
 				}
 			}
 
-			// TODO need to copy auth config over and reference it
 			spec.ExtAuthEnterprise = &gloogateway.ExtAuthEnterprise{
-				//TODO(nick): need to get the server reference but for now use the default
 				ExtensionRef: nil,
 				AuthConfigRef: gloogateway.AuthConfigRef{
 					Name:      vho.GetExtauth().GetConfigRef().GetName(),
@@ -670,24 +644,85 @@ func (o *GatewayAPIOutput) convertVHOOptionsToTrafficPolicySpec(vho *gloov1.Virt
 				},
 			}
 		}
-		if vho.GetDlp() != nil {
-			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "DLP is not currently supported in GlooTrafficPolicy")
-		}
 		if vho.GetExtProc() != nil {
 			// TODO may need to get settings to create the extension ref, or at least look it up
 			extProc := &kgateway.ExtProcPolicy{
 				ExtensionRef:   nil,
 				ProcessingMode: nil,
 			}
-
 			if vho.GetExtProc().GetOverrides() != nil {
 
 			}
-
 			spec.TrafficPolicySpec.ExtProc = extProc
 		}
-	}
+		if vho.GetWaf() != nil {
+			waf := &gloogateway.Waf{
+				Disabled:      ptr.To(vho.GetWaf().Disabled),
+				CustomMessage: vho.GetWaf().CustomInterventionMessage,
+				Rules:         make([]gloogateway.WafRule, len(vho.GetWaf().RuleSets)),
+			}
+			for _, r := range vho.GetWaf().RuleSets {
+				waf.Rules = append(waf.Rules, gloogateway.WafRule{
+					RuleStr: r.RuleStr,
+				})
+				if r.Files != nil && len(r.Files) > 0 {
+					o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "WAF files is not supported in kgateway")
+				}
+			}
+			spec.Waf = waf
+		}
+		if vho.GetRatelimitBasic() != nil {
 
+		}
+		if vho.GetRatelimitEarly() != nil {
+
+		}
+		if vho.GetRatelimitRegular() != nil {
+
+		}
+		if vho.GetHeaderManipulation() != nil {
+
+		}
+		if vho.GetCors() != nil {
+
+		}
+		if vho.GetTransformations() != nil {
+
+		}
+		if vho.GetStagedTransformations() != nil {
+
+		}
+		if vho.GetJwt() != nil {
+
+		}
+		if vho.GetJwtStaged() != nil {
+
+		}
+		if vho.GetRbac() != nil {
+
+		}
+		if vho.GetBufferPerRoute() != nil {
+
+		}
+		if vho.GetIncludeRequestAttemptCount() != nil {
+
+		}
+		if vho.GetIncludeAttemptCountInResponse() != nil {
+
+		}
+		if vho.GetCorsPolicyMergeSettings() != nil {
+
+		}
+		if vho.GetDlp() != nil {
+			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "dlp is not supported in kgateway")
+		}
+		if vho.GetCsrf() != nil {
+			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "csrf is not supported in kgateway")
+		}
+		if vho.GetExtensions() != nil {
+			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "gloo edge extensions is not supported in kgateway")
+		}
+	}
 	return spec
 }
 
@@ -724,6 +759,7 @@ func (o *GatewayAPIOutput) generateTLSConfiguration(vs *snapshot.VirtualServiceW
 	if vs.Spec.GetSslConfig().GetOcspStaplePolicy() > 0 {
 		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, vs, "has OcspStaplePolicy %d but its not supported in Gateway API", vs.Spec.GetSslConfig().GetOcspStaplePolicy())
 	}
+
 	return tlsConfig
 }
 
@@ -1203,49 +1239,49 @@ func (o *GatewayAPIOutput) generateGatewayExtensionForExtProc(extProc *extproc.S
 	//TODO(nick): Implement ExtProc - https://github.com/kgateway-dev/kgateway/issues/11424
 
 	if extProc.GetStatPrefix() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extProx statPrefix is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extProc statPrefix is not supported in kgateway")
 	}
 	if extProc.GetFailureModeAllow() != nil && extProc.GetFailureModeAllow().GetValue() == true {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extProx failureModeAllow is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extProc failureModeAllow is not supported in kgateway")
 	}
 	if extProc.GetAllowModeOverride() != nil && extProc.GetAllowModeOverride().GetValue() == true {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extProx allowModeOverride is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extProc allowModeOverride is not supported in kgateway")
 	}
 	if extProc.GetAsyncMode() != nil && extProc.GetAsyncMode().GetValue() == true {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extProx asyncMode is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extProc asyncMode is not supported in kgateway")
 	}
 	if extProc.GetDisableClearRouteCache() != nil && extProc.GetDisableClearRouteCache().GetValue() == true {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extProx disableClearRouteCache is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extProc disableClearRouteCache is not supported in kgateway")
 	}
 	if extProc.GetFilterMetadata() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extProx filterMetadata is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extProc filterMetadata is not supported in kgateway")
 	}
 	if extProc.GetFilterStage() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extProx filterStage is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extProc filterStage is not supported in kgateway")
 	}
 	if extProc.GetForwardRules() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extProx forwardRules is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extProc forwardRules is not supported in kgateway")
 	}
 	if extProc.GetMaxMessageTimeout() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extProx maxMessageTimeout is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extProc maxMessageTimeout is not supported in kgateway")
 	}
 	if extProc.GetMessageTimeout() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extProx messageTimeout is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extProc messageTimeout is not supported in kgateway")
 	}
 	if extProc.GetMetadataContextNamespaces() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extProx metadataContextNamespaces is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extProc metadataContextNamespaces is not supported in kgateway")
 	}
 	if extProc.GetMutationRules() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extProx mutationRules is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extProc mutationRules is not supported in kgateway")
 	}
 	if extProc.GetRequestAttributes() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extProx requestAttributes is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extProc requestAttributes is not supported in kgateway")
 	}
 	if extProc.GetResponseAttributes() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extProx responseAttributes is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extProc responseAttributes is not supported in kgateway")
 	}
 	if extProc.GetTypedMetadataContextNamespaces() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extProx typedMetadataContextNamespaces is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extProc typedMetadataContextNamespaces is not supported in kgateway")
 	}
 
 	if extProc.GetGrpcService() != nil {
