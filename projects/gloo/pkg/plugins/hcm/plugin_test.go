@@ -14,6 +14,7 @@ import (
 
 	envoycore "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	envoyhttp "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/http_connection_manager/v3"
+	envoyuuid "github.com/envoyproxy/go-control-plane/envoy/extensions/request_id/uuid/v3"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -185,10 +186,11 @@ var _ = Describe("Plugin", func() {
 		Expect(cfg.Tracing).To(BeNil())
 
 		// Expect the UUID request ID config to be set through request_id_extension
-		typedConfigOutput := &hcm.HttpConnectionManagerSettings_UuidRequestIdConfigSettings{}
+		typedConfigOutput := &envoyuuid.UuidRequestIdConfig{}
 		err = cfg.RequestIdExtension.GetTypedConfig().UnmarshalTo(typedConfigOutput)
 		Expect(err).NotTo(HaveOccurred())
-		Expect(typedConfigOutput).To(MatchProto(settings.UuidRequestIdConfig))
+		Expect(typedConfigOutput.GetPackTraceReason().GetValue()).To(Equal(settings.UuidRequestIdConfig.GetPackTraceReason().GetValue()))
+		Expect(typedConfigOutput.GetUseRequestIdForTraceSampling().GetValue()).To(Equal(settings.UuidRequestIdConfig.GetUseRequestIdForTraceSampling().GetValue()))
 
 		Expect(cfg.UpgradeConfigs).To(HaveLen(1))
 		Expect(cfg.UpgradeConfigs[0].UpgradeType).To(Equal("websocket"))
