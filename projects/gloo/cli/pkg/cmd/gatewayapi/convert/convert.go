@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ai"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extproc"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ratelimit"
 	corev1 "k8s.io/api/core/v1"
 	"strings"
 
@@ -31,6 +33,23 @@ import (
 )
 
 func (o *GatewayAPIOutput) Convert() error {
+	
+	// Convert upstreams to backends first so that we can reference them in the Settings and Routes
+	for _, upstream := range o.edgeCache.Upstreams() {
+		// Add all existing upstreams except for kube services which will be referenced directly
+		if upstream.Spec.GetKube() == nil {
+			o.gatewayAPICache.AddBackend(convertUpstreamToBackend(upstream))
+		}
+	}
+
+	for _, settings := range o.edgeCache.Settings() {
+		// We only translate virtual services for ones that match a gateway selector
+		// TODO in the future we could blindly convert VS and not attach it to anything
+		err := o.convertSettings(settings)
+		if err != nil {
+			return err
+		}
+	}
 
 	for _, gateway := range o.edgeCache.GlooGateways() {
 		// We only translate virtual services for ones that match a gateway selector
@@ -48,19 +67,188 @@ func (o *GatewayAPIOutput) Convert() error {
 		}
 	}
 
-	for _, upstream := range o.edgeCache.Upstreams() {
-		// Add all existing upstreams except for kube services which will be referenced directly
-		if upstream.Spec.GetKube() == nil {
-			o.gatewayAPICache.AddBackend(convertUpstreamToBackend(upstream))
+	return nil
+}
+func (o *GatewayAPIOutput) convertSettings(settings *snapshot.SettingsWrapper) error {
+	if settings == nil {
+		return nil
+	}
+	spec := settings.Settings.Spec
+
+	if spec.GetDiscoveryNamespace() != "" {
+		//TODO(nick): how is this set now?
+	}
+	if spec.GetWatchNamespaces() != nil {
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, settings, "watchNamespaces is not supported in kgateway")
+	}
+	if spec.GetKubernetesConfigSource() != nil {
+		// this is a default
+	}
+	if spec.GetDirectoryConfigSource() != nil {
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, settings, "directoryConfigSource is not supported in kgateway")
+	}
+	if spec.GetConsulKvSource() != nil {
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, settings, "consulKvSource is not supported in kgateway")
+	}
+	if spec.GetKubernetesSecretSource() != nil {
+		// This is the default
+	}
+	if spec.GetVaultSecretSource() != nil {
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, settings, "vaultSecretSource is not supported in kgateway")
+	}
+	if spec.GetDirectorySecretSource() != nil {
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, settings, "directorySecretSource is not supported in kgateway")
+	}
+	if spec.GetSecretOptions() != nil {
+		// This is no longer needed and helps configure the secret source
+	}
+	if spec.GetKubernetesArtifactSource() != nil {
+		// This is the default
+	}
+	if spec.GetDirectoryArtifactSource() != nil {
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, settings, "directoryArtifactSource is not supported in kgateway")
+	}
+	if spec.GetConsulKvArtifactSource() != nil {
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, settings, "consulKvArtifactSouce is not supported in kgateway")
+	}
+	if spec.GetRefreshRate() != nil {
+		//this is not needed in kgateway, all users should start with the default
+	}
+	if spec.GetLinkerd() == true {
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, settings, "linkerd no longer supported")
+	}
+	if spec.GetKnative() != nil {
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, settings, "knative no longer supported")
+	}
+	if spec.GetDiscovery() != nil {
+		// This is the default
+		//  discovery:
+		//    fdsMode: WHITELIST
+		//TODO(nick) - not sure if there is anything to convert here, for now we will just ignore
+	}
+	if spec.GetGloo() != nil {
+		// here are the defaults
+		//  gloo:
+		//    disableKubernetesDestinations: false
+		//    disableProxyGarbageCollection: false
+		//    enableRestEds: false
+		//    invalidConfigPolicy:
+		//      invalidRouteResponseBody: Gloo Gateway has invalid configuration. Administrators
+		//        should run `glooctl check` to find and fix config errors.
+		//      invalidRouteResponseCode: 404
+		//      replaceInvalidRoutes: false
+		//    istioOptions:
+		//      appendXForwardedHost: true
+		//      enableAutoMtls: false
+		//      enableIntegration: false
+		//    proxyDebugBindAddr: 0.0.0.0:9966
+		//    regexMaxProgramSize: 1024
+		//    restXdsBindAddr: 0.0.0.0:9976
+		//    xdsBindAddr: 0.0.0.0:9977
+
+		//TODO(nick) - verify AWS support
+		if spec.GetGloo().GetAwsOptions() != nil && spec.GetGloo().GetAwsOptions().GetEnableCredentialsDiscovey() == true {
+			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, settings, "AWS credentialDiscovery is not supported in kgateway")
+		}
+		if spec.GetGloo().GetAwsOptions() != nil && spec.GetGloo().GetAwsOptions().GetFallbackToFirstFunction() != nil && spec.GetGloo().GetAwsOptions().GetFallbackToFirstFunction().GetValue() == true {
+			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, settings, "AWS fallbackToFirstFunction is not supported in kgateway")
+		}
+		if spec.GetGloo().GetAwsOptions() != nil && spec.GetGloo().GetAwsOptions().GetPropagateOriginalRouting() != nil && spec.GetGloo().GetAwsOptions().GetPropagateOriginalRouting().GetValue() == true {
+			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, settings, "AWS propagateOriginalRouting is not supported in kgateway")
+		}
+		if spec.GetGloo().GetAwsOptions() != nil && spec.GetGloo().GetAwsOptions().GetServiceAccountCredentials() != nil {
+			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, settings, "AWS serviceAccountCredentials is not supported in kgateway")
+		}
+	}
+	if spec.GetGateway() != nil {
+		// These are the defaults
+		//  gateway:
+		//    enableGatewayController: true
+		//    isolateVirtualHostsBySslConfig: false
+		//    readGatewaysFromAllNamespaces: false
+		//    validation:
+		//      allowWarnings: true
+		//      alwaysAccept: true
+		//      disableTransformationValidation: false
+		//      fullEnvoyValidation: false
+		//      proxyValidationServerAddr: gloo:9988
+		//      serverEnabled: true
+		//      validationServerGrpcMaxSizeBytes: 104857600
+		//      warnMissingTlsSecret: true
+		//      warnRouteShortCircuiting: false
+		if spec.GetGateway().GetValidation() != nil {
+			// nothing to warn about here as we are hoping validation is better in kgateway
 		}
 	}
 
-	//TODO(nick): what do we do with settings?
-	// for _, settings := range o.edgeCache.Settings() {
-	// 	o.gatewayAPICache.AddSettings(settings)
-	// }
+	if spec.GetConsul() != nil {
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, settings, "consul is not supported in kgateway")
+	}
+	if spec.GetConsulDiscovery() != nil {
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, settings, "consul discovery is not supported in kgateway")
+	}
+	if spec.GetKubernetes() != nil {
+		// nothing to warn on here
+	}
+	if spec.GetExtensions() != nil {
+		// TODO(nick): what are config extensions?
+	}
 
-	// copy over any existing options
+	if spec.GetRatelimit() != nil {
+		// descriptors are set here
+		//"descriptors": []ratelimit.api.solo.io.Descriptor
+		//"setDescriptors": []ratelimit.api.solo.io.SetDescriptor
+
+		// TODO(nick): convert the descriptors to a RateLimitConfig that does not yet exist in gloo-gateway
+	}
+
+	if spec.GetRatelimitServer() != nil {
+		o.generateGatewayExtensionForRateLimit(spec.GetRatelimitServer(), "global-rate-limit-settings", settings)
+	}
+	if spec.GetRbac() != nil && spec.GetRbac().GetRequireRbac() == true {
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, settings, "requireRbac is not supported in kgateway")
+	}
+	if spec.GetExtauth() != nil {
+		o.generateGatewayExtensionForExtAuth(spec.GetExtauth(), "global-extauth-settings", settings)
+	}
+	if spec.GetNamedExtauth() != nil {
+		for name, extauth := range spec.GetNamedExtauth() {
+			o.generateGatewayExtensionForExtAuth(extauth, name, settings)
+		}
+	}
+	if spec.GetCachingServer() != nil {
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, settings, "cachingServer is not supported in kgateway")
+	}
+	if spec.GetMetadata() != nil {
+		// not sure if we should do anything here
+	}
+	if spec.GetNamespacedStatuses() != nil {
+		// no need to do anything here
+	}
+	if spec.GetObservabilityOptions() != nil {
+		// no need to do anything here
+	}
+	if spec.GetUpstreamOptions() != nil {
+		if spec.GetUpstreamOptions().GetSslParameters() != nil {
+			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, settings, "global upstream SSLParameters  is not supported in kgateway")
+		}
+	}
+	if spec.GetConsoleOptions() != nil {
+		// no need to do anything here
+	}
+	if spec.GetGraphqlOptions() != nil {
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, settings, "graphql is not supported in kgateway")
+	}
+	if spec.GetExtProc() != nil {
+		o.generateGatewayExtensionForExtProc(spec.GetExtProc(), "global-ext-proc-settings", settings)
+	}
+	if spec.GetKnative() != nil {
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, settings, "knative is not supported in kgateway")
+	}
+	if spec.GetWatchNamespaceSelectors() != nil {
+		// nothing to do here
+	}
+
 	return nil
 }
 
@@ -702,17 +890,29 @@ func (o *GatewayAPIOutput) convertHTTPListenerOptions(options *gloov1.HttpListen
 	}
 
 	// go through each option in Gateway Options and convert to listener policy
+
+	// inline extAuth settings
 	if options.GetExtauth() != nil {
 		// These are global extAuthSettings that are also on the Settings Object.
 		// TODO(nick): Implement auth settings at GlooTrafficPolicy spec
 
 		// If this exists we need to generate a GatewayExtensionObject for this
-		gatewayExtensions := o.generateGatewayExtension(options.Extauth, wrapper.GetName(), wrapper)
+		gatewayExtensions := o.generateGatewayExtensionForExtAuth(options.Extauth, wrapper.GetName(), wrapper)
 		o.gatewayAPICache.AddGatewayExtension(snapshot.NewGatewayExtensionWrapper(gatewayExtensions, wrapper.FileOrigin()))
 	}
 
+	// inline extProc settings
 	if options.GetExtProc() != nil {
 		// TODO(nick): Implement ext proc settings at GlooTrafficPolicy spec
+		gatewayExtensions := o.generateGatewayExtensionForExtProc(options.GetExtProc(), wrapper.GetName(), wrapper)
+		o.gatewayAPICache.AddGatewayExtension(snapshot.NewGatewayExtensionWrapper(gatewayExtensions, wrapper.FileOrigin()))
+	}
+
+	// inline rate limit settings
+	if options.GetRatelimitServer() != nil {
+		// TODO(nick): Implement rate limit settings at GlooTrafficPolicy spec
+		gatewayExtensions := o.generateGatewayExtensionForRateLimit(options.GetRatelimitServer(), wrapper.GetName(), wrapper)
+		o.gatewayAPICache.AddGatewayExtension(snapshot.NewGatewayExtensionWrapper(gatewayExtensions, wrapper.FileOrigin()))
 	}
 
 	if options.GetHttpLocalRatelimit() != nil {
@@ -825,8 +1025,152 @@ func (o *GatewayAPIOutput) convertHTTPListenerOptions(options *gloov1.HttpListen
 
 	o.gatewayAPICache.AddGlooTrafficPolicy(snapshot.NewGlooTrafficPolicyWrapper(trafficPolicy, wrapper.FileOrigin()))
 }
+func (o *GatewayAPIOutput) generateGatewayExtensionForExtProc(extProc *extproc.Settings, name string, wrapper snapshot.Wrapper) *kgateway.GatewayExtension {
 
-func (o *GatewayAPIOutput) generateGatewayExtension(extauth *v1.Settings, name string, wrapper snapshot.Wrapper) *kgateway.GatewayExtension {
+	gatewayExtension := &kgateway.GatewayExtension{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "GatewayExtension",
+			APIVersion: kgateway.GroupVersion.String(),
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: wrapper.GetNamespace(),
+			Labels:    wrapper.GetLabels(),
+		},
+		Spec: kgateway.GatewayExtensionSpec{
+			Type:    kgateway.GatewayExtensionTypeExtProc,
+			ExtProc: &kgateway.ExtProcProvider{},
+		},
+	}
+
+	//TODO(nick): Implement ExtProc - https://github.com/kgateway-dev/kgateway/issues/11424
+
+	if extProc.GetStatPrefix() != nil {
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extProx statPrefix is not supported in kgateway")
+	}
+	if extProc.GetFailureModeAllow() != nil && extProc.GetFailureModeAllow().GetValue() == true {
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extProx failureModeAllow is not supported in kgateway")
+	}
+	if extProc.GetAllowModeOverride() != nil && extProc.GetAllowModeOverride().GetValue() == true {
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extProx allowModeOverride is not supported in kgateway")
+	}
+	if extProc.GetAsyncMode() != nil && extProc.GetAsyncMode().GetValue() == true {
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extProx asyncMode is not supported in kgateway")
+	}
+	if extProc.GetDisableClearRouteCache() != nil && extProc.GetDisableClearRouteCache().GetValue() == true {
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extProx disableClearRouteCache is not supported in kgateway")
+	}
+	if extProc.GetFilterMetadata() != nil {
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extProx filterMetadata is not supported in kgateway")
+	}
+	if extProc.GetFilterStage() != nil {
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extProx filterStage is not supported in kgateway")
+	}
+	if extProc.GetForwardRules() != nil {
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extProx forwardRules is not supported in kgateway")
+	}
+	if extProc.GetMaxMessageTimeout() != nil {
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extProx maxMessageTimeout is not supported in kgateway")
+	}
+	if extProc.GetMessageTimeout() != nil {
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extProx messageTimeout is not supported in kgateway")
+	}
+	if extProc.GetMetadataContextNamespaces() != nil {
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extProx metadataContextNamespaces is not supported in kgateway")
+	}
+	if extProc.GetMutationRules() != nil {
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extProx mutationRules is not supported in kgateway")
+	}
+	if extProc.GetRequestAttributes() != nil {
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extProx requestAttributes is not supported in kgateway")
+	}
+	if extProc.GetResponseAttributes() != nil {
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extProx responseAttributes is not supported in kgateway")
+	}
+	if extProc.GetTypedMetadataContextNamespaces() != nil {
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extProx typedMetadataContextNamespaces is not supported in kgateway")
+	}
+
+	if extProc.GetGrpcService() != nil {
+
+		backend := o.GetGatewayAPICache().GetBackend(types.NamespacedName{Namespace: extProc.GetGrpcService().GetExtProcServerRef().GetNamespace(), Name: extProc.GetGrpcService().GetExtProcServerRef().GetName()})
+		if backend == nil {
+			o.AddErrorFromWrapper(ERROR_TYPE_UNKNOWN_REFERENCE, wrapper, "extProc grpcService backend not found")
+		}
+
+		grpcService := &kgateway.ExtGrpcService{
+			BackendRef: &gwv1.BackendRef{
+				BackendObjectReference: gwv1.BackendObjectReference{
+					Name:      gwv1.ObjectName(backend.GetName()),
+					Namespace: ptr.To(gwv1.Namespace(backend.GetNamespace())),
+					// using the default port here
+					Port: ptr.To(gwv1.PortNumber(4444)),
+				},
+			},
+		}
+
+		gatewayExtension.Spec.ExtProc.GrpcService = grpcService
+	}
+
+	return gatewayExtension
+}
+func (o *GatewayAPIOutput) generateGatewayExtensionForRateLimit(rateLimitSettings *ratelimit.Settings, name string, wrapper snapshot.Wrapper) *kgateway.GatewayExtension {
+
+	gatewayExtension := &kgateway.GatewayExtension{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "GatewayExtension",
+			APIVersion: kgateway.GroupVersion.String(),
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: wrapper.GetNamespace(),
+			Labels:    wrapper.GetLabels(),
+		},
+		Spec: kgateway.GatewayExtensionSpec{
+			Type:      kgateway.GatewayExtensionTypeRateLimit,
+			RateLimit: &kgateway.RateLimitProvider{},
+		},
+	}
+	
+	//TODO(nick): Implement RateLimitSettings - https://github.com/kgateway-dev/kgateway/issues/11424
+	if rateLimitSettings.GetRateLimitBeforeAuth() == true {
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "RateLimitSettings rateLimitBeforeAuth is not supported in kgateway")
+
+	}
+	if rateLimitSettings.GetEnableXRatelimitHeaders() == true {
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "RateLimitSettings enableXRatelimitHeaders is not supported in kgateway")
+	}
+	if rateLimitSettings.GetDenyOnFail() == false {
+		gatewayExtension.Spec.RateLimit.FailOpen = !rateLimitSettings.GetDenyOnFail()
+	}
+	if rateLimitSettings.GetRequestTimeout() != nil {
+		gatewayExtension.Spec.RateLimit.Timeout = gwv1.Duration(rateLimitSettings.GetRequestTimeout().String())
+	}
+	if rateLimitSettings.GetRatelimitServerRef() != nil {
+		backend := o.GetGatewayAPICache().GetBackend(types.NamespacedName{Namespace: rateLimitSettings.GetRatelimitServerRef().GetNamespace(), Name: rateLimitSettings.GetRatelimitServerRef().GetName()})
+		if backend == nil {
+			o.AddErrorFromWrapper(ERROR_TYPE_UNKNOWN_REFERENCE, wrapper, "rateLimitSettings ratelimitServerRef backend not found")
+		}
+
+		grpcService := &kgateway.ExtGrpcService{
+			BackendRef: &gwv1.BackendRef{
+				BackendObjectReference: gwv1.BackendObjectReference{
+					Name:      gwv1.ObjectName(backend.GetName()),
+					Namespace: ptr.To(gwv1.Namespace(backend.GetNamespace())),
+					// using the default port here
+					Port: ptr.To(gwv1.PortNumber(18081)),
+				},
+			},
+		}
+		if rateLimitSettings.GetGrpcService() != nil {
+			grpcService.Authority = ptr.To(rateLimitSettings.GetGrpcService().GetAuthority())
+		}
+		gatewayExtension.Spec.RateLimit.GrpcService = grpcService
+	}
+
+	return gatewayExtension
+}
+func (o *GatewayAPIOutput) generateGatewayExtensionForExtAuth(extauth *v1.Settings, name string, wrapper snapshot.Wrapper) *kgateway.GatewayExtension {
 
 	if extauth == nil {
 		return nil
@@ -835,11 +1179,15 @@ func (o *GatewayAPIOutput) generateGatewayExtension(extauth *v1.Settings, name s
 	var grpcService *kgateway.ExtGrpcService
 
 	if extauth.GetExtauthzServerRef() != nil {
+		backend := o.GetGatewayAPICache().GetBackend(types.NamespacedName{Namespace: extauth.GetExtauthzServerRef().GetNamespace(), Name: extauth.GetExtauthzServerRef().GetName()})
+		if backend == nil {
+			o.AddErrorFromWrapper(ERROR_TYPE_UNKNOWN_REFERENCE, wrapper, "extauth extauthzServerRef backend not found")
+		}
 		grpcService = &kgateway.ExtGrpcService{
 			BackendRef: &gwv1.BackendRef{
 				BackendObjectReference: gwv1.BackendObjectReference{
-					Name:      gwv1.ObjectName(extauth.GetExtauthzServerRef().GetName()),
-					Namespace: ptr.To(gwv1.Namespace(extauth.GetExtauthzServerRef().GetNamespace())),
+					Name:      gwv1.ObjectName(backend.GetName()),
+					Namespace: ptr.To(gwv1.Namespace(backend.GetNamespace())),
 					// using the default port here
 					Port: ptr.To(gwv1.PortNumber(8083)),
 				},
@@ -850,7 +1198,7 @@ func (o *GatewayAPIOutput) generateGatewayExtension(extauth *v1.Settings, name s
 			grpcService.Authority = ptr.To(extauth.GetGrpcService().GetAuthority())
 		}
 	}
-
+//TODO(nick): Implement ExtAuthSettings - https://github.com/kgateway-dev/kgateway/issues/11424
 	if extauth.GetClearRouteCache() == true {
 		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extAuth settings clearRouteCache is not supported in kgateway")
 	}
@@ -956,7 +1304,7 @@ func (o *GatewayAPIOutput) convertRouteOptions(
 
 	// converts options to RouteOptions but we need to this for everything except prefixrewrite and a few others now
 	if isRouteOptionsSet(options) {
-		gtpSpec := &gloogateway.GlooTrafficPolicySpec{
+		gtpSpec := gloogateway.GlooTrafficPolicySpec{
 			TrafficPolicySpec: kgateway.TrafficPolicySpec{
 				TargetRefs:      nil,
 				TargetSelectors: nil,
@@ -974,8 +1322,17 @@ func (o *GatewayAPIOutput) convertRouteOptions(
 			StagedTransformations: nil,
 		}
 
+		//Features Supported By GatewayAPI
+		// - RequestHeaderModifier
+		// - ResponseHeaderModifier
+		// - RequestRedirect
+		// - URLRewrite
+		// - Request Mirror
+		// - CORS
+		// - ExtensionRef
+
 		//// Because we move rewrites to a filter we need to remove it from RouteOptions
-		// TODO: delete this because this was for RouteOption and not needed for GlooTrafficPolicy
+		// TODO(nick): delete this because this was for RouteOption and not needed for GlooTrafficPolicy we still need to add it to the HTTPRouteThough
 		//if options.GetPrefixRewrite() != nil {
 		//	trafficPolicy.Spec.GetOptions().PrefixRewrite = nil
 		//}
@@ -1025,7 +1382,6 @@ func (o *GatewayAPIOutput) convertRouteOptions(
 						Content: prepend.GetContent(),
 					})
 				}
-
 				aip.PromptEnrichment = enrichment
 			}
 			if options.GetAi().GetRag() != nil {
@@ -1040,98 +1396,112 @@ func (o *GatewayAPIOutput) convertRouteOptions(
 			}
 			gtpSpec.AI = aip
 		}
-	}
-	if options.GetWaf() != nil {
 
-	}
-	if options.GetDlp() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "dlp is not supported in kgateway")
-	}
-	if options.GetCsrf() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "csrf is not supported in kgateway")
-	}
-	if options.GetExtensions() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "gloo edge extensions is not supported in kgateway")
-	}
-	if options.GetBufferPerRoute() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "bufferPerRoute is not supported in kgateway")
-	}
-	if options.GetCors() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "cors is not supported in kgateway")
-	}
-	if options.GetAppendXForwardedHost() != nil && options.GetAppendXForwardedHost().GetValue() == true {
+		if options.GetWaf() != nil {
+			// TODO(nick): Finish Implementing WAF -https://github.com/solo-io/gloo-gateway/issues/32
+			gtpSpec.Waf = &gloogateway.Waf{
+				Disabled:      ptr.To(options.GetWaf().GetDisabled()),
+				Rules:         []gloogateway.WafRule{},
+				CustomMessage: options.GetWaf().GetCustomInterventionMessage(),
+			}
+			for _, rule := range options.GetWaf().GetRuleSets() {
+				gtpSpec.Waf.Rules = append(gtpSpec.Waf.Rules, gloogateway.WafRule{RuleStr: rule.GetRuleStr()})
+				if rule.GetFiles() != nil {
+					o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "WAF rule files is not supported in kgateway")
+				}
+				if rule.GetDirectory() != "" {
+					o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "WAF rule directory %s is not supported in kgateway", rule.GetDirectory())
+				}
+			}
+			if len(options.GetWaf().GetConfigMapRuleSets()) > 0 {
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "WAF configMapRuleSets is not supported in kgateway")
+			}
+			if options.GetWaf().GetCoreRuleSet() != nil {
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "WAF coreRuleSets is not supported in kgateway")
+			}
+			if options.GetWaf().GetRequestHeadersOnly() == true {
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "WAF requestHeadersOnly is not supported in kgateway")
+			}
+			if options.GetWaf().GetResponseHeadersOnly() == true {
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "WAF responseHeadersOnly is not supported in kgateway")
+			}
+			if options.GetWaf().GetAuditLogging() != nil {
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "WAF auditLogging is not supported in kgateway")
+			}
+		}
+		if options.GetRatelimit() != nil {
+			//TODO (nick) : Implement Rate Limiting
+		}
+		if options.GetRatelimitBasic() != nil {
+			//TODO (nick) : Implement Rate Limiting
+		}
 
-	}
-	if options.GetAutoHostRewrite() != nil {
-
-	}
-	if options.GetEnvoyMetadata() != nil {
-
-	}
-	if options.GetFaults() != nil {
-
-	}
-	if options.GetHeaderManipulation() != nil {
-
-	}
-	if options.GetHostRewrite() != "" {
-
-	}
-	if options.GetHostRewriteHeader() != nil {
-
-	}
-	if options.GetHostRewritePathRegex() != nil {
-
-	}
-	if options.GetIdleTimeout() != nil {
-
-	}
-	if options.GetJwtProvidersStaged() != nil {
-
-	}
-	if options.GetJwtStaged() != nil {
-
-	}
-	if options.GetLbHash() != nil {
-
-	}
-	if options.GetMaxStreamDuration() != nil {
-
-	}
-	if options.GetPrefixRewrite() != nil {
-
-	}
-	if options.GetRatelimit() != nil {
-
-	}
-	if options.GetRatelimitBasic() != nil {
-
-	}
-	if options.GetRegexRewrite() != nil {
-
-	}
-	if options.GetRbac() != nil {
-
-	}
-	if options.GetRetries() != nil {
-
-	}
-	if options.GetShadowing() != nil {
-
-	}
-	if options.GetUpgrades() != nil {
-
-	}
-	trafficPolicy = &gloogateway.GlooTrafficPolicy{
-		TypeMeta: metav1.TypeMeta{
-			Kind:       "GlooTrafficPolicy",
-			APIVersion: gloogateway.GroupVersion.String(),
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      associationName,
-			Namespace: wrapper.GetNamespace(),
-		},
-		Spec: gtpSpec,
+		if options.GetDlp() != nil {
+			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "dlp is not supported in kgateway")
+		}
+		if options.GetCsrf() != nil {
+			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "csrf is not supported in kgateway")
+		}
+		if options.GetExtensions() != nil {
+			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "gloo edge extensions is not supported in kgateway")
+		}
+		if options.GetBufferPerRoute() != nil {
+			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "bufferPerRoute is not supported in kgateway")
+		}
+		if options.GetAppendXForwardedHost() != nil && options.GetAppendXForwardedHost().GetValue() == true {
+			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "appendXForwardedHost is not supported in kgateway")
+		}
+		if options.GetAutoHostRewrite() != nil {
+			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "autoHostRewrite is not supported in kgateway")
+		}
+		if options.GetEnvoyMetadata() != nil {
+			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "envoyMetadata is not supported in kgateway")
+		}
+		if options.GetFaults() != nil {
+			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "faults is not supported in kgateway")
+		}
+		if options.GetHostRewriteHeader() != nil {
+			// TODO (nick): not sure how this is supported in kgateway?
+			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "hostRewriteHeader is not supported in kgateway")
+		}
+		if options.GetHostRewritePathRegex() != nil {
+			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "hostRewritePathRegex is not supported in kgateway")
+		}
+		if options.GetIdleTimeout() != nil {
+			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "idleTimeout is not supported in kgateway")
+		}
+		if options.GetJwtProvidersStaged() != nil {
+			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "jwtProvidersStaged is not supported in kgateway")
+		}
+		if options.GetJwtStaged() != nil {
+			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "jwtStaged is not supported in kgateway")
+		}
+		if options.GetLbHash() != nil {
+			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "lbHash is not supported in kgateway")
+		}
+		if options.GetMaxStreamDuration() != nil {
+			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "maxStreamDuration is not supported in kgateway")
+		}
+		if options.GetRbac() != nil {
+			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "rbac is not supported in kgateway")
+		}
+		if options.GetShadowing() != nil {
+			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "shadowing is not supported in kgateway")
+		}
+		if options.GetUpgrades() != nil {
+			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "upgrades is not supported in kgateway")
+		}
+		trafficPolicy = &gloogateway.GlooTrafficPolicy{
+			TypeMeta: metav1.TypeMeta{
+				Kind:       "GlooTrafficPolicy",
+				APIVersion: gloogateway.GroupVersion.String(),
+			},
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      associationName,
+				Namespace: wrapper.GetNamespace(),
+			},
+			Spec: gtpSpec,
+		}
 	}
 
 	return trafficPolicy, filter
@@ -1143,110 +1513,194 @@ func (o *GatewayAPIOutput) generateAIPromptGuard(options *gloov1.RouteOptions, w
 		Response: nil,
 	}
 	if options.GetAi().GetPromptGuard().GetRequest() != nil {
-		guard.Request = &kgateway.PromptguardRequest{
-			CustomResponse: &kgateway.CustomResponse{
-				Message:    ptr.To(options.GetAi().GetPromptGuard().GetRequest().GetCustomResponse().GetMessage()),
-				StatusCode: ptr.To(options.GetAi().GetPromptGuard().GetRequest().GetCustomResponse().GetStatusCode()),
+		request := o.convertPromptGuardRequest(options, wrapper)
+		guard.Request = request
+	}
+	if options.GetAi().GetPromptGuard().GetResponse() != nil {
+		response := o.convertPromptGuardResponse(options, wrapper)
+		guard.Response = response
+	}
+	return guard
+}
+
+func (o *GatewayAPIOutput) convertPromptGuardResponse(options *gloov1.RouteOptions, wrapper snapshot.Wrapper) *kgateway.PromptguardResponse {
+	response := &kgateway.PromptguardResponse{
+		Regex:   nil,
+		Webhook: nil,
+	}
+
+	if options.GetAi().GetPromptGuard().GetResponse().GetWebhook() != nil {
+		webhook := &kgateway.Webhook{
+			Host: kgateway.Host{
+				Host: options.GetAi().GetPromptGuard().GetResponse().GetWebhook().GetHost(),
+				Port: gwv1.PortNumber(options.GetAi().GetPromptGuard().GetResponse().GetWebhook().GetPort()),
+				//InsecureSkipVerify: nil,
 			},
+			ForwardHeaders: make([]gwv1.HTTPHeaderMatch, len(options.GetAi().GetPromptGuard().GetResponse().GetWebhook().GetForwardHeaders())),
 		}
-		if options.GetAi().GetPromptGuard().GetRequest().GetModeration() != nil && options.GetAi().GetPromptGuard().GetRequest().GetModeration().GetOpenai() != nil {
-			guard.Request.Moderation = &kgateway.Moderation{
-				OpenAIModeration: &kgateway.OpenAIConfig{
-					Model: ptr.To(options.GetAi().GetPromptGuard().GetRequest().GetModeration().GetOpenai().GetModel()),
-				},
+		for _, h := range options.GetAi().GetPromptGuard().GetResponse().GetWebhook().GetForwardHeaders() {
+			match := gwv1.HTTPHeaderMatch{
+				Name: gwv1.HTTPHeaderName(h.GetKey()),
+				//Value: nil,
 			}
-			if options.GetAi().GetPromptGuard().GetRequest().GetModeration().GetOpenai().GetAuthToken() != nil {
-				authToken := kgateway.SingleAuthToken{}
-				if options.GetAi().GetPromptGuard().GetRequest().GetModeration().GetOpenai().GetAuthToken().GetInline() != "" {
-					authToken.Kind = kgateway.Inline
-					authToken.Inline = ptr.To(options.GetAi().GetPromptGuard().GetRequest().GetModeration().GetOpenai().GetAuthToken().GetInline())
-				}
-				if options.GetAi().GetPromptGuard().GetRequest().GetModeration().GetOpenai().GetAuthToken().GetSecretRef() != nil {
-					authToken.Kind = kgateway.SecretRef
-					authToken.SecretRef = &corev1.LocalObjectReference{
-						Name: options.GetAi().GetPromptGuard().GetRequest().GetModeration().GetOpenai().GetAuthToken().GetSecretRef().GetName(),
-					}
-					if options.GetAi().GetPromptGuard().GetRequest().GetModeration().GetOpenai().GetAuthToken().GetSecretRef().GetNamespace() != wrapper.GetNamespace() {
-						o.AddErrorFromWrapper(ERROR_TYPE_UNKNOWN_REFERENCE, wrapper, "AI AuthToken secretRef may be referencing secret outside configuration namespace")
-					}
-				}
-				guard.Request.Moderation.OpenAIModeration.AuthToken = authToken
+			// TODO(nick) - We have a lot of options but gateway API only has exact or regex....
+			switch h.GetMatchType() {
+			case ai.AIPromptGuard_Webhook_HeaderMatch_CONTAINS:
+				match.Type = ptr.To(gwv1.HeaderMatchExact)
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "ai headerMatch 'contains' is not supported in kgateway")
+			case ai.AIPromptGuard_Webhook_HeaderMatch_EXACT:
+				match.Type = ptr.To(gwv1.HeaderMatchExact)
+			case ai.AIPromptGuard_Webhook_HeaderMatch_PREFIX:
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "ai headerMatch 'prefix' is not supported in kgateway")
+				match.Type = ptr.To(gwv1.HeaderMatchExact)
+			case ai.AIPromptGuard_Webhook_HeaderMatch_REGEX:
+				match.Type = ptr.To(gwv1.HeaderMatchRegularExpression)
+			case ai.AIPromptGuard_Webhook_HeaderMatch_SUFFIX:
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "ai headerMatch 'suffix' is not supported in kgateway")
+				match.Type = ptr.To(gwv1.HeaderMatchExact)
 			}
+			webhook.ForwardHeaders = append(webhook.ForwardHeaders, match)
+		}
+		response.Webhook = webhook
+	}
+
+	if options.GetAi().GetPromptGuard().GetResponse().GetRegex() != nil {
+		response.Regex = &kgateway.Regex{
+			Matches:  make([]kgateway.RegexMatch, len(options.GetAi().GetPromptGuard().GetResponse().GetRegex().GetMatches())),
+			Builtins: make([]kgateway.BuiltIn, len(options.GetAi().GetPromptGuard().GetResponse().GetRegex().GetBuiltins())),
+		}
+		switch options.GetAi().GetPromptGuard().GetResponse().GetRegex().GetAction() {
+		case ai.AIPromptGuard_Regex_MASK:
+			response.Regex.Action = ptr.To(kgateway.MASK)
+		case ai.AIPromptGuard_Regex_REJECT:
+			response.Regex.Action = ptr.To(kgateway.REJECT)
 		}
 
-		if options.GetAi().GetPromptGuard().GetRequest().GetWebhook() != nil {
-			webhook := &kgateway.Webhook{
-				Host: kgateway.Host{
-					Host: options.GetAi().GetPromptGuard().GetRequest().GetWebhook().GetHost(),
-					Port: gwv1.PortNumber(options.GetAi().GetPromptGuard().GetRequest().GetWebhook().GetPort()),
-					//InsecureSkipVerify: nil,
-				},
-				ForwardHeaders: make([]gwv1.HTTPHeaderMatch, len(options.GetAi().GetPromptGuard().GetRequest().GetWebhook().GetForwardHeaders())),
-			}
-			for _, h := range options.GetAi().GetPromptGuard().GetRequest().GetWebhook().GetForwardHeaders() {
-				match := gwv1.HTTPHeaderMatch{
-					Name: gwv1.HTTPHeaderName(h.GetKey()),
-					//Value: nil,
-				}
-				// TODO(nick) - We have a lot of options but gateway API only has exact or regex....
-				switch h.GetMatchType() {
-				case ai.AIPromptGuard_Webhook_HeaderMatch_CONTAINS:
-					match.Type = ptr.To(gwv1.HeaderMatchExact)
-					o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "ai headerMatch 'contains' is not supported in kgateway")
-				case ai.AIPromptGuard_Webhook_HeaderMatch_EXACT:
-					match.Type = ptr.To(gwv1.HeaderMatchExact)
-				case ai.AIPromptGuard_Webhook_HeaderMatch_PREFIX:
-					o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "ai headerMatch 'prefix' is not supported in kgateway")
-					match.Type = ptr.To(gwv1.HeaderMatchExact)
-				case ai.AIPromptGuard_Webhook_HeaderMatch_REGEX:
-					match.Type = ptr.To(gwv1.HeaderMatchRegularExpression)
-				case ai.AIPromptGuard_Webhook_HeaderMatch_SUFFIX:
-					o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "ai headerMatch 'suffix' is not supported in kgateway")
-					match.Type = ptr.To(gwv1.HeaderMatchExact)
-				}
-				webhook.ForwardHeaders = append(webhook.ForwardHeaders, match)
-			}
-			guard.Request.Webhook = webhook
+		for _, match := range options.GetAi().GetPromptGuard().GetResponse().GetRegex().GetMatches() {
+			response.Regex.Matches = append(response.Regex.Matches, kgateway.RegexMatch{
+				Pattern: ptr.To(match.GetPattern()),
+				Name:    ptr.To(match.GetName()),
+			})
 		}
-
-		if options.GetAi().GetPromptGuard().GetRequest().GetCustomResponse() != nil {
-			guard.Request.CustomResponse = &kgateway.CustomResponse{
-				Message:    ptr.To(options.GetAi().GetPromptGuard().GetRequest().GetCustomResponse().GetMessage()),
-				StatusCode: ptr.To(options.GetAi().GetPromptGuard().GetRequest().GetCustomResponse().GetStatusCode()),
-			}
-		}
-		if options.GetAi().GetPromptGuard().GetRequest().GetRegex() != nil {
-			guard.Request.Regex = &kgateway.Regex{
-				Matches:  make([]kgateway.RegexMatch, len(options.GetAi().GetPromptGuard().GetRequest().GetRegex().GetMatches())),
-				Builtins: make([]kgateway.BuiltIn, len(options.GetAi().GetPromptGuard().GetRequest().GetRegex().GetBuiltins())),
-			}
-			switch options.GetAi().GetPromptGuard().GetRequest().GetRegex().GetAction() {
-			case ai.AIPromptGuard_Regex_MASK:
-				guard.Request.Regex.Action = ptr.To(kgateway.MASK)
-			case ai.AIPromptGuard_Regex_REJECT:
-				guard.Request.Regex.Action = ptr.To(kgateway.REJECT)
-			}
-
-			for _, match := range options.GetAi().GetPromptGuard().GetRequest().GetRegex().GetMatches() {
-				guard.Request.Regex.Matches = append(guard.Request.Regex.Matches, kgateway.RegexMatch{
-					Pattern: ptr.To(match.GetPattern()),
-					Name:    ptr.To(match.GetName()),
-				})
-			}
-			guard.Request.Regex.Builtins = make([]kgateway.BuiltIn, len(options.GetAi().GetPromptGuard().GetRequest().GetRegex().GetBuiltins()))
-			for _, builtIns := range options.GetAi().GetPromptGuard().GetRequest().GetRegex().GetBuiltins() {
-				switch builtIns {
-				case ai.AIPromptGuard_Regex_SSN:
-					guard.Request.Regex.Builtins = append(guard.Request.Regex.Builtins, kgateway.SSN)
-				case ai.AIPromptGuard_Regex_CREDIT_CARD:
-					guard.Request.Regex.Builtins = append(guard.Request.Regex.Builtins, kgateway.CREDIT_CARD)
-				case ai.AIPromptGuard_Regex_PHONE_NUMBER:
-					guard.Request.Regex.Builtins = append(guard.Request.Regex.Builtins, kgateway.PHONE_NUMBER)
-				}
+		response.Regex.Builtins = make([]kgateway.BuiltIn, len(options.GetAi().GetPromptGuard().GetResponse().GetRegex().GetBuiltins()))
+		for _, builtIns := range options.GetAi().GetPromptGuard().GetResponse().GetRegex().GetBuiltins() {
+			switch builtIns {
+			case ai.AIPromptGuard_Regex_SSN:
+				response.Regex.Builtins = append(response.Regex.Builtins, kgateway.SSN)
+			case ai.AIPromptGuard_Regex_CREDIT_CARD:
+				response.Regex.Builtins = append(response.Regex.Builtins, kgateway.CREDIT_CARD)
+			case ai.AIPromptGuard_Regex_PHONE_NUMBER:
+				response.Regex.Builtins = append(response.Regex.Builtins, kgateway.PHONE_NUMBER)
 			}
 		}
 	}
-	return guard
+	return response
+}
+
+func (o *GatewayAPIOutput) convertPromptGuardRequest(options *gloov1.RouteOptions, wrapper snapshot.Wrapper) *kgateway.PromptguardRequest {
+	request := &kgateway.PromptguardRequest{
+		CustomResponse: &kgateway.CustomResponse{
+			Message:    ptr.To(options.GetAi().GetPromptGuard().GetRequest().GetCustomResponse().GetMessage()),
+			StatusCode: ptr.To(options.GetAi().GetPromptGuard().GetRequest().GetCustomResponse().GetStatusCode()),
+		},
+	}
+	if options.GetAi().GetPromptGuard().GetRequest().GetModeration() != nil && options.GetAi().GetPromptGuard().GetRequest().GetModeration().GetOpenai() != nil {
+		request.Moderation = &kgateway.Moderation{
+			OpenAIModeration: &kgateway.OpenAIConfig{
+				Model: ptr.To(options.GetAi().GetPromptGuard().GetRequest().GetModeration().GetOpenai().GetModel()),
+			},
+		}
+		if options.GetAi().GetPromptGuard().GetRequest().GetModeration().GetOpenai().GetAuthToken() != nil {
+			authToken := kgateway.SingleAuthToken{}
+			if options.GetAi().GetPromptGuard().GetRequest().GetModeration().GetOpenai().GetAuthToken().GetInline() != "" {
+				authToken.Kind = kgateway.Inline
+				authToken.Inline = ptr.To(options.GetAi().GetPromptGuard().GetRequest().GetModeration().GetOpenai().GetAuthToken().GetInline())
+			}
+			if options.GetAi().GetPromptGuard().GetRequest().GetModeration().GetOpenai().GetAuthToken().GetSecretRef() != nil {
+				authToken.Kind = kgateway.SecretRef
+				authToken.SecretRef = &corev1.LocalObjectReference{
+					Name: options.GetAi().GetPromptGuard().GetRequest().GetModeration().GetOpenai().GetAuthToken().GetSecretRef().GetName(),
+				}
+				if options.GetAi().GetPromptGuard().GetRequest().GetModeration().GetOpenai().GetAuthToken().GetSecretRef().GetNamespace() != wrapper.GetNamespace() {
+					o.AddErrorFromWrapper(ERROR_TYPE_UNKNOWN_REFERENCE, wrapper, "AI AuthToken secretRef may be referencing secret outside configuration namespace")
+				}
+			}
+			request.Moderation.OpenAIModeration.AuthToken = authToken
+		}
+	}
+
+	if options.GetAi().GetPromptGuard().GetRequest().GetWebhook() != nil {
+		webhook := &kgateway.Webhook{
+			Host: kgateway.Host{
+				Host: options.GetAi().GetPromptGuard().GetRequest().GetWebhook().GetHost(),
+				Port: gwv1.PortNumber(options.GetAi().GetPromptGuard().GetRequest().GetWebhook().GetPort()),
+				//InsecureSkipVerify: nil,
+			},
+			ForwardHeaders: make([]gwv1.HTTPHeaderMatch, len(options.GetAi().GetPromptGuard().GetRequest().GetWebhook().GetForwardHeaders())),
+		}
+		for _, h := range options.GetAi().GetPromptGuard().GetRequest().GetWebhook().GetForwardHeaders() {
+			match := gwv1.HTTPHeaderMatch{
+				Name: gwv1.HTTPHeaderName(h.GetKey()),
+				//Value: nil,
+			}
+			// TODO(nick) - We have a lot of options but gateway API only has exact or regex....
+			switch h.GetMatchType() {
+			case ai.AIPromptGuard_Webhook_HeaderMatch_CONTAINS:
+				match.Type = ptr.To(gwv1.HeaderMatchExact)
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "ai headerMatch 'contains' is not supported in kgateway")
+			case ai.AIPromptGuard_Webhook_HeaderMatch_EXACT:
+				match.Type = ptr.To(gwv1.HeaderMatchExact)
+			case ai.AIPromptGuard_Webhook_HeaderMatch_PREFIX:
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "ai headerMatch 'prefix' is not supported in kgateway")
+				match.Type = ptr.To(gwv1.HeaderMatchExact)
+			case ai.AIPromptGuard_Webhook_HeaderMatch_REGEX:
+				match.Type = ptr.To(gwv1.HeaderMatchRegularExpression)
+			case ai.AIPromptGuard_Webhook_HeaderMatch_SUFFIX:
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "ai headerMatch 'suffix' is not supported in kgateway")
+				match.Type = ptr.To(gwv1.HeaderMatchExact)
+			}
+			webhook.ForwardHeaders = append(webhook.ForwardHeaders, match)
+		}
+		request.Webhook = webhook
+	}
+
+	if options.GetAi().GetPromptGuard().GetRequest().GetCustomResponse() != nil {
+		request.CustomResponse = &kgateway.CustomResponse{
+			Message:    ptr.To(options.GetAi().GetPromptGuard().GetRequest().GetCustomResponse().GetMessage()),
+			StatusCode: ptr.To(options.GetAi().GetPromptGuard().GetRequest().GetCustomResponse().GetStatusCode()),
+		}
+	}
+	if options.GetAi().GetPromptGuard().GetRequest().GetRegex() != nil {
+		request.Regex = &kgateway.Regex{
+			Matches:  make([]kgateway.RegexMatch, len(options.GetAi().GetPromptGuard().GetRequest().GetRegex().GetMatches())),
+			Builtins: make([]kgateway.BuiltIn, len(options.GetAi().GetPromptGuard().GetRequest().GetRegex().GetBuiltins())),
+		}
+		switch options.GetAi().GetPromptGuard().GetRequest().GetRegex().GetAction() {
+		case ai.AIPromptGuard_Regex_MASK:
+			request.Regex.Action = ptr.To(kgateway.MASK)
+		case ai.AIPromptGuard_Regex_REJECT:
+			request.Regex.Action = ptr.To(kgateway.REJECT)
+		}
+
+		for _, match := range options.GetAi().GetPromptGuard().GetRequest().GetRegex().GetMatches() {
+			request.Regex.Matches = append(request.Regex.Matches, kgateway.RegexMatch{
+				Pattern: ptr.To(match.GetPattern()),
+				Name:    ptr.To(match.GetName()),
+			})
+		}
+		request.Regex.Builtins = make([]kgateway.BuiltIn, len(options.GetAi().GetPromptGuard().GetRequest().GetRegex().GetBuiltins()))
+		for _, builtIns := range options.GetAi().GetPromptGuard().GetRequest().GetRegex().GetBuiltins() {
+			switch builtIns {
+			case ai.AIPromptGuard_Regex_SSN:
+				request.Regex.Builtins = append(request.Regex.Builtins, kgateway.SSN)
+			case ai.AIPromptGuard_Regex_CREDIT_CARD:
+				request.Regex.Builtins = append(request.Regex.Builtins, kgateway.CREDIT_CARD)
+			case ai.AIPromptGuard_Regex_PHONE_NUMBER:
+				request.Regex.Builtins = append(request.Regex.Builtins, kgateway.PHONE_NUMBER)
+			}
+		}
+	}
+	return request
 }
 
 func (o *GatewayAPIOutput) convertRouteToRule(r *gloogwv1.Route, wrapper snapshot.Wrapper) (gwv1.HTTPRouteRule, error) {
@@ -1274,6 +1728,15 @@ func (o *GatewayAPIOutput) convertRouteToRule(r *gloogwv1.Route, wrapper snapsho
 	}
 	if r.GetOptions() != nil {
 		options := r.GetOptions()
+
+		//Features Supported By GatewayAPI
+		// - RequestHeaderModifier
+		// - ResponseHeaderModifier
+		// - RequestRedirect
+		// - URLRewrite
+		// - Request Mirror
+		// - CORS
+		// - ExtensionRef
 
 		// prefix rewrite, sets it on HTTPRoute
 		if options.GetPrefixRewrite() != nil {
@@ -1858,13 +2321,19 @@ func doHttpRouteLabelsMatch(matches map[string]string, labels map[string]string)
 	return true
 }
 
-// TODO this is a mess
+// This checks to see if any of the route options are set for ones that are not supported in Gateway API
 func isRouteOptionsSet(options *gloov1.RouteOptions) bool {
-	return options.GetExtProc() != nil || options.GetCors() != nil || options.GetRetries() != nil || options.GetTimeout() != nil ||
+		//Features Supported By GatewayAPI
+		// - RequestHeaderModifier
+		// - ResponseHeaderModifier
+		// - RequestRedirect
+		// - URLRewrite
+		// - Request Mirror
+		// - CORS
+	return options.GetExtProc() != nil || options.GetRetries() != nil || options.GetTimeout() != nil ||
 		options.GetStagedTransformations() != nil || options.GetAutoHostRewrite() != nil ||
-		options.GetFaults() != nil || options.GetExtensions() != nil || options.GetTracing() != nil || options.GetShadowing() != nil ||
-		options.GetHeaderManipulation() != nil || options.GetAppendXForwardedHost() != nil || options.GetLbHash() != nil || options.GetUpgrades() != nil ||
+		options.GetFaults() != nil || options.GetExtensions() != nil || options.GetTracing() != nil || options.GetAppendXForwardedHost() != nil || options.GetLbHash() != nil || options.GetUpgrades() != nil ||
 		options.GetRatelimit() != nil || options.GetRatelimitBasic() != nil || options.GetWaf() != nil || options.GetJwtConfig() != nil || options.GetRbac() != nil ||
 		options.GetDlp() != nil || options.GetStagedTransformations() != nil || options.GetEnvoyMetadata() != nil || options.GetMaxStreamDuration() != nil ||
-		options.GetIdleTimeout() != nil || options.GetRegexRewrite() != nil || options.GetExtauth() != nil
+		options.GetIdleTimeout() != nil || options.GetRegexRewrite() != nil || options.GetExtauth() != nil|| options.GetAi() != nil
 }

@@ -188,6 +188,12 @@ func (g *GatewayAPICache) AddBackend(b *snapshot.BackendWrapper) {
 	}
 	g.Backends[b.Index()] = b
 }
+func (g *GatewayAPICache) GetBackend(namespacedName types.NamespacedName) *snapshot.BackendWrapper {
+	if g.Backends == nil {
+		return nil
+	}
+	return g.Backends[namespacedName]
+}
 
 func (g *GatewayAPICache) GetGateway(namespacedName types.NamespacedName) *snapshot.GatewayWrapper {
 	if g.Gateways == nil {
