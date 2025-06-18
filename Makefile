@@ -1312,3 +1312,16 @@ update-licenses:
 # use `make print-MAKEFILE_VAR` to print the value of MAKEFILE_VAR
 
 print-%  : ; @echo $($*)
+
+#----------------------------------------------------------------------------------
+# Cloudbuild Generation
+#----------------------------------------------------------------------------------
+
+.PHONY: update-cloudbuild-version
+update-cloudbuild-version: ## Update cloudbuild YAML files with specified version (CLOUDBUILD_VERSION required)
+	@if [ -z "$(CLOUDBUILD_VERSION)" ]; then \
+		echo "Error: CLOUDBUILD_VERSION environment variable is required"; \
+		echo "Usage: make update-cloudbuild-version CLOUDBUILD_VERSION=0.13.0"; \
+		exit 1; \
+	fi
+	cd ci/cloudbuild-generate && go run main.go $(CLOUDBUILD_VERSION)
