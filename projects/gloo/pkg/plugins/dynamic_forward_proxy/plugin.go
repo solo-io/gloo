@@ -23,6 +23,7 @@ import (
 	envoy_extensions_filters_http_dynamic_forward_proxy_v3 "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/http/dynamic_forward_proxy/v3"
 	"github.com/golang/protobuf/ptypes/duration"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	v1_circuitbreaker "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/circuit_breaker"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/dynamic_forward_proxy"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/pluginutils"
@@ -48,6 +49,7 @@ var (
 )
 
 type plugin struct {
+	settings      *v1.Settings
 	filterHashMap map[string]*dynamic_forward_proxy.FilterConfig
 }
 
@@ -104,6 +106,7 @@ func generateCustomDynamicForwardProxyCluster(listenerCfg *dynamic_forward_proxy
 	if err != nil {
 		return nil, err
 	}
+
 	out := &envoy_config_cluster_v3.Cluster{
 		Name:           GetGeneratedClusterName(listenerCfg),
 		ConnectTimeout: &duration.Duration{Seconds: 5},
@@ -114,6 +117,11 @@ func generateCustomDynamicForwardProxyCluster(listenerCfg *dynamic_forward_proxy
 				TypedConfig: typedConfig,
 			},
 		},
+	}
+
+	circuitBreakers := getCircuitBreakers(listenerCfg, params.Settings)
+	if circuitBreakers != nil {
+		out.CircuitBreakers = circuitBreakers
 	}
 
 	if sslConfig := listenerCfg.GetSslConfig(); sslConfig != nil && params.Snapshot != nil {
@@ -132,6 +140,31 @@ func generateCustomDynamicForwardProxyCluster(listenerCfg *dynamic_forward_proxy
 		}
 	}
 	return out, nil
+}
+func getCircuitBreakers(listenerCfg *dynamic_forward_proxy.FilterConfig, settings *v1.Settings) *envoy_config_cluster_v3.CircuitBreakers {
+	if listenerCfg.GetCircuitBreakers() != nil {
+		return convertCircuitBreakers(listenerCfg.GetCircuitBreakers())
+	}
+
+	if settings.GetGloo().GetCircuitBreakers() != nil {
+		return convertCircuitBreakers(settings.GetGloo().GetCircuitBreakers())
+	}
+
+	return nil
+}
+
+func convertCircuitBreakers(cfg *v1_circuitbreaker.CircuitBreakerConfig) *envoy_config_cluster_v3.CircuitBreakers {
+	return &envoy_config_cluster_v3.CircuitBreakers{
+		Thresholds: []*envoy_config_cluster_v3.CircuitBreakers_Thresholds{
+			{
+				MaxConnections:     cfg.GetMaxConnections(),
+				MaxPendingRequests: cfg.GetMaxPendingRequests(),
+				MaxRequests:        cfg.GetMaxRequests(),
+				MaxRetries:         cfg.GetMaxRetries(),
+				TrackRemaining:     cfg.GetTrackRemaining(),
+			},
+		},
+	}
 }
 
 func GetGeneratedClusterName(dfpListenerCfg *dynamic_forward_proxy.FilterConfig) string {
@@ -402,6 +435,7 @@ func (p *plugin) Name() string {
 	return ExtensionName
 }
 
-func (p *plugin) Init(_ plugins.InitParams) {
+func (p *plugin) Init(params plugins.InitParams) {
 	p.filterHashMap = map[string]*dynamic_forward_proxy.FilterConfig{}
+	p.settings = params.Settings
 }
