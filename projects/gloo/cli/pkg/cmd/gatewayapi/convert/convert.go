@@ -305,9 +305,12 @@ func (o *GatewayAPIOutput) convertUpstreamToBackend(upstream *snapshot.UpstreamW
 				},
 				Spec: kgateway.BackendSpec{
 					Type: kgateway.BackendTypeStatic,
+					AI:   nil, // existing
+					Aws:  nil, // existing
 					Static: &kgateway.StaticBackend{
 						Hosts: []kgateway.Host{},
-					},
+					}, // existing
+					DynamicForwardProxy: nil,
 				},
 			},
 		}
@@ -353,9 +356,9 @@ func (o *GatewayAPIOutput) convertUpstreamToBackend(upstream *snapshot.UpstreamW
 	if upstream.Spec.GetConnectionConfig() != nil {
 		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "connectionConfig is not supported in kgateway")
 	}
-	if upstream.Spec.GetDiscoveryMetadata() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "discoveryMetadata is not supported in kgateway")
-	}
+	//if upstream.Spec.GetDiscoveryMetadata() != nil {
+	//	o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "discoveryMetadata is not supported in kgateway")
+	//}
 	if upstream.Spec.GetDnsRefreshRate() != nil {
 		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "dnsRefreshRate is not supported in kgateway")
 	}
@@ -554,6 +557,9 @@ func (o *GatewayAPIOutput) convertVirtualServiceListener(vs *snapshot.VirtualSer
 					continue
 				}
 				gtp = o.convertVirtualHostOptionToGlooTrafficPolicy(vho)
+				if gtp == nil {
+					o.AddErrorFromWrapper(ERROR_TYPE_IGNORED, vs, "references VirtualHostOption %s - No options converted", types.NamespacedName{Name: delegateOption.GetName(), Namespace: delegateOption.GetNamespace()})
+				}
 			}
 			if listenerSet.Namespace != gtp.GlooTrafficPolicy.GetNamespace() {
 				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, vs, "VirtualHostOption %s references a listener set in a different namespace %s which is not supported", types.NamespacedName{Name: vs.GetName(), Namespace: vs.GetNamespace()}, types.NamespacedName{Name: listenerSet.GetName(), Namespace: listenerSet.GetNamespace()})
@@ -608,12 +614,19 @@ func (o *GatewayAPIOutput) convertVirtualServiceListener(vs *snapshot.VirtualSer
 }
 
 func (o *GatewayAPIOutput) convertVirtualHostOptionToGlooTrafficPolicy(vho *snapshot.VirtualHostOptionWrapper) *snapshot.GlooTrafficPolicyWrapper {
+
 	policy := &gloogateway.GlooTrafficPolicy{
-		Spec: gloogateway.GlooTrafficPolicySpec{},
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "GlooTrafficPolicy",
+			APIVersion: gloogateway.GroupVersion.String(),
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      vho.GetName(),
+			Namespace: vho.GetNamespace(),
+		},
 	}
-	if vho != nil {
-		policy.Spec = o.convertVHOOptionsToTrafficPolicySpec(vho.VirtualHostOption.Spec.Options, vho)
-	}
+
+	policy.Spec = o.convertVHOOptionsToTrafficPolicySpec(vho.VirtualHostOption.Spec.Options, vho)
 
 	wrapper := snapshot.NewGlooTrafficPolicyWrapper(policy, vho.FileOrigin())
 	return wrapper
@@ -1741,11 +1754,11 @@ func (o *GatewayAPIOutput) convertRouteOptions(
 		routeName = "route-association"
 	}
 	associationName := fmt.Sprintf("%s-%s", routeName, associationID)
+
 	if !isRouteOptionsSet(options) {
 		return nil, nil
 	}
 	// converts options to RouteOptions but we need to this for everything except prefixrewrite and a few others now
-
 	gtpSpec := gloogateway.GlooTrafficPolicySpec{
 		TrafficPolicySpec: kgateway.TrafficPolicySpec{
 			TargetRefs:      nil, // existing
@@ -3101,7 +3114,6 @@ func isRouteOptionsSet(options *gloov1.RouteOptions) bool {
 	// - CORS
 	return options.GetExtProc() != nil ||
 		options.GetRetries() != nil ||
-		options.GetTimeout() != nil ||
 		options.GetStagedTransformations() != nil ||
 		options.GetAutoHostRewrite() != nil ||
 		options.GetFaults() != nil ||
@@ -3122,5 +3134,6 @@ func isRouteOptionsSet(options *gloov1.RouteOptions) bool {
 		options.GetIdleTimeout() != nil ||
 		options.GetRegexRewrite() != nil ||
 		options.GetExtauth() != nil ||
-		options.GetAi() != nil
+		options.GetAi() != nil ||
+		options.GetCors() != nil
 }
