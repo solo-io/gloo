@@ -277,6 +277,7 @@ func removeNullYamlFields(yamlData []byte) string {
 	stringData = strings.ReplaceAll(stringData, "spec: {}\n", "")
 	stringData = strings.ReplaceAll(stringData, "    kubectl.kubernetes.io/last-applied-configuration: |\n", "")
 	stringData = strings.ReplaceAll(stringData, "  listeners: null\n", "")
+	stringData = strings.ReplaceAll(stringData, "  ancestors: null\n", "")
 	var re = regexp.MustCompile(`\n      \{"apiVersion":.*`)
 	stringData = re.ReplaceAllString(stringData, "")
 	re = regexp.MustCompile(`\n  resourceVersion: .*`)
