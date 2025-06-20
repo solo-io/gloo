@@ -2,6 +2,13 @@ package convert
 
 import (
 	"fmt"
+	v4 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/filters/http/csrf/v3"
+	gloo_type_matcher "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/type/matcher/v3"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/cors"
+	"strconv"
+	"strings"
+
+	v3 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/type/v3"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ai"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extproc"
@@ -10,7 +17,6 @@ import (
 	transformation2 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/transformation"
 	v1alpha2 "github.com/solo-io/solo-apis/pkg/api/ratelimit.solo.io/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
-	"strings"
 
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/als"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -624,13 +630,15 @@ func (o *GatewayAPIOutput) convertVHOOptionsToTrafficPolicySpec(vho *gloov1.Virt
 			ExtProc:         nil, // existing
 			ExtAuth:         nil, // existing
 			RateLimit:       nil, // existing
+			Cors:            nil, // existing
+			Csrf:            nil, // existing
 		},
-		Waf:                   nil, // existing
-		Retry:                 nil, // existing
-		Timeouts:              nil, // existing
-		RateLimitEnterprise:   nil, // existing
-		ExtAuthEnterprise:     nil, // existing
-		StagedTransformations: nil, // existing
+		Waf:                      nil, // existing
+		Retry:                    nil, // existing
+		Timeouts:                 nil, // existing
+		RateLimitEnterprise:      nil, // existing
+		ExtAuthEnterprise:        nil, // existing
+		TransformationEnterprise: nil, // existing
 	}
 	if vho != nil {
 		if vho.GetExtauth() != nil {
@@ -773,14 +781,15 @@ func (o *GatewayAPIOutput) convertVHOOptionsToTrafficPolicySpec(vho *gloov1.Virt
 			// this is natively supported on the HTTPRoute
 		}
 		if vho.GetCors() != nil {
-			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "cors is not supported in kgateway")
+			policy := o.convertCORS(vho.GetCors(), wrapper)
+			spec.Cors = policy
 		}
 		if vho.GetTransformations() != nil {
 			// TODO(nick) should we try to translate this or require the end user to migrate to staged?
 		}
 		if vho.GetStagedTransformations() != nil {
 			transformation := o.convertStagedTransformation(vho.GetStagedTransformations(), wrapper)
-			spec.StagedTransformations = transformation
+			spec.TransformationEnterprise = transformation
 		}
 		if vho.GetJwt() != nil {
 			// TODO(nick) should we try to translate this or require the end user to migrate to staged?
@@ -807,7 +816,8 @@ func (o *GatewayAPIOutput) convertVHOOptionsToTrafficPolicySpec(vho *gloov1.Virt
 			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "dlp is not supported in kgateway")
 		}
 		if vho.GetCsrf() != nil {
-			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "csrf is not supported in kgateway")
+			csrf := o.convertCSRF(vho.GetCsrf())
+			spec.TrafficPolicySpec.Csrf = csrf
 		}
 		if vho.GetExtensions() != nil {
 			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "gloo edge extensions is not supported in kgateway")
@@ -816,34 +826,86 @@ func (o *GatewayAPIOutput) convertVHOOptionsToTrafficPolicySpec(vho *gloov1.Virt
 	return spec
 }
 
-func (o *GatewayAPIOutput) convertStagedTransformation(transformation *transformation2.TransformationStages, wrapper snapshot.Wrapper) *gloogateway.StagedTransformations {
-	stagedTransformations := &gloogateway.StagedTransformations{}
+func (o *GatewayAPIOutput) convertCORS(policy *cors.CorsPolicy, wrapper snapshot.Wrapper) *kgateway.CorsPolicy {
+	filter := &gwv1.HTTPCORSFilter{
+		AllowOrigins:     make([]gwv1.AbsoluteURI, len(policy.GetAllowOrigin())),
+		AllowCredentials: gwv1.TrueField(policy.GetAllowCredentials()),
+		AllowMethods:     make([]gwv1.HTTPMethodWithWildcard, len(policy.GetAllowMethods())),
+		AllowHeaders:     make([]gwv1.HTTPHeaderName, len(policy.GetAllowHeaders())),
+		ExposeHeaders:    make([]gwv1.HTTPHeaderName, 0, len(policy.GetExposeHeaders())),
+		MaxAge:           0,
+	}
+	if policy.GetAllowOrigin() != nil {
+		for _, origin := range policy.GetAllowOrigin() {
+			filter.AllowOrigins = append(filter.AllowOrigins, gwv1.AbsoluteURI(origin))
+		}
+	}
+	if policy.GetAllowMethods() != nil {
+		for _, method := range policy.GetAllowMethods() {
+			filter.AllowMethods = append(filter.AllowMethods, gwv1.HTTPMethodWithWildcard(method))
+		}
+	}
+	if policy.GetAllowHeaders() != nil {
+		for _, header := range policy.GetAllowHeaders() {
+			filter.AllowHeaders = append(filter.AllowHeaders, gwv1.HTTPHeaderName(header))
+		}
+	}
+	if policy.GetExposeHeaders() != nil {
+		for _, header := range policy.GetExposeHeaders() {
+			filter.ExposeHeaders = append(filter.ExposeHeaders, gwv1.HTTPHeaderName(header))
+		}
+	}
+	if policy.GetMaxAge() != "" {
+		age, err := strconv.Atoi(policy.GetMaxAge())
+		if err != nil {
+			o.AddErrorFromWrapper(ERROR_TYPE_IGNORED, wrapper, "invalid max age %s", policy.GetMaxAge())
+		} else {
+			filter.MaxAge = int32(age)
+		}
+	}
+	if policy.GetAllowOriginRegex() != nil {
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "allowOriginRegex not supported")
+
+	}
+	if policy.GetDisableForRoute() != true {
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "cors disabledForRoute not supported")
+	}
+	return &kgateway.CorsPolicy{
+		HTTPCORSFilter: filter,
+	}
+}
+
+func (o *GatewayAPIOutput) convertStagedTransformation(transformation *transformation2.TransformationStages, wrapper snapshot.Wrapper) *gloogateway.TransformationEnterprise {
+	stagedTransformations := &gloogateway.TransformationEnterprise{
+		Stages:    &gloogateway.StagedTransformations{}, // existing
+		AWSLambda: nil,                                  // existing
+	}
 
 	if transformation.GetInheritTransformation() == true {
 		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "transformation inherit transformation is not supported in kgateway")
 	}
 	if transformation.GetRegular() != nil {
 		routing := o.convertRequestTransformation(transformation.GetEarly(), wrapper)
-		stagedTransformations.Early = routing
+		stagedTransformations.Stages.Early = routing
 	}
 	if transformation.GetRegular() != nil {
 		routing := o.convertRequestTransformation(transformation.GetRegular(), wrapper)
-		stagedTransformations.Regular = routing
+		stagedTransformations.Stages.Regular = routing
 	}
 	if transformation.GetPostRouting() != nil {
 		routing := o.convertRequestTransformation(transformation.GetPostRouting(), wrapper)
-		stagedTransformations.PostRouting = routing
+		stagedTransformations.Stages.PostRouting = routing
 	}
 
 	if transformation.GetLogRequestResponseInfo() != nil && transformation.GetLogRequestResponseInfo().GetValue() == true {
-		stagedTransformations.LogRequestResponseInfo = ptr.To(true)
+		stagedTransformations.Stages.LogRequestResponseInfo = ptr.To(true)
 	}
 
 	if transformation.GetEscapeCharacters() != nil {
 		if transformation.GetEscapeCharacters().GetValue() {
-			stagedTransformations.EscapeCharacters = ptr.To(gloogateway.EscapeCharactersEscape)
+			stagedTransformations.Stages.EscapeCharacters = ptr.To(gloogateway.EscapeCharactersEscape)
 		} else {
-			stagedTransformations.EscapeCharacters = ptr.To(gloogateway.EscapeCharactersDontEscape)
+			stagedTransformations.Stages.EscapeCharacters = ptr.To(gloogateway.EscapeCharactersDontEscape)
 		}
 	}
 	return stagedTransformations
@@ -1205,12 +1267,12 @@ func (o *GatewayAPIOutput) convertHTTPListenerOptions(options *gloov1.HttpListen
 			ExtAuth:         nil, // existing
 			RateLimit:       nil, // existing
 		},
-		Waf:                   nil, // existing
-		Retry:                 nil, // existing
-		Timeouts:              nil, // existing
-		RateLimitEnterprise:   nil, // existing
-		ExtAuthEnterprise:     nil, // existing
-		StagedTransformations: nil, // existing
+		Waf:                      nil, // existing
+		Retry:                    nil, // existing
+		Timeouts:                 nil, // existing
+		RateLimitEnterprise:      nil, // existing
+		ExtAuthEnterprise:        nil, // existing
+		TransformationEnterprise: nil, // existing
 	}
 
 	// go through each option in Gateway Options and convert to listener policy
@@ -1286,7 +1348,8 @@ func (o *GatewayAPIOutput) convertHTTPListenerOptions(options *gloov1.HttpListen
 		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "dlp is not supported in kgateway")
 	}
 	if options.GetCsrf() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "csrf is not supported in kgateway")
+		csrf := o.convertCSRF(options.GetCsrf())
+		tps.TrafficPolicySpec.Csrf = csrf
 	}
 	if options.GetBuffer() != nil {
 		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "buffer is not supported in kgateway")
@@ -1343,6 +1406,69 @@ func (o *GatewayAPIOutput) convertHTTPListenerOptions(options *gloov1.HttpListen
 	trafficPolicy.Spec = tps
 
 	o.gatewayAPICache.AddGlooTrafficPolicy(snapshot.NewGlooTrafficPolicyWrapper(trafficPolicy, wrapper.FileOrigin()))
+}
+
+func (o *GatewayAPIOutput) convertCSRF(policy *v4.CsrfPolicy) *kgateway.CSRFPolicy {
+	csrf := &kgateway.CSRFPolicy{
+		PercentageEnabled:  nil,
+		PercentageShadowed: nil,
+		AdditionalOrigins:  nil,
+	}
+	if policy.GetFilterEnabled() != nil {
+		filterEnabled := policy.GetFilterEnabled()
+
+		// Convert FractionalPercent to numerical percentage
+		var percentage float64
+		switch filterEnabled.GetDefaultValue().GetDenominator() {
+		case v3.FractionalPercent_HUNDRED:
+			percentage = float64(filterEnabled.GetDefaultValue().GetNumerator())
+		case v3.FractionalPercent_TEN_THOUSAND:
+			percentage = float64(filterEnabled.GetDefaultValue().GetNumerator()) / 100.0
+		case v3.FractionalPercent_MILLION:
+			percentage = float64(filterEnabled.GetDefaultValue().GetNumerator()) / 10000.0
+		default:
+			// Default to HUNDRED if denominator is not set
+			percentage = float64(filterEnabled.GetDefaultValue().GetNumerator())
+		}
+		csrf.PercentageEnabled = ptr.To(uint32(percentage))
+	}
+	if policy.GetAdditionalOrigins() != nil {
+		// Convert the additional origins from Gloo Edge format to kgateway format
+		additionalOrigins := make([]*kgateway.StringMatcher, 0, len(policy.GetAdditionalOrigins()))
+		for _, origin := range policy.GetAdditionalOrigins() {
+			switch typed := origin.GetMatchPattern().(type) {
+			case *gloo_type_matcher.StringMatcher_Exact:
+				additionalOrigins = append(additionalOrigins, &kgateway.StringMatcher{Exact: ptr.To(typed.Exact)})
+			case *gloo_type_matcher.StringMatcher_Prefix:
+				additionalOrigins = append(additionalOrigins, &kgateway.StringMatcher{Prefix: ptr.To(typed.Prefix)})
+			case *gloo_type_matcher.StringMatcher_Suffix:
+				additionalOrigins = append(additionalOrigins, &kgateway.StringMatcher{Suffix: ptr.To(typed.Suffix)})
+			case *gloo_type_matcher.StringMatcher_SafeRegex:
+				additionalOrigins = append(additionalOrigins, &kgateway.StringMatcher{SafeRegex: ptr.To(typed.SafeRegex.GetRegex())})
+			}
+		}
+		csrf.AdditionalOrigins = additionalOrigins
+	}
+	if policy.GetShadowEnabled() != nil {
+		shadowEnabled := policy.GetShadowEnabled()
+
+		// Convert FractionalPercent to numerical percentage
+		var percentage float64
+		switch shadowEnabled.GetDefaultValue().GetDenominator() {
+		case v3.FractionalPercent_HUNDRED:
+			percentage = float64(shadowEnabled.GetDefaultValue().GetNumerator())
+		case v3.FractionalPercent_TEN_THOUSAND:
+			percentage = float64(shadowEnabled.GetDefaultValue().GetNumerator()) / 100.0
+		case v3.FractionalPercent_MILLION:
+			percentage = float64(shadowEnabled.GetDefaultValue().GetNumerator()) / 10000.0
+		default:
+			// Default to HUNDRED if denominator is not set
+			percentage = float64(shadowEnabled.GetDefaultValue().GetNumerator())
+		}
+
+		csrf.PercentageShadowed = ptr.To(uint32(percentage))
+	}
+	return csrf
 }
 func (o *GatewayAPIOutput) generateGatewayExtensionForExtProc(extProc *extproc.Settings, name string, wrapper snapshot.Wrapper) *kgateway.GatewayExtension {
 
@@ -1630,12 +1756,12 @@ func (o *GatewayAPIOutput) convertRouteOptions(
 			ExtAuth:         nil, // existing
 			RateLimit:       nil, // existing
 		},
-		Waf:                   nil, // existing
-		Retry:                 nil, // existing
-		Timeouts:              nil, // existing
-		RateLimitEnterprise:   nil, // existing
-		ExtAuthEnterprise:     nil, // existing
-		StagedTransformations: nil, // existing
+		Waf:                      nil, // existing
+		Retry:                    nil, // existing
+		Timeouts:                 nil, // existing
+		RateLimitEnterprise:      nil, // existing
+		ExtAuthEnterprise:        nil, // existing
+		TransformationEnterprise: nil, // existing
 	}
 
 	//Features Supported By GatewayAPI
@@ -1745,6 +1871,11 @@ func (o *GatewayAPIOutput) convertRouteOptions(
 			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "WAF auditLogging is not supported in kgateway")
 		}
 	}
+	if options.GetCors() != nil {
+		policy := o.convertCORS(options.GetCors(), wrapper)
+		gtpSpec.Cors = policy
+	}
+
 	if options.GetRatelimit() != nil && len(options.GetRatelimit().GetRateLimits()) > 0 {
 
 		rle := &gloogateway.RateLimitEnterprise{
@@ -1805,13 +1936,14 @@ func (o *GatewayAPIOutput) convertRouteOptions(
 	}
 	if options.GetStagedTransformations() != nil {
 		transformation := o.convertStagedTransformation(options.GetStagedTransformations(), wrapper)
-		gtpSpec.StagedTransformations = transformation
+		gtpSpec.TransformationEnterprise = transformation
 	}
 	if options.GetDlp() != nil {
 		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "dlp is not supported in kgateway")
 	}
 	if options.GetCsrf() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "csrf is not supported in kgateway")
+		csrf := o.convertCSRF(options.GetCsrf())
+		gtpSpec.TrafficPolicySpec.Csrf = csrf
 	}
 	if options.GetExtensions() != nil {
 		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "gloo edge extensions is not supported in kgateway")
@@ -1943,10 +2075,10 @@ func (o *GatewayAPIOutput) convertRequestTransformation(transformationRouting *t
 
 	return routing
 }
-func (o *GatewayAPIOutput) convertResponseTranforms(responseTransform []*transformation2.ResponseMatch, wrapper snapshot.Wrapper) []gloogateway.ResponseMatch {
-	responseMatchers := make([]gloogateway.ResponseMatch, len(responseTransform))
+func (o *GatewayAPIOutput) convertResponseTranforms(responseTransform []*transformation2.ResponseMatch, wrapper snapshot.Wrapper) []gloogateway.ResponseMatcher {
+	responseMatchers := make([]gloogateway.ResponseMatcher, len(responseTransform))
 	for _, rule := range responseTransform {
-		match := gloogateway.ResponseMatch{
+		match := gloogateway.ResponseMatcher{
 			Headers:             []gloogateway.TransformationHeaderMatcher{},
 			ResponseCodeDetails: ptr.To(rule.ResponseCodeDetails),
 		}
@@ -2009,7 +2141,7 @@ func (o *GatewayAPIOutput) convertRequestTransforms(requestTranforms []*transfor
 		}
 		if rule.GetRequestTransformation() != nil {
 			transformation := o.convertTransformationMatch(rule.GetRequestTransformation())
-			match.Transformation = &transformation
+			match.Transformation = transformation
 		}
 
 		requestMatchers = append(requestMatchers, match)
