@@ -45,6 +45,8 @@ jobs:
           kubectl-version: ${{ steps.dotenv.outputs.kubectl_version }}
           helm-version: ${{ steps.dotenv.outputs.helm_version }}
           kind-node-version: ${{ steps.dotenv.outputs.node_version }}
+          image-variant: ${{ matrix.image-variant }}
+          version: ${{ matrix.version }}
 
       # TODO(tim): Add support for downloading the test results and creating
       # a pull request whenever a new release > 1.17+ is cut.

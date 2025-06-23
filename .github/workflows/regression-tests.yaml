@@ -102,3 +102,4 @@ jobs:
         kubectl-version: ${{ steps.dotenv.outputs.kubectl_version }}
         helm-version: ${{ steps.dotenv.outputs.helm_version }}
         kind-node-version: ${{ steps.dotenv.outputs.node_version }}
+        image-variant: ${{ matrix.image-variant }}

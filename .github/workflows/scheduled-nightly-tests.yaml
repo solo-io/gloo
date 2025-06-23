@@ -600,6 +600,7 @@ jobs:
         kind-version: ${{ steps.dotenv.outputs.kind_version }}
         kubectl-version: ${{ steps.dotenv.outputs.kubectl_version }}
         helm-version: ${{ steps.dotenv.outputs.helm_version }}
+        image-variant: ${{ matrix.image-variant }}
 
   kube_gateway_api_conformance_tests_v1_19_x:
     name: Conformance (branch=v1.19.x, type=Kubernetes Gateway API, version=${{matrix.kube-version.node}} )
@@ -623,6 +624,7 @@ jobs:
         kind-version: ${{ matrix.kube-version.kind }}
         kubectl-version: ${{ matrix.kube-version.kubectl }}
         helm-version: ${{ matrix.kube-version.helm }}
+        image-variant: ${{ matrix.image-variant }}
 
   kube_gateway_api_conformance_tests_v1_18_x:
     name: Conformance (branch=v1.18.x, type=Kubernetes Gateway API, version=${{matrix.kube-version.node}} )
@@ -646,6 +648,7 @@ jobs:
           kind-version: ${{ matrix.kube-version.kind }}
           kubectl-version: ${{ matrix.kube-version.kubectl }}
           helm-version: ${{ matrix.kube-version.helm }}
+          image-variant: ${{ matrix.image-variant }}
 
   kube_gateway_api_conformance_tests_v1_17_x:
     name: Conformance (branch=v1.17.x, type=Kubernetes Gateway API, version=${{matrix.kube-version.node}} )
@@ -669,6 +672,7 @@ jobs:
           kind-version: ${{ matrix.kube-version.kind }}
           kubectl-version: ${{ matrix.kube-version.kubectl }}
           helm-version: ${{ matrix.kube-version.helm }}
+          image-variant: ${{ matrix.image-variant }}
 
   publish_results:
     runs-on: ubuntu-24.04
