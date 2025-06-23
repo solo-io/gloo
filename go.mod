@@ -60,7 +60,7 @@ require (
 	// Ref: https://github.com/solo-io/gloo/pull/9463/files#r1594409655 && https://solo-io-corp.slack.com/archives/C03MFATU265/p1716913420716729?thread_ts=1716476992.938679&cid=C03MFATU265
 	// as to why it is now based off `gloo-main` and not `gloo-repo-branch`
 	github.com/solo-io/solo-apis v0.0.0-20250616141238-dd7b8dbf6a9b
-	github.com/solo-io/solo-kit v0.39.2
+	github.com/solo-io/solo-kit v0.39.0
 	github.com/spf13/afero v1.14.0
 	github.com/spf13/cobra v1.9.1
 	github.com/spf13/pflag v1.0.7
@@ -69,11 +69,11 @@ require (
 	go.uber.org/goleak v1.3.0
 	go.uber.org/multierr v1.11.0
 	go.uber.org/zap v1.27.0
-	golang.org/x/crypto v0.41.0
-	golang.org/x/sync v0.16.0
-	golang.org/x/tools v0.36.0
-	google.golang.org/grpc v1.74.2
-	google.golang.org/protobuf v1.36.7
+	golang.org/x/crypto v0.38.0
+	golang.org/x/sync v0.14.0
+	golang.org/x/tools v0.33.0
+	google.golang.org/grpc v1.72.0
+	google.golang.org/protobuf v1.36.6
 	gopkg.in/AlecAivazis/survey.v1 v1.8.7
 	helm.sh/helm/v3 v3.18.5
 	k8s.io/api v0.33.4
@@ -107,16 +107,16 @@ require (
 	github.com/solo-io/gloo-gateway v0.0.2-0.20250618214459-95c9ec20a2b3
 	github.com/stoewer/go-strcase v1.3.0
 	github.com/stretchr/testify v1.10.0
-	go.opentelemetry.io/proto/otlp v1.7.1
-	golang.org/x/exp v0.0.0-20250506013437-ce4c2cf36ca6
-	golang.org/x/mod v0.27.0
-	google.golang.org/genproto/googleapis/api v0.0.0-20250811230008-5f3141c8851a
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20250811230008-5f3141c8851a
-	istio.io/api v1.27.0-beta.0.0.20250731082105-36763529c462
-	istio.io/client-go v1.27.0-beta.0.0.20250731082605-b098a6e566f4
-	istio.io/istio v0.0.0-20250808040725-7359d8be2504
-	k8s.io/utils v0.0.0-20250604170112-4c0f3b243397
-	sigs.k8s.io/controller-tools v0.18.0
+	go.opentelemetry.io/proto/otlp v1.6.0
+	golang.org/x/exp v0.0.0-20241215155358-4a5509556b9e
+	golang.org/x/mod v0.24.0
+	google.golang.org/genproto/googleapis/api v0.0.0-20250428153025-10db94c68c34
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20250428153025-10db94c68c34
+	istio.io/api v1.25.2-0.20250410212420-84c271001f68
+	istio.io/client-go v1.25.2-0.20250410213018-e5f6074bc228
+	istio.io/istio v0.0.0-20250411142419-0d83506c2883
+	k8s.io/utils v0.0.0-20250321185631-1f6e0b77f77e
+	sigs.k8s.io/controller-tools v0.17.3
 	sigs.k8s.io/structured-merge-diff/v4 v4.7.0
 )
 
@@ -129,20 +129,10 @@ require (
 	go.uber.org/automaxprocs v1.6.0 // indirect
 )
 
-require (
-	github.com/go-viper/mapstructure/v2 v2.4.0 // indirect
-	github.com/grafana/regexp v0.0.0-20240518133315-a468a5bfb3bc // indirect
-	github.com/prometheus/otlptranslator v0.0.0-20250717125610-8549f4ab4f8f // indirect
-	github.com/santhosh-tekuri/jsonschema/v6 v6.0.2 // indirect
-	go.yaml.in/yaml/v2 v2.4.2 // indirect
-	go.yaml.in/yaml/v3 v3.0.3 // indirect
-	golang.org/x/tools/go/packages/packagestest v0.1.1-deprecated // indirect
-	oras.land/oras-go/v2 v2.6.0 // indirect
-	sigs.k8s.io/gateway-api-inference-extension v0.5.0 // indirect
-)
+require github.com/felixge/httpsnoop v1.0.4 // indirect
 
 require (
-	cel.dev/expr v0.24.0 // indirect
+	cel.dev/expr v0.20.0 // indirect
 	contrib.go.opencensus.io/exporter/prometheus v0.4.2 // indirect
 	cuelang.org/go v0.10.0 // indirect
 	dario.cat/mergo v1.0.2 // indirect
@@ -221,7 +211,7 @@ require (
 	github.com/google/cel-go v0.26.0 // indirect
 	github.com/google/gnostic-models v0.6.9 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
-	github.com/google/pprof v0.0.0-20250607225305-033d6d78b36a // indirect
+	github.com/google/pprof v0.0.0-20250403155104-27863c87afa6 // indirect
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
 	github.com/goph/emperror v0.17.1 // indirect
 	github.com/gorilla/websocket v1.5.4-0.20250319132907-e064f32e3674 // indirect
@@ -331,12 +321,13 @@ require (
 	github.com/yuin/goldmark v1.7.4 // indirect
 	go.mongodb.org/mongo-driver v1.14.0 // indirect
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
-	go.opentelemetry.io/otel v1.37.0 // indirect
-	go.opentelemetry.io/otel/exporters/prometheus v0.59.1 // indirect
-	go.opentelemetry.io/otel/metric v1.37.0 // indirect
-	go.opentelemetry.io/otel/sdk v1.37.0 // indirect
-	go.opentelemetry.io/otel/sdk/metric v1.37.0 // indirect
-	go.opentelemetry.io/otel/trace v1.37.0 // indirect
+	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.59.0 // indirect
+	go.opentelemetry.io/otel v1.34.0 // indirect
+	go.opentelemetry.io/otel/exporters/prometheus v0.56.0 // indirect
+	go.opentelemetry.io/otel/metric v1.34.0 // indirect
+	go.opentelemetry.io/otel/sdk v1.34.0 // indirect
+	go.opentelemetry.io/otel/sdk/metric v1.34.0 // indirect
+	go.opentelemetry.io/otel/trace v1.34.0 // indirect
 	go.uber.org/atomic v1.11.0 // indirect
 	golang.org/x/net v0.43.0 // indirect
 	golang.org/x/oauth2 v0.30.0 // indirect

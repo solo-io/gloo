@@ -509,7 +509,7 @@ func (o *GatewayAPIOutput) convertVirtualServiceListener(vs *snapshot.VirtualSer
 				Namespace: ptr.To(gwv1.Namespace(glooGateway.GetNamespace())),
 				Name:      gwv1.ObjectName(gatewayName),
 			},
-			Listeners: make([]apixv1a1.ListenerEntry, 0),
+			Listeners: []apixv1a1.ListenerEntry{},
 		},
 	}
 
@@ -707,7 +707,7 @@ func (o *GatewayAPIOutput) convertVHOOptionsToTrafficPolicySpec(vho *gloov1.Virt
 			waf := &gloogateway.Waf{
 				Disabled:      ptr.To(vho.GetWaf().Disabled),
 				CustomMessage: vho.GetWaf().CustomInterventionMessage,
-				Rules:         make([]gloogateway.WafRule, len(vho.GetWaf().RuleSets)),
+				Rules:         []gloogateway.WafRule{},
 			}
 			for _, r := range vho.GetWaf().RuleSets {
 				waf.Rules = append(waf.Rules, gloogateway.WafRule{
@@ -732,7 +732,7 @@ func (o *GatewayAPIOutput) convertVHOOptionsToTrafficPolicySpec(vho *gloov1.Virt
 						Name: "rate-limit",
 					},
 
-					RateLimits: make([]gloogateway.RateLimitActions, len(vho.GetRatelimitEarly().GetRateLimits())),
+					RateLimits: []gloogateway.RateLimitActions{},
 					// RateLimitConfig for the policy, not sure how it works for rate limit basic
 					// TODO(nick) grab the global rate limit config ref
 					RateLimitConfigRef: nil,
@@ -740,8 +740,8 @@ func (o *GatewayAPIOutput) convertVHOOptionsToTrafficPolicySpec(vho *gloov1.Virt
 			}
 			for _, rl := range vho.GetRatelimitEarly().GetRateLimits() {
 				rateLimit := &gloogateway.RateLimitActions{
-					Actions:    make([]gloogateway.Action, len(rl.GetActions())),
-					SetActions: make([]gloogateway.Action, len(rl.GetSetActions())),
+					Actions:    []gloogateway.Action{},
+					SetActions: []gloogateway.Action{},
 				}
 				for _, action := range rl.GetActions() {
 					rateLimitAction := o.convertRateLimitAction(action)
@@ -765,7 +765,7 @@ func (o *GatewayAPIOutput) convertVHOOptionsToTrafficPolicySpec(vho *gloov1.Virt
 						Name: "rate-limit",
 					},
 
-					RateLimits: make([]gloogateway.RateLimitActions, len(vho.GetRatelimitRegular().GetRateLimits())),
+					RateLimits: []gloogateway.RateLimitActions{},
 					// RateLimitConfig for the policy, not sure how it works for rate limit basic
 					// TODO(nick) grab the global rate limit config ref
 					RateLimitConfigRef: nil,
@@ -773,8 +773,8 @@ func (o *GatewayAPIOutput) convertVHOOptionsToTrafficPolicySpec(vho *gloov1.Virt
 			}
 			for _, rl := range vho.GetRatelimitRegular().GetRateLimits() {
 				rateLimit := &gloogateway.RateLimitActions{
-					Actions:    make([]gloogateway.Action, len(rl.GetActions())),
-					SetActions: make([]gloogateway.Action, len(rl.GetSetActions())),
+					Actions:    []gloogateway.Action{},
+					SetActions: []gloogateway.Action{},
 				}
 				for _, action := range rl.GetActions() {
 					rateLimitAction := o.convertRateLimitAction(action)
@@ -841,11 +841,11 @@ func (o *GatewayAPIOutput) convertVHOOptionsToTrafficPolicySpec(vho *gloov1.Virt
 
 func (o *GatewayAPIOutput) convertCORS(policy *cors.CorsPolicy, wrapper snapshot.Wrapper) *kgateway.CorsPolicy {
 	filter := &gwv1.HTTPCORSFilter{
-		AllowOrigins:     make([]gwv1.AbsoluteURI, len(policy.GetAllowOrigin())),
+		AllowOrigins:     []gwv1.AbsoluteURI{},
 		AllowCredentials: gwv1.TrueField(policy.GetAllowCredentials()),
-		AllowMethods:     make([]gwv1.HTTPMethodWithWildcard, len(policy.GetAllowMethods())),
-		AllowHeaders:     make([]gwv1.HTTPHeaderName, len(policy.GetAllowHeaders())),
-		ExposeHeaders:    make([]gwv1.HTTPHeaderName, 0, len(policy.GetExposeHeaders())),
+		AllowMethods:     []gwv1.HTTPMethodWithWildcard{},
+		AllowHeaders:     []gwv1.HTTPHeaderName{},
+		ExposeHeaders:    []gwv1.HTTPHeaderName{},
 		MaxAge:           0,
 	}
 	if policy.GetAllowOrigin() != nil {
@@ -1010,7 +1010,7 @@ func (o *GatewayAPIOutput) convertListenerOptions(glooGateway *snapshot.GlooGate
 	}
 	listenerPolicy := &kgateway.HTTPListenerPolicy{
 		TypeMeta: metav1.TypeMeta{
-			Kind:       "ListenerPolicy",
+			Kind:       "HTTPListenerPolicy",
 			APIVersion: kgateway.GroupVersion.String(),
 		},
 		ObjectMeta: metav1.ObjectMeta{
@@ -1245,6 +1245,7 @@ func (o *GatewayAPIOutput) convertAccessLogFitler(filter *als.AccessLogFilter, w
 }
 
 // convertHTTPListenerOptions - generates GlooTrafficPolicy applied to the Gateway
+// TODO(nick) - need to figure out which fields go to which policy. For example: httpConnectionManagerSettings.streamIdleTimeout: 3600s
 func (o *GatewayAPIOutput) convertHTTPListenerOptions(options *gloov1.HttpListenerOptions, wrapper snapshot.Wrapper, proxyName string) {
 	if options == nil {
 		return
@@ -1339,7 +1340,7 @@ func (o *GatewayAPIOutput) convertHTTPListenerOptions(options *gloov1.HttpListen
 		waf := &gloogateway.Waf{
 			Disabled:      ptr.To(options.GetWaf().Disabled),
 			CustomMessage: options.GetWaf().CustomInterventionMessage,
-			Rules:         make([]gloogateway.WafRule, len(options.GetWaf().RuleSets)),
+			Rules:         []gloogateway.WafRule{},
 		}
 		for _, r := range options.GetWaf().RuleSets {
 			waf.Rules = append(waf.Rules, gloogateway.WafRule{
@@ -1447,7 +1448,7 @@ func (o *GatewayAPIOutput) convertCSRF(policy *v4.CsrfPolicy) *kgateway.CSRFPoli
 	}
 	if policy.GetAdditionalOrigins() != nil {
 		// Convert the additional origins from Gloo Edge format to kgateway format
-		additionalOrigins := make([]*kgateway.StringMatcher, 0, len(policy.GetAdditionalOrigins()))
+		additionalOrigins := []*kgateway.StringMatcher{}
 		for _, origin := range policy.GetAdditionalOrigins() {
 			switch typed := origin.GetMatchPattern().(type) {
 			case *gloo_type_matcher.StringMatcher_Exact:
@@ -1785,6 +1786,9 @@ func (o *GatewayAPIOutput) convertRouteOptions(
 	// - Request Mirror
 	// - CORS
 	// - ExtensionRef
+	// - Timeout (done)
+	// - Retry (done)
+	// - Session
 
 	//// Because we move rewrites to a filter we need to remove it from RouteOptions
 	// TODO(nick): delete this because this was for RouteOption and not needed for GlooTrafficPolicy we still need to add it to the HTTPRouteThough
@@ -1813,7 +1817,7 @@ func (o *GatewayAPIOutput) convertRouteOptions(
 		aip := &kgateway.AIPolicy{
 			PromptEnrichment: nil,
 			PromptGuard:      nil,
-			Defaults:         make([]kgateway.FieldDefault, len(options.GetAi().GetDefaults())),
+			Defaults:         []kgateway.FieldDefault{},
 		}
 		switch options.GetAi().GetRouteType() {
 		case ai.RouteSettings_CHAT:
@@ -1898,7 +1902,7 @@ func (o *GatewayAPIOutput) convertRouteOptions(
 					Name: "rate-limit",
 				},
 
-				RateLimits: make([]gloogateway.RateLimitActions, len(options.GetRatelimit().GetRateLimits())),
+				RateLimits: []gloogateway.RateLimitActions{},
 				// RateLimitConfig for the policy, not sure how it works for rate limit basic
 				// TODO(nick) grab the global rate limit config ref
 				RateLimitConfigRef: nil,
@@ -1906,8 +1910,8 @@ func (o *GatewayAPIOutput) convertRouteOptions(
 		}
 		for _, rl := range options.GetRatelimit().GetRateLimits() {
 			rateLimit := &gloogateway.RateLimitActions{
-				Actions:    make([]gloogateway.Action, len(rl.GetActions())),
-				SetActions: make([]gloogateway.Action, len(rl.GetSetActions())),
+				Actions:    []gloogateway.Action{},
+				SetActions: []gloogateway.Action{},
 			}
 			for _, action := range rl.GetActions() {
 				rateLimitAction := o.convertRateLimitAction(action)
@@ -1938,7 +1942,7 @@ func (o *GatewayAPIOutput) convertRouteOptions(
 		//		// Need to find the Gateway Extension for Global Rate Limit Server
 		//		ExtensionRef: nil,
 		//
-		//		RateLimits: make([]gloogateway.RateLimitActions, 0),
+		//		RateLimits: []gloogateway.RateLimitActions{},
 		//		// RateLimitConfig for the policy, not sure how it works for rate limit basic
 		//		RateLimitConfigRef: nil,
 		//	},
@@ -2049,7 +2053,7 @@ func (o *GatewayAPIOutput) convertRateLimitAction(action *v1alpha2.Action) gloog
 		hvm := &gloogateway.HeaderValueMatchAction{
 			DescriptorValue: action.GetHeaderValueMatch().GetDescriptorValue(),
 			ExpectMatch:     nil,
-			Headers:         make([]gloogateway.HeaderMatcher, len(action.GetHeaderValueMatch().GetHeaders())),
+			Headers:         []gloogateway.HeaderMatcher{},
 		}
 		if action.GetHeaderValueMatch().GetExpectMatch() != nil {
 			hvm.ExpectMatch = ptr.To(action.GetHeaderValueMatch().GetExpectMatch().GetValue())
@@ -2089,7 +2093,7 @@ func (o *GatewayAPIOutput) convertRequestTransformation(transformationRouting *t
 	return routing
 }
 func (o *GatewayAPIOutput) convertResponseTranforms(responseTransform []*transformation2.ResponseMatch, wrapper snapshot.Wrapper) []gloogateway.ResponseMatcher {
-	responseMatchers := make([]gloogateway.ResponseMatcher, len(responseTransform))
+	responseMatchers := []gloogateway.ResponseMatcher{}
 	for _, rule := range responseTransform {
 		match := gloogateway.ResponseMatcher{
 			Headers:             []gloogateway.TransformationHeaderMatcher{},
@@ -2115,7 +2119,7 @@ func (o *GatewayAPIOutput) convertResponseTranforms(responseTransform []*transfo
 	return responseMatchers
 }
 func (o *GatewayAPIOutput) convertRequestTransforms(requestTranforms []*transformation2.RequestMatch, wrapper snapshot.Wrapper) []gloogateway.RequestMatcher {
-	requestMatchers := make([]gloogateway.RequestMatcher, len(requestTranforms))
+	requestMatchers := []gloogateway.RequestMatcher{}
 	for _, rule := range requestTranforms {
 		match := gloogateway.RequestMatcher{}
 		if rule.GetClearRouteCache() == true {
@@ -2123,7 +2127,7 @@ func (o *GatewayAPIOutput) convertRequestTransforms(requestTranforms []*transfor
 		}
 		if rule.GetMatcher() != nil {
 			match.Matcher = &gloogateway.TransformationRequestMatcher{
-				Headers: make([]gloogateway.TransformationHeaderMatcher, len(rule.GetMatcher().GetHeaders())),
+				Headers: []gloogateway.TransformationHeaderMatcher{},
 			}
 			for _, header := range rule.GetMatcher().GetHeaders() {
 				match.Matcher.Headers = append(match.Matcher.Headers, gloogateway.TransformationHeaderMatcher{
@@ -2175,12 +2179,12 @@ func (o *GatewayAPIOutput) convertTransformationMatch(rule *transformation2.Tran
 			AdvancedTemplates:     ptr.To(rule.GetTransformationTemplate().AdvancedTemplates),
 			Extractors:            nil,
 			Headers:               nil,
-			HeadersToAppend:       make([]gloogateway.HeaderToAppend, len(tt.GetHeadersToAppend())),
-			HeadersToRemove:       make([]string, len(tt.GetHeadersToRemove())),
+			HeadersToAppend:       []gloogateway.HeaderToAppend{},
+			HeadersToRemove:       []string{},
 			BodyTransformation:    nil,
 			ParseBodyBehavior:     nil,
 			IgnoreErrorOnParse:    ptr.To(tt.GetIgnoreErrorOnParse()),
-			DynamicMetadataValues: make([]gloogateway.DynamicMetadataValue, len(tt.GetDynamicMetadataValues())),
+			DynamicMetadataValues: []gloogateway.DynamicMetadataValue{},
 			EscapeCharacters:      nil,
 			SpanTransformer:       nil,
 		}
@@ -2314,7 +2318,7 @@ func (o *GatewayAPIOutput) convertPromptGuardResponse(options *gloov1.RouteOptio
 				Port: gwv1.PortNumber(options.GetAi().GetPromptGuard().GetResponse().GetWebhook().GetPort()),
 				//InsecureSkipVerify: nil,
 			},
-			ForwardHeaders: make([]gwv1.HTTPHeaderMatch, len(options.GetAi().GetPromptGuard().GetResponse().GetWebhook().GetForwardHeaders())),
+			ForwardHeaders: []gwv1.HTTPHeaderMatch{},
 		}
 		for _, h := range options.GetAi().GetPromptGuard().GetResponse().GetWebhook().GetForwardHeaders() {
 			match := gwv1.HTTPHeaderMatch{
@@ -2344,8 +2348,8 @@ func (o *GatewayAPIOutput) convertPromptGuardResponse(options *gloov1.RouteOptio
 
 	if options.GetAi().GetPromptGuard().GetResponse().GetRegex() != nil {
 		response.Regex = &kgateway.Regex{
-			Matches:  make([]kgateway.RegexMatch, len(options.GetAi().GetPromptGuard().GetResponse().GetRegex().GetMatches())),
-			Builtins: make([]kgateway.BuiltIn, len(options.GetAi().GetPromptGuard().GetResponse().GetRegex().GetBuiltins())),
+			Matches:  []kgateway.RegexMatch{},
+			Builtins: []kgateway.BuiltIn{},
 		}
 		switch options.GetAi().GetPromptGuard().GetResponse().GetRegex().GetAction() {
 		case ai.AIPromptGuard_Regex_MASK:
@@ -2360,7 +2364,7 @@ func (o *GatewayAPIOutput) convertPromptGuardResponse(options *gloov1.RouteOptio
 				Name:    ptr.To(match.GetName()),
 			})
 		}
-		response.Regex.Builtins = make([]kgateway.BuiltIn, len(options.GetAi().GetPromptGuard().GetResponse().GetRegex().GetBuiltins()))
+		response.Regex.Builtins = []kgateway.BuiltIn{}
 		for _, builtIns := range options.GetAi().GetPromptGuard().GetResponse().GetRegex().GetBuiltins() {
 			switch builtIns {
 			case ai.AIPromptGuard_Regex_SSN:
@@ -2414,7 +2418,7 @@ func (o *GatewayAPIOutput) convertPromptGuardRequest(options *gloov1.RouteOption
 				Port: gwv1.PortNumber(options.GetAi().GetPromptGuard().GetRequest().GetWebhook().GetPort()),
 				//InsecureSkipVerify: nil,
 			},
-			ForwardHeaders: make([]gwv1.HTTPHeaderMatch, len(options.GetAi().GetPromptGuard().GetRequest().GetWebhook().GetForwardHeaders())),
+			ForwardHeaders: []gwv1.HTTPHeaderMatch{},
 		}
 		for _, h := range options.GetAi().GetPromptGuard().GetRequest().GetWebhook().GetForwardHeaders() {
 			match := gwv1.HTTPHeaderMatch{
@@ -2450,8 +2454,8 @@ func (o *GatewayAPIOutput) convertPromptGuardRequest(options *gloov1.RouteOption
 	}
 	if options.GetAi().GetPromptGuard().GetRequest().GetRegex() != nil {
 		request.Regex = &kgateway.Regex{
-			Matches:  make([]kgateway.RegexMatch, len(options.GetAi().GetPromptGuard().GetRequest().GetRegex().GetMatches())),
-			Builtins: make([]kgateway.BuiltIn, len(options.GetAi().GetPromptGuard().GetRequest().GetRegex().GetBuiltins())),
+			Matches:  []kgateway.RegexMatch{},
+			Builtins: []kgateway.BuiltIn{},
 		}
 		switch options.GetAi().GetPromptGuard().GetRequest().GetRegex().GetAction() {
 		case ai.AIPromptGuard_Regex_MASK:
@@ -2466,7 +2470,7 @@ func (o *GatewayAPIOutput) convertPromptGuardRequest(options *gloov1.RouteOption
 				Name:    ptr.To(match.GetName()),
 			})
 		}
-		request.Regex.Builtins = make([]kgateway.BuiltIn, len(options.GetAi().GetPromptGuard().GetRequest().GetRegex().GetBuiltins()))
+		request.Regex.Builtins = []kgateway.BuiltIn{}
 		for _, builtIns := range options.GetAi().GetPromptGuard().GetRequest().GetRegex().GetBuiltins() {
 			switch builtIns {
 			case ai.AIPromptGuard_Regex_SSN:
@@ -2484,9 +2488,13 @@ func (o *GatewayAPIOutput) convertPromptGuardRequest(options *gloov1.RouteOption
 func (o *GatewayAPIOutput) convertRouteToRule(r *gloogwv1.Route, wrapper snapshot.Wrapper) (gwv1.HTTPRouteRule, error) {
 
 	rr := gwv1.HTTPRouteRule{
-		Matches:     []gwv1.HTTPRouteMatch{},
-		Filters:     []gwv1.HTTPRouteFilter{},
-		BackendRefs: []gwv1.HTTPBackendRef{},
+		Name:               nil, //existing
+		Matches:            []gwv1.HTTPRouteMatch{},
+		Filters:            []gwv1.HTTPRouteFilter{},
+		BackendRefs:        []gwv1.HTTPBackendRef{},
+		Timeouts:           nil, //existing
+		Retry:              nil, //existing
+		SessionPersistence: nil, //existing
 	}
 
 	// unused fields
@@ -2507,7 +2515,8 @@ func (o *GatewayAPIOutput) convertRouteToRule(r *gloogwv1.Route, wrapper snapsho
 	if r.GetOptions() != nil {
 		options := r.GetOptions()
 
-		//Features Supported By GatewayAPI
+		// TODO we might still want to do all of these in TP or GTP due to them potentially applying at the listener or gateway level and having more features.
+		// Features Supported By GatewayAPI
 		// - RequestHeaderModifier
 		// - ResponseHeaderModifier
 		// - RequestRedirect
@@ -2515,6 +2524,9 @@ func (o *GatewayAPIOutput) convertRouteToRule(r *gloogwv1.Route, wrapper snapsho
 		// - Request Mirror
 		// - CORS
 		// - ExtensionRef
+		// - Timeout (done)
+		// - Retry (done)
+		// - Session
 
 		// prefix rewrite, sets it on HTTPRoute
 		if options.GetPrefixRewrite() != nil {
@@ -2522,6 +2534,37 @@ func (o *GatewayAPIOutput) convertRouteToRule(r *gloogwv1.Route, wrapper snapsho
 			if rf != nil {
 				rr.Filters = append(rr.Filters, *rf)
 			}
+		}
+
+		if options.GetTimeout() != nil {
+			rr.Timeouts = &gwv1.HTTPRouteTimeouts{
+				Request: ptr.To(gwv1.Duration(options.GetTimeout().AsDuration().String())),
+			}
+		}
+		if options.GetRetries() != nil {
+			retry := &gwv1.HTTPRouteRetry{
+				Codes:    []gwv1.HTTPRouteRetryStatusCode{},
+				Attempts: ptr.To(int(options.GetRetries().GetNumRetries())),
+				Backoff:  nil,
+			}
+			if options.GetRetries().GetRetryOn() != "" {
+				// TODO need to convert envoy x-envoy-retry-on to HTTPRouteRetry
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "retry does not support x-envoy-retry-on")
+			}
+			if options.GetRetries().GetPreviousPriorities() != nil {
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "retry does not support envoy previous priorities retry selector")
+			}
+
+			if options.GetRetries().GetPerTryTimeout() != nil {
+				retry.Backoff = ptr.To(gwv1.Duration(options.GetRetries().GetPerTryTimeout().String()))
+			}
+			if options.GetRetries().GetRetriableStatusCodes() != nil {
+				for _, code := range options.GetRetries().GetRetriableStatusCodes() {
+					retry.Codes = append(retry.Codes, gwv1.HTTPRouteRetryStatusCode(code))
+				}
+			}
+
+			rr.Retry = retry
 		}
 
 		glooTrafficPolicy, filter := o.convertRouteOptions(options, r.GetName(), wrapper)
@@ -3112,8 +3155,11 @@ func isRouteOptionsSet(options *gloov1.RouteOptions) bool {
 	// - URLRewrite
 	// - Request Mirror
 	// - CORS
+	// - ExtensionRef
+	// - Timeout (done)
+	// - Retry (done)
+	// - Session
 	return options.GetExtProc() != nil ||
-		options.GetRetries() != nil ||
 		options.GetStagedTransformations() != nil ||
 		options.GetAutoHostRewrite() != nil ||
 		options.GetFaults() != nil ||
