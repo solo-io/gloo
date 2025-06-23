@@ -1,5 +1,21 @@
 name: Conformance Tests
 description: run kubernetes gateway api conformance tests
+inputs:
+  version-file:
+    required: false
+    description: An env file containing the versions to use for the test. If not provided, the versions will be read from the other inputs
+  kind-version:
+    required: false
+    description: The kind version to use. Ignored if version-file is provided
+  kubectl-version:
+    required: false
+    description: The kubectl version to use. Ignored if version-file is provided
+  helm-version:
+    required: false
+    description: The helm version to use. Ignored if version-file is provided
+  kind-node-version:
+    required: false
+    description: The kind node version to use. Ignored if version-file is provided
 runs:
   using: "composite"
   steps:
