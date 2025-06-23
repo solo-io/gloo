@@ -5,20 +5,27 @@ runs:
   steps:
   - name: Prep Go Runner
     uses: ./.github/workflows/composite-actions/prep-go-runner
+  - name: Dotenv Action
+    id: dotenv
+    uses: falti/dotenv-action@v1.1.4
+    if: ${{ inputs.version-file != '' }}
+    with:
+      path: ${{ inputs.version-file }}
+      log-variables: true  
   - name: Install kind
     uses: helm/kind-action@v1.12.0
     with:
       install_only: true
-      version: ${{ matrix.kube-version.kind }}
-      kubectl_version: ${{ matrix.kube-version.kubectl }}
-      node_image: kindest/node:${{ matrix.kube-version.node }}
+      version: ${{ steps.dotenv.outputs.kind_version || inputs.kind-version }}
+      kubectl_version: ${{ steps.dotenv.outputs.kubectl_version || inputs.kubectl-version }}
+      node_image: kindest/node:${{ steps.dotenv.outputs.node_version || inputs.kind-node-version }}
   - uses: azure/setup-kubectl@v4
     id: kubectl
     with:
-      version: ${{ matrix.kube-version.kubectl }}
+      version: ${{ steps.dotenv.outputs.kubectl_version || inputs.kubectl-version }}
   - uses: azure/setup-helm@v4
     with:
-      version: ${{ matrix.kube-version.helm }}
+      version: ${{ steps.dotenv.outputs.helm_version || inputs.helm-version }}
   - name: Set and retrieve environment variables
     shell: bash
     run: |
@@ -35,7 +42,7 @@ runs:
   - name: Setup test env
     shell: bash
     env:
-      CLUSTER_NODE_VERSION: ${{ matrix.kube-version.node }}
+      CLUSTER_NODE_VERSION: ${{ steps.dotenv.outputs.node_version || inputs.kind-node-version }}
       IMAGE_VARIANT: ${{ matrix.image-variant }}
       CONFORMANCE: "true"
     run: ./ci/kind/setup-kind.sh
@@ -75,5 +82,5 @@ runs:
     with:
       # Name of the path to upload. The VERSION variable refers to the Makefile
       # VERSION variable.
-      name: conformance-gloo-gateway-report-attempt-${{ github.run_attempt }}@k8s${{ matrix.kube-version.kubectl }}
+      name: conformance-gloo-gateway-report-attempt-${{ github.run_attempt }}@k8s${{ steps.dotenv.outputs.kubectl_version || inputs.kubectl-version }}
       path: _test/conformance/${{ env.VERSION }}-report.yaml

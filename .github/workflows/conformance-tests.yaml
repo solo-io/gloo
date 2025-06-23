@@ -17,25 +17,7 @@ on:
         type: string
 
 jobs:
-  prepare-kind-version:
-    runs-on: ubuntu-latest
-    outputs:
-      kind-version: ${{ steps.set-kind-version.outputs.kind-version }}
-    steps:
-      - uses: actions/checkout@v4
-      - name: Read max versions
-        id: max_versions
-        uses: falti/dotenv-action@v1.1.4
-        with:
-          path: ./.github/workflows/.env/nightly-tests/max_versions.env
-      - name: Set kind-version
-        id: set-kind-version
-        run: |
-          JSON="[{\"node\":\"${{ steps.max_versions.outputs.node_version }}\",\"kubectl\":\"${{ steps.max_versions.outputs.kubectl_version }}\",\"kind\":\"${{ steps.max_versions.outputs.kind_version }}\",\"helm\":\"${{ steps.max_versions.outputs.helm_version }}\"}]"
-          echo "kind-version=$JSON" >> $GITHUB_OUTPUT
-
   run-conformance-tests:
-    needs: prepare-kind-version
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -43,7 +25,8 @@ jobs:
           - ${{ inputs.image-variant }}
         version:
           - ${{ inputs.version }}
-        kube-version: ${{ fromJson(needs.prepare-kind-version.outputs.kind-version) }}
+        version-files:
+          - file: './.github/workflows/.env/pr-tests/versions.env'
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -51,10 +34,7 @@ jobs:
       - name: Run Conformance Tests
         uses: ./.github/workflows/composite-actions/kube-gateway-api-conformance-tests
         with:
-          kind-node-version: ${{ matrix.kube-version.node }}
-          kind-version: ${{ matrix.kube-version.kind }}
-          kubectl-version: ${{ matrix.kube-version.kubectl }}
-          helm-version: ${{ matrix.kube-version.helm }}
+          version-file: ${{ matrix.version-files.file }}
 
       # TODO(tim): Add support for downloading the test results and creating
       # a pull request whenever a new release > 1.17+ is cut.
