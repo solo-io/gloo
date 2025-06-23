@@ -602,6 +602,38 @@ jobs:
         helm-version: ${{ steps.dotenv.outputs.helm_version }}
         image-variant: ${{ matrix.image-variant }}
 
+  kube_gateway_api_conformance_tests_on_demand:
+    name: Conformance (branch=main, type=Kubernetes Gateway API, version-file=${{matrix.version-files.label}})
+    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-conformance && inputs.branch == 'workflow_initiating_branch') }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        version-files:
+          - label: 'min'
+            file: './.github/workflows/.env/nightly-tests/min_versions.env'
+          - label: 'max'
+            file: './.github/workflows/.env/nightly-tests/max_versions.env'
+        image-variant:
+          - standard
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        ref: main
+    - id: dotenv
+      uses: falti/dotenv-action@v1.1.4
+      with:
+        path: ${{ matrix.version-files.file }}
+        log-variables: true
+    - uses: ./.github/workflows/composite-actions/kube-gateway-api-conformance-tests
+      with:
+        kind-node-version: ${{ steps.dotenv.outputs.node_version }}
+        kind-version: ${{ steps.dotenv.outputs.kind_version }}
+        kubectl-version: ${{ steps.dotenv.outputs.kubectl_version }}
+        helm-version: ${{ steps.dotenv.outputs.helm_version }}
+        image-variant: ${{ matrix.image-variant }}
+
   kube_gateway_api_conformance_tests_v1_19_x:
     name: Conformance (branch=v1.19.x, type=Kubernetes Gateway API, version=${{matrix.kube-version.node}} )
     if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-conformance && inputs.branch == 'v1.19.x' ) || github.event.schedule == '0 6 * * 1' }}
