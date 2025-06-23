@@ -88,25 +88,25 @@ func (o *GatewayAPIOutput) convertSettings(settings *snapshot.SettingsWrapper) e
 		//TODO(nick): how is this set now?
 	}
 	if spec.GetWatchNamespaces() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, settings, "watchNamespaces is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, settings, "watchNamespaces is not supported")
 	}
 	if spec.GetKubernetesConfigSource() != nil {
 		// this is a default
 	}
 	if spec.GetDirectoryConfigSource() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, settings, "directoryConfigSource is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, settings, "directoryConfigSource is not supported")
 	}
 	if spec.GetConsulKvSource() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, settings, "consulKvSource is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, settings, "consulKvSource is not supported")
 	}
 	if spec.GetKubernetesSecretSource() != nil {
 		// This is the default
 	}
 	if spec.GetVaultSecretSource() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, settings, "vaultSecretSource is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, settings, "vaultSecretSource is not supported")
 	}
 	if spec.GetDirectorySecretSource() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, settings, "directorySecretSource is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, settings, "directorySecretSource is not supported")
 	}
 	if spec.GetSecretOptions() != nil {
 		// This is no longer needed and helps configure the secret source
@@ -115,10 +115,10 @@ func (o *GatewayAPIOutput) convertSettings(settings *snapshot.SettingsWrapper) e
 		// This is the default
 	}
 	if spec.GetDirectoryArtifactSource() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, settings, "directoryArtifactSource is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, settings, "directoryArtifactSource is not supported")
 	}
 	if spec.GetConsulKvArtifactSource() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, settings, "consulKvArtifactSouce is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, settings, "consulKvArtifactSouce is not supported")
 	}
 	if spec.GetRefreshRate() != nil {
 		//this is not needed in kgateway, all users should start with the default
@@ -157,16 +157,16 @@ func (o *GatewayAPIOutput) convertSettings(settings *snapshot.SettingsWrapper) e
 
 		//TODO(nick) - verify AWS support
 		if spec.GetGloo().GetAwsOptions() != nil && spec.GetGloo().GetAwsOptions().GetEnableCredentialsDiscovey() == true {
-			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, settings, "AWS credentialDiscovery is not supported in kgateway")
+			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, settings, "AWS credentialDiscovery is not supported")
 		}
 		if spec.GetGloo().GetAwsOptions() != nil && spec.GetGloo().GetAwsOptions().GetFallbackToFirstFunction() != nil && spec.GetGloo().GetAwsOptions().GetFallbackToFirstFunction().GetValue() == true {
-			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, settings, "AWS fallbackToFirstFunction is not supported in kgateway")
+			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, settings, "AWS fallbackToFirstFunction is not supported")
 		}
 		if spec.GetGloo().GetAwsOptions() != nil && spec.GetGloo().GetAwsOptions().GetPropagateOriginalRouting() != nil && spec.GetGloo().GetAwsOptions().GetPropagateOriginalRouting().GetValue() == true {
-			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, settings, "AWS propagateOriginalRouting is not supported in kgateway")
+			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, settings, "AWS propagateOriginalRouting is not supported")
 		}
 		if spec.GetGloo().GetAwsOptions() != nil && spec.GetGloo().GetAwsOptions().GetServiceAccountCredentials() != nil {
-			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, settings, "AWS serviceAccountCredentials is not supported in kgateway")
+			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, settings, "AWS serviceAccountCredentials is not supported")
 		}
 	}
 	if spec.GetGateway() != nil {
@@ -191,10 +191,10 @@ func (o *GatewayAPIOutput) convertSettings(settings *snapshot.SettingsWrapper) e
 	}
 
 	if spec.GetConsul() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, settings, "consul is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, settings, "consul is not supported")
 	}
 	if spec.GetConsulDiscovery() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, settings, "consul discovery is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, settings, "consul discovery is not supported")
 	}
 	if spec.GetKubernetes() != nil {
 		// nothing to warn on here
@@ -218,7 +218,7 @@ func (o *GatewayAPIOutput) convertSettings(settings *snapshot.SettingsWrapper) e
 		}
 	}
 	if spec.GetRbac() != nil && spec.GetRbac().GetRequireRbac() == true {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, settings, "requireRbac is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, settings, "requireRbac is not supported")
 	}
 	if spec.GetExtauth() != nil {
 		extension := o.generateGatewayExtensionForExtAuth(spec.GetExtauth(), "ext-authz", settings)
@@ -235,7 +235,7 @@ func (o *GatewayAPIOutput) convertSettings(settings *snapshot.SettingsWrapper) e
 		}
 	}
 	if spec.GetCachingServer() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, settings, "cachingServer is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, settings, "cachingServer is not supported")
 	}
 	if spec.GetMetadata() != nil {
 		// not sure if we should do anything here
@@ -248,20 +248,20 @@ func (o *GatewayAPIOutput) convertSettings(settings *snapshot.SettingsWrapper) e
 	}
 	if spec.GetUpstreamOptions() != nil {
 		if spec.GetUpstreamOptions().GetSslParameters() != nil {
-			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, settings, "global upstream SSLParameters  is not supported in kgateway")
+			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, settings, "global upstream SSLParameters  is not supported")
 		}
 	}
 	if spec.GetConsoleOptions() != nil {
 		// no need to do anything here
 	}
 	if spec.GetGraphqlOptions() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, settings, "graphql is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, settings, "graphql is not supported")
 	}
 	if spec.GetExtProc() != nil {
 		o.generateGatewayExtensionForExtProc(spec.GetExtProc(), "global-ext-proc", settings)
 	}
 	if spec.GetKnative() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, settings, "knative is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, settings, "knative is not supported")
 	}
 	if spec.GetWatchNamespaceSelectors() != nil {
 		// nothing to do here
@@ -278,7 +278,7 @@ func (o *GatewayAPIOutput) convertUpstreamToBackend(upstream *snapshot.UpstreamW
 		// do nothing, let it continue in case there were other policies attached to the kube that we can warn about
 	}
 	if upstream.Spec.GetAi() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "gcp upstream is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "gcp upstream is not supported")
 	}
 
 	if upstream.Spec.GetAws() != nil {
@@ -317,13 +317,13 @@ func (o *GatewayAPIOutput) convertUpstreamToBackend(upstream *snapshot.UpstreamW
 		for _, hosts := range upstream.Spec.GetStatic().GetHosts() {
 
 			if hosts.GetHealthCheckConfig() != nil {
-				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "static upstream healthCheckConfig is not supported in kgateway")
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "static upstream healthCheckConfig is not supported")
 			}
 			if hosts.GetLoadBalancingWeight() != nil {
-				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "static upstream loadBalancingWeight is not supported in kgateway")
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "static upstream loadBalancingWeight is not supported")
 			}
 			if hosts.GetSniAddr() != "" {
-				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "static upstream sni is not supported in kgateway")
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "static upstream sni is not supported")
 			}
 
 			if hosts.GetAddr() != "" {
@@ -339,76 +339,76 @@ func (o *GatewayAPIOutput) convertUpstreamToBackend(upstream *snapshot.UpstreamW
 		backends = append(backends, backend)
 	}
 	if upstream.Spec.GetAwsEc2() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "awsec2 upstream is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "awsec2 upstream is not supported")
 	}
 	if upstream.Spec.GetConsul() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "consul upstream is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "consul upstream is not supported")
 	}
 	if upstream.Spec.GetAzure() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "azure upstream is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "azure upstream is not supported")
 	}
 	if upstream.Spec.GetGcp() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "gcp upstream is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "gcp upstream is not supported")
 	}
 	if upstream.Spec.GetCircuitBreakers() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "circuitBreakers is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "circuitBreakers is not supported")
 	}
 	if upstream.Spec.GetConnectionConfig() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "connectionConfig is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "connectionConfig is not supported")
 	}
 	//if upstream.Spec.GetDiscoveryMetadata() != nil {
-	//	o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "discoveryMetadata is not supported in kgateway")
+	//	o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "discoveryMetadata is not supported")
 	//}
 	if upstream.Spec.GetDnsRefreshRate() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "dnsRefreshRate is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "dnsRefreshRate is not supported")
 	}
 	if upstream.Spec.GetFailover() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "failover is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "failover is not supported")
 	}
 	if upstream.Spec.GetHealthChecks() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "healthChecks is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "healthChecks is not supported")
 	}
 	if upstream.Spec.GetHttpConnectHeaders() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "httpConnectHeaders is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "httpConnectHeaders is not supported")
 	}
 	if upstream.Spec.GetHttpConnectSslConfig() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "httpConnectSslConfig is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "httpConnectSslConfig is not supported")
 	}
 	if upstream.Spec.GetIgnoreHealthOnHostRemoval() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "ignoreHealthOnHostRemoval is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "ignoreHealthOnHostRemoval is not supported")
 	}
 	if upstream.Spec.GetInitialConnectionWindowSize() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "initialConnectionWindowSize is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "initialConnectionWindowSize is not supported")
 	}
 	if upstream.Spec.GetInitialStreamWindowSize() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "initialStreamWindowSize is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "initialStreamWindowSize is not supported")
 	}
 	if upstream.Spec.GetHttpProxyHostname() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "httpProxyHostname is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "httpProxyHostname is not supported")
 	}
 	if upstream.Spec.GetOutlierDetection() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "outlierDetection is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "outlierDetection is not supported")
 	}
 	if upstream.Spec.GetOverrideStreamErrorOnInvalidHttpMessage() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "overrideStreamErrorOnInvalidHttpMessage is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "overrideStreamErrorOnInvalidHttpMessage is not supported")
 	}
 	if upstream.Spec.GetMaxConcurrentStreams() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "maxConcurrentStreams is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "maxConcurrentStreams is not supported")
 	}
 	if upstream.Spec.GetPipe() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "pipe is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "pipe is not supported")
 	}
 	if upstream.Spec.GetPreconnectPolicy() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "preconnectPolicy is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "preconnectPolicy is not supported")
 	}
 	if upstream.Spec.GetProxyProtocolVersion() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "proxy protocol version is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "proxy protocol version is not supported")
 	}
 	if upstream.Spec.GetRespectDnsTtl() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "respectDnsTtl is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "respectDnsTtl is not supported")
 	}
 	if upstream.Spec.GetSslConfig() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "sslConfig is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "sslConfig is not supported")
 	}
 
 	return backends
@@ -714,16 +714,16 @@ func (o *GatewayAPIOutput) convertVHOOptionsToTrafficPolicySpec(vho *gloov1.Virt
 					RuleStr: r.RuleStr,
 				})
 				if r.Files != nil && len(r.Files) > 0 {
-					o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "WAF files is not supported in kgateway")
+					o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "WAF files is not supported")
 				}
 			}
 			spec.Waf = waf
 		}
 		if vho.GetRatelimitBasic() != nil {
-			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "rateLimitBasic is not supported in kgateway")
+			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "rateLimitBasic is not supported")
 		}
 		if vho.GetRatelimitEarly() != nil {
-			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "rateLimitEarly is not supported in kgateway, defaulting to regular rate limiting")
+			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "rateLimitEarly is not supported, defaulting to regular rate limiting")
 
 			rle := &gloogateway.RateLimitEnterprise{
 				Global: &gloogateway.GlobalRateLimit{
@@ -752,7 +752,7 @@ func (o *GatewayAPIOutput) convertVHOOptionsToTrafficPolicySpec(vho *gloov1.Virt
 					rateLimit.SetActions = append(rateLimit.SetActions, rateLimitAction)
 				}
 				if rl.GetLimit() != nil {
-					o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "rateLimit action limit is not supported in kgateway")
+					o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "rateLimit action limit is not supported")
 				}
 			}
 			spec.RateLimitEnterprise = rle
@@ -785,7 +785,7 @@ func (o *GatewayAPIOutput) convertVHOOptionsToTrafficPolicySpec(vho *gloov1.Virt
 					rateLimit.SetActions = append(rateLimit.SetActions, rateLimitAction)
 				}
 				if rl.GetLimit() != nil {
-					o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "rateLimit action limit is not supported in kgateway")
+					o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "rateLimit action limit is not supported")
 				}
 			}
 			spec.RateLimitEnterprise = rle
@@ -808,32 +808,32 @@ func (o *GatewayAPIOutput) convertVHOOptionsToTrafficPolicySpec(vho *gloov1.Virt
 			// TODO(nick) should we try to translate this or require the end user to migrate to staged?
 		}
 		if vho.GetJwtStaged() != nil {
-			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "jwtStaged is not supported in kgateway")
+			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "jwtStaged is not supported")
 		}
 		if vho.GetRbac() != nil {
-			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "rbac is not supported in kgateway")
+			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "rbac is not supported")
 		}
 		if vho.GetBufferPerRoute() != nil {
-			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "bufferPerRoute is not supported in kgateway")
+			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "bufferPerRoute is not supported")
 		}
 		if vho.GetIncludeRequestAttemptCount() != nil {
-			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "includeRequestAttemptCount is not supported in kgateway")
+			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "includeRequestAttemptCount is not supported")
 		}
 		if vho.GetIncludeAttemptCountInResponse() != nil {
-			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "includeRequestAttemptCountInResponse is not supported in kgateway")
+			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "includeRequestAttemptCountInResponse is not supported")
 		}
 		if vho.GetCorsPolicyMergeSettings() != nil {
-			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "corsPolicyMergeSettings is not supported in kgateway")
+			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "corsPolicyMergeSettings is not supported")
 		}
 		if vho.GetDlp() != nil {
-			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "dlp is not supported in kgateway")
+			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "dlp is not supported")
 		}
 		if vho.GetCsrf() != nil {
 			csrf := o.convertCSRF(vho.GetCsrf())
 			spec.TrafficPolicySpec.Csrf = csrf
 		}
 		if vho.GetExtensions() != nil {
-			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "gloo edge extensions is not supported in kgateway")
+			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "gloo edge extensions is not supported")
 		}
 	}
 	return spec
@@ -895,7 +895,7 @@ func (o *GatewayAPIOutput) convertStagedTransformation(transformation *transform
 	}
 
 	if transformation.GetInheritTransformation() == true {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "transformation inherit transformation is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "transformation inherit transformation is not supported")
 	}
 	if transformation.GetRegular() != nil {
 		routing := o.convertRequestTransformation(transformation.GetEarly(), wrapper)
@@ -1106,7 +1106,7 @@ func (o *GatewayAPIOutput) convertListenerOptionAccessLogging(glooGateway *snaps
 				o.AddErrorFromWrapper(ERROR_TYPE_UNKNOWN_REFERENCE, glooGateway, "", edgeAccessLog.GetGrpcService().GetStaticClusterName())
 			}
 			if edgeAccessLog.GetGrpcService().GetFilterStateObjectsToLog() != nil {
-				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, glooGateway, "accessLoggingService grpcService has filterStateObjectsToLog but its not supported in kgateway")
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, glooGateway, "accessLoggingService grpcService has filterStateObjectsToLog but its not supported")
 			}
 		}
 		if edgeAccessLog.GetFilter() != nil {
@@ -1162,16 +1162,16 @@ func (o *GatewayAPIOutput) convertAccessLogFitler(filter *als.AccessLogFilter, w
 		}
 
 		if filter.GetHeaderFilter().GetHeader().GetExactMatch() != "" {
-			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "accessLoggingService grpcService has filterStateObjectsToLog but its not supported in kgateway")
+			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "accessLoggingService grpcService has filterStateObjectsToLog but its not supported")
 		}
 
 		if filter.GetHeaderFilter().GetHeader().GetInvertMatch() == true {
-			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "accessLoggingService filter header invert match is not supported in kgateway")
+			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "accessLoggingService filter header invert match is not supported")
 		}
 
 		if filter.GetHeaderFilter().GetHeader().GetPresentMatch() == true {
 			// TODO(nick): is this supported in Gateway API?
-			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "accessLoggingService filter header range match match is not supported in kgateway")
+			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "accessLoggingService filter header range match match is not supported")
 		}
 
 		if filter.GetHeaderFilter().GetHeader().GetPrefixMatch() != "" {
@@ -1183,7 +1183,7 @@ func (o *GatewayAPIOutput) convertAccessLogFitler(filter *als.AccessLogFilter, w
 		}
 
 		if filter.GetHeaderFilter().GetHeader().GetRangeMatch() != nil {
-			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "accessLoggingService filter header range match match is not supported in kgateway")
+			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "accessLoggingService filter header range match match is not supported")
 		}
 
 		if filter.GetHeaderFilter().GetHeader().GetSafeRegexMatch() != nil {
@@ -1226,7 +1226,7 @@ func (o *GatewayAPIOutput) convertAccessLogFitler(filter *als.AccessLogFilter, w
 	}
 
 	if filter.GetRuntimeFilter() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "accessLoggingService runtimeFilter is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "accessLoggingService runtimeFilter is not supported")
 	}
 
 	if filter.GetTraceableFilter() != nil {
@@ -1313,10 +1313,10 @@ func (o *GatewayAPIOutput) convertHTTPListenerOptions(options *gloov1.HttpListen
 
 	if options.GetHttpLocalRatelimit() != nil {
 		if options.GetHttpLocalRatelimit().GetEnableXRatelimitHeaders() != nil && options.GetHttpLocalRatelimit().GetEnableXRatelimitHeaders().GetValue() {
-			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "httpLocalRateLimit enableXRateLimitHeaders is not supported in kgateway")
+			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "httpLocalRateLimit enableXRateLimitHeaders is not supported")
 		}
 		if options.GetHttpLocalRatelimit().GetLocalRateLimitPerDownstreamConnection() != nil && options.GetHttpLocalRatelimit().GetLocalRateLimitPerDownstreamConnection().GetValue() {
-			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "httpLocalRateLimit localRateLimitPerDownstreamConnection is not supported in kgateway")
+			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "httpLocalRateLimit localRateLimitPerDownstreamConnection is not supported")
 		}
 		if options.GetHttpLocalRatelimit().GetDefaultLimit() != nil {
 			rl := &kgateway.RateLimit{
@@ -1347,75 +1347,75 @@ func (o *GatewayAPIOutput) convertHTTPListenerOptions(options *gloov1.HttpListen
 				RuleStr: r.RuleStr,
 			})
 			if r.Files != nil && len(r.Files) > 0 {
-				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "WAF files is not supported in kgateway")
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "WAF files is not supported")
 			}
 		}
 		tps.Waf = waf
 	}
 	if options.GetDisableExtProc() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "disableExtProc is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "disableExtProc is not supported")
 	}
 	if options.GetNetworkLocalRatelimit() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "networkLocalRateLimit is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "networkLocalRateLimit is not supported")
 	}
 	if options.GetDlp() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "dlp is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "dlp is not supported")
 	}
 	if options.GetCsrf() != nil {
 		csrf := o.convertCSRF(options.GetCsrf())
 		tps.TrafficPolicySpec.Csrf = csrf
 	}
 	if options.GetBuffer() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "buffer is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "buffer is not supported")
 	}
 	if options.GetCaching() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "caching is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "caching is not supported")
 	}
 	if options.GetConnectionLimit() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "connectionlimit is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "connectionlimit is not supported")
 	}
 	if options.GetDynamicForwardProxy() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "dynamicForwardProxy (DFP) is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "dynamicForwardProxy (DFP) is not supported")
 	}
 	if options.GetExtensions() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "gloo edge extensions is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "gloo edge extensions is not supported")
 	}
 	if options.GetGrpcJsonTranscoder() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "grpcToJson is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "grpcToJson is not supported")
 	}
 	if options.GetGrpcWeb() != nil {
-		//TODO(nick) : GRPCWeb is enabled by default in edge. we need to verify the same in kgateway.
-		//o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, glooGateway, "grpcWeb is not supported in kgateway")
+		//TODO(nick) : GRPCWeb is enabled by default in edge. we need to verify the same.
+		//o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, glooGateway, "grpcWeb is not supported")
 	}
 	if options.GetGzip() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "gzip is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "gzip is not supported")
 	}
 	if options.GetHeaderValidationSettings() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "header validation is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "header validation is not supported")
 	}
 	if options.GetHealthCheck() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "health check is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "health check is not supported")
 	}
 	if options.GetHttpConnectionManagerSettings() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "httpConnectionManagerSettings is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "httpConnectionManagerSettings is not supported")
 	}
 	if options.GetProxyLatency() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "proxy latency is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "proxy latency is not supported")
 	}
 	if options.GetRouter() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "router (envoy filter maps) is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "router (envoy filter maps) is not supported")
 	}
 	if options.GetSanitizeClusterHeader() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "sanitize cluster header is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "sanitize cluster header is not supported")
 	}
 	if options.GetStatefulSession() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "statefulSession is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "statefulSession is not supported")
 	}
 	if options.GetTap() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "Tap filter is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "Tap filter is not supported")
 	}
 	if options.GetWasm() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "WASM is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "WASM is not supported")
 	}
 	trafficPolicy.Spec = tps
 
@@ -1504,49 +1504,49 @@ func (o *GatewayAPIOutput) generateGatewayExtensionForExtProc(extProc *extproc.S
 
 	//TODO(nick): Implement ExtProc - https://github.com/kgateway-dev/kgateway/issues/11424
 	if extProc.GetStatPrefix() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extProc statPrefix is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extProc statPrefix is not supported")
 	}
 	if extProc.GetFailureModeAllow() != nil && extProc.GetFailureModeAllow().GetValue() == true {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extProc failureModeAllow is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extProc failureModeAllow is not supported")
 	}
 	if extProc.GetAllowModeOverride() != nil && extProc.GetAllowModeOverride().GetValue() == true {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extProc allowModeOverride is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extProc allowModeOverride is not supported")
 	}
 	if extProc.GetAsyncMode() != nil && extProc.GetAsyncMode().GetValue() == true {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extProc asyncMode is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extProc asyncMode is not supported")
 	}
 	if extProc.GetDisableClearRouteCache() != nil && extProc.GetDisableClearRouteCache().GetValue() == true {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extProc disableClearRouteCache is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extProc disableClearRouteCache is not supported")
 	}
 	if extProc.GetFilterMetadata() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extProc filterMetadata is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extProc filterMetadata is not supported")
 	}
 	if extProc.GetFilterStage() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extProc filterStage is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extProc filterStage is not supported")
 	}
 	if extProc.GetForwardRules() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extProc forwardRules is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extProc forwardRules is not supported")
 	}
 	if extProc.GetMaxMessageTimeout() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extProc maxMessageTimeout is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extProc maxMessageTimeout is not supported")
 	}
 	if extProc.GetMessageTimeout() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extProc messageTimeout is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extProc messageTimeout is not supported")
 	}
 	if extProc.GetMetadataContextNamespaces() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extProc metadataContextNamespaces is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extProc metadataContextNamespaces is not supported")
 	}
 	if extProc.GetMutationRules() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extProc mutationRules is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extProc mutationRules is not supported")
 	}
 	if extProc.GetRequestAttributes() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extProc requestAttributes is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extProc requestAttributes is not supported")
 	}
 	if extProc.GetResponseAttributes() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extProc responseAttributes is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extProc responseAttributes is not supported")
 	}
 	if extProc.GetTypedMetadataContextNamespaces() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extProc typedMetadataContextNamespaces is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extProc typedMetadataContextNamespaces is not supported")
 	}
 	if extProc.GetGrpcService() != nil {
 
@@ -1588,11 +1588,11 @@ func (o *GatewayAPIOutput) generateGatewayExtensionForRateLimit(rateLimitSetting
 
 	//TODO(nick): Implement RateLimitSettings - https://github.com/kgateway-dev/kgateway/issues/11424
 	if rateLimitSettings.GetRateLimitBeforeAuth() == true {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "RateLimitSettings rateLimitBeforeAuth is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "RateLimitSettings rateLimitBeforeAuth is not supported")
 
 	}
 	if rateLimitSettings.GetEnableXRatelimitHeaders() == true {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "RateLimitSettings enableXRatelimitHeaders is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "RateLimitSettings enableXRatelimitHeaders is not supported")
 	}
 	if rateLimitSettings.GetDenyOnFail() == false {
 		gatewayExtension.Spec.RateLimit.FailOpen = !rateLimitSettings.GetDenyOnFail()
@@ -1654,31 +1654,31 @@ func (o *GatewayAPIOutput) generateGatewayExtensionForExtAuth(extauth *v1.Settin
 	}
 	//TODO(nick): Implement ExtAuthSettings - https://github.com/kgateway-dev/kgateway/issues/11424
 	if extauth.GetClearRouteCache() == true {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extAuth settings clearRouteCache is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extAuth settings clearRouteCache is not supported")
 	}
 	if extauth.GetFailureModeAllow() == true {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extAuth settings clearRouteCache is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extAuth settings clearRouteCache is not supported")
 	}
 	if extauth.GetHttpService() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extAuth settings httpService is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extAuth settings httpService is not supported")
 	}
 	if extauth.GetRequestBody() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extAuth settings requestBody is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extAuth settings requestBody is not supported")
 	}
 	if extauth.GetRequestTimeout() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extAuth settings requestTimeout is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extAuth settings requestTimeout is not supported")
 	}
 	if extauth.GetStatPrefix() != "" {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extAuth settings statPrefix is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extAuth settings statPrefix is not supported")
 	}
 	if extauth.GetStatusOnError() != 0 {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extAuth settings statusOnError is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extAuth settings statusOnError is not supported")
 	}
 	if extauth.GetTransportApiVersion() != 0 {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extAuth settings transportApiVersion is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extAuth settings transportApiVersion is not supported")
 	}
 	if extauth.GetUserIdHeader() != "" {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extAuth settings userIdHeader is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extAuth settings userIdHeader is not supported")
 	}
 
 	gatewayExtension := &kgateway.GatewayExtension{
@@ -1844,14 +1844,14 @@ func (o *GatewayAPIOutput) convertRouteOptions(
 			aip.PromptEnrichment = enrichment
 		}
 		if options.GetAi().GetRag() != nil {
-			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "ai RAG is not supported in kgateway")
+			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "ai RAG is not supported")
 		}
 		if options.GetAi().GetPromptGuard() != nil {
 			guard := o.generateAIPromptGuard(options, wrapper)
 			aip.PromptGuard = guard
 		}
 		if options.GetAi().GetSemanticCache() != nil {
-			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "ai SemanticCache is not supported in kgateway")
+			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "ai SemanticCache is not supported")
 		}
 		gtpSpec.AI = aip
 	}
@@ -1866,26 +1866,26 @@ func (o *GatewayAPIOutput) convertRouteOptions(
 		for _, rule := range options.GetWaf().GetRuleSets() {
 			gtpSpec.Waf.Rules = append(gtpSpec.Waf.Rules, gloogateway.WafRule{RuleStr: rule.GetRuleStr()})
 			if rule.GetFiles() != nil {
-				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "WAF rule files is not supported in kgateway")
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "WAF rule files is not supported")
 			}
 			if rule.GetDirectory() != "" {
-				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "WAF rule directory %s is not supported in kgateway", rule.GetDirectory())
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "WAF rule directory %s is not supported", rule.GetDirectory())
 			}
 		}
 		if len(options.GetWaf().GetConfigMapRuleSets()) > 0 {
-			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "WAF configMapRuleSets is not supported in kgateway")
+			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "WAF configMapRuleSets is not supported")
 		}
 		if options.GetWaf().GetCoreRuleSet() != nil {
-			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "WAF coreRuleSets is not supported in kgateway")
+			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "WAF coreRuleSets is not supported")
 		}
 		if options.GetWaf().GetRequestHeadersOnly() == true {
-			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "WAF requestHeadersOnly is not supported in kgateway")
+			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "WAF requestHeadersOnly is not supported")
 		}
 		if options.GetWaf().GetResponseHeadersOnly() == true {
-			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "WAF responseHeadersOnly is not supported in kgateway")
+			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "WAF responseHeadersOnly is not supported")
 		}
 		if options.GetWaf().GetAuditLogging() != nil {
-			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "WAF auditLogging is not supported in kgateway")
+			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "WAF auditLogging is not supported")
 		}
 	}
 	if options.GetCors() != nil {
@@ -1922,13 +1922,13 @@ func (o *GatewayAPIOutput) convertRouteOptions(
 				rateLimit.SetActions = append(rateLimit.SetActions, rateLimitAction)
 			}
 			if rl.GetLimit() != nil {
-				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "rateLimit action limit is not supported in kgateway")
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "rateLimit action limit is not supported")
 			}
 		}
 		gtpSpec.RateLimitEnterprise = rle
 	}
 	if options.GetRatelimitBasic() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "rateLimitBasic is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "rateLimitBasic is not supported")
 
 		//TODO (nick) : How do we translate rateLimitBasic to kgateway?
 		//if options.GetRatelimitBasic().GetAuthorizedLimits() != nil {
@@ -1949,67 +1949,67 @@ func (o *GatewayAPIOutput) convertRouteOptions(
 		//}
 	}
 	if options.GetTransformations() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "legacy style transformation is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "legacy style transformation is not supported")
 	}
 	if options.GetStagedTransformations() != nil {
 		transformation := o.convertStagedTransformation(options.GetStagedTransformations(), wrapper)
 		gtpSpec.TransformationEnterprise = transformation
 	}
 	if options.GetDlp() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "dlp is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "dlp is not supported")
 	}
 	if options.GetCsrf() != nil {
 		csrf := o.convertCSRF(options.GetCsrf())
 		gtpSpec.TrafficPolicySpec.Csrf = csrf
 	}
 	if options.GetExtensions() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "gloo edge extensions is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "gloo edge extensions is not supported")
 	}
 	if options.GetBufferPerRoute() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "bufferPerRoute is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "bufferPerRoute is not supported")
 	}
 	if options.GetAppendXForwardedHost() != nil && options.GetAppendXForwardedHost().GetValue() == true {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "appendXForwardedHost is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "appendXForwardedHost is not supported")
 	}
 	if options.GetAutoHostRewrite() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "autoHostRewrite is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "autoHostRewrite is not supported")
 	}
 	if options.GetEnvoyMetadata() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "envoyMetadata is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "envoyMetadata is not supported")
 	}
 	if options.GetFaults() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "faults is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "faults is not supported")
 	}
 	if options.GetHostRewriteHeader() != nil {
-		// TODO (nick): not sure how this is supported in kgateway?
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "hostRewriteHeader is not supported in kgateway")
+		// TODO (nick): not sure how this is supported?
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "hostRewriteHeader is not supported")
 	}
 	if options.GetHostRewritePathRegex() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "hostRewritePathRegex is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "hostRewritePathRegex is not supported")
 	}
 	if options.GetIdleTimeout() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "idleTimeout is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "idleTimeout is not supported")
 	}
 	if options.GetJwtProvidersStaged() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "jwtProvidersStaged is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "jwtProvidersStaged is not supported")
 	}
 	if options.GetJwtStaged() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "jwtStaged is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "jwtStaged is not supported")
 	}
 	if options.GetLbHash() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "lbHash is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "lbHash is not supported")
 	}
 	if options.GetMaxStreamDuration() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "maxStreamDuration is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "maxStreamDuration is not supported")
 	}
 	if options.GetRbac() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "rbac is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "rbac is not supported")
 	}
 	if options.GetShadowing() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "shadowing is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "shadowing is not supported")
 	}
 	if options.GetUpgrades() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "upgrades is not supported in kgateway")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "upgrades is not supported")
 	}
 
 	trafficPolicy = &gloogateway.GlooTrafficPolicy{
@@ -2123,7 +2123,7 @@ func (o *GatewayAPIOutput) convertRequestTransforms(requestTranforms []*transfor
 	for _, rule := range requestTranforms {
 		match := gloogateway.RequestMatcher{}
 		if rule.GetClearRouteCache() == true {
-			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "transformation rule clearRouteCache is not supported in kgateway")
+			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "transformation rule clearRouteCache is not supported")
 		}
 		if rule.GetMatcher() != nil {
 			match.Matcher = &gloogateway.TransformationRequestMatcher{
@@ -2138,22 +2138,22 @@ func (o *GatewayAPIOutput) convertRequestTransforms(requestTranforms []*transfor
 				})
 			}
 			if rule.GetMatcher().GetConnectMatcher() != nil {
-				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "transformation rule connect match is not supported in kgateway")
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "transformation rule connect match is not supported")
 			}
 			if rule.GetMatcher().GetCaseSensitive() != nil {
-				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "transformation rule caseSensitive match is not supported in kgateway")
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "transformation rule caseSensitive match is not supported")
 			}
 			if rule.GetMatcher().GetExact() != "" {
-				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "transformation rule exact match is not supported in kgateway")
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "transformation rule exact match is not supported")
 			}
 			if rule.GetMatcher().GetMethods() != nil {
-				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "transformation rule methods match is not supported in kgateway")
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "transformation rule methods match is not supported")
 			}
 			if rule.GetMatcher().GetPrefix() != "" {
-				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "transformation rule prefix match is not supported in kgateway")
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "transformation rule prefix match is not supported")
 			}
 			if rule.GetMatcher().GetQueryParameters() != nil {
-				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "transformation rule queryParameters match is not supported in kgateway")
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "transformation rule queryParameters match is not supported")
 			}
 		}
 		if rule.GetRequestTransformation() != nil {
@@ -2329,16 +2329,16 @@ func (o *GatewayAPIOutput) convertPromptGuardResponse(options *gloov1.RouteOptio
 			switch h.GetMatchType() {
 			case ai.AIPromptGuard_Webhook_HeaderMatch_CONTAINS:
 				match.Type = ptr.To(gwv1.HeaderMatchExact)
-				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "ai headerMatch 'contains' is not supported in kgateway")
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "ai headerMatch 'contains' is not supported")
 			case ai.AIPromptGuard_Webhook_HeaderMatch_EXACT:
 				match.Type = ptr.To(gwv1.HeaderMatchExact)
 			case ai.AIPromptGuard_Webhook_HeaderMatch_PREFIX:
-				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "ai headerMatch 'prefix' is not supported in kgateway")
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "ai headerMatch 'prefix' is not supported")
 				match.Type = ptr.To(gwv1.HeaderMatchExact)
 			case ai.AIPromptGuard_Webhook_HeaderMatch_REGEX:
 				match.Type = ptr.To(gwv1.HeaderMatchRegularExpression)
 			case ai.AIPromptGuard_Webhook_HeaderMatch_SUFFIX:
-				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "ai headerMatch 'suffix' is not supported in kgateway")
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "ai headerMatch 'suffix' is not supported")
 				match.Type = ptr.To(gwv1.HeaderMatchExact)
 			}
 			webhook.ForwardHeaders = append(webhook.ForwardHeaders, match)
@@ -2429,16 +2429,16 @@ func (o *GatewayAPIOutput) convertPromptGuardRequest(options *gloov1.RouteOption
 			switch h.GetMatchType() {
 			case ai.AIPromptGuard_Webhook_HeaderMatch_CONTAINS:
 				match.Type = ptr.To(gwv1.HeaderMatchExact)
-				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "ai headerMatch 'contains' is not supported in kgateway")
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "ai headerMatch 'contains' is not supported")
 			case ai.AIPromptGuard_Webhook_HeaderMatch_EXACT:
 				match.Type = ptr.To(gwv1.HeaderMatchExact)
 			case ai.AIPromptGuard_Webhook_HeaderMatch_PREFIX:
-				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "ai headerMatch 'prefix' is not supported in kgateway")
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "ai headerMatch 'prefix' is not supported")
 				match.Type = ptr.To(gwv1.HeaderMatchExact)
 			case ai.AIPromptGuard_Webhook_HeaderMatch_REGEX:
 				match.Type = ptr.To(gwv1.HeaderMatchRegularExpression)
 			case ai.AIPromptGuard_Webhook_HeaderMatch_SUFFIX:
-				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "ai headerMatch 'suffix' is not supported in kgateway")
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "ai headerMatch 'suffix' is not supported")
 				match.Type = ptr.To(gwv1.HeaderMatchExact)
 			}
 			webhook.ForwardHeaders = append(webhook.ForwardHeaders, match)
