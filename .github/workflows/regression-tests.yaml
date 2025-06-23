@@ -43,14 +43,7 @@ jobs:
         log-variables: true
     - id: set-kind-version
       run: |
-        JSON='[
-          {
-            "node": "${{ steps.dotenv.outputs.node_version }}",
-            "kubectl": "${{ steps.dotenv.outputs.kubectl_version }}",
-            "kind": "${{ steps.dotenv.outputs.kind_version }}",
-            "helm": "${{ steps.dotenv.outputs.helm_version }}"
-          }
-        ]'
+        JSON="[{\"node\":\"${{ steps.max_versions.outputs.node_version }}\",\"kubectl\":\"${{ steps.max_versions.outputs.kubectl_version }}\",\"kind\":\"${{ steps.max_versions.outputs.kind_version }}\",\"helm\":\"${{ steps.max_versions.outputs.helm_version }}\"}]"
         echo "kind-version=$JSON" >> $GITHUB_OUTPUT
 
   regression_tests:

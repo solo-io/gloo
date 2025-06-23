@@ -31,14 +31,7 @@ jobs:
       - name: Set kind-version
         id: set-kind-version
         run: |
-          JSON='[
-            {
-              "node": "${{ steps.max_versions.outputs.node_version }}",
-              "kubectl": "${{ steps.max_versions.outputs.kubectl_version }}",
-              "kind": "${{ steps.max_versions.outputs.kind_version }}",
-              "helm": "${{ steps.max_versions.outputs.helm_version }}"
-            }
-          ]'
+          JSON="[{\"node\":\"${{ steps.max_versions.outputs.node_version }}\",\"kubectl\":\"${{ steps.max_versions.outputs.kubectl_version }}\",\"kind\":\"${{ steps.max_versions.outputs.kind_version }}\",\"helm\":\"${{ steps.max_versions.outputs.helm_version }}\"}]"
           echo "kind-version=$JSON" >> $GITHUB_OUTPUT
 
   run-conformance-tests:
@@ -57,6 +50,11 @@ jobs:
 
       - name: Run Conformance Tests
         uses: ./.github/workflows/composite-actions/kube-gateway-api-conformance-tests
+        with:
+          kind-node-version: ${{ matrix.kube-version.node }}
+          kind-version: ${{ matrix.kube-version.kind }}
+          kubectl-version: ${{ matrix.kube-version.kubectl }}
+          helm-version: ${{ matrix.kube-version.helm }}
 
       # TODO(tim): Add support for downloading the test results and creating
       # a pull request whenever a new release > 1.17+ is cut.
