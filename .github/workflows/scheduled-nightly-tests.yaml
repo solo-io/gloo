@@ -603,7 +603,7 @@ jobs:
         image-variant: ${{ matrix.image-variant }}
 
   kube_gateway_api_conformance_tests_on_demand:
-    name: Conformance (branch=main, type=Kubernetes Gateway API, version-file=${{matrix.version-files.label}})
+    name: Conformance (branch=${{ github.ref_name }}, type=Kubernetes Gateway API, version-file=${{matrix.version-files.label}})
     if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-conformance && inputs.branch == 'workflow_initiating_branch') }}
     runs-on: ubuntu-24.04
     timeout-minutes: 60
@@ -620,7 +620,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
       with:
-        ref: main
+         ref: ${{ github.ref_name }}
     - id: dotenv
       uses: falti/dotenv-action@v1.1.4
       with:
