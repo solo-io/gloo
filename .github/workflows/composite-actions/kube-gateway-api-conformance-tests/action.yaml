@@ -1,47 +1,37 @@
 name: Conformance Tests
 description: run kubernetes gateway api conformance tests
 inputs:
-  version-file:
-    required: false
-    description: An env file containing the versions to use for the test. If not provided, the versions will be read from the other inputs
   kind-version:
     required: false
-    description: The kind version to use. Ignored if version-file is provided
+    description: The kind version to use
   kubectl-version:
     required: false
-    description: The kubectl version to use. Ignored if version-file is provided
+    description: The kubectl version to use
   helm-version:
     required: false
-    description: The helm version to use. Ignored if version-file is provided
+    description: The helm version to use
   kind-node-version:
     required: false
-    description: The kind node version to use. Ignored if version-file is provided
+    description: The kind node version to use
 runs:
   using: "composite"
   steps:
   - name: Prep Go Runner
     uses: ./.github/workflows/composite-actions/prep-go-runner
-  - name: Dotenv Action
-    id: dotenv
-    uses: falti/dotenv-action@v1.1.4
-    if: ${{ inputs.version-file != '' }}
-    with:
-      path: ${{ inputs.version-file }}
-      log-variables: true  
   - name: Install kind
     uses: helm/kind-action@v1.12.0
     with:
       install_only: true
-      version: ${{ steps.dotenv.outputs.kind_version || inputs.kind-version }}
-      kubectl_version: ${{ steps.dotenv.outputs.kubectl_version || inputs.kubectl-version }}
-      node_image: kindest/node:${{ steps.dotenv.outputs.node_version || inputs.kind-node-version }}
+      version: ${{ inputs.kind-version }}
+      kubectl_version: ${{ inputs.kubectl-version }}
+      node_image: kindest/node:${{ inputs.kind-node-version }}
   - uses: azure/setup-kubectl@v4
     id: kubectl
     with:
-      version: ${{ steps.dotenv.outputs.kubectl_version || inputs.kubectl-version }}
+      version: ${{ inputs.kubectl-version }}
   - uses: azure/setup-helm@v4
     with:
-      version: ${{ steps.dotenv.outputs.helm_version || inputs.helm-version }}
+      version: ${{ inputs.helm-version }}
   - name: Set and retrieve environment variables
     shell: bash
     run: |
@@ -58,7 +48,7 @@ runs:
   - name: Setup test env
     shell: bash
     env:
-      CLUSTER_NODE_VERSION: ${{ steps.dotenv.outputs.node_version || inputs.kind-node-version }}
+      CLUSTER_NODE_VERSION: ${{ inputs.kind-node-version }}
       IMAGE_VARIANT: ${{ matrix.image-variant }}
       CONFORMANCE: "true"
     run: ./ci/kind/setup-kind.sh
@@ -98,5 +88,5 @@ runs:
     with:
       # Name of the path to upload. The VERSION variable refers to the Makefile
       # VERSION variable.
-      name: conformance-gloo-gateway-report-attempt-${{ github.run_attempt }}@k8s${{ steps.dotenv.outputs.kubectl_version || inputs.kubectl-version }}
+      name: conformance-gloo-gateway-report-attempt-${{ github.run_attempt }}@k8s${{ inputs.kubectl-version }}
       path: _test/conformance/${{ env.VERSION }}-report.yaml

@@ -589,9 +589,17 @@ jobs:
     - uses: actions/checkout@v4
       with:
         ref: main
+    - id: dotenv
+      uses: falti/dotenv-action@v1.1.4
+      with:
+        path: ${{ matrix.version-files.file }}
+        log-variables: true
     - uses: ./.github/workflows/composite-actions/kube-gateway-api-conformance-tests
       with:
-        version-file: ${{ matrix.version-files.file }}
+        kind-node-version: ${{ steps.dotenv.outputs.node_version }}
+        kind-version: ${{ steps.dotenv.outputs.kind_version }}
+        kubectl-version: ${{ steps.dotenv.outputs.kubectl_version }}
+        helm-version: ${{ steps.dotenv.outputs.helm_version }}
 
   kube_gateway_api_conformance_tests_v1_19_x:
     name: Conformance (branch=v1.19.x, type=Kubernetes Gateway API, version=${{matrix.kube-version.node}} )

@@ -31,10 +31,20 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      - name: Dotenv Action
+        id: dotenv
+        uses: falti/dotenv-action@v1.1.4
+        with:
+          path: ${{ matrix.version-files.file }}
+          log-variables: true  
+
       - name: Run Conformance Tests
         uses: ./.github/workflows/composite-actions/kube-gateway-api-conformance-tests
         with:
-          version-file: ${{ matrix.version-files.file }}
+          kind-version: ${{ steps.dotenv.outputs.kind_version }}
+          kubectl-version: ${{ steps.dotenv.outputs.kubectl_version }}
+          helm-version: ${{ steps.dotenv.outputs.helm_version }}
+          kind-node-version: ${{ steps.dotenv.outputs.node_version }}
 
       # TODO(tim): Add support for downloading the test results and creating
       # a pull request whenever a new release > 1.17+ is cut.

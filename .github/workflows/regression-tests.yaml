@@ -78,7 +78,7 @@ jobs:
       fail-fast: false
       matrix:
         version-files:
-          - file: './.github/workflows/.env/nightly-tests/max_versions.env'
+          - file: './.github/workflows/.env/pr-tests/versions.env'
         # use standard since other variants don't currently work with these tests
         # (see https://github.com/solo-io/solo-projects/issues/6094)
         image-variant:
@@ -89,8 +89,16 @@ jobs:
       if: needs.prepare_env.outputs.should-auto-succeed-regression-tests == 'true'
       run: |
         echo "Kubernetes Gateway API conformance tests auto-succeeded"
+    - id: dotenv
+      uses: falti/dotenv-action@v1.1.4
+      with:
+        path: ${{ matrix.version-files.file }}
+        log-variables: true
     - id: run-tests
       if: needs.prepare_env.outputs.should-auto-succeed-regression-tests != 'true'
       uses: ./.github/workflows/composite-actions/kube-gateway-api-conformance-tests
       with:
-        version-file: ${{ matrix.version-files.file }}
+        kind-version: ${{ steps.dotenv.outputs.kind_version }}
+        kubectl-version: ${{ steps.dotenv.outputs.kubectl_version }}
+        helm-version: ${{ steps.dotenv.outputs.helm_version }}
+        kind-node-version: ${{ steps.dotenv.outputs.node_version }}
