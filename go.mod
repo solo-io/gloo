@@ -61,7 +61,7 @@ require (
 	// as to why it is now based off `gloo-main` and not `gloo-repo-branch`
 	github.com/solo-io/solo-apis v0.0.0-20250616141238-dd7b8dbf6a9b
 	github.com/solo-io/solo-kit v0.39.0
-	github.com/spf13/afero v1.11.0
+	github.com/spf13/afero v1.14.0
 	github.com/spf13/cobra v1.9.1
 	github.com/spf13/pflag v1.0.6
 	github.com/spf13/viper v1.19.0
@@ -69,9 +69,9 @@ require (
 	go.uber.org/goleak v1.3.0
 	go.uber.org/multierr v1.11.0
 	go.uber.org/zap v1.27.0
-	golang.org/x/crypto v0.37.0
-	golang.org/x/sync v0.13.0
-	golang.org/x/tools v0.30.0
+	golang.org/x/crypto v0.38.0
+	golang.org/x/sync v0.14.0
+	golang.org/x/tools v0.33.0
 	google.golang.org/grpc v1.72.0
 	google.golang.org/protobuf v1.36.6
 	gopkg.in/AlecAivazis/survey.v1 v1.8.7
@@ -109,13 +109,13 @@ require (
 	github.com/stretchr/testify v1.10.0
 	go.opentelemetry.io/proto/otlp v1.6.0
 	golang.org/x/exp v0.0.0-20241215155358-4a5509556b9e
-	golang.org/x/mod v0.23.0
+	golang.org/x/mod v0.24.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20250428153025-10db94c68c34
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250428153025-10db94c68c34
 	istio.io/api v1.25.2-0.20250410212420-84c271001f68
 	istio.io/client-go v1.25.2-0.20250410213018-e5f6074bc228
 	istio.io/istio v0.0.0-20250411142419-0d83506c2883
-	k8s.io/utils v0.0.0-20241210054802-24370beab758
+	k8s.io/utils v0.0.0-20250321185631-1f6e0b77f77e
 	sigs.k8s.io/controller-tools v0.17.3
 	sigs.k8s.io/structured-merge-diff/v4 v4.7.0
 )
@@ -129,14 +129,11 @@ require (
 	go.uber.org/automaxprocs v1.6.0 // indirect
 )
 
-require (
-	github.com/felixge/httpsnoop v1.0.4 // indirect
-	github.com/prometheus/client_golang v1.22.0 // indirect
-)
+require github.com/felixge/httpsnoop v1.0.4 // indirect
 
 require (
 	cel.dev/expr v0.20.0 // indirect
-	contrib.go.opencensus.io/exporter/prometheus v0.4.0 // indirect
+	contrib.go.opencensus.io/exporter/prometheus v0.4.2 // indirect
 	cuelang.org/go v0.10.0 // indirect
 	dario.cat/mergo v1.0.1 // indirect
 	github.com/Azure/go-ansiterm v0.0.0-20250102033503-faa5f7b0171c // indirect
@@ -217,8 +214,8 @@ require (
 	github.com/google/btree v1.1.3 // indirect
 	github.com/google/cel-go v0.23.2 // indirect
 	github.com/google/gnostic-models v0.6.9 // indirect
-	github.com/google/go-querystring v1.0.0 // indirect
-	github.com/google/pprof v0.0.0-20241210010833-40e02aabc2ad // indirect
+	github.com/google/go-querystring v1.1.0 // indirect
+	github.com/google/pprof v0.0.0-20250403155104-27863c87afa6 // indirect
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
 	github.com/goph/emperror v0.17.1 // indirect
 	github.com/gorilla/websocket v1.5.4-0.20250319132907-e064f32e3674 // indirect
@@ -254,7 +251,7 @@ require (
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/k0kubun/pp v3.0.1+incompatible // indirect
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect
-	github.com/kevinburke/ssh_config v0.0.0-20201106050909-4977a11b4351 // indirect
+	github.com/kevinburke/ssh_config v1.2.0 // indirect
 	github.com/kr/pty v1.1.8 // indirect
 	github.com/lann/builder v0.0.0-20180802200727-47ae307949d0 // indirect
 	github.com/lann/ps v0.0.0-20150810152359-62de8c46ede0 // indirect
@@ -329,7 +326,7 @@ require (
 	github.com/yuin/goldmark v1.7.4 // indirect
 	go.mongodb.org/mongo-driver v1.14.0 // indirect
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
-	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.58.0 // indirect
+	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.59.0 // indirect
 	go.opentelemetry.io/otel v1.34.0 // indirect
 	go.opentelemetry.io/otel/exporters/prometheus v0.56.0 // indirect
 	go.opentelemetry.io/otel/metric v1.34.0 // indirect

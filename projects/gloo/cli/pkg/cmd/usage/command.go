@@ -253,6 +253,8 @@ func gatherUsageInformation(opts *Options) (*Inputs, error) {
 		inputs.ProxyStats = clusters
 	}
 
+	// Create a temporary directory
+	var filePath string
 
 	if opts.GlooSnapshotFile == "" {
 		filePath, err = LoadSnapshotFromGloo(opts, tempDir)

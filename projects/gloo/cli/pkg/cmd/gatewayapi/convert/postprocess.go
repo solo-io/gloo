@@ -7,9 +7,6 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/snapshot"
 	"k8s.io/apimachinery/pkg/types"
 
-	"github.com/solo-io/gloo/projects/gloo/cli/pkg/snapshot"
-	"k8s.io/apimachinery/pkg/types"
-
 	"k8s.io/utils/ptr"
 	"sigs.k8s.io/gateway-api/apisx/v1alpha1"
 
