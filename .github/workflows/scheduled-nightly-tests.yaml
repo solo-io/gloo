@@ -571,14 +571,18 @@ jobs:
       - uses: ./.github/workflows/composite-actions/performance-tests
 
   kube_gateway_api_conformance_tests_main:
-    name: Conformance (branch=main, type=Kubernetes Gateway API, version-file=${{matrix.version-file}})
+    name: Conformance (branch=main, type=Kubernetes Gateway API, version-file=${{matrix.version-files.label}})
     if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-conformance && inputs.branch == 'main') || github.event.schedule == '0 5 * * *' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
-        version-file: ['./.github/workflows/.env/nightly-tests/min_versions.env', './.github/workflows/.env/nightly-tests/max_versions.env' ]
+        version-files:
+          - label: 'min'
+            file: './.github/workflows/.env/nightly-tests/min_versions.env'
+          - label: 'max'
+            file: './.github/workflows/.env/nightly-tests/max_versions.env'
         image-variant:
           - standard
     steps:
@@ -587,7 +591,7 @@ jobs:
         ref: main
     - uses: ./.github/workflows/composite-actions/kube-gateway-api-conformance-tests
       with:
-        version-file: ${{ matrix.version-file }}
+        version-file: ${{ matrix.version-files.file }}
 
   kube_gateway_api_conformance_tests_v1_19_x:
     name: Conformance (branch=v1.19.x, type=Kubernetes Gateway API, version=${{matrix.kube-version.node}} )

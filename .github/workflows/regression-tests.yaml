@@ -77,7 +77,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        version-file: [ './.github/workflows/.env/nightly-tests/max_versions.env' ]
+        version-files:
+          - file: './.github/workflows/.env/nightly-tests/max_versions.env'
         # use standard since other variants don't currently work with these tests
         # (see https://github.com/solo-io/solo-projects/issues/6094)
         image-variant:
@@ -92,4 +93,4 @@ jobs:
       if: needs.prepare_env.outputs.should-auto-succeed-regression-tests != 'true'
       uses: ./.github/workflows/composite-actions/kube-gateway-api-conformance-tests
       with:
-        version-file: ${{ matrix.version-file }}
+        version-file: ${{ matrix.version-files.file }}

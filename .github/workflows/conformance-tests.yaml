@@ -25,7 +25,8 @@ jobs:
           - ${{ inputs.image-variant }}
         version:
           - ${{ inputs.version }}
-        version-file: [ './.github/workflows/.env/nightly-tests/max_versions.env' ]
+        version-files:
+          - file: './.github/workflows/.env/nightly-tests/max_versions.env'
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -33,7 +34,7 @@ jobs:
       - name: Run Conformance Tests
         uses: ./.github/workflows/composite-actions/kube-gateway-api-conformance-tests
         with:
-          version-file: ${{ matrix.version-file }}
+          version-file: ${{ matrix.version-files.file }}
 
       # TODO(tim): Add support for downloading the test results and creating
       # a pull request whenever a new release > 1.17+ is cut.
