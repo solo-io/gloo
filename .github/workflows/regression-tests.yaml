@@ -77,7 +77,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        kube-version: [ { node: 'v1.31.0@sha256:53df588e04085fd41ae12de0c3fe4c72f7013bba32a20e7325357a1ac94ba865', kubectl: 'v1.31.0', kind: 'v0.24.0', helm: 'v3.14.4' } ]
+        version-file: [ './.github/workflows/.env/nightly-tests/max_versions.env' ]
         # use standard since other variants don't currently work with these tests
         # (see https://github.com/solo-io/solo-projects/issues/6094)
         image-variant:
@@ -91,3 +91,5 @@ jobs:
     - id: run-tests
       if: needs.prepare_env.outputs.should-auto-succeed-regression-tests != 'true'
       uses: ./.github/workflows/composite-actions/kube-gateway-api-conformance-tests
+      with:
+        version-file: ${{ matrix.version-file }}

@@ -571,15 +571,14 @@ jobs:
       - uses: ./.github/workflows/composite-actions/performance-tests
 
   kube_gateway_api_conformance_tests_main:
-    name: Conformance (branch=main, type=Kubernetes Gateway API, version=${{matrix.kube-version.node}} )
+    name: Conformance (branch=main, type=Kubernetes Gateway API, version-file=${{matrix.version-file}})
     if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-conformance && inputs.branch == 'main') || github.event.schedule == '0 5 * * *' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
-        kube-version: [ { node: 'v1.27.3@sha256:3966ac761ae0136263ffdb6cfd4db23ef8a83cba8a463690e98317add2c9ba72', kubectl: 'v1.27.3', kind: 'v0.20.0', helm: 'v3.13.2' },
-                        { node: 'v1.31.0@sha256:53df588e04085fd41ae12de0c3fe4c72f7013bba32a20e7325357a1ac94ba865', kubectl: 'v1.31.0', kind: 'v0.24.0', helm: 'v3.14.4' }]
+        version-file: ['./.github/workflows/.env/nightly-tests/min_versions.env', './.github/workflows/.env/nightly-tests/max_versions.env' ]
         image-variant:
           - standard
     steps:
@@ -587,6 +586,8 @@ jobs:
       with:
         ref: main
     - uses: ./.github/workflows/composite-actions/kube-gateway-api-conformance-tests
+      with:
+        version-file: ${{ matrix.version-file }}
 
   kube_gateway_api_conformance_tests_v1_19_x:
     name: Conformance (branch=v1.19.x, type=Kubernetes Gateway API, version=${{matrix.kube-version.node}} )
@@ -605,6 +606,11 @@ jobs:
       with:
         ref: v1.19.x
     - uses: ./.github/workflows/composite-actions/kube-gateway-api-conformance-tests
+      with:
+        kind-node-version: ${{ matrix.kube-version.node }}
+        kind-version: ${{ matrix.kube-version.kind }}
+        kubectl-version: ${{ matrix.kube-version.kubectl }}
+        helm-version: ${{ matrix.kube-version.helm }}
 
   kube_gateway_api_conformance_tests_v1_18_x:
     name: Conformance (branch=v1.18.x, type=Kubernetes Gateway API, version=${{matrix.kube-version.node}} )
@@ -623,6 +629,11 @@ jobs:
         with:
           ref: v1.18.x
       - uses: ./.github/workflows/composite-actions/kube-gateway-api-conformance-tests
+        with:
+          kind-node-version: ${{ matrix.kube-version.node }}
+          kind-version: ${{ matrix.kube-version.kind }}
+          kubectl-version: ${{ matrix.kube-version.kubectl }}
+          helm-version: ${{ matrix.kube-version.helm }}
 
   kube_gateway_api_conformance_tests_v1_17_x:
     name: Conformance (branch=v1.17.x, type=Kubernetes Gateway API, version=${{matrix.kube-version.node}} )
@@ -641,6 +652,11 @@ jobs:
         with:
           ref: v1.17.x
       - uses: ./.github/workflows/composite-actions/kube-gateway-api-conformance-tests
+        with:
+          kind-node-version: ${{ matrix.kube-version.node }}
+          kind-version: ${{ matrix.kube-version.kind }}
+          kubectl-version: ${{ matrix.kube-version.kubectl }}
+          helm-version: ${{ matrix.kube-version.helm }}
 
   publish_results:
     runs-on: ubuntu-24.04
