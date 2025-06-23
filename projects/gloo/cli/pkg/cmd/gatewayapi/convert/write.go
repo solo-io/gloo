@@ -157,6 +157,34 @@ func (o *GatewayAPIOutput) Write(opts *Options) error {
 			return err
 		}
 	}
+	// Print a list of unique features not currently supported
+	nses := o.errors[ERROR_TYPE_NOT_SUPPORTED]
+	if len(nses) != 0 {
+		f, err := os.Create(fmt.Sprintf("%s/MISSING_FEATURES.txt", folder))
+		if err != nil {
+			return err
+		}
+		featuresMap := make(map[string]map[string]bool)
+		for _, nse := range nses {
+			if featuresMap[nse.crdType] == nil {
+				featuresMap[nse.crdType] = make(map[string]bool)
+			}
+			featuresMap[nse.crdType][nse.err.Error()] = true
+		}
+		for crd, features := range featuresMap {
+			_, err := f.WriteString("\n" + crd + "\n")
+			if err != nil {
+				return err
+			}
+			for feature, _ := range features {
+				_, err := f.WriteString("\t" + feature + "\n")
+				if err != nil {
+					return err
+				}
+			}
+		}
+	}
+
 	if len(o.errors) > 0 {
 		fmt.Printf("Errros were encountered during translation, please check %s/gloo-errors\n", opts.OutputDir)
 	}
