@@ -1,0 +1,7 @@
+changelog:
+  - type: NEW_FEATURE
+    description: >-
+      Added support for mTLS in passthrough authentication. 
+      This provides the ability to configure simple TLS or mTLS for both HTTP and gRPC passthrough authentication.
+    resolvesIssue: false
+    issueLink: https://github.com/solo-io/ext-auth-service/issues/867
