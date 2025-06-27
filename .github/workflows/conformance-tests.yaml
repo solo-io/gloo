@@ -21,24 +21,32 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        # TODO(tim): Avoid hardcoding versions here. It's a bit tricky based on
-        # how this was setup and there's a limited # of dispatch inputs that GH
-        # supports. We can revisit this later.
-        kube-version:
-        - node: 'v1.32.0@sha256:c48c62eac5da28cdadcf560d1d8616cfa6783b58f0d94cf63ad1bf49600cb027'
-          kubectl: 'v1.32.2'
-          kind: 'v0.26.0'
-          helm: 'v3.17.1'
         image-variant:
           - ${{ inputs.image-variant }}
         version:
           - ${{ inputs.version }}
+        version-files:
+          - file: './.github/workflows/.env/pr-tests/versions.env'
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      - name: Dotenv Action
+        id: dotenv
+        uses: falti/dotenv-action@v1.1.4
+        with:
+          path: ${{ matrix.version-files.file }}
+          log-variables: true  
+
       - name: Run Conformance Tests
         uses: ./.github/workflows/composite-actions/kube-gateway-api-conformance-tests
+        with:
+          kind-version: ${{ steps.dotenv.outputs.kind_version }}
+          kubectl-version: ${{ steps.dotenv.outputs.kubectl_version }}
+          helm-version: ${{ steps.dotenv.outputs.helm_version }}
+          kind-node-version: ${{ steps.dotenv.outputs.node_version }}
+          image-variant: ${{ matrix.image-variant }}
+          version: ${{ matrix.version }}
 
       # TODO(tim): Add support for downloading the test results and creating
       # a pull request whenever a new release > 1.17+ is cut.

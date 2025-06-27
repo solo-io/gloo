@@ -60,12 +60,17 @@ func KubectlOut(stdin io.Reader, args ...string) ([]byte, error) {
 		stderr = cliutil.GetLogger()
 	}
 
-	buf := &bytes.Buffer{}
+	stdoutBuf := &bytes.Buffer{}
+	stderrBuf := &bytes.Buffer{}
 
-	kubectl.Stdout = io.MultiWriter(stdout, buf)
-	kubectl.Stderr = io.MultiWriter(stderr, buf)
+	kubectl.Stdout = io.MultiWriter(stdout, stdoutBuf)
+	kubectl.Stderr = io.MultiWriter(stderr, stderrBuf)
 
 	err := kubectl.Run()
 
-	return buf.Bytes(), err
+	var combined bytes.Buffer
+	combined.Write(stdoutBuf.Bytes())
+	combined.Write(stderrBuf.Bytes())
+
+	return combined.Bytes(), err
 }

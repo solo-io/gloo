@@ -54,7 +54,7 @@ SOURCES := $(shell find . -name "*.go" | grep -v test.go)
 # for more information, see https://github.com/solo-io/gloo/pull/9633
 # and
 # https://soloio.slab.com/posts/extended-http-methods-design-doc-40j7pjeu
-ENVOY_GLOO_IMAGE ?= quay.io/solo-io/envoy-gloo:1.33.2-patch2
+ENVOY_GLOO_IMAGE ?= quay.io/solo-io/envoy-gloo:1.34.1-patch3
 LDFLAGS := "-X github.com/solo-io/gloo/pkg/version.Version=$(VERSION)"
 GCFLAGS ?=
 
@@ -378,6 +378,7 @@ clean-solo-kit-gen:
 	find * -type f -name '*.pb.hash.go' -not -path "docs/*" -not -path "test/*" -exec rm {} \;
 	find * -type f -name '*.pb.equal.go' -not -path "docs/*" -not -path "test/*" -exec rm {} \;
 	find * -type f -name '*.pb.clone.go' -not -path "docs/*" -not -path "test/*" -exec rm {} \;
+	find * -type f -name '*.pb.uniquehash.go' -not -path "docs/*" -not -path "test/*" -exec rm {} \;
 
 .PHONY: clean-cli-docs
 clean-cli-docs:

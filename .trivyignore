@@ -85,4 +85,7 @@ CVE-2024-36623
 # not affected, and thus we are skipping that vulnerability for Gloo as well
 CVE-2024-45338
 
-
+# https://github.com/advisories/GHSA-6m8w-jc87-6cr7
+# This CVE only impacts OPA when being run as an exposed standalone server, not when used as a library by extauth,
+# or when OPA is used as an unexposed sidecar.
+CVE-2025-46569
