@@ -1,0 +1,8 @@
+changelog:
+  - type: NON_USER_FACING
+    resolvesIssue: false
+    description: >-
+      Doc fix for bedrock upstream model field
+      skipCI-kube-tests:true
+      skipCI-storybook-tests:true
+      skipCI-in-memory-e2e-tests:true

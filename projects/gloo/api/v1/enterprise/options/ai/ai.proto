@@ -274,8 +274,9 @@ message UpstreamSpec {
     // or to use a different backend that is API-compliant with the upstream version.
     // Note: For AWS Bedrock, if custom_host is set, host_rewrite will be used to override the Host header before signing the request
     CustomHost custom_host = 2;
-    // Optional: Sets the model-id name.
-    // If unset, the model name is taken from the request.
+    // Required: model string.
+    //
+    // The model field is the supported model id published by AWS. See <https://docs.aws.amazon.com/bedrock/latest/userguide/models-supported.html>
     string model = 3;
     // Required: region string.
     //
