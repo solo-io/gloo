@@ -2258,8 +2258,9 @@ type UpstreamSpec_Bedrock struct {
 	// or to use a different backend that is API-compliant with the upstream version.
 	// Note: For AWS Bedrock, if custom_host is set, host_rewrite will be used to override the Host header before signing the request
 	CustomHost *UpstreamSpec_CustomHost `protobuf:"bytes,2,opt,name=custom_host,json=customHost,proto3" json:"custom_host,omitempty"`
-	// Optional: Sets the model-id name.
-	// If unset, the model name is taken from the request.
+	// Required: model string.
+	//
+	// The model field is the supported model id published by AWS. See <https://docs.aws.amazon.com/bedrock/latest/userguide/models-supported.html>
 	Model string `protobuf:"bytes,3,opt,name=model,proto3" json:"model,omitempty"`
 	// Required: region string.
 	//
