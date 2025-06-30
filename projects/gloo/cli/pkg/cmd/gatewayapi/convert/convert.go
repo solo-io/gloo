@@ -4,6 +4,7 @@ import (
 	"fmt"
 	v4 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/filters/http/csrf/v3"
 	gloo_type_matcher "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/type/matcher/v3"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/jwt"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/cors"
 	"strconv"
 	"strings"
@@ -450,9 +451,12 @@ func (o *GatewayAPIOutput) convertAWSBackend(upstream *snapshot.UpstreamWrapper,
 		}
 	}
 	if lambda != nil {
-		backend.Spec.Aws.Lambda = &kgateway.AwsLambda{
-			FunctionName: lambda.GetLambdaFunctionName(),
-			Qualifier:    lambda.GetQualifier(),
+		backend.Spec.Aws.Lambda = kgateway.AwsLambda{
+			EndpointURL:          "",                             // existing
+			FunctionName:         lambda.GetLambdaFunctionName(), // existing
+			InvocationMode:       "",                             // existing
+			Qualifier:            lambda.GetQualifier(),          // existing
+			PayloadTransformMode: "",                             // existing
 		}
 	}
 	return backend
@@ -656,6 +660,7 @@ func (o *GatewayAPIOutput) convertVHOOptionsToTrafficPolicySpec(vho *gloov1.Virt
 		RateLimitEnterprise:      nil, // existing
 		ExtAuthEnterprise:        nil, // existing
 		TransformationEnterprise: nil, // existing
+		JWTEnterprise:            nil,
 	}
 	if vho != nil {
 		if vho.GetExtauth() != nil {
@@ -810,9 +815,21 @@ func (o *GatewayAPIOutput) convertVHOOptionsToTrafficPolicySpec(vho *gloov1.Virt
 		}
 		if vho.GetJwt() != nil {
 			// TODO(nick) should we try to translate this or require the end user to migrate to staged?
+			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "jwt is deprecated in edge and supported")
 		}
 		if vho.GetJwtStaged() != nil {
-			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "jwtStaged is not supported")
+			spec.JWTEnterprise = &gloogateway.StagedJWT{
+				AfterExtAuth:  nil, // existing
+				BeforeExtAuth: nil, // existing
+			}
+			if vho.GetJwtStaged().GetBeforeExtAuth() != nil {
+				jwte := o.convertJWTStagedExtAuth(vho.GetJwtStaged().GetBeforeExtAuth(), wrapper)
+				spec.JWTEnterprise.BeforeExtAuth = jwte
+			}
+			if vho.GetJwtStaged().GetAfterExtAuth() != nil {
+				jwte := o.convertJWTStagedExtAuth(vho.GetJwtStaged().GetAfterExtAuth(), wrapper)
+				spec.JWTEnterprise.BeforeExtAuth = jwte
+			}
 		}
 		if vho.GetRbac() != nil {
 			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "rbac is not supported")
@@ -841,6 +858,125 @@ func (o *GatewayAPIOutput) convertVHOOptionsToTrafficPolicySpec(vho *gloov1.Virt
 		}
 	}
 	return spec
+}
+
+func (o *GatewayAPIOutput) convertJWTStagedExtAuth(auth *jwt.VhostExtension, wrapper snapshot.Wrapper) *gloogateway.JWTEnterprise {
+	jwte := &gloogateway.JWTEnterprise{
+		Providers:        nil, // existing
+		ValidationPolicy: nil, // existing
+		Disable:          nil, // existing
+	}
+
+	switch auth.GetValidationPolicy() {
+	case jwt.VhostExtension_REQUIRE_VALID:
+		jwte.ValidationPolicy = ptr.To(gloogateway.ValidationPolicyRequireValid)
+	case jwt.VhostExtension_ALLOW_MISSING:
+		jwte.ValidationPolicy = ptr.To(gloogateway.ValidationPolicyAllowMissing)
+	case jwt.VhostExtension_ALLOW_MISSING_OR_FAILED:
+		jwte.ValidationPolicy = ptr.To(gloogateway.ValidationPolicyAllowMissingOrFailed)
+	}
+
+	if auth.GetProviders() != nil {
+		jwte.Providers = make(map[string]gloogateway.JWTProvider)
+		for k, provider := range auth.GetProviders() {
+			p := gloogateway.JWTProvider{
+				JWKS:                         nil, // existing
+				Audiences:                    nil, // existing
+				Issuer:                       ptr.To(provider.Issuer),
+				TokenSource:                  nil, // existing
+				KeepToken:                    ptr.To(provider.KeepToken),
+				ClaimsToHeaders:              nil, // existing
+				ClockSkewSeconds:             ptr.To(provider.ClockSkewSeconds.Value),
+				AttachFailedStatusToMetadata: ptr.To(provider.AttachFailedStatusToMetadata),
+			}
+			if len(provider.GetAudiences()) > 0 {
+				p.Audiences = provider.GetAudiences()
+			}
+			if len(provider.GetClaimsToHeaders()) > 0 {
+				p.ClaimsToHeaders = make([]*gloogateway.ClaimToHeader, 0)
+				for _, h := range provider.GetClaimsToHeaders() {
+					p.ClaimsToHeaders = append(p.ClaimsToHeaders, &gloogateway.ClaimToHeader{
+						Claim:  h.GetClaim(),
+						Header: h.GetHeader(),
+						Append: ptr.To(h.GetAppend()),
+					})
+				}
+			}
+
+			if provider.GetTokenSource() != nil {
+				p.TokenSource = &gloogateway.TokenSource{
+					Headers:     make([]*gloogateway.TokenSourceHeaderSource, 0),
+					QueryParams: provider.GetTokenSource().GetQueryParams(),
+				}
+				for _, h := range provider.GetTokenSource().GetHeaders() {
+					p.TokenSource.Headers = append(p.TokenSource.Headers, &gloogateway.TokenSourceHeaderSource{
+						Header: h.GetHeader(),
+						Prefix: ptr.To(h.GetPrefix()),
+					})
+				}
+			}
+			if provider.GetJwks() != nil {
+				jwks := &gloogateway.JWKS{
+					Local:  nil,
+					Remote: nil,
+				}
+				if provider.GetJwks().GetLocal() != nil {
+					jwks.Local = &gloogateway.LocalJWKS{Key: provider.GetJwks().GetLocal().GetKey()}
+				}
+				if provider.GetJwks().GetRemote() != nil {
+					jwks.Remote = &gloogateway.RemoteJWKS{
+						Url:           provider.GetJwks().GetRemote().GetUrl(),
+						BackendRef:    nil, // existing
+						CacheDuration: &metav1.Duration{Duration: provider.GetJwks().GetRemote().CacheDuration.AsDuration()},
+						AsyncFetch:    nil, // existing
+					}
+					if provider.GetJwks().GetRemote().GetAsyncFetch() != nil {
+						jwks.Remote.AsyncFetch = &gloogateway.JwksAsyncFetch{FastListener: ptr.To(provider.GetJwks().GetRemote().GetAsyncFetch().GetFastListener())}
+					}
+
+					if provider.GetJwks().GetRemote().GetUpstreamRef() != nil {
+
+						backendRef := &gwv1.BackendRef{
+							BackendObjectReference: gwv1.BackendObjectReference{
+								Group:     nil,
+								Kind:      nil,
+								Name:      "",
+								Namespace: nil,
+								Port:      nil,
+							},
+							Weight: nil,
+						}
+						// need to look up the upstream to see if its kube or not
+						upstream := o.GetEdgeCache().GetUpstream(types.NamespacedName{Name: provider.GetJwks().GetRemote().GetUpstreamRef().GetName(), Namespace: provider.GetJwks().GetRemote().GetUpstreamRef().GetNamespace()})
+						if upstream == nil {
+							// just treat it as a kube service because we dont know what it might be
+							o.AddErrorFromWrapper(ERROR_TYPE_UNKNOWN_REFERENCE, wrapper, "jwtStaged remote jwks references upstream %s/%s which was not found", provider.GetJwks().GetRemote().GetUpstreamRef().GetNamespace(), provider.GetJwks().GetRemote().GetUpstreamRef().GetName())
+							backendRef.Name = gwv1.ObjectName(provider.GetJwks().GetRemote().GetUpstreamRef().GetName())
+							backendRef.Namespace = ptr.To(gwv1.Namespace(provider.GetJwks().GetRemote().GetUpstreamRef().GetNamespace()))
+						} else {
+							if upstream.Upstream.Spec.GetKube() != nil {
+								// references a kubernetes service
+								backendRef.Name = gwv1.ObjectName(upstream.Upstream.Spec.GetKube().GetServiceName())
+								backendRef.Namespace = ptr.To(gwv1.Namespace(upstream.Upstream.Spec.GetKube().GetServiceNamespace()))
+							} else {
+								// it needs to reference a backend
+								backendRef.Name = gwv1.ObjectName(upstream.Name)
+								backendRef.Namespace = ptr.To(gwv1.Namespace(upstream.Namespace))
+								backendRef.Kind = (*gwv1.Kind)(ptr.To("Backend"))
+								backendRef.Group = (*gwv1.Group)(ptr.To(glookube.GroupName))
+							}
+						}
+						jwks.Remote.BackendRef = backendRef
+					}
+				}
+				p.JWKS = jwks
+			}
+
+			jwte.Providers[k] = p
+		}
+	}
+
+	return jwte
 }
 
 func (o *GatewayAPIOutput) convertCORS(policy *cors.CorsPolicy, wrapper snapshot.Wrapper) *kgateway.CorsPolicy {
@@ -1998,7 +2134,24 @@ func (o *GatewayAPIOutput) convertRouteOptions(
 		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "jwtProvidersStaged is not supported")
 	}
 	if options.GetJwtStaged() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "jwtStaged is not supported")
+		gtpSpec.JWTEnterprise = &gloogateway.StagedJWT{
+			AfterExtAuth:  nil, // existing
+			BeforeExtAuth: nil, // existing
+		}
+		if options.GetJwtStaged().GetBeforeExtAuth() != nil && options.GetJwtStaged().GetBeforeExtAuth().GetDisable() {
+			gtpSpec.JWTEnterprise.BeforeExtAuth = &gloogateway.JWTEnterprise{
+				Providers:        nil,                                                            // existing
+				ValidationPolicy: nil,                                                            // existing
+				Disable:          ptr.To(options.GetJwtStaged().GetBeforeExtAuth().GetDisable()), // existing
+			}
+		}
+		if options.GetJwtStaged().GetAfterExtAuth() != nil && options.GetJwtStaged().GetAfterExtAuth().GetDisable() {
+			gtpSpec.JWTEnterprise.AfterExtAuth = &gloogateway.JWTEnterprise{
+				Providers:        nil,                                                           // existing
+				ValidationPolicy: nil,                                                           // existing
+				Disable:          ptr.To(options.GetJwtStaged().GetAfterExtAuth().GetDisable()), // existing
+			}
+		}
 	}
 	if options.GetLbHash() != nil {
 		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "lbHash is not supported")
