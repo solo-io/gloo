@@ -1447,6 +1447,8 @@ github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2/go.mod h1:W
 github.com/avast/retry-go v2.2.0+incompatible/go.mod h1:XtSnn+n/sHqQIpZ10K1qAevBhOOCWBLXXy3hyiqqBrY=
 github.com/avast/retry-go v2.4.3+incompatible h1:c/FTk2POrEQyZfaHBMkMrXdu3/6IESJUHwu8r3k1JEU=
 github.com/avast/retry-go v2.4.3+incompatible/go.mod h1:XtSnn+n/sHqQIpZ10K1qAevBhOOCWBLXXy3hyiqqBrY=
+github.com/avast/retry-go v3.0.0+incompatible h1:4SOWQ7Qs+oroOTQOYnAHqelpCO0biHSxpiH9JdtuBj0=
+github.com/avast/retry-go v3.0.0+incompatible/go.mod h1:XtSnn+n/sHqQIpZ10K1qAevBhOOCWBLXXy3hyiqqBrY=
 github.com/avast/retry-go/v4 v4.3.3 h1:G56Bp6mU0b5HE1SkaoVjscZjlQb0oy4mezwY/cGH19w=
 github.com/avast/retry-go/v4 v4.3.3/go.mod h1:rg6XFaiuFYII0Xu3RDbZQkxCofFwruZKW8oEF1jpWiU=
 github.com/aws/aws-sdk-go v1.30.27/go.mod h1:5zCpMtNQVjRREroY7sYe8lOMRSxkhG6MZveU8YkpAk0=
@@ -2235,6 +2237,7 @@ github.com/jhump/protoreflect v1.15.3/go.mod h1:4ORHmSBmlCW8fh3xHmJMGyul1zNqZK4E
 github.com/jmespath/go-jmespath v0.3.0/go.mod h1:9QtRXoHjLGCJ5IBSaohpXITPlowMeeYCZ7fLUTSywik=
 github.com/jmespath/go-jmespath v0.4.0 h1:BEgLn5cpjn8UN1mAw4NjwDrS35OdebyEtFe+9YPoQUg=
 github.com/jmespath/go-jmespath v0.4.0/go.mod h1:T8mJZnbsbmF+m6zOOFylbeCJqk5+pHWvzYPziyZiYoo=
+github.com/jmespath/go-jmespath v0.4.1-0.20220621161143-b0104c826a24/go.mod h1:T8mJZnbsbmF+m6zOOFylbeCJqk5+pHWvzYPziyZiYoo=
 github.com/jmespath/go-jmespath/internal/testify v1.5.1 h1:shLQSRRSCCPj3f2gpwzGwWFoC7ycTf1rcQZHOlsJ6N8=
 github.com/jmespath/go-jmespath/internal/testify v1.5.1/go.mod h1:L3OGu8Wl2/fWfCI6z80xFu9LTZmf1ZRjMHUOPmWr69U=
 github.com/jmoiron/sqlx v1.4.0 h1:1PLqN7S1UYp5t4SrVVnt4nUVNemrDAtxlulVe+Qgm3o=
@@ -2276,6 +2279,8 @@ github.com/kevinburke/ssh_config v1.2.0 h1:x584FjTGwHzMwvHx18PXxbBVzfnxogHaAReU4
 github.com/kevinburke/ssh_config v1.2.0/go.mod h1:CT57kijsi8u/K/BOFA39wgDQJ9CxiF4nAY/ojJ6r6mM=
 github.com/kgateway-dev/kgateway/v2 v2.1.0-main.0.20250618160834-3cf68b58a36c h1:7TrDnFCYeCK2SU2bq+Q5Q5oZSpUxFH/j8B3PfZoefIM=
 github.com/kgateway-dev/kgateway/v2 v2.1.0-main.0.20250618160834-3cf68b58a36c/go.mod h1:sUOu1oxwW6T2y2WD5vpSxMrVOVx+aSBsxeBrEz0V4dI=
+github.com/kgateway-dev/kgateway/v2 v2.1.0-main.0.20250626155551-cc59b3a0dd7e h1:NUnVOMZICoSuleCw0t7Le1VH2444/ULbknIMACdje4Y=
+github.com/kgateway-dev/kgateway/v2 v2.1.0-main.0.20250626155551-cc59b3a0dd7e/go.mod h1:x9cZCMTDrdM6Pp45W167FFkoxG2bK1+LeWCgsPWoXsk=
 github.com/kisielk/errcheck v1.1.0/go.mod h1:EZBBE59ingxPouuu3KfxchcWSUPOHkagtvWXihfKN4Q=
 github.com/kisielk/errcheck v1.2.0/go.mod h1:/BMXB+zMLi60iA8Vv6Ksmxu/1UDYcXs4uQLJ+jE2L00=
 github.com/kisielk/errcheck v1.5.0/go.mod h1:pFxgyoBC7bSaBwPgfKdkLd5X25qrDl4LWUI2bnpBCr8=
@@ -2424,6 +2429,7 @@ github.com/mitchellh/mapstructure v1.1.2/go.mod h1:FVVH3fgwuzCH5S8UJGiWEs2h04kUh
 github.com/mitchellh/mapstructure v1.4.1/go.mod h1:bFUtVrKA4DC2yAKiSyO/QUcy7e+RRV2QTWOzhPopBRo=
 github.com/mitchellh/mapstructure v1.5.0 h1:jeMsZIYE/09sWLaz43PL7Gy6RuMjD2eJVyuac5Z2hdY=
 github.com/mitchellh/mapstructure v1.5.0/go.mod h1:bFUtVrKA4DC2yAKiSyO/QUcy7e+RRV2QTWOzhPopBRo=
+github.com/mitchellh/mapstructure v1.5.1-0.20220423185008-bf980b35cac4/go.mod h1:bFUtVrKA4DC2yAKiSyO/QUcy7e+RRV2QTWOzhPopBRo=
 github.com/mitchellh/reflectwalk v1.0.0/go.mod h1:mSTlrgnPZtwu0c4WaC2kGObEpuNDbx0jmZXqmk4esnw=
 github.com/mitchellh/reflectwalk v1.0.2 h1:G2LzWKi524PWgd3mLHV8Y5k7s6XUvT0Gef6zxSIeXaQ=
 github.com/mitchellh/reflectwalk v1.0.2/go.mod h1:mSTlrgnPZtwu0c4WaC2kGObEpuNDbx0jmZXqmk4esnw=
@@ -2744,6 +2750,8 @@ github.com/solo-io/cue v0.4.7 h1:X65mDmyBrS3ODvDvAgzIt9aTxbwBtdt+ayg4w9XKoaA=
 github.com/solo-io/cue v0.4.7/go.mod h1:P1tN9y6nBPAMoEK5aJxI8kn0VUcjVcRc+8esieRzQ7M=
 github.com/solo-io/gloo-gateway v0.0.2-0.20250618214459-95c9ec20a2b3 h1:jLqs6KyLmE03+vW/BMKoLbqx84p4ArLPz9ruj886ZOs=
 github.com/solo-io/gloo-gateway v0.0.2-0.20250618214459-95c9ec20a2b3/go.mod h1:pXlQEzwabnLtw0qhMfp2VWyUd1gtz8T5K8fVMGk8i5s=
+github.com/solo-io/gloo-gateway v0.0.2-0.20250627213140-97db0ad459b2 h1:OxAehr8f6j7U2NnIsmZgLMyfQXKQkwaz45i0CZgNCkI=
+github.com/solo-io/gloo-gateway v0.0.2-0.20250627213140-97db0ad459b2/go.mod h1:/FX+KgDBMpO9ekbk0pS6eXyiWXDyR/GjlIDeZ3uWWlQ=
 github.com/solo-io/go-list-licenses v0.1.4 h1:u4xh1OUORT4iSWuAp3Q4NsfHcDaeUV8QRDH8ACQqbxw=
 github.com/solo-io/go-list-licenses v0.1.4/go.mod h1:x6LSp/NrYgVXwNum7ZOiaAYTpg6B3F6TrWYfcdHVroA=
 github.com/solo-io/go-utils v0.20.2/go.mod h1:6e8K1spnMWwlnJRSNp/J84GEyJbrcK4Gm7i+ehzCi8c=
@@ -2757,6 +2765,7 @@ github.com/solo-io/protoc-gen-openapi v0.3.0 h1:9Cb45r7GtZcWTPQx+VJ6ba4DB6f47/ON
 github.com/solo-io/protoc-gen-openapi v0.3.0/go.mod h1:3Zvq9oDldIwsP7UGfsIxeR9CxRovRhFPDvp4gns0C0w=
 github.com/solo-io/skv2 v0.44.0 h1:rufJZFV/DxJhS00O2vJGIv1qhOIhcg7TBjZxcR2vgc4=
 github.com/solo-io/skv2 v0.44.0/go.mod h1:Qgz8c1TBcNJiLYRoHWIJlyqS1IAp9Vc92+OT+bIiEVE=
+github.com/solo-io/skv2 v0.48.0/go.mod h1:GtEN0CCne94tm710YbefQh9YcMFcIu2X490g7Loq/Zs=
 github.com/solo-io/solo-apis v0.0.0-20250616141238-dd7b8dbf6a9b h1:q3QFvBxAfW3FLzZnHjPYLYn67LNmbzAxW7LPbjudlbI=
 github.com/solo-io/solo-apis v0.0.0-20250616141238-dd7b8dbf6a9b/go.mod h1:FJT9O3ViImCX7rpznEwGmSLmmHSuZbrzbsDHvbXjhxo=
 github.com/solo-io/solo-kit v0.39.0 h1:70BgNdgHwr94pFyQsKkArPG+y8TE3a+/ugO0jbGTHr8=
@@ -3648,6 +3657,8 @@ golang.org/x/tools v0.24.0/go.mod h1:YhNqVBIfWHdzvTLs0d8LCuMhkKUgSUKldakyV7W/WDQ
 golang.org/x/tools v0.26.0/go.mod h1:TPVVj70c7JJ3WCazhD8OdXcZg/og+b9+tH/KxylGwH0=
 golang.org/x/tools v0.33.0 h1:4qz2S3zmRxbGIhDIAgjxvFutSvH5EfnsYrRBj0UI0bc=
 golang.org/x/tools v0.33.0/go.mod h1:CIJMaWEY88juyUfo7UbgPqbC8rU2OqfAV1h2Qp0oMYI=
+golang.org/x/tools v0.34.0 h1:qIpSLOxeCYGg9TrcJokLBG4KFA6d795g0xkBkiESGlo=
+golang.org/x/tools v0.34.0/go.mod h1:pAP9OwEaY1CAW3HOmg3hLZC5Z0CCmzjAF2UQMSqNARg=
 golang.org/x/xerrors v0.0.0-20190717185122-a985d3407aa7/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
 golang.org/x/xerrors v0.0.0-20191011141410-1b5146add898/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
 golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
@@ -4230,6 +4241,7 @@ knative.dev/networking v0.0.0-20211210083629-bace06e98aee h1:tMn0wtCgn2X+i+JiRk0
 knative.dev/networking v0.0.0-20211210083629-bace06e98aee/go.mod h1:5ARXhzfos0DMVbPwQ6bQC+vz/9t7smRYBwVrmVaSHrU=
 knative.dev/pkg v0.0.0-20211206113427-18589ac7627e h1:8hK7g4jz56ZtF3iQLsvrvR/hHnP5ZWLSxLnyYMbfxwY=
 knative.dev/pkg v0.0.0-20211206113427-18589ac7627e/go.mod h1:E6B4RTjZyxe55a0kxOlnEHEl71zuG7gghnqYvNBKwBw=
+knative.dev/pkg v0.0.0-20221010143036-21d3b47e2efe/go.mod h1:8MLQO2NWHa+1GhEUlogKfOEkyh2T2EWgfSayCA0q2gc=
 lukechampine.com/uint128 v1.1.1/go.mod h1:c4eWIwlEGaxC/+H1VguhU4PHXNWDCDMUlWdIWl2j1gk=
 lukechampine.com/uint128 v1.2.0/go.mod h1:c4eWIwlEGaxC/+H1VguhU4PHXNWDCDMUlWdIWl2j1gk=
 lukechampine.com/uint128 v1.3.0/go.mod h1:c4eWIwlEGaxC/+H1VguhU4PHXNWDCDMUlWdIWl2j1gk=
@@ -4303,6 +4315,8 @@ sigs.k8s.io/controller-runtime v0.21.0 h1:CYfjpEuicjUecRk+KAeyYh+ouUBn4llGyDYytI
 sigs.k8s.io/controller-runtime v0.21.0/go.mod h1:OSg14+F65eWqIu4DceX7k/+QRAbTTvxeQSNSOQpukWM=
 sigs.k8s.io/controller-tools v0.17.3 h1:lwFPLicpBKLgIepah+c8ikRBubFW5kOQyT88r3EwfNw=
 sigs.k8s.io/controller-tools v0.17.3/go.mod h1:1ii+oXcYZkxcBXzwv3YZBlzjt1fvkrCGjVF73blosJI=
+sigs.k8s.io/controller-tools v0.18.1-0.20250625175829-8d11ce77f347 h1:O1LuoJz9cCmzsO0x+VcP/E8adUmQGrPwU+/Amw3OiKk=
+sigs.k8s.io/controller-tools v0.18.1-0.20250625175829-8d11ce77f347/go.mod h1:y7H2qZn9nI2dCNXzfLab/sk4wi6q2xJOcsvEspVK2VY=
 sigs.k8s.io/gateway-api v1.3.0 h1:q6okN+/UKDATola4JY7zXzx40WO4VISk7i9DIfOvr9M=
 sigs.k8s.io/gateway-api v1.3.0/go.mod h1:d8NV8nJbaRbEKem+5IuxkL8gJGOZ+FJ+NvOIltV8gDk=
 sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd/go.mod h1:B8JuhiUyNFVKdsE8h686QcCxMaH6HrOAZj4vswFpcB0=
