@@ -136,6 +136,7 @@ func (o *GatewayAPIOutput) convertSettings(settings *snapshot.SettingsWrapper) e
 		//TODO(nick) - not sure if there is anything to convert here, for now we will just ignore
 	}
 	if spec.GetGloo() != nil {
+		gloo := spec.GetGloo()
 		// here are the defaults
 		//  gloo:
 		//    disableKubernetesDestinations: false
@@ -156,17 +157,20 @@ func (o *GatewayAPIOutput) convertSettings(settings *snapshot.SettingsWrapper) e
 		//    xdsBindAddr: 0.0.0.0:9977
 
 		//TODO(nick) - verify AWS support
-		if spec.GetGloo().GetAwsOptions() != nil && spec.GetGloo().GetAwsOptions().GetEnableCredentialsDiscovey() == true {
+		if gloo.GetAwsOptions() != nil && spec.GetGloo().GetAwsOptions().GetEnableCredentialsDiscovey() == true {
 			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, settings, "AWS credentialDiscovery is not supported")
 		}
-		if spec.GetGloo().GetAwsOptions() != nil && spec.GetGloo().GetAwsOptions().GetFallbackToFirstFunction() != nil && spec.GetGloo().GetAwsOptions().GetFallbackToFirstFunction().GetValue() == true {
+		if gloo.GetAwsOptions() != nil && spec.GetGloo().GetAwsOptions().GetFallbackToFirstFunction() != nil && spec.GetGloo().GetAwsOptions().GetFallbackToFirstFunction().GetValue() == true {
 			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, settings, "AWS fallbackToFirstFunction is not supported")
 		}
-		if spec.GetGloo().GetAwsOptions() != nil && spec.GetGloo().GetAwsOptions().GetPropagateOriginalRouting() != nil && spec.GetGloo().GetAwsOptions().GetPropagateOriginalRouting().GetValue() == true {
+		if gloo.GetAwsOptions() != nil && spec.GetGloo().GetAwsOptions().GetPropagateOriginalRouting() != nil && spec.GetGloo().GetAwsOptions().GetPropagateOriginalRouting().GetValue() == true {
 			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, settings, "AWS propagateOriginalRouting is not supported")
 		}
-		if spec.GetGloo().GetAwsOptions() != nil && spec.GetGloo().GetAwsOptions().GetServiceAccountCredentials() != nil {
+		if gloo.GetAwsOptions() != nil && spec.GetGloo().GetAwsOptions().GetServiceAccountCredentials() != nil {
 			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, settings, "AWS serviceAccountCredentials is not supported")
+		}
+		if gloo.GetCircuitBreakers() != nil {
+			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, settings, "gloo.circuitBreakers is not supported")
 		}
 	}
 	if spec.GetGateway() != nil {
