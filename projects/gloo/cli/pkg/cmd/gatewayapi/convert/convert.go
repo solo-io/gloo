@@ -1113,7 +1113,7 @@ func (o *GatewayAPIOutput) generateGatewaysFromProxyNames(glooGateway *snapshot.
 		existingGw := o.gatewayAPICache.GetGateway(types.NamespacedName{Name: proxyName, Namespace: glooGateway.Gateway.Namespace})
 		if existingGw == nil {
 			// create a new gateway
-			gwGateway := &gwv1.Gateway{
+			existingGw = snapshot.NewGatewayWrapper(&gwv1.Gateway{
 				TypeMeta: metav1.TypeMeta{
 					Kind:       "Gateway",
 					APIVersion: gwv1.GroupVersion.String(),
@@ -1131,9 +1131,18 @@ func (o *GatewayAPIOutput) generateGatewaysFromProxyNames(glooGateway *snapshot.
 					},
 					GatewayClassName: "gloo-gateway",
 				},
-			}
-			o.gatewayAPICache.AddGateway(snapshot.NewGatewayWrapper(gwGateway, glooGateway.FileOrigin()))
+			}, glooGateway.FileOrigin())
 		}
+		// special case for per connection buffer limits to apply to the gateway as an annotation - https://github.com/kgateway-dev/kgateway/pull/11505
+		if glooGateway.Spec.GetOptions() != nil && glooGateway.Spec.GetOptions().GetPerConnectionBufferLimitBytes() != nil && glooGateway.Spec.GetOptions().GetPerConnectionBufferLimitBytes().GetValue() != 0 {
+			if existingGw.Annotations == nil {
+				existingGw.Annotations = make(map[string]string)
+			}
+			existingGw.Annotations["kgateway.dev/per-connection-buffer-limit"] = glooGateway.Spec.GetOptions().GetPerConnectionBufferLimitBytes().String()
+		}
+
+		o.gatewayAPICache.AddGateway(existingGw)
+
 		if glooGateway.Spec.GetHttpGateway() != nil && glooGateway.Spec.GetHttpGateway().GetOptions() != nil {
 			o.convertHTTPListenerOptions(glooGateway.Spec.GetHttpGateway().Options, glooGateway, proxyName)
 		}
@@ -1183,9 +1192,10 @@ func (o *GatewayAPIOutput) convertListenerOptions(glooGateway *snapshot.GlooGate
 	if options.GetConnectionBalanceConfig() != nil {
 		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, glooGateway, "gloo edge listener option connectionBalanceConfig is not supported for HTTPTrafficPolicy")
 	}
-	if options.GetPerConnectionBufferLimitBytes() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, glooGateway, "gloo edge listener option perConnectionBufferLimitBytes is not supported for HTTPTrafficPolicy")
-	}
+	//if options.GetPerConnectionBufferLimitBytes() != nil {
+	// This is now set as an annotation on Gateway
+	//	o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, glooGateway, "gloo edge listener option perConnectionBufferLimitBytes is not supported for HTTPTrafficPolicy")
+	//}
 	if options.GetProxyProtocol() != nil {
 		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, glooGateway, "gloo edge listener option proxyProtocol is not supported for HTTPTrafficPolicy")
 	}
@@ -2464,8 +2474,8 @@ func (o *GatewayAPIOutput) generateAIPromptGuard(options *gloov1.RouteOptions, w
 
 func (o *GatewayAPIOutput) convertPromptGuardResponse(options *gloov1.RouteOptions, wrapper snapshot.Wrapper) *kgateway.PromptguardResponse {
 	response := &kgateway.PromptguardResponse{
-		Regex:   nil,
-		Webhook: nil,
+		Regex:   nil, // existing
+		Webhook: nil, // existing
 	}
 
 	if options.GetAi().GetPromptGuard().GetResponse().GetWebhook() != nil {
