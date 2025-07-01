@@ -129,7 +129,10 @@ require (
 	go.uber.org/automaxprocs v1.6.0 // indirect
 )
 
-require github.com/felixge/httpsnoop v1.0.4 // indirect
+require (
+	github.com/cockroachdb/apd/v2 v2.0.1 // indirect
+	github.com/felixge/httpsnoop v1.0.4 // indirect
+)
 
 require (
 	cel.dev/expr v0.20.0 // indirect

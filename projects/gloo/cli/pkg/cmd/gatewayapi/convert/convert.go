@@ -3,6 +3,7 @@ package convert
 import (
 	"fmt"
 	corev3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
+	"github.com/solo-io/cue/pkg/time"
 	ext_core_v3 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/config/core/v3"
 	v4 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/filters/http/csrf/v3"
 	gloo_type_matcher "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/type/matcher/v3"
@@ -260,9 +261,9 @@ func (o *GatewayAPIOutput) convertSettings(settings *snapshot.SettingsWrapper) e
 	if spec.GetConsoleOptions() != nil {
 		// no need to do anything here
 	}
-	if spec.GetGraphqlOptions() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, settings, "graphql is not supported")
-	}
+	//if spec.GetGraphqlOptions() != nil {
+	//	o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, settings, "graphql is not supported")
+	//}
 	if spec.GetExtProc() != nil {
 		o.generateGatewayExtensionForExtProc(spec.GetExtProc(), "global-ext-proc", settings)
 	}
@@ -1338,7 +1339,13 @@ func (o *GatewayAPIOutput) convertCORS(policy *cors.CorsPolicy, wrapper snapshot
 	if policy.GetMaxAge() != "" {
 		age, err := strconv.Atoi(policy.GetMaxAge())
 		if err != nil {
-			o.AddErrorFromWrapper(ERROR_TYPE_IGNORED, wrapper, "invalid max age %s", policy.GetMaxAge())
+			// try to parse duration
+			duration, err := time.ParseDuration(policy.GetMaxAge())
+			if err != nil {
+				o.AddErrorFromWrapper(ERROR_TYPE_IGNORED, wrapper, "invalid max age %s", policy.GetMaxAge())
+			} else {
+				filter.MaxAge = int32(duration / time.Second)
+			}
 		} else {
 			filter.MaxAge = int32(age)
 		}
@@ -1364,7 +1371,7 @@ func (o *GatewayAPIOutput) convertStagedTransformation(transformation *transform
 	if transformation.GetInheritTransformation() == true {
 		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "transformation inherit transformation is not supported")
 	}
-	if transformation.GetRegular() != nil {
+	if transformation.GetEarly() != nil {
 		routing := o.convertRequestTransformation(transformation.GetEarly(), wrapper)
 		stagedTransformations.Stages.Early = routing
 	}
