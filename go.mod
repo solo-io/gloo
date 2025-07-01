@@ -104,7 +104,7 @@ require (
 	github.com/prometheus/common v0.62.0
 	github.com/quasilyte/go-ruleguard/dsl v0.3.22
 	github.com/solo-io/cue v0.4.7
-	github.com/solo-io/gloo-gateway v0.0.2-0.20250627213140-97db0ad459b2
+	github.com/solo-io/gloo-gateway v0.0.2-0.20250701151933-329758e54e63
 	github.com/stoewer/go-strcase v1.3.0
 	github.com/stretchr/testify v1.10.0
 	go.opentelemetry.io/proto/otlp v1.6.0

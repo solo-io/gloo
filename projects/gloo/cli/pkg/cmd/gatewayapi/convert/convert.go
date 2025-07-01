@@ -8,6 +8,7 @@ import (
 	v4 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/filters/http/csrf/v3"
 	gloo_type_matcher "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/type/matcher/v3"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/jwt"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/rbac"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/cors"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/protocol"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/ssl"
@@ -994,7 +995,8 @@ func (o *GatewayAPIOutput) convertVHOOptionsToTrafficPolicySpec(vho *gloov1.Virt
 		RateLimitEnterprise:      nil, // existing
 		ExtAuthEnterprise:        nil, // existing
 		TransformationEnterprise: nil, // existing
-		JWTEnterprise:            nil,
+		JWTEnterprise:            nil, // existing
+		RBACEnterprise:           nil,
 	}
 	if vho != nil {
 		if vho.GetExtauth() != nil {
@@ -1160,7 +1162,8 @@ func (o *GatewayAPIOutput) convertVHOOptionsToTrafficPolicySpec(vho *gloov1.Virt
 			}
 		}
 		if vho.GetRbac() != nil {
-			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "rbac is not supported")
+			rbe := o.convertRBAC(vho.GetRbac())
+			spec.RBACEnterprise = rbe
 		}
 		if vho.GetBufferPerRoute() != nil {
 			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "bufferPerRoute is not supported")
@@ -2515,7 +2518,8 @@ func (o *GatewayAPIOutput) convertRouteOptions(
 		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "maxStreamDuration is not supported")
 	}
 	if options.GetRbac() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "rbac is not supported")
+		rbe := o.convertRBAC(options.GetRbac())
+		gtpSpec.RBACEnterprise = rbe
 	}
 	if options.GetShadowing() != nil {
 		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "shadowing is not supported")
@@ -2537,6 +2541,49 @@ func (o *GatewayAPIOutput) convertRouteOptions(
 	}
 
 	return trafficPolicy, filter
+}
+
+func (o *GatewayAPIOutput) convertRBAC(extension *rbac.ExtensionSettings) *gloogateway.RBACSpec {
+	rbe := &gloogateway.RBACSpec{
+		Disable:  ptr.To(extension.GetDisable()),
+		Policies: map[string]gloogateway.RBACPolicy{},
+	}
+	for k, policy := range extension.GetPolicies() {
+		rp := gloogateway.RBACPolicy{
+			Principals:           make([]gloogateway.RBACPrincipal, 0),
+			Permissions:          nil,
+			NestedClaimDelimiter: ptr.To(policy.GetNestedClaimDelimiter()),
+		}
+		if policy.GetPermissions() != nil {
+			rp.Permissions = &gloogateway.RBACPermissions{
+				PathPrefix: ptr.To(policy.GetPermissions().GetPathPrefix()),
+				Methods:    policy.GetPermissions().GetMethods(),
+			}
+		}
+
+		for _, principle := range policy.Principals {
+			if principle.GetJwtPrincipal() != nil {
+				p := gloogateway.RBACPrincipal{
+					JWTPrincipal: gloogateway.RBACJWTPrincipal{
+						Claims:   principle.GetJwtPrincipal().GetClaims(),
+						Provider: ptr.To(principle.GetJwtPrincipal().GetProvider()),
+						Matcher:  nil,
+					},
+				}
+				switch principle.GetJwtPrincipal().GetMatcher() {
+				case rbac.JWTPrincipal_EXACT_STRING:
+					p.JWTPrincipal.Matcher = ptr.To(gloogateway.JwtPrincipalClaimMatcherExactString)
+				case rbac.JWTPrincipal_BOOLEAN:
+					p.JWTPrincipal.Matcher = ptr.To(gloogateway.JwtPrincipalClaimMatcherBoolean)
+				case rbac.JWTPrincipal_LIST_CONTAINS:
+					p.JWTPrincipal.Matcher = ptr.To(gloogateway.JwtPrincipalClaimMatcherListContains)
+				}
+				rp.Principals = append(rp.Principals, p)
+			}
+		}
+		rbe.Policies[k] = rp
+	}
+	return rbe
 }
 
 func (o *GatewayAPIOutput) convertRateLimitAction(action *v1alpha2.Action) gloogateway.Action {
