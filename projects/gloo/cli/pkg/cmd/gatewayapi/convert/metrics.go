@@ -32,17 +32,25 @@ func (o *GatewayAPIOutput) PrintMetrics(filesEvaluated int) {
 	numGlooTrafficPolicies := len(o.gatewayAPICache.GlooTrafficPolicies)
 	numAuthConfigs := len(o.gatewayAPICache.AuthConfigs)
 	numBackends := len(o.gatewayAPICache.Backends)
+	numBackendConfigPolicies := len(o.gatewayAPICache.BackendConfigPolicy)
+	numGatewayParameters := len(o.gatewayAPICache.KGatewayParameters)
+	numHTTPListenerPolicies := len(o.gatewayAPICache.HTTPListenerPolicies)
+	numGatewayExtensions := len(o.gatewayAPICache.GatewayExtensions)
 
 	fmt.Printf("\nGateway API APIs:")
 	fmt.Printf("\n\tGateways: %d", numGatewayObjects)
+	fmt.Printf("\n\tGatewayParameters: %d", numGatewayParameters)
+	fmt.Printf("\n\tGatewayExtensions: %d", numGatewayExtensions)
 	fmt.Printf("\n\tListenerSets: %d", numListenerSets)
 	fmt.Printf("\n\tHTTPRoutes: %d", numHTTPRoutes)
 	fmt.Printf("\n\tDirectResponses: %d", numDirectResponses)
+	fmt.Printf("\n\tHTTPListenerPolicies: %d", numHTTPListenerPolicies)
 	fmt.Printf("\n\tGlooTrafficPolicies: %d", numGlooTrafficPolicies)
 	fmt.Printf("\n\tAuthConfigs: %d", numAuthConfigs)
 	fmt.Printf("\n\tBackends: %d", numBackends)
+	fmt.Printf("\n\tBackendConfigPolicies: %d", numBackendConfigPolicies)
 
-	numGatewayAPIObjects := numGatewayObjects + numListenerSets + numHTTPRoutes + numDirectResponses + numGlooTrafficPolicies + numAuthConfigs + numBackends
+	numGatewayAPIObjects := numGatewayObjects + numListenerSets + numHTTPRoutes + numDirectResponses + numGlooTrafficPolicies + numAuthConfigs + numBackends + numBackendConfigPolicies + numGatewayParameters + numHTTPListenerPolicies + numGatewayExtensions
 
 	_, _ = fmt.Fprintf(os.Stdout, "\nTotal Gateway API Config: %v", numGatewayAPIObjects)
 	_, _ = fmt.Fprintf(os.Stdout, "\n-------------------------------------")

@@ -173,6 +173,14 @@ type GatewayAPICache struct {
 	GlooTrafficPolicies  map[types.NamespacedName]*snapshot.GlooTrafficPolicyWrapper
 	GatewayExtensions    map[types.NamespacedName]*snapshot.GatewayExtensionWrapper
 	KGatewayParameters   map[types.NamespacedName]*snapshot.GatewayParametersWrapper
+	BackendConfigPolicy  map[types.NamespacedName]*snapshot.BackendConfigPolicyWrapper
+}
+
+func (g *GatewayAPICache) AddBackendConfigPolicy(policy *snapshot.BackendConfigPolicyWrapper) {
+	if g.BackendConfigPolicy == nil {
+		g.BackendConfigPolicy = make(map[types.NamespacedName]*snapshot.BackendConfigPolicyWrapper)
+	}
+	g.BackendConfigPolicy[policy.Index()] = policy
 }
 
 func (g *GatewayAPICache) AddHTTPListenerPolicy(policy *snapshot.HTTPListenerPolicyWrapper) {
