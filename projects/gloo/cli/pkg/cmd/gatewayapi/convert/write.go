@@ -2,6 +2,7 @@ package convert
 
 import (
 	"fmt"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -82,6 +83,7 @@ func (o *GatewayAPIOutput) Write(opts *Options) error {
 		}
 	}
 	for _, r := range o.gatewayAPICache.AuthConfigs {
+		r.Status = core.NamespacedStatuses{}
 		yml, err := yaml.Marshal(r.AuthConfig)
 		if err != nil {
 			return err
@@ -117,6 +119,34 @@ func (o *GatewayAPIOutput) Write(opts *Options) error {
 			return err
 		}
 	}
+	for _, r := range o.gatewayAPICache.GatewayExtensions {
+		yml, err := yaml.Marshal(r.GatewayExtension)
+		if err != nil {
+			return err
+		}
+		if err := writeObjectToFile(opts, r, yml); err != nil {
+			return err
+		}
+	}
+	for _, r := range o.gatewayAPICache.BackendConfigPolicy {
+		yml, err := yaml.Marshal(r.BackendConfigPolicy)
+		if err != nil {
+			return err
+		}
+		if err := writeObjectToFile(opts, r, yml); err != nil {
+			return err
+		}
+	}
+	for _, r := range o.gatewayAPICache.KGatewayParameters {
+		yml, err := yaml.Marshal(r.GatewayParameters)
+		if err != nil {
+			return err
+		}
+		if err := writeObjectToFile(opts, r, yml); err != nil {
+			return err
+		}
+	}
+
 	// create Gloo Errors directory and splt the files based on their error string.
 	folder, err := createSubDir(opts.OutputDir, "gloo-errors")
 	if err != nil {

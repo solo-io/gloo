@@ -2,10 +2,14 @@ package convert
 
 import (
 	"fmt"
+	corev3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
+	ext_core_v3 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/config/core/v3"
 	v4 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/filters/http/csrf/v3"
 	gloo_type_matcher "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/type/matcher/v3"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/jwt"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/cors"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/protocol"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/ssl"
 	"strconv"
 	"strings"
 
@@ -46,10 +50,7 @@ func (o *GatewayAPIOutput) Convert() error {
 
 	// Convert upstreams to backends first so that we can reference them in the Settings and Routes
 	for _, upstream := range o.edgeCache.Upstreams() {
-		backends := o.convertUpstreamToBackend(upstream)
-		for _, backend := range backends {
-			o.gatewayAPICache.AddBackend(backend)
-		}
+		o.convertUpstreamToBackend(upstream)
 	}
 
 	for _, settings := range o.edgeCache.Settings() {
@@ -276,28 +277,33 @@ func (o *GatewayAPIOutput) convertSettings(settings *snapshot.SettingsWrapper) e
 }
 
 // TODO(nick): does aws backend support awsec2 upstream?
-func (o *GatewayAPIOutput) convertUpstreamToBackend(upstream *snapshot.UpstreamWrapper) []*snapshot.BackendWrapper {
-	var backends []*snapshot.BackendWrapper
+func (o *GatewayAPIOutput) convertUpstreamToBackend(upstream *snapshot.UpstreamWrapper) {
 	// Add all existing upstreams except for kube services which will be referenced directly
 	if upstream.Spec.GetKube() != nil {
 		// do nothing, let it continue in case there were other policies attached to the kube that we can warn about
 	}
 	if upstream.Spec.GetAi() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "gcp upstream is not supported")
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "gcp AI is not supported")
 	}
+
+	// determine if we need to create an upstream policy which will apply to the upstream
+	// TODO we might need to see if the upstream is a kube service and then apply it to that?
+	o.convertUpstreamPolicy(upstream)
 
 	if upstream.Spec.GetAws() != nil {
 		if len(upstream.Spec.GetAws().GetLambdaFunctions()) > 0 {
 			backend := o.convertAWSBackend(upstream, nil)
-			backends = append(backends, backend)
+			o.gatewayAPICache.AddBackend(backend)
 		} else {
+			//TODO (nick): we create multiple backends here but we need to fix naming and backendPolicies
 			for _, lambda := range upstream.Spec.GetAws().GetLambdaFunctions() {
 				backend := o.convertAWSBackend(upstream, lambda)
-				backends = append(backends, backend)
+				o.gatewayAPICache.AddBackend(backend)
 			}
 		}
 	}
 	if upstream.Spec.GetStatic() != nil {
+
 		backend := &snapshot.BackendWrapper{
 			Backend: &kgateway.Backend{
 				TypeMeta: metav1.TypeMeta{
@@ -338,10 +344,11 @@ func (o *GatewayAPIOutput) convertUpstreamToBackend(upstream *snapshot.UpstreamW
 				if hosts.GetPort() != 0 {
 					host.Port = gwv1.PortNumber(hosts.GetPort())
 				}
+				o.convertUpstreamPolicy(upstream)
 				backend.Spec.Static.Hosts = append(backend.Spec.Static.Hosts, host)
 			}
 		}
-		backends = append(backends, backend)
+		o.gatewayAPICache.AddBackend(backend)
 	}
 	if upstream.Spec.GetAwsEc2() != nil {
 		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "awsec2 upstream is not supported")
@@ -355,11 +362,331 @@ func (o *GatewayAPIOutput) convertUpstreamToBackend(upstream *snapshot.UpstreamW
 	if upstream.Spec.GetGcp() != nil {
 		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "gcp upstream is not supported")
 	}
+
+}
+func (o *GatewayAPIOutput) convertUpstreamPolicy(upstream *snapshot.UpstreamWrapper) {
+	configExists := false
+
+	targetRef := kgateway.LocalPolicyTargetReference{
+		Group: kgateway.GroupName,
+		Kind:  "Backend",
+		Name:  gwv1.ObjectName(upstream.GetName()),
+	}
+
+	if upstream.Spec.GetKube() != nil {
+		targetRef = kgateway.LocalPolicyTargetReference{
+			Group: "v1",
+			Kind:  "Service",
+			Name:  gwv1.ObjectName(upstream.GetName()),
+		}
+	}
+
+	backendConfig := &kgateway.BackendConfigPolicy{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "BackendConfigPolicy",
+			APIVersion: kgateway.GroupVersion.String(),
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      upstream.GetName(),
+			Namespace: upstream.GetNamespace(),
+		},
+		Spec: kgateway.BackendConfigPolicySpec{
+			TargetRefs: []kgateway.LocalPolicyTargetReference{
+				targetRef,
+			},
+			ConnectTimeout:                nil, // existing
+			PerConnectionBufferLimitBytes: nil, // existing
+			TCPKeepalive:                  nil, // existing
+			CommonHttpProtocolOptions:     nil, // existing
+			Http1ProtocolOptions:          nil, // existing
+			Http2ProtocolOptions:          nil, // existing
+			TLS:                           nil, // existing
+			LoadBalancer:                  nil, // existing
+			HealthCheck:                   nil, // existing
+		},
+	}
+
+	if upstream.Spec.GetSslConfig() != nil {
+		tls := kgateway.TLS{
+			SecretRef:            nil,                                   // existing
+			TLSFiles:             nil,                                   // existing
+			Sni:                  upstream.Spec.GetSslConfig().GetSni(), // existing
+			VerifySubjectAltName: nil,                                   // existing
+			Parameters:           nil,                                   // existing
+			AlpnProtocols:        nil,                                   // existing
+			AllowRenegotiation:   nil,                                   // existing
+			OneWayTLS:            nil,                                   // existing
+		}
+		if upstream.Spec.GetSslConfig().GetSecretRef() != nil {
+			if upstream.Spec.GetSslConfig().GetSecretRef().GetNamespace() != upstream.GetNamespace() {
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "sslConfig.secretRef.namespace %s is not the same as the backendConfig's %s", upstream.GetNamespace(), upstream.Spec.GetSslConfig().GetSecretRef().GetNamespace())
+			}
+			tls.SecretRef = &corev1.LocalObjectReference{
+				Name: upstream.Spec.GetSslConfig().GetSecretRef().GetName(),
+			}
+		}
+		if upstream.Spec.GetSslConfig().GetSslFiles() != nil {
+			tls.TLSFiles = &kgateway.TLSFiles{
+				TLSCertificate: upstream.Spec.GetSslConfig().GetSslFiles().GetTlsCert(),
+				TLSKey:         upstream.Spec.GetSslConfig().GetSslFiles().GetTlsKey(),
+				RootCA:         upstream.Spec.GetSslConfig().GetSslFiles().GetRootCa(),
+			}
+			if upstream.Spec.GetSslConfig().GetSslFiles().GetOcspStaple() != "" {
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "sslConfig.sslFiles.ocspStaple is not supported")
+			}
+		}
+		if upstream.Spec.GetSslConfig().GetOneWayTls() != nil {
+			tls.OneWayTLS = ptr.To(upstream.Spec.GetSslConfig().GetOneWayTls().GetValue())
+		}
+		if len(upstream.Spec.GetSslConfig().GetAlpnProtocols()) > 0 {
+			tls.AlpnProtocols = upstream.Spec.GetSslConfig().GetAlpnProtocols()
+		}
+		if upstream.Spec.GetSslConfig().GetAllowRenegotiation() != nil {
+			tls.AllowRenegotiation = ptr.To(upstream.Spec.GetSslConfig().GetAllowRenegotiation().GetValue())
+		}
+		if upstream.Spec.GetSslConfig().GetParameters() != nil {
+			params := &kgateway.Parameters{
+				TLSMinVersion: nil, // existing
+				TLSMaxVersion: nil, // existing
+				CipherSuites:  nil, // existing
+				EcdhCurves:    nil, // existing
+			}
+			if len(upstream.Spec.GetSslConfig().GetParameters().GetEcdhCurves()) > 0 {
+				params.EcdhCurves = upstream.Spec.GetSslConfig().GetParameters().GetEcdhCurves()
+			}
+			if len(upstream.Spec.GetSslConfig().GetParameters().GetCipherSuites()) > 0 {
+				params.CipherSuites = upstream.Spec.GetSslConfig().GetParameters().GetCipherSuites()
+			}
+			switch upstream.Spec.GetSslConfig().GetParameters().GetMaximumProtocolVersion() {
+			case ssl.SslParameters_TLS_AUTO:
+				params.TLSMaxVersion = ptr.To(kgateway.TLSVersionAUTO)
+			case ssl.SslParameters_TLSv1_0:
+				params.TLSMaxVersion = ptr.To(kgateway.TLSVersion1_0)
+			case ssl.SslParameters_TLSv1_1:
+				params.TLSMaxVersion = ptr.To(kgateway.TLSVersion1_1)
+			case ssl.SslParameters_TLSv1_2:
+				params.TLSMaxVersion = ptr.To(kgateway.TLSVersion1_2)
+			case ssl.SslParameters_TLSv1_3:
+				params.TLSMaxVersion = ptr.To(kgateway.TLSVersion1_3)
+			}
+			switch upstream.Spec.GetSslConfig().GetParameters().GetMinimumProtocolVersion() {
+			case ssl.SslParameters_TLS_AUTO:
+				params.TLSMinVersion = ptr.To(kgateway.TLSVersionAUTO)
+			case ssl.SslParameters_TLSv1_0:
+				params.TLSMinVersion = ptr.To(kgateway.TLSVersion1_0)
+			case ssl.SslParameters_TLSv1_1:
+				params.TLSMinVersion = ptr.To(kgateway.TLSVersion1_1)
+			case ssl.SslParameters_TLSv1_2:
+				params.TLSMinVersion = ptr.To(kgateway.TLSVersion1_2)
+			case ssl.SslParameters_TLSv1_3:
+				params.TLSMinVersion = ptr.To(kgateway.TLSVersion1_3)
+			}
+			tls.Parameters = params
+		}
+		if upstream.Spec.GetSslConfig().GetSds() != nil {
+			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "sslConfig.sds is not supported")
+		}
+		if upstream.Spec.GetSslConfig().GetOneWayTls() != nil {
+			tls.OneWayTLS = ptr.To(upstream.Spec.GetSslConfig().GetOneWayTls().GetValue())
+		}
+		if upstream.Spec.GetSslConfig().GetVerifySubjectAltName() != nil {
+			tls.VerifySubjectAltName = upstream.Spec.GetSslConfig().GetVerifySubjectAltName()
+		}
+
+		backendConfig.Spec.TLS = &tls
+		configExists = true
+	}
+
 	if upstream.Spec.GetCircuitBreakers() != nil {
 		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "circuitBreakers is not supported")
 	}
 	if upstream.Spec.GetConnectionConfig() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "connectionConfig is not supported")
+		if upstream.Spec.GetConnectionConfig().GetPerConnectionBufferLimitBytes() != nil {
+			backendConfig.Spec.PerConnectionBufferLimitBytes = ptr.To(int(upstream.Spec.GetConnectionConfig().GetPerConnectionBufferLimitBytes().Value))
+		}
+		if upstream.Spec.GetConnectionConfig().GetConnectTimeout() != nil {
+			backendConfig.Spec.ConnectTimeout = ptr.To(metav1.Duration{Duration: upstream.Spec.GetConnectionConfig().GetConnectTimeout().AsDuration()})
+		}
+		if upstream.Spec.GetConnectionConfig().GetTcpKeepalive() != nil {
+			keepAlive := &kgateway.TCPKeepalive{
+				KeepAliveProbes:   ptr.To(int(upstream.Spec.GetConnectionConfig().GetTcpKeepalive().GetKeepaliveProbes())),
+				KeepAliveTime:     nil, // existing
+				KeepAliveInterval: nil, // existing
+			}
+			if upstream.Spec.GetConnectionConfig().GetTcpKeepalive().GetKeepaliveInterval() != nil {
+				keepAlive.KeepAliveTime = ptr.To(metav1.Duration{Duration: upstream.Spec.GetConnectionConfig().GetTcpKeepalive().GetKeepaliveTime().AsDuration()})
+			}
+			if upstream.Spec.GetConnectionConfig().GetTcpKeepalive().GetKeepaliveInterval() != nil {
+				keepAlive.KeepAliveInterval = ptr.To(metav1.Duration{Duration: upstream.Spec.GetConnectionConfig().GetTcpKeepalive().GetKeepaliveInterval().AsDuration()})
+			}
+
+			backendConfig.Spec.TCPKeepalive = keepAlive
+			configExists = true
+		}
+		if upstream.Spec.GetConnectionConfig().GetCommonHttpProtocolOptions() != nil || upstream.Spec.GetConnectionConfig().GetMaxRequestsPerConnection() > 0 {
+
+			options := &kgateway.CommonHttpProtocolOptions{
+				IdleTimeout:              nil, // existing
+				MaxHeadersCount:          nil, // existing
+				MaxStreamDuration:        nil, // existing
+				MaxRequestsPerConnection: nil, // existing
+			}
+			if upstream.Spec.GetConnectionConfig().GetCommonHttpProtocolOptions().GetIdleTimeout() != nil {
+				options.IdleTimeout = ptr.To(metav1.Duration{Duration: upstream.Spec.GetConnectionConfig().GetCommonHttpProtocolOptions().GetIdleTimeout().AsDuration()})
+			}
+			if upstream.Spec.GetConnectionConfig().GetCommonHttpProtocolOptions().GetMaxStreamDuration() != nil {
+				options.MaxStreamDuration = ptr.To(metav1.Duration{Duration: upstream.Spec.GetConnectionConfig().GetCommonHttpProtocolOptions().GetMaxStreamDuration().AsDuration()})
+			}
+			if upstream.Spec.GetConnectionConfig().GetCommonHttpProtocolOptions().GetMaxHeadersCount() > 0 {
+				options.MaxHeadersCount = ptr.To(int(upstream.Spec.GetConnectionConfig().GetCommonHttpProtocolOptions().GetMaxHeadersCount()))
+			}
+			if upstream.Spec.GetConnectionConfig().GetCommonHttpProtocolOptions().GetHeadersWithUnderscoresAction() > 0 {
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "commonHTTPProtocolOptions.headersWithUndercoresAction is not supported")
+			}
+			if upstream.Spec.GetConnectionConfig().GetMaxRequestsPerConnection() > 0 {
+				options.MaxRequestsPerConnection = ptr.To(int(upstream.Spec.GetConnectionConfig().GetMaxRequestsPerConnection()))
+			}
+			backendConfig.Spec.CommonHttpProtocolOptions = options
+			configExists = true
+		}
+		if upstream.Spec.GetConnectionConfig().GetHttp1ProtocolOptions() != nil {
+			options := &kgateway.Http1ProtocolOptions{
+				EnableTrailers:                          nil,
+				HeaderFormat:                            nil,
+				OverrideStreamErrorOnInvalidHttpMessage: nil,
+			}
+			if upstream.Spec.GetConnectionConfig().GetHttp1ProtocolOptions().GetOverrideStreamErrorOnInvalidHttpMessage() != nil {
+				options.OverrideStreamErrorOnInvalidHttpMessage = ptr.To(upstream.Spec.GetConnectionConfig().GetHttp1ProtocolOptions().GetOverrideStreamErrorOnInvalidHttpMessage().GetValue())
+			}
+			if upstream.Spec.GetConnectionConfig().GetHttp1ProtocolOptions().GetEnableTrailers() {
+				options.EnableTrailers = ptr.To(upstream.Spec.GetConnectionConfig().GetHttp1ProtocolOptions().GetEnableTrailers())
+			}
+			if upstream.Spec.GetConnectionConfig().GetHttp1ProtocolOptions().GetHeaderFormat() != nil {
+				switch upstream.Spec.GetConnectionConfig().GetHttp1ProtocolOptions().GetHeaderFormat().(type) {
+				case *protocol.Http1ProtocolOptions_ProperCaseHeaderKeyFormat:
+					options.HeaderFormat = ptr.To(kgateway.ProperCaseHeaderKeyFormat)
+				case *protocol.Http1ProtocolOptions_PreserveCaseHeaderKeyFormat:
+					options.HeaderFormat = ptr.To(kgateway.PreserveCaseHeaderKeyFormat)
+				}
+
+				backendConfig.Spec.Http1ProtocolOptions = options
+			}
+			configExists = true
+		}
+		if upstream.Spec.GetHealthChecks() != nil {
+			healthCheck := &kgateway.HealthCheck{
+				Timeout:            nil, // existing
+				Interval:           nil, // existing
+				UnhealthyThreshold: nil, // existing
+				HealthyThreshold:   nil, // existing
+				Http:               nil, // existing
+				Grpc:               nil, // existing
+			}
+			// going to just take the first health check
+			if len(upstream.Spec.GetHealthChecks()) > 0 {
+				o.AddErrorFromWrapper(ERROR_TYPE_IGNORED, upstream, "commonHealthCheck.healthChecks only using first health check")
+				hc := upstream.Spec.GetHealthChecks()[0]
+				if hc.GetTimeout() != nil {
+					healthCheck.Timeout = ptr.To(metav1.Duration{Duration: hc.GetTimeout().AsDuration()})
+				}
+				if hc.GetInterval() != nil {
+					healthCheck.Interval = ptr.To(metav1.Duration{Duration: hc.GetInterval().AsDuration()})
+				}
+				if hc.GetUnhealthyThreshold() != nil {
+					healthCheck.UnhealthyThreshold = ptr.To(hc.GetUnhealthyThreshold().GetValue())
+				}
+				if hc.GetHealthyThreshold() != nil {
+					healthCheck.HealthyThreshold = ptr.To(hc.GetHealthyThreshold().GetValue())
+				}
+				if hc.GetHttpHealthCheck() != nil {
+					http := &kgateway.HealthCheckHttp{
+						Host:   ptr.To(hc.GetHttpHealthCheck().GetHost()),
+						Path:   hc.GetHttpHealthCheck().GetPath(), // existing
+						Method: nil,                               // existing
+					}
+					if hc.GetHttpHealthCheck().GetUseHttp2() {
+						o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "healthCheck.httpHealthCheck.useHTTP2 is not supported")
+					}
+					if hc.GetHttpHealthCheck().GetServiceName() != "" {
+						o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "healthCheck.httpHealthCheck.serviceName is not supported")
+					}
+					if hc.GetHttpHealthCheck().GetExpectedStatuses() != nil {
+						o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "healthCheck.httpHealthCheck.expectedStatuses is not supported")
+					}
+					if hc.GetHttpHealthCheck().GetRequestHeadersToAdd() != nil {
+						o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "healthCheck.httpHealthCheck.requestHeadersToAdd is not supported")
+					}
+					if hc.GetHttpHealthCheck().GetRequestHeadersToRemove() != nil {
+						o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "healthCheck.httpHealthCheck.requestHeadersToRemove is not supported")
+					}
+					if hc.GetHttpHealthCheck().GetResponseAssertions() != nil {
+						o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "healthCheck.httpHealthCheck.responseAssertions is not supported")
+					}
+					switch hc.GetHttpHealthCheck().GetMethod() {
+					case ext_core_v3.RequestMethod(corev3.RequestMethod_METHOD_UNSPECIFIED):
+						http.Method = ptr.To("GET")
+					case ext_core_v3.RequestMethod(corev3.RequestMethod_GET):
+						http.Method = ptr.To("GET")
+					case ext_core_v3.RequestMethod(corev3.RequestMethod_HEAD):
+						http.Method = ptr.To("HEAD")
+					case ext_core_v3.RequestMethod(corev3.RequestMethod_POST):
+						http.Method = ptr.To("POST")
+					case ext_core_v3.RequestMethod(corev3.RequestMethod_PUT):
+						http.Method = ptr.To("PUT")
+					case ext_core_v3.RequestMethod(corev3.RequestMethod_DELETE):
+						http.Method = ptr.To("DELETE")
+					case ext_core_v3.RequestMethod(corev3.RequestMethod_CONNECT):
+						http.Method = ptr.To("CONNECT")
+					case ext_core_v3.RequestMethod(corev3.RequestMethod_OPTIONS):
+						http.Method = ptr.To("OPTIONS")
+					case ext_core_v3.RequestMethod(corev3.RequestMethod_TRACE):
+						http.Method = ptr.To("TRACE")
+					case ext_core_v3.RequestMethod(corev3.RequestMethod_PATCH):
+						http.Method = ptr.To("PATCH")
+					}
+					healthCheck.Http = http
+				}
+				if hc.GetGrpcHealthCheck() != nil {
+					grpc := &kgateway.HealthCheckGrpc{
+						ServiceName: ptr.To(hc.GetGrpcHealthCheck().GetServiceName()),
+						Authority:   ptr.To(hc.GetGrpcHealthCheck().GetAuthority()),
+					}
+					if len(hc.GetGrpcHealthCheck().GetInitialMetadata()) > 0 {
+						o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "healthCheck.grpcHealthCheck.initialMetadata is not supported")
+					}
+					healthCheck.Grpc = grpc
+				}
+				if hc.GetAlwaysLogHealthCheckFailures() {
+					o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "healthCheck.alwaysLogHealthCheckFailures is not supported")
+				}
+				if hc.GetCustomHealthCheck() != nil {
+					o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "healthCheck.customHealthCheck is not supported")
+				}
+				if hc.GetEventLogPath() != "" {
+					o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "healthCheck.eventLogPath is not supported")
+				}
+				if hc.GetHealthyEdgeInterval() != nil {
+					o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "healthCheck.healthyEdgeInterval is not supported")
+				}
+				if hc.GetInitialJitter() != nil {
+					o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "healthCheck.initialJitter is not supported")
+				}
+				if hc.GetIntervalJitterPercent() != 0 {
+					o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "healthCheck.initialJitterPercent is not supported")
+				}
+				if hc.GetNoTrafficInterval() != nil {
+					o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "healthCheck.noTrafficInterval is not supported")
+				}
+				if hc.GetReuseConnection() != nil {
+					o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "healthCheck.reuseConnection is not supported")
+				}
+				if hc.GetTcpHealthCheck() != nil {
+					o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "healthCheck.tcpHealthCheck is not supported")
+				}
+				backendConfig.Spec.HealthCheck = healthCheck
+				configExists = true
+			}
+		}
 	}
 	//if upstream.Spec.GetDiscoveryMetadata() != nil {
 	//	o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "discoveryMetadata is not supported")
@@ -370,9 +697,7 @@ func (o *GatewayAPIOutput) convertUpstreamToBackend(upstream *snapshot.UpstreamW
 	if upstream.Spec.GetFailover() != nil {
 		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "failover is not supported")
 	}
-	if upstream.Spec.GetHealthChecks() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "healthChecks is not supported")
-	}
+
 	if upstream.Spec.GetHttpConnectHeaders() != nil {
 		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "httpConnectHeaders is not supported")
 	}
@@ -412,12 +737,20 @@ func (o *GatewayAPIOutput) convertUpstreamToBackend(upstream *snapshot.UpstreamW
 	if upstream.Spec.GetRespectDnsTtl() != nil {
 		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "respectDnsTtl is not supported")
 	}
-	if upstream.Spec.GetSslConfig() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "sslConfig is not supported")
-	}
 
-	return backends
+	if configExists {
+		bcpw := snapshot.NewBackendConfigPolicyWrapper(backendConfig, upstream.FileOrigin())
+
+		if upstream.Spec.GetKube() != nil {
+			if upstream.GetNamespace() != upstream.Spec.GetKube().GetServiceNamespace() {
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, bcpw, "BackendConfigPolicy cannot apply to kube services in other namespaces.")
+			}
+		}
+		o.gatewayAPICache.AddBackendConfigPolicy(bcpw)
+	}
+	return
 }
+
 func (o *GatewayAPIOutput) convertAWSBackend(upstream *snapshot.UpstreamWrapper, lambda *aws.LambdaFunctionSpec) *snapshot.BackendWrapper {
 	backend := &snapshot.BackendWrapper{
 		Backend: &kgateway.Backend{
@@ -664,29 +997,23 @@ func (o *GatewayAPIOutput) convertVHOOptionsToTrafficPolicySpec(vho *gloov1.Virt
 	}
 	if vho != nil {
 		if vho.GetExtauth() != nil {
-			authConfigWrapper, exists := o.edgeCache.AuthConfigs()[types.NamespacedName{
-				Namespace: vho.GetExtauth().GetConfigRef().GetNamespace(),
-				Name:      vho.GetExtauth().GetConfigRef().GetName(),
-			}]
+			// we need to copy over the auth config ref if it exists
+			ref := vho.GetExtauth().GetConfigRef()
+			ac, exists := o.edgeCache.AuthConfigs()[types.NamespacedName{Name: ref.GetName(), Namespace: ref.GetNamespace()}]
 			if !exists {
-				o.AddErrorFromWrapper(ERROR_TYPE_NO_REFERENCES, wrapper, "Unable to find referenced AuthConfig %s", types.NamespacedName{Namespace: vho.GetExtauth().GetConfigRef().GetNamespace(), Name: vho.GetExtauth().GetConfigRef().GetName()}.String())
+				o.AddErrorFromWrapper(ERROR_TYPE_UNKNOWN_REFERENCE, wrapper, "did not find AuthConfig %s/%s for delegated route option reference", ref.GetName(), ref.GetNamespace())
 			} else {
-				//copy the auth config to gateway api cache if it doesn't already exist
-				_, exists = o.gatewayAPICache.AuthConfigs[types.NamespacedName{
-					Namespace: vho.GetExtauth().GetConfigRef().GetNamespace(),
-					Name:      vho.GetExtauth().GetConfigRef().GetName(),
-				}]
-				if !exists {
-					o.gatewayAPICache.AddAuthConfig(authConfigWrapper)
-				}
-			}
+				o.gatewayAPICache.AddAuthConfig(ac)
 
-			spec.ExtAuthEnterprise = &gloogateway.ExtAuthEnterprise{
-				ExtensionRef: nil,
-				AuthConfigRef: gloogateway.AuthConfigRef{
-					Name:      vho.GetExtauth().GetConfigRef().GetName(),
-					Namespace: vho.GetExtauth().GetConfigRef().GetNamespace(),
-				},
+				spec.ExtAuthEnterprise = &gloogateway.ExtAuthEnterprise{
+					ExtensionRef: &corev1.LocalObjectReference{
+						Name: "ext-authz",
+					},
+					AuthConfigRef: gloogateway.AuthConfigRef{
+						Name:      vho.GetExtauth().GetConfigRef().GetName(),
+						Namespace: vho.GetExtauth().GetConfigRef().GetNamespace(),
+					},
+				}
 			}
 		}
 		if vho.GetExtProc() != nil {
@@ -1960,8 +2287,19 @@ func (o *GatewayAPIOutput) convertRouteOptions(
 		ac, exists := o.edgeCache.AuthConfigs()[types.NamespacedName{Name: ref.GetName(), Namespace: ref.GetNamespace()}]
 		if !exists {
 			o.AddErrorFromWrapper(ERROR_TYPE_UNKNOWN_REFERENCE, wrapper, "did not find AuthConfig %s/%s for delegated route option reference", ref.GetName(), ref.GetNamespace())
+		} else {
+			o.gatewayAPICache.AddAuthConfig(ac)
+
+			gtpSpec.ExtAuthEnterprise = &gloogateway.ExtAuthEnterprise{
+				ExtensionRef: &corev1.LocalObjectReference{
+					Name: "ext-authz",
+				},
+				AuthConfigRef: gloogateway.AuthConfigRef{
+					Name:      ac.GetName(),
+					Namespace: ac.GetNamespace(),
+				},
+			}
 		}
-		o.gatewayAPICache.AddAuthConfig(ac)
 	}
 	if options.GetAi() != nil {
 		aip := &kgateway.AIPolicy{

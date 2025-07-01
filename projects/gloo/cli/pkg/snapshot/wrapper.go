@@ -162,6 +162,29 @@ func (w *VirtualHostOptionWrapper) HasFileOrigin(fileOrigin string) *VirtualHost
 	return w
 }
 
+type BackendConfigPolicyWrapper struct {
+	*kgateway.BackendConfigPolicy
+	fileOrigin string
+}
+
+func NewBackendConfigPolicyWrapper(policy *kgateway.BackendConfigPolicy, fileOrigin string) *BackendConfigPolicyWrapper {
+	return &BackendConfigPolicyWrapper{
+		BackendConfigPolicy: policy,
+		fileOrigin:          fileOrigin,
+	}
+}
+
+func (w *BackendConfigPolicyWrapper) Index() types.NamespacedName {
+	return types.NamespacedName{Name: w.Name, Namespace: w.Namespace}
+}
+func (w *BackendConfigPolicyWrapper) FileOrigin() string {
+	return w.fileOrigin
+}
+func (w *BackendConfigPolicyWrapper) HasFileOrigin(fileOrigin string) *BackendConfigPolicyWrapper {
+	w.fileOrigin = fileOrigin
+	return w
+}
+
 type GatewayParametersWrapper struct {
 	*v1alpha1.GatewayParameters
 	fileOrigin string

@@ -112,10 +112,16 @@ func (u *UsageStats) Print(format string) error {
 	if u.GlooFeatureUsage[GatewayAPI] != nil {
 		fmt.Printf("\n\nGateway API APIs:")
 		fmt.Printf("\n\tGateways: %d", u.GlooFeatureUsage[GatewayAPI].APICounts["Gateways"])
+		fmt.Printf("\n\tGatewayParameters: %d", u.GlooFeatureUsage[GatewayAPI].APICounts["GatewayParameters"])
+		fmt.Printf("\n\tGatewayExtensions: %d", u.GlooFeatureUsage[GatewayAPI].APICounts["GatewayExtensions"])
 		fmt.Printf("\n\tListenerSets: %d", u.GlooFeatureUsage[GatewayAPI].APICounts["ListenerSets"])
 		fmt.Printf("\n\tHTTPRoutes: %d", u.GlooFeatureUsage[GatewayAPI].APICounts["HTTPRoutes"])
 		fmt.Printf("\n\tDirectResponses: %d", u.GlooFeatureUsage[GatewayAPI].APICounts["DirectResponses"])
-		fmt.Printf("\n\tGatewayParameters: %d", u.GlooFeatureUsage[GatewayAPI].APICounts["GatewayParameters"])
+		fmt.Printf("\n\tHTTPListenerPolicies: %d", u.GlooFeatureUsage[GatewayAPI].APICounts["HTTPListenerPolicies"])
+		fmt.Printf("\n\tGlooTrafficPolicies: %d", u.GlooFeatureUsage[GatewayAPI].APICounts["GlooTrafficPolicies"])
+		fmt.Printf("\n\tAuthConfigs: %d", u.GlooFeatureUsage[GatewayAPI].APICounts["AuthConfigs"])
+		fmt.Printf("\n\tBackendConfigPolicies: %d", u.GlooFeatureUsage[GatewayAPI].APICounts["BackendConfigPolicies"])
+		fmt.Printf("\n\tBackends: %d", u.GlooFeatureUsage[GatewayAPI].APICounts["Backends"])
 	}
 
 	for api, features := range u.GlooFeatureUsage {
