@@ -21,6 +21,7 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 	"istio.io/istio/pkg/kube/krt"
+	"istio.io/istio/pkg/ptr"
 )
 
 type uccWithCluster struct {
@@ -54,7 +55,7 @@ func NewPerClientEnvoyClusters(
 	upstreams krt.Collection[krtcollections.UpstreamWrapper],
 	uccs krt.Collection[krtcollections.UniqlyConnectedClient],
 	ks krt.Collection[RedactedSecret],
-	settings krt.Singleton[glookubev1.Settings],
+	settings krt.Singleton[*glookubev1.Settings],
 	destinationRulesIndex DestinationRuleIndex,
 ) PerClientEnvoyClusters {
 	ctx = contextutils.WithLogger(ctx, "upstream-translator")
@@ -65,7 +66,7 @@ func NewPerClientEnvoyClusters(
 		uccs := krt.Fetch(kctx, uccs)
 		uccWithClusterRet := make([]uccWithCluster, 0, len(uccs))
 		secrets := krt.Fetch(kctx, ks)
-		ksettings := krt.FetchOne(kctx, settings.AsCollection())
+		ksettings := ptr.Flatten(krt.FetchOne(kctx, settings.AsCollection()))
 		settings := &ksettings.Spec
 
 		for _, ucc := range uccs {

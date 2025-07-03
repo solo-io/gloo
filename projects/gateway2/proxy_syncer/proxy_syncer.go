@@ -120,7 +120,7 @@ func NewGatewayInputChannels() *GatewayInputChannels {
 func NewProxySyncer(
 	ctx context.Context,
 	initialSettings *glookubev1.Settings,
-	settings krt.Singleton[glookubev1.Settings],
+	settings krt.Singleton[*glookubev1.Settings],
 	restCfg *rest.Config,
 	controllerName string,
 	writeNamespace string,
@@ -164,7 +164,7 @@ func NewProxySyncer(
 
 type ProxyTranslator struct {
 	translator       setup.TranslatorFactory
-	settings         krt.Singleton[glookubev1.Settings]
+	settings         krt.Singleton[*glookubev1.Settings]
 	syncerExtensions []syncer.TranslatorSyncerExtension
 	xdsCache         envoycache.SnapshotCache
 	// used to no-op during extension syncing as we only do it to get reports
@@ -178,7 +178,7 @@ type ProxyTranslator struct {
 
 func NewProxyTranslator(translator setup.TranslatorFactory,
 	xdsCache envoycache.SnapshotCache,
-	settings krt.Singleton[glookubev1.Settings],
+	settings krt.Singleton[*glookubev1.Settings],
 	syncerExtensions []syncer.TranslatorSyncerExtension,
 	glooReporter reporter.StatusReporter,
 ) ProxyTranslator {
@@ -496,27 +496,27 @@ func (s *ProxySyncer) Init(ctx context.Context, dbg *krt.DebugHandler) error {
 	})
 
 	s.waitForSync = []cache.InformerSynced{
-		authConfigs.Synced().HasSynced,
-		rlConfigs.Synced().HasSynced,
-		configMaps.Synced().HasSynced,
-		secrets.Synced().HasSynced,
-		services.Synced().HasSynced,
-		inputs.EndpointSlices.Synced().HasSynced,
-		inputs.Pods.Synced().HasSynced,
-		inputs.Upstreams.Synced().HasSynced,
-		endpointIRs.Synced().HasSynced,
-		clas.Synced().HasSynced,
-		s.augmentedPods.Synced().HasSynced,
-		upstreams.Synced().HasSynced,
-		glooUpstreams.Synced().HasSynced,
-		finalUpstreams.Synced().HasSynced,
-		k8sServiceUpstreams.Synced().HasSynced,
-		kubeGateways.Synced().HasSynced,
-		glooProxies.Synced().HasSynced,
-		s.perclientSnapCollection.Synced().HasSynced,
-		s.mostXdsSnapshots.Synced().HasSynced,
-		s.destRules.Destrules.Synced().HasSynced,
-		s.k8sGwExtensions.KRTExtensions().Synced().HasSynced,
+		authConfigs.HasSynced,
+		rlConfigs.HasSynced,
+		configMaps.HasSynced,
+		secrets.HasSynced,
+		services.HasSynced,
+		inputs.EndpointSlices.HasSynced,
+		inputs.Pods.HasSynced,
+		inputs.Upstreams.HasSynced,
+		endpointIRs.HasSynced,
+		clas.HasSynced,
+		s.augmentedPods.HasSynced,
+		upstreams.HasSynced,
+		glooUpstreams.HasSynced,
+		finalUpstreams.HasSynced,
+		k8sServiceUpstreams.HasSynced,
+		kubeGateways.HasSynced,
+		glooProxies.HasSynced,
+		s.perclientSnapCollection.HasSynced,
+		s.mostXdsSnapshots.HasSynced,
+		s.destRules.Destrules.HasSynced,
+		s.k8sGwExtensions.KRTExtensions().HasSynced,
 	}
 	return nil
 }

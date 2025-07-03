@@ -22,6 +22,7 @@ import (
 	"istio.io/istio/pkg/kube"
 	"istio.io/istio/pkg/kube/kclient"
 	"istio.io/istio/pkg/kube/krt"
+	"istio.io/istio/pkg/ptr"
 	corev1 "k8s.io/api/core/v1"
 	discoveryv1 "k8s.io/api/discovery/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -60,7 +61,7 @@ type EndpointsInputs struct {
 }
 
 func NewGlooK8sEndpointInputs(
-	settings krt.Singleton[glookubev1.Settings],
+	settings krt.Singleton[*glookubev1.Settings],
 	istioClient kube.Client,
 	dbg *krt.DebugHandler,
 	pods krt.Collection[LocalityPod],
@@ -71,7 +72,7 @@ func NewGlooK8sEndpointInputs(
 	epSliceClient := kclient.New[*discoveryv1.EndpointSlice](istioClient)
 	endpointSlices := krt.WrapClient(epSliceClient, krt.WithName("EndpointSlices"), withDebug)
 	endpointSettings := krt.NewSingleton(func(ctx krt.HandlerContext) *EndpointsSettings {
-		settings := krt.FetchOne(ctx, settings.AsCollection())
+		settings := ptr.Flatten(krt.FetchOne(ctx, settings.AsCollection()))
 		return &EndpointsSettings{
 			EnableAutoMtls: settings.Spec.GetGloo().GetIstioOptions().GetEnableAutoMtls().GetValue(),
 		}
