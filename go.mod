@@ -398,6 +398,8 @@ replace (
 	k8s.io/kubectl => k8s.io/kubectl v0.31.1
 	k8s.io/metrics => k8s.io/metrics v0.31.1
 	k8s.io/utils => k8s.io/utils v0.0.0-20240711033017-18e509b52bc8
+	// Pin controller-runtime  used by k8s v0.31.1
+	sigs.k8s.io/controller-runtime => sigs.k8s.io/controller-runtime v0.19.1
 )
 
 exclude (
