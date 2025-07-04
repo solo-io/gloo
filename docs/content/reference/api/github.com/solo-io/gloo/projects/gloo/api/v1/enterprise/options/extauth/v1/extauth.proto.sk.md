@@ -91,6 +91,9 @@ weight: 5
 - [RetryPolicy](#retrypolicy)
 - [PassThroughGrpc](#passthroughgrpc)
 - [PassThroughGrpcTLSConfig](#passthroughgrpctlsconfig)
+- [PassThroughHttpTLSConfig](#passthroughhttptlsconfig)
+- [SslParameters](#sslparameters)
+- [ProtocolVersion](#protocolversion)
 - [PassThroughHttp](#passthroughhttp)
 - [Request](#request)
 - [Response](#response)
@@ -1962,7 +1965,7 @@ https://github.com/envoyproxy/envoy/blob/ae1ed1fa74f096dabe8dd5b19fc70333621b030
 | ----- | ---- | ----------- | 
 | `address` | `string` | Address of the auth server to query. Should be in the form ADDRESS:PORT, e.g. `default.svc.cluster.local:389`. +kubebuilder:validation:Required +kubebuilder:validation:MinLength=1. |
 | `connectionTimeout` | [.google.protobuf.Duration](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/duration) | Timeout for the auth server to respond. Defaults to 5s. |
-| `tlsConfig` | [.enterprise.gloo.solo.io.PassThroughGrpcTLSConfig](../extauth.proto.sk/#passthroughgrpctlsconfig) | TLS config for the Grpc passthrough, if not configured the connection will use insecure. |
+| `tlsConfig` | [.enterprise.gloo.solo.io.PassThroughGrpcTLSConfig](../extauth.proto.sk/#passthroughgrpctlsconfig) | TLS config for the gRPC passthrough, if not configured the connection will use insecure. When specified, this supports configuration for either simple TLS or mTLS. |
 | `retryPolicy` | [.enterprise.gloo.solo.io.RetryPolicy](../extauth.proto.sk/#retrypolicy) | Indicates the retry policy for re-establishing the gRPC stream. This field is optional and failed calls will not retry unless configured. |
 
 
@@ -1972,14 +1975,71 @@ https://github.com/envoyproxy/envoy/blob/ae1ed1fa74f096dabe8dd5b19fc70333621b030
 ### PassThroughGrpcTLSConfig
 
  
-TLS configuration for the extauth grpc passthrough connection
+TLS configuration for the extauth gRPC passthrough connection
 
 ```yaml
+"secretRef": .core.solo.io.ResourceRef
+"sslParams": .enterprise.gloo.solo.io.SslParameters
 
 ```
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
+| `secretRef` | [.core.solo.io.ResourceRef](../../../../../../../../../../solo-kit/api/v1/ref.proto.sk/#resourceref) | SecretRef contains the secret ref to a Kubernetes tls secret. This secret can contain the certificate, key and CA bundle to establish mTLS. If CA is not provided it will attempt to perform a simple TLS. |
+| `sslParams` | [.enterprise.gloo.solo.io.SslParameters](../extauth.proto.sk/#sslparameters) | Additional TLS parameters. |
+
+
+
+
+---
+### PassThroughHttpTLSConfig
+
+ 
+TLS configuration for the extauth HTTP passthrough connection
+
+```yaml
+"secretRef": .core.solo.io.ResourceRef
+"sslParams": .enterprise.gloo.solo.io.SslParameters
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+| `secretRef` | [.core.solo.io.ResourceRef](../../../../../../../../../../solo-kit/api/v1/ref.proto.sk/#resourceref) | SecretRef contains the secret ref to a Kubernetes tls secret. This secret can contain the certificate, key and CA bundle to establish mTLS. If CA is not provided it will attempt to perform a simple TLS. |
+| `sslParams` | [.enterprise.gloo.solo.io.SslParameters](../extauth.proto.sk/#sslparameters) | Additional TLS parameters. |
+
+
+
+
+---
+### SslParameters
+
+
+
+```yaml
+"minimumProtocolVersion": .enterprise.gloo.solo.io.SslParameters.ProtocolVersion
+"maximumProtocolVersion": .enterprise.gloo.solo.io.SslParameters.ProtocolVersion
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+| `minimumProtocolVersion` | [.enterprise.gloo.solo.io.SslParameters.ProtocolVersion](../extauth.proto.sk/#protocolversion) |  |
+| `maximumProtocolVersion` | [.enterprise.gloo.solo.io.SslParameters.ProtocolVersion](../extauth.proto.sk/#protocolversion) |  |
+
+
+
+
+---
+### ProtocolVersion
+
+
+
+| Name | Description |
+| ----- | ----------- | 
+| `TLSv1_1` | TLS 1.1 |
+| `TLSv1_2` | TLS 1.2 |
+| `TLSv1_3` | TLS 1.3 |
 
 
 
@@ -1997,6 +2057,7 @@ else the request is unauthorized.
 "request": .enterprise.gloo.solo.io.PassThroughHttp.Request
 "response": .enterprise.gloo.solo.io.PassThroughHttp.Response
 "connectionTimeout": .google.protobuf.Duration
+"tlsConfig": .enterprise.gloo.solo.io.PassThroughHttpTLSConfig
 
 ```
 
@@ -2006,6 +2067,7 @@ else the request is unauthorized.
 | `request` | [.enterprise.gloo.solo.io.PassThroughHttp.Request](../extauth.proto.sk/#request) | Pass through the incoming request body, ext auth state, and filter metadata. For more information, see the [PassThrough Http Request description](#request-1). |
 | `response` | [.enterprise.gloo.solo.io.PassThroughHttp.Response](../extauth.proto.sk/#response) | Pass through response information such as the headers and body to downstream clients. For more information, see the [PassThrough Http Response description](#response-1). |
 | `connectionTimeout` | [.google.protobuf.Duration](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/duration) | Timeout for the auth server to respond. Defaults to 5s. |
+| `tlsConfig` | [.enterprise.gloo.solo.io.PassThroughHttpTLSConfig](../extauth.proto.sk/#passthroughhttptlsconfig) | TLS config for the HTTP passthrough, if not configured the connection will use insecure. When specified, this supports configuration for either simple TLS or mTLS. |
 
 
 
