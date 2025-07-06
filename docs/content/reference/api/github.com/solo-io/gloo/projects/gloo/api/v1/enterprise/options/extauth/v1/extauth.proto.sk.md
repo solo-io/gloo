@@ -90,13 +90,13 @@ weight: 5
 - [BackoffStrategy](#backoffstrategy)
 - [RetryPolicy](#retrypolicy)
 - [PassThroughGrpc](#passthroughgrpc)
+- [PassThroughHttp](#passthroughhttp)
+- [Request](#request)
+- [Response](#response)
 - [PassThroughGrpcTLSConfig](#passthroughgrpctlsconfig)
 - [PassThroughHttpTLSConfig](#passthroughhttptlsconfig)
 - [SslParameters](#sslparameters)
 - [ProtocolVersion](#protocolversion)
-- [PassThroughHttp](#passthroughhttp)
-- [Request](#request)
-- [Response](#response)
 - [PortalAuth](#portalauth)
   
 
@@ -1972,79 +1972,6 @@ https://github.com/envoyproxy/envoy/blob/ae1ed1fa74f096dabe8dd5b19fc70333621b030
 
 
 ---
-### PassThroughGrpcTLSConfig
-
- 
-TLS configuration for the extauth gRPC passthrough connection
-
-```yaml
-"secretRef": .core.solo.io.ResourceRef
-"sslParams": .enterprise.gloo.solo.io.SslParameters
-
-```
-
-| Field | Type | Description |
-| ----- | ---- | ----------- | 
-| `secretRef` | [.core.solo.io.ResourceRef](../../../../../../../../../../solo-kit/api/v1/ref.proto.sk/#resourceref) | SecretRef contains the secret ref to a Kubernetes tls secret. This secret can contain the certificate, key and CA bundle to establish mTLS. If CA is not provided it will attempt to perform a simple TLS. |
-| `sslParams` | [.enterprise.gloo.solo.io.SslParameters](../extauth.proto.sk/#sslparameters) | Additional TLS parameters. |
-
-
-
-
----
-### PassThroughHttpTLSConfig
-
- 
-TLS configuration for the extauth HTTP passthrough connection
-
-```yaml
-"secretRef": .core.solo.io.ResourceRef
-"sslParams": .enterprise.gloo.solo.io.SslParameters
-
-```
-
-| Field | Type | Description |
-| ----- | ---- | ----------- | 
-| `secretRef` | [.core.solo.io.ResourceRef](../../../../../../../../../../solo-kit/api/v1/ref.proto.sk/#resourceref) | SecretRef contains the secret ref to a Kubernetes tls secret. This secret can contain the certificate, key and CA bundle to establish mTLS. If CA is not provided it will attempt to perform a simple TLS. |
-| `sslParams` | [.enterprise.gloo.solo.io.SslParameters](../extauth.proto.sk/#sslparameters) | Additional TLS parameters. |
-
-
-
-
----
-### SslParameters
-
-
-
-```yaml
-"minimumProtocolVersion": .enterprise.gloo.solo.io.SslParameters.ProtocolVersion
-"maximumProtocolVersion": .enterprise.gloo.solo.io.SslParameters.ProtocolVersion
-
-```
-
-| Field | Type | Description |
-| ----- | ---- | ----------- | 
-| `minimumProtocolVersion` | [.enterprise.gloo.solo.io.SslParameters.ProtocolVersion](../extauth.proto.sk/#protocolversion) |  |
-| `maximumProtocolVersion` | [.enterprise.gloo.solo.io.SslParameters.ProtocolVersion](../extauth.proto.sk/#protocolversion) |  |
-
-
-
-
----
-### ProtocolVersion
-
-
-
-| Name | Description |
-| ----- | ----------- | 
-| `TLSv1_1` | TLS 1.1 |
-| `TLSv1_2` | TLS 1.2 |
-| `TLSv1_3` | TLS 1.3 |
-
-
-
-
----
 ### PassThroughHttp
 
  
@@ -2130,6 +2057,80 @@ JSON marshalling.
 | `allowedClientHeadersOnDenied` | `[]string` | When this is set, authorization response headers in this list will be added to the response to the downstream client when the auth request is denied. If the response header already exists, it will replace the response header. If this is empty, by default, no authorization response headers will be added to the response to the downstream client. |
 | `readStateFromResponse` | `bool` | If this is set to true, the body of the response from the http passthrough auth server is expected to have shape { "state": object (map[string]interface{}) } The state will be marshalled from the response body and this is the state that will be passed on to other auth configs. Because of the marshalling from JSON to Go map, this will add some latency to the request. If the marshalling fails, the authorization check will fail and the request will be unauthorized after the ext-auth-service pod logs the marshal error. |
 | `allowedUpstreamHeadersToOverwrite` | `[]string` | When this is set, authorization response headers that have a header in this list will be added to the original client request and sent to the upstream when the auth request is successful. These will overwrite to any request headers that already exist. If this and allowed_upstream_headers are empty, by default, no authorization response headers will be added to the upstream request. Header names may not be included in both allowed_upstream_headers and allowed_upstream_headers_to_overwrite. |
+
+
+
+
+---
+### PassThroughGrpcTLSConfig
+
+ 
+TLS configuration for the extauth gRPC passthrough connection
+
+```yaml
+"secretRef": .core.solo.io.ResourceRef
+"sslParams": .enterprise.gloo.solo.io.SslParameters
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+| `secretRef` | [.core.solo.io.ResourceRef](../../../../../../../../../../solo-kit/api/v1/ref.proto.sk/#resourceref) | SecretRef contains the secret ref to a Kubernetes tls secret. This secret can contain the certificate, key and CA bundle to establish mTLS. If CA is not provided it will attempt to perform a simple TLS. |
+| `sslParams` | [.enterprise.gloo.solo.io.SslParameters](../extauth.proto.sk/#sslparameters) | Additional TLS parameters. |
+
+
+
+
+---
+### PassThroughHttpTLSConfig
+
+ 
+TLS configuration for the extauth HTTP passthrough connection
+
+```yaml
+"secretRef": .core.solo.io.ResourceRef
+"sslParams": .enterprise.gloo.solo.io.SslParameters
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+| `secretRef` | [.core.solo.io.ResourceRef](../../../../../../../../../../solo-kit/api/v1/ref.proto.sk/#resourceref) | SecretRef contains the secret ref to a Kubernetes tls secret. This secret can contain the certificate, key and CA bundle to establish mTLS. If CA is not provided it will attempt to perform a simple TLS. |
+| `sslParams` | [.enterprise.gloo.solo.io.SslParameters](../extauth.proto.sk/#sslparameters) | Additional TLS parameters. |
+
+
+
+
+---
+### SslParameters
+
+
+
+```yaml
+"minimumProtocolVersion": .enterprise.gloo.solo.io.SslParameters.ProtocolVersion
+"maximumProtocolVersion": .enterprise.gloo.solo.io.SslParameters.ProtocolVersion
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+| `minimumProtocolVersion` | [.enterprise.gloo.solo.io.SslParameters.ProtocolVersion](../extauth.proto.sk/#protocolversion) | Minimum TLS protocol version. If not defined this will be defaulting to `TLSv1_2`. |
+| `maximumProtocolVersion` | [.enterprise.gloo.solo.io.SslParameters.ProtocolVersion](../extauth.proto.sk/#protocolversion) | Maximum TLS protocol version. This will be defaulting to `TLS_AUTO` if not specified. |
+
+
+
+
+---
+### ProtocolVersion
+
+
+
+| Name | Description |
+| ----- | ----------- | 
+| `TLSv1_AUTO` | TLS auto select the optimal settings |
+| `TLSv1_1` | TLS 1.1 |
+| `TLSv1_2` | TLS 1.2 |
+| `TLSv1_3` | TLS 1.3 |
 
 
 

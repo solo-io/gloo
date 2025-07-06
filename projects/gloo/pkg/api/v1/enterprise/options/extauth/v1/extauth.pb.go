@@ -239,25 +239,29 @@ func (EndSessionProperties_MethodType) EnumDescriptor() ([]byte, []int) {
 type SslParameters_ProtocolVersion int32
 
 const (
+	// TLS auto select the optimal settings
+	SslParameters_TLSv1_AUTO SslParameters_ProtocolVersion = 0
 	// TLS 1.1
-	SslParameters_TLSv1_1 SslParameters_ProtocolVersion = 0
+	SslParameters_TLSv1_1 SslParameters_ProtocolVersion = 1
 	// TLS 1.2
-	SslParameters_TLSv1_2 SslParameters_ProtocolVersion = 1
+	SslParameters_TLSv1_2 SslParameters_ProtocolVersion = 2
 	// TLS 1.3
-	SslParameters_TLSv1_3 SslParameters_ProtocolVersion = 2
+	SslParameters_TLSv1_3 SslParameters_ProtocolVersion = 3
 )
 
 // Enum value maps for SslParameters_ProtocolVersion.
 var (
 	SslParameters_ProtocolVersion_name = map[int32]string{
-		0: "TLSv1_1",
-		1: "TLSv1_2",
-		2: "TLSv1_3",
+		0: "TLSv1_AUTO",
+		1: "TLSv1_1",
+		2: "TLSv1_2",
+		3: "TLSv1_3",
 	}
 	SslParameters_ProtocolVersion_value = map[string]int32{
-		"TLSv1_1": 0,
-		"TLSv1_2": 1,
-		"TLSv1_3": 2,
+		"TLSv1_AUTO": 0,
+		"TLSv1_1":    1,
+		"TLSv1_2":    2,
+		"TLSv1_3":    3,
 	}
 )
 
@@ -285,7 +289,7 @@ func (x SslParameters_ProtocolVersion) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use SslParameters_ProtocolVersion.Descriptor instead.
 func (SslParameters_ProtocolVersion) EnumDescriptor() ([]byte, []int) {
-	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_rawDescGZIP(), []int{46, 0}
+	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_rawDescGZIP(), []int{47, 0}
 }
 
 // This is the user-facing auth configuration. When processed by Gloo, certain configuration types (i.a. oauth, opa)
@@ -4717,172 +4721,6 @@ func (x *PassThroughGrpc) GetRetryPolicy() *RetryPolicy {
 	return nil
 }
 
-// TLS configuration for the extauth gRPC passthrough connection
-type PassThroughGrpcTLSConfig struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// SecretRef contains the secret ref to a Kubernetes tls secret.
-	// This secret can contain the certificate, key and CA bundle to establish mTLS.
-	// If CA is not provided it will attempt to perform a simple TLS.
-	SecretRef *core.ResourceRef `protobuf:"bytes,1,opt,name=secret_ref,json=secretRef,proto3" json:"secret_ref,omitempty"`
-	// Additional TLS parameters
-	SslParams     *SslParameters `protobuf:"bytes,2,opt,name=ssl_params,json=sslParams,proto3" json:"ssl_params,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *PassThroughGrpcTLSConfig) Reset() {
-	*x = PassThroughGrpcTLSConfig{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[44]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *PassThroughGrpcTLSConfig) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*PassThroughGrpcTLSConfig) ProtoMessage() {}
-
-func (x *PassThroughGrpcTLSConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[44]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use PassThroughGrpcTLSConfig.ProtoReflect.Descriptor instead.
-func (*PassThroughGrpcTLSConfig) Descriptor() ([]byte, []int) {
-	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_rawDescGZIP(), []int{44}
-}
-
-func (x *PassThroughGrpcTLSConfig) GetSecretRef() *core.ResourceRef {
-	if x != nil {
-		return x.SecretRef
-	}
-	return nil
-}
-
-func (x *PassThroughGrpcTLSConfig) GetSslParams() *SslParameters {
-	if x != nil {
-		return x.SslParams
-	}
-	return nil
-}
-
-// TLS configuration for the extauth HTTP passthrough connection
-type PassThroughHttpTLSConfig struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// SecretRef contains the secret ref to a Kubernetes tls secret.
-	// This secret can contain the certificate, key and CA bundle to establish mTLS.
-	// If CA is not provided it will attempt to perform a simple TLS.
-	SecretRef *core.ResourceRef `protobuf:"bytes,1,opt,name=secret_ref,json=secretRef,proto3" json:"secret_ref,omitempty"`
-	// Additional TLS parameters
-	SslParams     *SslParameters `protobuf:"bytes,2,opt,name=ssl_params,json=sslParams,proto3" json:"ssl_params,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *PassThroughHttpTLSConfig) Reset() {
-	*x = PassThroughHttpTLSConfig{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[45]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *PassThroughHttpTLSConfig) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*PassThroughHttpTLSConfig) ProtoMessage() {}
-
-func (x *PassThroughHttpTLSConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[45]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use PassThroughHttpTLSConfig.ProtoReflect.Descriptor instead.
-func (*PassThroughHttpTLSConfig) Descriptor() ([]byte, []int) {
-	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_rawDescGZIP(), []int{45}
-}
-
-func (x *PassThroughHttpTLSConfig) GetSecretRef() *core.ResourceRef {
-	if x != nil {
-		return x.SecretRef
-	}
-	return nil
-}
-
-func (x *PassThroughHttpTLSConfig) GetSslParams() *SslParameters {
-	if x != nil {
-		return x.SslParams
-	}
-	return nil
-}
-
-type SslParameters struct {
-	state                  protoimpl.MessageState        `protogen:"open.v1"`
-	MinimumProtocolVersion SslParameters_ProtocolVersion `protobuf:"varint,1,opt,name=minimum_protocol_version,json=minimumProtocolVersion,proto3,enum=enterprise.gloo.solo.io.SslParameters_ProtocolVersion" json:"minimum_protocol_version,omitempty"`
-	MaximumProtocolVersion SslParameters_ProtocolVersion `protobuf:"varint,2,opt,name=maximum_protocol_version,json=maximumProtocolVersion,proto3,enum=enterprise.gloo.solo.io.SslParameters_ProtocolVersion" json:"maximum_protocol_version,omitempty"`
-	unknownFields          protoimpl.UnknownFields
-	sizeCache              protoimpl.SizeCache
-}
-
-func (x *SslParameters) Reset() {
-	*x = SslParameters{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[46]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *SslParameters) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*SslParameters) ProtoMessage() {}
-
-func (x *SslParameters) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[46]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use SslParameters.ProtoReflect.Descriptor instead.
-func (*SslParameters) Descriptor() ([]byte, []int) {
-	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_rawDescGZIP(), []int{46}
-}
-
-func (x *SslParameters) GetMinimumProtocolVersion() SslParameters_ProtocolVersion {
-	if x != nil {
-		return x.MinimumProtocolVersion
-	}
-	return SslParameters_TLSv1_1
-}
-
-func (x *SslParameters) GetMaximumProtocolVersion() SslParameters_ProtocolVersion {
-	if x != nil {
-		return x.MaximumProtocolVersion
-	}
-	return SslParameters_TLSv1_1
-}
-
 // Authorizes requests by making a POST HTTP/1 request to a custom HTTP auth server
 // Assumes the request is authorized if the server returns a OK (200) status code,
 // else the request is unauthorized.
@@ -4913,7 +4751,7 @@ type PassThroughHttp struct {
 
 func (x *PassThroughHttp) Reset() {
 	*x = PassThroughHttp{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[47]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[44]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4925,7 +4763,7 @@ func (x *PassThroughHttp) String() string {
 func (*PassThroughHttp) ProtoMessage() {}
 
 func (x *PassThroughHttp) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[47]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[44]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4938,7 +4776,7 @@ func (x *PassThroughHttp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PassThroughHttp.ProtoReflect.Descriptor instead.
 func (*PassThroughHttp) Descriptor() ([]byte, []int) {
-	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_rawDescGZIP(), []int{47}
+	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_rawDescGZIP(), []int{44}
 }
 
 func (x *PassThroughHttp) GetUrl() string {
@@ -4974,6 +4812,174 @@ func (x *PassThroughHttp) GetTlsConfig() *PassThroughHttpTLSConfig {
 		return x.TlsConfig
 	}
 	return nil
+}
+
+// TLS configuration for the extauth gRPC passthrough connection
+type PassThroughGrpcTLSConfig struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// SecretRef contains the secret ref to a Kubernetes tls secret.
+	// This secret can contain the certificate, key and CA bundle to establish mTLS.
+	// If CA is not provided it will attempt to perform a simple TLS.
+	SecretRef *core.ResourceRef `protobuf:"bytes,1,opt,name=secret_ref,json=secretRef,proto3" json:"secret_ref,omitempty"`
+	// Additional TLS parameters
+	SslParams     *SslParameters `protobuf:"bytes,2,opt,name=ssl_params,json=sslParams,proto3" json:"ssl_params,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PassThroughGrpcTLSConfig) Reset() {
+	*x = PassThroughGrpcTLSConfig{}
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[45]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PassThroughGrpcTLSConfig) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PassThroughGrpcTLSConfig) ProtoMessage() {}
+
+func (x *PassThroughGrpcTLSConfig) ProtoReflect() protoreflect.Message {
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[45]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PassThroughGrpcTLSConfig.ProtoReflect.Descriptor instead.
+func (*PassThroughGrpcTLSConfig) Descriptor() ([]byte, []int) {
+	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_rawDescGZIP(), []int{45}
+}
+
+func (x *PassThroughGrpcTLSConfig) GetSecretRef() *core.ResourceRef {
+	if x != nil {
+		return x.SecretRef
+	}
+	return nil
+}
+
+func (x *PassThroughGrpcTLSConfig) GetSslParams() *SslParameters {
+	if x != nil {
+		return x.SslParams
+	}
+	return nil
+}
+
+// TLS configuration for the extauth HTTP passthrough connection
+type PassThroughHttpTLSConfig struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// SecretRef contains the secret ref to a Kubernetes tls secret.
+	// This secret can contain the certificate, key and CA bundle to establish mTLS.
+	// If CA is not provided it will attempt to perform a simple TLS.
+	SecretRef *core.ResourceRef `protobuf:"bytes,1,opt,name=secret_ref,json=secretRef,proto3" json:"secret_ref,omitempty"`
+	// Additional TLS parameters
+	SslParams     *SslParameters `protobuf:"bytes,2,opt,name=ssl_params,json=sslParams,proto3" json:"ssl_params,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PassThroughHttpTLSConfig) Reset() {
+	*x = PassThroughHttpTLSConfig{}
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[46]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PassThroughHttpTLSConfig) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PassThroughHttpTLSConfig) ProtoMessage() {}
+
+func (x *PassThroughHttpTLSConfig) ProtoReflect() protoreflect.Message {
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[46]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PassThroughHttpTLSConfig.ProtoReflect.Descriptor instead.
+func (*PassThroughHttpTLSConfig) Descriptor() ([]byte, []int) {
+	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_rawDescGZIP(), []int{46}
+}
+
+func (x *PassThroughHttpTLSConfig) GetSecretRef() *core.ResourceRef {
+	if x != nil {
+		return x.SecretRef
+	}
+	return nil
+}
+
+func (x *PassThroughHttpTLSConfig) GetSslParams() *SslParameters {
+	if x != nil {
+		return x.SslParams
+	}
+	return nil
+}
+
+type SslParameters struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Minimum TLS protocol version. If not defined this will be defaulting to `TLSv1_2`.
+	MinimumProtocolVersion SslParameters_ProtocolVersion `protobuf:"varint,1,opt,name=minimum_protocol_version,json=minimumProtocolVersion,proto3,enum=enterprise.gloo.solo.io.SslParameters_ProtocolVersion" json:"minimum_protocol_version,omitempty"`
+	// Maximum TLS protocol version. This will be defaulting to `TLS_AUTO` if not specified.
+	MaximumProtocolVersion SslParameters_ProtocolVersion `protobuf:"varint,2,opt,name=maximum_protocol_version,json=maximumProtocolVersion,proto3,enum=enterprise.gloo.solo.io.SslParameters_ProtocolVersion" json:"maximum_protocol_version,omitempty"`
+	unknownFields          protoimpl.UnknownFields
+	sizeCache              protoimpl.SizeCache
+}
+
+func (x *SslParameters) Reset() {
+	*x = SslParameters{}
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[47]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SslParameters) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SslParameters) ProtoMessage() {}
+
+func (x *SslParameters) ProtoReflect() protoreflect.Message {
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[47]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SslParameters.ProtoReflect.Descriptor instead.
+func (*SslParameters) Descriptor() ([]byte, []int) {
+	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_rawDescGZIP(), []int{47}
+}
+
+func (x *SslParameters) GetMinimumProtocolVersion() SslParameters_ProtocolVersion {
+	if x != nil {
+		return x.MinimumProtocolVersion
+	}
+	return SslParameters_TLSv1_AUTO
+}
+
+func (x *SslParameters) GetMaximumProtocolVersion() SslParameters_ProtocolVersion {
+	if x != nil {
+		return x.MaximumProtocolVersion
+	}
+	return SslParameters_TLSv1_AUTO
 }
 
 // PortalAuth is used to authorize requests for credentials generated by the portal web server.
@@ -7315,7 +7321,7 @@ func (x *PassThroughHttp_Request) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PassThroughHttp_Request.ProtoReflect.Descriptor instead.
 func (*PassThroughHttp_Request) Descriptor() ([]byte, []int) {
-	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_rawDescGZIP(), []int{47, 0}
+	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_rawDescGZIP(), []int{44, 0}
 }
 
 func (x *PassThroughHttp_Request) GetAllowedHeaders() []string {
@@ -7411,7 +7417,7 @@ func (x *PassThroughHttp_Response) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PassThroughHttp_Response.ProtoReflect.Descriptor instead.
 func (*PassThroughHttp_Response) Descriptor() ([]byte, []int) {
-	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_rawDescGZIP(), []int{47, 1}
+	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_rawDescGZIP(), []int{44, 1}
 }
 
 func (x *PassThroughHttp_Response) GetAllowedUpstreamHeaders() []string {
@@ -7964,24 +7970,7 @@ const file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extau
 	"\x12connection_timeout\x18\x02 \x01(\v2\x19.google.protobuf.DurationR\x11connectionTimeout\x12P\n" +
 	"\n" +
 	"tls_config\x18\x03 \x01(\v21.enterprise.gloo.solo.io.PassThroughGrpcTLSConfigR\ttlsConfig\x12G\n" +
-	"\fretry_policy\x18\x04 \x01(\v2$.enterprise.gloo.solo.io.RetryPolicyR\vretryPolicy\"\x9b\x01\n" +
-	"\x18PassThroughGrpcTLSConfig\x128\n" +
-	"\n" +
-	"secret_ref\x18\x01 \x01(\v2\x19.core.solo.io.ResourceRefR\tsecretRef\x12E\n" +
-	"\n" +
-	"ssl_params\x18\x02 \x01(\v2&.enterprise.gloo.solo.io.SslParametersR\tsslParams\"\x9b\x01\n" +
-	"\x18PassThroughHttpTLSConfig\x128\n" +
-	"\n" +
-	"secret_ref\x18\x01 \x01(\v2\x19.core.solo.io.ResourceRefR\tsecretRef\x12E\n" +
-	"\n" +
-	"ssl_params\x18\x02 \x01(\v2&.enterprise.gloo.solo.io.SslParametersR\tsslParams\"\xad\x02\n" +
-	"\rSslParameters\x12p\n" +
-	"\x18minimum_protocol_version\x18\x01 \x01(\x0e26.enterprise.gloo.solo.io.SslParameters.ProtocolVersionR\x16minimumProtocolVersion\x12p\n" +
-	"\x18maximum_protocol_version\x18\x02 \x01(\x0e26.enterprise.gloo.solo.io.SslParameters.ProtocolVersionR\x16maximumProtocolVersion\"8\n" +
-	"\x0fProtocolVersion\x12\v\n" +
-	"\aTLSv1_1\x10\x00\x12\v\n" +
-	"\aTLSv1_2\x10\x01\x12\v\n" +
-	"\aTLSv1_3\x10\x02\"\xef\a\n" +
+	"\fretry_policy\x18\x04 \x01(\v2$.enterprise.gloo.solo.io.RetryPolicyR\vretryPolicy\"\xef\a\n" +
 	"\x0fPassThroughHttp\x12\x10\n" +
 	"\x03url\x18\x01 \x01(\tR\x03url\x12J\n" +
 	"\arequest\x18\x03 \x01(\v20.enterprise.gloo.solo.io.PassThroughHttp.RequestR\arequest\x12M\n" +
@@ -8002,7 +7991,26 @@ const file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extau
 	"\x18allowed_upstream_headers\x18\x01 \x03(\tR\x16allowedUpstreamHeaders\x12F\n" +
 	" allowed_client_headers_on_denied\x18\x02 \x03(\tR\x1callowedClientHeadersOnDenied\x127\n" +
 	"\x18read_state_from_response\x18\x03 \x01(\bR\x15readStateFromResponse\x12P\n" +
-	"%allowed_upstream_headers_to_overwrite\x18\x04 \x03(\tR!allowedUpstreamHeadersToOverwrite\"\x96\x02\n" +
+	"%allowed_upstream_headers_to_overwrite\x18\x04 \x03(\tR!allowedUpstreamHeadersToOverwrite\"\x9b\x01\n" +
+	"\x18PassThroughGrpcTLSConfig\x128\n" +
+	"\n" +
+	"secret_ref\x18\x01 \x01(\v2\x19.core.solo.io.ResourceRefR\tsecretRef\x12E\n" +
+	"\n" +
+	"ssl_params\x18\x02 \x01(\v2&.enterprise.gloo.solo.io.SslParametersR\tsslParams\"\x9b\x01\n" +
+	"\x18PassThroughHttpTLSConfig\x128\n" +
+	"\n" +
+	"secret_ref\x18\x01 \x01(\v2\x19.core.solo.io.ResourceRefR\tsecretRef\x12E\n" +
+	"\n" +
+	"ssl_params\x18\x02 \x01(\v2&.enterprise.gloo.solo.io.SslParametersR\tsslParams\"\xbd\x02\n" +
+	"\rSslParameters\x12p\n" +
+	"\x18minimum_protocol_version\x18\x01 \x01(\x0e26.enterprise.gloo.solo.io.SslParameters.ProtocolVersionR\x16minimumProtocolVersion\x12p\n" +
+	"\x18maximum_protocol_version\x18\x02 \x01(\x0e26.enterprise.gloo.solo.io.SslParameters.ProtocolVersionR\x16maximumProtocolVersion\"H\n" +
+	"\x0fProtocolVersion\x12\x0e\n" +
+	"\n" +
+	"TLSv1_AUTO\x10\x00\x12\v\n" +
+	"\aTLSv1_1\x10\x01\x12\v\n" +
+	"\aTLSv1_2\x10\x02\x12\v\n" +
+	"\aTLSv1_3\x10\x03\"\x96\x02\n" +
 	"\n" +
 	"PortalAuth\x12\x10\n" +
 	"\x03url\x18\x01 \x01(\tR\x03url\x12$\n" +
@@ -8075,10 +8083,10 @@ var file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth
 	(*BackoffStrategy)(nil),                    // 46: enterprise.gloo.solo.io.BackoffStrategy
 	(*RetryPolicy)(nil),                        // 47: enterprise.gloo.solo.io.RetryPolicy
 	(*PassThroughGrpc)(nil),                    // 48: enterprise.gloo.solo.io.PassThroughGrpc
-	(*PassThroughGrpcTLSConfig)(nil),           // 49: enterprise.gloo.solo.io.PassThroughGrpcTLSConfig
-	(*PassThroughHttpTLSConfig)(nil),           // 50: enterprise.gloo.solo.io.PassThroughHttpTLSConfig
-	(*SslParameters)(nil),                      // 51: enterprise.gloo.solo.io.SslParameters
-	(*PassThroughHttp)(nil),                    // 52: enterprise.gloo.solo.io.PassThroughHttp
+	(*PassThroughHttp)(nil),                    // 49: enterprise.gloo.solo.io.PassThroughHttp
+	(*PassThroughGrpcTLSConfig)(nil),           // 50: enterprise.gloo.solo.io.PassThroughGrpcTLSConfig
+	(*PassThroughHttpTLSConfig)(nil),           // 51: enterprise.gloo.solo.io.PassThroughHttpTLSConfig
+	(*SslParameters)(nil),                      // 52: enterprise.gloo.solo.io.SslParameters
 	(*PortalAuth)(nil),                         // 53: enterprise.gloo.solo.io.PortalAuth
 	(*AuthConfig_Config)(nil),                  // 54: enterprise.gloo.solo.io.AuthConfig.Config
 	(*HttpService_Request)(nil),                // 55: enterprise.gloo.solo.io.HttpService.Request
@@ -8237,25 +8245,25 @@ var file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth
 	44,  // 91: enterprise.gloo.solo.io.Ldap.group_lookup_settings:type_name -> enterprise.gloo.solo.io.LdapServiceAccount
 	109, // 92: enterprise.gloo.solo.io.LdapServiceAccount.credentials_secret_ref:type_name -> core.solo.io.ResourceRef
 	48,  // 93: enterprise.gloo.solo.io.PassThroughAuth.grpc:type_name -> enterprise.gloo.solo.io.PassThroughGrpc
-	52,  // 94: enterprise.gloo.solo.io.PassThroughAuth.http:type_name -> enterprise.gloo.solo.io.PassThroughHttp
+	49,  // 94: enterprise.gloo.solo.io.PassThroughAuth.http:type_name -> enterprise.gloo.solo.io.PassThroughHttp
 	111, // 95: enterprise.gloo.solo.io.PassThroughAuth.config:type_name -> google.protobuf.Struct
 	110, // 96: enterprise.gloo.solo.io.BackoffStrategy.base_interval:type_name -> google.protobuf.Duration
 	110, // 97: enterprise.gloo.solo.io.BackoffStrategy.max_interval:type_name -> google.protobuf.Duration
 	114, // 98: enterprise.gloo.solo.io.RetryPolicy.num_retries:type_name -> google.protobuf.UInt32Value
 	46,  // 99: enterprise.gloo.solo.io.RetryPolicy.retry_back_off:type_name -> enterprise.gloo.solo.io.BackoffStrategy
 	110, // 100: enterprise.gloo.solo.io.PassThroughGrpc.connection_timeout:type_name -> google.protobuf.Duration
-	49,  // 101: enterprise.gloo.solo.io.PassThroughGrpc.tls_config:type_name -> enterprise.gloo.solo.io.PassThroughGrpcTLSConfig
+	50,  // 101: enterprise.gloo.solo.io.PassThroughGrpc.tls_config:type_name -> enterprise.gloo.solo.io.PassThroughGrpcTLSConfig
 	47,  // 102: enterprise.gloo.solo.io.PassThroughGrpc.retry_policy:type_name -> enterprise.gloo.solo.io.RetryPolicy
-	109, // 103: enterprise.gloo.solo.io.PassThroughGrpcTLSConfig.secret_ref:type_name -> core.solo.io.ResourceRef
-	51,  // 104: enterprise.gloo.solo.io.PassThroughGrpcTLSConfig.ssl_params:type_name -> enterprise.gloo.solo.io.SslParameters
-	109, // 105: enterprise.gloo.solo.io.PassThroughHttpTLSConfig.secret_ref:type_name -> core.solo.io.ResourceRef
-	51,  // 106: enterprise.gloo.solo.io.PassThroughHttpTLSConfig.ssl_params:type_name -> enterprise.gloo.solo.io.SslParameters
-	4,   // 107: enterprise.gloo.solo.io.SslParameters.minimum_protocol_version:type_name -> enterprise.gloo.solo.io.SslParameters.ProtocolVersion
-	4,   // 108: enterprise.gloo.solo.io.SslParameters.maximum_protocol_version:type_name -> enterprise.gloo.solo.io.SslParameters.ProtocolVersion
-	103, // 109: enterprise.gloo.solo.io.PassThroughHttp.request:type_name -> enterprise.gloo.solo.io.PassThroughHttp.Request
-	104, // 110: enterprise.gloo.solo.io.PassThroughHttp.response:type_name -> enterprise.gloo.solo.io.PassThroughHttp.Response
-	110, // 111: enterprise.gloo.solo.io.PassThroughHttp.connection_timeout:type_name -> google.protobuf.Duration
-	50,  // 112: enterprise.gloo.solo.io.PassThroughHttp.tls_config:type_name -> enterprise.gloo.solo.io.PassThroughHttpTLSConfig
+	103, // 103: enterprise.gloo.solo.io.PassThroughHttp.request:type_name -> enterprise.gloo.solo.io.PassThroughHttp.Request
+	104, // 104: enterprise.gloo.solo.io.PassThroughHttp.response:type_name -> enterprise.gloo.solo.io.PassThroughHttp.Response
+	110, // 105: enterprise.gloo.solo.io.PassThroughHttp.connection_timeout:type_name -> google.protobuf.Duration
+	51,  // 106: enterprise.gloo.solo.io.PassThroughHttp.tls_config:type_name -> enterprise.gloo.solo.io.PassThroughHttpTLSConfig
+	109, // 107: enterprise.gloo.solo.io.PassThroughGrpcTLSConfig.secret_ref:type_name -> core.solo.io.ResourceRef
+	52,  // 108: enterprise.gloo.solo.io.PassThroughGrpcTLSConfig.ssl_params:type_name -> enterprise.gloo.solo.io.SslParameters
+	109, // 109: enterprise.gloo.solo.io.PassThroughHttpTLSConfig.secret_ref:type_name -> core.solo.io.ResourceRef
+	52,  // 110: enterprise.gloo.solo.io.PassThroughHttpTLSConfig.ssl_params:type_name -> enterprise.gloo.solo.io.SslParameters
+	4,   // 111: enterprise.gloo.solo.io.SslParameters.minimum_protocol_version:type_name -> enterprise.gloo.solo.io.SslParameters.ProtocolVersion
+	4,   // 112: enterprise.gloo.solo.io.SslParameters.maximum_protocol_version:type_name -> enterprise.gloo.solo.io.SslParameters.ProtocolVersion
 	19,  // 113: enterprise.gloo.solo.io.PortalAuth.redis_options:type_name -> enterprise.gloo.solo.io.RedisOptions
 	110, // 114: enterprise.gloo.solo.io.PortalAuth.cache_duration:type_name -> google.protobuf.Duration
 	110, // 115: enterprise.gloo.solo.io.PortalAuth.request_timeout:type_name -> google.protobuf.Duration

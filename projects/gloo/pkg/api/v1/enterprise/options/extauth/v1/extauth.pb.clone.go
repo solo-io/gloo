@@ -1782,6 +1782,43 @@ func (m *PassThroughGrpc) Clone() proto.Message {
 }
 
 // Clone function
+func (m *PassThroughHttp) Clone() proto.Message {
+	var target *PassThroughHttp
+	if m == nil {
+		return target
+	}
+	target = &PassThroughHttp{}
+
+	target.Url = m.GetUrl()
+
+	if h, ok := interface{}(m.GetRequest()).(clone.Cloner); ok {
+		target.Request = h.Clone().(*PassThroughHttp_Request)
+	} else {
+		target.Request = proto.Clone(m.GetRequest()).(*PassThroughHttp_Request)
+	}
+
+	if h, ok := interface{}(m.GetResponse()).(clone.Cloner); ok {
+		target.Response = h.Clone().(*PassThroughHttp_Response)
+	} else {
+		target.Response = proto.Clone(m.GetResponse()).(*PassThroughHttp_Response)
+	}
+
+	if h, ok := interface{}(m.GetConnectionTimeout()).(clone.Cloner); ok {
+		target.ConnectionTimeout = h.Clone().(*google_golang_org_protobuf_types_known_durationpb.Duration)
+	} else {
+		target.ConnectionTimeout = proto.Clone(m.GetConnectionTimeout()).(*google_golang_org_protobuf_types_known_durationpb.Duration)
+	}
+
+	if h, ok := interface{}(m.GetTlsConfig()).(clone.Cloner); ok {
+		target.TlsConfig = h.Clone().(*PassThroughHttpTLSConfig)
+	} else {
+		target.TlsConfig = proto.Clone(m.GetTlsConfig()).(*PassThroughHttpTLSConfig)
+	}
+
+	return target
+}
+
+// Clone function
 func (m *PassThroughGrpcTLSConfig) Clone() proto.Message {
 	var target *PassThroughGrpcTLSConfig
 	if m == nil {
@@ -1838,43 +1875,6 @@ func (m *SslParameters) Clone() proto.Message {
 	target.MinimumProtocolVersion = m.GetMinimumProtocolVersion()
 
 	target.MaximumProtocolVersion = m.GetMaximumProtocolVersion()
-
-	return target
-}
-
-// Clone function
-func (m *PassThroughHttp) Clone() proto.Message {
-	var target *PassThroughHttp
-	if m == nil {
-		return target
-	}
-	target = &PassThroughHttp{}
-
-	target.Url = m.GetUrl()
-
-	if h, ok := interface{}(m.GetRequest()).(clone.Cloner); ok {
-		target.Request = h.Clone().(*PassThroughHttp_Request)
-	} else {
-		target.Request = proto.Clone(m.GetRequest()).(*PassThroughHttp_Request)
-	}
-
-	if h, ok := interface{}(m.GetResponse()).(clone.Cloner); ok {
-		target.Response = h.Clone().(*PassThroughHttp_Response)
-	} else {
-		target.Response = proto.Clone(m.GetResponse()).(*PassThroughHttp_Response)
-	}
-
-	if h, ok := interface{}(m.GetConnectionTimeout()).(clone.Cloner); ok {
-		target.ConnectionTimeout = h.Clone().(*google_golang_org_protobuf_types_known_durationpb.Duration)
-	} else {
-		target.ConnectionTimeout = proto.Clone(m.GetConnectionTimeout()).(*google_golang_org_protobuf_types_known_durationpb.Duration)
-	}
-
-	if h, ok := interface{}(m.GetTlsConfig()).(clone.Cloner); ok {
-		target.TlsConfig = h.Clone().(*PassThroughHttpTLSConfig)
-	} else {
-		target.TlsConfig = proto.Clone(m.GetTlsConfig()).(*PassThroughHttpTLSConfig)
-	}
 
 	return target
 }
