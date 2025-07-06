@@ -2114,8 +2114,8 @@ TLS configuration for the extauth HTTP passthrough connection
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `minimumProtocolVersion` | [.enterprise.gloo.solo.io.SslParameters.ProtocolVersion](../extauth.proto.sk/#protocolversion) | Minimum TLS protocol version. If not defined this will be defaulting to `TLSv1_2`. |
-| `maximumProtocolVersion` | [.enterprise.gloo.solo.io.SslParameters.ProtocolVersion](../extauth.proto.sk/#protocolversion) | Maximum TLS protocol version. This will be defaulting to `TLS_AUTO` if not specified. |
+| `minimumProtocolVersion` | [.enterprise.gloo.solo.io.SslParameters.ProtocolVersion](../extauth.proto.sk/#protocolversion) | Minimum TLS protocol version. If not explicitly set, the default protocol will be TLS 1.2. Avoid using TLS version earlier than 1.2, as this poses significant security risks. For more details, refer to https://www.ietf.org/rfc/rfc8996.html. |
+| `maximumProtocolVersion` | [.enterprise.gloo.solo.io.SslParameters.ProtocolVersion](../extauth.proto.sk/#protocolversion) | Maximum TLS protocol version. If not explicitly set, the default protocol will be TLS 1.3. |
 
 
 
@@ -2127,7 +2127,7 @@ TLS configuration for the extauth HTTP passthrough connection
 
 | Name | Description |
 | ----- | ----------- | 
-| `TLSv1_AUTO` | TLS auto select the optimal settings |
+| `TLS_AUTO` | TLS auto select the optimal settings |
 | `TLSv1_1` | TLS 1.1 |
 | `TLSv1_2` | TLS 1.2 |
 | `TLSv1_3` | TLS 1.3 |
