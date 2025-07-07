@@ -14,13 +14,6 @@ changelog:
 
     In the future we seek to add guarantees to the krt framework upstream to
     avoid the need to be careful with situations like these.
-
-- type: NON_USER_FACING
-  description: >
-    Bump dependencies to support latest Envoy (1.33).
-  issueLink: https://github.com/kgateway-dev/kgateway/issues/10487
-  resolvesIssue: false
-
 - type: DEPENDENCY_BUMP
   dependencyOwner: github.com/envoyproxy
   dependencyRepo: go-control-plane/contrib
