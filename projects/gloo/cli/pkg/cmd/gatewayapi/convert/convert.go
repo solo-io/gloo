@@ -1014,7 +1014,7 @@ func (o *GatewayAPIOutput) convertVHOOptionsToTrafficPolicySpec(vho *gloov1.Virt
 					},
 					AuthConfigRef: gloogateway.AuthConfigRef{
 						Name:      vho.GetExtauth().GetConfigRef().GetName(),
-						Namespace: vho.GetExtauth().GetConfigRef().GetNamespace(),
+						Namespace: ptr.To(vho.GetExtauth().GetConfigRef().GetNamespace()),
 					},
 				}
 			}
@@ -1045,12 +1045,12 @@ func (o *GatewayAPIOutput) convertVHOOptionsToTrafficPolicySpec(vho *gloov1.Virt
 		if vho.GetWaf() != nil {
 			waf := &gloogateway.Waf{
 				Disabled:      ptr.To(vho.GetWaf().Disabled),
-				CustomMessage: vho.GetWaf().CustomInterventionMessage,
+				CustomMessage: ptr.To(vho.GetWaf().CustomInterventionMessage),
 				Rules:         []gloogateway.WafRule{},
 			}
 			for _, r := range vho.GetWaf().RuleSets {
 				waf.Rules = append(waf.Rules, gloogateway.WafRule{
-					RuleStr: r.RuleStr,
+					RuleStr: ptr.To(r.RuleStr),
 				})
 				if r.Files != nil && len(r.Files) > 0 {
 					o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "WAF files is not supported")
@@ -1217,16 +1217,19 @@ func (o *GatewayAPIOutput) convertJWTStagedExtAuth(auth *jwt.VhostExtension, wra
 				TokenSource:                  nil, // existing
 				KeepToken:                    ptr.To(provider.KeepToken),
 				ClaimsToHeaders:              nil, // existing
-				ClockSkewSeconds:             ptr.To(provider.ClockSkewSeconds.Value),
+				ClockSkewSeconds:             nil, // existing
 				AttachFailedStatusToMetadata: ptr.To(provider.AttachFailedStatusToMetadata),
+			}
+			if provider.GetClockSkewSeconds() != nil {
+				p.ClockSkewSeconds = ptr.To(provider.ClockSkewSeconds.Value)
 			}
 			if len(provider.GetAudiences()) > 0 {
 				p.Audiences = provider.GetAudiences()
 			}
 			if len(provider.GetClaimsToHeaders()) > 0 {
-				p.ClaimsToHeaders = make([]*gloogateway.ClaimToHeader, 0)
+				p.ClaimsToHeaders = make([]gloogateway.ClaimToHeader, 0)
 				for _, h := range provider.GetClaimsToHeaders() {
-					p.ClaimsToHeaders = append(p.ClaimsToHeaders, &gloogateway.ClaimToHeader{
+					p.ClaimsToHeaders = append(p.ClaimsToHeaders, gloogateway.ClaimToHeader{
 						Claim:  h.GetClaim(),
 						Header: h.GetHeader(),
 						Append: ptr.To(h.GetAppend()),
@@ -1236,11 +1239,11 @@ func (o *GatewayAPIOutput) convertJWTStagedExtAuth(auth *jwt.VhostExtension, wra
 
 			if provider.GetTokenSource() != nil {
 				p.TokenSource = &gloogateway.TokenSource{
-					Headers:     make([]*gloogateway.TokenSourceHeaderSource, 0),
+					Headers:     make([]gloogateway.TokenSourceHeaderSource, 0),
 					QueryParams: provider.GetTokenSource().GetQueryParams(),
 				}
 				for _, h := range provider.GetTokenSource().GetHeaders() {
-					p.TokenSource.Headers = append(p.TokenSource.Headers, &gloogateway.TokenSourceHeaderSource{
+					p.TokenSource.Headers = append(p.TokenSource.Headers, gloogateway.TokenSourceHeaderSource{
 						Header: h.GetHeader(),
 						Prefix: ptr.To(h.GetPrefix()),
 					})
@@ -1258,8 +1261,12 @@ func (o *GatewayAPIOutput) convertJWTStagedExtAuth(auth *jwt.VhostExtension, wra
 					jwks.Remote = &gloogateway.RemoteJWKS{
 						Url:           provider.GetJwks().GetRemote().GetUrl(),
 						BackendRef:    nil, // existing
-						CacheDuration: &metav1.Duration{Duration: provider.GetJwks().GetRemote().CacheDuration.AsDuration()},
+						CacheDuration: nil, // existing
 						AsyncFetch:    nil, // existing
+					}
+
+					if provider.GetJwks().GetRemote().GetCacheDuration() != nil && provider.GetJwks().GetRemote().GetCacheDuration().Nanos != 0 {
+						jwks.Remote.CacheDuration = &metav1.Duration{Duration: provider.GetJwks().GetRemote().CacheDuration.AsDuration()}
 					}
 					if provider.GetJwks().GetRemote().GetAsyncFetch() != nil {
 						jwks.Remote.AsyncFetch = &gloogateway.JwksAsyncFetch{FastListener: ptr.To(provider.GetJwks().GetRemote().GetAsyncFetch().GetFastListener())}
@@ -1271,7 +1278,6 @@ func (o *GatewayAPIOutput) convertJWTStagedExtAuth(auth *jwt.VhostExtension, wra
 							BackendObjectReference: gwv1.BackendObjectReference{
 								Group:     nil,
 								Kind:      nil,
-								Name:      "",
 								Namespace: nil,
 								Port:      nil,
 							},
@@ -1289,6 +1295,7 @@ func (o *GatewayAPIOutput) convertJWTStagedExtAuth(auth *jwt.VhostExtension, wra
 								// references a kubernetes service
 								backendRef.Name = gwv1.ObjectName(upstream.Upstream.Spec.GetKube().GetServiceName())
 								backendRef.Namespace = ptr.To(gwv1.Namespace(upstream.Upstream.Spec.GetKube().GetServiceNamespace()))
+								backendRef.Port = ptr.To(gwv1.PortNumber(upstream.Upstream.Spec.GetKube().GetServicePort()))
 							} else {
 								// it needs to reference a backend
 								backendRef.Name = gwv1.ObjectName(upstream.Name)
@@ -1445,7 +1452,7 @@ func (o *GatewayAPIOutput) generateGatewaysFromProxyNames(glooGateway *snapshot.
 		proxyNames = append(proxyNames, "gateway-proxy")
 	}
 
-	for _, proxyName := range glooGateway.Gateway.Spec.GetProxyNames() {
+	for _, proxyName := range proxyNames {
 		// check to see if we already created the Gateway, if we did then just move on
 		existingGw := o.gatewayAPICache.GetGateway(types.NamespacedName{Name: proxyName, Namespace: glooGateway.Gateway.Namespace})
 		if existingGw == nil {
@@ -1464,6 +1471,23 @@ func (o *GatewayAPIOutput) generateGatewaysFromProxyNames(glooGateway *snapshot.
 					AllowedListeners: &gwv1.AllowedListeners{
 						Namespaces: &gwv1.ListenerNamespaces{
 							From: ptr.To(gwv1.NamespacesFromAll),
+						},
+					},
+					Listeners: []gwv1.Listener{
+						{
+							Name:     "dummy",
+							Port:     8888,
+							Protocol: "HTTP",
+							AllowedRoutes: &gwv1.AllowedRoutes{
+								Namespaces: &gwv1.RouteNamespaces{
+									From: ptr.To(gwv1.NamespacesFromSelector),
+									Selector: &metav1.LabelSelector{
+										MatchLabels: map[string]string{
+											"dummy": "dummy",
+										},
+									},
+								},
+							},
 						},
 					},
 					GatewayClassName: "gloo-gateway",
@@ -1573,8 +1597,11 @@ func (o *GatewayAPIOutput) convertListenerOptionAccessLogging(glooGateway *snaps
 			accessLog.FileSink = fileSink
 		}
 		if edgeAccessLog.GetGrpcService() != nil {
-			accessLog.GrpcService = &kgateway.GrpcService{
-				LogName:                         edgeAccessLog.GetGrpcService().LogName,
+			accessLog.GrpcService = &kgateway.AccessLogGrpcService{
+				CommonAccessLogGrpcService: kgateway.CommonAccessLogGrpcService{
+					//CommonGrpcService: nil,// TODO(nick) what do we need to set here?
+					LogName: edgeAccessLog.GetGrpcService().LogName,
+				},
 				AdditionalRequestHeadersToLog:   edgeAccessLog.GetGrpcService().AdditionalRequestHeadersToLog,
 				AdditionalResponseHeadersToLog:  edgeAccessLog.GetGrpcService().AdditionalResponseHeadersToLog,
 				AdditionalResponseTrailersToLog: edgeAccessLog.GetGrpcService().AdditionalResponseTrailersToLog,
@@ -1586,8 +1613,8 @@ func (o *GatewayAPIOutput) convertListenerOptionAccessLogging(glooGateway *snaps
 				accessLog.GrpcService.BackendRef = &gwv1.BackendRef{
 					BackendObjectReference: gwv1.BackendObjectReference{
 						Name:      gwv1.ObjectName(edgeAccessLog.GetGrpcService().GetStaticClusterName()),
-						Namespace: ptr.To(gwv1.Namespace("UNKNOWN")),
-						Port:      ptr.To(gwv1.PortNumber(0)),
+						Namespace: nil,
+						Port:      nil,
 					},
 				}
 				o.AddErrorFromWrapper(ERROR_TYPE_UNKNOWN_REFERENCE, glooGateway, "", edgeAccessLog.GetGrpcService().GetStaticClusterName())
@@ -1826,12 +1853,12 @@ func (o *GatewayAPIOutput) convertHTTPListenerOptions(options *gloov1.HttpListen
 	if options.GetWaf() != nil {
 		waf := &gloogateway.Waf{
 			Disabled:      ptr.To(options.GetWaf().Disabled),
-			CustomMessage: options.GetWaf().CustomInterventionMessage,
+			CustomMessage: ptr.To(options.GetWaf().CustomInterventionMessage),
 			Rules:         []gloogateway.WafRule{},
 		}
 		for _, r := range options.GetWaf().RuleSets {
 			waf.Rules = append(waf.Rules, gloogateway.WafRule{
-				RuleStr: r.RuleStr,
+				RuleStr: ptr.To(r.RuleStr),
 			})
 			if r.Files != nil && len(r.Files) > 0 {
 				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "WAF files is not supported")
@@ -2306,7 +2333,7 @@ func (o *GatewayAPIOutput) convertRouteOptions(
 				},
 				AuthConfigRef: gloogateway.AuthConfigRef{
 					Name:      ac.GetName(),
-					Namespace: ac.GetNamespace(),
+					Namespace: ptr.To(ac.GetNamespace()),
 				},
 			}
 		}
@@ -2359,10 +2386,10 @@ func (o *GatewayAPIOutput) convertRouteOptions(
 		gtpSpec.Waf = &gloogateway.Waf{
 			Disabled:      ptr.To(options.GetWaf().GetDisabled()),
 			Rules:         []gloogateway.WafRule{},
-			CustomMessage: options.GetWaf().GetCustomInterventionMessage(),
+			CustomMessage: ptr.To(options.GetWaf().GetCustomInterventionMessage()),
 		}
 		for _, rule := range options.GetWaf().GetRuleSets() {
-			gtpSpec.Waf.Rules = append(gtpSpec.Waf.Rules, gloogateway.WafRule{RuleStr: rule.GetRuleStr()})
+			gtpSpec.Waf.Rules = append(gtpSpec.Waf.Rules, gloogateway.WafRule{RuleStr: ptr.To(rule.GetRuleStr())})
 			if rule.GetFiles() != nil {
 				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "WAF rule files is not supported")
 			}
@@ -2543,8 +2570,8 @@ func (o *GatewayAPIOutput) convertRouteOptions(
 	return trafficPolicy, filter
 }
 
-func (o *GatewayAPIOutput) convertRBAC(extension *rbac.ExtensionSettings) *gloogateway.RBACSpec {
-	rbe := &gloogateway.RBACSpec{
+func (o *GatewayAPIOutput) convertRBAC(extension *rbac.ExtensionSettings) *gloogateway.RBACEnterprise {
+	rbe := &gloogateway.RBACEnterprise{
 		Disable:  ptr.To(extension.GetDisable()),
 		Policies: map[string]gloogateway.RBACPolicy{},
 	}
@@ -2625,14 +2652,15 @@ func (o *GatewayAPIOutput) convertRateLimitAction(action *v1alpha2.Action) gloog
 					End:   header.GetRangeMatch().GetEnd(),
 				}
 			}
+			//TODO(nick) this might set them all instead of the ones that exist
 			hvm.Headers = append(hvm.Headers, gloogateway.HeaderMatcher{
 				Name:         header.GetName(),
-				ExactMatch:   header.GetExactMatch(),
-				RegexMatch:   header.GetRegexMatch(),
-				PresentMatch: header.GetPresentMatch(),
-				PrefixMatch:  header.GetPrefixMatch(),
-				SuffixMatch:  header.GetSuffixMatch(),
-				InvertMatch:  header.GetInvertMatch(),
+				ExactMatch:   ptr.To(header.GetExactMatch()),
+				RegexMatch:   ptr.To(header.GetRegexMatch()),
+				PresentMatch: ptr.To(header.GetPresentMatch()),
+				PrefixMatch:  ptr.To(header.GetPrefixMatch()),
+				SuffixMatch:  ptr.To(header.GetSuffixMatch()),
+				InvertMatch:  ptr.To(header.GetInvertMatch()),
 				RangeMatch:   rangeMatch,
 			})
 		}
@@ -2644,10 +2672,10 @@ func (o *GatewayAPIOutput) convertRateLimitAction(action *v1alpha2.Action) gloog
 func (o *GatewayAPIOutput) convertRequestTransformation(transformationRouting *transformation2.RequestResponseTransformations, wrapper snapshot.Wrapper) *gloogateway.RequestResponseTransformations {
 	routing := &gloogateway.RequestResponseTransformations{}
 	requestMatchers := o.convertRequestTransforms(transformationRouting.GetRequestTransforms(), wrapper)
-	routing.RequestTransforms = requestMatchers
+	routing.Requests = requestMatchers
 
 	responseMatchers := o.convertResponseTranforms(transformationRouting.GetResponseTransforms(), wrapper)
-	routing.ResponseTransforms = responseMatchers
+	routing.Responses = responseMatchers
 
 	return routing
 }
@@ -2822,7 +2850,7 @@ func (o *GatewayAPIOutput) convertTransformationMatch(rule *transformation2.Tran
 		}
 		for _, m := range tt.GetDynamicMetadataValues() {
 			dm := gloogateway.DynamicMetadataValue{
-				MetadataNamespace: m.GetMetadataNamespace(),
+				MetadataNamespace: ptr.To(m.GetMetadataNamespace()),
 				Key:               m.GetKey(),
 				Value:             gloogateway.InjaTemplate(m.GetValue().String()),
 				JsonToProto:       ptr.To(m.JsonToProto),
