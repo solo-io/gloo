@@ -117,6 +117,13 @@ func (s *k8sServerTlsTestingSuite) TestTlsWorksWithMultipleHostNames() {
 	})
 }
 
+// TestServerPQTlsWorksWithCustomEcdhCurves validates that server TLS traffic succeeds when X25519MLKEM768
+// key exchange mechanism is used. This is part of PQ-TLS (post-quantum TLS) support
+func (s *k8sServerTlsTestingSuite) TestServerPQTlsWorksWithCustomEcdhCurves() {
+	s.assertEventualResponse("pq-tls.example.com", &matchers.HttpResponse{
+		StatusCode: http.StatusOK,
+	})
+}
 func (s *k8sServerTlsTestingSuite) assertEventualResponse(hostHeaderValue string, matcher *matchers.HttpResponse) {
 	// Check curl works against expected response
 	s.testInstallation.AssertionsT(s.T()).AssertEventualCurlResponse(
