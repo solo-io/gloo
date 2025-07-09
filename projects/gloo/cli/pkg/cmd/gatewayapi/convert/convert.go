@@ -48,6 +48,11 @@ import (
 	apixv1a1 "sigs.k8s.io/gateway-api/apisx/v1alpha1"
 )
 
+const (
+	perConnectionBufferLimit = "kgateway.dev/per-connection-buffer-limit"
+	routeWeight              = "kgateway.dev/route-weight"
+)
+
 func (o *GatewayAPIOutput) Convert() error {
 
 	// Convert upstreams to backends first so that we can reference them in the Settings and Routes
@@ -1499,7 +1504,7 @@ func (o *GatewayAPIOutput) generateGatewaysFromProxyNames(glooGateway *snapshot.
 			if existingGw.Annotations == nil {
 				existingGw.Annotations = make(map[string]string)
 			}
-			existingGw.Annotations["kgateway.dev/per-connection-buffer-limit"] = glooGateway.Spec.GetOptions().GetPerConnectionBufferLimitBytes().String()
+			existingGw.Annotations[perConnectionBufferLimit] = glooGateway.Spec.GetOptions().GetPerConnectionBufferLimitBytes().String()
 		}
 
 		o.gatewayAPICache.AddGateway(existingGw)
@@ -2804,7 +2809,7 @@ func (o *GatewayAPIOutput) convertTransformationMatch(rule *transformation2.Tran
 			if template.Headers == nil {
 				template.Headers = make(map[string]gloogateway.InjaTemplate)
 			}
-			template.Headers[name] = gloogateway.InjaTemplate(header.String())
+			template.Headers[name] = gloogateway.InjaTemplate(header.GetText())
 		}
 		for _, hta := range tt.GetHeadersToAppend() {
 			h := gloogateway.HeaderToAppend{
@@ -3642,7 +3647,12 @@ func (o *GatewayAPIOutput) convertRouteTableToHTTPRoute(rt *snapshot.RouteTableW
 		},
 	}
 	if rt.Spec.GetWeight() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, rt, "has weight set but there is no equivalent in Gateway API")
+		if hr.ObjectMeta.GetLabels() == nil {
+			hr.ObjectMeta.Labels = map[string]string{}
+		}
+		o.AddErrorFromWrapper(ERROR_TYPE_UPDATE_OBJECT, rt, "route weights are being set, enable KGW_WEIGHTED_ROUTE_PRECEDENCE=true environment variable.")
+
+		hr.ObjectMeta.Labels[routeWeight] = rt.Spec.GetWeight().String()
 	}
 
 	for _, route := range rt.Spec.GetRoutes() {
