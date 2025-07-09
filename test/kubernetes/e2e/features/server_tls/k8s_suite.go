@@ -96,7 +96,9 @@ func (s *k8sServerTlsTestingSuite) TearDownSuite() {
 // is provided in the TLS secret. This is because the Gloo translation loop assumes that mTLS is desired
 // if the secret contains a CA cert.
 func (s *k8sServerTlsTestingSuite) TestOneWayServerTlsFailsWithoutOneWayTls() {
-	s.assertEventualError("nooneway.example.com", expectedFailedResponseCodeInvalidVs)
+	// The expected error code is observed by experiment. When upgrading from curl 7.x to 8.x,
+	// the code for the error changed from 16 (Http/2 Frame Error) to 55 (Send Error)
+	s.assertEventualError("nooneway.example.com", expectedFailedResponseSendError)
 }
 
 // TestOneWayServerTlsWorksWithOneWayTls validates that one-way server TLS traffic succeeds when CA data
@@ -119,12 +121,15 @@ func (s *k8sServerTlsTestingSuite) TestTlsWorksWithMultipleHostNames() {
 
 // TestServerPQTlsWorksWithCustomEcdhCurves validates that server TLS traffic succeeds when X25519MLKEM768
 // key exchange mechanism is used. This is part of PQ-TLS (post-quantum TLS) support
+// Upgraded the curl image version (8.14.1) to support X25519MLKEM768 in
+// test/kubernetes/e2e/features/server_tls/testdata/k8s/setup.yaml
 func (s *k8sServerTlsTestingSuite) TestServerPQTlsWorksWithCustomEcdhCurves() {
 	s.assertEventualResponse("pq-tls.example.com", &matchers.HttpResponse{
 		StatusCode: http.StatusOK,
-	})
+	}, "--curves", "X25519MLKEM768")
 }
-func (s *k8sServerTlsTestingSuite) assertEventualResponse(hostHeaderValue string, matcher *matchers.HttpResponse) {
+
+func (s *k8sServerTlsTestingSuite) assertEventualResponse(hostHeaderValue string, matcher *matchers.HttpResponse, curlArgs ...string) {
 	// Check curl works against expected response
 	s.testInstallation.AssertionsT(s.T()).AssertEventualCurlResponse(
 		s.ctx,
@@ -133,11 +138,11 @@ func (s *k8sServerTlsTestingSuite) assertEventualResponse(hostHeaderValue string
 			Namespace: s.ns,
 			Container: "curl",
 		},
-		append(curlOptions("gloo-proxy-gw", s.ns, hostHeaderValue), curl.WithPath("/status/200")),
+		append(curlOptions("gloo-proxy-gw", s.ns, hostHeaderValue), curl.WithArgs(curlArgs), curl.WithPath("/status/200")),
 		matcher)
 }
 
-func (s *k8sServerTlsTestingSuite) assertEventualError(hostHeaderValue string, code int) {
+func (s *k8sServerTlsTestingSuite) assertEventualError(hostHeaderValue string, code int, curlArgs ...string) {
 	// Check curl works against expected response
 	s.testInstallation.AssertionsT(s.T()).AssertEventualCurlError(
 		s.ctx,
@@ -146,7 +151,7 @@ func (s *k8sServerTlsTestingSuite) assertEventualError(hostHeaderValue string, c
 			Namespace: s.ns,
 			Container: "curl",
 		},
-		append(curlOptions("gloo-proxy-gw", s.ns, hostHeaderValue), curl.WithPath("/status/200")),
+		append(curlOptions("gloo-proxy-gw", s.ns, hostHeaderValue), curl.WithArgs(curlArgs), curl.WithPath("/status/200")),
 		code,
 		time.Minute*2)
 }
