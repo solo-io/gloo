@@ -65,7 +65,7 @@ metadata:
 spec:
   containers:
     - name: curl
-      image: curlimages/curl:7.83.1
+      image: openquantumsafe/curl:latest
       imagePullPolicy: IfNotPresent
       command:
         - "tail"
