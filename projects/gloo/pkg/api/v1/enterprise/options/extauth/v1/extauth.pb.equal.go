@@ -3000,30 +3000,6 @@ func (m *PassThroughGrpc) Equal(that interface{}) bool {
 }
 
 // Equal function
-func (m *PassThroughGrpcTLSConfig) Equal(that interface{}) bool {
-	if that == nil {
-		return m == nil
-	}
-
-	target, ok := that.(*PassThroughGrpcTLSConfig)
-	if !ok {
-		that2, ok := that.(PassThroughGrpcTLSConfig)
-		if ok {
-			target = &that2
-		} else {
-			return false
-		}
-	}
-	if target == nil {
-		return m == nil
-	} else if m == nil {
-		return false
-	}
-
-	return true
-}
-
-// Equal function
 func (m *PassThroughHttp) Equal(that interface{}) bool {
 	if that == nil {
 		return m == nil
@@ -3076,6 +3052,136 @@ func (m *PassThroughHttp) Equal(that interface{}) bool {
 		if !proto.Equal(m.GetConnectionTimeout(), target.GetConnectionTimeout()) {
 			return false
 		}
+	}
+
+	if h, ok := interface{}(m.GetTlsConfig()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetTlsConfig()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetTlsConfig(), target.GetTlsConfig()) {
+			return false
+		}
+	}
+
+	return true
+}
+
+// Equal function
+func (m *PassThroughGrpcTLSConfig) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*PassThroughGrpcTLSConfig)
+	if !ok {
+		that2, ok := that.(PassThroughGrpcTLSConfig)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	if h, ok := interface{}(m.GetSecretRef()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetSecretRef()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetSecretRef(), target.GetSecretRef()) {
+			return false
+		}
+	}
+
+	if h, ok := interface{}(m.GetSslParams()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetSslParams()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetSslParams(), target.GetSslParams()) {
+			return false
+		}
+	}
+
+	return true
+}
+
+// Equal function
+func (m *PassThroughHttpTLSConfig) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*PassThroughHttpTLSConfig)
+	if !ok {
+		that2, ok := that.(PassThroughHttpTLSConfig)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	if h, ok := interface{}(m.GetSecretRef()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetSecretRef()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetSecretRef(), target.GetSecretRef()) {
+			return false
+		}
+	}
+
+	if h, ok := interface{}(m.GetSslParams()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetSslParams()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetSslParams(), target.GetSslParams()) {
+			return false
+		}
+	}
+
+	return true
+}
+
+// Equal function
+func (m *SslParameters) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*SslParameters)
+	if !ok {
+		that2, ok := that.(SslParameters)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	if m.GetMinimumProtocolVersion() != target.GetMinimumProtocolVersion() {
+		return false
+	}
+
+	if m.GetMaximumProtocolVersion() != target.GetMaximumProtocolVersion() {
+		return false
 	}
 
 	return true
