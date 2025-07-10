@@ -2276,6 +2276,10 @@ github.com/kgateway-dev/kgateway/v2 v2.1.0-main.0.20250627212653-aa81dc2fd645 h1
 github.com/kgateway-dev/kgateway/v2 v2.1.0-main.0.20250627212653-aa81dc2fd645/go.mod h1:ZwQa2+GHVRWp1geQwS70DlxTBZgHHlwZHpGdYQ6DJkY=
 github.com/kgateway-dev/kgateway/v2 v2.1.0-main.0.20250702233145-2b832e0f5028 h1:yO+UBuff7GCHJN/W+61t9T6EbfDqq40L3fb4BafN3HA=
 github.com/kgateway-dev/kgateway/v2 v2.1.0-main.0.20250702233145-2b832e0f5028/go.mod h1:MH4bbk5Hni0RgaF5DjaHAQrkeVpwoTrm+kt/2/VYpKE=
+github.com/kgateway-dev/kgateway/v2 v2.1.0-main.0.20250708220258-ad0c8309f1b5 h1:NTft7DWTuj2PTDOpTS7e7zV4wgZ8WP2JnjiI+cFFTGA=
+github.com/kgateway-dev/kgateway/v2 v2.1.0-main.0.20250708220258-ad0c8309f1b5/go.mod h1:jzTn0r/xtQB8KmRZ2l6ulOJXaKE32cymCEpbpq5tHtQ=
+github.com/kgateway-dev/kgateway/v2 v2.1.0-main.0.20250709202308-3305e7830fb8 h1:JqYC7R1c+WSmFcFDh14Uti8zfI7y8eKCElNQA8GJmNE=
+github.com/kgateway-dev/kgateway/v2 v2.1.0-main.0.20250709202308-3305e7830fb8/go.mod h1:jzTn0r/xtQB8KmRZ2l6ulOJXaKE32cymCEpbpq5tHtQ=
 github.com/kisielk/errcheck v1.1.0/go.mod h1:EZBBE59ingxPouuu3KfxchcWSUPOHkagtvWXihfKN4Q=
 github.com/kisielk/errcheck v1.2.0/go.mod h1:/BMXB+zMLi60iA8Vv6Ksmxu/1UDYcXs4uQLJ+jE2L00=
 github.com/kisielk/errcheck v1.5.0/go.mod h1:pFxgyoBC7bSaBwPgfKdkLd5X25qrDl4LWUI2bnpBCr8=
@@ -2749,6 +2753,8 @@ github.com/solo-io/gloo-gateway v0.0.2-0.20250701151933-329758e54e63 h1:GEJwMBhm
 github.com/solo-io/gloo-gateway v0.0.2-0.20250701151933-329758e54e63/go.mod h1:/FX+KgDBMpO9ekbk0pS6eXyiWXDyR/GjlIDeZ3uWWlQ=
 github.com/solo-io/gloo-gateway v0.0.2-0.20250707222238-f71125ec0307 h1:nUxF8hIOxhn7bozuSMwEpnrXCevbcCUQOFxldE1FkFc=
 github.com/solo-io/gloo-gateway v0.0.2-0.20250707222238-f71125ec0307/go.mod h1:zkNLv78BsR6wXSpEkID5LnQz9h2dNZEegyklwDU0eQg=
+github.com/solo-io/gloo-gateway v0.0.2-0.20250709201756-e4787361a71b h1:JZ0EgozeOmztipmmBLdnr3E8hROI0JzlEfXg/sTYKz0=
+github.com/solo-io/gloo-gateway v0.0.2-0.20250709201756-e4787361a71b/go.mod h1:ejOaPlT0pWG2jZ9zyeLz715nDDPHLfndso2Y3g10PYw=
 github.com/solo-io/go-list-licenses v0.1.4 h1:u4xh1OUORT4iSWuAp3Q4NsfHcDaeUV8QRDH8ACQqbxw=
 github.com/solo-io/go-list-licenses v0.1.4/go.mod h1:x6LSp/NrYgVXwNum7ZOiaAYTpg6B3F6TrWYfcdHVroA=
 github.com/solo-io/go-utils v0.20.2/go.mod h1:6e8K1spnMWwlnJRSNp/J84GEyJbrcK4Gm7i+ehzCi8c=

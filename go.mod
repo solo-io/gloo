@@ -98,13 +98,13 @@ require (
 	github.com/golang/mock v1.7.0-rc.1
 	github.com/google/go-cmp v0.7.0
 	github.com/google/uuid v1.6.0
-	github.com/kgateway-dev/kgateway/v2 v2.1.0-main.0.20250702233145-2b832e0f5028
+	github.com/kgateway-dev/kgateway/v2 v2.1.0-main.0.20250709202308-3305e7830fb8
 	github.com/mccutchen/go-httpbin/v2 v2.15.0
 	github.com/prometheus/client_model v0.6.2
 	github.com/prometheus/common v0.62.0
 	github.com/quasilyte/go-ruleguard/dsl v0.3.22
 	github.com/solo-io/cue v0.4.7
-	github.com/solo-io/gloo-gateway v0.0.2-0.20250707222238-f71125ec0307
+	github.com/solo-io/gloo-gateway v0.0.2-0.20250709201756-e4787361a71b
 	github.com/stoewer/go-strcase v1.3.0
 	github.com/stretchr/testify v1.10.0
 	go.opentelemetry.io/proto/otlp v1.6.0

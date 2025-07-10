@@ -12,6 +12,7 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/cors"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/protocol"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/ssl"
+	"k8s.io/apimachinery/pkg/api/resource"
 	"strconv"
 	"strings"
 
@@ -410,7 +411,17 @@ func (o *GatewayAPIOutput) convertUpstreamPolicy(upstream *snapshot.UpstreamWrap
 			TLS:                           nil, // existing
 			LoadBalancer:                  nil, // existing
 			HealthCheck:                   nil, // existing
+			TargetSelectors:               nil, //existing
 		},
+	}
+	if upstream.Spec.GetStatic() != nil {
+		if upstream.Spec.GetStatic().GetUseTls() != nil || upstream.Spec.GetStatic().GetUseTls().GetValue() {
+			// TODO(nick): This currently does not do anything. Need support for TLS
+			backendConfig.Spec.TLS = &kgateway.TLS{}
+		}
+		if upstream.Spec.GetStatic().GetAutoSniRewrite() != nil && upstream.Spec.GetStatic().GetAutoSniRewrite().GetValue() {
+			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "static upstream autoSniRewrite is not supported")
+		}
 	}
 
 	if upstream.Spec.GetSslConfig() != nil {
@@ -442,6 +453,7 @@ func (o *GatewayAPIOutput) convertUpstreamPolicy(upstream *snapshot.UpstreamWrap
 				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "sslConfig.sslFiles.ocspStaple is not supported")
 			}
 		}
+
 		if upstream.Spec.GetSslConfig().GetOneWayTls() != nil {
 			tls.OneWayTLS = ptr.To(upstream.Spec.GetSslConfig().GetOneWayTls().GetValue())
 		}
@@ -993,6 +1005,7 @@ func (o *GatewayAPIOutput) convertVHOOptionsToTrafficPolicySpec(vho *gloov1.Virt
 			RateLimit:       nil, // existing
 			Cors:            nil, // existing
 			Csrf:            nil, // existing
+			Buffer:          nil, // existing
 		},
 		Waf:                      nil, // existing
 		Retry:                    nil, // existing
@@ -1001,7 +1014,7 @@ func (o *GatewayAPIOutput) convertVHOOptionsToTrafficPolicySpec(vho *gloov1.Virt
 		ExtAuthEnterprise:        nil, // existing
 		TransformationEnterprise: nil, // existing
 		JWTEnterprise:            nil, // existing
-		RBACEnterprise:           nil,
+		RBACEnterprise:           nil, // existing
 	}
 	if vho != nil {
 		if vho.GetExtauth() != nil {
@@ -1049,8 +1062,8 @@ func (o *GatewayAPIOutput) convertVHOOptionsToTrafficPolicySpec(vho *gloov1.Virt
 		}
 		if vho.GetWaf() != nil {
 			waf := &gloogateway.Waf{
-				Disabled:      ptr.To(vho.GetWaf().Disabled),
-				CustomMessage: ptr.To(vho.GetWaf().CustomInterventionMessage),
+				Disabled:      ptr.To(vho.GetWaf().GetDisabled()),
+				CustomMessage: ptr.To(vho.GetWaf().GetCustomInterventionMessage()),
 				Rules:         []gloogateway.WafRule{},
 			}
 			for _, r := range vho.GetWaf().RuleSets {
@@ -1170,8 +1183,13 @@ func (o *GatewayAPIOutput) convertVHOOptionsToTrafficPolicySpec(vho *gloov1.Virt
 			rbe := o.convertRBAC(vho.GetRbac())
 			spec.RBACEnterprise = rbe
 		}
-		if vho.GetBufferPerRoute() != nil {
-			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "bufferPerRoute is not supported")
+		if vho.GetBufferPerRoute() != nil && vho.GetBufferPerRoute().GetBuffer() != nil && vho.GetBufferPerRoute().GetBuffer().GetMaxRequestBytes() != nil {
+			spec.Buffer = &kgateway.Buffer{
+				MaxRequestSize: resource.NewQuantity(int64(vho.GetBufferPerRoute().GetBuffer().GetMaxRequestBytes().GetValue()), resource.BinarySI),
+			}
+			if vho.GetBufferPerRoute().GetDisabled() {
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "bufferPerRoute.disabled is not supported")
+			}
 		}
 		if vho.GetIncludeRequestAttemptCount() != nil {
 			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "includeRequestAttemptCount is not supported")
@@ -1857,8 +1875,8 @@ func (o *GatewayAPIOutput) convertHTTPListenerOptions(options *gloov1.HttpListen
 
 	if options.GetWaf() != nil {
 		waf := &gloogateway.Waf{
-			Disabled:      ptr.To(options.GetWaf().Disabled),
-			CustomMessage: ptr.To(options.GetWaf().CustomInterventionMessage),
+			Disabled:      ptr.To(options.GetWaf().GetDisabled()),
+			CustomMessage: ptr.To(options.GetWaf().GetCustomInterventionMessage()),
 			Rules:         []gloogateway.WafRule{},
 		}
 		for _, r := range options.GetWaf().RuleSets {
