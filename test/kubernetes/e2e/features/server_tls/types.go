@@ -127,6 +127,7 @@ const (
 	// These were determined experimentally.
 	expectedFailedResponseCodeInvalidVs = 16
 	expectedFailedResponseCertRequested = 35
+	expectedFailedResponseSendError     = 55
 )
 
 func manifestFromFile(fname string) ([]byte, error) {

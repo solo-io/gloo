@@ -91,6 +91,19 @@ func TestApplySslExtensionOptions(t *testing.T) {
 			},
 		},
 		{
+			name: "ecdh_curves",
+			out: &ssl.SslConfig{
+				Parameters: &ssl.SslParameters{
+					EcdhCurves: []string{"X25519MLKEM768", "X25519", "P-256"},
+				},
+			},
+			in: &gwv1.GatewayTLSConfig{
+				Options: map[gwv1.AnnotationKey]gwv1.AnnotationValue{
+					GatewaySslEcdhCurves: "X25519MLKEM768,X25519,P-256",
+				},
+			},
+		},
+		{
 			name: "subject_alt_names",
 			out: &ssl.SslConfig{
 				VerifySubjectAltName: []string{"foo", "bar"},
@@ -169,6 +182,7 @@ func TestApplySslExtensionOptions(t *testing.T) {
 					MaximumProtocolVersion: ssl.SslParameters_TLSv1_3,
 					MinimumProtocolVersion: ssl.SslParameters_TLSv1_2,
 					CipherSuites:           []string{"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256", "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384"},
+					EcdhCurves:             []string{"X25519MLKEM768", "X25519", "P-256"},
 				},
 			},
 			in: &gwv1.GatewayTLSConfig{
@@ -178,6 +192,7 @@ func TestApplySslExtensionOptions(t *testing.T) {
 					GatewaySslVerifySubjectAltName: "foo,bar",
 					GatewaySslOneWayTls:            "true",
 					GatewaySslCipherSuites:         "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384",
+					GatewaySslEcdhCurves:           "X25519MLKEM768,X25519,P-256",
 				},
 			},
 		},
