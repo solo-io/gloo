@@ -1,0 +1,6 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/solo-projects/issues/8456
+    resolvesIssue: false
+    description: >-
+      Expose ecdh-curves TLS settings for listeners
