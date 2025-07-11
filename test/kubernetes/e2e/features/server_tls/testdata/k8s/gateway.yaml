@@ -43,17 +43,3 @@ spec:
       allowedRoutes:
         namespaces:
           from: All
-    - protocol: HTTPS
-      port: 443
-      name: pqtls
-      hostname: "pq-tls.example.com"
-      tls:
-        mode: Terminate
-        certificateRefs:
-          - name: tls-secret-1
-            kind: Secret
-        options:
-          "gateway.gloo.solo.io/ssl/ecdh-curves": "X25519MLKEM768"
-      allowedRoutes:
-        namespaces:
-          from: All
