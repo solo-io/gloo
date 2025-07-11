@@ -95,9 +95,7 @@ func (s *k8sServerTlsTestingSuite) TearDownSuite() {
 // is provided in the TLS secret. This is because the Gloo translation loop assumes that mTLS is desired
 // if the secret contains a CA cert.
 func (s *k8sServerTlsTestingSuite) TestOneWayServerTlsFailsWithoutOneWayTls() {
-	// The expected error code is observed by experiment. When upgrading from curl 7.x to 8.x,
-	// the code for the error changed from 16 (Http/2 Frame Error) to 55 (Send Error)
-	s.assertEventualError("nooneway.example.com", expectedFailedResponseSendError)
+	s.assertEventualError("nooneway.example.com", expectedFailedResponseCodeInvalidVs)
 }
 
 // TestOneWayServerTlsWorksWithOneWayTls validates that one-way server TLS traffic succeeds when CA data
