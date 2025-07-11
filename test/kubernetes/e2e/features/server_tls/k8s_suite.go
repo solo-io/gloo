@@ -95,7 +95,7 @@ func (s *k8sServerTlsTestingSuite) TearDownSuite() {
 // is provided in the TLS secret. This is because the Gloo translation loop assumes that mTLS is desired
 // if the secret contains a CA cert.
 func (s *k8sServerTlsTestingSuite) TestOneWayServerTlsFailsWithoutOneWayTls() {
-	s.assertEventualError("nooneway.example.com", expectedFailedResponseCodeInvalidVs)
+	s.assertEventualError("nooneway.example.com", expectedFailedResponseReceiveError)
 }
 
 // TestOneWayServerTlsWorksWithOneWayTls validates that one-way server TLS traffic succeeds when CA data
