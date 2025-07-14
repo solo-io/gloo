@@ -13,6 +13,7 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/protocol"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/ssl"
 	"k8s.io/apimachinery/pkg/api/resource"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"strconv"
 	"strings"
 
@@ -1024,6 +1025,12 @@ func (o *GatewayAPIOutput) convertVHOOptionsToTrafficPolicySpec(vho *gloov1.Virt
 			if !exists {
 				o.AddErrorFromWrapper(ERROR_TYPE_UNKNOWN_REFERENCE, wrapper, "did not find AuthConfig %s/%s for delegated route option reference", ref.GetName(), ref.GetNamespace())
 			} else {
+				ac.SetGroupVersionKind(schema.GroupVersionKind{
+					Group:   "extauth.solo.io",
+					Version: "v1",
+					Kind:    "AuthConfig",
+				})
+
 				o.gatewayAPICache.AddAuthConfig(ac)
 
 				spec.ExtAuthEnterprise = &gloogateway.ExtAuthEnterprise{
@@ -2348,6 +2355,13 @@ func (o *GatewayAPIOutput) convertRouteOptions(
 		if !exists {
 			o.AddErrorFromWrapper(ERROR_TYPE_UNKNOWN_REFERENCE, wrapper, "did not find AuthConfig %s/%s for delegated route option reference", ref.GetName(), ref.GetNamespace())
 		} else {
+
+			ac.SetGroupVersionKind(schema.GroupVersionKind{
+				Group:   "extauth.solo.io",
+				Version: "v1",
+				Kind:    "AuthConfig",
+			})
+
 			o.gatewayAPICache.AddAuthConfig(ac)
 
 			gtpSpec.ExtAuthEnterprise = &gloogateway.ExtAuthEnterprise{
@@ -3274,6 +3288,13 @@ func (o *GatewayAPIOutput) convertRouteToRule(r *gloogwv1.Route, wrapper snapsho
 				if !exists {
 					o.AddErrorFromWrapper(ERROR_TYPE_UNKNOWN_REFERENCE, ro, "did not find AuthConfig %s/%s for delegated route option reference", ref.GetName(), ref.GetNamespace())
 				}
+
+				ac.SetGroupVersionKind(schema.GroupVersionKind{
+					Group:   "extauth.solo.io",
+					Version: "v1",
+					Kind:    "AuthConfig",
+				})
+
 				o.gatewayAPICache.AddAuthConfig(ac)
 			}
 
@@ -3670,7 +3691,7 @@ func (o *GatewayAPIOutput) convertRouteTableToHTTPRoute(rt *snapshot.RouteTableW
 		}
 		o.AddErrorFromWrapper(ERROR_TYPE_UPDATE_OBJECT, rt, "route weights are being set, enable KGW_WEIGHTED_ROUTE_PRECEDENCE=true environment variable.")
 
-		hr.ObjectMeta.Labels[routeWeight] = rt.Spec.GetWeight().String()
+		hr.ObjectMeta.Labels[routeWeight] = fmt.Sprintf("%d", rt.Spec.GetWeight().GetValue())
 	}
 
 	for _, route := range rt.Spec.GetRoutes() {

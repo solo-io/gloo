@@ -14,6 +14,8 @@ import (
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
 )
 
+const delegationLabel = "delegation.kgateway.dev/label"
+
 func (o *GatewayAPIOutput) PostProcess(opts *Options) error {
 
 	// complete delegation
@@ -179,6 +181,7 @@ func (o *GatewayAPIOutput) finishDelegation() error {
 
 	// for all edge routetables we need to go and update labels on the httproutes to support delegation
 	updatedHTTPRoutes := map[types.NamespacedName]*snapshot.HTTPRouteWrapper{}
+
 	for _, rtt := range o.edgeCache.RouteTables() {
 		routesToUpdate := o.processRouteForDelegation(rtt.Spec.GetRoutes())
 
@@ -187,9 +190,9 @@ func (o *GatewayAPIOutput) finishDelegation() error {
 			updatedHTTPRoute, found := updatedHTTPRoutes[r.Index()]
 
 			if found {
-				delegateValue := updatedHTTPRoute.Labels["delegation.gateway.solo.io/label"]
-				if delegateValue != r.Labels["delegation.gateway.solo.io/label"] {
-					o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, rtt, "HTTPRoute already selected by delegation label delegation.gateway.solo.io/label: %s but also selected by delegation.gateway.solo.io/label: %s", r.Labels["delegation.gateway.solo.io/label"], delegateValue)
+				delegateValue := updatedHTTPRoute.Labels[delegationLabel]
+				if delegateValue != r.Labels[delegationLabel] {
+					o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, rtt, "HTTPRoute already selected by delegation label %s: %s but also selected by %s: %s", delegationLabel, r.Labels[delegationLabel], delegationLabel, delegateValue)
 					continue
 				}
 			}
@@ -204,9 +207,9 @@ func (o *GatewayAPIOutput) finishDelegation() error {
 			updatedHTTPRoute, found := updatedHTTPRoutes[r.Index()]
 
 			if found {
-				delegateValue := updatedHTTPRoute.Labels["delegation.gateway.solo.io/label"]
-				if delegateValue != r.Labels["delegation.gateway.solo.io/label"] {
-					o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, r, "HTTPRoute already selected by delegation label delegation.gateway.solo.io/label: %s but also selected by delegation.gateway.solo.io/label: %s", r.Labels["delegation.gateway.solo.io/label"], delegateValue)
+				delegateValue := updatedHTTPRoute.Labels[delegationLabel]
+				if delegateValue != r.Labels[delegationLabel] {
+					o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, r, "HTTPRoute already selected by delegation label %s: %s but also selected by %s: %s", delegationLabel, r.Labels[delegationLabel], delegationLabel, delegateValue)
 					continue
 				}
 			}
@@ -242,12 +245,12 @@ func (o *GatewayAPIOutput) processRouteForDelegation(routes []*v1.Route) []*snap
 						httpRoute.Labels = map[string]string{}
 					}
 					// this value should match the backend ref name
-					//   # Delegate to routes with the label delegation.gateway.solo.io/label:foobar
-					//   - group: delegation.gateway.solo.io
+					//   # Delegate to routes with the label delegation.kgateway.dev/label:foobar
+					//   - group: delegation.kgateway.dev
 					//     kind: label # no other value is allowed
 					//     name: single.example.com # label value
 					//     namespace: httpbin # defaults to parent's namespace if unset
-					httpRoute.Labels["delegation.gateway.solo.io/label"] = value
+					httpRoute.Labels[delegationLabel] = value
 					routesToUpdate = append(routesToUpdate, httpRoute)
 				}
 			}
