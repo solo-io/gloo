@@ -368,6 +368,9 @@ apis:
   enterprise.gloo.solo.io.PassThroughHttp:
     relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth.proto.sk/#PassThroughHttp
     package: enterprise.gloo.solo.io
+  enterprise.gloo.solo.io.PassThroughHttpTLSConfig:
+    relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth.proto.sk/#PassThroughHttpTLSConfig
+    package: enterprise.gloo.solo.io
   enterprise.gloo.solo.io.PlainOAuth2:
     relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth.proto.sk/#PlainOAuth2
     package: enterprise.gloo.solo.io
@@ -388,6 +391,9 @@ apis:
     package: enterprise.gloo.solo.io
   enterprise.gloo.solo.io.Settings:
     relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth.proto.sk/#Settings
+    package: enterprise.gloo.solo.io
+  enterprise.gloo.solo.io.SslParameters:
+    relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth.proto.sk/#SslParameters
     package: enterprise.gloo.solo.io
   enterprise.gloo.solo.io.UserSession:
     relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth.proto.sk/#UserSession

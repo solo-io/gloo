@@ -910,6 +910,23 @@ spec:
                                   type: object
                               type: object
                             tlsConfig:
+                              properties:
+                                secretRef:
+                                  properties:
+                                    name:
+                                      type: string
+                                    namespace:
+                                      type: string
+                                  type: object
+                                sslParams:
+                                  properties:
+                                    maximumProtocolVersion:
+                                      type: string
+                                      x-kubernetes-int-or-string: true
+                                    minimumProtocolVersion:
+                                      type: string
+                                      x-kubernetes-int-or-string: true
+                                  type: object
                               type: object
                           required:
                           - address
@@ -951,6 +968,25 @@ spec:
                                   type: array
                                 readStateFromResponse:
                                   type: boolean
+                              type: object
+                            tlsConfig:
+                              properties:
+                                secretRef:
+                                  properties:
+                                    name:
+                                      type: string
+                                    namespace:
+                                      type: string
+                                  type: object
+                                sslParams:
+                                  properties:
+                                    maximumProtocolVersion:
+                                      type: string
+                                      x-kubernetes-int-or-string: true
+                                    minimumProtocolVersion:
+                                      type: string
+                                      x-kubernetes-int-or-string: true
+                                  type: object
                               type: object
                             url:
                               type: string
