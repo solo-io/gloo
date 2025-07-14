@@ -48,7 +48,11 @@ Review the following changes made to Gloo Gateway in version {{< readfile file="
 
 <!--For 1.20 -->
 
+**AuthPlugin removed in 1.20**: The `AuthPlugin` config type is removed in 1.20. If you are using this config type, you must remove it from your Helm values file before upgrading. If you need to configure your own auth service, check out [Custom Auth server]({{< versioned_link_path fromRoot="/guides/security/auth/custom_auth/" >}}). 
+
 **Discovery disabled by default in 1.20**: To improve performance, discovery is now disabled by default. This change means that Upstreams are no longer automatically created for discovered Kubernetes services. If you want to continue using discovery, set `discovery.enabled=true` (or `gloo.discovery.enabled` in Gloo Gateway Enterprise) in your Helm values file before upgrading. For more information, see the [Discovery guide]({{< versioned_link_path fromRoot="/installation/advanced_configuration/fds_mode/" >}}).
+
+
 
 <!--From 1.19 -->
 
@@ -65,6 +69,12 @@ The Envoy dependency in Gloo Gateway 1.19 was upgraded from 1.31.x to 1.33.x. Th
 
 
 ## New features
+
+### Set circuit breakers for dynamic forward proxies
+
+When using a dynamic forward proxy, Envoy sets a limit of 1024 connections for dynamically discovered upstreams. You can override this setting by setting custom circuit breakers for your dynamic forward proxy. 
+
+For more information, see [Set circuit breakers for dynamically discovered upstreams]({{% versioned_link_path fromRoot="/guides/traffic_management/listener_configuration/http_connection_manager/dfp/#dfp-circuit-breakers" %}}). 
 
 ### Set authority header for gRPC OpenTelemetry collectors
 

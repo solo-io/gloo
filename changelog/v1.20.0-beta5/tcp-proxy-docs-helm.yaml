@@ -1,0 +1,4 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >-
+      Updated TCP proxy docs to include how to assign custom ports to service via helm values.
