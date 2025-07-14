@@ -1,7 +1,0 @@
-changelog:
-  - type: NON_USER_FACING
-    description: >-
-      Weekly doc fixes, such as user questions, typos, broken links, and version bumps.
-
-      skipCI-kube-tests:true
-      skipCI-docs-build:true
