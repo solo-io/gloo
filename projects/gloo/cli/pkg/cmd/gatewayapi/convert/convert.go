@@ -39,7 +39,6 @@ import (
 	kgateway "github.com/kgateway-dev/kgateway/v2/api/v1alpha1"
 	gloogateway "github.com/solo-io/gloo-gateway/api/v1alpha1"
 	gloogwv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
-	"github.com/solo-io/gloo/projects/gateway2/api/v1alpha1"
 	"github.com/solo-io/gloo/projects/gateway2/wellknown"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
@@ -53,6 +52,8 @@ import (
 const (
 	perConnectionBufferLimit = "kgateway.dev/per-connection-buffer-limit"
 	routeWeight              = "kgateway.dev/route-weight"
+	delegationLabelGroup     = "delegation.kgateway.dev"
+	delegationLabel          = delegationLabelGroup + "/label"
 )
 
 func (o *GatewayAPIOutput) Convert() error {
@@ -2133,7 +2134,6 @@ func (o *GatewayAPIOutput) generateGatewayExtensionForRateLimit(rateLimitSetting
 	//TODO(nick): Implement RateLimitSettings - https://github.com/kgateway-dev/kgateway/issues/11424
 	if rateLimitSettings.GetRateLimitBeforeAuth() == true {
 		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "RateLimitSettings rateLimitBeforeAuth is not supported")
-
 	}
 	if rateLimitSettings.GetEnableXRatelimitHeaders() == true {
 		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "RateLimitSettings enableXRatelimitHeaders is not supported")
@@ -2146,21 +2146,33 @@ func (o *GatewayAPIOutput) generateGatewayExtensionForRateLimit(rateLimitSetting
 	}
 	if rateLimitSettings.GetRatelimitServerRef() != nil {
 		backend := o.GetGatewayAPICache().GetBackend(types.NamespacedName{Namespace: rateLimitSettings.GetRatelimitServerRef().GetNamespace(), Name: rateLimitSettings.GetRatelimitServerRef().GetName()})
-		if backend == nil {
-			o.AddErrorFromWrapper(ERROR_TYPE_UNKNOWN_REFERENCE, wrapper, "rateLimitSettings ratelimitServerRef backend not found")
-			return nil
+		var grpcService *kgateway.ExtGrpcService
+		if backend != nil {
+			// backend exists so we use that reference
+			grpcService = &kgateway.ExtGrpcService{
+				BackendRef: &gwv1.BackendRef{
+					BackendObjectReference: gwv1.BackendObjectReference{
+						Name:      gwv1.ObjectName(backend.GetName()),
+						Namespace: ptr.To(gwv1.Namespace(backend.GetNamespace())),
+						// using the default port here
+						Port: ptr.To(gwv1.PortNumber(18081)),
+					},
+				},
+			}
+		} else {
+			//TODO(nick): just assuming its a kube service
+			grpcService = &kgateway.ExtGrpcService{
+				BackendRef: &gwv1.BackendRef{
+					BackendObjectReference: gwv1.BackendObjectReference{
+						Name:      gwv1.ObjectName(rateLimitSettings.GetRatelimitServerRef().GetName()),
+						Namespace: ptr.To(gwv1.Namespace(rateLimitSettings.GetRatelimitServerRef().GetNamespace())),
+						// using the default port here
+						Port: ptr.To(gwv1.PortNumber(18081)),
+					},
+				},
+			}
 		}
 
-		grpcService := &kgateway.ExtGrpcService{
-			BackendRef: &gwv1.BackendRef{
-				BackendObjectReference: gwv1.BackendObjectReference{
-					Name:      gwv1.ObjectName(backend.GetName()),
-					Namespace: ptr.To(gwv1.Namespace(backend.GetNamespace())),
-					// using the default port here
-					Port: ptr.To(gwv1.PortNumber(18081)),
-				},
-			},
-		}
 		if rateLimitSettings.GetGrpcService() != nil {
 			grpcService.Authority = ptr.To(rateLimitSettings.GetGrpcService().GetAuthority())
 		}
@@ -2174,22 +2186,32 @@ func (o *GatewayAPIOutput) generateGatewayExtensionForExtAuth(extauth *v1.Settin
 		return nil
 	}
 	var grpcService *kgateway.ExtGrpcService
-
 	if extauth.GetExtauthzServerRef() != nil {
 		backend := o.GetGatewayAPICache().GetBackend(types.NamespacedName{Namespace: extauth.GetExtauthzServerRef().GetNamespace(), Name: extauth.GetExtauthzServerRef().GetName()})
-		if backend == nil {
-			o.AddErrorFromWrapper(ERROR_TYPE_UNKNOWN_REFERENCE, wrapper, "extauth extauthzServerRef backend not found")
-			return nil
-		}
-		grpcService = &kgateway.ExtGrpcService{
-			BackendRef: &gwv1.BackendRef{
-				BackendObjectReference: gwv1.BackendObjectReference{
-					Name:      gwv1.ObjectName(backend.GetName()),
-					Namespace: ptr.To(gwv1.Namespace(backend.GetNamespace())),
-					// using the default port here
-					Port: ptr.To(gwv1.PortNumber(8083)),
+		if backend != nil {
+			// this has a backend definition
+			grpcService = &kgateway.ExtGrpcService{
+				BackendRef: &gwv1.BackendRef{
+					BackendObjectReference: gwv1.BackendObjectReference{
+						Name:      gwv1.ObjectName(backend.GetName()),
+						Namespace: ptr.To(gwv1.Namespace(backend.GetNamespace())),
+						// using the default port here
+						Port: ptr.To(gwv1.PortNumber(8083)),
+					},
 				},
-			},
+			}
+		} else {
+			// TODO(nick): if the backend wasnt found im just assuming it was a kube service which is a pretty safe assumption
+			grpcService = &kgateway.ExtGrpcService{
+				BackendRef: &gwv1.BackendRef{
+					BackendObjectReference: gwv1.BackendObjectReference{
+						Name:      gwv1.ObjectName(extauth.GetExtauthzServerRef().GetName()),
+						Namespace: ptr.To(gwv1.Namespace(extauth.GetExtauthzServerRef().GetNamespace())),
+						// using the default port here
+						Port: ptr.To(gwv1.PortNumber(8083)),
+					},
+				},
+			}
 		}
 
 		if extauth.GetGrpcService() != nil {
@@ -3247,9 +3269,9 @@ func (o *GatewayAPIOutput) convertRouteToRule(r *gloogwv1.Route, wrapper snapsho
 			o.gatewayAPICache.AddDirectResponse(snapshot.NewDirectResponseWrapper(dr, wrapper.FileOrigin()))
 
 			rr.Filters = append(rr.Filters, gwv1.HTTPRouteFilter{
-				Type: "ExtensionRef",
+				Type: gwv1.HTTPRouteFilterExtensionRef,
 				ExtensionRef: &gwv1.LocalObjectReference{
-					Group: v1alpha1.Group,
+					Group: kgateway.GroupName,
 					Kind:  "DirectResponse",
 					Name:  gwv1.ObjectName(drName),
 				},
@@ -3436,10 +3458,10 @@ func (o *GatewayAPIOutput) generateBackendRefForDelegateAction(
 				backendRef := &gwv1.HTTPBackendRef{
 					BackendRef: gwv1.BackendRef{
 						BackendObjectReference: gwv1.BackendObjectReference{
-							Name:      gwv1.ObjectName(v),                               // label value
-							Namespace: ptr.To(gwv1.Namespace(namespace)),                // defaults to parent namespace if unset
-							Kind:      ptr.To(gwv1.Kind("label")),                       // label is the only value
-							Group:     ptr.To(gwv1.Group("delegation.gateway.solo.io")), // custom group for delegation
+							Name:      gwv1.ObjectName(v),                       // label value
+							Namespace: ptr.To(gwv1.Namespace(namespace)),        // defaults to parent namespace if unset
+							Kind:      ptr.To(gwv1.Kind("label")),               // label is the only value
+							Group:     ptr.To(gwv1.Group(delegationLabelGroup)), // custom group for delegation
 						},
 					},
 				}
