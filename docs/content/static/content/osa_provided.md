@@ -42,7 +42,7 @@ Name|Version|License
 [onsi/gomega](https://github.com/onsi/gomega)|v1.36.2|MIT License
 [pkg/browser](https://github.com/pkg/browser)|v0.0.0-20180916011732-0a3d74bf9ce4|BSD 2-clause "Simplified" License
 [pkg/errors](https://github.com/pkg/errors)|v0.9.1|BSD 2-clause "Simplified" License
-[prometheus/client_golang](https://github.com/prometheus/client_golang)|v1.20.5|Apache License 2.0
+[prometheus/client_golang](https://github.com/prometheus/client_golang)|v1.22.0|Apache License 2.0
 [prometheus/client_model](https://github.com/prometheus/client_model)|v0.6.1|Apache License 2.0
 [prometheus/common](https://github.com/prometheus/common)|v0.62.0|Apache License 2.0
 [go-ruleguard/dsl](https://github.com/quasilyte/go-ruleguard)|v0.3.22|BSD 3-clause "New" or "Revised" License
@@ -60,17 +60,17 @@ Name|Version|License
 [go.uber.org/goleak](https://go.uber.org/goleak)|v1.3.0|MIT License
 [go.uber.org/multierr](https://go.uber.org/multierr)|v1.11.0|MIT License
 [go.uber.org/zap](https://go.uber.org/zap)|v1.27.0|MIT License
-[x/crypto](https://golang.org/x/crypto)|v0.37.0|BSD 3-clause "New" or "Revised" License
+[x/crypto](https://golang.org/x/crypto)|v0.39.0|BSD 3-clause "New" or "Revised" License
 [x/exp](https://golang.org/x/exp)|v0.0.0-20241215155358-4a5509556b9e|BSD 3-clause "New" or "Revised" License
-[x/mod](https://golang.org/x/mod)|v0.23.0|BSD 3-clause "New" or "Revised" License
-[x/sync](https://golang.org/x/sync)|v0.13.0|BSD 3-clause "New" or "Revised" License
-[x/tools](https://golang.org/x/tools)|v0.30.0|BSD 3-clause "New" or "Revised" License
+[x/mod](https://golang.org/x/mod)|v0.25.0|BSD 3-clause "New" or "Revised" License
+[x/sync](https://golang.org/x/sync)|v0.15.0|BSD 3-clause "New" or "Revised" License
+[x/tools](https://golang.org/x/tools)|v0.33.0|BSD 3-clause "New" or "Revised" License
 [googleapis/api](https://google.golang.org/genproto/googleapis/api)|v0.0.0-20250122153221-138b5a5a4fd4|Apache License 2.0
 [googleapis/rpc](https://google.golang.org/genproto/googleapis/rpc)|v0.0.0-20250122153221-138b5a5a4fd4|Apache License 2.0
 [google.golang.org/grpc](https://google.golang.org/grpc)|v1.71.1|Apache License 2.0
 [google.golang.org/protobuf](https://google.golang.org/protobuf)|v1.36.6|BSD 3-clause "New" or "Revised" License
 [AlecAivazis/survey.v1](https://gopkg.in/AlecAivazis/survey.v1)|v1.8.7|MIT License
-[helm/v3](https://helm.sh/helm/v3)|v3.17.0|Apache License 2.0
+[helm/v3](https://helm.sh/helm/v3)|v3.18.4|Apache License 2.0
 [istio.io/api](https://istio.io/api)|v1.25.2-0.20250410212420-84c271001f68|Apache License 2.0
 [istio.io/client-go](https://istio.io/client-go)|v1.25.2-0.20250410213018-e5f6074bc228|Apache License 2.0
 [istio.io/istio](https://istio.io/istio)|v0.0.0-20250411142419-0d83506c2883|Apache License 2.0
