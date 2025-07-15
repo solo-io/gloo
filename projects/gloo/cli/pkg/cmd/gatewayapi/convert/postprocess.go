@@ -14,8 +14,6 @@ import (
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
 )
 
-const delegationLabel = "delegation.kgateway.dev/label"
-
 func (o *GatewayAPIOutput) PostProcess(opts *Options) error {
 
 	// complete delegation
