@@ -93,3 +93,11 @@ CVE-2025-46569
 # https://github.com/advisories/GHSA-wq9g-9vfc-cfq9
 # This CVE has been addressed in v1.18.x and later. We have opted to ignore it in v1.17.x because it only affects Portal, which is no longer has any known users on this branch. We will remove this CVE from .trivyignore when v1.17.x is no longer supported. ([issue link](https://github.com/solo-io/gloo/issues/10925))
 CVE-2025-30153
+
+# https://github.com/advisories/GHSA-557j-xg8c-q2mm
+# This CVE does not affect Gloo. Nevertheless, the update to fix this CVE has
+# been adopted in v.18.x and later (see
+# [here](https://github.com/solo-io/gloo/pull/10914)), so we will remove it as
+# a part of our clean-up when 1.17.x is EOL. ([issue
+# link](https://github.com/solo-io/gloo/issues/10925))
+CVE-2025-53547
