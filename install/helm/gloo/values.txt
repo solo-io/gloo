@@ -1,0 +1,7 @@
+gatewayProxies:
+  gatewayProxy:
+    customStaticLayer:
+      something: "GO CRAZY!!!!"
+      envoy.reloadable_features.some_runetime_flag: true
+    customEnvoyRuntimeFlags:
+      custom_flag1: "some value"

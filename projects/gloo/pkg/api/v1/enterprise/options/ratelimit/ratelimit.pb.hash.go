@@ -26,10 +26,6 @@ var (
 )
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *IngressRateLimit) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -86,10 +82,6 @@ func (m *IngressRateLimit) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *Settings) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -187,10 +179,6 @@ func (m *Settings) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *GrpcService) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -211,10 +199,6 @@ func (m *GrpcService) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *ServiceSettings) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -279,10 +263,6 @@ func (m *ServiceSettings) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *RateLimitConfigRefs) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -323,10 +303,6 @@ func (m *RateLimitConfigRefs) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *RateLimitConfigRef) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -351,10 +327,6 @@ func (m *RateLimitConfigRef) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *RateLimitVhostExtension) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -415,10 +387,6 @@ func (m *RateLimitVhostExtension) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *RateLimitRouteExtension) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil

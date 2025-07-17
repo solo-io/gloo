@@ -8,7 +8,7 @@ Name|Version|License
 [xds/go](https://github.com/cncf/xds)|v0.0.0-20240905190251-b4127c9b8d78|Apache License 2.0
 [cratonica/2goarray](https://github.com/cratonica/2goarray)|v0.0.0-20190331194516-514510793eaa|MIT License
 [envoyproxy/go-control-plane](https://github.com/envoyproxy/go-control-plane)|v0.0.0-20231026174848-be784d54c527|Apache License 2.0
-[envoyproxy/protoc-gen-validate](https://github.com/envoyproxy/protoc-gen-validate)|v1.1.0|Apache License 2.0
+[envoyproxy/protoc-gen-validate](https://github.com/envoyproxy/protoc-gen-validate)|v1.0.2|Apache License 2.0
 [form3tech-oss/jwt-go](https://github.com/form3tech-oss/jwt-go)|v3.2.5+incompatible|MIT License
 [fsnotify/fsnotify](https://github.com/fsnotify/fsnotify)|v1.7.0|BSD 3-clause "New" or "Revised" License
 [ghodss/yaml](https://github.com/ghodss/yaml)|v1.0.1-0.20190212211648-25d852aebe32|MIT License

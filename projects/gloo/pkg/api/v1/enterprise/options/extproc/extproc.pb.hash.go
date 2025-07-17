@@ -26,10 +26,6 @@ var (
 )
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *Settings) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -338,10 +334,6 @@ func (m *Settings) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *RouteSettings) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -406,10 +398,6 @@ func (m *RouteSettings) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *GrpcService) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -530,10 +518,6 @@ func (m *GrpcService) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *Overrides) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -642,10 +626,6 @@ func (m *Overrides) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *HeaderForwardingRules) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil

@@ -26,10 +26,6 @@ var (
 )
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *AuditLogging) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -56,10 +52,6 @@ func (m *AuditLogging) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *ModSecurity) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -164,10 +156,6 @@ func (m *ModSecurity) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *RuleSet) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -200,10 +188,6 @@ func (m *RuleSet) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *ModSecurityPerRoute) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
