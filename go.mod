@@ -269,6 +269,7 @@ require (
 	go.opentelemetry.io/proto/otlp v1.4.0 // indirect
 	go.starlark.net v0.0.0-20230525235612-a134d8f9ddca // indirect
 	go.uber.org/atomic v1.10.0 // indirect
+	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616 // indirect
 	golang.org/x/mod v0.25.0 // indirect
 	golang.org/x/net v0.40.0 // indirect
 	golang.org/x/oauth2 v0.28.0 // indirect
@@ -316,6 +317,7 @@ replace (
 	github.com/docker/docker => github.com/moby/moby v24.0.7+incompatible
 	// Remove once we get to a version with extproc changes in upstream envoy 1.28
 	github.com/envoyproxy/go-control-plane => github.com/solo-io/go-control-plane-fork-v2 v0.0.0-20231026174848-be784d54c527
+	github.com/envoyproxy/protoc-gen-validate => github.com/envoyproxy/protoc-gen-validate v1.0.2
 
 	// Newer versions result in changes to the names of generated metrics
 	// remove this when we fix https://github.com/solo-io/solo-kit/issues/516
