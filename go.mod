@@ -316,6 +316,7 @@ replace (
 	github.com/docker/docker => github.com/moby/moby v24.0.7+incompatible
 	// Remove once we get to a version with extproc changes in upstream envoy 1.28
 	github.com/envoyproxy/go-control-plane => github.com/solo-io/go-control-plane-fork-v2 v0.0.0-20231026174848-be784d54c527
+	github.com/golang/protobuf => github.com/golang/protobuf v1.5.3
 
 	// Newer versions result in changes to the names of generated metrics
 	// remove this when we fix https://github.com/solo-io/solo-kit/issues/516
@@ -326,7 +327,6 @@ replace (
 	// Required for proper serialization of CRDs
 	github.com/renstrom/dedent => github.com/lithammer/dedent v1.0.0
 	google.golang.org/protobuf => google.golang.org/protobuf v1.31.0
-	github.com/golang/protobuf => github.com/golang/protobuf v1.5.3
 
 	// Pin Kube libraries to v0.28
 	// These should be upgraded collectively
