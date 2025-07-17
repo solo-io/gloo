@@ -326,6 +326,7 @@ replace (
 	// Required for proper serialization of CRDs
 	github.com/renstrom/dedent => github.com/lithammer/dedent v1.0.0
 	google.golang.org/protobuf => google.golang.org/protobuf v1.31.0
+	github.com/golang/protobuf => github.com/golang/protobuf v1.5.3
 
 	// Pin Kube libraries to v0.28
 	// These should be upgraded collectively
