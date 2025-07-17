@@ -72,7 +72,7 @@ require (
 	google.golang.org/grpc v1.68.1
 	google.golang.org/protobuf v1.36.5
 	gopkg.in/AlecAivazis/survey.v1 v1.8.7
-	helm.sh/helm/v3 v3.18.4
+	helm.sh/helm/v3 v3.17.4
 	k8s.io/api v0.33.2
 	k8s.io/apiextensions-apiserver v0.33.2
 	k8s.io/apimachinery v0.33.2
@@ -108,7 +108,8 @@ require (
 	github.com/Masterminds/sprig v2.22.0+incompatible // indirect
 	github.com/Masterminds/sprig/v3 v3.3.0 // indirect
 	github.com/Masterminds/squirrel v1.5.4 // indirect
-	github.com/Microsoft/go-winio v0.6.1 // indirect
+	github.com/Microsoft/go-winio v0.6.2 // indirect
+	github.com/Microsoft/hcsshim v0.11.0 // indirect
 	github.com/ProtonMail/go-crypto v0.0.0-20210428141323-04723f9f07d7 // indirect
 	github.com/acomagu/bufpipe v1.0.3 // indirect
 	github.com/armon/go-metrics v0.3.11 // indirect
@@ -123,13 +124,21 @@ require (
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/chai2010/gettext-go v1.0.2 // indirect
 	github.com/cockroachdb/apd/v2 v2.0.1 // indirect
+	github.com/containerd/cgroups v1.1.0 // indirect
 	github.com/containerd/containerd v1.7.27 // indirect
+	github.com/containerd/continuity v0.4.5 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.6 // indirect
 	github.com/creack/pty v1.1.18 // indirect
 	github.com/cyphar/filepath-securejoin v0.4.1 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/daviddengcn/go-colortext v1.0.0 // indirect
-	github.com/docker/distribution v2.8.2+incompatible // indirect
+	github.com/docker/cli v25.0.1+incompatible // indirect
+	github.com/docker/distribution v2.8.3+incompatible // indirect
+	github.com/docker/docker v25.0.6+incompatible // indirect
+	github.com/docker/docker-credential-helpers v0.7.0 // indirect
+	github.com/docker/go-connections v0.5.0 // indirect
+	github.com/docker/go-metrics v0.0.1 // indirect
+	github.com/docker/go-units v0.5.0 // indirect
 	github.com/emicklei/go-restful/v3 v3.11.0 // indirect
 	github.com/emicklei/proto v1.6.15 // indirect
 	github.com/emirpasic/gods v1.12.0 // indirect
@@ -231,6 +240,7 @@ require (
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/monochromegane/go-gitignore v0.0.0-20200626010858-205db1a8cc00 // indirect
+	github.com/morikuni/aec v1.0.0 // indirect
 	github.com/mpvl/unique v0.0.0-20150818121801-cbe035fff7de // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/mxk/go-flowrate v0.0.0-20140419014527-cca7078d478f // indirect
@@ -294,7 +304,7 @@ require (
 	k8s.io/klog/v2 v2.130.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20250318190949-c8a335a9a2ff // indirect
 	k8s.io/metrics v0.28.3 // indirect
-	oras.land/oras-go/v2 v2.6.0 // indirect
+	oras.land/oras-go v1.2.5 // indirect
 	sigs.k8s.io/json v0.0.0-20241010143419-9aa6b5e7a4b3 // indirect
 	sigs.k8s.io/kustomize/api v0.19.0 // indirect
 	sigs.k8s.io/kustomize/kustomize/v5 v5.0.4-0.20230601165947-6ce0bf390ce3 // indirect
@@ -313,6 +323,7 @@ replace (
 	// using the pseudo version of github.com/form3tech-oss/jwt-go@v3.2.3 instead of the version directly,
 	// to avoid error about it being used for two different module paths
 	github.com/dgrijalva/jwt-go => github.com/form3tech-oss/jwt-go v0.0.0-20210511163231-5b2d2b5f6c34
+	github.com/docker/distribution => github.com/docker/distribution v2.8.2+incompatible
 	github.com/docker/docker => github.com/moby/moby v24.0.7+incompatible
 	// Remove once we get to a version with extproc changes in upstream envoy 1.28
 	github.com/envoyproxy/go-control-plane => github.com/solo-io/go-control-plane-fork-v2 v0.0.0-20231026174848-be784d54c527
