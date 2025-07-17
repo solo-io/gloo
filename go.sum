@@ -1595,6 +1595,7 @@ github.com/dgryski/go-lttb v0.0.0-20180810165845-318fcdf10a77/go.mod h1:Va5MyIzk
 github.com/dgryski/go-sip13 v0.0.0-20181026042036-e10d5fee7954/go.mod h1:vAd38F8PWV+bWy6jNmig1y/TA+kYO4g3RSRF0IAv0no=
 github.com/distribution/distribution/v3 v3.0.0-20221208165359-362910506bc2 h1:aBfCb7iqHmDEIp6fBvC/hQUddQfg+3qdYjwzaiP9Hnc=
 github.com/distribution/distribution/v3 v3.0.0-20221208165359-362910506bc2/go.mod h1:WHNsWjnIn2V1LYOrME7e8KxSeKunYHsxEm4am0BUtcI=
+github.com/distribution/distribution/v3 v3.0.0 h1:q4R8wemdRQDClzoNNStftB2ZAfqOiN6UX90KJc4HjyM=
 github.com/distribution/reference v0.6.0 h1:0IXCQ5g4/QMHHkarYzh5l+u8T3t73zM5QvfrDyIgxBk=
 github.com/distribution/reference v0.6.0/go.mod h1:BbU0aIcezP1/5jX/8MP0YiH4SdvB5Y4f/wlDRiLyi3E=
 github.com/docker/cli v27.5.1+incompatible h1:JB9cieUT9YNiMITtIsguaN55PLOHhBSz3LKVc6cqWaY=
@@ -2280,6 +2281,8 @@ github.com/kgateway-dev/kgateway/v2 v2.1.0-main.0.20250708220258-ad0c8309f1b5 h1
 github.com/kgateway-dev/kgateway/v2 v2.1.0-main.0.20250708220258-ad0c8309f1b5/go.mod h1:jzTn0r/xtQB8KmRZ2l6ulOJXaKE32cymCEpbpq5tHtQ=
 github.com/kgateway-dev/kgateway/v2 v2.1.0-main.0.20250709202308-3305e7830fb8 h1:JqYC7R1c+WSmFcFDh14Uti8zfI7y8eKCElNQA8GJmNE=
 github.com/kgateway-dev/kgateway/v2 v2.1.0-main.0.20250709202308-3305e7830fb8/go.mod h1:jzTn0r/xtQB8KmRZ2l6ulOJXaKE32cymCEpbpq5tHtQ=
+github.com/kgateway-dev/kgateway/v2 v2.1.0-main.0.20250716202146-de8dfd1be8fb h1:spw86udKZqPp+PGwlLYED5Ec+LG1FDNxVLBO1sCYV5A=
+github.com/kgateway-dev/kgateway/v2 v2.1.0-main.0.20250716202146-de8dfd1be8fb/go.mod h1:jzTn0r/xtQB8KmRZ2l6ulOJXaKE32cymCEpbpq5tHtQ=
 github.com/kisielk/errcheck v1.1.0/go.mod h1:EZBBE59ingxPouuu3KfxchcWSUPOHkagtvWXihfKN4Q=
 github.com/kisielk/errcheck v1.2.0/go.mod h1:/BMXB+zMLi60iA8Vv6Ksmxu/1UDYcXs4uQLJ+jE2L00=
 github.com/kisielk/errcheck v1.5.0/go.mod h1:pFxgyoBC7bSaBwPgfKdkLd5X25qrDl4LWUI2bnpBCr8=
@@ -2755,6 +2758,8 @@ github.com/solo-io/gloo-gateway v0.0.2-0.20250707222238-f71125ec0307 h1:nUxF8hIO
 github.com/solo-io/gloo-gateway v0.0.2-0.20250707222238-f71125ec0307/go.mod h1:zkNLv78BsR6wXSpEkID5LnQz9h2dNZEegyklwDU0eQg=
 github.com/solo-io/gloo-gateway v0.0.2-0.20250709201756-e4787361a71b h1:JZ0EgozeOmztipmmBLdnr3E8hROI0JzlEfXg/sTYKz0=
 github.com/solo-io/gloo-gateway v0.0.2-0.20250709201756-e4787361a71b/go.mod h1:ejOaPlT0pWG2jZ9zyeLz715nDDPHLfndso2Y3g10PYw=
+github.com/solo-io/gloo-gateway v0.0.2-0.20250716194708-0385dc334759 h1:LE1ovk3GnHK/fZisWRFW/k/RAPcgiziRl6MpnxWirYE=
+github.com/solo-io/gloo-gateway v0.0.2-0.20250716194708-0385dc334759/go.mod h1:NxpAdRIH6Q1e9yUzZFszo2SP+s/D95vRVsygPg5dH+I=
 github.com/solo-io/go-list-licenses v0.1.4 h1:u4xh1OUORT4iSWuAp3Q4NsfHcDaeUV8QRDH8ACQqbxw=
 github.com/solo-io/go-list-licenses v0.1.4/go.mod h1:x6LSp/NrYgVXwNum7ZOiaAYTpg6B3F6TrWYfcdHVroA=
 github.com/solo-io/go-utils v0.20.2/go.mod h1:6e8K1spnMWwlnJRSNp/J84GEyJbrcK4Gm7i+ehzCi8c=

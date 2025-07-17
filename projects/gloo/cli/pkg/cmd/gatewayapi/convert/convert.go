@@ -1007,6 +1007,8 @@ func (o *GatewayAPIOutput) convertVHOOptionsToTrafficPolicySpec(vho *gloov1.Virt
 			RateLimit:       nil, // existing
 			Cors:            nil, // existing
 			Csrf:            nil, // existing
+			HashPolicies:    nil,
+			AutoHostRewrite: nil, // existing
 			Buffer:          nil, // existing
 		},
 		Waf:                      nil, // existing
@@ -1039,8 +1041,8 @@ func (o *GatewayAPIOutput) convertVHOOptionsToTrafficPolicySpec(vho *gloov1.Virt
 						Name: "ext-authz",
 					},
 					AuthConfigRef: gloogateway.AuthConfigRef{
-						Name:      vho.GetExtauth().GetConfigRef().GetName(),
-						Namespace: ptr.To(vho.GetExtauth().GetConfigRef().GetNamespace()),
+						Name:      gwv1.ObjectName(vho.GetExtauth().GetConfigRef().GetName()),
+						Namespace: ptr.To(gwv1.Namespace(vho.GetExtauth().GetConfigRef().GetNamespace())),
 					},
 				}
 			}
@@ -1100,7 +1102,7 @@ func (o *GatewayAPIOutput) convertVHOOptionsToTrafficPolicySpec(vho *gloov1.Virt
 					RateLimits: []gloogateway.RateLimitActions{},
 					// RateLimitConfig for the policy, not sure how it works for rate limit basic
 					// TODO(nick) grab the global rate limit config ref
-					RateLimitConfigRef: nil,
+					RateLimitConfigRef: gloogateway.RateLimitConfigRef{},
 				},
 			}
 			for _, rl := range vho.GetRatelimitEarly().GetRateLimits() {
@@ -1133,7 +1135,7 @@ func (o *GatewayAPIOutput) convertVHOOptionsToTrafficPolicySpec(vho *gloov1.Virt
 					RateLimits: []gloogateway.RateLimitActions{},
 					// RateLimitConfig for the policy, not sure how it works for rate limit basic
 					// TODO(nick) grab the global rate limit config ref
-					RateLimitConfigRef: nil,
+					RateLimitConfigRef: gloogateway.RateLimitConfigRef{},
 				},
 			}
 			for _, rl := range vho.GetRatelimitRegular().GetRateLimits() {
@@ -1252,7 +1254,7 @@ func (o *GatewayAPIOutput) convertJWTStagedExtAuth(auth *jwt.VhostExtension, wra
 				AttachFailedStatusToMetadata: ptr.To(provider.AttachFailedStatusToMetadata),
 			}
 			if provider.GetClockSkewSeconds() != nil {
-				p.ClockSkewSeconds = ptr.To(provider.ClockSkewSeconds.Value)
+				p.ClockSkewSeconds = ptr.To(int32(provider.ClockSkewSeconds.Value))
 			}
 			if len(provider.GetAudiences()) > 0 {
 				p.Audiences = provider.GetAudiences()
@@ -2335,6 +2337,11 @@ func (o *GatewayAPIOutput) convertRouteOptions(
 			ExtProc:         nil, // existing
 			ExtAuth:         nil, // existing
 			RateLimit:       nil, // existing
+			Cors:            nil, // existing
+			Csrf:            nil, // existing
+			HashPolicies:    nil, // existing
+			AutoHostRewrite: nil, // existing
+			Buffer:          nil, // existing
 		},
 		Waf:                      nil, // existing
 		Retry:                    nil, // existing
@@ -2342,6 +2349,8 @@ func (o *GatewayAPIOutput) convertRouteOptions(
 		RateLimitEnterprise:      nil, // existing
 		ExtAuthEnterprise:        nil, // existing
 		TransformationEnterprise: nil, // existing
+		JWTEnterprise:            nil, // existing
+		RBACEnterprise:           nil, // existing
 	}
 
 	//Features Supported By GatewayAPI
@@ -2391,8 +2400,8 @@ func (o *GatewayAPIOutput) convertRouteOptions(
 					Name: "ext-authz",
 				},
 				AuthConfigRef: gloogateway.AuthConfigRef{
-					Name:      ac.GetName(),
-					Namespace: ptr.To(ac.GetNamespace()),
+					Name:      gwv1.ObjectName(ac.GetName()),
+					Namespace: ptr.To(gwv1.Namespace(ac.GetNamespace())),
 				},
 			}
 		}
@@ -2489,7 +2498,7 @@ func (o *GatewayAPIOutput) convertRouteOptions(
 				RateLimits: []gloogateway.RateLimitActions{},
 				// RateLimitConfig for the policy, not sure how it works for rate limit basic
 				// TODO(nick) grab the global rate limit config ref
-				RateLimitConfigRef: nil,
+				RateLimitConfigRef: gloogateway.RateLimitConfigRef{},
 			},
 		}
 		for _, rl := range options.GetRatelimit().GetRateLimits() {
@@ -2550,13 +2559,18 @@ func (o *GatewayAPIOutput) convertRouteOptions(
 		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "gloo edge extensions is not supported")
 	}
 	if options.GetBufferPerRoute() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "bufferPerRoute is not supported")
+		gtpSpec.Buffer = &kgateway.Buffer{
+			MaxRequestSize: resource.NewQuantity(int64(options.GetBufferPerRoute().GetBuffer().GetMaxRequestBytes().GetValue()), resource.BinarySI),
+		}
+		if options.GetBufferPerRoute().GetDisabled() {
+			o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "bufferPerRoute.disabled is not supported")
+		}
 	}
 	if options.GetAppendXForwardedHost() != nil && options.GetAppendXForwardedHost().GetValue() == true {
 		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "appendXForwardedHost is not supported")
 	}
-	if options.GetAutoHostRewrite() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "autoHostRewrite is not supported")
+	if options.GetAutoHostRewrite() != nil && options.GetAutoHostRewrite().GetValue() == true {
+		gtpSpec.TrafficPolicySpec.AutoHostRewrite = ptr.To(options.GetAutoHostRewrite().GetValue())
 	}
 	if options.GetEnvoyMetadata() != nil {
 		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "envoyMetadata is not supported")
@@ -2597,8 +2611,40 @@ func (o *GatewayAPIOutput) convertRouteOptions(
 			}
 		}
 	}
-	if options.GetLbHash() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "lbHash is not supported")
+	if options.GetLbHash() != nil && len(options.GetLbHash().GetHashPolicies()) > 0 {
+		gtpSpec.TrafficPolicySpec.HashPolicies = []*kgateway.HashPolicy{}
+		for _, policy := range options.GetLbHash().GetHashPolicies() {
+			hashPolicy := &kgateway.HashPolicy{
+				Header:   nil, // existing
+				Cookie:   nil, // existing
+				SourceIP: nil, // existing
+				Terminal: nil, // existing
+			}
+			if policy.GetHeader() != "" {
+				hashPolicy.Header = &kgateway.Header{Name: policy.GetHeader()}
+			}
+			if policy.GetCookie() != nil {
+				hashPolicy.Cookie = &kgateway.Cookie{
+					Name:       policy.GetCookie().Name,
+					Path:       nil, // existing
+					TTL:        nil, // existing
+					Attributes: nil, // existing
+				}
+				if policy.GetCookie().GetPath() != "" {
+					hashPolicy.Cookie.Path = ptr.To(policy.GetCookie().GetPath())
+				}
+				if policy.GetCookie().GetTtl() != nil {
+					hashPolicy.Cookie.TTL = ptr.To(metav1.Duration{Duration: policy.GetCookie().GetTtl().AsDuration()})
+				}
+			}
+			if policy.GetSourceIp() {
+				hashPolicy.SourceIP = &kgateway.SourceIP{}
+			}
+			if policy.GetTerminal() {
+				hashPolicy.Terminal = ptr.To(true)
+			}
+			gtpSpec.TrafficPolicySpec.HashPolicies = append(gtpSpec.TrafficPolicySpec.HashPolicies, hashPolicy)
+		}
 	}
 	if options.GetMaxStreamDuration() != nil {
 		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "maxStreamDuration is not supported")
@@ -2675,13 +2721,13 @@ func (o *GatewayAPIOutput) convertRBAC(extension *rbac.ExtensionSettings) *gloog
 func (o *GatewayAPIOutput) convertRateLimitAction(action *v1alpha2.Action) gloogateway.Action {
 
 	ggAction := gloogateway.Action{
-		SourceCluster:      nil,
-		DestinationCluster: nil,
-		RequestHeaders:     nil,
-		RemoteAddress:      nil,
-		GenericKey:         nil,
-		HeaderValueMatch:   nil,
-		Metadata:           nil,
+		SourceCluster:      nil, // existing
+		DestinationCluster: nil, // existing
+		RequestHeaders:     nil, // existing
+		RemoteAddress:      nil, // existing
+		GenericKey:         nil, // existing
+		HeaderValueMatch:   nil, // existing
+		Metadata:           nil, // existing
 	}
 	if action.GetSourceCluster() != nil {
 		ggAction.SourceCluster = &gloogateway.SourceClusterAction{}
@@ -2822,17 +2868,17 @@ func (o *GatewayAPIOutput) convertTransformationMatch(rule *transformation2.Tran
 	if rule.GetTransformationTemplate() != nil {
 		tt := rule.GetTransformationTemplate()
 		template := &gloogateway.TransformationTemplate{
-			AdvancedTemplates:     ptr.To(rule.GetTransformationTemplate().AdvancedTemplates),
-			Extractors:            nil,
-			Headers:               nil,
-			HeadersToAppend:       []gloogateway.HeaderToAppend{},
-			HeadersToRemove:       []string{},
-			BodyTransformation:    nil,
-			ParseBodyBehavior:     nil,
-			IgnoreErrorOnParse:    ptr.To(tt.GetIgnoreErrorOnParse()),
-			DynamicMetadataValues: []gloogateway.DynamicMetadataValue{},
-			EscapeCharacters:      nil,
-			SpanTransformer:       nil,
+			AdvancedTemplates:     ptr.To(rule.GetTransformationTemplate().AdvancedTemplates), // existing
+			Extractors:            nil,                                                        // existing
+			Headers:               nil,                                                        // existing
+			HeadersToAppend:       []gloogateway.HeaderToAppend{},                             // existing
+			HeadersToRemove:       []string{},                                                 // existing
+			BodyTransformation:    nil,                                                        // existing
+			ParseBodyBehavior:     nil,                                                        // existing
+			IgnoreErrorOnParse:    ptr.To(tt.GetIgnoreErrorOnParse()),                         // existing
+			DynamicMetadataValues: []gloogateway.DynamicMetadataValue{},                       // existing
+			EscapeCharacters:      nil,                                                        // existing
+			SpanTransformer:       nil,                                                        // existing
 		}
 		for name, ext := range tt.GetExtractors() {
 			if template.Extractors == nil {
@@ -2841,7 +2887,7 @@ func (o *GatewayAPIOutput) convertTransformationMatch(rule *transformation2.Tran
 			extraction := &gloogateway.Extraction{
 				ExtractionHeader: ptr.To(ext.GetHeader()),
 				Regex:            ext.GetRegex(),
-				Subgroup:         ptr.To(ext.GetSubgroup()),
+				Subgroup:         ptr.To(int32(ext.GetSubgroup())),
 			}
 			if ext.GetBody() != nil {
 				extraction.ExtractionBody = ptr.To(true)
