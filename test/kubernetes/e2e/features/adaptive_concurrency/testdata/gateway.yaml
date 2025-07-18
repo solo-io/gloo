@@ -1,0 +1,17 @@
+apiVersion: gateway.solo.io/v1
+kind: Gateway
+metadata:
+  name: gateway-proxy
+  namespace: gloo-gateway-edge-test
+spec:
+  bindAddress: '::'
+  bindPort: 8080
+  httpGateway:
+    options:
+      adaptiveConcurrency:
+        concurrencyUpdateIntervalMillis: 1000
+        maxConcurrencyLimit: 10
+        minRttCalcParams:
+          bufferPercentile: 5
+          intervalMillis: 1000
+          requestCount: 10

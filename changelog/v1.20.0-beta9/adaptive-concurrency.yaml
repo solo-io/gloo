@@ -1,0 +1,6 @@
+changelog:
+  - type: NEW_FEATURE
+    issueLink: https://github.com/solo-io/solo-projects/issues/8181
+    resolvesIssue: false
+    description: >-
+      TODO: description

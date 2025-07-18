@@ -54,6 +54,7 @@ message ListenerOptions {
   // passthrough listener that can report low-level Linux TCP stats, useful for diagnosis
   // and triage.
   google.protobuf.BoolValue tcp_stats = 8;
+
 }
 
 // Configuration for listener connection balancing.

@@ -205,6 +205,7 @@ func (i *TestInstallation) CreateIstioBugReport(ctx context.Context) {
 // InstallGlooGatewayWithTestHelper is the common way to install Gloo Gateway.
 // However, it relies on a SoloTestHelper which is an artifact of the legacy e2e tests that we hope to deprecate
 func (i *TestInstallation) InstallGlooGatewayWithTestHelper(ctx context.Context, testHelper *helper.SoloTestHelper, timeout time.Duration) {
+	fmt.Printf("Installing Gloo Gateway with TestHelper profilesValues: %s, values: %s\n", i.Metadata.ProfileValuesManifestFile, i.Metadata.ValuesManifestFile)
 	installFn := func(ctx context.Context) error {
 		return testHelper.InstallGloo(
 			ctx,

@@ -3,6 +3,7 @@ package tests
 import (
 	"github.com/solo-io/gloo/test/kubernetes/e2e"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/access_log"
+	adaptiveconcurrency "github.com/solo-io/gloo/test/kubernetes/e2e/features/adaptive_concurrency"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/admin_server"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/basicrouting"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/client_tls"
@@ -29,6 +30,7 @@ func EdgeGwSuiteRunner() e2e.SuiteRunner {
 	edgeGwSuiteRunner.Register("PrometheusMetrics", metrics.NewPrometheusMetricsTestingSuite)
 	edgeGwSuiteRunner.Register("HTTPTunnel", http_tunnel.NewTestingSuite)
 	edgeGwSuiteRunner.Register("AccessLog", access_log.NewAccessLogSuite)
+	edgeGwSuiteRunner.Register("AdaptiveConcurrency", adaptiveconcurrency.NewTestingSuite)
 
 	return edgeGwSuiteRunner
 }
