@@ -39,23 +39,24 @@ type Options struct {
 	CreateNamespaces        bool
 	ControlPlaneName        string
 	ControlPlaneNamespace   string
+	DisableListenerSets     bool
 }
 
-func (opts *Options) validate() error {
+func (o *Options) Validate() error {
 
 	count := 0
-	if opts.InputDir != "" {
+	if o.InputDir != "" {
 		count++
 	}
-	if opts.InputFile != "" {
+	if o.InputFile != "" {
 		count++
 	}
-	if opts.GlooSnapshotFile != "" {
+	if o.GlooSnapshotFile != "" {
 		count++
 	}
-	if opts.ControlPlaneName != "" {
+	if o.ControlPlaneName != "" {
 		count++
-		if opts.ControlPlaneNamespace == "" {
+		if o.ControlPlaneNamespace == "" {
 			return fmt.Errorf("pod namespace must be specified")
 		}
 	}
@@ -63,19 +64,20 @@ func (opts *Options) validate() error {
 	if count > 1 {
 		return fmt.Errorf("only one of 'input-file' or 'directory' or 'input-snapshot' or `gloo-pod-name` can be specified")
 	}
-	if !opts.DeleteOutputDir && folderExists(opts.OutputDir) {
-		return fmt.Errorf("output-dir already %s exists. It can be deleted with --delete-output-dir", opts.OutputDir)
+	if !o.DeleteOutputDir && FolderExists(o.OutputDir) {
+		return fmt.Errorf("output-dir already %s exists. It can be deleted with --delete-output-dir", o.OutputDir)
 	}
 	return nil
 }
-func folderExists(path string) bool {
+func FolderExists(path string) bool {
 	info, err := os.Stat(path)
 	if os.IsNotExist(err) {
 		return false
 	}
 	return info.IsDir()
 }
-func (o *Options) addToFlags(flags *pflag.FlagSet) {
+
+func (o *Options) AddToFlags(flags *pflag.FlagSet) {
 	flags.StringVar(&o.ControlPlaneName, "gloo-control-plane", "", "Name of the Gloo control plane pod")
 	flags.StringVarP(&o.ControlPlaneNamespace, "gloo-control-plane-namespace", "n", "gloo-system", "Namespace of the Gloo control plane pod")
 	flags.StringVar(&o.InputFile, "input-file", "", "Convert a single YAML file to the Gateway API")
@@ -88,6 +90,8 @@ func (o *Options) addToFlags(flags *pflag.FlagSet) {
 	flags.BoolVar(&o.IncludeUnknownResources, "include-unknown", false, "Copy non-Gloo Gateway resources to the output directory without changing them. ")
 	flags.BoolVar(&o.DeleteOutputDir, "delete-output-dir", false, "Delete the output directory if it already exists.")
 	flags.BoolVar(&o.CreateNamespaces, "create-namespaces", false, "Create namespaces for the objects in a file.")
+	flags.BoolVar(&o.DisableListenerSets, "disable-listenersets", false, "Do not create listenersets and bind hosts and ports directly to Gateway.")
+
 }
 
 type GatewayAPIOutput struct {
@@ -96,21 +100,29 @@ type GatewayAPIOutput struct {
 	errors          map[ErrorType][]GlooError
 }
 
-func (o *GatewayAPIOutput) GetGatewayAPICache() *GatewayAPICache {
-	if o.gatewayAPICache == nil {
-		o.gatewayAPICache = &GatewayAPICache{}
-	}
-	return o.gatewayAPICache
+func (g *GatewayAPIOutput) SetGatewayAPICache(cache *GatewayAPICache) {
+	g.gatewayAPICache = cache
 }
 
-func (o *GatewayAPIOutput) GetEdgeCache() *snapshot.Instance {
-	if o.edgeCache == nil {
-		o.edgeCache = &snapshot.Instance{}
-	}
-	return o.edgeCache
+func (g *GatewayAPIOutput) SetEdgeCache(cache *snapshot.Instance) {
+	g.edgeCache = cache
 }
-func (o *GatewayAPIOutput) EdgeCache(instance *snapshot.Instance) {
-	o.edgeCache = instance
+
+func (g *GatewayAPIOutput) GetGatewayAPICache() *GatewayAPICache {
+	if g.gatewayAPICache == nil {
+		g.gatewayAPICache = &GatewayAPICache{}
+	}
+	return g.gatewayAPICache
+}
+
+func (g *GatewayAPIOutput) GetEdgeCache() *snapshot.Instance {
+	if g.edgeCache == nil {
+		g.edgeCache = &snapshot.Instance{}
+	}
+	return g.edgeCache
+}
+func (g *GatewayAPIOutput) EdgeCache(instance *snapshot.Instance) {
+	g.edgeCache = instance
 }
 
 type GlooError struct {
@@ -121,15 +133,15 @@ type GlooError struct {
 	crdType   string
 }
 
-func (o *GatewayAPIOutput) AddError(errType ErrorType, msg string, args ...interface{}) {
-	if o.errors == nil {
-		o.errors = make(map[ErrorType][]GlooError)
+func (g *GatewayAPIOutput) AddError(errType ErrorType, msg string, args ...interface{}) {
+	if g.errors == nil {
+		g.errors = make(map[ErrorType][]GlooError)
 	}
-	if o.errors[errType] == nil {
-		o.errors[errType] = make([]GlooError, 0)
+	if g.errors[errType] == nil {
+		g.errors[errType] = make([]GlooError, 0)
 	}
 
-	o.errors[errType] = append(o.errors[errType], GlooError{
+	g.errors[errType] = append(g.errors[errType], GlooError{
 		err:       fmt.Errorf(msg, args...),
 		errorType: errType,
 		name:      "none",
@@ -137,14 +149,14 @@ func (o *GatewayAPIOutput) AddError(errType ErrorType, msg string, args ...inter
 		crdType:   "none",
 	})
 }
-func (o *GatewayAPIOutput) AddErrorFromWrapper(errType ErrorType, wrapper snapshot.Wrapper, msg string, args ...interface{}) {
-	if o.errors == nil {
-		o.errors = make(map[ErrorType][]GlooError)
+func (g *GatewayAPIOutput) AddErrorFromWrapper(errType ErrorType, wrapper snapshot.Wrapper, msg string, args ...interface{}) {
+	if g.errors == nil {
+		g.errors = make(map[ErrorType][]GlooError)
 	}
-	if o.errors[errType] == nil {
-		o.errors[errType] = make([]GlooError, 0)
+	if g.errors[errType] == nil {
+		g.errors[errType] = make([]GlooError, 0)
 	}
-	o.errors[errType] = append(o.errors[errType], GlooError{
+	g.errors[errType] = append(g.errors[errType], GlooError{
 		err:       fmt.Errorf(msg, args...),
 		errorType: errType,
 		name:      wrapper.GetName(),
@@ -259,10 +271,10 @@ func (g *GatewayAPICache) AddGlooTrafficPolicy(gtp *snapshot.GlooTrafficPolicyWr
 	g.GlooTrafficPolicies[gtp.Index()] = gtp
 }
 
-func (o *GatewayAPIOutput) PreProcess(splitMatchers bool) error {
+func (g *GatewayAPIOutput) PreProcess(splitMatchers bool) error {
 
 	if splitMatchers {
-		if err := o.splitRouteMatchers(); err != nil {
+		if err := g.splitRouteMatchers(); err != nil {
 			return err
 		}
 	}
@@ -270,8 +282,8 @@ func (o *GatewayAPIOutput) PreProcess(splitMatchers bool) error {
 }
 
 // we need to split the route matchers because prefix and exact matchers cause problems with rewrites
-func (o *GatewayAPIOutput) splitRouteMatchers() error {
-	for _, rt := range o.edgeCache.RouteTables() {
+func (g *GatewayAPIOutput) splitRouteMatchers() error {
+	for _, rt := range g.edgeCache.RouteTables() {
 		var newRoutes []*gatewayv1.Route
 		for _, route := range rt.Spec.GetRoutes() {
 			editedRoute := generateRoutesForMethodMatchers(route)
@@ -279,7 +291,7 @@ func (o *GatewayAPIOutput) splitRouteMatchers() error {
 		}
 		rt.Spec.Routes = newRoutes
 
-		o.edgeCache.AddRouteTable(rt)
+		g.edgeCache.AddRouteTable(rt)
 	}
 	return nil
 }
