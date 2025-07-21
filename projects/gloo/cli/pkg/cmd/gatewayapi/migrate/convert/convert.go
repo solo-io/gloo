@@ -35,7 +35,7 @@ func (g *GatewayAPIOutput) Convert(opts *Options) error {
 
 		// We only translate virtual services for ones that match a gateway selector
 		// TODO(nick) - in the future we could blindly convert VS and not attach it to anything
-		err := g.convertVirtualServices(gateway, opts.DisableListenerSets)
+		err := g.convertVirtualServices(gateway, opts.UseListenerSets)
 		if err != nil {
 			return err
 		}

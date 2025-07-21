@@ -31,7 +31,7 @@ import (
 	"strings"
 )
 
-func (g *GatewayAPIOutput) convertVirtualServices(glooGateway *snapshot.GlooGatewayWrapper, disableListenersets bool) error {
+func (g *GatewayAPIOutput) convertVirtualServices(glooGateway *snapshot.GlooGatewayWrapper, useListenersets bool) error {
 
 	gatewayVs, err := g.edgeCache.GlooGatewayVirtualServices(glooGateway)
 	if err != nil {
@@ -50,7 +50,7 @@ func (g *GatewayAPIOutput) convertVirtualServices(glooGateway *snapshot.GlooGate
 
 			var policyRef kgateway.LocalPolicyTargetReference
 			var parentRef gwv1.ParentReference
-			if !disableListenersets {
+			if useListenersets {
 				policyRef, err = g.addListenerSetToCache(glooGateway, listenerName, vs, proxyName)
 				if err != nil {
 					return err
@@ -67,21 +67,23 @@ func (g *GatewayAPIOutput) convertVirtualServices(glooGateway *snapshot.GlooGate
 					Name:      proxyName,
 				})
 				// this is to get around a bug in the spec that requires 1 listener
-				gateway.Spec.Listeners = append(gateway.Spec.Listeners, gwv1.Listener{
-					Name:     "dummy",
-					Port:     8123,
-					Protocol: "HTTP",
-					AllowedRoutes: &gwv1.AllowedRoutes{
-						Namespaces: &gwv1.RouteNamespaces{
-							From: ptr.To(gwv1.NamespacesFromSelector),
-							Selector: &metav1.LabelSelector{
-								MatchLabels: map[string]string{
-									"dummy": "dummy",
+				gateway.Spec.Listeners = []gwv1.Listener{
+					{
+						Name:     "dummy",
+						Port:     8123,
+						Protocol: "HTTP",
+						AllowedRoutes: &gwv1.AllowedRoutes{
+							Namespaces: &gwv1.RouteNamespaces{
+								From: ptr.To(gwv1.NamespacesFromSelector),
+								Selector: &metav1.LabelSelector{
+									MatchLabels: map[string]string{
+										"dummy": "dummy",
+									},
 								},
 							},
 						},
 					},
-				})
+				}
 				g.GetGatewayAPICache().AddGateway(gateway)
 
 			} else {
@@ -96,7 +98,7 @@ func (g *GatewayAPIOutput) convertVirtualServices(glooGateway *snapshot.GlooGate
 				if err != nil {
 					return err
 				}
-				gateway.Spec.Listeners = listeners
+				gateway.Spec.Listeners = append(gateway.Spec.Listeners, listeners...)
 
 				g.GetGatewayAPICache().AddGateway(gateway)
 				// we need the policy ref to be the gateway
@@ -556,7 +558,7 @@ func (g *GatewayAPIOutput) generateTLSConfiguration(vs *snapshot.VirtualServiceW
 	if vs.Spec.GetSslConfig().GetSecretRef() != nil {
 		tlsConfig.CertificateRefs = []gwv1.SecretObjectReference{
 			{
-				//Group:     ptr.To(gwv1.Group("")),
+				Group:     ptr.To(gwv1.Group("")),
 				Kind:      ptr.To(gwv1.Kind("Secret")),
 				Name:      gwv1.ObjectName(vs.Spec.GetSslConfig().GetSecretRef().GetName()),
 				Namespace: ptr.To(gwv1.Namespace(vs.Spec.GetSslConfig().GetSecretRef().GetNamespace())),
