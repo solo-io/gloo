@@ -254,7 +254,7 @@ func (g *GatewayAPIOutput) convertUpstreamPolicy(upstream *snapshot.UpstreamWrap
 	}
 	if upstream.Spec.GetConnectionConfig() != nil {
 		if upstream.Spec.GetConnectionConfig().GetPerConnectionBufferLimitBytes() != nil {
-			backendConfig.Spec.PerConnectionBufferLimitBytes = ptr.To(int(upstream.Spec.GetConnectionConfig().GetPerConnectionBufferLimitBytes().Value))
+			backendConfig.Spec.PerConnectionBufferLimitBytes = ptr.To(int(upstream.Spec.GetConnectionConfig().GetPerConnectionBufferLimitBytes().GetValue()))
 		}
 		if upstream.Spec.GetConnectionConfig().GetConnectTimeout() != nil {
 			backendConfig.Spec.ConnectTimeout = ptr.To(metav1.Duration{Duration: upstream.Spec.GetConnectionConfig().GetConnectTimeout().AsDuration()})
