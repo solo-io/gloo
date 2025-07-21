@@ -2,6 +2,10 @@ package convert
 
 import (
 	"fmt"
+	"strconv"
+	"strings"
+	"time"
+
 	kgateway "github.com/kgateway-dev/kgateway/v2/api/v1alpha1"
 	gloogateway "github.com/solo-io/gloo-gateway/api/v1alpha1"
 	gloogwv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
@@ -22,9 +26,6 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/utils/ptr"
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
-	"strconv"
-	"strings"
-	"time"
 )
 
 func (g *GatewayAPIOutput) convertJWTStagedExtAuth(auth *jwt.VhostExtension, wrapper snapshot.Wrapper) *gloogateway.JWTEnterprise {

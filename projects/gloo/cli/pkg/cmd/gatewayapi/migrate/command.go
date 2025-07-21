@@ -3,11 +3,12 @@ package migrate
 import (
 	"context"
 	"fmt"
-	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/gatewayapi/migrate/convert"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
+
+	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/gatewayapi/migrate/convert"
 
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/snapshot"
 

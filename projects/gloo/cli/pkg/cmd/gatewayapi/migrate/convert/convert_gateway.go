@@ -3,6 +3,8 @@ package convert
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
+
 	kgateway "github.com/kgateway-dev/kgateway/v2/api/v1alpha1"
 	gloogateway "github.com/solo-io/gloo-gateway/api/v1alpha1"
 	"github.com/solo-io/gloo/projects/gateway2/wellknown"
@@ -28,7 +30,6 @@ import (
 	"k8s.io/utils/ptr"
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
 	apixv1a1 "sigs.k8s.io/gateway-api/apisx/v1alpha1"
-	"strings"
 )
 
 func (g *GatewayAPIOutput) convertVirtualServices(glooGateway *snapshot.GlooGatewayWrapper, useListenersets bool) error {

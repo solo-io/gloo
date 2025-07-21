@@ -2,11 +2,12 @@ package convert
 
 import (
 	"fmt"
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
+
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/snapshot"
 
