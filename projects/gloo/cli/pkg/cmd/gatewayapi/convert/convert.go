@@ -10,7 +10,9 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/jwt"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/rbac"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/cors"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/hcm"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/protocol"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/protocol_upgrade"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/tracing"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/ssl"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -2006,6 +2008,15 @@ func (o *GatewayAPIOutput) convertHTTPListenerOptions(options *gloov1.HttpListen
 					Name:  gwv1.ObjectName(proxyName),
 				},
 			},
+			TargetSelectors:            nil, // existing
+			AccessLog:                  nil, // existing
+			Tracing:                    nil, // existing
+			UpgradeConfig:              nil, // existing
+			UseRemoteAddress:           nil, // existing
+			XffNumTrustedHops:          nil, // existing
+			ServerHeaderTransformation: nil, // existing
+			StreamIdleTimeout:          nil, // existing
+			HealthCheck:                nil, // existing
 		}
 		// now in httplistenersettings
 		if options.GetHealthCheck() != nil {
@@ -2022,11 +2033,143 @@ func (o *GatewayAPIOutput) convertHTTPListenerOptions(options *gloov1.HttpListen
 					hlp.Tracing = t
 				}
 			}
+			if options.GetHttpConnectionManagerSettings().GetSkipXffAppend() != nil {
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "httpConnectionManager.skipXffAppend is not supported")
+			}
+			if options.GetHttpConnectionManagerSettings().GetVia() != nil {
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "httpConnectionManager.via is not supported")
+			}
+			if options.GetHttpConnectionManagerSettings().GetXffNumTrustedHops() != nil {
+				hlp.XffNumTrustedHops = ptr.To(options.GetHttpConnectionManagerSettings().GetXffNumTrustedHops().GetValue())
+			}
+			if options.GetHttpConnectionManagerSettings().GetUseRemoteAddress() != nil && options.GetHttpConnectionManagerSettings().GetUseRemoteAddress().GetValue() {
+				hlp.UseRemoteAddress = ptr.To(options.GetHttpConnectionManagerSettings().GetUseRemoteAddress().GetValue())
+			}
+			if options.GetHttpConnectionManagerSettings().GetGenerateRequestId() != nil {
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "httpConnectionManager.generateRequestId is not supported")
+			}
+			if options.GetHttpConnectionManagerSettings().GetProxy_100Continue() != nil {
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "httpConnectionManager.proxy_100Continue is not supported")
+			}
+			if options.GetHttpConnectionManagerSettings().GetStreamIdleTimeout() != nil {
+				hlp.StreamIdleTimeout = ptr.To(metav1.Duration{Duration: options.GetHttpConnectionManagerSettings().GetStreamIdleTimeout().AsDuration()})
+			}
+			if options.GetHttpConnectionManagerSettings().GetIdleTimeout() != nil {
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "httpConnectionManager.idleTimeout is not supported")
+			}
+			if options.GetHttpConnectionManagerSettings().GetMaxRequestHeadersKb() != nil {
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "httpConnectionManager.maxRequestHeadersKb is not supported")
+			}
+			if options.GetHttpConnectionManagerSettings().GetRequestTimeout() != nil {
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "httpConnectionManager.requestTimeout is not supported")
+			}
+			if options.GetHttpConnectionManagerSettings().GetRequestHeadersTimeout() != nil {
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "httpConnectionManager.requestHeadersTimeout is not supported")
+			}
+			if options.GetHttpConnectionManagerSettings().GetDrainTimeout() != nil {
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "httpConnectionManager.drainTimeout is not supported")
+			}
+			if options.GetHttpConnectionManagerSettings().GetDelayedCloseTimeout() != nil {
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "httpConnectionManager.delayCloseTimeout is not supported")
+			}
+			if options.GetHttpConnectionManagerSettings().GetServerName() != nil {
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "httpConnectionManager.serverName is not supported")
+			}
+			if options.GetHttpConnectionManagerSettings().GetStripAnyHostPort() != nil {
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "httpConnectionManager.stripAnyHostPort is not supported")
+			}
+			if options.GetHttpConnectionManagerSettings().GetAcceptHttp_10() != nil {
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "httpConnectionManager.acceptHttp_10 is not supported")
+			}
+			if options.GetHttpConnectionManagerSettings().GetDefaultHostForHttp_10() != nil {
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "httpConnectionManager.defaultHostForHttp_10 is not supported")
+			}
+			if options.GetHttpConnectionManagerSettings().GetAllowChunkedLength() != nil {
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "httpConnectionManager.allowChunkedLength is not supported")
+			}
+			if options.GetHttpConnectionManagerSettings().GetEnableTrailers() != nil {
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "httpConnectionManager.enableTrailers is not supported")
+			}
+			if options.GetHttpConnectionManagerSettings().GetProperCaseHeaderKeyFormat() != nil {
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "httpConnectionManager.properCaseHeaderKeyFormat is not supported")
+			}
+			if options.GetHttpConnectionManagerSettings().GetPreserveCaseHeaderKeyFormat() != nil {
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "httpConnectionManager.preserveCaseHeaderKeyFormat is not supported")
+			}
+			if options.GetHttpConnectionManagerSettings().GetSetCurrentClientCertDetails() != nil {
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "httpConnectionManager.setCurrentClientCertDetails is not supported")
+			}
+			if options.GetHttpConnectionManagerSettings().GetPreserveExternalRequestId() != nil {
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "httpConnectionManager.preserveExternalRequestId is not supported")
+			}
+			if options.GetHttpConnectionManagerSettings().GetUpgrades() != nil {
+				var upgrades []string
+				for _, upgrade := range options.GetHttpConnectionManagerSettings().GetUpgrades() {
+					switch upgrade.UpgradeType.(type) {
+					case *protocol_upgrade.ProtocolUpgradeConfig_Websocket:
+						upgrades = append(upgrades, "websocket")
+					case *protocol_upgrade.ProtocolUpgradeConfig_Connect:
+						upgrades = append(upgrades, "CONNECT")
+					}
+				}
+				hlp.UpgradeConfig = &kgateway.UpgradeConfig{EnabledUpgrades: upgrades}
+			}
+			if options.GetHttpConnectionManagerSettings().GetMaxConnectionDuration() != nil {
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "httpConnectionManager.maxConnectionDuration is not supported")
+			}
+			if options.GetHttpConnectionManagerSettings().GetMaxStreamDuration() != nil {
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "httpConnectionManager.maxStreamDuration is not supported")
+			}
+			if options.GetHttpConnectionManagerSettings().GetMaxHeadersCount() != nil {
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "httpConnectionManager.maxHeadersCount is not supported")
+			}
+			if options.GetHttpConnectionManagerSettings().GetHeadersWithUnderscoresAction() > 0 {
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "httpConnectionManager.headersWithUnderscoresAction is not supported")
+			}
+			if options.GetHttpConnectionManagerSettings().GetMaxRequestsPerConnection() != nil {
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "httpConnectionManager.maxRequestsPerConnection is not supported")
+			}
+
+			switch options.GetHttpConnectionManagerSettings().GetServerHeaderTransformation() {
+			case hcm.HttpConnectionManagerSettings_OVERWRITE:
+				hlp.ServerHeaderTransformation = ptr.To(kgateway.OverwriteServerHeaderTransformation)
+			case hcm.HttpConnectionManagerSettings_APPEND_IF_ABSENT:
+				hlp.ServerHeaderTransformation = ptr.To(kgateway.AppendIfAbsentServerHeaderTransformation)
+			case hcm.HttpConnectionManagerSettings_PASS_THROUGH:
+				hlp.ServerHeaderTransformation = ptr.To(kgateway.PassThroughServerHeaderTransformation)
+			}
+
+			if options.GetHttpConnectionManagerSettings().GetPathWithEscapedSlashesAction() != nil {
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "httpConnectionManager.pathWithEscapedSlashesAction is not supported")
+			}
+			if options.GetHttpConnectionManagerSettings().GetCodecType() > 0 {
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "httpConnectionManager.codecType is not supported")
+			}
+			if options.GetHttpConnectionManagerSettings().GetMergeSlashes() != nil && options.GetHttpConnectionManagerSettings().GetMergeSlashes().GetValue() {
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "httpConnectionManager.mergeSlashes is not supported")
+			}
+			if options.GetHttpConnectionManagerSettings().GetNormalizePath() != nil && options.GetHttpConnectionManagerSettings().GetNormalizePath().GetValue() {
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "httpConnectionManager.normalizePath is not supported")
+			}
+			if options.GetHttpConnectionManagerSettings().GetUuidRequestIdConfig() != nil {
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "httpConnectionManager.uuidRequestIdConfig is not supported")
+			}
+			if options.GetHttpConnectionManagerSettings().GetHttp2ProtocolOptions() != nil {
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "httpConnectionManager.http2ProtocolOptions is not supported")
+			}
+			if options.GetHttpConnectionManagerSettings().GetInternalAddressConfig() != nil {
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "httpConnectionManager.internalAddressConfig is not supported")
+			}
+			if options.GetHttpConnectionManagerSettings().GetAppendXForwardedPort() != nil {
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "httpConnectionManager.appendXForwardedPort is not supported")
+			}
+			if options.GetHttpConnectionManagerSettings().GetEarlyHeaderManipulation() != nil {
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "httpConnectionManager.earlyHeaderManipulation is not supported")
+			}
 		}
 		httpListenerPolicy.Spec = hlp
 		o.gatewayAPICache.AddHTTPListenerPolicy(snapshot.NewHTTPListenerPolicyWrapper(httpListenerPolicy, wrapper.FileOrigin()))
 	}
-
 }
 
 func (o *GatewayAPIOutput) convertHTTPListenerOptionsTracing(tracing *tracing.ListenerTracingSettings, wrapper snapshot.Wrapper) *kgateway.Tracing {
