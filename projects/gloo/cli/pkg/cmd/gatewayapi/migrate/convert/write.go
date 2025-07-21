@@ -16,9 +16,9 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
-func (o *GatewayAPIOutput) Write(opts *Options) error {
+func (g *GatewayAPIOutput) Write(opts *Options) error {
 
-	if folderExists(opts.OutputDir) {
+	if FolderExists(opts.OutputDir) {
 		if !opts.DeleteOutputDir {
 			return fmt.Errorf("output-dir %s already exists, not writing files", opts.OutputDir)
 		}
@@ -35,7 +35,7 @@ func (o *GatewayAPIOutput) Write(opts *Options) error {
 	// TODO we need to know all the files we are going to write a head of time because we want to wipe
 
 	var err error
-	for _, r := range o.gatewayAPICache.Gateways {
+	for _, r := range g.gatewayAPICache.Gateways {
 		r.ObjectMeta.SetResourceVersion("")
 		yml, err := yaml.Marshal(r.Gateway)
 		if err != nil {
@@ -46,7 +46,7 @@ func (o *GatewayAPIOutput) Write(opts *Options) error {
 		}
 	}
 	// Write Routes
-	for _, r := range o.gatewayAPICache.HTTPRoutes {
+	for _, r := range g.gatewayAPICache.HTTPRoutes {
 		yml, err := yaml.Marshal(r.HTTPRoute)
 		if err != nil {
 			return err
@@ -55,7 +55,7 @@ func (o *GatewayAPIOutput) Write(opts *Options) error {
 			return err
 		}
 	}
-	for _, r := range o.gatewayAPICache.GlooTrafficPolicies {
+	for _, r := range g.gatewayAPICache.GlooTrafficPolicies {
 		yml, err := yaml.Marshal(r.GlooTrafficPolicy)
 		if err != nil {
 			return err
@@ -64,7 +64,7 @@ func (o *GatewayAPIOutput) Write(opts *Options) error {
 			return err
 		}
 	}
-	for _, r := range o.gatewayAPICache.HTTPListenerPolicies {
+	for _, r := range g.gatewayAPICache.HTTPListenerPolicies {
 		yml, err := yaml.Marshal(r.HTTPListenerPolicy)
 		if err != nil {
 			return err
@@ -73,7 +73,7 @@ func (o *GatewayAPIOutput) Write(opts *Options) error {
 			return err
 		}
 	}
-	for _, r := range o.gatewayAPICache.Backends {
+	for _, r := range g.gatewayAPICache.Backends {
 		yml, err := yaml.Marshal(r.Backend)
 		if err != nil {
 			return err
@@ -82,7 +82,7 @@ func (o *GatewayAPIOutput) Write(opts *Options) error {
 			return err
 		}
 	}
-	for _, r := range o.gatewayAPICache.AuthConfigs {
+	for _, r := range g.gatewayAPICache.AuthConfigs {
 		r.Status = core.NamespacedStatuses{}
 		yml, err := yaml.Marshal(r.AuthConfig)
 		if err != nil {
@@ -92,7 +92,7 @@ func (o *GatewayAPIOutput) Write(opts *Options) error {
 			return err
 		}
 	}
-	for _, r := range o.gatewayAPICache.ListenerSets {
+	for _, r := range g.gatewayAPICache.ListenerSets {
 		yml, err := yaml.Marshal(r.XListenerSet)
 		if err != nil {
 			return err
@@ -101,7 +101,7 @@ func (o *GatewayAPIOutput) Write(opts *Options) error {
 			return err
 		}
 	}
-	for _, r := range o.gatewayAPICache.YamlObjects {
+	for _, r := range g.gatewayAPICache.YamlObjects {
 		yml, err := yaml.Marshal(r.Object)
 		if err != nil {
 			return err
@@ -110,7 +110,7 @@ func (o *GatewayAPIOutput) Write(opts *Options) error {
 			return err
 		}
 	}
-	for _, r := range o.gatewayAPICache.DirectResponses {
+	for _, r := range g.gatewayAPICache.DirectResponses {
 		yml, err := yaml.Marshal(r.DirectResponse)
 		if err != nil {
 			return err
@@ -119,7 +119,7 @@ func (o *GatewayAPIOutput) Write(opts *Options) error {
 			return err
 		}
 	}
-	for _, r := range o.gatewayAPICache.GatewayExtensions {
+	for _, r := range g.gatewayAPICache.GatewayExtensions {
 		yml, err := yaml.Marshal(r.GatewayExtension)
 		if err != nil {
 			return err
@@ -128,7 +128,7 @@ func (o *GatewayAPIOutput) Write(opts *Options) error {
 			return err
 		}
 	}
-	for _, r := range o.gatewayAPICache.BackendConfigPolicy {
+	for _, r := range g.gatewayAPICache.BackendConfigPolicy {
 		yml, err := yaml.Marshal(r.BackendConfigPolicy)
 		if err != nil {
 			return err
@@ -137,7 +137,7 @@ func (o *GatewayAPIOutput) Write(opts *Options) error {
 			return err
 		}
 	}
-	for _, r := range o.gatewayAPICache.KGatewayParameters {
+	for _, r := range g.gatewayAPICache.KGatewayParameters {
 		yml, err := yaml.Marshal(r.GatewayParameters)
 		if err != nil {
 			return err
@@ -154,7 +154,7 @@ func (o *GatewayAPIOutput) Write(opts *Options) error {
 	}
 	//organize all errors into a map
 
-	for t, errors := range o.errors {
+	for t, errors := range g.errors {
 		f, err := os.Create(fmt.Sprintf("%s/%s.txt", folder, t))
 		if err != nil {
 			return err
@@ -188,7 +188,7 @@ func (o *GatewayAPIOutput) Write(opts *Options) error {
 		}
 	}
 	// Print a list of unique features not currently supported
-	nses := o.errors[ERROR_TYPE_NOT_SUPPORTED]
+	nses := g.errors[ERROR_TYPE_NOT_SUPPORTED]
 	if len(nses) != 0 {
 		f, err := os.Create(fmt.Sprintf("%s/MISSING_FEATURES.txt", folder))
 		if err != nil {
@@ -215,13 +215,13 @@ func (o *GatewayAPIOutput) Write(opts *Options) error {
 		}
 	}
 
-	if len(o.errors) > 0 {
+	if len(g.errors) > 0 {
 		fmt.Printf("Errros were encountered during translation, please check %s/gloo-errors\n", opts.OutputDir)
 	}
 	fmt.Printf("Files succesfully written to %s\n", opts.OutputDir)
 
 	if opts.CreateNamespaces {
-		if err := o.createNamespaces(opts.OutputDir); err != nil {
+		if err := g.createNamespaces(opts.OutputDir); err != nil {
 			return err
 		}
 	}
@@ -229,19 +229,19 @@ func (o *GatewayAPIOutput) Write(opts *Options) error {
 	return nil
 }
 
-func (o *GatewayAPIOutput) createNamespaces(dir string) error {
+func (g *GatewayAPIOutput) createNamespaces(dir string) error {
 	namespaces := map[string]bool{}
 	// iterate through all main objects and find unique namespaces, references shouldnt be needed
-	for namespaceName := range o.gatewayAPICache.Gateways {
+	for namespaceName := range g.gatewayAPICache.Gateways {
 		namespaces[namespaceName.Namespace] = true
 	}
-	for namespaceName := range o.gatewayAPICache.ListenerSets {
+	for namespaceName := range g.gatewayAPICache.ListenerSets {
 		namespaces[namespaceName.Namespace] = true
 	}
-	for namespaceName := range o.gatewayAPICache.HTTPRoutes {
+	for namespaceName := range g.gatewayAPICache.HTTPRoutes {
 		namespaces[namespaceName.Namespace] = true
 	}
-	for namespaceName := range o.gatewayAPICache.Backends {
+	for namespaceName := range g.gatewayAPICache.Backends {
 		namespaces[namespaceName.Namespace] = true
 	}
 	f, err := os.Create(fmt.Sprintf("%s/namespaces.yaml", dir))

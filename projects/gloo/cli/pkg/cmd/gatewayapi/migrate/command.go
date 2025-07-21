@@ -1,8 +1,9 @@
-package convert
+package migrate
 
 import (
 	"context"
 	"fmt"
+	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/gatewayapi/migrate/convert"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -19,67 +20,62 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const (
-	RandomSuffix = 4
-	RandomSeed   = 1
-)
-
 func RootCmd(op *options.Options) *cobra.Command {
-	opts := &Options{
+	opts := &convert.Options{
 		Options: op,
 	}
 	cmd := &cobra.Command{
-		Use:   "convert",
-		Short: "Convert Gloo Edge APIs to Gateway API",
-		Long:  "Convert Gloo Edge APIs to Gateway APIs by either providing Kubernetes YAML files or a Gloo Gateway input snapshot.",
-		Example: `# This command converts Gloo Edge APIs to Kubernetes Gateway API YAML files and places them in the '--output-dir' directory, grouped by namespace.
+		Use:   "migrate",
+		Short: "Migrate Gloo Edge APIs to Gateway API",
+		Long:  "Migrate Gloo Edge APIs to Gateway APIs by either providing Kubernetes YAML files or a Gloo Gateway input snapshot.",
+		Example: `# This command migrates Gloo Edge APIs to Kubernetes Gateway API YAML files and places them in the '--output-dir' directory, grouped by namespace.
 # To generate Gateway API YAML files from a Gloo Gateway snapshot that is retrieved from a running 'gloo' pod. The 'output-dir' must not exist.
-  glooctl gateway-api convert --gloo-control-plane deploy/gloo --output-dir ./_output
+  glooctl gateway-api migrate --gloo-control-plane deploy/gloo --output-dir ./_output
 
 # To generate Gateway API YAML files from a single Kubernetes YAML file. The 'output-dir' must not exist.
-  glooctl gateway-api convert --input-file gloo-yamls.yaml --output-dir ./_output
+  glooctl gateway-api migrate --input-file gloo-yamls.yaml --output-dir ./_output
 
 # To delete and recreate the content in the 'output-dir', add the 'delete-output-dir'' option.
-  glooctl gateway-api convert --input-file gloo-yamls.yaml --output-dir ./_output --delete-output-dir
+  glooctl gateway-api migrate --input-file gloo-yamls.yaml --output-dir ./_output --delete-output-dir
 
 # To generate Gateway API YAML files from a single Kubernetes YAML file, but place all the output configurations in to the same file. 
-  glooctl gateway-api convert --input-file gloo-yamls.yaml --output-dir ./_output --retain-input-folder-structure
+  glooctl gateway-api migrate --input-file gloo-yamls.yaml --output-dir ./_output --retain-input-folder-structure
 
 # To load a bunch of '*.yaml' or '*.yml' files in nested directories. You can also use the '--retain-input-folder-structure' option to keep the original file structure, which can be helpful in CI/CD pipelines.
-  glooctl gateway-api convert --input-dir ./gloo-configs --output-dir ./_output --retain-input-folder-structure
+  glooctl gateway-api migrate --input-dir ./gloo-configs --output-dir ./_output --retain-input-folder-structure
 
 # To download a Gloo Gateway snapshot from a running 'gloo' pod (verison 1.17+) and generate Gateway API YAML files from that snapshot. 
   kubectl -n gloo-system port-forward deploy/gloo 9091
   curl localhost:9091/snapshots/input > gg-input.json
   
-  glooctl gateway-api convert --input-snapshot gg-input.json --output-dir ./_output
+  glooctl gateway-api migrate --input-snapshot gg-input.json --output-dir ./_output
 
 # To get the stats for each migration, such as the number of configuration files that were generated, add the '--print-stats' option. 
-  glooctl gateway-api convert --input-file gloo-yamls.yaml --output-dir ./_output --print-stats
+  glooctl gateway-api migrate --input-file gloo-yamls.yaml --output-dir ./_output --print-stats
 
 # To retain non-Gloo Gateway API YAML files, add  the '--include-unknown' option. 
-  glooctl gateway-api convert --input-file gloo-yamls.yaml --output-dir ./_output --include-unknown`,
+  glooctl gateway-api migrate --input-file gloo-yamls.yaml --output-dir ./_output --include-unknown`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if err := opts.validate(); err != nil {
+			if err := opts.Validate(); err != nil {
 				return err
 			}
 
 			return run(opts)
 		},
 	}
-	opts.addToFlags(cmd.PersistentFlags())
+	opts.AddToFlags(cmd.PersistentFlags())
 	cmd.SilenceUsage = true
 	return cmd
 }
 
-func run(opts *Options) error {
+func run(opts *convert.Options) error {
 
 	foundFiles, err := findFiles(opts)
 	if err != nil {
 		return err
 	}
 
-	output := NewGatewayAPIOutput()
+	output := convert.NewGatewayAPIOutput()
 	var inputSnapshot *snapshot.Instance
 	snapshotFile := opts.GlooSnapshotFile
 
@@ -102,7 +98,7 @@ func run(opts *Options) error {
 		}
 	}
 
-	output.edgeCache = inputSnapshot
+	output.SetEdgeCache(inputSnapshot)
 
 	fmt.Printf("Successfully loaded %d files\n", len(foundFiles))
 	// preprocessing
@@ -111,7 +107,7 @@ func run(opts *Options) error {
 	}
 
 	// now we need to convert the easy stuff like route tables
-	if err := output.Convert(); err != nil {
+	if err := output.Convert(opts); err != nil {
 		return err
 	}
 	fmt.Printf("Processing complete, entering post processing...\n")
@@ -167,11 +163,11 @@ func fileAtPath(path string) *os.File {
 	return f
 }
 
-func findFiles(opts *Options) ([]string, error) {
+func findFiles(opts *convert.Options) ([]string, error) {
 	var files []string
 	if opts.ControlPlaneName != "" {
 		// we need to download the file to the output dir and add it to the files list
-		if folderExists(opts.OutputDir) {
+		if convert.FolderExists(opts.OutputDir) {
 			if !opts.DeleteOutputDir {
 				return nil, fmt.Errorf("output-dir %s already exists, not writing files", opts.OutputDir)
 			}
