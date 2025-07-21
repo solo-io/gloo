@@ -39,7 +39,7 @@ type Options struct {
 	CreateNamespaces        bool
 	ControlPlaneName        string
 	ControlPlaneNamespace   string
-	DisableListenerSets     bool
+	UseListenerSets         bool
 }
 
 func (o *Options) Validate() error {
@@ -90,8 +90,7 @@ func (o *Options) AddToFlags(flags *pflag.FlagSet) {
 	flags.BoolVar(&o.IncludeUnknownResources, "include-unknown", false, "Copy non-Gloo Gateway resources to the output directory without changing them. ")
 	flags.BoolVar(&o.DeleteOutputDir, "delete-output-dir", false, "Delete the output directory if it already exists.")
 	flags.BoolVar(&o.CreateNamespaces, "create-namespaces", false, "Create namespaces for the objects in a file.")
-	flags.BoolVar(&o.DisableListenerSets, "disable-listenersets", false, "Do not create listenersets and bind hosts and ports directly to Gateway.")
-
+	flags.BoolVar(&o.UseListenerSets, "use-listenersets", false, "Create listenersets and bind hosts and ports directly to them instead of Gateway.")
 }
 
 type GatewayAPIOutput struct {
