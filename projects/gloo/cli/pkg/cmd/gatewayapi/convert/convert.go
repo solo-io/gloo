@@ -2139,7 +2139,7 @@ func (o *GatewayAPIOutput) convertHTTPListenerOptions(options *gloov1.HttpListen
 				hlp.ServerHeaderTransformation = ptr.To(kgateway.PassThroughServerHeaderTransformation)
 			}
 
-			if options.GetHttpConnectionManagerSettings().GetPathWithEscapedSlashesAction() != nil {
+			if options.GetHttpConnectionManagerSettings().GetPathWithEscapedSlashesAction() > 0 {
 				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "httpConnectionManager.pathWithEscapedSlashesAction is not supported")
 			}
 			if options.GetHttpConnectionManagerSettings().GetCodecType() > 0 {
