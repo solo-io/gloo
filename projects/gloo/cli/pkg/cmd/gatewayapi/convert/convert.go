@@ -11,6 +11,7 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/rbac"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/cors"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/protocol"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/tracing"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/ssl"
 	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -1352,12 +1353,12 @@ func (o *GatewayAPIOutput) convertJWTStagedExtAuth(auth *jwt.VhostExtension, wra
 
 func (o *GatewayAPIOutput) convertCORS(policy *cors.CorsPolicy, wrapper snapshot.Wrapper) *kgateway.CorsPolicy {
 	filter := &gwv1.HTTPCORSFilter{
-		AllowOrigins:     []gwv1.AbsoluteURI{},
-		AllowCredentials: gwv1.TrueField(policy.GetAllowCredentials()),
-		AllowMethods:     []gwv1.HTTPMethodWithWildcard{},
-		AllowHeaders:     []gwv1.HTTPHeaderName{},
-		ExposeHeaders:    []gwv1.HTTPHeaderName{},
-		MaxAge:           0,
+		AllowOrigins:     []gwv1.AbsoluteURI{},                         // existing
+		AllowCredentials: gwv1.TrueField(policy.GetAllowCredentials()), // existing
+		AllowMethods:     []gwv1.HTTPMethodWithWildcard{},              // existing
+		AllowHeaders:     []gwv1.HTTPHeaderName{},                      // existing
+		ExposeHeaders:    []gwv1.HTTPHeaderName{},                      // existing
+		MaxAge:           0,                                            // existing
 	}
 	if policy.GetAllowOrigin() != nil {
 		for _, origin := range policy.GetAllowOrigin() {
@@ -1444,13 +1445,13 @@ func (o *GatewayAPIOutput) convertStagedTransformation(transformation *transform
 func (o *GatewayAPIOutput) generateTLSConfiguration(vs *snapshot.VirtualServiceWrapper) *gwv1.GatewayTLSConfig {
 	tlsConfig := &gwv1.GatewayTLSConfig{
 		Mode: ptr.To(gwv1.TLSModeTerminate),
-		//FrontendValidation: nil, // TODO do we need to set this?
-		//Options:            nil, // TODO do we need to set this?
+		//FrontendValidation: nil, // TODO(nick) do we need to set this?
+		//Options:            nil, // TODO(nick) do we need to set this?
 	}
 	if vs.Spec.GetSslConfig().GetSecretRef() != nil {
 		tlsConfig.CertificateRefs = []gwv1.SecretObjectReference{
 			{
-				Group:     ptr.To(gwv1.Group("")),
+				//Group:     ptr.To(gwv1.Group("")),
 				Kind:      ptr.To(gwv1.Kind("Secret")),
 				Name:      gwv1.ObjectName(vs.Spec.GetSslConfig().GetSecretRef().GetName()),
 				Namespace: ptr.To(gwv1.Namespace(vs.Spec.GetSslConfig().GetSecretRef().GetNamespace())),
@@ -1523,10 +1524,11 @@ func (o *GatewayAPIOutput) generateGatewaysFromProxyNames(glooGateway *snapshot.
 							},
 						},
 					},
-					GatewayClassName: "gloo-gateway",
+					GatewayClassName: "gloo-gateway-v2",
 				},
 			}, glooGateway.FileOrigin())
 		}
+
 		// special case for per connection buffer limits to apply to the gateway as an annotation - https://github.com/kgateway-dev/kgateway/pull/11505
 		if glooGateway.Spec.GetOptions() != nil && glooGateway.Spec.GetOptions().GetPerConnectionBufferLimitBytes() != nil && glooGateway.Spec.GetOptions().GetPerConnectionBufferLimitBytes().GetValue() != 0 {
 			if existingGw.Annotations == nil {
@@ -1569,6 +1571,15 @@ func (o *GatewayAPIOutput) convertListenerOptions(glooGateway *snapshot.GlooGate
 					Name:  gwv1.ObjectName(proxyName),
 				},
 			},
+			TargetSelectors:            nil, // existing
+			AccessLog:                  nil, // existing
+			Tracing:                    nil, // existing
+			UpgradeConfig:              nil, // existing
+			UseRemoteAddress:           nil, // existing
+			XffNumTrustedHops:          nil, // existing
+			ServerHeaderTransformation: nil, // existing
+			StreamIdleTimeout:          nil, // existing
+			HealthCheck:                nil, // existing
 		},
 	}
 	if options.GetExtensions() != nil {
@@ -1827,6 +1838,11 @@ func (o *GatewayAPIOutput) convertHTTPListenerOptions(options *gloov1.HttpListen
 			ExtProc:         nil, // existing
 			ExtAuth:         nil, // existing
 			RateLimit:       nil, // existing
+			Cors:            nil,
+			Csrf:            nil,
+			HashPolicies:    nil,
+			AutoHostRewrite: nil,
+			Buffer:          nil, // existing
 		},
 		Waf:                      nil, // existing
 		Retry:                    nil, // existing
@@ -1834,6 +1850,8 @@ func (o *GatewayAPIOutput) convertHTTPListenerOptions(options *gloov1.HttpListen
 		RateLimitEnterprise:      nil, // existing
 		ExtAuthEnterprise:        nil, // existing
 		TransformationEnterprise: nil, // existing
+		JWTEnterprise:            nil,
+		RBACEnterprise:           nil,
 	}
 
 	// go through each option in Gateway Options and convert to listener policy
@@ -1913,7 +1931,9 @@ func (o *GatewayAPIOutput) convertHTTPListenerOptions(options *gloov1.HttpListen
 		tps.TrafficPolicySpec.Csrf = csrf
 	}
 	if options.GetBuffer() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "buffer is not supported")
+		tps.TrafficPolicySpec.Buffer = &kgateway.Buffer{
+			MaxRequestSize: resource.NewQuantity(int64(options.GetBuffer().GetMaxRequestBytes().GetValue()), resource.BinarySI),
+		}
 	}
 	if options.GetCaching() != nil {
 		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "caching is not supported")
@@ -1940,12 +1960,7 @@ func (o *GatewayAPIOutput) convertHTTPListenerOptions(options *gloov1.HttpListen
 	if options.GetHeaderValidationSettings() != nil {
 		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "header validation is not supported")
 	}
-	if options.GetHealthCheck() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "health check is not supported")
-	}
-	if options.GetHttpConnectionManagerSettings() != nil {
-		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "httpConnectionManagerSettings is not supported")
-	}
+
 	if options.GetProxyLatency() != nil {
 		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "proxy latency is not supported")
 	}
@@ -1967,6 +1982,185 @@ func (o *GatewayAPIOutput) convertHTTPListenerOptions(options *gloov1.HttpListen
 	trafficPolicy.Spec = tps
 
 	o.gatewayAPICache.AddGlooTrafficPolicy(snapshot.NewGlooTrafficPolicyWrapper(trafficPolicy, wrapper.FileOrigin()))
+
+	if options.GetHealthCheck() != nil || options.GetHttpConnectionManagerSettings() != nil {
+		// we need to create an HTTPListenerPolicy for these
+		httpListenerPolicy := &kgateway.HTTPListenerPolicy{
+			TypeMeta: metav1.TypeMeta{
+				Kind:       "HTTPListenerPolicy",
+				APIVersion: kgateway.GroupVersion.String(),
+			},
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      wrapper.GetName(),
+				Namespace: wrapper.GetNamespace(),
+				Labels:    wrapper.GetLabels(),
+			},
+		}
+
+		// TODO(nick) this is going to be an issue where multiple Gloo Gateways applies to the same Gateway (due to multiple ports)
+		hlp := kgateway.HTTPListenerPolicySpec{
+			TargetRefs: []kgateway.LocalPolicyTargetReference{
+				{
+					Group: gwv1.Group(gwv1.GroupVersion.Group),
+					Kind:  "Gateway",
+					Name:  gwv1.ObjectName(proxyName),
+				},
+			},
+		}
+		// now in httplistenersettings
+		if options.GetHealthCheck() != nil {
+			hc := &kgateway.EnvoyHealthCheck{
+				Path: options.GetHealthCheck().GetPath(),
+			}
+			hlp.HealthCheck = hc
+		}
+		// now in httplistenersettings
+		if options.GetHttpConnectionManagerSettings() != nil {
+			if options.GetHttpConnectionManagerSettings().GetTracing() != nil {
+				t := o.convertHTTPListenerOptionsTracing(options.GetHttpConnectionManagerSettings().GetTracing(), wrapper)
+				if t != nil {
+					hlp.Tracing = t
+				}
+			}
+		}
+		httpListenerPolicy.Spec = hlp
+		o.gatewayAPICache.AddHTTPListenerPolicy(snapshot.NewHTTPListenerPolicyWrapper(httpListenerPolicy, wrapper.FileOrigin()))
+	}
+
+}
+
+func (o *GatewayAPIOutput) convertHTTPListenerOptionsTracing(tracing *tracing.ListenerTracingSettings, wrapper snapshot.Wrapper) *kgateway.Tracing {
+	kgatewayTracing := &kgateway.Tracing{
+		Provider:          kgateway.TracingProvider{},   // existing
+		ClientSampling:    nil,                          // existing
+		RandomSampling:    nil,                          // existing
+		OverallSampling:   nil,                          // existing
+		Verbose:           nil,                          // existing
+		MaxPathTagLength:  nil,                          // existing
+		Attributes:        []kgateway.CustomAttribute{}, // existing
+		SpawnUpstreamSpan: nil,                          // existing
+	}
+	if tracing.GetTracePercentages() != nil {
+		if tracing.GetTracePercentages().GetClientSamplePercentage() != nil {
+			kgatewayTracing.ClientSampling = ptr.To(uint32(tracing.GetTracePercentages().GetClientSamplePercentage().GetValue()))
+		}
+		if tracing.GetTracePercentages().GetOverallSamplePercentage() != nil {
+			kgatewayTracing.OverallSampling = ptr.To(uint32(tracing.GetTracePercentages().GetOverallSamplePercentage().GetValue()))
+		}
+		if tracing.GetTracePercentages().GetRandomSamplePercentage() != nil {
+			kgatewayTracing.RandomSampling = ptr.To(uint32(tracing.GetTracePercentages().GetRandomSamplePercentage().GetValue()))
+		}
+	}
+	if tracing.GetDatadogConfig() != nil {
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "Datadog kgatewayTracing is not supported")
+	}
+	if tracing.GetLiteralsForTags() != nil {
+		for _, tag := range tracing.GetLiteralsForTags() {
+			attribute := kgateway.CustomAttribute{
+				Name: tag.GetTag().GetValue(),
+				Literal: &kgateway.CustomAttributeLiteral{
+					Value: tag.GetValue().GetValue(),
+				},
+			}
+			kgatewayTracing.Attributes = append(kgatewayTracing.Attributes, attribute)
+		}
+	}
+	if tracing.GetEnvironmentVariablesForTags() != nil {
+		for _, tag := range tracing.GetEnvironmentVariablesForTags() {
+			attribute := kgateway.CustomAttribute{
+				Name: tag.GetTag().GetValue(),
+				Environment: &kgateway.CustomAttributeEnvironment{
+					Name:         tag.GetName().GetValue(),
+					DefaultValue: nil,
+				},
+			}
+			if tag.GetDefaultValue() != nil {
+				attribute.Environment.DefaultValue = ptr.To(tag.GetDefaultValue().GetValue())
+			}
+			kgatewayTracing.Attributes = append(kgatewayTracing.Attributes, attribute)
+		}
+	}
+	if tracing.GetMetadataForTags() != nil {
+		for _, tag := range tracing.GetMetadataForTags() {
+			attribute := kgateway.CustomAttribute{
+				Name: tag.GetTag(),
+				Metadata: &kgateway.CustomAttributeMetadata{
+					Kind: kgateway.MetadataKind(tag.GetKind().String()),
+					MetadataKey: kgateway.MetadataKey{
+						Key: tag.GetValue().GetKey(),
+					},
+					DefaultValue: nil,
+				},
+			}
+			if tag.GetDefaultValue() != "" {
+				attribute.Environment.DefaultValue = ptr.To(tag.GetDefaultValue())
+			}
+			if tag.GetValue().GetNamespace() != "" {
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "metadataForTags value.namespace is not supported")
+			}
+			if tag.GetValue().GetNestedFieldDelimiter() != "" {
+				o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "metadataForTags value.nestedFieldDelimiter is not supported")
+			}
+
+			kgatewayTracing.Attributes = append(kgatewayTracing.Attributes, attribute)
+		}
+	}
+	if tracing.GetOpenCensusConfig() != nil {
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "OpenCensus kgatewayTracing is not supported")
+	}
+	if tracing.GetOpenTelemetryConfig() != nil {
+		otlp := &kgateway.OpenTelemetryTracingConfig{
+			GrpcService:       kgateway.CommonGrpcService{}, // existing
+			ServiceName:       "",                           // existing
+			ResourceDetectors: nil,                          // existing
+			Sampler:           nil,                          // existing
+		}
+		if tracing.GetOpenTelemetryConfig().GetServiceName() != "" {
+			otlp.ServiceName = tracing.GetOpenTelemetryConfig().GetServiceName()
+		}
+		if tracing.GetOpenTelemetryConfig().GetGrpcService() != nil {
+			gs := tracing.GetOpenTelemetryConfig().GetGrpcService()
+			grpcService := kgateway.CommonGrpcService{
+				BackendRef:              nil, // existing
+				Authority:               nil, // existing
+				MaxReceiveMessageLength: nil, // existing
+				SkipEnvoyHeaders:        nil, // existing
+				Timeout:                 nil, // existing
+				InitialMetadata:         nil, // existing
+				RetryPolicy:             nil, // existing
+			}
+			if gs.GetAuthority() != "" {
+				grpcService.Authority = ptr.To(gs.GetAuthority())
+			}
+
+			otlp.GrpcService = grpcService
+		}
+
+		kgatewayTracing.Provider.OpenTelemetry = otlp
+
+	}
+	if tracing.GetRequestHeadersForTags() != nil {
+		for _, tag := range tracing.GetRequestHeadersForTags() {
+			attribute := kgateway.CustomAttribute{
+				Name: tag.GetValue(),
+				RequestHeader: &kgateway.CustomAttributeHeader{
+					Name:         tag.GetValue(),
+					DefaultValue: nil,
+				},
+			}
+			kgatewayTracing.Attributes = append(kgatewayTracing.Attributes, attribute)
+		}
+	}
+	if tracing.GetSpawnUpstreamSpan() {
+		kgatewayTracing.SpawnUpstreamSpan = ptr.To(tracing.GetSpawnUpstreamSpan())
+	}
+	if tracing.GetVerbose() != nil && tracing.GetVerbose().GetValue() {
+		kgatewayTracing.Verbose = ptr.To(tracing.GetVerbose().GetValue())
+	}
+	if tracing.GetZipkinConfig() != nil {
+		o.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "Zipkin kgatewayTracing is not supported")
+	}
+	return kgatewayTracing
 }
 
 func (o *GatewayAPIOutput) convertCSRF(policy *v4.CsrfPolicy) *kgateway.CSRFPolicy {
