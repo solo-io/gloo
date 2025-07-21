@@ -50,15 +50,15 @@ func (g *GatewayAPIOutput) convertJWTStagedExtAuth(auth *jwt.VhostExtension, wra
 			p := gloogateway.JWTProvider{
 				JWKS:                         nil, // existing
 				Audiences:                    nil, // existing
-				Issuer:                       ptr.To(provider.Issuer),
+				Issuer:                       ptr.To(provider.GetIssuer()),
 				TokenSource:                  nil, // existing
-				KeepToken:                    ptr.To(provider.KeepToken),
+				KeepToken:                    ptr.To(provider.GetKeepToken()),
 				ClaimsToHeaders:              nil, // existing
 				ClockSkewSeconds:             nil, // existing
-				AttachFailedStatusToMetadata: ptr.To(provider.AttachFailedStatusToMetadata),
+				AttachFailedStatusToMetadata: ptr.To(provider.GetAttachFailedStatusToMetadata()),
 			}
 			if provider.GetClockSkewSeconds() != nil {
-				p.ClockSkewSeconds = ptr.To(int32(provider.ClockSkewSeconds.Value))
+				p.ClockSkewSeconds = ptr.To(int32(provider.GetClockSkewSeconds().GetValue()))
 			}
 			if len(provider.GetAudiences()) > 0 {
 				p.Audiences = provider.GetAudiences()
@@ -102,8 +102,8 @@ func (g *GatewayAPIOutput) convertJWTStagedExtAuth(auth *jwt.VhostExtension, wra
 						AsyncFetch:    nil, // existing
 					}
 
-					if provider.GetJwks().GetRemote().GetCacheDuration() != nil && provider.GetJwks().GetRemote().GetCacheDuration().Nanos != 0 {
-						jwks.Remote.CacheDuration = &metav1.Duration{Duration: provider.GetJwks().GetRemote().CacheDuration.AsDuration()}
+					if provider.GetJwks().GetRemote().GetCacheDuration() != nil && provider.GetJwks().GetRemote().GetCacheDuration().GetNanos() != 0 {
+						jwks.Remote.CacheDuration = &metav1.Duration{Duration: provider.GetJwks().GetRemote().GetCacheDuration().AsDuration()}
 					}
 					if provider.GetJwks().GetRemote().GetAsyncFetch() != nil {
 						jwks.Remote.AsyncFetch = &gloogateway.JwksAsyncFetch{FastListener: ptr.To(provider.GetJwks().GetRemote().GetAsyncFetch().GetFastListener())}
@@ -404,9 +404,9 @@ func (g *GatewayAPIOutput) convertRouteOptions(
 		}
 		for _, d := range options.GetAi().GetDefaults() {
 			aip.Defaults = append(aip.Defaults, kgateway.FieldDefault{
-				Field:    d.Field,
-				Value:    d.Value.String(),
-				Override: ptr.To(d.Override),
+				Field:    d.GetField(),
+				Value:    d.GetValue().String(),
+				Override: ptr.To(d.GetOverride()),
 			})
 		}
 		if options.GetAi().GetPromptEnrichment() != nil {
@@ -609,7 +609,7 @@ func (g *GatewayAPIOutput) convertRouteOptions(
 			}
 			if policy.GetCookie() != nil {
 				hashPolicy.Cookie = &kgateway.Cookie{
-					Name:       policy.GetCookie().Name,
+					Name:       policy.GetCookie().GetName(),
 					Path:       nil, // existing
 					TTL:        nil, // existing
 					Attributes: nil, // existing
@@ -677,7 +677,7 @@ func (g *GatewayAPIOutput) convertRBAC(extension *rbac.ExtensionSettings) *gloog
 			}
 		}
 
-		for _, principle := range policy.Principals {
+		for _, principle := range policy.GetPrincipals() {
 			if principle.GetJwtPrincipal() != nil {
 				p := gloogateway.RBACPrincipal{
 					JWTPrincipal: gloogateway.RBACJWTPrincipal{
@@ -773,7 +773,7 @@ func (g *GatewayAPIOutput) convertResponseTranforms(responseTransform []*transfo
 	for _, rule := range responseTransform {
 		match := gloogateway.ResponseMatcher{
 			Headers:             []gloogateway.TransformationHeaderMatcher{},
-			ResponseCodeDetails: ptr.To(rule.ResponseCodeDetails),
+			ResponseCodeDetails: ptr.To(rule.GetResponseCodeDetails()),
 		}
 		if rule.GetMatchers() != nil {
 			for _, header := range rule.GetMatchers() {
@@ -852,17 +852,17 @@ func (g *GatewayAPIOutput) convertTransformationMatch(rule *transformation2.Tran
 	if rule.GetTransformationTemplate() != nil {
 		tt := rule.GetTransformationTemplate()
 		template := &gloogateway.TransformationTemplate{
-			AdvancedTemplates:     ptr.To(rule.GetTransformationTemplate().AdvancedTemplates), // existing
-			Extractors:            nil,                                                        // existing
-			Headers:               nil,                                                        // existing
-			HeadersToAppend:       []gloogateway.HeaderToAppend{},                             // existing
-			HeadersToRemove:       []string{},                                                 // existing
-			BodyTransformation:    nil,                                                        // existing
-			ParseBodyBehavior:     nil,                                                        // existing
-			IgnoreErrorOnParse:    ptr.To(tt.GetIgnoreErrorOnParse()),                         // existing
-			DynamicMetadataValues: []gloogateway.DynamicMetadataValue{},                       // existing
-			EscapeCharacters:      nil,                                                        // existing
-			SpanTransformer:       nil,                                                        // existing
+			AdvancedTemplates:     ptr.To(rule.GetTransformationTemplate().GetAdvancedTemplates()), // existing
+			Extractors:            nil,                                                             // existing
+			Headers:               nil,                                                             // existing
+			HeadersToAppend:       []gloogateway.HeaderToAppend{},                                  // existing
+			HeadersToRemove:       []string{},                                                      // existing
+			BodyTransformation:    nil,                                                             // existing
+			ParseBodyBehavior:     nil,                                                             // existing
+			IgnoreErrorOnParse:    ptr.To(tt.GetIgnoreErrorOnParse()),                              // existing
+			DynamicMetadataValues: []gloogateway.DynamicMetadataValue{},                            // existing
+			EscapeCharacters:      nil,                                                             // existing
+			SpanTransformer:       nil,                                                             // existing
 		}
 		for name, ext := range tt.GetExtractors() {
 			if template.Extractors == nil {
@@ -877,7 +877,7 @@ func (g *GatewayAPIOutput) convertTransformationMatch(rule *transformation2.Tran
 				extraction.ExtractionBody = ptr.To(true)
 			}
 			if ext.GetReplacementText() != nil {
-				extraction.ReplacementText = ptr.To(ext.GetReplacementText().Value)
+				extraction.ReplacementText = ptr.To(ext.GetReplacementText().GetValue())
 			}
 			switch ext.GetMode() {
 			case transformation2.Extraction_EXTRACT:
@@ -897,10 +897,10 @@ func (g *GatewayAPIOutput) convertTransformationMatch(rule *transformation2.Tran
 		}
 		for _, hta := range tt.GetHeadersToAppend() {
 			h := gloogateway.HeaderToAppend{
-				Key: hta.Key,
+				Key: hta.GetKey(),
 			}
-			if hta.Value != nil {
-				h.Value = gloogateway.InjaTemplate(hta.Value.String())
+			if hta.GetValue() != nil {
+				h.Value = gloogateway.InjaTemplate(hta.GetValue().String())
 			}
 			template.HeadersToAppend = append(template.HeadersToAppend, h)
 		}
@@ -942,7 +942,7 @@ func (g *GatewayAPIOutput) convertTransformationMatch(rule *transformation2.Tran
 				MetadataNamespace: ptr.To(m.GetMetadataNamespace()),
 				Key:               m.GetKey(),
 				Value:             gloogateway.InjaTemplate(m.GetValue().String()),
-				JsonToProto:       ptr.To(m.JsonToProto),
+				JsonToProto:       ptr.To(m.GetJsonToProto()),
 			}
 			if m.GetValue() != nil {
 				dm.Value = gloogateway.InjaTemplate(m.GetValue().String())

@@ -314,7 +314,7 @@ func (g *GatewayAPIOutput) convertVirtualHostOptionToGlooTrafficPolicy(vho *snap
 		},
 	}
 
-	policy.Spec = g.convertVHOOptionsToTrafficPolicySpec(vho.VirtualHostOption.Spec.Options, vho)
+	policy.Spec = g.convertVHOOptionsToTrafficPolicySpec(vho.VirtualHostOption.Spec.GetOptions(), vho)
 
 	wrapper := snapshot.NewGlooTrafficPolicyWrapper(policy, vho.FileOrigin())
 	return wrapper
@@ -402,11 +402,11 @@ func (g *GatewayAPIOutput) convertVHOOptionsToTrafficPolicySpec(vho *gloov1.Virt
 				CustomMessage: ptr.To(vho.GetWaf().GetCustomInterventionMessage()),
 				Rules:         []gloogateway.WafRule{},
 			}
-			for _, r := range vho.GetWaf().RuleSets {
+			for _, r := range vho.GetWaf().GetRuleSets() {
 				waf.Rules = append(waf.Rules, gloogateway.WafRule{
-					RuleStr: ptr.To(r.RuleStr),
+					RuleStr: ptr.To(r.GetRuleStr()),
 				})
-				if r.Files != nil && len(r.Files) > 0 {
+				if r.GetFiles() != nil && len(r.GetFiles()) > 0 {
 					g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "WAF files is not supported")
 				}
 			}
@@ -632,7 +632,7 @@ func (g *GatewayAPIOutput) generateGatewaysFromProxyNames(glooGateway *snapshot.
 		g.gatewayAPICache.AddGateway(existingGw)
 
 		if glooGateway.Spec.GetHttpGateway() != nil && glooGateway.Spec.GetHttpGateway().GetOptions() != nil {
-			g.convertHTTPListenerOptions(glooGateway.Spec.GetHttpGateway().Options, glooGateway, proxyName)
+			g.convertHTTPListenerOptions(glooGateway.Spec.GetHttpGateway().GetOptions(), glooGateway, proxyName)
 		}
 		if glooGateway.Spec.GetOptions() != nil && glooGateway.Spec.GetOptions() != nil {
 			g.convertListenerOptions(glooGateway, proxyName)
@@ -717,7 +717,7 @@ func (g *GatewayAPIOutput) convertListenerOptionAccessLogging(glooGateway *snaps
 		}
 		if edgeAccessLog.GetFileSink() != nil {
 			fileSink := &kgateway.FileSink{
-				Path: edgeAccessLog.GetFileSink().Path,
+				Path: edgeAccessLog.GetFileSink().GetPath(),
 			}
 			if jsonFormat := edgeAccessLog.GetFileSink().GetJsonFormat(); jsonFormat != nil {
 				jsonBytes, err := json.Marshal(jsonFormat.AsMap())
@@ -736,11 +736,11 @@ func (g *GatewayAPIOutput) convertListenerOptionAccessLogging(glooGateway *snaps
 			accessLog.GrpcService = &kgateway.AccessLogGrpcService{
 				CommonAccessLogGrpcService: kgateway.CommonAccessLogGrpcService{
 					//CommonGrpcService: nil,// TODO(nick) what do we need to set here?
-					LogName: edgeAccessLog.GetGrpcService().LogName,
+					LogName: edgeAccessLog.GetGrpcService().GetLogName(),
 				},
-				AdditionalRequestHeadersToLog:   edgeAccessLog.GetGrpcService().AdditionalRequestHeadersToLog,
-				AdditionalResponseHeadersToLog:  edgeAccessLog.GetGrpcService().AdditionalResponseHeadersToLog,
-				AdditionalResponseTrailersToLog: edgeAccessLog.GetGrpcService().AdditionalResponseTrailersToLog,
+				AdditionalRequestHeadersToLog:   edgeAccessLog.GetGrpcService().GetAdditionalRequestHeadersToLog(),
+				AdditionalResponseHeadersToLog:  edgeAccessLog.GetGrpcService().GetAdditionalResponseHeadersToLog(),
+				AdditionalResponseTrailersToLog: edgeAccessLog.GetGrpcService().GetAdditionalResponseTrailersToLog(),
 			}
 
 			// backend Ref
@@ -802,13 +802,13 @@ func (g *GatewayAPIOutput) convertAccessLogFitler(filter *als.AccessLogFilter, w
 
 	if filter.GetDurationFilter() != nil {
 		filterType.DurationFilter = &kgateway.DurationFilter{
-			Op:    kgateway.Op(filter.GetDurationFilter().GetComparison().Op),
+			Op:    kgateway.Op(filter.GetDurationFilter().GetComparison().GetOp()),
 			Value: filter.GetDurationFilter().GetComparison().GetValue().GetDefaultValue(),
 		}
 	}
 	if filter.GetHeaderFilter() != nil && filter.GetHeaderFilter().GetHeader() != nil {
 		headerMatch := gwv1.HTTPHeaderMatch{
-			Name: gwv1.HTTPHeaderName(filter.GetHeaderFilter().GetHeader().Name),
+			Name: gwv1.HTTPHeaderName(filter.GetHeaderFilter().GetHeader().GetName()),
 		}
 
 		if filter.GetHeaderFilter().GetHeader().GetExactMatch() != "" {
@@ -839,7 +839,7 @@ func (g *GatewayAPIOutput) convertAccessLogFitler(filter *als.AccessLogFilter, w
 		if filter.GetHeaderFilter().GetHeader().GetSafeRegexMatch() != nil {
 			// Edge only supported Googles Regex (RE2) which might not be compatible with Gateway API regex
 			headerMatch.Type = ptr.To(gwv1.HeaderMatchRegularExpression)
-			headerMatch.Value = filter.GetHeaderFilter().GetHeader().GetSafeRegexMatch().Regex
+			headerMatch.Value = filter.GetHeaderFilter().GetHeader().GetSafeRegexMatch().GetRegex()
 		}
 
 		if filter.GetHeaderFilter().GetHeader().GetSuffixMatch() != "" {
@@ -856,9 +856,9 @@ func (g *GatewayAPIOutput) convertAccessLogFitler(filter *als.AccessLogFilter, w
 	if filter.GetGrpcStatusFilter() != nil {
 		grpcFilter := &kgateway.GrpcStatusFilter{
 			Statuses: []kgateway.GrpcStatus{},
-			Exclude:  filter.GetGrpcStatusFilter().Exclude,
+			Exclude:  filter.GetGrpcStatusFilter().GetExclude(),
 		}
-		for _, status := range filter.GetGrpcStatusFilter().Statuses {
+		for _, status := range filter.GetGrpcStatusFilter().GetStatuses() {
 			grpcFilter.Statuses = append(grpcFilter.Statuses, kgateway.GrpcStatus(status))
 		}
 		filterType.GrpcStatusFilter = grpcFilter
@@ -952,7 +952,7 @@ func (g *GatewayAPIOutput) convertHTTPListenerOptions(options *gloov1.HttpListen
 	if options.GetExtauth() != nil {
 		// These are global extAuthSettings that are also on the Settings Object.
 		// If this exists we need to generate a GatewayExtensionObject for this
-		gatewayExtensions := g.generateGatewayExtensionForExtAuth(options.Extauth, wrapper.GetName(), wrapper)
+		gatewayExtensions := g.generateGatewayExtensionForExtAuth(options.GetExtauth(), wrapper.GetName(), wrapper)
 		g.gatewayAPICache.AddGatewayExtension(snapshot.NewGatewayExtensionWrapper(gatewayExtensions, wrapper.FileOrigin()))
 	}
 
@@ -999,11 +999,11 @@ func (g *GatewayAPIOutput) convertHTTPListenerOptions(options *gloov1.HttpListen
 			CustomMessage: ptr.To(options.GetWaf().GetCustomInterventionMessage()),
 			Rules:         []gloogateway.WafRule{},
 		}
-		for _, r := range options.GetWaf().RuleSets {
+		for _, r := range options.GetWaf().GetRuleSets() {
 			waf.Rules = append(waf.Rules, gloogateway.WafRule{
-				RuleStr: ptr.To(r.RuleStr),
+				RuleStr: ptr.To(r.GetRuleStr()),
 			})
-			if r.Files != nil && len(r.Files) > 0 {
+			if r.GetFiles() != nil && len(r.GetFiles()) > 0 {
 				g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "WAF files is not supported")
 			}
 		}
@@ -1195,7 +1195,7 @@ func (g *GatewayAPIOutput) convertHTTPListenerOptions(options *gloov1.HttpListen
 			if options.GetHttpConnectionManagerSettings().GetUpgrades() != nil {
 				var upgrades []string
 				for _, upgrade := range options.GetHttpConnectionManagerSettings().GetUpgrades() {
-					switch upgrade.UpgradeType.(type) {
+					switch upgrade.GetUpgradeType().(type) {
 					case *protocol_upgrade.ProtocolUpgradeConfig_Websocket:
 						upgrades = append(upgrades, "websocket")
 					case *protocol_upgrade.ProtocolUpgradeConfig_Connect:
