@@ -698,10 +698,51 @@ message ExtAuthConfig {
         // Timeout for the portal web server to respond. Defaults to 200ms
         google.protobuf.Duration request_timeout = 5;
     }
+
     message InMemorySecretList {
         // list of username/password pairs taken from secrets during gloo-ee translation
         map<string, string> secret_list = 1 [(extproto.sensitive) = true];
     }
+
+    message PassthroughAuthInternalConfig {
+
+        // PassthroughAuthTlsConfigData defines the internal structure used to configure
+        // client-side TLS settings for passthrough authentication. This is not
+        // exposed externally and is used internally for constructing TLS client connections
+        // with support for certificates, private keys, and root CAs.
+        //
+        // All PEM fields are base64-encoded. The `ssl_params` field allows for specifying
+        // additional TLS properties such as protocol versions and cipher preferences.
+        //
+        // The fields `server_name`, `insecure_skip_verify`, and `require_client_cert`
+        // are currently not mapped to `tls.Config` but are retained for future compatibility
+        // and advanced configuration support.
+        message PassthroughAuthTlsConfigData {
+            // Base64-encoded PEM for the client certificate
+            string cert_pem = 1;
+            // Base64-encoded PEM for the client private key
+            string key_pem = 2;
+            // Base64-encoded PEM for the trusted root CA(s)
+            string root_ca_pem = 3;
+
+            // Optional: Includes additional TLS parameters
+            SslParameters ssl_params = 4;
+
+            // Optional: For future use - Not currently mapped (but keeping these for future use)
+            string server_name = 7;
+            // Optional: For future use - Not currently mapped (but keeping these for future use)
+            bool insecure_skip_verify = 8;
+            // Optional: For future use - Not currently mapped (but keeping these for future use)
+            bool require_client_cert = 9;
+        }
+
+        // The original user defined passthrough configuration without any modifications
+        PassThroughAuth pass_through_auth = 1;
+
+        // Mapped TLS configuration data that defines TLS certificates and advanced parameters
+        PassthroughAuthTlsConfigData tls_config_data = 2 [(extproto.sensitive) = true];
+    }
+
     message Config {
 
         reserved 1, 2;
@@ -727,10 +768,12 @@ message ExtAuthConfig {
             // If Jwt authentication is to be used in the [boolean expression](https://docs.solo.io/gloo-edge/latest/reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth.proto.sk/#authconfig) in an AuthConfig, you can use this auth config type to include Jwt as an Auth config.
             // In addition, `allow_missing_or_failed_jwt` must be set on the Virtual Host or Route that uses JWT auth or else the JWT filter will short circuit this behaviour.
             google.protobuf.Empty jwt = 12;
+            // Deprecated - this is being replaced by "passthrough_internal" field which carries additional TLS configuration
             PassThroughAuth pass_through_auth = 13;
             HmacAuthConfig hmac_auth = 15;
             OpaServerAuthConfig opa_server_auth = 16;
             PortalAuthConfig portal_auth = 18;
+            PassthroughAuthInternalConfig passthrough_internal = 19;
         }
     }
 
