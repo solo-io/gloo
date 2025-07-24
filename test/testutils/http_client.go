@@ -30,9 +30,12 @@ var DefaultHttpClient = &http.Client{
 type HttpClientBuilder struct {
 	timeout time.Duration
 
+	clientCert         tls.Certificate
 	rootCaCert         string
 	serverName         string
 	proxyProtocolBytes []byte
+	minTlsVersion      uint16
+	maxTlsVersion      uint16
 }
 
 // DefaultClientBuilder returns an HttpClientBuilder with some default values
@@ -52,6 +55,19 @@ func (c *HttpClientBuilder) WithTimeout(timeout time.Duration) *HttpClientBuilde
 
 func (c *HttpClientBuilder) WithProxyProtocolBytes(bytes []byte) *HttpClientBuilder {
 	c.proxyProtocolBytes = bytes
+	return c
+}
+
+// WithTLSClientCert useful for negotiating mTLS connections
+func (c *HttpClientBuilder) WithTLSClientCert(clientCert tls.Certificate) *HttpClientBuilder {
+	c.clientCert = clientCert
+	return c
+}
+
+// WithTLSProtocolVersions helps to override the default TLS protocol versions.
+func (c *HttpClientBuilder) WithTLSProtocolVersions(min, max uint16) *HttpClientBuilder {
+	c.minTlsVersion = min
+	c.maxTlsVersion = max
 	return c
 }
 
@@ -103,6 +119,19 @@ func (c *HttpClientBuilder) Build() *http.Client {
 			ServerName:         c.serverName,
 			RootCAs:            caCertPool,
 		}
+	}
+
+	// for configuring mTLS
+	if len(c.clientCert.Certificate) > 0 || c.clientCert.PrivateKey != nil {
+		tlsClientConfig.Certificates = []tls.Certificate{c.clientCert}
+	}
+
+	// for managing TLS version protocols
+	if c.minTlsVersion > 0 {
+		tlsClientConfig.MinVersion = c.minTlsVersion
+	}
+	if c.maxTlsVersion > 0 {
+		tlsClientConfig.MaxVersion = c.maxTlsVersion
 	}
 
 	// If the proxyProtocolBytes are provided, configure the dialContext to prepend
