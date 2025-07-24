@@ -65,9 +65,9 @@ func (c *HttpClientBuilder) WithTLSClientCert(clientCert tls.Certificate) *HttpC
 }
 
 // WithTLSProtocolVersions helps to override the default TLS protocol versions.
-func (c *HttpClientBuilder) WithTLSProtocolVersions(min, max uint16) *HttpClientBuilder {
-	c.minTlsVersion = min
-	c.maxTlsVersion = max
+func (c *HttpClientBuilder) WithTLSProtocolVersions(minTls, maxTls uint16) *HttpClientBuilder {
+	c.minTlsVersion = minTls
+	c.maxTlsVersion = maxTls
 	return c
 }
 
