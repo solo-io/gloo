@@ -54,9 +54,9 @@ var (
 )
 
 func setLocalClusterDomain() string {
-	extauthAddr := "localhost"
+	localhostAddr := "172.17.0.1"
 	if runtime.GOOS == "darwin" {
-		extauthAddr = "host.docker.internal"
+		localhostAddr = "host.docker.internal"
 	}
-	return extauthAddr
+	return localhostAddr
 }
