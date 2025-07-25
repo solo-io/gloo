@@ -1720,11 +1720,5 @@ func (m *ExtAuthConfig_PassthroughAuthInternalConfig_PassthroughAuthTlsConfigDat
 		target.SslParams = proto.Clone(m.GetSslParams()).(*SslParameters)
 	}
 
-	target.ServerName = m.GetServerName()
-
-	target.InsecureSkipVerify = m.GetInsecureSkipVerify()
-
-	target.RequireClientCert = m.GetRequireClientCert()
-
 	return target
 }

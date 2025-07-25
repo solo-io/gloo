@@ -944,7 +944,7 @@ This API is only supported for Gloo Gateway Portal.
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `passThroughAuth` | [.enterprise.gloo.solo.io.PassThroughAuth](../extauth.proto.sk/#passthroughauth) | The original user defined passthrough configuration without any modifications. |
+| `passThroughAuth` | [.enterprise.gloo.solo.io.PassThroughAuth](../extauth.proto.sk/#passthroughauth) | User defined passthrough configuration (any user supplied TLS configuration is masked from this). |
 | `tlsConfigData` | [.enterprise.gloo.solo.io.ExtAuthConfig.PassthroughAuthInternalConfig.PassthroughAuthTlsConfigData](../extauth-internal.proto.sk/#passthroughauthtlsconfigdata) | Mapped TLS configuration data that defines TLS certificates and advanced parameters. |
 
 
@@ -971,9 +971,6 @@ and advanced configuration support.
 "keyPem": string
 "rootCaPem": string
 "sslParams": .enterprise.gloo.solo.io.SslParameters
-"serverName": string
-"insecureSkipVerify": bool
-"requireClientCert": bool
 
 ```
 
@@ -983,9 +980,6 @@ and advanced configuration support.
 | `keyPem` | `string` | Base64-encoded PEM for the client private key. |
 | `rootCaPem` | `string` | Base64-encoded PEM for the trusted root CA(s). |
 | `sslParams` | [.enterprise.gloo.solo.io.SslParameters](../extauth.proto.sk/#sslparameters) | Optional: Includes additional TLS parameters. |
-| `serverName` | `string` | Optional: For future use - Not currently mapped (but keeping these for future use). |
-| `insecureSkipVerify` | `bool` | Optional: For future use - Not currently mapped (but keeping these for future use). |
-| `requireClientCert` | `bool` | Optional: For future use - Not currently mapped (but keeping these for future use). |
 
 
 

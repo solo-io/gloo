@@ -727,16 +727,9 @@ message ExtAuthConfig {
 
             // Optional: Includes additional TLS parameters
             SslParameters ssl_params = 4;
-
-            // Optional: For future use - Not currently mapped (but keeping these for future use)
-            string server_name = 7;
-            // Optional: For future use - Not currently mapped (but keeping these for future use)
-            bool insecure_skip_verify = 8;
-            // Optional: For future use - Not currently mapped (but keeping these for future use)
-            bool require_client_cert = 9;
         }
 
-        // The original user defined passthrough configuration without any modifications
+        // User defined passthrough configuration (any user supplied TLS configuration is masked from this)
         PassThroughAuth pass_through_auth = 1;
 
         // Mapped TLS configuration data that defines TLS certificates and advanced parameters

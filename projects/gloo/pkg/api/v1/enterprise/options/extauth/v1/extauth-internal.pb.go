@@ -2585,7 +2585,7 @@ func (x *ExtAuthConfig_InMemorySecretList) GetSecretList() map[string]string {
 
 type ExtAuthConfig_PassthroughAuthInternalConfig struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// The original user defined passthrough configuration without any modifications
+	// User defined passthrough configuration (any user supplied TLS configuration is masked from this)
 	PassThroughAuth *PassThroughAuth `protobuf:"bytes,1,opt,name=pass_through_auth,json=passThroughAuth,proto3" json:"pass_through_auth,omitempty"`
 	// Mapped TLS configuration data that defines TLS certificates and advanced parameters
 	TlsConfigData *ExtAuthConfig_PassthroughAuthInternalConfig_PassthroughAuthTlsConfigData `protobuf:"bytes,2,opt,name=tls_config_data,json=tlsConfigData,proto3" json:"tls_config_data,omitempty"`
@@ -3940,15 +3940,9 @@ type ExtAuthConfig_PassthroughAuthInternalConfig_PassthroughAuthTlsConfigData st
 	// Base64-encoded PEM for the trusted root CA(s)
 	RootCaPem string `protobuf:"bytes,3,opt,name=root_ca_pem,json=rootCaPem,proto3" json:"root_ca_pem,omitempty"`
 	// Optional: Includes additional TLS parameters
-	SslParams *SslParameters `protobuf:"bytes,4,opt,name=ssl_params,json=sslParams,proto3" json:"ssl_params,omitempty"`
-	// Optional: For future use - Not currently mapped (but keeping these for future use)
-	ServerName string `protobuf:"bytes,7,opt,name=server_name,json=serverName,proto3" json:"server_name,omitempty"`
-	// Optional: For future use - Not currently mapped (but keeping these for future use)
-	InsecureSkipVerify bool `protobuf:"varint,8,opt,name=insecure_skip_verify,json=insecureSkipVerify,proto3" json:"insecure_skip_verify,omitempty"`
-	// Optional: For future use - Not currently mapped (but keeping these for future use)
-	RequireClientCert bool `protobuf:"varint,9,opt,name=require_client_cert,json=requireClientCert,proto3" json:"require_client_cert,omitempty"`
-	unknownFields     protoimpl.UnknownFields
-	sizeCache         protoimpl.SizeCache
+	SslParams     *SslParameters `protobuf:"bytes,4,opt,name=ssl_params,json=sslParams,proto3" json:"ssl_params,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ExtAuthConfig_PassthroughAuthInternalConfig_PassthroughAuthTlsConfigData) Reset() {
@@ -4009,32 +4003,11 @@ func (x *ExtAuthConfig_PassthroughAuthInternalConfig_PassthroughAuthTlsConfigDat
 	return nil
 }
 
-func (x *ExtAuthConfig_PassthroughAuthInternalConfig_PassthroughAuthTlsConfigData) GetServerName() string {
-	if x != nil {
-		return x.ServerName
-	}
-	return ""
-}
-
-func (x *ExtAuthConfig_PassthroughAuthInternalConfig_PassthroughAuthTlsConfigData) GetInsecureSkipVerify() bool {
-	if x != nil {
-		return x.InsecureSkipVerify
-	}
-	return false
-}
-
-func (x *ExtAuthConfig_PassthroughAuthInternalConfig_PassthroughAuthTlsConfigData) GetRequireClientCert() bool {
-	if x != nil {
-		return x.RequireClientCert
-	}
-	return false
-}
-
 var File_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_internal_proto protoreflect.FileDescriptor
 
 const file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_internal_proto_rawDesc = "" +
 	"\n" +
-	"agithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth-internal.proto\x12\x17enterprise.gloo.solo.io\x1a,github.com/solo-io/solo-kit/api/v1/ref.proto\x1a\x12extproto/ext.proto\x1a1github.com/solo-io/solo-kit/api/v1/metadata.proto\x1a/github.com/solo-io/solo-kit/api/v1/status.proto\x1a1github.com/solo-io/solo-kit/api/v1/solo-kit.proto\x1aEgithub.com/solo-io/solo-kit/api/external/envoy/api/v2/discovery.proto\x1aXgithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1egoogle/protobuf/wrappers.proto\x1a\x1bgoogle/protobuf/empty.proto\"\xd9h\n" +
+	"agithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth-internal.proto\x12\x17enterprise.gloo.solo.io\x1a,github.com/solo-io/solo-kit/api/v1/ref.proto\x1a\x12extproto/ext.proto\x1a1github.com/solo-io/solo-kit/api/v1/metadata.proto\x1a/github.com/solo-io/solo-kit/api/v1/status.proto\x1a1github.com/solo-io/solo-kit/api/v1/solo-kit.proto\x1aEgithub.com/solo-io/solo-kit/api/external/envoy/api/v2/discovery.proto\x1aXgithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1egoogle/protobuf/wrappers.proto\x1a\x1bgoogle/protobuf/empty.proto\"\xd6g\n" +
 	"\rExtAuthConfig\x12/\n" +
 	"\x14auth_config_ref_name\x18\x01 \x01(\tR\x11authConfigRefName\x12G\n" +
 	"\aconfigs\x18\b \x03(\v2-.enterprise.gloo.solo.io.ExtAuthConfig.ConfigR\aconfigs\x12?\n" +
@@ -4280,20 +4253,16 @@ const file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extau
 	"secretList\x1a=\n" +
 	"\x0fSecretListEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a\xc6\x04\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a\xc3\x03\n" +
 	"\x1dPassthroughAuthInternalConfig\x12T\n" +
 	"\x11pass_through_auth\x18\x01 \x01(\v2(.enterprise.gloo.solo.io.PassThroughAuthR\x0fpassThroughAuth\x12\x8f\x01\n" +
-	"\x0ftls_config_data\x18\x02 \x01(\v2a.enterprise.gloo.solo.io.ExtAuthConfig.PassthroughAuthInternalConfig.PassthroughAuthTlsConfigDataB\x04\xc8\xf5\x04\x01R\rtlsConfigData\x1a\xbc\x02\n" +
+	"\x0ftls_config_data\x18\x02 \x01(\v2a.enterprise.gloo.solo.io.ExtAuthConfig.PassthroughAuthInternalConfig.PassthroughAuthTlsConfigDataB\x04\xc8\xf5\x04\x01R\rtlsConfigData\x1a\xb9\x01\n" +
 	"\x1cPassthroughAuthTlsConfigData\x12\x19\n" +
 	"\bcert_pem\x18\x01 \x01(\tR\acertPem\x12\x17\n" +
 	"\akey_pem\x18\x02 \x01(\tR\x06keyPem\x12\x1e\n" +
 	"\vroot_ca_pem\x18\x03 \x01(\tR\trootCaPem\x12E\n" +
 	"\n" +
-	"ssl_params\x18\x04 \x01(\v2&.enterprise.gloo.solo.io.SslParametersR\tsslParams\x12\x1f\n" +
-	"\vserver_name\x18\a \x01(\tR\n" +
-	"serverName\x120\n" +
-	"\x14insecure_skip_verify\x18\b \x01(\bR\x12insecureSkipVerify\x12.\n" +
-	"\x13require_client_cert\x18\t \x01(\bR\x11requireClientCert\x1a\xcb\n" +
+	"ssl_params\x18\x04 \x01(\v2&.enterprise.gloo.solo.io.SslParametersR\tsslParams\x1a\xcb\n" +
 	"\n" +
 	"\x06Config\x120\n" +
 	"\x04name\x18\v \x01(\v2\x1c.google.protobuf.StringValueR\x04name\x12N\n" +

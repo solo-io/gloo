@@ -3405,19 +3405,5 @@ func (m *ExtAuthConfig_PassthroughAuthInternalConfig_PassthroughAuthTlsConfigDat
 		}
 	}
 
-	if _, err = hasher.Write([]byte(m.GetServerName())); err != nil {
-		return 0, err
-	}
-
-	err = binary.Write(hasher, binary.LittleEndian, m.GetInsecureSkipVerify())
-	if err != nil {
-		return 0, err
-	}
-
-	err = binary.Write(hasher, binary.LittleEndian, m.GetRequireClientCert())
-	if err != nil {
-		return 0, err
-	}
-
 	return hasher.Sum64(), nil
 }

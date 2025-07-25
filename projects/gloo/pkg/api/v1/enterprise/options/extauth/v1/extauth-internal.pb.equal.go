@@ -2858,17 +2858,5 @@ func (m *ExtAuthConfig_PassthroughAuthInternalConfig_PassthroughAuthTlsConfigDat
 		}
 	}
 
-	if strings.Compare(m.GetServerName(), target.GetServerName()) != 0 {
-		return false
-	}
-
-	if m.GetInsecureSkipVerify() != target.GetInsecureSkipVerify() {
-		return false
-	}
-
-	if m.GetRequireClientCert() != target.GetRequireClientCert() {
-		return false
-	}
-
 	return true
 }
