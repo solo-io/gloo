@@ -1,0 +1,6 @@
+changelog:
+  - type: NON_USER_FACING
+    description: |
+      adds a way to pass the TLS configuration in internal external auth API.
+    issueLink: https://github.com/solo-io/ext-auth-service/issues/867
+    resolvesIssue: false

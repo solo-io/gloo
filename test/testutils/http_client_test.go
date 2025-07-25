@@ -17,7 +17,7 @@ var _ = Describe("HttpClientBuilder", func() {
 		// This test is important as it checks whether the client builder has a new top level field.
 		// This should happen very rarely, and should be used as an indication that the `Clone` function
 		// most likely needs to change to support this new field
-		assertions.ExpectNumFields(testutils.HttpClientBuilder{}, 4)
+		assertions.ExpectNumFields(testutils.HttpClientBuilder{}, 7)
 	})
 
 	It("clones all fields", func() {
