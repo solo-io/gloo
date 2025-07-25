@@ -12,7 +12,7 @@ option (extproto.equal_all) = true;
 option (extproto.hash_all) = true;
 option (extproto.clone_all) = true;
 
-// Configuration for the adaptive concurrency HTTP filter.
+// Configuration for Envoy's adaptive concurrency HTTP filter. For more information about the filter, see the docs [here](https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/adaptive_concurrency_filter#config-http-filters-adaptive-concurrency).
 message FilterConfig {
 
     // The percent of sampled requests to use when summarizing aggregated samples in the minRTT

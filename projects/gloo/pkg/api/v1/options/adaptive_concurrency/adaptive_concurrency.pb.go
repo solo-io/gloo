@@ -25,7 +25,7 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// Configuration for the adaptive concurrency HTTP filter.
+// Configuration for Envoy's adaptive concurrency HTTP filter. For more information about the filter, see the docs [here](https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/adaptive_concurrency_filter#config-http-filters-adaptive-concurrency).
 type FilterConfig struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// The percent of sampled requests to use when summarizing aggregated samples in the minRTT

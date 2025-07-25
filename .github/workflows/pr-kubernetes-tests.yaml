@@ -81,7 +81,7 @@ jobs:
         # 2025-03-24: 29m15s
         - cluster-name: 'cluster-four'
           go-test-args: '-v -timeout=30m'
-          go-test-run-regex: '(^TestK8sGatewayIstio$$|^TestGlooGatewayEdgeGateway$$|^TestGlooctlIstioInjectEdgeApiGateway$$)'
+          go-test-run-regex: '(^TestK8sGatewayIstio$$|^TestGlooGatewayEdgeGateway$$|^TestGlooctlIstioInjectEdgeApiGateway$$|^TestGlooGatewayEdgeByoGateway$$)'
 
         # 2024-12-04: 24m
         # 2025-02-13: 35m21s
