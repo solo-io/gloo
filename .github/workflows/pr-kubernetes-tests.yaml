@@ -58,6 +58,7 @@ jobs:
         # 2024-12-04: 22m
         # 2025-02-13: 29m3s
         # 2025-03-24: 23m7s
+        # 2025-07-25: 28m27s
         - cluster-name: 'cluster-one'
           go-test-args: '-v -timeout=25m'
           go-test-run-regex: '^TestK8sGateway$$/^RouteDelegation$$|^TestGlooctlGlooGatewayEdgeGateway$$|^TestGlooctlK8sGateway$$|^TestK8sGateway$$/^HTTPTunnel$$|^TestListenerSet$$|^TestK8sGateway$$/^AccessLog$$|^TestK8sGateway$$/^ServerTls$$|^TestK8sGateway$$/^Tracing$$'
@@ -65,6 +66,7 @@ jobs:
         # 2024-12-04: 23m
         # 2025-02-13: 30m30s
         # 2025-03-24: 27m42s
+        # 2025-07-25: 27m31s
         - cluster-name: 'cluster-two'
           go-test-args: '-v -timeout=25m'
           go-test-run-regex: '^TestK8sGatewayIstioRevision$$|^TestRevisionIstioRegression$$|^TestK8sGateway$$/^Deployer$$|^TestK8sGateway$$/^RouteOptions$$|^TestK8sGateway$$/^VirtualHostOptions$$|^TestK8sGateway$$/^Upstreams$$|^TestK8sGateway$$/^HeadlessSvc$$|^TestK8sGateway$$/^PortRouting$$|^TestK8sGatewayMinimalDefaultGatewayParameters$$|^TestK8sGateway$$/^DirectResponse$$|^TestK8sGateway$$/^HttpListenerOptions$$|^TestK8sGateway$$/^ListenerOptions$$|^TestK8sGateway$$/^GlooAdminServer$$'
@@ -72,6 +74,7 @@ jobs:
         # 2024-12-04: 24m
         # 2025-02-13: 31m49s
         # 2025-03-24: 30m26s
+        # 2025-07-25: 31m 24s
         - cluster-name: 'cluster-three'
           go-test-args: '-v -timeout=30m'
           go-test-run-regex: '(^TestK8sGatewayIstioAutoMtls$$|^TestAutomtlsIstioEdgeApisGateway$$|^TestIstioEdgeApiGateway$$|^TestIstioRegression$$)'
@@ -79,6 +82,7 @@ jobs:
         # 2024-12-04: 21m
         # 2025-02-13: 28m3s
         # 2025-03-24: 29m15s
+        # 2025-07-25: 32m5s
         - cluster-name: 'cluster-four'
           go-test-args: '-v -timeout=30m'
           go-test-run-regex: '(^TestK8sGatewayIstio$$|^TestGlooGatewayEdgeGateway$$|^TestGlooctlIstioInjectEdgeApiGateway$$|^TestGlooGatewayEdgeByoGateway$$)'
@@ -86,6 +90,7 @@ jobs:
         # 2024-12-04: 24m
         # 2025-02-13: 35m21s
         # 2025-03-24: 33m39s
+        # 2025-07-25: 33m33s
         - cluster-name: 'cluster-five'
           go-test-args: '-v -timeout=30m'
           go-test-run-regex: '^TestFullEnvoyValidation$$|^TestValidationStrict$$|^TestValidationAlwaysAccept$$|^TestTransformationValidationDisabled$$'
@@ -93,6 +98,7 @@ jobs:
         # 2024-12-04: 26m
         # 2025-02-13: 33m19s
         # 2025-03-24: 31m38s
+        # 2025-07-25: 31m54s
         - cluster-name: 'cluster-six'
           go-test-args: '-v -timeout=30m'
           go-test-run-regex: '^TestDiscoveryWatchlabels$$|^TestK8sGatewayNoValidation$$|^TestHelm$$|^TestHelmSettings$$|^TestK8sGatewayAws$$|^TestK8sGateway$$/^HTTPRouteServices$$|^TestK8sGateway$$/^TCPRouteServices$$'
@@ -100,6 +106,7 @@ jobs:
         # 2024-12-04: 16m
         # 2025-02-13: 26m29s
         # 2025-03-24: 29m9s
+        # 2025-07-25: 27m31s
         - cluster-name: 'cluster-seven'
           go-test-args: '-v -timeout=25m'
           go-test-run-regex: '^TestK8sGateway$$/^CRDCategories$$|^TestK8sGateway$$/^Metrics$$|^TestGloomtlsGatewayEdgeGateway$$|^TestGloomtlsGatewayK8sGateway$$|^TestGlooGatewayEdgeGatewayClearMetrics$$|^TestWatchNamespaceSelector$$|^TestK8sGateway$$/^TLSRouteServices$$'
