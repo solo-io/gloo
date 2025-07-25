@@ -8,10 +8,10 @@ import (
 	"time"
 
 	"github.com/onsi/gomega"
-	"github.com/solo-io/gloo/pkg/cliutil"
 	"github.com/solo-io/gloo/pkg/utils/kubeutils"
 	"github.com/solo-io/gloo/pkg/utils/requestutils/curl"
 	gatewaydefaults "github.com/solo-io/gloo/projects/gateway/pkg/defaults"
+	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	testmatchers "github.com/solo-io/gloo/test/gomega/matchers"
 	"github.com/solo-io/gloo/test/kubernetes/e2e"
 	testdefaults "github.com/solo-io/gloo/test/kubernetes/e2e/defaults"
@@ -40,29 +40,17 @@ func NewTestingSuite(ctx context.Context, testInst *e2e.TestInstallation) suite.
 // settings (TODO better word) and is able to limit traffic.
 func (s *testingSuite) TestAdaptiveConcurrency() {
 
-	// Check basline metrics:
-	portForwarder, err := cliutil.PortForward(
-		context.Background(),
-		s.TestInstallation.Metadata.InstallNamespace,
-		"deployment/gateway-proxy",
-		fmt.Sprintf("%d", envoyAdminPort),
-		fmt.Sprintf("%d", envoyAdminPort),
-		false)
-	s.Assertions.NoError(err, "failed to port forward gateway metrics")
-
-	defer func() {
-		portForwarder.Close()
-		portForwarder.WaitForStop()
-	}()
-
 	// Check the initial metrics. If more tests are added to the suite, it is no longer safe to assume that test starts from a clean state.
 	s.TestInstallation.AssertionsT(s.T()).AssertEventualCurlResponse(
 		s.Ctx,
 		testdefaults.CurlPodExecOpt,
 		[]curl.Option{
-			curl.WithHost(localClusterDomain),
-			curl.WithPort(envoyAdminPort),
-			curl.WithPath("/stats?filter=adaptive_concurrency"),
+			curl.WithHost(kubeutils.ServiceFQDN(metav1.ObjectMeta{
+				Name:      gatewaydefaults.GatewayProxyMonitoringServiceName,
+				Namespace: s.TestInstallation.Metadata.InstallNamespace,
+			})),
+			curl.WithPort(defaults.PrometheusListenerPort),
+			curl.WithPath(envoyStatsPath),
 		},
 		&testmatchers.HttpResponse{
 			StatusCode: http.StatusOK,
@@ -115,9 +103,12 @@ func (s *testingSuite) TestAdaptiveConcurrency() {
 		s.Ctx,
 		testdefaults.CurlPodExecOpt,
 		[]curl.Option{
-			curl.WithHost(localClusterDomain),
-			curl.WithPort(envoyAdminPort),
-			curl.WithPath("/stats?filter=adaptive_concurrency"),
+			curl.WithHost(kubeutils.ServiceFQDN(metav1.ObjectMeta{
+				Name:      gatewaydefaults.GatewayProxyMonitoringServiceName,
+				Namespace: s.TestInstallation.Metadata.InstallNamespace,
+			})),
+			curl.WithPort(defaults.PrometheusListenerPort),
+			curl.WithPath(envoyStatsPath),
 		},
 		&testmatchers.HttpResponse{
 			StatusCode: http.StatusOK,

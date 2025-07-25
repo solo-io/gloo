@@ -3,7 +3,6 @@ package adaptiveconcurrency
 import (
 	"net/http"
 	"path/filepath"
-	"runtime"
 
 	testmatchers "github.com/solo-io/gloo/test/gomega/matchers"
 	e2edefaults "github.com/solo-io/gloo/test/kubernetes/e2e/defaults"
@@ -13,7 +12,6 @@ import (
 )
 
 const (
-	envoyAdminPort = 19000
 	envoyStatsPath = "/stats?filter=adaptive_concurrency"
 )
 
@@ -49,14 +47,4 @@ var (
 	okOrUnavailableResponse = &testmatchers.HttpResponse{
 		StatusCode: []int{http.StatusOK, http.StatusServiceUnavailable},
 	}
-
-	localClusterDomain = setLocalClusterDomain()
 )
-
-func setLocalClusterDomain() string {
-	localhostAddr := "172.17.0.1"
-	if runtime.GOOS == "darwin" {
-		localhostAddr = "host.docker.internal"
-	}
-	return localhostAddr
-}
