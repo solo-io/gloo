@@ -65,6 +65,8 @@ func (s *testingSuite) TestAdaptiveConcurrency() {
 			),
 		}, time.Second*10)
 
+	// Create this once here to avoid creating a new assertion provider for each goroutine and creating a data race.
+	assertions := s.TestInstallation.AssertionsT(s.T())
 	// Throw some traffic at the gateway. This is a concurrency filter, so concurrent goroutines will be run.
 	// The server is a test server that sleeps based on the x-sleep-time-ms header to allow meaningful response time measurements and higher request concurrency.
 	var wg sync.WaitGroup
@@ -75,7 +77,7 @@ func (s *testingSuite) TestAdaptiveConcurrency() {
 			host := fmt.Sprintf("example-%d.com", (i%3)+1)
 			// Use AssertEventuallyConsistentCurlResponse to generate load.
 			// It will keep polling and will expect a 200 or 503 response
-			s.TestInstallation.AssertionsT(s.T()).AssertEventuallyConsistentCurlResponse(
+			assertions.AssertEventuallyConsistentCurlResponse(
 				s.Ctx,
 				testdefaults.CurlPodExecOpt,
 				[]curl.Option{
@@ -99,7 +101,7 @@ func (s *testingSuite) TestAdaptiveConcurrency() {
 	wg.Wait()
 
 	// Check the updated metrics
-	s.TestInstallation.AssertionsT(s.T()).AssertEventualCurlResponse(
+	assertions.AssertEventualCurlResponse(
 		s.Ctx,
 		testdefaults.CurlPodExecOpt,
 		[]curl.Option{
