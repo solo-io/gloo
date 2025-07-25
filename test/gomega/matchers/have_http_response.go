@@ -5,8 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/onsi/gomega"
+	"github.com/onsi/gomega/format"
 	"github.com/onsi/gomega/gstruct"
 
 	"github.com/onsi/gomega/matchers"
@@ -65,7 +67,7 @@ func HaveOKResponseWithJSONContains(jsonBody []byte) types.GomegaMatcher {
 type HttpResponse struct {
 	// StatusCode is the expected status code for an http.Response
 	// Required
-	StatusCode int
+	StatusCode interface{}
 	// Body is the expected response body for an http.Response
 	// Body can be of type: {string, bytes, GomegaMatcher}
 	// Optional: If not provided, defaults to an empty string
@@ -82,6 +84,67 @@ type HttpResponse struct {
 	Custom types.GomegaMatcher
 }
 
+// HaveHttpStatusMultiMatcher is a matcher that allows for multiple status codes to be matched, based on the gomega HaveHTTPStatusMatcher
+type HaveHttpStatusMultiMatcher struct {
+	Expected []interface{}
+}
+
+// Override the Match method to allow for multiple status codes to be matched
+func (m *HaveHttpStatusMultiMatcher) Match(actual interface{}) (success bool, err error) {
+	var resp *http.Response
+	switch a := actual.(type) {
+	case *http.Response:
+		resp = a
+	default:
+		return false, fmt.Errorf("HaveHTTPStatus matcher expects *http.Response or *httptest.ResponseRecorder. Got:\n%s", format.Object(actual, 1))
+	}
+
+	for _, expected := range m.Expected {
+		switch e := expected.(type) {
+		case int:
+			if resp.StatusCode == e {
+				return true, nil
+			}
+		case string:
+			if resp.Status == e {
+				return true, nil
+			}
+		case []int:
+			for _, status := range e {
+				if resp.StatusCode == status {
+					return true, nil
+				}
+			}
+		case []string:
+			for _, status := range e {
+				if resp.Status == status {
+					return true, nil
+				}
+			}
+		default:
+			return false, fmt.Errorf("HaveHTTPStatus matcher expects int, string, or []int. Got:\n%s", format.Object(expected, 1))
+		}
+	}
+
+	return false, nil
+}
+
+func (m *HaveHttpStatusMultiMatcher) FailureMessage(actual interface{}) (message string) {
+	return fmt.Sprintf("Expected\n%s\n%s\n%s", format.Object(actual, 1), "to have HTTP status", m.expectedString())
+}
+
+func (m *HaveHttpStatusMultiMatcher) NegatedFailureMessage(actual interface{}) (message string) {
+	return fmt.Sprintf("Expected\n%s\n%s\n%s", format.Object(actual, 1), "not to have HTTP status", m.expectedString())
+}
+
+func (m *HaveHttpStatusMultiMatcher) expectedString() string {
+	var lines []string
+	for _, expected := range m.Expected {
+		lines = append(lines, format.Object(expected, 1))
+	}
+	return strings.Join(lines, "\n")
+}
+
 func (r *HttpResponse) String() string {
 	var bodyString string
 	switch bodyMatcher := r.Body.(type) {
@@ -93,7 +156,7 @@ func (r *HttpResponse) String() string {
 		bodyString = fmt.Sprintf("%#v", bodyMatcher)
 	}
 
-	return fmt.Sprintf("HttpResponse{StatusCode: %d, Body: %s, Headers: %v, Protocol: %s, Custom: %v}",
+	return fmt.Sprintf("HttpResponse{StatusCode: %v, Body: %s, Headers: %v, Protocol: %s, Custom: %v}",
 		r.StatusCode, bodyString, r.Headers, r.Protocol, r.Custom)
 
 }
@@ -109,7 +172,7 @@ func HaveHttpResponse(expected *HttpResponse) types.GomegaMatcher {
 	}
 
 	var partialResponseMatchers []types.GomegaMatcher
-	partialResponseMatchers = append(partialResponseMatchers, &matchers.HaveHTTPStatusMatcher{
+	partialResponseMatchers = append(partialResponseMatchers, &HaveHttpStatusMultiMatcher{
 		Expected: []interface{}{
 			expected.StatusCode,
 		},
