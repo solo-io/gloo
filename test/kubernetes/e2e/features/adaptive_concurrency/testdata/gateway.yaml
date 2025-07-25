@@ -9,9 +9,10 @@ spec:
   httpGateway:
     options:
       adaptiveConcurrency:
-        concurrencyUpdateIntervalMillis: 1000
-        maxConcurrencyLimit: 10
-        minRttCalcParams:
+        concurrencyLimitCalculationParams:
+          concurrencyUpdateInterval: 1000
+          maxConcurrencyLimit: 10
+        minRttCalculationParams:
           bufferPercentile: 5
-          intervalMillis: 1000
+          interval: 1000
           requestCount: 10

@@ -1,23 +1,27 @@
 package adaptiveconcurrency
 
 import (
+	"context"
 	"fmt"
+	"net/http"
 
 	envoy_adaptive_concurrency_v3 "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/http/adaptive_concurrency/v3"
 	typev3 "github.com/envoyproxy/go-control-plane/envoy/type/v3"
-	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 
+	"github.com/solo-io/gloo/pkg/utils/protoutils/duration"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/adaptive_concurrency"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
+	"github.com/solo-io/go-utils/contextutils"
 )
 
 var (
-	pluginStage                               = plugins.DuringStage(plugins.RateLimitStage)
-	ErrConcurrencyUpdateIntervalMillisMissing = fmt.Errorf("concurrency_update_interval_millis is required")
-	ErrMinRttCalcParamsMissing                = fmt.Errorf("min_rtt_calc_params is required")
-	ErrIntervalMissing                        = fmt.Errorf("Either interval_millis or fixed_value_millis must be set")
+	pluginStage                          = plugins.DuringStage(plugins.RateLimitStage)
+	ErrConcurrencyLimitCalcParamsMissing = fmt.Errorf("concurrency_limit_calc_params is required")
+	ErrMinRttCalcParamsMissing           = fmt.Errorf("min_rtt_calc_params is required")
+	ErrIntervalMissing                   = fmt.Errorf("Either interval or fixed_value must be set")
+	ErrConcurrencyUpdateIntervalMissing  = fmt.Errorf("concurrency_update_interval is required")
 )
 
 const (
@@ -32,7 +36,7 @@ const (
 	DefaultMinConcurrency                 = 3
 	DefaultJitterPercentile               = 15.0
 	DefaultBufferPercentile               = 25.0
-	DefaultConcurrencyLimitExceededStatus = 503
+	DefaultConcurrencyLimitExceededStatus = uint32(http.StatusServiceUnavailable)
 )
 
 var (
@@ -73,35 +77,38 @@ func translateAdaptiveConcurrency(in *v1.HttpListenerOptions) (*envoy_adaptive_c
 		return nil, nil
 	}
 
-	concurrencyLimitParams, err := translateConcurrencyLimitParams(adaptiveConcurrency)
+	concurrencyLimitParams, err := translateConcurrencyLimitParams(adaptiveConcurrency.GetConcurrencyLimitCalculationParams())
 	if err != nil {
 		return nil, err
 	}
 
-	minRttCalcParams, err := translateMinRttCalcParams(adaptiveConcurrency.GetMinRttCalcParams())
+	minRttCalcParams, err := translateMinRttCalcParams(adaptiveConcurrency.GetMinRttCalculationParams())
 	if err != nil {
 		return nil, err
 	}
 
 	// Variable declarations with defaults
 	var (
-		sampleAggregatePercentile      float64
-		concurrencyLimitExceededStatus uint32
+		sampleAggregatePercentile      float64 = DefaultSampleAggregatePercentile
+		concurrencyLimitExceededStatus uint32  = DefaultConcurrencyLimitExceededStatus
 	)
 
 	// Set sample_aggregate_percentile with default
 	if adaptiveConcurrency.GetSampleAggregatePercentile() != nil {
 		sampleAggregatePercentile = adaptiveConcurrency.GetSampleAggregatePercentile().GetValue()
-	} else {
-		sampleAggregatePercentile = DefaultSampleAggregatePercentile
 	}
 
 	// Set concurrency limit exceeded status with default of 503 for non-error codes
 	status := adaptiveConcurrency.GetConcurrencyLimitExceededStatus()
-	if status == 0 || status < 400 {
-		concurrencyLimitExceededStatus = DefaultConcurrencyLimitExceededStatus
-	} else {
+	if status >= 400 {
 		concurrencyLimitExceededStatus = status
+	} else {
+		if status != 0 { // Don't log if status is unset
+			// The envoy treats this as a non-error condition, and that logic will be applied here as well.
+			// However, we want to log this as a warning, so that users are aware of the override of their setting.
+			logger := contextutils.LoggerFrom(context.Background())
+			logger.Warnf("concurrencyLimitExceededStatus is %d, which is not an error code. The default setting of 503 Unavailable will be applied.", status)
+		}
 	}
 
 	gradientControllerConfig := &envoy_adaptive_concurrency_v3.GradientControllerConfig{
@@ -122,23 +129,31 @@ func translateAdaptiveConcurrency(in *v1.HttpListenerOptions) (*envoy_adaptive_c
 	return out, nil
 }
 
-func translateConcurrencyLimitParams(in *adaptive_concurrency.FilterConfig) (*envoy_adaptive_concurrency_v3.GradientControllerConfig_ConcurrencyLimitCalculationParams, error) {
-	if in.GetConcurrencyUpdateIntervalMillis() == 0 {
-		return nil, ErrConcurrencyUpdateIntervalMillisMissing
+func translateConcurrencyLimitParams(in *adaptive_concurrency.FilterConfig_ConcurrencyLimitCalculationParams) (*envoy_adaptive_concurrency_v3.GradientControllerConfig_ConcurrencyLimitCalculationParams, error) {
+	if in == nil {
+		return nil, ErrConcurrencyLimitCalcParamsMissing
 	}
 
 	// Variable declarations with defaults
-	var maxConcurrencyLimit uint32
+	var (
+		maxConcurrencyLimit       uint32 = DefaultMaxConcurrencyLimit
+		concurrencyUpdateInterval uint32
+	)
+
+	// Set concurrency_update_interval with default
+	if in.GetConcurrencyUpdateInterval() != 0 {
+		concurrencyUpdateInterval = in.GetConcurrencyUpdateInterval()
+	} else {
+		return nil, ErrConcurrencyUpdateIntervalMissing
+	}
 
 	// Set max_concurrency_limit with default
 	if in.GetMaxConcurrencyLimit() != nil {
 		maxConcurrencyLimit = in.GetMaxConcurrencyLimit().GetValue()
-	} else {
-		maxConcurrencyLimit = DefaultMaxConcurrencyLimit
 	}
 
 	out := &envoy_adaptive_concurrency_v3.GradientControllerConfig_ConcurrencyLimitCalculationParams{
-		ConcurrencyUpdateInterval: millisToDuration(in.GetConcurrencyUpdateIntervalMillis()),
+		ConcurrencyUpdateInterval: duration.MillisToDuration(concurrencyUpdateInterval),
 		MaxConcurrencyLimit:       &wrapperspb.UInt32Value{Value: maxConcurrencyLimit},
 	}
 
@@ -150,48 +165,40 @@ func translateMinRttCalcParams(in *adaptive_concurrency.FilterConfig_MinRoundtri
 		return nil, ErrMinRttCalcParamsMissing
 	}
 
-	intervalMillis := in.GetIntervalMillis()
-	fixedValueMillis := in.GetFixedValueMillis()
+	interval := in.GetInterval()
+	fixedValue := in.GetFixedValue()
 
 	// If both are set, Interval is used
-	if intervalMillis == 0 && fixedValueMillis == 0 {
+	if interval == 0 && fixedValue == 0 {
 		return nil, ErrIntervalMissing
 	}
 
 	// Variable declarations with defaults
 	var (
-		requestCount     uint32
-		minConcurrency   uint32
-		jitterPercentile float64
-		bufferPercentile float64
+		requestCount     uint32  = DefaultRequestCount
+		minConcurrency   uint32  = DefaultMinConcurrency
+		jitterPercentile float64 = DefaultJitterPercentile
+		bufferPercentile float64 = DefaultBufferPercentile
 	)
 
 	// Set request_count with default
 	if in.GetRequestCount() != nil {
 		requestCount = in.GetRequestCount().GetValue()
-	} else {
-		requestCount = DefaultRequestCount
 	}
 
 	// Set min_concurrency with default
 	if in.GetMinConcurrency() != nil {
 		minConcurrency = in.GetMinConcurrency().GetValue()
-	} else {
-		minConcurrency = DefaultMinConcurrency
 	}
 
 	// Set jitter_percentile with default
 	if in.GetJitterPercentile() != nil {
 		jitterPercentile = in.GetJitterPercentile().GetValue()
-	} else {
-		jitterPercentile = DefaultJitterPercentile
 	}
 
 	// Set buffer_percentile with default
 	if in.GetBufferPercentile() != nil {
 		bufferPercentile = in.GetBufferPercentile().GetValue()
-	} else {
-		bufferPercentile = DefaultBufferPercentile
 	}
 
 	out := &envoy_adaptive_concurrency_v3.GradientControllerConfig_MinimumRTTCalculationParams{
@@ -201,21 +208,11 @@ func translateMinRttCalcParams(in *adaptive_concurrency.FilterConfig_MinRoundtri
 		Buffer:         &typev3.Percent{Value: bufferPercentile},
 	}
 
-	if intervalMillis > 0 {
-		out.Interval = millisToDuration(intervalMillis)
+	if interval > 0 {
+		out.Interval = duration.MillisToDuration(interval)
 	} else {
-		out.FixedValue = millisToDuration(fixedValueMillis)
+		out.FixedValue = duration.MillisToDuration(fixedValue)
 	}
 
 	return out, nil
-}
-
-// Convert milliseconds to durationpb.Duration
-func millisToDuration(millis uint32) *durationpb.Duration {
-	nanos := millis % 1000 * 1_000_000
-	seconds := millis / 1000
-	return &durationpb.Duration{
-		Seconds: int64(seconds),
-		Nanos:   int32(nanos),
-	}
 }

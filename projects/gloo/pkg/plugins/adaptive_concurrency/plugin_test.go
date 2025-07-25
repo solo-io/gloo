@@ -1,6 +1,8 @@
 package adaptiveconcurrency_test
 
 import (
+	"net/http"
+
 	envoy_adaptive_concurrency_v3 "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/http/adaptive_concurrency/v3"
 	envoyhcm "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/http_connection_manager/v3"
 	typev3 "github.com/envoyproxy/go-control-plane/envoy/type/v3"
@@ -19,19 +21,19 @@ import (
 
 // baseConfigParams holds the parameters for creating a base expected config
 type baseConfigParams struct {
-	ConcurrencyUpdateIntervalMillis uint32
-	MinRttIntervalMillis            uint32
-	MinRttFixedValueMillis          uint32
+	ConcurrencyUpdateInterval uint32
+	MinRttInterval            uint32
+	MinRttFixedValue          uint32
 }
 
 // createBaseExpectedConfig creates a base expected config with defaults
-// params.ConcurrencyUpdateIntervalMillis: the interval for concurrency updates in milliseconds
-// params.MinRttIntervalMillis: the interval for min RTT calculation in milliseconds (0 to use fixed value instead)
-// params.MinRttFixedValueMillis: the fixed value for min RTT calculation in milliseconds (only used if MinRttIntervalMillis is 0)
+// params.ConcurrencyUpdateInterval: the interval for concurrency updates in milliseconds
+// params.MinRttInterval: the interval for min RTT calculation in milliseconds (0 to use fixed value instead)
+// params.MinRttFixedValue: the fixed value for min RTT calculation in milliseconds (only used if MinRttInterval is 0)
 func createBaseExpectedConfig(params baseConfigParams) *envoy_adaptive_concurrency_v3.AdaptiveConcurrency {
 	concurrencyUpdateDuration := &durationpb.Duration{
-		Seconds: int64(params.ConcurrencyUpdateIntervalMillis / 1000),
-		Nanos:   int32(params.ConcurrencyUpdateIntervalMillis%1000) * 1_000_000,
+		Seconds: int64(params.ConcurrencyUpdateInterval / 1000),
+		Nanos:   int32(params.ConcurrencyUpdateInterval%1000) * 1_000_000,
 	}
 
 	minRttCalcParams := &envoy_adaptive_concurrency_v3.GradientControllerConfig_MinimumRTTCalculationParams{
@@ -41,15 +43,15 @@ func createBaseExpectedConfig(params baseConfigParams) *envoy_adaptive_concurren
 		Buffer:         &typev3.Percent{Value: DefaultBufferPercentile},
 	}
 
-	if params.MinRttIntervalMillis > 0 {
+	if params.MinRttInterval > 0 {
 		minRttCalcParams.Interval = &durationpb.Duration{
-			Seconds: int64(params.MinRttIntervalMillis / 1000),
-			Nanos:   int32(params.MinRttIntervalMillis%1000) * 1_000_000,
+			Seconds: int64(params.MinRttInterval / 1000),
+			Nanos:   int32(params.MinRttInterval%1000) * 1_000_000,
 		}
 	} else {
 		minRttCalcParams.FixedValue = &durationpb.Duration{
-			Seconds: int64(params.MinRttFixedValueMillis / 1000),
-			Nanos:   int32(params.MinRttFixedValueMillis%1000) * 1_000_000,
+			Seconds: int64(params.MinRttFixedValue / 1000),
+			Nanos:   int32(params.MinRttFixedValue%1000) * 1_000_000,
 		}
 	}
 
@@ -104,17 +106,19 @@ var _ = Describe("Adaptive Concurrency Plugin", func() {
 		Context("when adaptive concurrency is configured with valid settings", func() {
 			BeforeEach(func() {
 				listener.Options.AdaptiveConcurrency = &adaptive_concurrency.FilterConfig{
-					SampleAggregatePercentile:       &wrapperspb.DoubleValue{Value: 60.0},
-					ConcurrencyUpdateIntervalMillis: 1000,
-					MaxConcurrencyLimit:             &wrapperspb.UInt32Value{Value: 100},
-					MinRttCalcParams: &adaptive_concurrency.FilterConfig_MinRoundtripTimeCalculationParams{
-						IntervalMillis:   500,
+					SampleAggregatePercentile: &wrapperspb.DoubleValue{Value: 60.0},
+					ConcurrencyLimitCalculationParams: &adaptive_concurrency.FilterConfig_ConcurrencyLimitCalculationParams{
+						ConcurrencyUpdateInterval: 1000,
+						MaxConcurrencyLimit:       &wrapperspb.UInt32Value{Value: 100},
+					},
+					MinRttCalculationParams: &adaptive_concurrency.FilterConfig_MinRoundtripTimeCalculationParams{
+						Interval:         500,
 						RequestCount:     &wrapperspb.UInt32Value{Value: 10},
 						MinConcurrency:   &wrapperspb.UInt32Value{Value: 5},
 						JitterPercentile: &wrapperspb.DoubleValue{Value: 20.0},
 						BufferPercentile: &wrapperspb.DoubleValue{Value: 30.0},
 					},
-					ConcurrencyLimitExceededStatus: 503,
+					ConcurrencyLimitExceededStatus: uint32(http.StatusServiceUnavailable),
 				}
 			})
 
@@ -127,8 +131,8 @@ var _ = Describe("Adaptive Concurrency Plugin", func() {
 				Expect(filter.Stage).To(Equal(plugins.DuringStage(plugins.RateLimitStage)))
 
 				expectedConfig := createBaseExpectedConfig(baseConfigParams{
-					ConcurrencyUpdateIntervalMillis: 1000,
-					MinRttIntervalMillis:            500,
+					ConcurrencyUpdateInterval: 1000,
+					MinRttInterval:            500,
 				})
 				// Override custom values
 				gradientConfig := expectedConfig.ConcurrencyControllerConfig.(*envoy_adaptive_concurrency_v3.AdaptiveConcurrency_GradientControllerConfig).GradientControllerConfig
@@ -153,12 +157,12 @@ var _ = Describe("Adaptive Concurrency Plugin", func() {
 			})
 		})
 
-		Context("when concurrency_update_interval_millis is missing", func() {
+		Context("when concurrency_limit_calc_params is missing", func() {
 			BeforeEach(func() {
 				listener.Options.AdaptiveConcurrency = &adaptive_concurrency.FilterConfig{
-					ConcurrencyUpdateIntervalMillis: 0, // Missing/zero
-					MinRttCalcParams: &adaptive_concurrency.FilterConfig_MinRoundtripTimeCalculationParams{
-						IntervalMillis: 500,
+					ConcurrencyLimitCalculationParams: nil, // Missing
+					MinRttCalculationParams: &adaptive_concurrency.FilterConfig_MinRoundtripTimeCalculationParams{
+						Interval: 500,
 					},
 				}
 			})
@@ -166,15 +170,34 @@ var _ = Describe("Adaptive Concurrency Plugin", func() {
 			It("should return the exported error", func() {
 				_, err := p.HttpFilters(params, listener)
 				Expect(err).To(HaveOccurred())
-				Expect(err).To(Equal(ErrConcurrencyUpdateIntervalMillisMissing))
+				Expect(err).To(Equal(ErrConcurrencyLimitCalcParamsMissing))
+			})
+		})
+
+		Context("when concurrency_limit_calc_params.concurrency_update_interval is missing", func() {
+			BeforeEach(func() {
+				listener.Options.AdaptiveConcurrency = &adaptive_concurrency.FilterConfig{
+					ConcurrencyLimitCalculationParams: &adaptive_concurrency.FilterConfig_ConcurrencyLimitCalculationParams{},
+					MinRttCalculationParams: &adaptive_concurrency.FilterConfig_MinRoundtripTimeCalculationParams{
+						Interval: 500,
+					},
+				}
+			})
+
+			It("should return the exported error", func() {
+				_, err := p.HttpFilters(params, listener)
+				Expect(err).To(HaveOccurred())
+				Expect(err).To(Equal(ErrConcurrencyUpdateIntervalMissing))
 			})
 		})
 
 		Context("when min_rtt_calc_params is missing", func() {
 			BeforeEach(func() {
 				listener.Options.AdaptiveConcurrency = &adaptive_concurrency.FilterConfig{
-					ConcurrencyUpdateIntervalMillis: 1000,
-					MinRttCalcParams:                nil, // Missing
+					ConcurrencyLimitCalculationParams: &adaptive_concurrency.FilterConfig_ConcurrencyLimitCalculationParams{
+						ConcurrencyUpdateInterval: 1000,
+					},
+					MinRttCalculationParams: nil, // Missing
 				}
 			})
 
@@ -185,11 +208,13 @@ var _ = Describe("Adaptive Concurrency Plugin", func() {
 			})
 		})
 
-		Context("when both interval_millis and fixed_value_millis are missing", func() {
+		Context("when both interval and fixed_value are missing", func() {
 			BeforeEach(func() {
 				listener.Options.AdaptiveConcurrency = &adaptive_concurrency.FilterConfig{
-					ConcurrencyUpdateIntervalMillis: 1000,
-					MinRttCalcParams:                &adaptive_concurrency.FilterConfig_MinRoundtripTimeCalculationParams{},
+					ConcurrencyLimitCalculationParams: &adaptive_concurrency.FilterConfig_ConcurrencyLimitCalculationParams{
+						ConcurrencyUpdateInterval: 1000,
+					},
+					MinRttCalculationParams: &adaptive_concurrency.FilterConfig_MinRoundtripTimeCalculationParams{},
 				}
 			})
 
@@ -200,13 +225,15 @@ var _ = Describe("Adaptive Concurrency Plugin", func() {
 			})
 		})
 
-		Context("when both interval_millis and fixed_value_millis are 0", func() {
+		Context("when both interval and fixed_value are 0", func() {
 			BeforeEach(func() {
 				listener.Options.AdaptiveConcurrency = &adaptive_concurrency.FilterConfig{
-					ConcurrencyUpdateIntervalMillis: 1000,
-					MinRttCalcParams: &adaptive_concurrency.FilterConfig_MinRoundtripTimeCalculationParams{
-						IntervalMillis:   0, // Interval is 0
-						FixedValueMillis: 0, // FixedValue is 0 (invalid)
+					ConcurrencyLimitCalculationParams: &adaptive_concurrency.FilterConfig_ConcurrencyLimitCalculationParams{
+						ConcurrencyUpdateInterval: 1000,
+					},
+					MinRttCalculationParams: &adaptive_concurrency.FilterConfig_MinRoundtripTimeCalculationParams{
+						Interval:   0, // Interval is 0
+						FixedValue: 0, // FixedValue is 0 (invalid)
 					},
 				}
 			})
@@ -218,12 +245,14 @@ var _ = Describe("Adaptive Concurrency Plugin", func() {
 			})
 		})
 
-		Context("when using fixed_value_millis instead of interval_millis", func() {
+		Context("when using fixed_value instead of interval", func() {
 			BeforeEach(func() {
 				listener.Options.AdaptiveConcurrency = &adaptive_concurrency.FilterConfig{
-					ConcurrencyUpdateIntervalMillis: 1000,
-					MinRttCalcParams: &adaptive_concurrency.FilterConfig_MinRoundtripTimeCalculationParams{
-						FixedValueMillis: 200, // Use fixed value instead of interval
+					ConcurrencyLimitCalculationParams: &adaptive_concurrency.FilterConfig_ConcurrencyLimitCalculationParams{
+						ConcurrencyUpdateInterval: 1000,
+					},
+					MinRttCalculationParams: &adaptive_concurrency.FilterConfig_MinRoundtripTimeCalculationParams{
+						FixedValue: 200, // Use fixed value instead of interval
 					},
 				}
 			})
@@ -235,8 +264,8 @@ var _ = Describe("Adaptive Concurrency Plugin", func() {
 
 				filter := filters[0]
 				expectedConfig := createBaseExpectedConfig(baseConfigParams{
-					ConcurrencyUpdateIntervalMillis: 1000,
-					MinRttFixedValueMillis:          200,
+					ConcurrencyUpdateInterval: 1000,
+					MinRttFixedValue:          200,
 				})
 
 				typedConfig, err := utils.MessageToAny(expectedConfig)
@@ -253,26 +282,28 @@ var _ = Describe("Adaptive Concurrency Plugin", func() {
 			})
 		})
 
-		Context("when both interval_millis and fixed_value_millis are set", func() {
+		Context("when both interval and fixed_value are set", func() {
 			BeforeEach(func() {
 				listener.Options.AdaptiveConcurrency = &adaptive_concurrency.FilterConfig{
-					ConcurrencyUpdateIntervalMillis: 1000,
-					MinRttCalcParams: &adaptive_concurrency.FilterConfig_MinRoundtripTimeCalculationParams{
-						IntervalMillis:   500,
-						FixedValueMillis: 200, // Both set - interval should take precedence
+					ConcurrencyLimitCalculationParams: &adaptive_concurrency.FilterConfig_ConcurrencyLimitCalculationParams{
+						ConcurrencyUpdateInterval: 1000,
+					},
+					MinRttCalculationParams: &adaptive_concurrency.FilterConfig_MinRoundtripTimeCalculationParams{
+						Interval:   500,
+						FixedValue: 200, // Both set - interval should take precedence
 					},
 				}
 			})
 
-			It("should use interval_millis and ignore fixed_value_millis with defaults", func() {
+			It("should use interval and ignore fixed_value with defaults", func() {
 				filters, err := p.HttpFilters(params, listener)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(filters).To(HaveLen(1))
 
 				filter := filters[0]
 				expectedConfig := createBaseExpectedConfig(baseConfigParams{
-					ConcurrencyUpdateIntervalMillis: 1000,
-					MinRttIntervalMillis:            500,
+					ConcurrencyUpdateInterval: 1000,
+					MinRttInterval:            500,
 				})
 
 				typedConfig, err := utils.MessageToAny(expectedConfig)
@@ -292,9 +323,11 @@ var _ = Describe("Adaptive Concurrency Plugin", func() {
 		Context("when concurrency_limit_exceeded_status is set to non-error code", func() {
 			BeforeEach(func() {
 				listener.Options.AdaptiveConcurrency = &adaptive_concurrency.FilterConfig{
-					ConcurrencyUpdateIntervalMillis: 1000,
-					MinRttCalcParams: &adaptive_concurrency.FilterConfig_MinRoundtripTimeCalculationParams{
-						IntervalMillis: 500,
+					ConcurrencyLimitCalculationParams: &adaptive_concurrency.FilterConfig_ConcurrencyLimitCalculationParams{
+						ConcurrencyUpdateInterval: 1000,
+					},
+					MinRttCalculationParams: &adaptive_concurrency.FilterConfig_MinRoundtripTimeCalculationParams{
+						Interval: 500,
 					},
 					ConcurrencyLimitExceededStatus: 200, // Non-error code
 				}
@@ -307,8 +340,8 @@ var _ = Describe("Adaptive Concurrency Plugin", func() {
 
 				filter := filters[0]
 				expectedConfig := createBaseExpectedConfig(baseConfigParams{
-					ConcurrencyUpdateIntervalMillis: 1000,
-					MinRttIntervalMillis:            500,
+					ConcurrencyUpdateInterval: 1000,
+					MinRttInterval:            500,
 				})
 
 				typedConfig, err := utils.MessageToAny(expectedConfig)
@@ -328,9 +361,11 @@ var _ = Describe("Adaptive Concurrency Plugin", func() {
 		Context("when only minimal required fields are set", func() {
 			BeforeEach(func() {
 				listener.Options.AdaptiveConcurrency = &adaptive_concurrency.FilterConfig{
-					ConcurrencyUpdateIntervalMillis: 1000,
-					MinRttCalcParams: &adaptive_concurrency.FilterConfig_MinRoundtripTimeCalculationParams{
-						IntervalMillis: 500,
+					ConcurrencyLimitCalculationParams: &adaptive_concurrency.FilterConfig_ConcurrencyLimitCalculationParams{
+						ConcurrencyUpdateInterval: 1000,
+					},
+					MinRttCalculationParams: &adaptive_concurrency.FilterConfig_MinRoundtripTimeCalculationParams{
+						Interval: 500,
 						// All other fields are optional and not set
 					},
 				}
@@ -343,8 +378,8 @@ var _ = Describe("Adaptive Concurrency Plugin", func() {
 
 				filter := filters[0]
 				expectedConfig := createBaseExpectedConfig(baseConfigParams{
-					ConcurrencyUpdateIntervalMillis: 1000,
-					MinRttIntervalMillis:            500,
+					ConcurrencyUpdateInterval: 1000,
+					MinRttInterval:            500,
 				})
 
 				typedConfig, err := utils.MessageToAny(expectedConfig)

@@ -56,26 +56,22 @@ func (m *FilterConfig) Equal(that interface{}) bool {
 		}
 	}
 
-	if h, ok := interface{}(m.GetMaxConcurrencyLimit()).(equality.Equalizer); ok {
-		if !h.Equal(target.GetMaxConcurrencyLimit()) {
+	if h, ok := interface{}(m.GetConcurrencyLimitCalculationParams()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetConcurrencyLimitCalculationParams()) {
 			return false
 		}
 	} else {
-		if !proto.Equal(m.GetMaxConcurrencyLimit(), target.GetMaxConcurrencyLimit()) {
+		if !proto.Equal(m.GetConcurrencyLimitCalculationParams(), target.GetConcurrencyLimitCalculationParams()) {
 			return false
 		}
 	}
 
-	if m.GetConcurrencyUpdateIntervalMillis() != target.GetConcurrencyUpdateIntervalMillis() {
-		return false
-	}
-
-	if h, ok := interface{}(m.GetMinRttCalcParams()).(equality.Equalizer); ok {
-		if !h.Equal(target.GetMinRttCalcParams()) {
+	if h, ok := interface{}(m.GetMinRttCalculationParams()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetMinRttCalculationParams()) {
 			return false
 		}
 	} else {
-		if !proto.Equal(m.GetMinRttCalcParams(), target.GetMinRttCalcParams()) {
+		if !proto.Equal(m.GetMinRttCalculationParams(), target.GetMinRttCalculationParams()) {
 			return false
 		}
 	}
@@ -108,11 +104,11 @@ func (m *FilterConfig_MinRoundtripTimeCalculationParams) Equal(that interface{})
 		return false
 	}
 
-	if m.GetIntervalMillis() != target.GetIntervalMillis() {
+	if m.GetInterval() != target.GetInterval() {
 		return false
 	}
 
-	if m.GetFixedValueMillis() != target.GetFixedValueMillis() {
+	if m.GetFixedValue() != target.GetFixedValue() {
 		return false
 	}
 
@@ -154,6 +150,44 @@ func (m *FilterConfig_MinRoundtripTimeCalculationParams) Equal(that interface{})
 		if !proto.Equal(m.GetBufferPercentile(), target.GetBufferPercentile()) {
 			return false
 		}
+	}
+
+	return true
+}
+
+// Equal function
+func (m *FilterConfig_ConcurrencyLimitCalculationParams) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*FilterConfig_ConcurrencyLimitCalculationParams)
+	if !ok {
+		that2, ok := that.(FilterConfig_ConcurrencyLimitCalculationParams)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	if h, ok := interface{}(m.GetMaxConcurrencyLimit()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetMaxConcurrencyLimit()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetMaxConcurrencyLimit(), target.GetMaxConcurrencyLimit()) {
+			return false
+		}
+	}
+
+	if m.GetConcurrencyUpdateInterval() != target.GetConcurrencyUpdateInterval() {
+		return false
 	}
 
 	return true

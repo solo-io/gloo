@@ -41,18 +41,16 @@ func (m *FilterConfig) Clone() proto.Message {
 		target.SampleAggregatePercentile = proto.Clone(m.GetSampleAggregatePercentile()).(*google_golang_org_protobuf_types_known_wrapperspb.DoubleValue)
 	}
 
-	if h, ok := interface{}(m.GetMaxConcurrencyLimit()).(clone.Cloner); ok {
-		target.MaxConcurrencyLimit = h.Clone().(*google_golang_org_protobuf_types_known_wrapperspb.UInt32Value)
+	if h, ok := interface{}(m.GetConcurrencyLimitCalculationParams()).(clone.Cloner); ok {
+		target.ConcurrencyLimitCalculationParams = h.Clone().(*FilterConfig_ConcurrencyLimitCalculationParams)
 	} else {
-		target.MaxConcurrencyLimit = proto.Clone(m.GetMaxConcurrencyLimit()).(*google_golang_org_protobuf_types_known_wrapperspb.UInt32Value)
+		target.ConcurrencyLimitCalculationParams = proto.Clone(m.GetConcurrencyLimitCalculationParams()).(*FilterConfig_ConcurrencyLimitCalculationParams)
 	}
 
-	target.ConcurrencyUpdateIntervalMillis = m.GetConcurrencyUpdateIntervalMillis()
-
-	if h, ok := interface{}(m.GetMinRttCalcParams()).(clone.Cloner); ok {
-		target.MinRttCalcParams = h.Clone().(*FilterConfig_MinRoundtripTimeCalculationParams)
+	if h, ok := interface{}(m.GetMinRttCalculationParams()).(clone.Cloner); ok {
+		target.MinRttCalculationParams = h.Clone().(*FilterConfig_MinRoundtripTimeCalculationParams)
 	} else {
-		target.MinRttCalcParams = proto.Clone(m.GetMinRttCalcParams()).(*FilterConfig_MinRoundtripTimeCalculationParams)
+		target.MinRttCalculationParams = proto.Clone(m.GetMinRttCalculationParams()).(*FilterConfig_MinRoundtripTimeCalculationParams)
 	}
 
 	target.ConcurrencyLimitExceededStatus = m.GetConcurrencyLimitExceededStatus()
@@ -68,9 +66,9 @@ func (m *FilterConfig_MinRoundtripTimeCalculationParams) Clone() proto.Message {
 	}
 	target = &FilterConfig_MinRoundtripTimeCalculationParams{}
 
-	target.IntervalMillis = m.GetIntervalMillis()
+	target.Interval = m.GetInterval()
 
-	target.FixedValueMillis = m.GetFixedValueMillis()
+	target.FixedValue = m.GetFixedValue()
 
 	if h, ok := interface{}(m.GetRequestCount()).(clone.Cloner); ok {
 		target.RequestCount = h.Clone().(*google_golang_org_protobuf_types_known_wrapperspb.UInt32Value)
@@ -95,6 +93,25 @@ func (m *FilterConfig_MinRoundtripTimeCalculationParams) Clone() proto.Message {
 	} else {
 		target.BufferPercentile = proto.Clone(m.GetBufferPercentile()).(*google_golang_org_protobuf_types_known_wrapperspb.DoubleValue)
 	}
+
+	return target
+}
+
+// Clone function
+func (m *FilterConfig_ConcurrencyLimitCalculationParams) Clone() proto.Message {
+	var target *FilterConfig_ConcurrencyLimitCalculationParams
+	if m == nil {
+		return target
+	}
+	target = &FilterConfig_ConcurrencyLimitCalculationParams{}
+
+	if h, ok := interface{}(m.GetMaxConcurrencyLimit()).(clone.Cloner); ok {
+		target.MaxConcurrencyLimit = h.Clone().(*google_golang_org_protobuf_types_known_wrapperspb.UInt32Value)
+	} else {
+		target.MaxConcurrencyLimit = proto.Clone(m.GetMaxConcurrencyLimit()).(*google_golang_org_protobuf_types_known_wrapperspb.UInt32Value)
+	}
+
+	target.ConcurrencyUpdateInterval = m.GetConcurrencyUpdateInterval()
 
 	return target
 }

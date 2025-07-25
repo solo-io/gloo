@@ -13,6 +13,7 @@ weight: 5
 
 - [FilterConfig](#filterconfig)
 - [MinRoundtripTimeCalculationParams](#minroundtriptimecalculationparams)
+- [ConcurrencyLimitCalculationParams](#concurrencylimitcalculationparams)
   
 
 
@@ -31,9 +32,8 @@ Configuration for Envoy's adaptive concurrency HTTP filter. For more information
 
 ```yaml
 "sampleAggregatePercentile": .google.protobuf.DoubleValue
-"maxConcurrencyLimit": .google.protobuf.UInt32Value
-"concurrencyUpdateIntervalMillis": int
-"minRttCalcParams": .adaptive_concurrency.options.gloo.solo.io.FilterConfig.MinRoundtripTimeCalculationParams
+"concurrencyLimitCalculationParams": .adaptive_concurrency.options.gloo.solo.io.FilterConfig.ConcurrencyLimitCalculationParams
+"minRttCalculationParams": .adaptive_concurrency.options.gloo.solo.io.FilterConfig.MinRoundtripTimeCalculationParams
 "concurrencyLimitExceededStatus": int
 
 ```
@@ -41,9 +41,8 @@ Configuration for Envoy's adaptive concurrency HTTP filter. For more information
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
 | `sampleAggregatePercentile` | [.google.protobuf.DoubleValue](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/double-value) | The percent of sampled requests to use when summarizing aggregated samples in the minRTT calculation. If unset, defaults to 50%. |
-| `maxConcurrencyLimit` | [.google.protobuf.UInt32Value](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/u-int-32-value) | The allowed upper-bound on the calculated concurrency limit. For example, you can cap the concurrency limit to a maximum of 800 connections, in the case that the calculated concurrency limit exceeds this value. If unset, defaults to 1000. |
-| `concurrencyUpdateIntervalMillis` | `int` | The period of time during which request latency samples are taken to recalculate the concurrency limit. This field is required. |
-| `minRttCalcParams` | [.adaptive_concurrency.options.gloo.solo.io.FilterConfig.MinRoundtripTimeCalculationParams](../adaptive_concurrency.proto.sk/#minroundtriptimecalculationparams) | Configure how the gradient controller calculates the minimum round-trip time (minRTT) for the destination. For more information about the minRTT formula and the following fields, see the [Envoy adaptive concurrency docs](https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/adaptive_concurrency_filter). This field is required. |
+| `concurrencyLimitCalculationParams` | [.adaptive_concurrency.options.gloo.solo.io.FilterConfig.ConcurrencyLimitCalculationParams](../adaptive_concurrency.proto.sk/#concurrencylimitcalculationparams) | Configure how the gradient controller calculates the concurrency limit for the destination. For more information about the concurrency limit formula and the following fields, see the [Envoy adaptive concurrency docs](https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/adaptive_concurrency_filter). This field is required. |
+| `minRttCalculationParams` | [.adaptive_concurrency.options.gloo.solo.io.FilterConfig.MinRoundtripTimeCalculationParams](../adaptive_concurrency.proto.sk/#minroundtriptimecalculationparams) | Configure how the gradient controller calculates the minimum round-trip time (minRTT) for the destination. For more information about the minRTT formula and the following fields, see the [Envoy adaptive concurrency docs](https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/adaptive_concurrency_filter). This field is required. |
 | `concurrencyLimitExceededStatus` | `int` | Return a custom HTTP response status code to the downstream client when the concurrency limit is exceeded. If this field is empty, omitted, or set to a non-error response of < 400, the response code defaults to 503 (Service Unavailable). |
 
 
@@ -59,8 +58,8 @@ For more information about the minRTT formula and the following fields, see the
 This field is required.
 
 ```yaml
-"intervalMillis": int
-"fixedValueMillis": int
+"interval": int
+"fixedValue": int
 "requestCount": .google.protobuf.UInt32Value
 "minConcurrency": .google.protobuf.UInt32Value
 "jitterPercentile": .google.protobuf.DoubleValue
@@ -70,12 +69,31 @@ This field is required.
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `intervalMillis` | `int` | The amount of time between each minRTT remeasurement. This field is required. |
-| `fixedValueMillis` | `int` | The fixed value for the minRTT. This value is used when minRTT is not sampled dynamically. If dynamic sampling of the minRTT is disabled, this field must be set. |
-| `requestCount` | [.google.protobuf.UInt32Value](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/u-int-32-value) | The number of requests to sample during the `concurrencyUpdateIntervalMillis` timeframe. If unset, defaults to 50. |
+| `interval` | `int` | The amount of time between each minRTT remeasurement in milliseconds. This field is required. |
+| `fixedValue` | `int` | The fixed value for the minRTT. This value is used when minRTT is not sampled dynamically. If dynamic sampling of the minRTT is disabled, this field must be set. |
+| `requestCount` | [.google.protobuf.UInt32Value](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/u-int-32-value) | The number of requests to sample during the `concurrencyUpdateInterval` timeframe. If unset, defaults to 50. |
 | `minConcurrency` | [.google.protobuf.UInt32Value](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/u-int-32-value) | Temporarily set the concurrency limit until the latest minRTT measurement is complete. If unset, defaults to 3. |
-| `jitterPercentile` | [.google.protobuf.DoubleValue](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/double-value) | Add a random delay to the start of each minRTT measurement, represented as a percentage of the interval between each remeasurement (`intervalMillis`). For example, if the interval is 1000ms and the jitter is 15%, the next minRTT measurement begins in the range of 1000ms - 1150ms, because a delay between 0ms - 150ms is added to the 1000ms interval. If unset, defaults to 15%. |
+| `jitterPercentile` | [.google.protobuf.DoubleValue](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/double-value) | Add a random delay to the start of each minRTT measurement, represented as a percentage of the interval between each remeasurement (`interval`). For example, if the interval is 1000ms and the jitter is 15%, the next minRTT measurement begins in the range of 1000ms - 1150ms, because a delay between 0ms - 150ms is added to the 1000ms interval. If unset, defaults to 15%. |
 | `bufferPercentile` | [.google.protobuf.DoubleValue](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/double-value) | Add a buffer to the measured minRTT to stabilize natural variability in latency. This is represented as a percentage of the measured value, and can be adjusted to allow more or less tolerance to the sampled latency values. If unset, defaults to 25%. |
+
+
+
+
+---
+### ConcurrencyLimitCalculationParams
+
+
+
+```yaml
+"maxConcurrencyLimit": .google.protobuf.UInt32Value
+"concurrencyUpdateInterval": int
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+| `maxConcurrencyLimit` | [.google.protobuf.UInt32Value](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/u-int-32-value) | The allowed upper-bound on the calculated concurrency limit. For example, you can cap the concurrency limit to a maximum of 800 connections, in the case that the calculated concurrency limit exceeds this value. If unset, defaults to 1000. |
+| `concurrencyUpdateInterval` | `int` | The period of time during which request latency samples are taken to recalculate the concurrency limit in milliseconds. This field is required. |
 
 
 

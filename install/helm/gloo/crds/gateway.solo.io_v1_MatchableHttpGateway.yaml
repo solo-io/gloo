@@ -31,29 +31,32 @@ spec:
                     properties:
                       adaptiveConcurrency:
                         properties:
+                          concurrencyLimitCalculationParams:
+                            properties:
+                              concurrencyUpdateInterval:
+                                maximum: 4294967295
+                                minimum: 0
+                                type: integer
+                              maxConcurrencyLimit:
+                                maximum: 4294967295
+                                minimum: 0
+                                nullable: true
+                                type: integer
+                            type: object
                           concurrencyLimitExceededStatus:
                             maximum: 4294967295
                             minimum: 0
                             type: integer
-                          concurrencyUpdateIntervalMillis:
-                            maximum: 4294967295
-                            minimum: 0
-                            type: integer
-                          maxConcurrencyLimit:
-                            maximum: 4294967295
-                            minimum: 0
-                            nullable: true
-                            type: integer
-                          minRttCalcParams:
+                          minRttCalculationParams:
                             properties:
                               bufferPercentile:
                                 nullable: true
                                 type: number
-                              fixedValueMillis:
+                              fixedValue:
                                 maximum: 4294967295
                                 minimum: 0
                                 type: integer
-                              intervalMillis:
+                              interval:
                                 maximum: 4294967295
                                 minimum: 0
                                 type: integer

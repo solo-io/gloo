@@ -19,39 +19,36 @@ message FilterConfig {
     // calculation. If unset, defaults to 50%.
     google.protobuf.DoubleValue sample_aggregate_percentile = 2;
 
-    // The allowed upper-bound on the calculated concurrency limit. For example, you can cap the concurrency
-    // limit to a maximum of 800 connections, in the case that the calculated concurrency limit exceeds this value.
-    // If unset, defaults to 1000.
-    google.protobuf.UInt32Value max_concurrency_limit = 3;
-
-    // The period of time during which request latency samples are taken to recalculate the concurrency limit.
+    // Configure how the gradient controller calculates the concurrency limit for the destination.
+    // For more information about the concurrency limit formula and the following fields, see the
+    // [Envoy adaptive concurrency docs](https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/adaptive_concurrency_filter).
     // This field is required.
-    uint32 concurrency_update_interval_millis = 4;
+    ConcurrencyLimitCalculationParams concurrency_limit_calculation_params = 3;
 
     // Configure how the gradient controller calculates the minimum round-trip time (minRTT) for the destination.
     // For more information about the minRTT formula and the following fields, see the
     // [Envoy adaptive concurrency docs](https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/adaptive_concurrency_filter).
     // This field is required.
-    MinRoundtripTimeCalculationParams min_rtt_calc_params = 5;
+    MinRoundtripTimeCalculationParams min_rtt_calculation_params = 4;
 
     // Return a custom HTTP response status code to the downstream client when the concurrency limit is exceeded.
     // If this field is empty, omitted, or set to a non-error response of < 400, the response code defaults to 503 (Service Unavailable).
-    uint32 concurrency_limit_exceeded_status = 6;
+    uint32 concurrency_limit_exceeded_status = 5;
 
     // Configure how the gradient controller calculates the minimum round-trip time (minRTT) for the destination.
     // For more information about the minRTT formula and the following fields, see the
     // [Envoy adaptive concurrency docs](https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/adaptive_concurrency_filter).
     // This field is required.
     message MinRoundtripTimeCalculationParams {
-      // The amount of time between each minRTT remeasurement.
+      // The amount of time between each minRTT remeasurement in milliseconds.
       // This field is required.
-      uint32 interval_millis = 1;
+      uint32 interval = 1;
 
       // The fixed value for the minRTT. This value is used when minRTT is not sampled dynamically.
       // If dynamic sampling of the minRTT is disabled, this field must be set.
-      uint32 fixed_value_millis = 2;
+      uint32 fixed_value = 2;
 
-      // The number of requests to sample during the `concurrencyUpdateIntervalMillis` timeframe.
+      // The number of requests to sample during the `concurrencyUpdateInterval` timeframe.
       // If unset, defaults to 50.
       google.protobuf.UInt32Value request_count = 3;
 
@@ -60,7 +57,7 @@ message FilterConfig {
       google.protobuf.UInt32Value min_concurrency = 4;
 
       // Add a random delay to the start of each minRTT measurement, represented as a percentage of the interval between each
-      // remeasurement (`intervalMillis`). For example, if the interval is 1000ms and the jitter is 15%, the next minRTT measurement
+      // remeasurement (`interval`). For example, if the interval is 1000ms and the jitter is 15%, the next minRTT measurement
       // begins in the range of 1000ms - 1150ms, because a delay between 0ms - 150ms is added to the 1000ms interval.
       // If unset, defaults to 15%.
       google.protobuf.DoubleValue jitter_percentile = 5;
@@ -69,6 +66,17 @@ message FilterConfig {
       // of the measured value, and can be adjusted to allow more or less tolerance to the sampled latency values.
       // If unset, defaults to 25%.
       google.protobuf.DoubleValue buffer_percentile = 6;
+    }
+
+    message ConcurrencyLimitCalculationParams {
+      // The allowed upper-bound on the calculated concurrency limit. For example, you can cap the concurrency
+      // limit to a maximum of 800 connections, in the case that the calculated concurrency limit exceeds this value.
+      // If unset, defaults to 1000.
+      google.protobuf.UInt32Value max_concurrency_limit = 1;
+
+      // The period of time during which request latency samples are taken to recalculate the concurrency limit in milliseconds.
+      // This field is required
+      uint32 concurrency_update_interval = 2;
     }
 
 }

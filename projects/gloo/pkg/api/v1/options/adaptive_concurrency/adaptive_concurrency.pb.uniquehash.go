@@ -63,18 +63,18 @@ func (m *FilterConfig) HashUnique(hasher hash.Hash64) (uint64, error) {
 		}
 	}
 
-	if h, ok := interface{}(m.GetMaxConcurrencyLimit()).(safe_hasher.SafeHasher); ok {
-		if _, err = hasher.Write([]byte("MaxConcurrencyLimit")); err != nil {
+	if h, ok := interface{}(m.GetConcurrencyLimitCalculationParams()).(safe_hasher.SafeHasher); ok {
+		if _, err = hasher.Write([]byte("ConcurrencyLimitCalculationParams")); err != nil {
 			return 0, err
 		}
 		if _, err = h.Hash(hasher); err != nil {
 			return 0, err
 		}
 	} else {
-		if fieldValue, err := hashstructure.Hash(m.GetMaxConcurrencyLimit(), nil); err != nil {
+		if fieldValue, err := hashstructure.Hash(m.GetConcurrencyLimitCalculationParams(), nil); err != nil {
 			return 0, err
 		} else {
-			if _, err = hasher.Write([]byte("MaxConcurrencyLimit")); err != nil {
+			if _, err = hasher.Write([]byte("ConcurrencyLimitCalculationParams")); err != nil {
 				return 0, err
 			}
 			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
@@ -83,26 +83,18 @@ func (m *FilterConfig) HashUnique(hasher hash.Hash64) (uint64, error) {
 		}
 	}
 
-	if _, err = hasher.Write([]byte("ConcurrencyUpdateIntervalMillis")); err != nil {
-		return 0, err
-	}
-	err = binary.Write(hasher, binary.LittleEndian, m.GetConcurrencyUpdateIntervalMillis())
-	if err != nil {
-		return 0, err
-	}
-
-	if h, ok := interface{}(m.GetMinRttCalcParams()).(safe_hasher.SafeHasher); ok {
-		if _, err = hasher.Write([]byte("MinRttCalcParams")); err != nil {
+	if h, ok := interface{}(m.GetMinRttCalculationParams()).(safe_hasher.SafeHasher); ok {
+		if _, err = hasher.Write([]byte("MinRttCalculationParams")); err != nil {
 			return 0, err
 		}
 		if _, err = h.Hash(hasher); err != nil {
 			return 0, err
 		}
 	} else {
-		if fieldValue, err := hashstructure.Hash(m.GetMinRttCalcParams(), nil); err != nil {
+		if fieldValue, err := hashstructure.Hash(m.GetMinRttCalculationParams(), nil); err != nil {
 			return 0, err
 		} else {
-			if _, err = hasher.Write([]byte("MinRttCalcParams")); err != nil {
+			if _, err = hasher.Write([]byte("MinRttCalculationParams")); err != nil {
 				return 0, err
 			}
 			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
@@ -138,18 +130,18 @@ func (m *FilterConfig_MinRoundtripTimeCalculationParams) HashUnique(hasher hash.
 		return 0, err
 	}
 
-	if _, err = hasher.Write([]byte("IntervalMillis")); err != nil {
+	if _, err = hasher.Write([]byte("Interval")); err != nil {
 		return 0, err
 	}
-	err = binary.Write(hasher, binary.LittleEndian, m.GetIntervalMillis())
+	err = binary.Write(hasher, binary.LittleEndian, m.GetInterval())
 	if err != nil {
 		return 0, err
 	}
 
-	if _, err = hasher.Write([]byte("FixedValueMillis")); err != nil {
+	if _, err = hasher.Write([]byte("FixedValue")); err != nil {
 		return 0, err
 	}
-	err = binary.Write(hasher, binary.LittleEndian, m.GetFixedValueMillis())
+	err = binary.Write(hasher, binary.LittleEndian, m.GetFixedValue())
 	if err != nil {
 		return 0, err
 	}
@@ -232,6 +224,53 @@ func (m *FilterConfig_MinRoundtripTimeCalculationParams) HashUnique(hasher hash.
 				return 0, err
 			}
 		}
+	}
+
+	return hasher.Sum64(), nil
+}
+
+// HashUnique function generates a hash of the object that is unique to the object by
+// hashing field name and value pairs.
+// Replaces Hash due to original hashing implemention only using field values. The omission
+// of the field name in the hash calculation can lead to hash collisions.
+func (m *FilterConfig_ConcurrencyLimitCalculationParams) HashUnique(hasher hash.Hash64) (uint64, error) {
+	if m == nil {
+		return 0, nil
+	}
+	if hasher == nil {
+		hasher = fnv.New64()
+	}
+	var err error
+	if _, err = hasher.Write([]byte("adaptive_concurrency.options.gloo.solo.io.github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/adaptive_concurrency.FilterConfig_ConcurrencyLimitCalculationParams")); err != nil {
+		return 0, err
+	}
+
+	if h, ok := interface{}(m.GetMaxConcurrencyLimit()).(safe_hasher.SafeHasher); ok {
+		if _, err = hasher.Write([]byte("MaxConcurrencyLimit")); err != nil {
+			return 0, err
+		}
+		if _, err = h.Hash(hasher); err != nil {
+			return 0, err
+		}
+	} else {
+		if fieldValue, err := hashstructure.Hash(m.GetMaxConcurrencyLimit(), nil); err != nil {
+			return 0, err
+		} else {
+			if _, err = hasher.Write([]byte("MaxConcurrencyLimit")); err != nil {
+				return 0, err
+			}
+			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
+				return 0, err
+			}
+		}
+	}
+
+	if _, err = hasher.Write([]byte("ConcurrencyUpdateInterval")); err != nil {
+		return 0, err
+	}
+	err = binary.Write(hasher, binary.LittleEndian, m.GetConcurrencyUpdateInterval())
+	if err != nil {
+		return 0, err
 	}
 
 	return hasher.Sum64(), nil
