@@ -130,7 +130,18 @@ func (m *HaveHttpStatusMultiMatcher) Match(actual interface{}) (success bool, er
 }
 
 func (m *HaveHttpStatusMultiMatcher) FailureMessage(actual interface{}) (message string) {
-	return fmt.Sprintf("Expected\n%s\n%s\n%s", format.Object(actual, 1), "to have HTTP status", m.expectedString())
+	// Safely extract just the status information we need for the error message
+	var actualStatus string
+	switch a := actual.(type) {
+	case *http.Response:
+		// Only read the StatusCode and Status fields, which are safe to read
+		// after the response is returned from client.Do()
+		actualStatus = fmt.Sprintf("StatusCode: %d, Status: %q", a.StatusCode, a.Status)
+	default:
+		actualStatus = fmt.Sprintf("%T", actual)
+	}
+
+	return fmt.Sprintf("Expected response with %s\nto have HTTP status\n%s", actualStatus, m.expectedString())
 }
 
 func (m *HaveHttpStatusMultiMatcher) NegatedFailureMessage(actual interface{}) (message string) {
