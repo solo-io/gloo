@@ -1782,17 +1782,6 @@ func (m *PassThroughGrpc) Clone() proto.Message {
 }
 
 // Clone function
-func (m *PassThroughGrpcTLSConfig) Clone() proto.Message {
-	var target *PassThroughGrpcTLSConfig
-	if m == nil {
-		return target
-	}
-	target = &PassThroughGrpcTLSConfig{}
-
-	return target
-}
-
-// Clone function
 func (m *PassThroughHttp) Clone() proto.Message {
 	var target *PassThroughHttp
 	if m == nil {
@@ -1819,6 +1808,73 @@ func (m *PassThroughHttp) Clone() proto.Message {
 	} else {
 		target.ConnectionTimeout = proto.Clone(m.GetConnectionTimeout()).(*google_golang_org_protobuf_types_known_durationpb.Duration)
 	}
+
+	if h, ok := interface{}(m.GetTlsConfig()).(clone.Cloner); ok {
+		target.TlsConfig = h.Clone().(*PassThroughHttpTLSConfig)
+	} else {
+		target.TlsConfig = proto.Clone(m.GetTlsConfig()).(*PassThroughHttpTLSConfig)
+	}
+
+	return target
+}
+
+// Clone function
+func (m *PassThroughGrpcTLSConfig) Clone() proto.Message {
+	var target *PassThroughGrpcTLSConfig
+	if m == nil {
+		return target
+	}
+	target = &PassThroughGrpcTLSConfig{}
+
+	if h, ok := interface{}(m.GetSecretRef()).(clone.Cloner); ok {
+		target.SecretRef = h.Clone().(*github_com_solo_io_solo_kit_pkg_api_v1_resources_core.ResourceRef)
+	} else {
+		target.SecretRef = proto.Clone(m.GetSecretRef()).(*github_com_solo_io_solo_kit_pkg_api_v1_resources_core.ResourceRef)
+	}
+
+	if h, ok := interface{}(m.GetSslParams()).(clone.Cloner); ok {
+		target.SslParams = h.Clone().(*SslParameters)
+	} else {
+		target.SslParams = proto.Clone(m.GetSslParams()).(*SslParameters)
+	}
+
+	return target
+}
+
+// Clone function
+func (m *PassThroughHttpTLSConfig) Clone() proto.Message {
+	var target *PassThroughHttpTLSConfig
+	if m == nil {
+		return target
+	}
+	target = &PassThroughHttpTLSConfig{}
+
+	if h, ok := interface{}(m.GetSecretRef()).(clone.Cloner); ok {
+		target.SecretRef = h.Clone().(*github_com_solo_io_solo_kit_pkg_api_v1_resources_core.ResourceRef)
+	} else {
+		target.SecretRef = proto.Clone(m.GetSecretRef()).(*github_com_solo_io_solo_kit_pkg_api_v1_resources_core.ResourceRef)
+	}
+
+	if h, ok := interface{}(m.GetSslParams()).(clone.Cloner); ok {
+		target.SslParams = h.Clone().(*SslParameters)
+	} else {
+		target.SslParams = proto.Clone(m.GetSslParams()).(*SslParameters)
+	}
+
+	return target
+}
+
+// Clone function
+func (m *SslParameters) Clone() proto.Message {
+	var target *SslParameters
+	if m == nil {
+		return target
+	}
+	target = &SslParameters{}
+
+	target.MinimumProtocolVersion = m.GetMinimumProtocolVersion()
+
+	target.MaximumProtocolVersion = m.GetMaximumProtocolVersion()
 
 	return target
 }

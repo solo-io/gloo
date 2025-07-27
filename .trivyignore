@@ -89,3 +89,7 @@ CVE-2024-45338
 # This CVE only impacts OPA when being run as an exposed standalone server, not when used as a library by extauth,
 # or when OPA is used as an unexposed sidecar.
 CVE-2025-46569
+
+# https://github.com/advisories/GHSA-wq9g-9vfc-cfq9
+# This CVE has been addressed in v1.18.x and later. We have opted to ignore it in v1.17.x because it only affects Portal, which is no longer has any known users on this branch. We will remove this CVE from .trivyignore when v1.17.x is no longer supported. ([issue link](https://github.com/solo-io/gloo/issues/10925))
+CVE-2025-30153

@@ -90,10 +90,13 @@ weight: 5
 - [BackoffStrategy](#backoffstrategy)
 - [RetryPolicy](#retrypolicy)
 - [PassThroughGrpc](#passthroughgrpc)
-- [PassThroughGrpcTLSConfig](#passthroughgrpctlsconfig)
 - [PassThroughHttp](#passthroughhttp)
 - [Request](#request)
 - [Response](#response)
+- [PassThroughGrpcTLSConfig](#passthroughgrpctlsconfig)
+- [PassThroughHttpTLSConfig](#passthroughhttptlsconfig)
+- [SslParameters](#sslparameters)
+- [ProtocolVersion](#protocolversion)
 - [PortalAuth](#portalauth)
   
 
@@ -1962,24 +1965,8 @@ https://github.com/envoyproxy/envoy/blob/ae1ed1fa74f096dabe8dd5b19fc70333621b030
 | ----- | ---- | ----------- | 
 | `address` | `string` | Address of the auth server to query. Should be in the form ADDRESS:PORT, e.g. `default.svc.cluster.local:389`. +kubebuilder:validation:Required +kubebuilder:validation:MinLength=1. |
 | `connectionTimeout` | [.google.protobuf.Duration](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/duration) | Timeout for the auth server to respond. Defaults to 5s. |
-| `tlsConfig` | [.enterprise.gloo.solo.io.PassThroughGrpcTLSConfig](../extauth.proto.sk/#passthroughgrpctlsconfig) | TLS config for the Grpc passthrough, if not configured the connection will use insecure. |
+| `tlsConfig` | [.enterprise.gloo.solo.io.PassThroughGrpcTLSConfig](../extauth.proto.sk/#passthroughgrpctlsconfig) | TLS config for the gRPC passthrough, if not configured the connection will use insecure. When specified, this supports configuration for either simple TLS or mTLS. |
 | `retryPolicy` | [.enterprise.gloo.solo.io.RetryPolicy](../extauth.proto.sk/#retrypolicy) | Indicates the retry policy for re-establishing the gRPC stream. This field is optional and failed calls will not retry unless configured. |
-
-
-
-
----
-### PassThroughGrpcTLSConfig
-
- 
-TLS configuration for the extauth grpc passthrough connection
-
-```yaml
-
-```
-
-| Field | Type | Description |
-| ----- | ---- | ----------- | 
 
 
 
@@ -1997,6 +1984,7 @@ else the request is unauthorized.
 "request": .enterprise.gloo.solo.io.PassThroughHttp.Request
 "response": .enterprise.gloo.solo.io.PassThroughHttp.Response
 "connectionTimeout": .google.protobuf.Duration
+"tlsConfig": .enterprise.gloo.solo.io.PassThroughHttpTLSConfig
 
 ```
 
@@ -2006,6 +1994,7 @@ else the request is unauthorized.
 | `request` | [.enterprise.gloo.solo.io.PassThroughHttp.Request](../extauth.proto.sk/#request) | Pass through the incoming request body, ext auth state, and filter metadata. For more information, see the [PassThrough Http Request description](#request-1). |
 | `response` | [.enterprise.gloo.solo.io.PassThroughHttp.Response](../extauth.proto.sk/#response) | Pass through response information such as the headers and body to downstream clients. For more information, see the [PassThrough Http Response description](#response-1). |
 | `connectionTimeout` | [.google.protobuf.Duration](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/duration) | Timeout for the auth server to respond. Defaults to 5s. |
+| `tlsConfig` | [.enterprise.gloo.solo.io.PassThroughHttpTLSConfig](../extauth.proto.sk/#passthroughhttptlsconfig) | TLS config for the HTTP passthrough, if not configured the connection will use insecure. When specified, this supports configuration for either simple TLS or mTLS. |
 
 
 
@@ -2068,6 +2057,80 @@ JSON marshalling.
 | `allowedClientHeadersOnDenied` | `[]string` | When this is set, authorization response headers in this list will be added to the response to the downstream client when the auth request is denied. If the response header already exists, it will replace the response header. If this is empty, by default, no authorization response headers will be added to the response to the downstream client. |
 | `readStateFromResponse` | `bool` | If this is set to true, the body of the response from the http passthrough auth server is expected to have shape { "state": object (map[string]interface{}) } The state will be marshalled from the response body and this is the state that will be passed on to other auth configs. Because of the marshalling from JSON to Go map, this will add some latency to the request. If the marshalling fails, the authorization check will fail and the request will be unauthorized after the ext-auth-service pod logs the marshal error. |
 | `allowedUpstreamHeadersToOverwrite` | `[]string` | When this is set, authorization response headers that have a header in this list will be added to the original client request and sent to the upstream when the auth request is successful. These will overwrite to any request headers that already exist. If this and allowed_upstream_headers are empty, by default, no authorization response headers will be added to the upstream request. Header names may not be included in both allowed_upstream_headers and allowed_upstream_headers_to_overwrite. |
+
+
+
+
+---
+### PassThroughGrpcTLSConfig
+
+ 
+TLS configuration for the extauth gRPC passthrough connection
+
+```yaml
+"secretRef": .core.solo.io.ResourceRef
+"sslParams": .enterprise.gloo.solo.io.SslParameters
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+| `secretRef` | [.core.solo.io.ResourceRef](../../../../../../../../../../solo-kit/api/v1/ref.proto.sk/#resourceref) | SecretRef contains the secret ref to a Kubernetes tls secret. This secret can contain the certificate, key and CA bundle to establish mTLS. If CA is not provided it will attempt to perform a simple TLS. |
+| `sslParams` | [.enterprise.gloo.solo.io.SslParameters](../extauth.proto.sk/#sslparameters) | Additional TLS parameters. |
+
+
+
+
+---
+### PassThroughHttpTLSConfig
+
+ 
+TLS configuration for the extauth HTTP passthrough connection
+
+```yaml
+"secretRef": .core.solo.io.ResourceRef
+"sslParams": .enterprise.gloo.solo.io.SslParameters
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+| `secretRef` | [.core.solo.io.ResourceRef](../../../../../../../../../../solo-kit/api/v1/ref.proto.sk/#resourceref) | SecretRef contains the secret ref to a Kubernetes tls secret. This secret can contain the certificate, key and CA bundle to establish mTLS. If CA is not provided it will attempt to perform a simple TLS. |
+| `sslParams` | [.enterprise.gloo.solo.io.SslParameters](../extauth.proto.sk/#sslparameters) | Additional TLS parameters. |
+
+
+
+
+---
+### SslParameters
+
+
+
+```yaml
+"minimumProtocolVersion": .enterprise.gloo.solo.io.SslParameters.ProtocolVersion
+"maximumProtocolVersion": .enterprise.gloo.solo.io.SslParameters.ProtocolVersion
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+| `minimumProtocolVersion` | [.enterprise.gloo.solo.io.SslParameters.ProtocolVersion](../extauth.proto.sk/#protocolversion) | Minimum TLS protocol version. If not explicitly set, the default protocol will be TLS 1.2. Avoid using TLS version earlier than 1.2, as this poses significant security risks. For more details, refer to https://www.ietf.org/rfc/rfc8996.html. |
+| `maximumProtocolVersion` | [.enterprise.gloo.solo.io.SslParameters.ProtocolVersion](../extauth.proto.sk/#protocolversion) | Maximum TLS protocol version. If not explicitly set, the default protocol will be TLS 1.3. |
+
+
+
+
+---
+### ProtocolVersion
+
+
+
+| Name | Description |
+| ----- | ----------- | 
+| `TLS_AUTO` | TLS auto select the optimal settings |
+| `TLSv1_1` | TLS 1.1 |
+| `TLSv1_2` | TLS 1.2 |
+| `TLSv1_3` | TLS 1.3 |
 
 
 
