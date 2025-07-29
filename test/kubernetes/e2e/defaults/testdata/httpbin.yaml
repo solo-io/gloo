@@ -12,6 +12,7 @@ metadata:
   labels:
     app: httpbin
 spec:
+  terminationGracePeriodSeconds: 1  # Wait only 1 seconds instead of default 30
   containers:
   - name: httpbin
     image: mccutchen/go-httpbin:v2.14.0

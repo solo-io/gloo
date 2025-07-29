@@ -1,0 +1,117 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: sleep-server
+---
+# This is a test server that sleeps based on the x-sleep-time-ms header and returns a 200
+apiVersion: v1
+kind: Pod
+metadata:
+  name: sleep-server
+  namespace: sleep-server
+  labels:
+    app: sleep-server
+    version: v1
+    app.kubernetes.io/name: sleep-server
+spec:
+  terminationGracePeriodSeconds: 1  # Wait only 1 seconds instead of default 30
+  containers:
+    - name: sleep-server
+      image: python:latest
+      imagePullPolicy: IfNotPresent
+      ports:
+        - containerPort: 8080
+          name: http
+      command:
+        - "python"
+        - "-c"
+        - |
+          import http.server
+          import socketserver
+          import time
+          import signal
+          import sys
+          
+          class AlwaysOKHandler(http.server.BaseHTTPRequestHandler):
+              def do_OPTIONS(self):
+                self.send_response(200, "ok")
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.send_header('Access-Control-Allow-Methods', 'GET, OPTIONS')
+                self.send_header("Access-Control-Allow-Headers", "X-Requested-With")
+                self.send_header("Access-Control-Allow-Headers", "Content-Type")
+                self.end_headers()
+
+              def do_GET(self):
+                  # Check for x-sleep-time-ms header
+                  sleep_time_ms = self.headers.get('x-sleep-time-ms')
+                  if sleep_time_ms:
+                      try:
+                          sleep_duration = int(sleep_time_ms) / 1000.0  # Convert ms to seconds
+                          if sleep_duration > 0:
+                              # Cap at 10 seconds maximum
+                              sleep_duration = min(sleep_duration, 10.0)
+                              time.sleep(sleep_duration)
+                      except (ValueError, TypeError):
+                          pass  # Ignore invalid header values
+                  
+                  self.send_response(200)
+                  self.send_header('Content-type', 'text/plain')
+                  self.end_headers()
+              
+              def do_POST(self):
+                  self.do_GET()
+          
+          PORT = 8080
+          httpd = socketserver.ThreadingTCPServer(("", PORT), AlwaysOKHandler)
+          
+          def signal_handler(signum, frame):
+              print(f"Received signal {signum}, shutting down gracefully...")
+              httpd.shutdown()
+              httpd.server_close()
+              sys.exit(0)
+          
+          # Register signal handlers
+          signal.signal(signal.SIGTERM, signal_handler)
+          signal.signal(signal.SIGINT, signal_handler)
+          
+          print(f"Serving on port {PORT} with threading support")
+          try:
+              httpd.serve_forever()
+          except KeyboardInterrupt:
+              pass
+          finally:
+              httpd.shutdown()
+              httpd.server_close()
+      resources:
+        requests:
+          cpu: "100m"
+        limits:
+          cpu: "200m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sleep-server
+  namespace: sleep-server
+spec:
+  selector:
+    app.kubernetes.io/name: sleep-server
+  ports:
+    - protocol: TCP
+      targetPort: 8080
+      port: 8080
+      name: http
+---
+apiVersion: gloo.solo.io/v1
+kind: Upstream
+metadata:
+  name: sleep-server-upstream
+  namespace: sleep-server
+spec:
+  kube:
+    selector:
+      app.kubernetes.io/name: sleep-server
+    serviceName: sleep-server
+    serviceNamespace: sleep-server
+    servicePort: 8080

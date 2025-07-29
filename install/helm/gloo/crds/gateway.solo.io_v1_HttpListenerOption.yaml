@@ -34,6 +34,55 @@ spec:
                 type: object
               options:
                 properties:
+                  adaptiveConcurrency:
+                    properties:
+                      concurrencyLimitCalculationParams:
+                        properties:
+                          concurrencyUpdateInterval:
+                            maximum: 4294967295
+                            minimum: 0
+                            type: integer
+                          maxConcurrencyLimit:
+                            maximum: 4294967295
+                            minimum: 0
+                            nullable: true
+                            type: integer
+                        type: object
+                      concurrencyLimitExceededStatus:
+                        maximum: 4294967295
+                        minimum: 0
+                        type: integer
+                      minRttCalculationParams:
+                        properties:
+                          bufferPercentile:
+                            nullable: true
+                            type: number
+                          fixedValue:
+                            maximum: 4294967295
+                            minimum: 0
+                            type: integer
+                          interval:
+                            maximum: 4294967295
+                            minimum: 0
+                            type: integer
+                          jitterPercentile:
+                            nullable: true
+                            type: number
+                          minConcurrency:
+                            maximum: 4294967295
+                            minimum: 0
+                            nullable: true
+                            type: integer
+                          requestCount:
+                            maximum: 4294967295
+                            minimum: 0
+                            nullable: true
+                            type: integer
+                        type: object
+                      sampleAggregatePercentile:
+                        nullable: true
+                        type: number
+                    type: object
                   buffer:
                     properties:
                       maxRequestBytes:
