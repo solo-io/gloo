@@ -1,7 +1,0 @@
-changelog:
-  - type: NEW_FEATURE
-    issueLink: https://github.com/solo-io/solo-projects/issues/8181
-    resolvesIssue: false
-    description: >-
-      Add support [Envoy's adaptive concurrency filter](https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/adaptive_concurrency_filter#config-http-filters-adaptive-concurrency).
-      Note: This extension has an unknown security posture and should only be used in deployments where both the downstream and upstream are trusted.

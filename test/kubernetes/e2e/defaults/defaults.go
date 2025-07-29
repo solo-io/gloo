@@ -102,20 +102,4 @@ Commercial support is available at
 <p><em>Thank you for using nginx.</em></p>
 </body>
 </html>`
-
-	SleepServerPod = &corev1.Pod{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "sleep-server",
-			Namespace: "sleep-server",
-		},
-	}
-
-	SleepServerService = &corev1.Service{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "sleep-server",
-			Namespace: "sleep-server",
-		},
-	}
-
-	SleepServerPodManifest = filepath.Join(util.MustGetThisDir(), "testdata", "sleep_server.yaml")
 )

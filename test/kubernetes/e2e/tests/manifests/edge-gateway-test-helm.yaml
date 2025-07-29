@@ -20,10 +20,3 @@ settings:
             labelToPath:
               name: '{.metadata.name}'
               namespace: '{.metadata.namespace}'
-
-# These settings expose the metrics required for the adaptive concurrency test to work.
-global:
-  glooStats:
-    enableStatsRoute: true
-    podMonitorEnabled: true
-    serviceMonitorEnabled: true
