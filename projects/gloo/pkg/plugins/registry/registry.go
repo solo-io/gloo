@@ -9,8 +9,6 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/constants"
 	"github.com/solo-io/gloo/projects/gloo/pkg/bootstrap"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
-
-	adaptiveconcurrency "github.com/solo-io/gloo/projects/gloo/pkg/plugins/adaptive_concurrency"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/als"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/aws"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/aws/ec2"
@@ -152,7 +150,6 @@ func Plugins(opts PluginOpts) []plugins.Plugin {
 		local_ratelimit.NewPlugin(),
 		istio_automtls.NewPlugin(opts.SidecarOnGatewayEnabled),
 		edsupstream.NewPlugin(),
-		adaptiveconcurrency.NewPlugin(),
 	)
 
 	if opts.KubeClient != nil || opts.SvcCollection != nil {

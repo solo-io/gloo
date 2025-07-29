@@ -24,7 +24,6 @@ metadata:
   labels:
     app.kubernetes.io/name: tcp-echo
 spec:
-  terminationGracePeriodSeconds: 1  # Wait only 1 seconds instead of default 30
   containers:
   - name: tcp-echo
     image: soloio/tcp-echo:latest
