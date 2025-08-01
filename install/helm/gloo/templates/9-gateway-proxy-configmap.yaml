@@ -37,7 +37,7 @@ data:
               value: {{ $spec.healthyPanicThreshold }}
           envoy:
             reloadable_features:
-              # The behavior on ext_proc for spurious error is changed in v1.35 
+              # The behavior on ext_proc for spurious error is changed in v1.35
               # https://github.com/envoyproxy/envoy/pull/39994
               # Temperarily revert the behavior for now until further investigation is done
               ext_proc_fail_close_spurious_resp: false
