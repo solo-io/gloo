@@ -233,11 +233,12 @@ Header: 1
 			Expect(cfg.RequireClientCertificate.GetValue()).To(BeFalse())
 		})
 
-		It("should set validation context to nil if oneWayTls enabled for upstream config", func() {
+		It("should remove client certificates but keep validation context if oneWayTls enabled for upstream config", func() {
 			upstreamCfg.OneWayTls = &wrappers.BoolValue{Value: true}
 			cfg, err := configTranslator.ResolveUpstreamSslConfig(secrets, upstreamCfg)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(cfg.CommonTlsContext.GetValidationContext()).To(BeNil())
+			Expect(cfg.CommonTlsContext.GetValidationContext()).NotTo(BeNil(), "Validation context should remain for server certificate verification")
+			Expect(cfg.CommonTlsContext.GetTlsCertificates()).To(BeNil(), "Client certificates should be removed to disable mTLS")
 		})
 
 		It("should set alpn default for downstream config", func() {
