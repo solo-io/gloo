@@ -4,11 +4,12 @@ import (
 	"context"
 	"time"
 
+	"github.com/stretchr/testify/suite"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
 	"github.com/solo-io/gloo/projects/gateway/pkg/defaults"
 	"github.com/solo-io/gloo/test/gomega/matchers"
 	testdefaults "github.com/solo-io/gloo/test/kubernetes/e2e/defaults"
-	"github.com/stretchr/testify/suite"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/solo-io/gloo/pkg/utils/kubeutils"
 	"github.com/solo-io/gloo/pkg/utils/requestutils/curl"
@@ -40,7 +41,6 @@ func (s *clientTlsTestingSuite) SetupSuite() {
 	s.NoError(err, "can apply Nginx setup manifest")
 	err = s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, testdefaults.CurlPodManifest)
 	s.NoError(err, "can apply Curl setup manifest")
-
 }
 
 func (s *clientTlsTestingSuite) TearDownSuite() {
@@ -56,12 +56,12 @@ func (s *clientTlsTestingSuite) TestRouteSecureRequestToUpstreamFailsWithoutOneW
 		// ordering here matters if strict validation enabled
 		err := s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, vsTargetingUpstreamManifestFile, "-n", ns)
 		s.NoError(err, "can delete vs targeting upstream manifest file")
-		s.testInstallation.Assertions.EventuallyObjectsNotExist(s.ctx, vsTargetingUpstream(ns))
+		s.testInstallation.AssertionsT(s.T()).EventuallyObjectsNotExist(s.ctx, vsTargetingUpstream(ns))
 		err = s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, nginxUpstreamManifestFile)
 		s.NoError(err, "can delete nginx upstream manifest file")
 		err = s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, tlsSecretManifestFile)
 		s.NoError(err, "can delete tls secret manifest file")
-		s.testInstallation.Assertions.EventuallyObjectsNotExist(s.ctx, tlsSecret)
+		s.testInstallation.AssertionsT(s.T()).EventuallyObjectsNotExist(s.ctx, tlsSecret)
 	})
 
 	// ordering here matters if strict validation enabled
@@ -81,12 +81,12 @@ func (s *clientTlsTestingSuite) TestRouteSecureRequestToUpstream() {
 		// ordering here matters if strict validation enabled
 		err := s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, vsTargetingUpstreamManifestFile, "-n", ns)
 		s.NoError(err, "can delete vs targeting upstream manifest file")
-		s.testInstallation.Assertions.EventuallyObjectsNotExist(s.ctx, vsTargetingUpstream(ns))
+		s.testInstallation.AssertionsT(s.T()).EventuallyObjectsNotExist(s.ctx, vsTargetingUpstream(ns))
 		err = s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, nginxOneWayUpstreamManifestFile)
 		s.NoError(err, "can delete nginx upstream manifest file")
 		err = s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, tlsSecretManifestFile)
 		s.NoError(err, "can delete tls secret manifest file")
-		s.testInstallation.Assertions.EventuallyObjectsNotExist(s.ctx, tlsSecret)
+		s.testInstallation.AssertionsT(s.T()).EventuallyObjectsNotExist(s.ctx, tlsSecret)
 	})
 
 	// ordering here matters if strict validation enabled
@@ -106,13 +106,13 @@ func (s *clientTlsTestingSuite) TestRouteSecureRequestToAnnotatedServiceFailsWit
 		// ordering here matters if strict validation enabled
 		err := s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, vsTargetingKubeManifestFile, "-n", ns)
 		s.NoError(err, "can delete vs targeting upstream manifest file")
-		s.testInstallation.Assertions.EventuallyObjectsNotExist(s.ctx, vsTargetingKube(ns))
+		s.testInstallation.AssertionsT(s.T()).EventuallyObjectsNotExist(s.ctx, vsTargetingKube(ns))
 		// this is deleted in test cleanup
 		// err = s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, annotatedNginxSvcManifestFile)
 		// s.NoError(err, "can delete nginx upstream manifest file")
 		err = s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, tlsSecretManifestFile)
 		s.NoError(err, "can delete tls secret manifest file")
-		s.testInstallation.Assertions.EventuallyObjectsNotExist(s.ctx, tlsSecret)
+		s.testInstallation.AssertionsT(s.T()).EventuallyObjectsNotExist(s.ctx, tlsSecret)
 	})
 
 	// ordering here matters if strict validation enabled
@@ -132,13 +132,13 @@ func (s *clientTlsTestingSuite) TestRouteSecureRequestToAnnotatedService() {
 		// ordering here matters if strict validation enabled
 		err := s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, vsTargetingKubeManifestFile, "-n", ns)
 		s.NoError(err, "can delete vs targeting upstream manifest file")
-		s.testInstallation.Assertions.EventuallyObjectsNotExist(s.ctx, vsTargetingKube(ns))
+		s.testInstallation.AssertionsT(s.T()).EventuallyObjectsNotExist(s.ctx, vsTargetingKube(ns))
 		// this is deleted in test cleanup
 		// err = s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, annotatedNginxOneWaySvcManifestFile)
 		// s.NoError(err, "can delete nginx upstream manifest file")
 		err = s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, tlsSecretManifestFile)
 		s.NoError(err, "can delete tls secret manifest file")
-		s.testInstallation.Assertions.EventuallyObjectsNotExist(s.ctx, tlsSecret)
+		s.testInstallation.AssertionsT(s.T()).EventuallyObjectsNotExist(s.ctx, tlsSecret)
 	})
 
 	// ordering here matters if strict validation enabled
@@ -153,15 +153,14 @@ func (s *clientTlsTestingSuite) TestRouteSecureRequestToAnnotatedService() {
 }
 
 func (s *clientTlsTestingSuite) assertEventualResponse(matcher *matchers.HttpResponse) {
-
 	// Make sure our proxy pod is running
 	listOpts := metav1.ListOptions{
 		LabelSelector: "gloo=gateway-proxy",
 	}
-	s.testInstallation.Assertions.EventuallyPodsRunning(s.ctx, s.testInstallation.Metadata.InstallNamespace, listOpts, time.Minute*2)
+	s.testInstallation.AssertionsT(s.T()).EventuallyPodsRunning(s.ctx, s.testInstallation.Metadata.InstallNamespace, listOpts, time.Minute*2)
 
 	// Check curl works against expected response
-	s.testInstallation.Assertions.AssertEventualCurlResponse(
+	s.testInstallation.AssertionsT(s.T()).AssertEventualCurlResponse(
 		s.ctx,
 		testdefaults.CurlPodExecOpt,
 		[]curl.Option{
