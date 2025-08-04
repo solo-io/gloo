@@ -1,0 +1,4 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >-
+      revert ext_proc spurious error behavior change from 1.35 envoy by setting envoy.reloadable_features.ext_proc_fail_close_spurious_resp to false

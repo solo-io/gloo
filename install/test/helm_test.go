@@ -2864,7 +2864,7 @@ spec:
 							// This annotation was introduced to resolve https://github.com/solo-io/gloo/issues/8392
 							// It triggers a new rollout of the gateway proxy if the config map it uses changes
 							// As of PR 8733, changing the values of the deployment spec doesn't change the gateway-proxy config map, so it is safe to hardcode the checksum in the tests
-							"checksum/gateway-proxy-envoy-config": "655c76a411d3b9c6035c22ef4432e6a67140bd1c759eaeadd2e72009313a5503",
+							"checksum/gateway-proxy-envoy-config": "4989c797a322a64c2ec12868d4c115b1d6829b67054f0518a534bd1da70cdc29",
 						}
 						deploy.Spec.Template.Spec.Volumes = []corev1.Volume{{
 							Name: "envoy-config",
@@ -3686,7 +3686,7 @@ spec:
 						})
 						// Since changing the value of gatewayProxies.gatewayProxy.readConfig changes the gateway-proxy-envoy-config configmap, we need to update the checksum on the deployment as well.
 						// This also doubles as a check to validate that changes in the configmap change the checksum annotation on the deployment which will trigger a rollout.
-						gatewayProxyDeployment.Spec.Template.Annotations["checksum/gateway-proxy-envoy-config"] = "eed6c21fb5769def1b22999826a731539c0cbd2c1baef9139c0c52c86022ce7e"
+						gatewayProxyDeployment.Spec.Template.Annotations["checksum/gateway-proxy-envoy-config"] = "633c00de0e27eb0f3c2a765af233314416cc4e8ce555dd53b4e9a0de50b2e5b4"
 
 						testManifest.ExpectDeploymentAppsV1(gatewayProxyDeployment)
 					})

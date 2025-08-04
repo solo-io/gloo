@@ -479,9 +479,12 @@ data:
       layers:
       - name: static_layer
         static_layer:
-          envoy: #  ON_LTS_UPDATE remove the reloadable feature block and this envoy  block
+          envoy:
             reloadable_features:
-              check_switch_protocol_websocket_handshake: false
+              # The behavior on ext_proc for spurious error is changed in v1.35 
+              # https://github.com/envoyproxy/envoy/pull/39994
+              # Temperarily revert the behavior for now until further investigation is done
+              ext_proc_fail_close_spurious_resp: false
     node:
       cluster: {{ include "gloo-gateway.gateway.fullname" . }}.{{ .Release.Namespace }}
       metadata:
