@@ -99,6 +99,7 @@ func (s *testingSuite) TestAdaptiveConcurrency() {
 					},
 					okOrRateLimitedResponse,
 				)
+				defer resp.Body.Close()
 
 				countMutex.Lock()
 				if resp.StatusCode == http.StatusServiceUnavailable {
