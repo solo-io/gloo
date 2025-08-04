@@ -11,7 +11,7 @@ spec:
       adaptiveConcurrency:
         concurrencyLimitCalculationParams:
           concurrencyUpdateInterval: 1000
-          maxConcurrencyLimit: 10
+          maxConcurrencyLimit: 6
         minRttCalculationParams:
           bufferPercentile: 5
           interval: 1000

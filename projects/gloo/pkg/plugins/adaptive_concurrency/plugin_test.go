@@ -1,4 +1,4 @@
-package adaptiveconcurrency_test
+package adaptive_concurrency_test
 
 import (
 	"net/http"

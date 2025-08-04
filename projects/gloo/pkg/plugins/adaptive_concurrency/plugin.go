@@ -1,4 +1,4 @@
-package adaptiveconcurrency
+package adaptive_concurrency
 
 import (
 	"context"
@@ -103,12 +103,10 @@ func translateAdaptiveConcurrency(in *v1.HttpListenerOptions) (*envoy_adaptive_c
 	if status >= 400 {
 		concurrencyLimitExceededStatus = status
 	} else {
-		if status != 0 { // Don't log if status is unset
-			// The envoy treats this as a non-error condition, and that logic will be applied here as well.
-			// However, we want to log this as a warning, so that users are aware of the override of their setting.
-			logger := contextutils.LoggerFrom(context.Background())
-			logger.Warnf("concurrencyLimitExceededStatus is %d, which is not an error code. The default setting of 503 Unavailable will be applied.", status)
-		}
+		// Envoy treats this as a non-error condition, and that logic will be applied here as well.
+		// However, we want to log this as a warning, so that users are aware of the override of their setting.
+		logger := contextutils.LoggerFrom(context.Background())
+		logger.Warnf("concurrencyLimitExceededStatus is %d, which is not an error code. The default setting of 503 Unavailable will be applied.", status)
 	}
 
 	gradientControllerConfig := &envoy_adaptive_concurrency_v3.GradientControllerConfig{
@@ -140,7 +138,7 @@ func translateConcurrencyLimitParams(in *adaptive_concurrency.FilterConfig_Concu
 		concurrencyUpdateInterval uint32
 	)
 
-	// Set concurrency_update_interval with default
+	// Set concurrency_update_interval (required field)
 	if in.GetConcurrencyUpdateInterval() != 0 {
 		concurrencyUpdateInterval = in.GetConcurrencyUpdateInterval()
 	} else {

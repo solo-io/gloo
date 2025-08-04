@@ -101,7 +101,7 @@ jobs:
         # 2025-07-25: 31m54s
         - cluster-name: 'cluster-six'
           go-test-args: '-v -timeout=30m'
-          go-test-run-regex: '^TestDiscoveryWatchlabels$$|^TestK8sGatewayNoValidation$$|^TestHelm$$|^TestHelmSettings$$|^TestK8sGatewayAws$$|^TestK8sGateway$$/^HTTPRouteServices$$|^TestK8sGateway$$/^TCPRouteServices$$'
+          go-test-run-regex: '^TestDiscoveryWatchlabels$$|^TestK8sGatewayNoValidation$$|^TestHelm$$|^TestHelmSettings$$|^TestK8sGatewayAws$$|^TestK8sGateway$$/^HTTPRouteServices$$|^TestK8sGateway$$/^TCPRouteServices$$|^TestK8sGateway$$/^AdaptiveConcurrency$$'
 
         # 2024-12-04: 16m
         # 2025-02-13: 26m29s
