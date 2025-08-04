@@ -1,4 +1,4 @@
-package adaptiveconcurrency
+package adaptive_concurrency
 
 import (
 	"net/http"
@@ -12,12 +12,15 @@ import (
 )
 
 const (
-	envoyStatsPath = "/stats?filter=adaptive_concurrency"
+	k8sProxySvcName      = "gloo-proxy-gw"
+	k8sProxySvcNamespace = "default"
 )
 
 var (
-	sleepGatewayManifest        = filepath.Join(util.MustGetThisDir(), "testdata", "gateway.yaml")
-	sleepVirtualServiceManifest = filepath.Join(util.MustGetThisDir(), "testdata", "sleep-server-vses.yaml")
+	edgeGatewayManifest            = filepath.Join(util.MustGetThisDir(), "testdata", "edge", "edge-gateway.yaml")
+	sleepVirtualServiceManifest    = filepath.Join(util.MustGetThisDir(), "testdata", "edge", "sleep-server-vses.yaml")
+	gg2SetupManifest               = filepath.Join(util.MustGetThisDir(), "testdata", "gg2", "setup.yaml")
+	gg2HttpListenerOptionsManifest = filepath.Join(util.MustGetThisDir(), "testdata", "gg2", "http-listener-options.yaml")
 
 	setupSuite = base.SimpleTestCase{
 		Manifests: []string{
@@ -29,12 +32,23 @@ var (
 		},
 	}
 
-	testCases = map[string]*base.TestCase{
+	edgeTestCases = map[string]*base.TestCase{
 		"TestAdaptiveConcurrency": {
 			SimpleTestCase: base.SimpleTestCase{
 				Manifests: []string{
-					sleepGatewayManifest,
+					edgeGatewayManifest,
 					sleepVirtualServiceManifest,
+				},
+			},
+		},
+	}
+
+	gg2TestCases = map[string]*base.TestCase{
+		"TestAdaptiveConcurrency": {
+			SimpleTestCase: base.SimpleTestCase{
+				Manifests: []string{
+					gg2SetupManifest,
+					gg2HttpListenerOptionsManifest,
 				},
 			},
 		},
@@ -44,7 +58,7 @@ var (
 		StatusCode: http.StatusOK,
 	}
 
-	okOrUnavailableResponse = &testmatchers.HttpResponse{
+	okOrRateLimitedResponse = &testmatchers.HttpResponse{
 		StatusCode: []int{http.StatusOK, http.StatusServiceUnavailable},
 	}
 )

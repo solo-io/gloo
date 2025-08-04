@@ -10,7 +10,7 @@ import (
 func EdgeByoGwSuiteRunner() e2e.SuiteRunner {
 	edgeByoGwSuiteRunner := e2e.NewSuiteRunner(false)
 
-	edgeByoGwSuiteRunner.Register("AdaptiveConcurrency", adaptiveconcurrency.NewTestingSuite)
+	edgeByoGwSuiteRunner.Register("AdaptiveConcurrency", adaptiveconcurrency.NewEdgeTestingSuite)
 
 	return edgeByoGwSuiteRunner
 }

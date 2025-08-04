@@ -2,6 +2,23 @@
 apiVersion: gateway.solo.io/v1
 kind: VirtualService
 metadata:
+  name: sleep-vs-0
+spec:
+  virtualHost:
+    domains:
+      - "example-0.com"
+    routes:
+      - matchers:
+          - prefix: /
+        routeAction:
+          single:
+            upstream:
+              name: sleep-server-upstream
+              namespace: sleep-server
+---
+apiVersion: gateway.solo.io/v1
+kind: VirtualService
+metadata:
   name: sleep-vs-1
 spec:
   virtualHost:
@@ -24,23 +41,6 @@ spec:
   virtualHost:
     domains:
       - "example-2.com"
-    routes:
-      - matchers:
-          - prefix: /
-        routeAction:
-          single:
-            upstream:
-              name: sleep-server-upstream
-              namespace: sleep-server
----
-apiVersion: gateway.solo.io/v1
-kind: VirtualService
-metadata:
-  name: sleep-vs-3
-spec:
-  virtualHost:
-    domains:
-      - "example-3.com"
     routes:
       - matchers:
           - prefix: /
