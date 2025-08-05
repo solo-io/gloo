@@ -3,6 +3,7 @@ package adaptive_concurrency
 import (
 	"context"
 	"fmt"
+	"io"
 	"net/http"
 	"sync"
 	"time"
@@ -77,7 +78,6 @@ func (s *testingSuite) TestAdaptiveConcurrency() {
 	numWaitGroup := 9
 	numRoutes := 3
 	unavailableByRoute := make([]int, numRoutes)
-	successByRoute := make([]int, numRoutes)
 	countMutex := sync.Mutex{}
 
 	for i := range numWaitGroup {
@@ -101,13 +101,17 @@ func (s *testingSuite) TestAdaptiveConcurrency() {
 				)
 				defer resp.Body.Close()
 
-				countMutex.Lock()
 				if resp.StatusCode == http.StatusServiceUnavailable {
+					body, err := io.ReadAll(resp.Body)
+					if err != nil {
+						return false
+					}
+
+					countMutex.Lock()
 					unavailableByRoute[hostNum] += 1
-				} else {
-					successByRoute[hostNum] += 1
+					countMutex.Unlock()
+					assertions.Require.Equal(string(body), "reached concurrency limit")
 				}
-				countMutex.Unlock()
 
 				return true
 			}, "20s", "1ms").Should(gomega.BeTrue())
@@ -119,7 +123,7 @@ func (s *testingSuite) TestAdaptiveConcurrency() {
 
 	// Assert that at least one request was rate limited.
 	for i, count := range unavailableByRoute {
-		assertions.Gomega.Expect(count).To(gomega.BeNumerically(">=", 1), fmt.Sprintf("route %d should have at least one request rate limited", i))
+		assertions.Require.Greater(count, 0, fmt.Sprintf("route %d should have at least one request rate limited", i))
 	}
 
 }
