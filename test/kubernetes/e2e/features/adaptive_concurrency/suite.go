@@ -118,8 +118,6 @@ func (s *testingSuite) TestAdaptiveConcurrency() {
 	wg.Wait()
 
 	// Assert that at least one request was rate limited.
-	fmt.Printf("unavailbleByRoute: %+v\n", unavailableByRoute)
-	fmt.Printf("successByRoute: %+v\n", successByRoute)
 	for i, count := range unavailableByRoute {
 		assertions.Gomega.Expect(count).To(gomega.BeNumerically(">=", 1), fmt.Sprintf("route %d should have at least one request rate limited", i))
 	}
