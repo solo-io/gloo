@@ -39,8 +39,6 @@ func NewTestingSuite(ctx context.Context, testInst *e2e.TestInstallation) suite.
 func (s *clientTlsTestingSuite) SetupSuite() {
 	err := s.testInstallation.Actions.Kubectl().Apply(s.ctx, testdefaults.NginxPodYaml)
 	s.NoError(err, "can apply Nginx setup manifest")
-	err = s.testInstallation.Actions.Kubectl().Apply(s.ctx, testdefaults.NginxTlsSecretYaml)
-	s.NoError(err, "can apply Nginx TLS secret manifest")
 	err = s.testInstallation.Actions.Kubectl().Apply(s.ctx, testdefaults.CurlPodYaml)
 	s.NoError(err, "can apply Curl setup manifest")
 }
@@ -48,8 +46,6 @@ func (s *clientTlsTestingSuite) SetupSuite() {
 func (s *clientTlsTestingSuite) TearDownSuite() {
 	err := s.testInstallation.Actions.Kubectl().Delete(s.ctx, testdefaults.NginxPodYaml)
 	s.NoError(err, "can delete Nginx setup manifest")
-	err = s.testInstallation.Actions.Kubectl().Delete(s.ctx, testdefaults.NginxTlsSecretYaml)
-	s.NoError(err, "can delete Nginx TLS secret manifest")
 	err = s.testInstallation.Actions.Kubectl().Delete(s.ctx, testdefaults.CurlPodYaml)
 	s.NoError(err, "can delete Curl setup manifest")
 }

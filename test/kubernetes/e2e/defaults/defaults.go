@@ -25,9 +25,6 @@ var TcpEchoPodYaml []byte
 //go:embed testdata/nginx_pod.yaml
 var NginxPodYaml []byte
 
-//go:embed testdata/nginx_tls_secret.yaml
-var NginxTlsSecretYaml []byte
-
 //go:embed testdata/httpbin.yaml
 var HttpbinYaml []byte
 
