@@ -5,8 +5,19 @@ metadata:
 spec:
   virtualHost:
     domains:
-      - "nginx.example.com"
+      - nginx.example.com
     routes:
+      - matchers:
+          - exact: /nginx
+        routeAction:
+          single:
+            upstream:
+              name: nginx
+              namespace: nginx
+        options:
+          # The NGINX pod is configured to serve the root path, so we need to rewrite the path to the root path.
+          prefixRewrite: /
+
       - matchers:
           - exact: /nginx-oneway
         routeAction:
@@ -14,3 +25,17 @@ spec:
             upstream:
               name: nginx-oneway
               namespace: nginx
+        options:
+          # The NGINX pod is configured to serve the root path, so we need to rewrite the path to the root path.
+          prefixRewrite: "/"
+
+      - matchers:
+          - exact: /nginx-oneway-bad-san
+        routeAction:
+          single:
+            upstream:
+              name: nginx-oneway-bad-san
+              namespace: nginx
+        options:
+          # The NGINX pod is configured to serve the root path, so we need to rewrite the path to the root path.
+          prefixRewrite: "/"

@@ -2,7 +2,6 @@ package client_tls
 
 import (
 	"context"
-	"time"
 
 	"github.com/stretchr/testify/suite"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -50,107 +49,67 @@ func (s *clientTlsTestingSuite) TearDownSuite() {
 	s.NoError(err, "can delete Curl setup manifest")
 }
 
-func (s *clientTlsTestingSuite) XTestRouteSecureRequestToUpstreamFailsWithoutOneWayTls() {
+func (s *clientTlsTestingSuite) XTestRouteSecureRequestToUpstream() {
 	ns := s.testInstallation.Metadata.InstallNamespace
+
+	// In the setup/cleanup of the test, we need to ensure that the Edge resources (VS, Upstream)
+	// are created/deleted in the proper order. When strict validation is enabled, performing actions out of order
+	// could cause the validation webhook to reject the request.
 	s.T().Cleanup(func() {
-		// ordering here matters if strict validation enabled
-		err := s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, vsTargetingUpstreamManifestFile, "-n", ns)
+		err := s.testInstallation.Actions.Kubectl().Delete(s.ctx, VSTargetingUpstreamYaml, "-n", ns)
 		s.NoError(err, "can delete vs targeting upstream manifest file")
-		s.testInstallation.AssertionsT(s.T()).EventuallyObjectsNotExist(s.ctx, VSTargetingUpstreamObject(ns))
-		err = s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, nginxUpstreamManifestFile)
-		s.NoError(err, "can delete nginx upstream manifest file")
+		s.testInstallation.AssertionsT(s.T()).EventuallyObjectsNotExist(s.ctx, vSTargetingUpstreamObject(ns))
+
+		err = s.testInstallation.Actions.Kubectl().Delete(s.ctx, NginxUpstreamsYaml)
+		s.NoError(err, "can delete upstream manifest file")
 	})
 
-	// ordering here matters if strict validation enabled
-	err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, nginxUpstreamManifestFile)
-	s.NoError(err, "can apply nginx upstream manifest file")
-	err = s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, vsTargetingUpstreamManifestFile, "-n", ns)
+	err := s.testInstallation.Actions.Kubectl().Apply(s.ctx, NginxUpstreamsYaml)
+	s.NoError(err, "can apply upstream manifest file")
+	err = s.testInstallation.Actions.Kubectl().Apply(s.ctx, VSTargetingUpstreamYaml, "-n", ns)
 	s.NoError(err, "can apply vs targeting upstream manifest file")
 
-	s.assertEventualResponse(expectedCertVerifyFailedResponse)
-}
+	s.assertEventualResponseForPath("nginx", expectedHealthyResponse)
 
-func (s *clientTlsTestingSuite) TestRouteSecureRequestToUpstream() {
-	ns := s.testInstallation.Metadata.InstallNamespace
-	s.T().Cleanup(func() {
-		// ordering here matters if strict validation enabled
-		err := s.testInstallation.Actions.Kubectl().Delete(s.ctx, VSTargetingUpstream, "-n", ns)
-		s.NoError(err, "can delete vs targeting upstream manifest file")
-		s.testInstallation.AssertionsT(s.T()).EventuallyObjectsNotExist(s.ctx, VSTargetingUpstreamObject(ns))
-
-		err = s.testInstallation.Actions.Kubectl().Delete(s.ctx, NginxUpstreamOneWay)
-		s.NoError(err, "can delete nginx upstream manifest file")
-	})
-
-	// ordering here matters if strict validation enabled
-	err := s.testInstallation.Actions.Kubectl().Apply(s.ctx, NginxUpstreamOneWay)
-	s.NoError(err, "can apply nginx upstream manifest file")
-	err = s.testInstallation.Actions.Kubectl().Apply(s.ctx, VSTargetingUpstream, "-n", ns)
-	s.NoError(err, "can apply vs targeting upstream manifest file")
-
+	// This request should succeed because the SAN in the certificate matches the SAN in the VirtualService.
+	// This ensures that we are performing certificate verification during the upstream request.
 	s.assertEventualResponseForPath("nginx-oneway", expectedHealthyResponse)
+
+	// This request should fail because the SAN in the certificate does not match the SAN in the VirtualService.
+	// This ensures that we are performing certificate verification during the upstream request.
+	s.assertEventualResponseForPath("nginx-oneway-bad-san", expectedCertVerifyFailedResponse)
 }
 
-func (s *clientTlsTestingSuite) XTestRouteSecureRequestToAnnotatedServiceFailsWithoutOneWayTls() {
+func (s *clientTlsTestingSuite) TestRouteSecureRequestToAnnotatedService() {
 	ns := s.testInstallation.Metadata.InstallNamespace
+
+	// In the setup/cleanup of the test, we need to ensure that the Edge resources (VS, Upstream)
+	// are created/deleted in the proper order. When strict validation is enabled, performing actions out of order
+	// could cause the validation webhook to reject the request.
 	s.T().Cleanup(func() {
-		// ordering here matters if strict validation enabled
-		err := s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, vsTargetingKubeManifestFile, "-n", ns)
-		s.NoError(err, "can delete vs targeting upstream manifest file")
-		s.testInstallation.AssertionsT(s.T()).EventuallyObjectsNotExist(s.ctx, vsTargetingKube(ns))
-		// this is deleted in test cleanup
-		// err = s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, annotatedNginxSvcManifestFile)
-		// s.NoError(err, "can delete nginx upstream manifest file")
+		err := s.testInstallation.Actions.Kubectl().Delete(s.ctx, VSTargetingKubeYaml, "-n", ns)
+		s.NoError(err, "can delete vs targeting services manifest file")
+		s.testInstallation.AssertionsT(s.T()).EventuallyObjectsNotExist(s.ctx, vSTargetingKubeObject(ns))
+
+		err = s.testInstallation.Actions.Kubectl().Delete(s.ctx, NginxAnnotatedServicesYaml)
+		s.NoError(err, "can delete services manifest file")
 	})
 
-	// ordering here matters if strict validation enabled
-	err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, annotatedNginxSvcManifestFile)
-	s.NoError(err, "can apply nginx upstream manifest file")
-	err = s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, vsTargetingKubeManifestFile, "-n", ns)
-	s.NoError(err, "can apply vs targeting upstream manifest file")
+	err := s.testInstallation.Actions.Kubectl().Apply(s.ctx, NginxAnnotatedServicesYaml)
+	s.NoError(err, "can apply services manifest file")
+	err = s.testInstallation.Actions.Kubectl().Apply(s.ctx, VSTargetingKubeYaml, "-n", ns)
+	s.NoError(err, "can apply vs targeting services manifest file")
 
-	s.assertEventualResponse(expectedCertVerifyFailedResponse)
-}
+	s.assertEventualResponseForPath("nginx", expectedHealthyResponse)
 
-func (s *clientTlsTestingSuite) XTestRouteSecureRequestToAnnotatedService() {
-	ns := s.testInstallation.Metadata.InstallNamespace
-	s.T().Cleanup(func() {
-		// ordering here matters if strict validation enabled
-		err := s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, vsTargetingKubeManifestFile, "-n", ns)
-		s.NoError(err, "can delete vs targeting upstream manifest file")
-		s.testInstallation.AssertionsT(s.T()).EventuallyObjectsNotExist(s.ctx, vsTargetingKube(ns))
-		// this is deleted in test cleanup
-		// err = s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, annotatedNginxOneWaySvcManifestFile)
-		// s.NoError(err, "can delete nginx upstream manifest file")
-	})
+	// This request should succeed because the SAN in the certificate matches the SAN in the VirtualService.
+	// This ensures that we are performing certificate verification during the upstream request.
+	s.assertEventualResponseForPath("nginx-oneway", expectedHealthyResponse)
 
-	// ordering here matters if strict validation enabled
-	err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, annotatedNginxOneWaySvcManifestFile)
-	s.NoError(err, "can apply nginx upstream manifest file")
-	err = s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, vsTargetingKubeManifestFile, "-n", ns)
-	s.NoError(err, "can apply vs targeting upstream manifest file")
-
-	s.assertEventualResponse(expectedHealthyResponse)
-}
-
-func (s *clientTlsTestingSuite) assertEventualResponse(matcher *matchers.HttpResponse) {
-	// Make sure our proxy pod is running
-	listOpts := metav1.ListOptions{
-		LabelSelector: "gloo=gateway-proxy",
-	}
-	s.testInstallation.AssertionsT(s.T()).EventuallyPodsRunning(s.ctx, s.testInstallation.Metadata.InstallNamespace, listOpts, time.Minute*2)
-
-	// Check curl works against expected response
-	s.testInstallation.AssertionsT(s.T()).AssertEventualCurlResponse(
-		s.ctx,
-		testdefaults.CurlPodExecOpt,
-		[]curl.Option{
-			curl.WithHost(kubeutils.ServiceFQDN(metav1.ObjectMeta{Name: defaults.GatewayProxyName, Namespace: s.testInstallation.Metadata.InstallNamespace})),
-			// The host header must match the domain in the VirtualService, in our case "*"
-			curl.WithHostHeader("example.com"),
-			curl.WithPort(80),
-		},
-		matcher)
+	// This test does not have the equivalent of the "nginx-oneway-bad-san" test
+	// This is because the logic between how annotated services and upstreams are handled is almost identical,
+	// so we do not gain by testing all permutations for both cases. Instead, we test extensively the Upstream case,
+	// and then perform more smoke tests for the annotated service case.
 }
 
 func (s *clientTlsTestingSuite) assertEventualResponseForPath(path string, matcher *matchers.HttpResponse) {
@@ -159,8 +118,7 @@ func (s *clientTlsTestingSuite) assertEventualResponseForPath(path string, match
 		testdefaults.CurlPodExecOpt,
 		[]curl.Option{
 			curl.WithHost(kubeutils.ServiceFQDN(metav1.ObjectMeta{Name: defaults.GatewayProxyName, Namespace: s.testInstallation.Metadata.InstallNamespace})),
-			// The host header must match the domain in the VirtualService, in our case "*"
-			curl.WithHostHeader("nginx.example.com"),
+			curl.WithHostHeader("nginx.example.com"), // The host header must match the domain in the VirtualService
 			curl.WithPort(80),
 			curl.WithPath(path),
 		},

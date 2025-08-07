@@ -13,11 +13,11 @@ metadata:
     app: httpbin
 spec:
   containers:
-  - name: httpbin
-    image: mccutchen/go-httpbin:v2.14.0
-    ports:
-    - containerPort: 8080
-      name: http
+    - name: httpbin
+      image: mccutchen/go-httpbin:v2.14.0
+      ports:
+        - containerPort: 8080
+          name: http
 ---
 apiVersion: v1
 kind: Service
@@ -26,8 +26,8 @@ metadata:
   namespace: httpbin
 spec:
   ports:
-  - name: http
-    port: 8080
-    targetPort: http
+    - name: http
+      port: 8080
+      targetPort: http
   selector:
     app: httpbin
