@@ -1,0 +1,6 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/envoy-gloo-ee/issues/980
+    resolvesIssue: true
+    description: >-
+      remove envoy.reloadable_features.ext_proc_fail_close_spurious_resp from helm template as it's no longer needed.
