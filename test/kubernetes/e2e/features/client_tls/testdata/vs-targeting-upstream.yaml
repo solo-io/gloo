@@ -5,12 +5,12 @@ metadata:
 spec:
   virtualHost:
     domains:
-    - '*'
+      - "nginx.example.com"
     routes:
-    - matchers:
-      - exact: /
-      routeAction:
-        single:
-          upstream:
-            name: nginx
-            namespace: nginx
+      - matchers:
+          - exact: /nginx-oneway
+        routeAction:
+          single:
+            upstream:
+              name: nginx-oneway
+              namespace: nginx

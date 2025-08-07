@@ -1,12 +1,13 @@
 apiVersion: gloo.solo.io/v1
 kind: Upstream
 metadata:
-  name: nginx
+  name: nginx-oneway
   namespace: nginx
 spec:
   sslConfig:
+    oneWayTls: true
     secretRef:
-      name: my-tls
+      name: nginx-tls
       namespace: nginx
   kube:
     serviceName: nginx

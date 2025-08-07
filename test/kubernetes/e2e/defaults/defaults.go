@@ -6,8 +6,9 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/solo-io/gloo/pkg/utils/kubeutils/kubectl"
 	"github.com/solo-io/skv2/codegen/util"
+
+	"github.com/solo-io/gloo/pkg/utils/kubeutils/kubectl"
 
 	_ "embed"
 )
@@ -23,6 +24,9 @@ var TcpEchoPodYaml []byte
 
 //go:embed testdata/nginx_pod.yaml
 var NginxPodYaml []byte
+
+//go:embed testdata/nginx_tls_secret.yaml
+var NginxTlsSecretYaml []byte
 
 //go:embed testdata/httpbin.yaml
 var HttpbinYaml []byte
