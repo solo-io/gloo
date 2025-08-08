@@ -17,6 +17,7 @@ import (
 	core "github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	wrapperspb "google.golang.org/protobuf/types/known/wrapperspb"
 )
 
 const (
@@ -47,7 +48,10 @@ type OpenTelemetryConfig struct {
 	// Types that are valid to be assigned to ServiceType:
 	//
 	//	*OpenTelemetryConfig_GrpcService
-	ServiceType   isOpenTelemetryConfig_ServiceType `protobuf_oneof:"service_type"`
+	ServiceType isOpenTelemetryConfig_ServiceType `protobuf_oneof:"service_type"`
+	// Optional. The maximum number of spans that can be cached.
+	// If not specified, the default is 1024.
+	MaxCacheSize  *wrapperspb.UInt32Value `protobuf:"bytes,5,opt,name=max_cache_size,json=maxCacheSize,proto3" json:"max_cache_size,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -126,6 +130,13 @@ func (x *OpenTelemetryConfig) GetGrpcService() *GrpcService {
 		if x, ok := x.ServiceType.(*OpenTelemetryConfig_GrpcService); ok {
 			return x.GrpcService
 		}
+	}
+	return nil
+}
+
+func (x *OpenTelemetryConfig) GetMaxCacheSize() *wrapperspb.UInt32Value {
+	if x != nil {
+		return x.MaxCacheSize
 	}
 	return nil
 }
@@ -209,12 +220,13 @@ var File_github_com_solo_io_gloo_projects_gloo_api_external_envoy_config_trace_v
 
 const file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_config_trace_v3_opentelemetry_proto_rawDesc = "" +
 	"\n" +
-	"\\github.com/solo-io/gloo/projects/gloo/api/external/envoy/config/trace/v3/opentelemetry.proto\x12\x1dsolo.io.envoy.config.trace.v3\x1a\x1eudpa/annotations/migrate.proto\x1a\x1dudpa/annotations/status.proto\x1a!udpa/annotations/versioning.proto\x1a\x17validate/validate.proto\x1a,github.com/solo-io/solo-kit/api/v1/ref.proto\x1a\x12extproto/ext.proto\"\xd9\x02\n" +
+	"\\github.com/solo-io/gloo/projects/gloo/api/external/envoy/config/trace/v3/opentelemetry.proto\x12\x1dsolo.io.envoy.config.trace.v3\x1a\x1eudpa/annotations/migrate.proto\x1a\x1dudpa/annotations/status.proto\x1a!udpa/annotations/versioning.proto\x1a\x17validate/validate.proto\x1a\x1egoogle/protobuf/wrappers.proto\x1a,github.com/solo-io/solo-kit/api/v1/ref.proto\x1a\x12extproto/ext.proto\"\x9d\x03\n" +
 	"\x13OpenTelemetryConfig\x12Q\n" +
 	"\x16collector_upstream_ref\x18\x01 \x01(\v2\x19.core.solo.io.ResourceRefH\x00R\x14collectorUpstreamRef\x12#\n" +
 	"\fcluster_name\x18\x02 \x01(\tH\x00R\vclusterName\x12!\n" +
 	"\fservice_name\x18\x03 \x01(\tR\vserviceName\x12O\n" +
-	"\fgrpc_service\x18\x04 \x01(\v2*.solo.io.envoy.config.trace.v3.GrpcServiceH\x01R\vgrpcService:1\x8a\xc8ގ\x04+\n" +
+	"\fgrpc_service\x18\x04 \x01(\v2*.solo.io.envoy.config.trace.v3.GrpcServiceH\x01R\vgrpcService\x12B\n" +
+	"\x0emax_cache_size\x18\x05 \x01(\v2\x1c.google.protobuf.UInt32ValueR\fmaxCacheSize:1\x8a\xc8ގ\x04+\n" +
 	")envoy.config.trace.v2.OpenTelemetryConfigB\x13\n" +
 	"\x11collector_clusterB\x0e\n" +
 	"\fservice_type\"+\n" +
@@ -236,18 +248,20 @@ func file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_config_trace_
 
 var file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_config_trace_v3_opentelemetry_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
 var file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_config_trace_v3_opentelemetry_proto_goTypes = []any{
-	(*OpenTelemetryConfig)(nil), // 0: solo.io.envoy.config.trace.v3.OpenTelemetryConfig
-	(*GrpcService)(nil),         // 1: solo.io.envoy.config.trace.v3.GrpcService
-	(*core.ResourceRef)(nil),    // 2: core.solo.io.ResourceRef
+	(*OpenTelemetryConfig)(nil),    // 0: solo.io.envoy.config.trace.v3.OpenTelemetryConfig
+	(*GrpcService)(nil),            // 1: solo.io.envoy.config.trace.v3.GrpcService
+	(*core.ResourceRef)(nil),       // 2: core.solo.io.ResourceRef
+	(*wrapperspb.UInt32Value)(nil), // 3: google.protobuf.UInt32Value
 }
 var file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_config_trace_v3_opentelemetry_proto_depIdxs = []int32{
 	2, // 0: solo.io.envoy.config.trace.v3.OpenTelemetryConfig.collector_upstream_ref:type_name -> core.solo.io.ResourceRef
 	1, // 1: solo.io.envoy.config.trace.v3.OpenTelemetryConfig.grpc_service:type_name -> solo.io.envoy.config.trace.v3.GrpcService
-	2, // [2:2] is the sub-list for method output_type
-	2, // [2:2] is the sub-list for method input_type
-	2, // [2:2] is the sub-list for extension type_name
-	2, // [2:2] is the sub-list for extension extendee
-	0, // [0:2] is the sub-list for field type_name
+	3, // 2: solo.io.envoy.config.trace.v3.OpenTelemetryConfig.max_cache_size:type_name -> google.protobuf.UInt32Value
+	3, // [3:3] is the sub-list for method output_type
+	3, // [3:3] is the sub-list for method input_type
+	3, // [3:3] is the sub-list for extension type_name
+	3, // [3:3] is the sub-list for extension extendee
+	0, // [0:3] is the sub-list for field type_name
 }
 
 func init() {
