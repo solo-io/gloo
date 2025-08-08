@@ -1,0 +1,55 @@
+# This file contains the manifests for the NGINX upstreams used in the client TLS tests.
+# We define all the variants of the NGINX upstreams in a single file to make it easier to manage.
+# since they are all variants of each other.
+---
+apiVersion: gloo.solo.io/v1
+kind: Upstream
+metadata:
+  name: nginx
+  namespace: nginx
+spec:
+  sslConfig:
+    secretRef:
+      name: nginx-tls
+      namespace: nginx
+  kube:
+    serviceName: nginx
+    serviceNamespace: nginx
+    servicePort: 8443
+---
+apiVersion: gloo.solo.io/v1
+kind: Upstream
+metadata:
+  name: nginx-oneway
+  namespace: nginx
+spec:
+  sslConfig:
+    oneWayTls: true
+    secretRef:
+      name: nginx-tls
+      namespace: nginx
+  kube:
+    serviceName: nginx
+    serviceNamespace: nginx
+    servicePort: 8443
+---
+apiVersion: gloo.solo.io/v1
+kind: Upstream
+metadata:
+  name: nginx-oneway-bad-san
+  namespace: nginx
+spec:
+  sslConfig:
+    oneWayTls: true
+    verifySubjectAltName:
+      # We configure this Upstream to verify the SANs in the certificate, but we use a certificate with a different SAN.
+      # This was we can ensure that the request fails due to the mismatch.
+      # In the past, we had a bug where we would not verify the SANs in the certificate, and the request would succeed.
+      - invalid.san.com
+    secretRef:
+      name: nginx-tls
+      namespace: nginx
+  kube:
+    serviceName: nginx
+    serviceNamespace: nginx
+    servicePort: 8443
