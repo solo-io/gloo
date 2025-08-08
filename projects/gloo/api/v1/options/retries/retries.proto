@@ -28,6 +28,15 @@ message RetryBackOff {
     google.protobuf.Duration max_interval = 2 [(validate.rules).duration = {gt {}}];
 }
 
+// This specifies the retry policy interval for rate limited requests.
+// Inspired by: https://github.com/envoyproxy/envoy/blob/4a134ce926cf0b882a4c416734b579f9722ed1eb/api/envoy/config/route/v3/route_components.proto#L1522
+// We chose a more simple approach to avoid the complexity of the Envoy implementation.
+message RateLimitedRetryBackOff {
+
+    // Specifies the number of seconds after which the retry backoff will be applied.
+    uint32 retry_after_seconds = 1;
+}
+
 // Retry Policy applied at the Route and/or Virtual Hosts levels.
 message RetryPolicy {
     // Specifies the conditions under which retry takes place. These are the same
@@ -61,4 +70,10 @@ message RetryPolicy {
     // This can be useful if you want to retry on a status code that is not in the retry_on list.
     // Specifically those in the 4xx range.
     repeated uint32 retriable_status_codes = 6;
+
+
+    // Optional: Specifies the retry backoff for rate limited requests.
+    RateLimitedRetryBackOff rate_limited_retry_back_off = 7;
+
+
 }
