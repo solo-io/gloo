@@ -1350,6 +1350,14 @@ spec:
                             nullable: true
                             type: integer
                         type: object
+                      rateLimitedRetryBackOff:
+                        properties:
+                          includeResetHeaders:
+                            nullable: true
+                            type: boolean
+                          maxInterval:
+                            type: string
+                        type: object
                       retriableStatusCodes:
                         items:
                           maximum: 4294967295

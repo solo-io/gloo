@@ -53,6 +53,29 @@ func (m *RetryBackOff) Clone() proto.Message {
 }
 
 // Clone function
+func (m *RateLimitedRetryBackOff) Clone() proto.Message {
+	var target *RateLimitedRetryBackOff
+	if m == nil {
+		return target
+	}
+	target = &RateLimitedRetryBackOff{}
+
+	if h, ok := interface{}(m.GetIncludeResetHeaders()).(clone.Cloner); ok {
+		target.IncludeResetHeaders = h.Clone().(*google_golang_org_protobuf_types_known_wrapperspb.BoolValue)
+	} else {
+		target.IncludeResetHeaders = proto.Clone(m.GetIncludeResetHeaders()).(*google_golang_org_protobuf_types_known_wrapperspb.BoolValue)
+	}
+
+	if h, ok := interface{}(m.GetMaxInterval()).(clone.Cloner); ok {
+		target.MaxInterval = h.Clone().(*google_golang_org_protobuf_types_known_durationpb.Duration)
+	} else {
+		target.MaxInterval = proto.Clone(m.GetMaxInterval()).(*google_golang_org_protobuf_types_known_durationpb.Duration)
+	}
+
+	return target
+}
+
+// Clone function
 func (m *RetryPolicy) Clone() proto.Message {
 	var target *RetryPolicy
 	if m == nil {
@@ -83,6 +106,12 @@ func (m *RetryPolicy) Clone() proto.Message {
 			target.RetriableStatusCodes[idx] = v
 
 		}
+	}
+
+	if h, ok := interface{}(m.GetRateLimitedRetryBackOff()).(clone.Cloner); ok {
+		target.RateLimitedRetryBackOff = h.Clone().(*RateLimitedRetryBackOff)
+	} else {
+		target.RateLimitedRetryBackOff = proto.Clone(m.GetRateLimitedRetryBackOff()).(*RateLimitedRetryBackOff)
 	}
 
 	switch m.PriorityPredicate.(type) {

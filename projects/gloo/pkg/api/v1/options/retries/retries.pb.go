@@ -81,6 +81,63 @@ func (x *RetryBackOff) GetMaxInterval() *durationpb.Duration {
 	return nil
 }
 
+// This specifies the retry policy interval for rate limited requests.
+// Inspired by: https://github.com/envoyproxy/envoy/blob/4a134ce926cf0b882a4c416734b579f9722ed1eb/api/envoy/config/route/v3/route_components.proto#L1522
+// We chose a more simple approach to avoid the complexity of the Envoy implementation.
+type RateLimitedRetryBackOff struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// If true, configure the retry backoff to include the reset headers for Retry-After (seconds) and X-RateLimit-Reset (unix timestamp).
+	IncludeResetHeaders *wrapperspb.BoolValue `protobuf:"bytes,1,opt,name=include_reset_headers,json=includeResetHeaders,proto3" json:"include_reset_headers,omitempty"`
+	// Specifies the max interval for a retry
+	MaxInterval   *durationpb.Duration `protobuf:"bytes,2,opt,name=max_interval,json=maxInterval,proto3" json:"max_interval,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RateLimitedRetryBackOff) Reset() {
+	*x = RateLimitedRetryBackOff{}
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_options_retries_retries_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RateLimitedRetryBackOff) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RateLimitedRetryBackOff) ProtoMessage() {}
+
+func (x *RateLimitedRetryBackOff) ProtoReflect() protoreflect.Message {
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_options_retries_retries_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RateLimitedRetryBackOff.ProtoReflect.Descriptor instead.
+func (*RateLimitedRetryBackOff) Descriptor() ([]byte, []int) {
+	return file_github_com_solo_io_gloo_projects_gloo_api_v1_options_retries_retries_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *RateLimitedRetryBackOff) GetIncludeResetHeaders() *wrapperspb.BoolValue {
+	if x != nil {
+		return x.IncludeResetHeaders
+	}
+	return nil
+}
+
+func (x *RateLimitedRetryBackOff) GetMaxInterval() *durationpb.Duration {
+	if x != nil {
+		return x.MaxInterval
+	}
+	return nil
+}
+
 // Retry Policy applied at the Route and/or Virtual Hosts levels.
 type RetryPolicy struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -102,13 +159,15 @@ type RetryPolicy struct {
 	// This can be useful if you want to retry on a status code that is not in the retry_on list.
 	// Specifically those in the 4xx range.
 	RetriableStatusCodes []uint32 `protobuf:"varint,6,rep,packed,name=retriable_status_codes,json=retriableStatusCodes,proto3" json:"retriable_status_codes,omitempty"`
-	unknownFields        protoimpl.UnknownFields
-	sizeCache            protoimpl.SizeCache
+	// Optional: Specifies the retry backoff for rate limited requests.
+	RateLimitedRetryBackOff *RateLimitedRetryBackOff `protobuf:"bytes,7,opt,name=rate_limited_retry_back_off,json=rateLimitedRetryBackOff,proto3" json:"rate_limited_retry_back_off,omitempty"`
+	unknownFields           protoimpl.UnknownFields
+	sizeCache               protoimpl.SizeCache
 }
 
 func (x *RetryPolicy) Reset() {
 	*x = RetryPolicy{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_options_retries_retries_proto_msgTypes[1]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_options_retries_retries_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -120,7 +179,7 @@ func (x *RetryPolicy) String() string {
 func (*RetryPolicy) ProtoMessage() {}
 
 func (x *RetryPolicy) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_options_retries_retries_proto_msgTypes[1]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_options_retries_retries_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -133,7 +192,7 @@ func (x *RetryPolicy) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RetryPolicy.ProtoReflect.Descriptor instead.
 func (*RetryPolicy) Descriptor() ([]byte, []int) {
-	return file_github_com_solo_io_gloo_projects_gloo_api_v1_options_retries_retries_proto_rawDescGZIP(), []int{1}
+	return file_github_com_solo_io_gloo_projects_gloo_api_v1_options_retries_retries_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *RetryPolicy) GetRetryOn() string {
@@ -187,6 +246,13 @@ func (x *RetryPolicy) GetRetriableStatusCodes() []uint32 {
 	return nil
 }
 
+func (x *RetryPolicy) GetRateLimitedRetryBackOff() *RateLimitedRetryBackOff {
+	if x != nil {
+		return x.RateLimitedRetryBackOff
+	}
+	return nil
+}
+
 type isRetryPolicy_PriorityPredicate interface {
 	isRetryPolicy_PriorityPredicate()
 }
@@ -210,7 +276,7 @@ type RetryPolicy_PreviousPriorities struct {
 
 func (x *RetryPolicy_PreviousPriorities) Reset() {
 	*x = RetryPolicy_PreviousPriorities{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_options_retries_retries_proto_msgTypes[2]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_options_retries_retries_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -222,7 +288,7 @@ func (x *RetryPolicy_PreviousPriorities) String() string {
 func (*RetryPolicy_PreviousPriorities) ProtoMessage() {}
 
 func (x *RetryPolicy_PreviousPriorities) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_options_retries_retries_proto_msgTypes[2]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_options_retries_retries_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -235,7 +301,7 @@ func (x *RetryPolicy_PreviousPriorities) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RetryPolicy_PreviousPriorities.ProtoReflect.Descriptor instead.
 func (*RetryPolicy_PreviousPriorities) Descriptor() ([]byte, []int) {
-	return file_github_com_solo_io_gloo_projects_gloo_api_v1_options_retries_retries_proto_rawDescGZIP(), []int{1, 0}
+	return file_github_com_solo_io_gloo_projects_gloo_api_v1_options_retries_retries_proto_rawDescGZIP(), []int{2, 0}
 }
 
 func (x *RetryPolicy_PreviousPriorities) GetUpdateFrequency() *wrapperspb.UInt32Value {
@@ -252,7 +318,10 @@ const file_github_com_solo_io_gloo_projects_gloo_api_v1_options_retries_retries_
 	"Jgithub.com/solo-io/gloo/projects/gloo/api/v1/options/retries/retries.proto\x12\x1cretries.options.gloo.solo.io\x1a\x1egoogle/protobuf/duration.proto\x1a\x1egoogle/protobuf/wrappers.proto\x1a\x17validate/validate.proto\x1a\x12extproto/ext.proto\"\xa6\x01\n" +
 	"\fRetryBackOff\x12N\n" +
 	"\rbase_interval\x18\x01 \x01(\v2\x19.google.protobuf.DurationB\x0e\xfaB\v\xaa\x01\b\b\x012\x04\x10\xc0\x84=R\fbaseInterval\x12F\n" +
-	"\fmax_interval\x18\x02 \x01(\v2\x19.google.protobuf.DurationB\b\xfaB\x05\xaa\x01\x02*\x00R\vmaxInterval\"\xfa\x03\n" +
+	"\fmax_interval\x18\x02 \x01(\v2\x19.google.protobuf.DurationB\b\xfaB\x05\xaa\x01\x02*\x00R\vmaxInterval\"\xb1\x01\n" +
+	"\x17RateLimitedRetryBackOff\x12N\n" +
+	"\x15include_reset_headers\x18\x01 \x01(\v2\x1a.google.protobuf.BoolValueR\x13includeResetHeaders\x12F\n" +
+	"\fmax_interval\x18\x02 \x01(\v2\x19.google.protobuf.DurationB\b\xfaB\x05\xaa\x01\x02*\x00R\vmaxInterval\"\xef\x04\n" +
 	"\vRetryPolicy\x12\x19\n" +
 	"\bretry_on\x18\x01 \x01(\tR\aretryOn\x12\x1f\n" +
 	"\vnum_retries\x18\x02 \x01(\rR\n" +
@@ -260,7 +329,8 @@ const file_github_com_solo_io_gloo_projects_gloo_api_v1_options_retries_retries_
 	"\x0fper_try_timeout\x18\x03 \x01(\v2\x19.google.protobuf.DurationR\rperTryTimeout\x12P\n" +
 	"\x0eretry_back_off\x18\x04 \x01(\v2*.retries.options.gloo.solo.io.RetryBackOffR\fretryBackOff\x12o\n" +
 	"\x13previous_priorities\x18\x05 \x01(\v2<.retries.options.gloo.solo.io.RetryPolicy.PreviousPrioritiesH\x00R\x12previousPriorities\x124\n" +
-	"\x16retriable_status_codes\x18\x06 \x03(\rR\x14retriableStatusCodes\x1a]\n" +
+	"\x16retriable_status_codes\x18\x06 \x03(\rR\x14retriableStatusCodes\x12s\n" +
+	"\x1brate_limited_retry_back_off\x18\a \x01(\v25.retries.options.gloo.solo.io.RateLimitedRetryBackOffR\x17rateLimitedRetryBackOff\x1a]\n" +
 	"\x12PreviousPriorities\x12G\n" +
 	"\x10update_frequency\x18\x01 \x01(\v2\x1c.google.protobuf.UInt32ValueR\x0fupdateFrequencyB\x14\n" +
 	"\x12priority_predicateBN\xb8\xf5\x04\x01\xc0\xf5\x04\x01\xd0\xf5\x04\x01Z@github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/retriesb\x06proto3"
@@ -277,26 +347,31 @@ func file_github_com_solo_io_gloo_projects_gloo_api_v1_options_retries_retries_p
 	return file_github_com_solo_io_gloo_projects_gloo_api_v1_options_retries_retries_proto_rawDescData
 }
 
-var file_github_com_solo_io_gloo_projects_gloo_api_v1_options_retries_retries_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_github_com_solo_io_gloo_projects_gloo_api_v1_options_retries_retries_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_github_com_solo_io_gloo_projects_gloo_api_v1_options_retries_retries_proto_goTypes = []any{
 	(*RetryBackOff)(nil),                   // 0: retries.options.gloo.solo.io.RetryBackOff
-	(*RetryPolicy)(nil),                    // 1: retries.options.gloo.solo.io.RetryPolicy
-	(*RetryPolicy_PreviousPriorities)(nil), // 2: retries.options.gloo.solo.io.RetryPolicy.PreviousPriorities
-	(*durationpb.Duration)(nil),            // 3: google.protobuf.Duration
-	(*wrapperspb.UInt32Value)(nil),         // 4: google.protobuf.UInt32Value
+	(*RateLimitedRetryBackOff)(nil),        // 1: retries.options.gloo.solo.io.RateLimitedRetryBackOff
+	(*RetryPolicy)(nil),                    // 2: retries.options.gloo.solo.io.RetryPolicy
+	(*RetryPolicy_PreviousPriorities)(nil), // 3: retries.options.gloo.solo.io.RetryPolicy.PreviousPriorities
+	(*durationpb.Duration)(nil),            // 4: google.protobuf.Duration
+	(*wrapperspb.BoolValue)(nil),           // 5: google.protobuf.BoolValue
+	(*wrapperspb.UInt32Value)(nil),         // 6: google.protobuf.UInt32Value
 }
 var file_github_com_solo_io_gloo_projects_gloo_api_v1_options_retries_retries_proto_depIdxs = []int32{
-	3, // 0: retries.options.gloo.solo.io.RetryBackOff.base_interval:type_name -> google.protobuf.Duration
-	3, // 1: retries.options.gloo.solo.io.RetryBackOff.max_interval:type_name -> google.protobuf.Duration
-	3, // 2: retries.options.gloo.solo.io.RetryPolicy.per_try_timeout:type_name -> google.protobuf.Duration
-	0, // 3: retries.options.gloo.solo.io.RetryPolicy.retry_back_off:type_name -> retries.options.gloo.solo.io.RetryBackOff
-	2, // 4: retries.options.gloo.solo.io.RetryPolicy.previous_priorities:type_name -> retries.options.gloo.solo.io.RetryPolicy.PreviousPriorities
-	4, // 5: retries.options.gloo.solo.io.RetryPolicy.PreviousPriorities.update_frequency:type_name -> google.protobuf.UInt32Value
-	6, // [6:6] is the sub-list for method output_type
-	6, // [6:6] is the sub-list for method input_type
-	6, // [6:6] is the sub-list for extension type_name
-	6, // [6:6] is the sub-list for extension extendee
-	0, // [0:6] is the sub-list for field type_name
+	4, // 0: retries.options.gloo.solo.io.RetryBackOff.base_interval:type_name -> google.protobuf.Duration
+	4, // 1: retries.options.gloo.solo.io.RetryBackOff.max_interval:type_name -> google.protobuf.Duration
+	5, // 2: retries.options.gloo.solo.io.RateLimitedRetryBackOff.include_reset_headers:type_name -> google.protobuf.BoolValue
+	4, // 3: retries.options.gloo.solo.io.RateLimitedRetryBackOff.max_interval:type_name -> google.protobuf.Duration
+	4, // 4: retries.options.gloo.solo.io.RetryPolicy.per_try_timeout:type_name -> google.protobuf.Duration
+	0, // 5: retries.options.gloo.solo.io.RetryPolicy.retry_back_off:type_name -> retries.options.gloo.solo.io.RetryBackOff
+	3, // 6: retries.options.gloo.solo.io.RetryPolicy.previous_priorities:type_name -> retries.options.gloo.solo.io.RetryPolicy.PreviousPriorities
+	1, // 7: retries.options.gloo.solo.io.RetryPolicy.rate_limited_retry_back_off:type_name -> retries.options.gloo.solo.io.RateLimitedRetryBackOff
+	6, // 8: retries.options.gloo.solo.io.RetryPolicy.PreviousPriorities.update_frequency:type_name -> google.protobuf.UInt32Value
+	9, // [9:9] is the sub-list for method output_type
+	9, // [9:9] is the sub-list for method input_type
+	9, // [9:9] is the sub-list for extension type_name
+	9, // [9:9] is the sub-list for extension extendee
+	0, // [0:9] is the sub-list for field type_name
 }
 
 func init() { file_github_com_solo_io_gloo_projects_gloo_api_v1_options_retries_retries_proto_init() }
@@ -304,7 +379,7 @@ func file_github_com_solo_io_gloo_projects_gloo_api_v1_options_retries_retries_p
 	if File_github_com_solo_io_gloo_projects_gloo_api_v1_options_retries_retries_proto != nil {
 		return
 	}
-	file_github_com_solo_io_gloo_projects_gloo_api_v1_options_retries_retries_proto_msgTypes[1].OneofWrappers = []any{
+	file_github_com_solo_io_gloo_projects_gloo_api_v1_options_retries_retries_proto_msgTypes[2].OneofWrappers = []any{
 		(*RetryPolicy_PreviousPriorities_)(nil),
 	}
 	type x struct{}
@@ -313,7 +388,7 @@ func file_github_com_solo_io_gloo_projects_gloo_api_v1_options_retries_retries_p
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_github_com_solo_io_gloo_projects_gloo_api_v1_options_retries_retries_proto_rawDesc), len(file_github_com_solo_io_gloo_projects_gloo_api_v1_options_retries_retries_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   3,
+			NumMessages:   4,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
