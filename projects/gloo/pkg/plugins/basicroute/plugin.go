@@ -28,6 +28,7 @@ const (
 	ExtensionName                   = "basic_route"
 	PreviousPrioritiesExtensionName = "envoy.retry_priorities.previous_priorities"
 	RetryAfterHeader                = "Retry-After"
+	XRateLimitResetHeader           = "X-RateLimit-Reset"
 )
 
 // Handles a RoutePlugin APIs which map directly to basic Envoy config
@@ -341,12 +342,19 @@ func convertPolicy(policy *retries.RetryPolicy) (*envoy_config_route_v3.RetryPol
 	var rateLimitedRetryBackOff *envoy_config_route_v3.RetryPolicy_RateLimitedRetryBackOff
 	if policy.GetRateLimitedRetryBackOff() != nil {
 		rateLimitedRetryBackOff = &envoy_config_route_v3.RetryPolicy_RateLimitedRetryBackOff{
-			ResetHeaders: []*envoy_config_route_v3.RetryPolicy_ResetHeader{
+			MaxInterval: policy.GetRateLimitedRetryBackOff().GetMaxInterval(),
+		}
+		if policy.GetRateLimitedRetryBackOff().GetIncludeResetHeaders().GetValue() {
+			rateLimitedRetryBackOff.ResetHeaders = []*envoy_config_route_v3.RetryPolicy_ResetHeader{
 				{
 					Name:   RetryAfterHeader,
 					Format: envoy_config_route_v3.RetryPolicy_SECONDS,
 				},
-			},
+				{
+					Name:   XRateLimitResetHeader,
+					Format: envoy_config_route_v3.RetryPolicy_UNIX_TIMESTAMP,
+				},
+			}
 		}
 	}
 
