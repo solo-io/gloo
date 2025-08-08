@@ -14,7 +14,7 @@ require (
 	github.com/cratonica/2goarray v0.0.0-20190331194516-514510793eaa
 	github.com/envoyproxy/go-control-plane v0.13.5-0.20250805143705-d51f8590a549
 	github.com/envoyproxy/go-control-plane/contrib v1.32.5-0.20250507123352-93990c5ec02f
-	github.com/envoyproxy/go-control-plane/envoy v1.32.5-0.20250507123352-93990c5ec02f
+	github.com/envoyproxy/go-control-plane/envoy v1.32.5-0.20250805143705-d51f8590a549
 	github.com/envoyproxy/go-control-plane/ratelimit v0.1.1-0.20250507123352-93990c5ec02f
 	github.com/envoyproxy/protoc-gen-validate v1.2.1
 	github.com/form3tech-oss/jwt-go v3.2.5+incompatible
@@ -105,7 +105,7 @@ require (
 	github.com/solo-io/cue v0.4.7
 	github.com/stoewer/go-strcase v1.3.0
 	github.com/stretchr/testify v1.10.0
-	go.opentelemetry.io/proto/otlp v1.6.0
+	go.opentelemetry.io/proto/otlp v1.7.1
 	golang.org/x/exp v0.0.0-20241215155358-4a5509556b9e
 	golang.org/x/mod v0.25.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20250728155136-f173205681a0
