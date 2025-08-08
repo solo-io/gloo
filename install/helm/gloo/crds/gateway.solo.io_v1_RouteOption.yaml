@@ -1684,10 +1684,11 @@ spec:
                         type: object
                       rateLimitedRetryBackOff:
                         properties:
-                          retryAfterSeconds:
-                            maximum: 4294967295
-                            minimum: 0
-                            type: integer
+                          includeResetHeaders:
+                            nullable: true
+                            type: boolean
+                          maxInterval:
+                            type: string
                         type: object
                       retriableStatusCodes:
                         items:

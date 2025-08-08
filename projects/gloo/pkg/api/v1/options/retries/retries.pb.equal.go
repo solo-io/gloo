@@ -90,8 +90,24 @@ func (m *RateLimitedRetryBackOff) Equal(that interface{}) bool {
 		return false
 	}
 
-	if m.GetRetryAfterSeconds() != target.GetRetryAfterSeconds() {
-		return false
+	if h, ok := interface{}(m.GetIncludeResetHeaders()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetIncludeResetHeaders()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetIncludeResetHeaders(), target.GetIncludeResetHeaders()) {
+			return false
+		}
+	}
+
+	if h, ok := interface{}(m.GetMaxInterval()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetMaxInterval()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetMaxInterval(), target.GetMaxInterval()) {
+			return false
+		}
 	}
 
 	return true

@@ -60,7 +60,17 @@ func (m *RateLimitedRetryBackOff) Clone() proto.Message {
 	}
 	target = &RateLimitedRetryBackOff{}
 
-	target.RetryAfterSeconds = m.GetRetryAfterSeconds()
+	if h, ok := interface{}(m.GetIncludeResetHeaders()).(clone.Cloner); ok {
+		target.IncludeResetHeaders = h.Clone().(*google_golang_org_protobuf_types_known_wrapperspb.BoolValue)
+	} else {
+		target.IncludeResetHeaders = proto.Clone(m.GetIncludeResetHeaders()).(*google_golang_org_protobuf_types_known_wrapperspb.BoolValue)
+	}
+
+	if h, ok := interface{}(m.GetMaxInterval()).(clone.Cloner); ok {
+		target.MaxInterval = h.Clone().(*google_golang_org_protobuf_types_known_durationpb.Duration)
+	} else {
+		target.MaxInterval = proto.Clone(m.GetMaxInterval()).(*google_golang_org_protobuf_types_known_durationpb.Duration)
+	}
 
 	return target
 }

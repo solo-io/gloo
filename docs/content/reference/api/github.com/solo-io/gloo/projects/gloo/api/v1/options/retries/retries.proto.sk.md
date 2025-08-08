@@ -54,13 +54,15 @@ Inspired by: https://github.com/envoyproxy/envoy/blob/4a134ce926cf0b882a4c416734
 We chose a more simple approach to avoid the complexity of the Envoy implementation.
 
 ```yaml
-"retryAfterSeconds": int
+"includeResetHeaders": .google.protobuf.BoolValue
+"maxInterval": .google.protobuf.Duration
 
 ```
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `retryAfterSeconds` | `int` | Specifies the number of seconds after which the retry backoff will be applied. |
+| `includeResetHeaders` | [.google.protobuf.BoolValue](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/bool-value) | If true, configure the retry backoff to include the reset headers for Retry-After (seconds) and X-RateLimit-Reset (unix timestamp). |
+| `maxInterval` | [.google.protobuf.Duration](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/duration) | Specifies the max interval for a retry. |
 
 
 

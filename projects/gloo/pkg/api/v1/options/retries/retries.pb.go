@@ -86,10 +86,12 @@ func (x *RetryBackOff) GetMaxInterval() *durationpb.Duration {
 // We chose a more simple approach to avoid the complexity of the Envoy implementation.
 type RateLimitedRetryBackOff struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// Specifies the number of seconds after which the retry backoff will be applied.
-	RetryAfterSeconds uint32 `protobuf:"varint,1,opt,name=retry_after_seconds,json=retryAfterSeconds,proto3" json:"retry_after_seconds,omitempty"`
-	unknownFields     protoimpl.UnknownFields
-	sizeCache         protoimpl.SizeCache
+	// If true, configure the retry backoff to include the reset headers for Retry-After (seconds) and X-RateLimit-Reset (unix timestamp).
+	IncludeResetHeaders *wrapperspb.BoolValue `protobuf:"bytes,1,opt,name=include_reset_headers,json=includeResetHeaders,proto3" json:"include_reset_headers,omitempty"`
+	// Specifies the max interval for a retry
+	MaxInterval   *durationpb.Duration `protobuf:"bytes,2,opt,name=max_interval,json=maxInterval,proto3" json:"max_interval,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *RateLimitedRetryBackOff) Reset() {
@@ -122,11 +124,18 @@ func (*RateLimitedRetryBackOff) Descriptor() ([]byte, []int) {
 	return file_github_com_solo_io_gloo_projects_gloo_api_v1_options_retries_retries_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *RateLimitedRetryBackOff) GetRetryAfterSeconds() uint32 {
+func (x *RateLimitedRetryBackOff) GetIncludeResetHeaders() *wrapperspb.BoolValue {
 	if x != nil {
-		return x.RetryAfterSeconds
+		return x.IncludeResetHeaders
 	}
-	return 0
+	return nil
+}
+
+func (x *RateLimitedRetryBackOff) GetMaxInterval() *durationpb.Duration {
+	if x != nil {
+		return x.MaxInterval
+	}
+	return nil
 }
 
 // Retry Policy applied at the Route and/or Virtual Hosts levels.
@@ -309,9 +318,10 @@ const file_github_com_solo_io_gloo_projects_gloo_api_v1_options_retries_retries_
 	"Jgithub.com/solo-io/gloo/projects/gloo/api/v1/options/retries/retries.proto\x12\x1cretries.options.gloo.solo.io\x1a\x1egoogle/protobuf/duration.proto\x1a\x1egoogle/protobuf/wrappers.proto\x1a\x17validate/validate.proto\x1a\x12extproto/ext.proto\"\xa6\x01\n" +
 	"\fRetryBackOff\x12N\n" +
 	"\rbase_interval\x18\x01 \x01(\v2\x19.google.protobuf.DurationB\x0e\xfaB\v\xaa\x01\b\b\x012\x04\x10\xc0\x84=R\fbaseInterval\x12F\n" +
-	"\fmax_interval\x18\x02 \x01(\v2\x19.google.protobuf.DurationB\b\xfaB\x05\xaa\x01\x02*\x00R\vmaxInterval\"I\n" +
-	"\x17RateLimitedRetryBackOff\x12.\n" +
-	"\x13retry_after_seconds\x18\x01 \x01(\rR\x11retryAfterSeconds\"\xef\x04\n" +
+	"\fmax_interval\x18\x02 \x01(\v2\x19.google.protobuf.DurationB\b\xfaB\x05\xaa\x01\x02*\x00R\vmaxInterval\"\xb1\x01\n" +
+	"\x17RateLimitedRetryBackOff\x12N\n" +
+	"\x15include_reset_headers\x18\x01 \x01(\v2\x1a.google.protobuf.BoolValueR\x13includeResetHeaders\x12F\n" +
+	"\fmax_interval\x18\x02 \x01(\v2\x19.google.protobuf.DurationB\b\xfaB\x05\xaa\x01\x02*\x00R\vmaxInterval\"\xef\x04\n" +
 	"\vRetryPolicy\x12\x19\n" +
 	"\bretry_on\x18\x01 \x01(\tR\aretryOn\x12\x1f\n" +
 	"\vnum_retries\x18\x02 \x01(\rR\n" +
@@ -344,21 +354,24 @@ var file_github_com_solo_io_gloo_projects_gloo_api_v1_options_retries_retries_pr
 	(*RetryPolicy)(nil),                    // 2: retries.options.gloo.solo.io.RetryPolicy
 	(*RetryPolicy_PreviousPriorities)(nil), // 3: retries.options.gloo.solo.io.RetryPolicy.PreviousPriorities
 	(*durationpb.Duration)(nil),            // 4: google.protobuf.Duration
-	(*wrapperspb.UInt32Value)(nil),         // 5: google.protobuf.UInt32Value
+	(*wrapperspb.BoolValue)(nil),           // 5: google.protobuf.BoolValue
+	(*wrapperspb.UInt32Value)(nil),         // 6: google.protobuf.UInt32Value
 }
 var file_github_com_solo_io_gloo_projects_gloo_api_v1_options_retries_retries_proto_depIdxs = []int32{
 	4, // 0: retries.options.gloo.solo.io.RetryBackOff.base_interval:type_name -> google.protobuf.Duration
 	4, // 1: retries.options.gloo.solo.io.RetryBackOff.max_interval:type_name -> google.protobuf.Duration
-	4, // 2: retries.options.gloo.solo.io.RetryPolicy.per_try_timeout:type_name -> google.protobuf.Duration
-	0, // 3: retries.options.gloo.solo.io.RetryPolicy.retry_back_off:type_name -> retries.options.gloo.solo.io.RetryBackOff
-	3, // 4: retries.options.gloo.solo.io.RetryPolicy.previous_priorities:type_name -> retries.options.gloo.solo.io.RetryPolicy.PreviousPriorities
-	1, // 5: retries.options.gloo.solo.io.RetryPolicy.rate_limited_retry_back_off:type_name -> retries.options.gloo.solo.io.RateLimitedRetryBackOff
-	5, // 6: retries.options.gloo.solo.io.RetryPolicy.PreviousPriorities.update_frequency:type_name -> google.protobuf.UInt32Value
-	7, // [7:7] is the sub-list for method output_type
-	7, // [7:7] is the sub-list for method input_type
-	7, // [7:7] is the sub-list for extension type_name
-	7, // [7:7] is the sub-list for extension extendee
-	0, // [0:7] is the sub-list for field type_name
+	5, // 2: retries.options.gloo.solo.io.RateLimitedRetryBackOff.include_reset_headers:type_name -> google.protobuf.BoolValue
+	4, // 3: retries.options.gloo.solo.io.RateLimitedRetryBackOff.max_interval:type_name -> google.protobuf.Duration
+	4, // 4: retries.options.gloo.solo.io.RetryPolicy.per_try_timeout:type_name -> google.protobuf.Duration
+	0, // 5: retries.options.gloo.solo.io.RetryPolicy.retry_back_off:type_name -> retries.options.gloo.solo.io.RetryBackOff
+	3, // 6: retries.options.gloo.solo.io.RetryPolicy.previous_priorities:type_name -> retries.options.gloo.solo.io.RetryPolicy.PreviousPriorities
+	1, // 7: retries.options.gloo.solo.io.RetryPolicy.rate_limited_retry_back_off:type_name -> retries.options.gloo.solo.io.RateLimitedRetryBackOff
+	6, // 8: retries.options.gloo.solo.io.RetryPolicy.PreviousPriorities.update_frequency:type_name -> google.protobuf.UInt32Value
+	9, // [9:9] is the sub-list for method output_type
+	9, // [9:9] is the sub-list for method input_type
+	9, // [9:9] is the sub-list for extension type_name
+	9, // [9:9] is the sub-list for extension extendee
+	0, // [0:9] is the sub-list for field type_name
 }
 
 func init() { file_github_com_solo_io_gloo_projects_gloo_api_v1_options_retries_retries_proto_init() }
