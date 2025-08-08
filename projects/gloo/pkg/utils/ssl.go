@@ -10,11 +10,12 @@ import (
 	envoymatcher "github.com/envoyproxy/go-control-plane/envoy/type/matcher/v3"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/rotisserie/eris"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+	"k8s.io/client-go/util/cert"
+
 	"github.com/solo-io/gloo/projects/gloo/constants"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/ssl"
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
-	"k8s.io/client-go/util/cert"
 )
 
 //go:generate mockgen -destination mocks/mock_ssl.go github.com/solo-io/gloo/projects/gloo/pkg/utils SslConfigTranslator
@@ -66,8 +67,7 @@ type SslConfigTranslator interface {
 	ResolveSslParamsConfig(params *ssl.SslParameters) (*envoyauth.TlsParameters, error)
 }
 
-type sslConfigTranslator struct {
-}
+type sslConfigTranslator struct{}
 
 func NewSslConfigTranslator() *sslConfigTranslator {
 	return &sslConfigTranslator{}
@@ -83,10 +83,11 @@ func (s *sslConfigTranslator) ResolveUpstreamSslConfig(
 	}
 
 	// If the user needs one-way TLS to the upstream, disable mTLS by removing
-	// the validation context added in ResolveCommonSslConfig. This flag cannot
+	// the client certificates added in ResolveCommonSslConfig while keeping
+	// the validation context for server certificate verification. This flag cannot
 	// be used with SDS config.
 	if uc.GetSds() == nil && uc.GetOneWayTls().GetValue() {
-		common.ValidationContextType = nil
+		common.TlsCertificates = nil
 	}
 	return &envoyauth.UpstreamTlsContext{
 		CommonTlsContext:   common,
@@ -110,7 +111,6 @@ func (s *sslConfigTranslator) ResolveDownstreamSslConfig(secrets v1.SecretList, 
 		common.AlpnProtocols = []string{"h2", "http/1.1"}
 	} else if len(common.GetAlpnProtocols()) == 1 && common.GetAlpnProtocols()[0] == constants.AllowEmpty { // allow override for advanced usage to set to a dangerous setting
 		common.AlpnProtocols = []string{}
-
 	}
 
 	out := &envoyauth.DownstreamTlsContext{
@@ -247,7 +247,8 @@ func buildDeprecatedSDS(name string, sslSecrets *ssl.SDSConfig) *envoyauth.SdsSe
 					FromPlugin: &envoycore.GrpcService_GoogleGrpc_CallCredentials_MetadataCredentialsFromPlugin{
 						Name: MetadataPluginName,
 						ConfigType: &envoycore.GrpcService_GoogleGrpc_CallCredentials_MetadataCredentialsFromPlugin_TypedConfig{
-							TypedConfig: anyPb},
+							TypedConfig: anyPb,
+						},
 					},
 				},
 			},
@@ -406,7 +407,6 @@ func (s *sslConfigTranslator) ResolveCommonSslConfig(cs CertSource, secrets v1.S
 
 	} else if len(sanList) != 0 {
 		return nil, RootCaMustBeProvidedError
-
 	}
 
 	var err error
@@ -441,7 +441,6 @@ func getSslSecrets(ref core.ResourceRef, secrets v1.SecretList) (string, string,
 }
 
 func cleanedSslKeyPair(certChain, privateKey, rootCa string) (cleanedChain string, err error) {
-
 	// in the case where we _only_ provide a rootCa, we do not want to validate tls.key+tls.cert
 	if (certChain == "") && (privateKey == "") && (rootCa != "") {
 		return certChain, nil

@@ -1,0 +1,44 @@
+# This file contains the manifests for the NGINX services used in the client TLS tests.
+# We define all the variants of the NGINX services in a single file to make it easier to manage,
+# since they are all variants of each other.
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-annotated
+  namespace: nginx
+  annotations:
+    gloo.solo.io/sslService.secret: "nginx-tls"
+spec:
+  selector:
+    app.kubernetes.io/name: nginx
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: http-web-svc
+      name: http
+    - protocol: TCP
+      port: 8443
+      targetPort: https-web-svc
+      name: https
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-annotated-oneway
+  namespace: nginx
+  annotations:
+    gloo.solo.io/sslService.secret: "nginx-tls"
+    gloo.solo.io/sslService.oneWayTls: "true"
+spec:
+  selector:
+    app.kubernetes.io/name: nginx
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: http-web-svc
+      name: http
+    - protocol: TCP
+      port: 8443
+      targetPort: https-web-svc
+      name: https
