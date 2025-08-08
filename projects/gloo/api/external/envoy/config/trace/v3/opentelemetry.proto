@@ -6,6 +6,7 @@ import "udpa/annotations/migrate.proto";
 import "udpa/annotations/status.proto";
 import "udpa/annotations/versioning.proto";
 import "validate/validate.proto";
+import "google/protobuf/wrappers.proto";
 
 import "github.com/solo-io/solo-kit/api/v1/ref.proto";
 
@@ -43,6 +44,10 @@ message OpenTelemetryConfig {
     // Optional gRPC transport options
     GrpcService grpc_service = 4;
   }
+
+  // Optional. The maximum number of spans that can be cached.
+  // If not specified, the default is 1024.
+  google.protobuf.UInt32Value max_cache_size = 5;
 }
 
 message GrpcService {
