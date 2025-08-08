@@ -5,14 +5,30 @@ metadata:
 spec:
   virtualHost:
     domains:
-    - '*'
+      - nginx.example.com
     routes:
-    - matchers:
-      - exact: /
-      routeAction:
-        single:
-          kube:
-            port: 8443
-            ref:
-              name: nginx
-              namespace: nginx
+      - matchers:
+          - exact: /nginx
+        routeAction:
+          single:
+            kube:
+              port: 8443
+              ref:
+                name: nginx-annotated
+                namespace: nginx
+        options:
+          # The NGINX pod is configured to serve the root path, so we need to rewrite the path to the root path.
+          prefixRewrite: /
+
+      - matchers:
+          - exact: /nginx-oneway
+        routeAction:
+          single:
+            kube:
+              port: 8443
+              ref:
+                name: nginx-annotated-oneway
+                namespace: nginx
+        options:
+          # The NGINX pod is configured to serve the root path, so we need to rewrite the path to the root path.
+          prefixRewrite: /
