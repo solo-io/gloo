@@ -6,13 +6,15 @@ import (
 
 	envoy_config_core_v3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	envoytrace "github.com/envoyproxy/go-control-plane/envoy/config/trace/v3"
+	"github.com/solo-io/go-utils/contextutils"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
+	"go.uber.org/zap"
+	"google.golang.org/protobuf/types/known/wrapperspb"
+
 	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gateway2/wellknown"
 	envoytracegloo "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/config/trace/v3"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
-	"github.com/solo-io/go-utils/contextutils"
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
-	"go.uber.org/zap"
 )
 
 // Converts between Envoy and Gloo/solokit versions of envoy protos
@@ -131,6 +133,10 @@ func ToEnvoyOpenTelemetryConfiguration(clusterName, serviceName, authority strin
 			},
 		},
 		ServiceName: serviceName,
+		MaxCacheSize: &wrapperspb.UInt32Value{
+			// todo: configure
+			Value: 0,
+		},
 	}
 
 	return envoyOpenTelemetryConfig
