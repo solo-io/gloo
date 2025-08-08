@@ -73,6 +73,9 @@ type HttpListenerOptions struct {
 	// Enterprise-only: Settings for the rate limiting server itself
 	RatelimitServer *ratelimit.Settings `protobuf:"bytes,11,opt,name=ratelimit_server,json=ratelimitServer,proto3" json:"ratelimit_server,omitempty"`
 	// Enterprise-only: Settings for the cache server itself
+	// Deprecated: this feature is marked for removal from Gloo in version 1.21.
+	//
+	// Deprecated: Marked as deprecated in github.com/solo-io/gloo/projects/gloo/api/v1/http_listener_options.proto.
 	Caching *caching.Settings `protobuf:"bytes,17,opt,name=caching,proto3" json:"caching,omitempty"`
 	// Types that are valid to be assigned to ExtProcConfig:
 	//
@@ -235,6 +238,7 @@ func (x *HttpListenerOptions) GetRatelimitServer() *ratelimit.Settings {
 	return nil
 }
 
+// Deprecated: Marked as deprecated in github.com/solo-io/gloo/projects/gloo/api/v1/http_listener_options.proto.
 func (x *HttpListenerOptions) GetCaching() *caching.Settings {
 	if x != nil {
 		return x.Caching
@@ -397,7 +401,7 @@ var File_github_com_solo_io_gloo_projects_gloo_api_v1_http_listener_options_prot
 
 const file_github_com_solo_io_gloo_projects_gloo_api_v1_http_listener_options_proto_rawDesc = "" +
 	"\n" +
-	"Hgithub.com/solo-io/gloo/projects/gloo/api/v1/http_listener_options.proto\x12\fgloo.solo.io\x1a\x12extproto/ext.proto\x1aLgithub.com/solo-io/gloo/projects/gloo/api/v1/options/grpc_web/grpc_web.proto\x1aBgithub.com/solo-io/gloo/projects/gloo/api/v1/options/hcm/hcm.proto\x1aRgithub.com/solo-io/gloo/projects/gloo/api/v1/options/healthcheck/healthcheck.proto\x1a=github.com/solo-io/gloo/projects/gloo/api/v1/extensions.proto\x1aMgithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/waf/waf.proto\x1aMgithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/dlp/dlp.proto\x1aDgithub.com/solo-io/gloo/projects/gloo/api/v1/options/wasm/wasm.proto\x1aXgithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth.proto\x1aYgithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/ratelimit/ratelimit.proto\x1aUgithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/caching/caching.proto\x1aUgithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/extproc/extproc.proto\x1a^github.com/solo-io/gloo/projects/gloo/api/external/envoy/config/filter/http/gzip/v2/gzip.proto\x1acgithub.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/proxylatency/proxylatency.proto\x1aggithub.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/filters/http/buffer/v3/buffer.proto\x1acgithub.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/filters/http/csrf/v3/csrf.proto\x1aNgithub.com/solo-io/gloo/projects/gloo/api/v1/options/grpc_json/grpc_json.proto\x1afgithub.com/solo-io/gloo/projects/gloo/api/v1/options/dynamic_forward_proxy/dynamic_forward_proxy.proto\x1a\\github.com/solo-io/gloo/projects/gloo/api/v1/options/connection_limit/connection_limit.proto\x1aZgithub.com/solo-io/gloo/projects/gloo/api/v1/options/local_ratelimit/local_ratelimit.proto\x1aHgithub.com/solo-io/gloo/projects/gloo/api/v1/options/router/router.proto\x1aMgithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/tap/tap.proto\x1aggithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/stateful_session/stateful_session.proto\x1a^github.com/solo-io/gloo/projects/gloo/api/v1/options/header_validation/header_validation.proto\x1a\x1egoogle/protobuf/wrappers.proto\"\x9f\x11\n" +
+	"Hgithub.com/solo-io/gloo/projects/gloo/api/v1/http_listener_options.proto\x12\fgloo.solo.io\x1a\x12extproto/ext.proto\x1aLgithub.com/solo-io/gloo/projects/gloo/api/v1/options/grpc_web/grpc_web.proto\x1aBgithub.com/solo-io/gloo/projects/gloo/api/v1/options/hcm/hcm.proto\x1aRgithub.com/solo-io/gloo/projects/gloo/api/v1/options/healthcheck/healthcheck.proto\x1a=github.com/solo-io/gloo/projects/gloo/api/v1/extensions.proto\x1aMgithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/waf/waf.proto\x1aMgithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/dlp/dlp.proto\x1aDgithub.com/solo-io/gloo/projects/gloo/api/v1/options/wasm/wasm.proto\x1aXgithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth.proto\x1aYgithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/ratelimit/ratelimit.proto\x1aUgithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/caching/caching.proto\x1aUgithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/extproc/extproc.proto\x1a^github.com/solo-io/gloo/projects/gloo/api/external/envoy/config/filter/http/gzip/v2/gzip.proto\x1acgithub.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/proxylatency/proxylatency.proto\x1aggithub.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/filters/http/buffer/v3/buffer.proto\x1acgithub.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/filters/http/csrf/v3/csrf.proto\x1aNgithub.com/solo-io/gloo/projects/gloo/api/v1/options/grpc_json/grpc_json.proto\x1afgithub.com/solo-io/gloo/projects/gloo/api/v1/options/dynamic_forward_proxy/dynamic_forward_proxy.proto\x1a\\github.com/solo-io/gloo/projects/gloo/api/v1/options/connection_limit/connection_limit.proto\x1aZgithub.com/solo-io/gloo/projects/gloo/api/v1/options/local_ratelimit/local_ratelimit.proto\x1aHgithub.com/solo-io/gloo/projects/gloo/api/v1/options/router/router.proto\x1aMgithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/tap/tap.proto\x1aggithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/stateful_session/stateful_session.proto\x1a^github.com/solo-io/gloo/projects/gloo/api/v1/options/header_validation/header_validation.proto\x1a\x1egoogle/protobuf/wrappers.proto\"\xa3\x11\n" +
 	"\x13HttpListenerOptions\x12A\n" +
 	"\bgrpc_web\x18\x01 \x01(\v2&.grpc_web.options.gloo.solo.io.GrpcWebR\agrpcWeb\x12\x80\x01\n" +
 	" http_connection_manager_settings\x18\x02 \x01(\v27.hcm.options.gloo.solo.io.HttpConnectionManagerSettingsR\x1dhttpConnectionManagerSettings\x12P\n" +
@@ -410,8 +414,8 @@ const file_github_com_solo_io_gloo_projects_gloo_api_v1_http_listener_options_pr
 	"\x04wasm\x18\a \x01(\v2'.wasm.options.gloo.solo.io.PluginSourceR\x04wasm\x12;\n" +
 	"\aextauth\x18\n" +
 	" \x01(\v2!.enterprise.gloo.solo.io.SettingsR\aextauth\x12S\n" +
-	"\x10ratelimit_server\x18\v \x01(\v2(.ratelimit.options.gloo.solo.io.SettingsR\x0fratelimitServer\x12@\n" +
-	"\acaching\x18\x11 \x01(\v2&.caching.options.gloo.solo.io.SettingsR\acaching\x12F\n" +
+	"\x10ratelimit_server\x18\v \x01(\v2(.ratelimit.options.gloo.solo.io.SettingsR\x0fratelimitServer\x12D\n" +
+	"\acaching\x18\x11 \x01(\v2&.caching.options.gloo.solo.io.SettingsB\x02\x18\x01R\acaching\x12F\n" +
 	"\x10disable_ext_proc\x18\x1e \x01(\v2\x1a.google.protobuf.BoolValueH\x00R\x0edisableExtProc\x12C\n" +
 	"\bext_proc\x18\x1f \x01(\v2&.extproc.options.gloo.solo.io.SettingsH\x00R\aextProc\x12B\n" +
 	"\x04gzip\x18\b \x01(\v2..solo.io.envoy.config.filter.http.gzip.v2.GzipR\x04gzip\x12[\n" +
