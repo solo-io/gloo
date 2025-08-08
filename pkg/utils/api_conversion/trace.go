@@ -122,7 +122,7 @@ func gatewayKindsMap() map[string]bool {
 }
 
 // ToEnvoyOpenTelemetryConfiguration converts a Gloo OpenTelemetryConfig to an Envoy OpenTelemetryConfig
-func ToEnvoyOpenTelemetryConfiguration(clusterName, serviceName, authority string) *envoytrace.OpenTelemetryConfig {
+func ToEnvoyOpenTelemetryConfiguration(clusterName, serviceName, authority string, maxCacheSize *wrapperspb.UInt32Value) *envoytrace.OpenTelemetryConfig {
 	envoyOpenTelemetryConfig := &envoytrace.OpenTelemetryConfig{
 		GrpcService: &envoy_config_core_v3.GrpcService{
 			TargetSpecifier: &envoy_config_core_v3.GrpcService_EnvoyGrpc_{
@@ -133,10 +133,10 @@ func ToEnvoyOpenTelemetryConfiguration(clusterName, serviceName, authority strin
 			},
 		},
 		ServiceName: serviceName,
-		MaxCacheSize: &wrapperspb.UInt32Value{
-			// todo: configure
-			Value: 0,
-		},
+	}
+
+	if maxCacheSize != nil {
+		envoyOpenTelemetryConfig.MaxCacheSize = maxCacheSize
 	}
 
 	return envoyOpenTelemetryConfig
