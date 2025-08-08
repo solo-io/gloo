@@ -18,7 +18,7 @@ spec:
   terminationGracePeriodSeconds: 1  # Wait only 1 seconds instead of default 30
   containers:
     - name: sleep-server
-      image: python:latest
+      image: python:alpine3.22
       imagePullPolicy: IfNotPresent
       ports:
         - containerPort: 8080
