@@ -1,0 +1,18 @@
+apiVersion: gateway.solo.io/v1
+kind: HttpListenerOption
+metadata:
+  name: adaptive-concurrency-gw
+spec:
+  targetRefs:
+  - group: gateway.networking.k8s.io
+    kind: Gateway
+    name: gw
+  options:
+    adaptiveConcurrency:
+      concurrencyLimitCalculationParams:
+        concurrencyUpdateInterval: 1000
+        maxConcurrencyLimit: 6
+      minRttCalculationParams:
+        bufferPercentile: 5
+        interval: 1000
+        requestCount: 10

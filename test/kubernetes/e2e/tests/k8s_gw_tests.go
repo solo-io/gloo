@@ -3,6 +3,7 @@ package tests
 import (
 	"github.com/solo-io/gloo/test/kubernetes/e2e"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/access_log"
+	"github.com/solo-io/gloo/test/kubernetes/e2e/features/adaptive_concurrency"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/admin_server"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/crd_categories"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/deployer"
@@ -47,6 +48,7 @@ func KubeGatewaySuiteRunner() e2e.SuiteRunner {
 	kubeGatewaySuiteRunner.Register("ServerTls", server_tls.NewK8sTestingSuite)
 	kubeGatewaySuiteRunner.Register("HTTPTunnel", http_tunnel.NewTestingSuite)
 	kubeGatewaySuiteRunner.Register("AccessLog", access_log.NewAccessLogSuite)
+	kubeGatewaySuiteRunner.Register("AdaptiveConcurrency", adaptive_concurrency.NewGg2TestingSuite)
 
 	return kubeGatewaySuiteRunner
 }

@@ -1,0 +1,61 @@
+kind: Gateway
+apiVersion: gateway.networking.k8s.io/v1
+metadata:
+  name: gw
+spec:
+  gatewayClassName: gloo-gateway
+  listeners:
+    - protocol: HTTP
+      port: 8080
+      name: http
+      allowedRoutes:
+        namespaces:
+          from: All
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: example-route-0
+  namespace: sleep-server
+spec:
+  parentRefs:
+    - name: gw
+      namespace: default
+  hostnames:
+    - "example-0.com"
+  rules:
+    - backendRefs:
+        - name: sleep-server
+          port: 8080
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: example-route-1
+  namespace: sleep-server
+spec:
+  parentRefs:
+    - name: gw
+      namespace: default
+  hostnames:
+    - "example-1.com"
+  rules:
+    - backendRefs:
+        - name: sleep-server
+          port: 8080
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: example-route-2
+  namespace: sleep-server
+spec:
+  parentRefs:
+    - name: gw
+      namespace: default
+  hostnames:
+    - "example-2.com"
+  rules:
+    - backendRefs:
+        - name: sleep-server
+          port: 8080
