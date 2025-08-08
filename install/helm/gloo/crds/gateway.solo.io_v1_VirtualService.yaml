@@ -1440,6 +1440,13 @@ spec:
                                 nullable: true
                                 type: integer
                             type: object
+                          rateLimitedRetryBackOff:
+                            properties:
+                              retryAfterSeconds:
+                                maximum: 4294967295
+                                minimum: 0
+                                type: integer
+                            type: object
                           retriableStatusCodes:
                             items:
                               maximum: 4294967295
@@ -4903,6 +4910,13 @@ spec:
                                       maximum: 4294967295
                                       minimum: 0
                                       nullable: true
+                                      type: integer
+                                  type: object
+                                rateLimitedRetryBackOff:
+                                  properties:
+                                    retryAfterSeconds:
+                                      maximum: 4294967295
+                                      minimum: 0
                                       type: integer
                                   type: object
                                 retriableStatusCodes:

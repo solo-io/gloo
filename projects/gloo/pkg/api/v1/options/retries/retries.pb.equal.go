@@ -70,6 +70,34 @@ func (m *RetryBackOff) Equal(that interface{}) bool {
 }
 
 // Equal function
+func (m *RateLimitedRetryBackOff) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*RateLimitedRetryBackOff)
+	if !ok {
+		that2, ok := that.(RateLimitedRetryBackOff)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	if m.GetRetryAfterSeconds() != target.GetRetryAfterSeconds() {
+		return false
+	}
+
+	return true
+}
+
+// Equal function
 func (m *RetryPolicy) Equal(that interface{}) bool {
 	if that == nil {
 		return m == nil
@@ -127,6 +155,16 @@ func (m *RetryPolicy) Equal(that interface{}) bool {
 			return false
 		}
 
+	}
+
+	if h, ok := interface{}(m.GetRateLimitedRetryBackOff()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetRateLimitedRetryBackOff()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetRateLimitedRetryBackOff(), target.GetRateLimitedRetryBackOff()) {
+			return false
+		}
 	}
 
 	switch m.PriorityPredicate.(type) {

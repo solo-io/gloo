@@ -53,6 +53,19 @@ func (m *RetryBackOff) Clone() proto.Message {
 }
 
 // Clone function
+func (m *RateLimitedRetryBackOff) Clone() proto.Message {
+	var target *RateLimitedRetryBackOff
+	if m == nil {
+		return target
+	}
+	target = &RateLimitedRetryBackOff{}
+
+	target.RetryAfterSeconds = m.GetRetryAfterSeconds()
+
+	return target
+}
+
+// Clone function
 func (m *RetryPolicy) Clone() proto.Message {
 	var target *RetryPolicy
 	if m == nil {
@@ -83,6 +96,12 @@ func (m *RetryPolicy) Clone() proto.Message {
 			target.RetriableStatusCodes[idx] = v
 
 		}
+	}
+
+	if h, ok := interface{}(m.GetRateLimitedRetryBackOff()).(clone.Cloner); ok {
+		target.RateLimitedRetryBackOff = h.Clone().(*RateLimitedRetryBackOff)
+	} else {
+		target.RateLimitedRetryBackOff = proto.Clone(m.GetRateLimitedRetryBackOff()).(*RateLimitedRetryBackOff)
 	}
 
 	switch m.PriorityPredicate.(type) {

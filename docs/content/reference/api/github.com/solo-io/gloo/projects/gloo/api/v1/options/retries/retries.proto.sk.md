@@ -12,6 +12,7 @@ weight: 5
 
 
 - [RetryBackOff](#retrybackoff)
+- [RateLimitedRetryBackOff](#ratelimitedretrybackoff)
 - [RetryPolicy](#retrypolicy)
 - [PreviousPriorities](#previouspriorities)
   
@@ -45,6 +46,26 @@ This specifies the retry policy interval for backoffs. Note that if the base int
 
 
 ---
+### RateLimitedRetryBackOff
+
+ 
+This specifies the retry policy interval for rate limited requests.
+Inspired by: https://github.com/envoyproxy/envoy/blob/4a134ce926cf0b882a4c416734b579f9722ed1eb/api/envoy/config/route/v3/route_components.proto#L1522
+We chose a more simple approach to avoid the complexity of the Envoy implementation.
+
+```yaml
+"retryAfterSeconds": int
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+| `retryAfterSeconds` | `int` | Specifies the number of seconds after which the retry backoff will be applied. |
+
+
+
+
+---
 ### RetryPolicy
 
  
@@ -57,6 +78,7 @@ Retry Policy applied at the Route and/or Virtual Hosts levels.
 "retryBackOff": .retries.options.gloo.solo.io.RetryBackOff
 "previousPriorities": .retries.options.gloo.solo.io.RetryPolicy.PreviousPriorities
 "retriableStatusCodes": []int
+"rateLimitedRetryBackOff": .retries.options.gloo.solo.io.RateLimitedRetryBackOff
 
 ```
 
@@ -68,6 +90,7 @@ Retry Policy applied at the Route and/or Virtual Hosts levels.
 | `retryBackOff` | [.retries.options.gloo.solo.io.RetryBackOff](../retries.proto.sk/#retrybackoff) | Specifies the retry policy interval. |
 | `previousPriorities` | [.retries.options.gloo.solo.io.RetryPolicy.PreviousPriorities](../retries.proto.sk/#previouspriorities) | Specify the previous priorities. For more information about previous priorities, see the [Envoy docs](https://www.envoyproxy.io/docs/envoy/v1.30.1/api-v3/extensions/retry/priority/previous_priorities/v3/previous_priorities_config.proto#envoy-v3-api-file-envoy-extensions-retry-priority-previous-priorities-v3-previous-priorities-config-proto). |
 | `retriableStatusCodes` | `[]int` | Optional: HTTP status codes that should trigger a retry in addition to those specified by retry_on. This can be useful if you want to retry on a status code that is not in the retry_on list. Specifically those in the 4xx range. |
+| `rateLimitedRetryBackOff` | [.retries.options.gloo.solo.io.RateLimitedRetryBackOff](../retries.proto.sk/#ratelimitedretrybackoff) | Optional: Specifies the retry backoff for rate limited requests. |
 
 
 
