@@ -49,7 +49,7 @@ func (s *clientTlsTestingSuite) TearDownSuite() {
 	s.NoError(err, "can delete Curl setup manifest")
 }
 
-func (s *clientTlsTestingSuite) XTestRouteSecureRequestToUpstream() {
+func (s *clientTlsTestingSuite) TestRouteSecureRequestToUpstream() {
 	ns := s.testInstallation.Metadata.InstallNamespace
 
 	// In the setup/cleanup of the test, we need to ensure that the Edge resources (VS, Upstream)
