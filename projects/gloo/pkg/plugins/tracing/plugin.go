@@ -12,6 +12,11 @@ import (
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	errors "github.com/rotisserie/eris"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+	"google.golang.org/protobuf/types/known/anypb"
+	"google.golang.org/protobuf/types/known/wrapperspb"
+	"istio.io/istio/pkg/slices"
+
 	"github.com/solo-io/gloo/pkg/utils/api_conversion"
 	v3 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/config/trace/v3"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
@@ -21,10 +26,6 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/internal/common"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/pluginutils"
 	translatorutil "github.com/solo-io/gloo/projects/gloo/pkg/translator"
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
-	"google.golang.org/protobuf/types/known/anypb"
-	"google.golang.org/protobuf/types/known/wrapperspb"
-	"istio.io/istio/pkg/slices"
 )
 
 var (
@@ -306,7 +307,7 @@ func processEnvoyOpenTelemetryTracing(
 		authority = grpcService.GetAuthority()
 	}
 
-	envoyConfig := api_conversion.ToEnvoyOpenTelemetryConfiguration(collectorClusterName, serviceName, authority)
+	envoyConfig := api_conversion.ToEnvoyOpenTelemetryConfiguration(collectorClusterName, serviceName, authority, openTelemetryTracingSettings.OpenTelemetryConfig.GetMaxCacheSize())
 	marshalledEnvoyConfig, err := anypb.New(envoyConfig)
 	if err != nil {
 		return nil, err
