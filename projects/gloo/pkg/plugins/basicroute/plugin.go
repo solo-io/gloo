@@ -7,6 +7,8 @@ import (
 	envoy_config_route_v3 "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
 	envoy_retry_priorities_v3 "github.com/envoyproxy/go-control-plane/envoy/extensions/retry/priority/previous_priorities/v3"
 	"github.com/golang/protobuf/ptypes/wrappers"
+	"github.com/solo-io/solo-kit/pkg/errors"
+
 	"github.com/solo-io/gloo/pkg/utils/regexutils"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/protocol_upgrade"
@@ -15,7 +17,6 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/utils/headers"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/utils/upgradeconfig"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
-	"github.com/solo-io/solo-kit/pkg/errors"
 )
 
 var (
@@ -26,6 +27,7 @@ var (
 const (
 	ExtensionName                   = "basic_route"
 	PreviousPrioritiesExtensionName = "envoy.retry_priorities.previous_priorities"
+	RetryAfterHeader                = "Retry-After"
 )
 
 // Handles a RoutePlugin APIs which map directly to basic Envoy config
@@ -336,6 +338,18 @@ func convertPolicy(policy *retries.RetryPolicy) (*envoy_config_route_v3.RetryPol
 		}
 	}
 
+	var rateLimitedRetryBackOff *envoy_config_route_v3.RetryPolicy_RateLimitedRetryBackOff
+	if policy.GetRateLimitedRetryBackOff() != nil {
+		rateLimitedRetryBackOff = &envoy_config_route_v3.RetryPolicy_RateLimitedRetryBackOff{
+			ResetHeaders: []*envoy_config_route_v3.RetryPolicy_ResetHeader{
+				{
+					Name:   RetryAfterHeader,
+					Format: envoy_config_route_v3.RetryPolicy_SECONDS,
+				},
+			},
+		}
+	}
+
 	v3RetryPolicyBackOff := &envoy_config_route_v3.RetryPolicy_RetryBackOff{}
 
 	// Let's make some checks
@@ -361,7 +375,6 @@ func convertPolicy(policy *retries.RetryPolicy) (*envoy_config_route_v3.RetryPol
 
 		// Check if the base interval is defined
 		if baseInterval != nil {
-
 			// If the base interval is defined, check that it's greater than zero milliseconds
 			if dur := baseInterval.AsDuration().Milliseconds(); dur <= 0 {
 				return nil,
@@ -373,7 +386,6 @@ func convertPolicy(policy *retries.RetryPolicy) (*envoy_config_route_v3.RetryPol
 
 		// Check if the max interval is defined
 		if maxInterval != nil {
-
 			// If the max interval is defined, check that it's greater than zero
 			if dur := maxInterval.AsDuration().Milliseconds(); dur <= 0 {
 				return nil,
@@ -385,20 +397,22 @@ func convertPolicy(policy *retries.RetryPolicy) (*envoy_config_route_v3.RetryPol
 
 		// If max and/or/both base intervals are defined, return a RetryPolicy object that contains them
 		return &envoy_config_route_v3.RetryPolicy{
-			RetryOn:              policy.GetRetryOn(),
-			NumRetries:           &wrappers.UInt32Value{Value: numRetries},
-			PerTryTimeout:        policy.GetPerTryTimeout(),
-			RetryBackOff:         v3RetryPolicyBackOff,
-			RetryPriority:        retryPriority,
-			RetriableStatusCodes: policy.GetRetriableStatusCodes(),
+			RetryOn:                 policy.GetRetryOn(),
+			NumRetries:              &wrappers.UInt32Value{Value: numRetries},
+			PerTryTimeout:           policy.GetPerTryTimeout(),
+			RetryBackOff:            v3RetryPolicyBackOff,
+			RetryPriority:           retryPriority,
+			RetriableStatusCodes:    policy.GetRetriableStatusCodes(),
+			RateLimitedRetryBackOff: rateLimitedRetryBackOff,
 		}, nil
 	}
 
 	return &envoy_config_route_v3.RetryPolicy{
-		RetryOn:              policy.GetRetryOn(),
-		NumRetries:           &wrappers.UInt32Value{Value: numRetries},
-		PerTryTimeout:        policy.GetPerTryTimeout(),
-		RetryPriority:        retryPriority,
-		RetriableStatusCodes: policy.GetRetriableStatusCodes(),
+		RetryOn:                 policy.GetRetryOn(),
+		NumRetries:              &wrappers.UInt32Value{Value: numRetries},
+		PerTryTimeout:           policy.GetPerTryTimeout(),
+		RetryPriority:           retryPriority,
+		RetriableStatusCodes:    policy.GetRetriableStatusCodes(),
+		RateLimitedRetryBackOff: rateLimitedRetryBackOff,
 	}, nil
 }
