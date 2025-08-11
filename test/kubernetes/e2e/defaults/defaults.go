@@ -13,6 +13,12 @@ import (
 	_ "embed"
 )
 
+//go:embed testdata/curl_pod.yaml
+var CurlPodYaml []byte
+
+//go:embed testdata/nginx_pod.yaml
+var NginxPodYaml []byte
+
 var (
 	CurlPodExecOpt = kubectl.PodExecOptions{
 		Name:      "curl",
