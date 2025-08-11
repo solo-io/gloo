@@ -5,7 +5,7 @@ weight: 10
 ---
 
 {{% notice warning %}}
-The cache filter is deprecated and scheduled for removal in Gloo v1.21.
+The caching filter is deprecated and planned to be removed in Gloo Gateway version 1.21.
 {{% /notice %}}
 
 With response caching, you can significantly reduce the number of requests Gloo Gateway makes to its upstream services.
