@@ -7,15 +7,15 @@ import (
 	envoytrace "github.com/envoyproxy/go-control-plane/envoy/config/trace/v3"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"google.golang.org/protobuf/types/known/wrapperspb"
+
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 )
 
 var _ = Describe("Trace utils", func() {
-
 	Context("gets the gateway name for the defined source", func() {
-
 		DescribeTable("by calling GetGatewayNameFromParent", func(listener *gloov1.Listener, expectedGatewayName string) {
 			gatewayName := GetGatewayNameFromParent(context.TODO(), listener)
 
@@ -41,7 +41,6 @@ var _ = Describe("Trace utils", func() {
 			),
 			Entry("nil listener", nil, UnkownMetadataServiceName),
 		)
-
 	})
 
 	Context("creates the OpenTelemetryConfig", func() {
@@ -61,7 +60,7 @@ var _ = Describe("Trace utils", func() {
 				ServiceName: serviceName,
 			}
 
-			actualConfig := ToEnvoyOpenTelemetryConfiguration(clusterName, serviceName, "")
+			actualConfig := ToEnvoyOpenTelemetryConfiguration(clusterName, serviceName, "", nil)
 			Expect(actualConfig).To(Equal(expectedConfig))
 		})
 
@@ -78,7 +77,29 @@ var _ = Describe("Trace utils", func() {
 				ServiceName: serviceName,
 			}
 
-			actualConfig := ToEnvoyOpenTelemetryConfiguration(clusterName, serviceName, authority)
+			actualConfig := ToEnvoyOpenTelemetryConfiguration(clusterName, serviceName, authority, nil)
+			Expect(actualConfig).To(Equal(expectedConfig))
+		})
+
+		It("calling ToEnvoyOpenTelemetryConfiguration with max cache size", func() {
+			expectedConfig := &envoytrace.OpenTelemetryConfig{
+				GrpcService: &envoy_config_core_v3.GrpcService{
+					TargetSpecifier: &envoy_config_core_v3.GrpcService_EnvoyGrpc_{
+						EnvoyGrpc: &envoy_config_core_v3.GrpcService_EnvoyGrpc{
+							ClusterName: clusterName,
+							Authority:   authority,
+						},
+					},
+				},
+				ServiceName: serviceName,
+				MaxCacheSize: &wrapperspb.UInt32Value{
+					Value: 2048,
+				},
+			}
+
+			actualConfig := ToEnvoyOpenTelemetryConfiguration(clusterName, serviceName, authority, &wrapperspb.UInt32Value{
+				Value: 2048,
+			})
 			Expect(actualConfig).To(Equal(expectedConfig))
 		})
 	})
@@ -108,6 +129,7 @@ var testListenerBasicMetadata = &gloov1.Listener{
 		},
 	},
 }
+
 var testListenerNoGateway = &gloov1.Listener{
 	OpaqueMetadata: &gloov1.Listener_MetadataStatic{
 		MetadataStatic: &gloov1.SourceMetadata{
