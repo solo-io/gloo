@@ -1,0 +1,27 @@
+changelog:
+- type: DEPENDENCY_BUMP
+  dependencyOwner: golang
+  dependencyRepo: go
+  dependencyTag: v1.24.6
+  issueLink: https://github.com/solo-io/solo-projects/issues/8392
+  resolvesIssue: false
+- type: DEPENDENCY_BUMP
+  dependencyOwner: solo-io
+  dependencyRepo: cloud-builders
+  dependencyTag: v0.13.1
+- type: DEPENDENCY_BUMP
+  dependencyOwner: solo-io
+  dependencyRepo: go-utils
+  dependencyTag: v0.28.6
+- type: DEPENDENCY_BUMP
+  dependencyOwner: solo-io
+  dependencyRepo: k8s-utils
+  dependencyTag: v0.11.1
+- type: DEPENDENCY_BUMP
+  dependencyOwner: solo-io
+  dependencyRepo: skv2
+  dependencyTag: v0.44.1
+- type: DEPENDENCY_BUMP
+  dependencyOwner: solo-io
+  dependencyRepo: solo-kit
+  dependencyTag: v0.39.1

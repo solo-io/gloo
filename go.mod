@@ -1,6 +1,6 @@
 module github.com/solo-io/gloo
 
-go 1.24.4
+go 1.24.6
 
 // Note for developers: upgrading go will also require upgrading go in the following files:
 // ./cloudbuild-cache.yaml,
@@ -50,17 +50,17 @@ require (
 	github.com/saiskee/gettercheck v0.0.0-20210820204958-38443d06ebe0
 	github.com/sergi/go-diff v1.2.0
 	github.com/solo-io/go-list-licenses v0.1.4
-	github.com/solo-io/go-utils v0.28.5
-	github.com/solo-io/k8s-utils v0.11.0
+	github.com/solo-io/go-utils v0.28.6
+	github.com/solo-io/k8s-utils v0.11.1
 	github.com/solo-io/protoc-gen-ext v0.1.0
 	github.com/solo-io/protoc-gen-openapi v0.3.0
-	github.com/solo-io/skv2 v0.44.0
+	github.com/solo-io/skv2 v0.44.1
 
 	// Pinned to the `k8s-1.33-bump` tag of solo-apis on `gloo-main` branch
 	// Ref: https://github.com/solo-io/gloo/pull/9463/files#r1594409655 && https://solo-io-corp.slack.com/archives/C03MFATU265/p1716913420716729?thread_ts=1716476992.938679&cid=C03MFATU265
 	// as to why it is now based off `gloo-main` and not `gloo-repo-branch`
 	github.com/solo-io/solo-apis v0.0.0-20250616141238-dd7b8dbf6a9b
-	github.com/solo-io/solo-kit v0.39.0
+	github.com/solo-io/solo-kit v0.39.1
 	github.com/spf13/afero v1.11.0
 	github.com/spf13/cobra v1.9.1
 	github.com/spf13/pflag v1.0.6
