@@ -1,0 +1,6 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/solo-projects/issues/8379
+    resolvesIssue: false
+    description: >-
+      Mark the cache filter as deprecated.
