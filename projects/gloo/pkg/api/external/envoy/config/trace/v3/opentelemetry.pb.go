@@ -50,6 +50,10 @@ type OpenTelemetryConfig struct {
 	//	*OpenTelemetryConfig_GrpcService
 	ServiceType isOpenTelemetryConfig_ServiceType `protobuf_oneof:"service_type"`
 	// Optional. The maximum number of spans that can be cached.
+	// If this buffer is exceeded, Envoy may begin dropping traces before they are sent to the collector.
+	// https://opentelemetry.io/docs/specs/otel/performance/
+	// Users should tune the setting based on their environment's expected telemetry volume and
+	// decide their preferences on resource usage vs. data loss.
 	// If not specified, the default is 1024.
 	MaxCacheSize  *wrapperspb.UInt32Value `protobuf:"bytes,5,opt,name=max_cache_size,json=maxCacheSize,proto3" json:"max_cache_size,omitempty"`
 	unknownFields protoimpl.UnknownFields
