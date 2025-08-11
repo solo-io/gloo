@@ -73,7 +73,7 @@ type HttpListenerOptions struct {
 	// Enterprise-only: Settings for the rate limiting server itself
 	RatelimitServer *ratelimit.Settings `protobuf:"bytes,11,opt,name=ratelimit_server,json=ratelimitServer,proto3" json:"ratelimit_server,omitempty"`
 	// Enterprise-only: Settings for the cache server itself
-	// Deprecated: this feature is marked for removal from Gloo in version 1.21.
+	// Deprecated: The caching filter is deprecated and planned to be removed in Gloo Gateway version 1.21.
 	//
 	// Deprecated: Marked as deprecated in github.com/solo-io/gloo/projects/gloo/api/v1/http_listener_options.proto.
 	Caching *caching.Settings `protobuf:"bytes,17,opt,name=caching,proto3" json:"caching,omitempty"`
