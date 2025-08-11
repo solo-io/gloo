@@ -1,0 +1,13 @@
+changelog:
+  - type: HELM
+    issueLink: https://github.com/solo-io/solo-projects/issues/8499
+    resolvesIssue: false
+    description: >-
+      Improve oneWayTls in UpstreamSslConfig. When OneWayTls is set to true, we now remove client certificates 
+      but keep server certificate validation, instead of incorrectly removing the validation context entirely.
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/solo-projects/issues/8499
+    resolvesIssue: false
+    description: >-
+      Improve oneWayTls in UpstreamSslConfig. When OneWayTls is set to true, we now remove client certificates 
+      but keep server certificate validation, instead of incorrectly removing the validation context entirely.
