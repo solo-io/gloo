@@ -182,7 +182,7 @@ func WithHostHeader(host string) Option {
 	}
 }
 
-// WithHeader returns the Option to configure a basic auth header for the curl request
+// WithBasicAuth returns the Option to configure a basic auth header for the curl request
 func WithBasicAuth(username string, password string) Option {
 	auth := username + ":" + password
 	basicAuth := base64.StdEncoding.EncodeToString([]byte(auth))

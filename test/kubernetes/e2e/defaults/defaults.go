@@ -6,9 +6,18 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/solo-io/gloo/pkg/utils/kubeutils/kubectl"
 	"github.com/solo-io/skv2/codegen/util"
+
+	"github.com/solo-io/gloo/pkg/utils/kubeutils/kubectl"
+
+	_ "embed"
 )
+
+//go:embed testdata/curl_pod.yaml
+var CurlPodYaml []byte
+
+//go:embed testdata/nginx_pod.yaml
+var NginxPodYaml []byte
 
 var (
 	CurlPodExecOpt = kubectl.PodExecOptions{
