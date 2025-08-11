@@ -3,8 +3,10 @@ changelog:
   dependencyOwner: golang
   dependencyRepo: go
   dependencyTag: v1.24.6
-  issueLink: https://github.com/solo-io/solo-projects/issues/8392
+  issueLink: https://github.com/solo-io/gloo/issues/10932
   resolvesIssue: false
+  description: >-
+    Bump go to 1.24.6 to fix CVE-2025-47907
 - type: DEPENDENCY_BUMP
   dependencyOwner: solo-io
   dependencyRepo: cloud-builders
@@ -13,4 +15,11 @@ changelog:
   dependencyOwner: solo-io
   dependencyRepo: go-utils
   dependencyTag: v0.28.6
-
+- type: DEPENDENCY_BUMP
+  dependencyOwner: bitnami
+  dependencyRepo: kubectl
+  dependencyTag: v1.33.3
+  description: >-
+    Bump kubectl image to 1.33.3 to fix CVE-2025-22868
+  issueLink: https://github.com/solo-io/gloo/issues/10932
+  resolvesIssue: false
