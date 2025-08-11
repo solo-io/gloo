@@ -1,0 +1,5 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/solo-projects/issues/8499
+    resolvesIssue: false
+    description: Ensure that when one-way TLS is enabled, the upstream TLS context is configured correctly to validate the server certificate.
