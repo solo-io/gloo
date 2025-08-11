@@ -147,6 +147,15 @@ func (g *GatewayAPIOutput) Write(opts *Options) error {
 			return err
 		}
 	}
+	for _, r := range g.gatewayAPICache.RateLimitConfigs {
+		yml, err := yaml.Marshal(r.RateLimitConfig)
+		if err != nil {
+			return err
+		}
+		if err := writeObjectToFile(opts, r, yml); err != nil {
+			return err
+		}
+	}
 
 	// create Gloo Errors directory and splt the files based on their error string.
 	folder, err := createSubDir(opts.OutputDir, "gloo-errors")

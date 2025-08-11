@@ -8,6 +8,7 @@ import (
 
 	kgateway "github.com/kgateway-dev/kgateway/v2/api/v1alpha1"
 	gloogateway "github.com/solo-io/gloo-gateway/api/v1alpha1"
+	glooratelimit "github.com/solo-io/gloo-gateway/external/ratelimit.solo.io/v1alpha1"
 	gloogwv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/snapshot"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
@@ -19,6 +20,7 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/cors"
 	transformation2 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/transformation"
 	v1alpha2 "github.com/solo-io/solo-apis/pkg/api/ratelimit.solo.io/v1alpha1"
+	"google.golang.org/protobuf/types/known/wrapperspb"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -28,8 +30,8 @@ import (
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
 )
 
-func (g *GatewayAPIOutput) convertJWTStagedExtAuth(auth *jwt.VhostExtension, wrapper snapshot.Wrapper) *gloogateway.JWTEnterprise {
-	jwte := &gloogateway.JWTEnterprise{
+func (g *GatewayAPIOutput) convertJWTStagedExtAuth(auth *jwt.VhostExtension, wrapper snapshot.Wrapper) *gloogateway.GlooJWT {
+	jwte := &gloogateway.GlooJWT{
 		Providers:        nil, // existing
 		ValidationPolicy: nil, // existing
 		Disable:          nil, // existing
@@ -199,18 +201,19 @@ func (g *GatewayAPIOutput) convertCORS(policy *cors.CorsPolicy, wrapper snapshot
 	}
 	if policy.GetAllowOriginRegex() != nil {
 		g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "allowOriginRegex not supported")
-
 	}
-	if policy.GetDisableForRoute() != true {
-		g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "cors disabledForRoute not supported")
-	}
-	return &kgateway.CorsPolicy{
+	p := &kgateway.CorsPolicy{
 		HTTPCORSFilter: filter,
 	}
+	if policy.GetDisableForRoute() {
+		p.Disable = &kgateway.PolicyDisable{}
+	}
+
+	return p
 }
 
-func (g *GatewayAPIOutput) convertStagedTransformation(transformation *transformation2.TransformationStages, wrapper snapshot.Wrapper) *gloogateway.TransformationEnterprise {
-	stagedTransformations := &gloogateway.TransformationEnterprise{
+func (g *GatewayAPIOutput) convertStagedTransformation(transformation *transformation2.TransformationStages, wrapper snapshot.Wrapper) *gloogateway.GlooTransformation {
+	stagedTransformations := &gloogateway.GlooTransformation{
 		Stages:    &gloogateway.StagedTransformations{}, // existing
 		AWSLambda: nil,                                  // existing
 	}
@@ -327,14 +330,14 @@ func (g *GatewayAPIOutput) convertRouteOptions(
 			AutoHostRewrite: nil, // existing
 			Buffer:          nil, // existing
 		},
-		Waf:                      nil, // existing
-		Retry:                    nil, // existing
-		Timeouts:                 nil, // existing
-		RateLimitEnterprise:      nil, // existing
-		ExtAuthEnterprise:        nil, // existing
-		TransformationEnterprise: nil, // existing
-		JWTEnterprise:            nil, // existing
-		RBACEnterprise:           nil, // existing
+		Waf:                nil, // existing
+		Retry:              nil, // existing
+		Timeouts:           nil, // existing
+		GlooRateLimit:      nil, // existing
+		GlooExtAuth:        nil, // existing
+		GlooTransformation: nil, // existing
+		GlooJWT:            nil, // existing
+		GlooRBAC:           nil, // existing
 	}
 
 	//Features Supported By GatewayAPI
@@ -379,11 +382,11 @@ func (g *GatewayAPIOutput) convertRouteOptions(
 
 			g.gatewayAPICache.AddAuthConfig(ac)
 
-			gtpSpec.ExtAuthEnterprise = &gloogateway.ExtAuthEnterprise{
+			gtpSpec.GlooExtAuth = &gloogateway.GlooExtAuth{
 				ExtensionRef: &corev1.LocalObjectReference{
 					Name: "ext-authz",
 				},
-				AuthConfigRef: gloogateway.AuthConfigRef{
+				AuthConfigRef: &gloogateway.AuthConfigRef{
 					Name:      gwv1.ObjectName(ac.GetName()),
 					Namespace: ptr.To(gwv1.Namespace(ac.GetNamespace())),
 				},
@@ -472,23 +475,35 @@ func (g *GatewayAPIOutput) convertRouteOptions(
 
 	if options.GetRatelimit() != nil && len(options.GetRatelimit().GetRateLimits()) > 0 {
 
-		rle := &gloogateway.RateLimitEnterprise{
-			Global: &gloogateway.GlobalRateLimit{
-				// Need to find the Gateway Extension for Global Rate Limit Server
-				ExtensionRef: &corev1.LocalObjectReference{
-					Name: "rate-limit",
-				},
-
-				RateLimits: []gloogateway.RateLimitActions{},
-				// RateLimitConfig for the policy, not sure how it works for rate limit basic
-				// TODO(nick) grab the global rate limit config ref
-				RateLimitConfigRef: gloogateway.RateLimitConfigRef{},
+		// We need to create a glooratelimit.RateLimitConfig and reference it to the GTP
+		rlcName := fmt.Sprintf("ratelimit-%s", RandStringRunes(4))
+		rlc := &glooratelimit.RateLimitConfig{
+			TypeMeta: metav1.TypeMeta{
+				Kind:       "RateLimitConfig",
+				APIVersion: glooratelimit.RateLimitConfigGVK.String(),
+			},
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      rlcName,
+				Namespace: wrapper.GetNamespace(),
+			},
+			Spec: glooratelimit.RateLimitConfigSpec{
+				//ConfigType:
 			},
 		}
+
+		//TODO(nick) where do we need to set descriptors?
+		raw := &glooratelimit.RateLimitConfigSpec_Raw_{
+			Raw: &glooratelimit.RateLimitConfigSpec_Raw{
+				Descriptors:    nil,
+				RateLimits:     []*glooratelimit.RateLimitActions{},
+				SetDescriptors: nil,
+			},
+		}
+
 		for _, rl := range options.GetRatelimit().GetRateLimits() {
-			rateLimit := &gloogateway.RateLimitActions{
-				Actions:    []gloogateway.Action{},
-				SetActions: []gloogateway.Action{},
+			rateLimit := &glooratelimit.RateLimitActions{
+				Actions:    []*glooratelimit.Action{},
+				SetActions: []*glooratelimit.Action{},
 			}
 			for _, action := range rl.GetActions() {
 				rateLimitAction := g.convertRateLimitAction(action)
@@ -501,8 +516,27 @@ func (g *GatewayAPIOutput) convertRouteOptions(
 			if rl.GetLimit() != nil {
 				g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "rateLimit action limit is not supported")
 			}
+			raw.Raw.RateLimits = append(raw.Raw.RateLimits, rateLimit)
 		}
-		gtpSpec.RateLimitEnterprise = rle
+		rlc.Spec = glooratelimit.RateLimitConfigSpec{
+			ConfigType: raw,
+		}
+
+		g.gatewayAPICache.AddRateLimitConfigs(snapshot.NewRateLimitConfigPolicyWrapper(rlc, wrapper.FileOrigin()))
+
+		gtpSpec.GlooRateLimit = &gloogateway.GlooRateLimit{
+			Global: &gloogateway.GlobalRateLimit{
+				// Need to find the Gateway Extension for Global Rate Limit Server
+				ExtensionRef: &corev1.LocalObjectReference{
+					Name: "rate-limit",
+				},
+				// RateLimitConfig for the policy, not sure how it works for rate limit basic
+				RateLimitConfigRef: gloogateway.RateLimitConfigRef{
+					Name:      gwv1.ObjectName(rlc.GetName()),
+					Namespace: ptr.To(gwv1.Namespace(rlc.GetNamespace())),
+				},
+			},
+		}
 	}
 	if options.GetRatelimitBasic() != nil {
 		g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "rateLimitBasic is not supported")
@@ -514,7 +548,7 @@ func (g *GatewayAPIOutput) convertRouteOptions(
 		//if options.GetRatelimitBasic().GetAnonymousLimits() != nil {
 		//
 		//}
-		//gtpSpec.RateLimitEnterprise = &gloogateway.RateLimitEnterprise{
+		//gtpSpec.GlooRateLimit = &gloogateway.GlooRateLimit{
 		//	Global: gloogateway.GlobalRateLimit{
 		//		// Need to find the Gateway Extension for Global Rate Limit Server
 		//		ExtensionRef: nil,
@@ -530,7 +564,7 @@ func (g *GatewayAPIOutput) convertRouteOptions(
 	}
 	if options.GetStagedTransformations() != nil {
 		transformation := g.convertStagedTransformation(options.GetStagedTransformations(), wrapper)
-		gtpSpec.TransformationEnterprise = transformation
+		gtpSpec.GlooTransformation = transformation
 	}
 	if options.GetDlp() != nil {
 		g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "dlp is not supported")
@@ -547,7 +581,7 @@ func (g *GatewayAPIOutput) convertRouteOptions(
 			MaxRequestSize: resource.NewQuantity(int64(options.GetBufferPerRoute().GetBuffer().GetMaxRequestBytes().GetValue()), resource.BinarySI),
 		}
 		if options.GetBufferPerRoute().GetDisabled() {
-			g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "bufferPerRoute.disabled is not supported")
+			gtpSpec.Buffer.Disable = &kgateway.PolicyDisable{}
 		}
 	}
 	if options.GetAppendXForwardedHost() != nil && options.GetAppendXForwardedHost().GetValue() == true {
@@ -576,22 +610,26 @@ func (g *GatewayAPIOutput) convertRouteOptions(
 		g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "jwtProvidersStaged is not supported")
 	}
 	if options.GetJwtStaged() != nil {
-		gtpSpec.JWTEnterprise = &gloogateway.StagedJWT{
+		gtpSpec.GlooJWT = &gloogateway.StagedJWT{
 			AfterExtAuth:  nil, // existing
 			BeforeExtAuth: nil, // existing
 		}
 		if options.GetJwtStaged().GetBeforeExtAuth() != nil && options.GetJwtStaged().GetBeforeExtAuth().GetDisable() {
-			gtpSpec.JWTEnterprise.BeforeExtAuth = &gloogateway.JWTEnterprise{
-				Providers:        nil,                                                            // existing
-				ValidationPolicy: nil,                                                            // existing
-				Disable:          ptr.To(options.GetJwtStaged().GetBeforeExtAuth().GetDisable()), // existing
+			gtpSpec.GlooJWT.BeforeExtAuth = &gloogateway.GlooJWT{
+				Providers:        nil, // existing
+				ValidationPolicy: nil, // existing
+			}
+			if options.GetJwtStaged().GetBeforeExtAuth().GetDisable() {
+				gtpSpec.GlooJWT.BeforeExtAuth.Disable = &kgateway.PolicyDisable{}
 			}
 		}
 		if options.GetJwtStaged().GetAfterExtAuth() != nil && options.GetJwtStaged().GetAfterExtAuth().GetDisable() {
-			gtpSpec.JWTEnterprise.AfterExtAuth = &gloogateway.JWTEnterprise{
-				Providers:        nil,                                                           // existing
-				ValidationPolicy: nil,                                                           // existing
-				Disable:          ptr.To(options.GetJwtStaged().GetAfterExtAuth().GetDisable()), // existing
+			gtpSpec.GlooJWT.AfterExtAuth = &gloogateway.GlooJWT{
+				Providers:        nil, // existing
+				ValidationPolicy: nil, // existing
+			}
+			if options.GetJwtStaged().GetAfterExtAuth().GetDisable() {
+				gtpSpec.GlooJWT.AfterExtAuth.Disable = &kgateway.PolicyDisable{}
 			}
 		}
 	}
@@ -635,7 +673,7 @@ func (g *GatewayAPIOutput) convertRouteOptions(
 	}
 	if options.GetRbac() != nil {
 		rbe := g.convertRBAC(options.GetRbac())
-		gtpSpec.RBACEnterprise = rbe
+		gtpSpec.GlooRBAC = rbe
 	}
 	if options.GetShadowing() != nil {
 		g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "shadowing is not supported")
@@ -659,11 +697,14 @@ func (g *GatewayAPIOutput) convertRouteOptions(
 	return trafficPolicy, filter
 }
 
-func (g *GatewayAPIOutput) convertRBAC(extension *rbac.ExtensionSettings) *gloogateway.RBACEnterprise {
-	rbe := &gloogateway.RBACEnterprise{
-		Disable:  ptr.To(extension.GetDisable()),
+func (g *GatewayAPIOutput) convertRBAC(extension *rbac.ExtensionSettings) *gloogateway.GlooRBAC {
+	rbe := &gloogateway.GlooRBAC{
 		Policies: map[string]gloogateway.RBACPolicy{},
 	}
+	if extension.GetDisable() {
+		rbe.Disable = &kgateway.PolicyDisable{}
+	}
+
 	for k, policy := range extension.GetPolicies() {
 		rp := gloogateway.RBACPolicy{
 			Principals:           make([]gloogateway.RBACPrincipal, 0),
@@ -702,58 +743,84 @@ func (g *GatewayAPIOutput) convertRBAC(extension *rbac.ExtensionSettings) *gloog
 	return rbe
 }
 
-func (g *GatewayAPIOutput) convertRateLimitAction(action *v1alpha2.Action) gloogateway.Action {
+func (g *GatewayAPIOutput) convertRateLimitAction(action *v1alpha2.Action) *glooratelimit.Action {
 
-	ggAction := gloogateway.Action{
-		SourceCluster:      nil, // existing
-		DestinationCluster: nil, // existing
-		RequestHeaders:     nil, // existing
-		RemoteAddress:      nil, // existing
-		GenericKey:         nil, // existing
-		HeaderValueMatch:   nil, // existing
-		Metadata:           nil, // existing
+	ggAction := &glooratelimit.Action{
+		ActionSpecifier: nil, // existing
 	}
 	if action.GetSourceCluster() != nil {
-		ggAction.SourceCluster = &gloogateway.SourceClusterAction{}
+		ggAction.ActionSpecifier = &glooratelimit.Action_SourceCluster_{
+			SourceCluster: &glooratelimit.Action_SourceCluster{},
+		}
 	}
 	if action.GetDestinationCluster() != nil {
-		ggAction.DestinationCluster = &gloogateway.DestinationClusterAction{}
+		ggAction.ActionSpecifier = &glooratelimit.Action_DestinationCluster_{
+			DestinationCluster: &glooratelimit.Action_DestinationCluster{},
+		}
 	}
 	if action.GetGenericKey() != nil {
-		ggAction.GenericKey = &gloogateway.GenericKeyAction{
-			DescriptorValue: action.GetGenericKey().GetDescriptorValue(),
+		ggAction.ActionSpecifier = &glooratelimit.Action_GenericKey_{
+			GenericKey: &glooratelimit.Action_GenericKey{DescriptorValue: action.GetGenericKey().GetDescriptorValue()},
 		}
 	}
 	if action.GetHeaderValueMatch() != nil {
-		hvm := &gloogateway.HeaderValueMatchAction{
+		hvm := &glooratelimit.Action_HeaderValueMatch{
 			DescriptorValue: action.GetHeaderValueMatch().GetDescriptorValue(),
 			ExpectMatch:     nil,
-			Headers:         []gloogateway.HeaderMatcher{},
+			Headers:         []*glooratelimit.Action_HeaderValueMatch_HeaderMatcher{},
 		}
 		if action.GetHeaderValueMatch().GetExpectMatch() != nil {
-			hvm.ExpectMatch = ptr.To(action.GetHeaderValueMatch().GetExpectMatch().GetValue())
+			hvm.ExpectMatch = &wrapperspb.BoolValue{Value: action.GetHeaderValueMatch().GetExpectMatch().GetValue()}
 		}
 		for _, header := range action.GetHeaderValueMatch().GetHeaders() {
-			var rangeMatch *gloogateway.Int64Range
 			if header.GetRangeMatch() != nil {
-				rangeMatch = &gloogateway.Int64Range{
-					Start: header.GetRangeMatch().GetStart(),
-					End:   header.GetRangeMatch().GetEnd(),
-				}
+				//TODO(nick): i think this is a bug where int64 does not implement header matcher
+				g.AddError(ERROR_TYPE_NOT_SUPPORTED, "header match int64 is not currently supported due to bug")
+
+				//hvm.Headers = append(hvm.Headers, &glooratelimit.Action_HeaderValueMatch_HeaderMatcher{
+				//	HeaderMatchSpecifier: &glooratelimit.Action_HeaderValueMatch_HeaderMatcher_Int64Range{
+				//		Start: header.GetRangeMatch().GetStart(),
+				//		End:   header.GetRangeMatch().GetEnd(),
+				//	},
+				//})
 			}
-			//TODO(nick) this might set them all instead of the ones that exist
-			hvm.Headers = append(hvm.Headers, gloogateway.HeaderMatcher{
-				Name:         header.GetName(),
-				ExactMatch:   ptr.To(header.GetExactMatch()),
-				RegexMatch:   ptr.To(header.GetRegexMatch()),
-				PresentMatch: ptr.To(header.GetPresentMatch()),
-				PrefixMatch:  ptr.To(header.GetPrefixMatch()),
-				SuffixMatch:  ptr.To(header.GetSuffixMatch()),
-				InvertMatch:  ptr.To(header.GetInvertMatch()),
-				RangeMatch:   rangeMatch,
-			})
+			if header.GetExactMatch() != "" {
+				hvm.Headers = append(hvm.Headers, &glooratelimit.Action_HeaderValueMatch_HeaderMatcher{
+					Name:                 header.GetName(),
+					HeaderMatchSpecifier: &glooratelimit.Action_HeaderValueMatch_HeaderMatcher_ExactMatch{ExactMatch: header.GetExactMatch()},
+					InvertMatch:          header.GetInvertMatch(),
+				})
+			}
+			if header.GetRegexMatch() != "" {
+				hvm.Headers = append(hvm.Headers, &glooratelimit.Action_HeaderValueMatch_HeaderMatcher{
+					Name:                 header.GetName(),
+					HeaderMatchSpecifier: &glooratelimit.Action_HeaderValueMatch_HeaderMatcher_RegexMatch{RegexMatch: header.GetRegexMatch()},
+					InvertMatch:          header.GetInvertMatch(),
+				})
+			}
+			if header.GetPresentMatch() == true {
+				hvm.Headers = append(hvm.Headers, &glooratelimit.Action_HeaderValueMatch_HeaderMatcher{
+					Name:                 header.GetName(),
+					HeaderMatchSpecifier: &glooratelimit.Action_HeaderValueMatch_HeaderMatcher_PresentMatch{PresentMatch: header.GetPresentMatch()},
+					InvertMatch:          header.GetInvertMatch(),
+				})
+			}
+			if header.GetPrefixMatch() != "" {
+				hvm.Headers = append(hvm.Headers, &glooratelimit.Action_HeaderValueMatch_HeaderMatcher{
+					Name:                 header.GetName(),
+					HeaderMatchSpecifier: &glooratelimit.Action_HeaderValueMatch_HeaderMatcher_PrefixMatch{PrefixMatch: header.GetPrefixMatch()},
+					InvertMatch:          header.GetInvertMatch(),
+				})
+			}
+			if header.GetSuffixMatch() != "" {
+				hvm.Headers = append(hvm.Headers, &glooratelimit.Action_HeaderValueMatch_HeaderMatcher{
+					Name:                 header.GetName(),
+					HeaderMatchSpecifier: &glooratelimit.Action_HeaderValueMatch_HeaderMatcher_SuffixMatch{SuffixMatch: header.GetSuffixMatch()},
+					InvertMatch:          header.GetInvertMatch(),
+				})
+			}
 		}
-		ggAction.HeaderValueMatch = hvm
+		ggAction.ActionSpecifier = &glooratelimit.Action_HeaderValueMatch_{HeaderValueMatch: hvm}
 	}
 	return ggAction
 }
@@ -1440,7 +1507,7 @@ func convertDirectResponse(action *gloov1.DirectResponseAction) *kgateway.Direct
 		ObjectMeta: metav1.ObjectMeta{},
 		Spec: kgateway.DirectResponseSpec{
 			StatusCode: action.GetStatus(),
-			Body:       action.GetBody(),
+			Body:       ptr.To(action.GetBody()),
 		},
 	}
 
