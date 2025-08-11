@@ -11,9 +11,6 @@ layered_runtime:
       upstream:
         healthy_panic_threshold:
           value: 50
-      envoy:
-        reloadable_features:
-          ext_proc_fail_close_spurious_resp: false
   - name: admin_layer
     admin_layer: {}
 node:
@@ -196,9 +193,6 @@ layered_runtime:
       upstream:
         healthy_panic_threshold:
           value: 50
-      envoy:
-        reloadable_features:
-          ext_proc_fail_close_spurious_resp: false
   - name: admin_layer
     admin_layer: {}
 node:
@@ -342,9 +336,6 @@ layered_runtime:
       upstream:
         healthy_panic_threshold:
           value: 50
-      envoy:
-        reloadable_features:
-          ext_proc_fail_close_spurious_resp: false
   - name: admin_layer
     admin_layer: {}
 node:
@@ -502,9 +493,6 @@ layered_runtime:
       upstream:
         healthy_panic_threshold:
           value: 50
-      envoy:
-        reloadable_features:
-          ext_proc_fail_close_spurious_resp: false
   - name: admin_layer
     admin_layer: {}
 node:
@@ -699,9 +687,6 @@ layered_runtime:
       upstream:
         healthy_panic_threshold:
           value: 50
-      envoy:
-        reloadable_features:
-          ext_proc_fail_close_spurious_resp: false
   - name: admin_layer
     admin_layer: {}
 node:
