@@ -7,6 +7,7 @@ import (
 
 	kgateway "github.com/kgateway-dev/kgateway/v2/api/v1alpha1"
 	gloogateway "github.com/solo-io/gloo-gateway/api/v1alpha1"
+	glooratelimit "github.com/solo-io/gloo-gateway/external/ratelimit.solo.io/v1alpha1"
 	"github.com/solo-io/gloo/projects/gateway2/wellknown"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/snapshot"
 	v4 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/filters/http/csrf/v3"
@@ -337,14 +338,14 @@ func (g *GatewayAPIOutput) convertVHOOptionsToTrafficPolicySpec(vho *gloov1.Virt
 			AutoHostRewrite: nil, // existing
 			Buffer:          nil, // existing
 		},
-		Waf:                      nil, // existing
-		Retry:                    nil, // existing
-		Timeouts:                 nil, // existing
-		RateLimitEnterprise:      nil, // existing
-		ExtAuthEnterprise:        nil, // existing
-		TransformationEnterprise: nil, // existing
-		JWTEnterprise:            nil, // existing
-		RBACEnterprise:           nil, // existing
+		Waf:                nil, // existing
+		Retry:              nil, // existing
+		Timeouts:           nil, // existing
+		GlooRateLimit:      nil, // existing
+		GlooExtAuth:        nil, // existing
+		GlooTransformation: nil, // existing
+		GlooJWT:            nil, // existing
+		GlooRBAC:           nil, // existing
 	}
 	if vho != nil {
 		if vho.GetExtauth() != nil {
@@ -362,11 +363,11 @@ func (g *GatewayAPIOutput) convertVHOOptionsToTrafficPolicySpec(vho *gloov1.Virt
 
 				g.gatewayAPICache.AddAuthConfig(ac)
 
-				spec.ExtAuthEnterprise = &gloogateway.ExtAuthEnterprise{
+				spec.GlooExtAuth = &gloogateway.GlooExtAuth{
 					ExtensionRef: &corev1.LocalObjectReference{
 						Name: "ext-authz",
 					},
-					AuthConfigRef: gloogateway.AuthConfigRef{
+					AuthConfigRef: &gloogateway.AuthConfigRef{
 						Name:      gwv1.ObjectName(vho.GetExtauth().GetConfigRef().GetName()),
 						Namespace: ptr.To(gwv1.Namespace(vho.GetExtauth().GetConfigRef().GetNamespace())),
 					},
@@ -418,23 +419,34 @@ func (g *GatewayAPIOutput) convertVHOOptionsToTrafficPolicySpec(vho *gloov1.Virt
 		if vho.GetRatelimitEarly() != nil {
 			g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "rateLimitEarly is not supported, defaulting to regular rate limiting")
 
-			rle := &gloogateway.RateLimitEnterprise{
-				Global: &gloogateway.GlobalRateLimit{
-					// Need to find the Gateway Extension for Global Rate Limit Server
-					ExtensionRef: &corev1.LocalObjectReference{
-						Name: "rate-limit",
-					},
+			// We need to create a glooratelimit.RateLimitConfig and reference it to the GTP
+			rlcName := fmt.Sprintf("ratelimit-%s", RandStringRunes(4))
+			rlc := &glooratelimit.RateLimitConfig{
+				TypeMeta: metav1.TypeMeta{
+					Kind:       "RateLimitConfig",
+					APIVersion: glooratelimit.RateLimitConfigGVK.String(),
+				},
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      rlcName,
+					Namespace: wrapper.GetNamespace(),
+				},
+				Spec: glooratelimit.RateLimitConfigSpec{
+					//ConfigType:
+				},
+			}
 
-					RateLimits: []gloogateway.RateLimitActions{},
-					// RateLimitConfig for the policy, not sure how it works for rate limit basic
-					// TODO(nick) grab the global rate limit config ref
-					RateLimitConfigRef: gloogateway.RateLimitConfigRef{},
+			//TODO(nick) where do we need to set descriptors?
+			raw := &glooratelimit.RateLimitConfigSpec_Raw_{
+				Raw: &glooratelimit.RateLimitConfigSpec_Raw{
+					Descriptors:    nil,
+					RateLimits:     []*glooratelimit.RateLimitActions{},
+					SetDescriptors: nil,
 				},
 			}
 			for _, rl := range vho.GetRatelimitEarly().GetRateLimits() {
-				rateLimit := &gloogateway.RateLimitActions{
-					Actions:    []gloogateway.Action{},
-					SetActions: []gloogateway.Action{},
+				rateLimit := &glooratelimit.RateLimitActions{
+					Actions:    []*glooratelimit.Action{},
+					SetActions: []*glooratelimit.Action{},
 				}
 				for _, action := range rl.GetActions() {
 					rateLimitAction := g.convertRateLimitAction(action)
@@ -448,26 +460,55 @@ func (g *GatewayAPIOutput) convertVHOOptionsToTrafficPolicySpec(vho *gloov1.Virt
 					g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "rateLimit action limit is not supported")
 				}
 			}
-			spec.RateLimitEnterprise = rle
-		}
-		if vho.GetRatelimitRegular() != nil {
-			rle := &gloogateway.RateLimitEnterprise{
+			rlc.Spec = glooratelimit.RateLimitConfigSpec{
+				ConfigType: raw,
+			}
+
+			g.gatewayAPICache.AddRateLimitConfigs(snapshot.NewRateLimitConfigPolicyWrapper(rlc, wrapper.FileOrigin()))
+
+			spec.GlooRateLimit = &gloogateway.GlooRateLimit{
 				Global: &gloogateway.GlobalRateLimit{
 					// Need to find the Gateway Extension for Global Rate Limit Server
 					ExtensionRef: &corev1.LocalObjectReference{
 						Name: "rate-limit",
 					},
-
-					RateLimits: []gloogateway.RateLimitActions{},
 					// RateLimitConfig for the policy, not sure how it works for rate limit basic
-					// TODO(nick) grab the global rate limit config ref
-					RateLimitConfigRef: gloogateway.RateLimitConfigRef{},
+					RateLimitConfigRef: gloogateway.RateLimitConfigRef{
+						Name:      gwv1.ObjectName(rlc.GetName()),
+						Namespace: ptr.To(gwv1.Namespace(rlc.GetNamespace())),
+					},
+				},
+			}
+		}
+		if vho.GetRatelimitRegular() != nil {
+			// We need to create a glooratelimit.RateLimitConfig and reference it to the GTP
+			rlcName := fmt.Sprintf("ratelimit-%s", RandStringRunes(4))
+			rlc := &glooratelimit.RateLimitConfig{
+				TypeMeta: metav1.TypeMeta{
+					Kind:       "RateLimitConfig",
+					APIVersion: glooratelimit.RateLimitConfigGVK.String(),
+				},
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      rlcName,
+					Namespace: wrapper.GetNamespace(),
+				},
+				Spec: glooratelimit.RateLimitConfigSpec{
+					//ConfigType:
+				},
+			}
+
+			//TODO(nick) where do we need to set descriptors?
+			raw := &glooratelimit.RateLimitConfigSpec_Raw_{
+				Raw: &glooratelimit.RateLimitConfigSpec_Raw{
+					Descriptors:    nil,
+					RateLimits:     []*glooratelimit.RateLimitActions{},
+					SetDescriptors: nil,
 				},
 			}
 			for _, rl := range vho.GetRatelimitRegular().GetRateLimits() {
-				rateLimit := &gloogateway.RateLimitActions{
-					Actions:    []gloogateway.Action{},
-					SetActions: []gloogateway.Action{},
+				rateLimit := &glooratelimit.RateLimitActions{
+					Actions:    []*glooratelimit.Action{},
+					SetActions: []*glooratelimit.Action{},
 				}
 				for _, action := range rl.GetActions() {
 					rateLimitAction := g.convertRateLimitAction(action)
@@ -481,7 +522,23 @@ func (g *GatewayAPIOutput) convertVHOOptionsToTrafficPolicySpec(vho *gloov1.Virt
 					g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "rateLimit action limit is not supported")
 				}
 			}
-			spec.RateLimitEnterprise = rle
+			rlc.Spec = glooratelimit.RateLimitConfigSpec{
+				ConfigType: raw,
+			}
+
+			g.gatewayAPICache.AddRateLimitConfigs(snapshot.NewRateLimitConfigPolicyWrapper(rlc, wrapper.FileOrigin()))
+
+			spec.GlooRateLimit = &gloogateway.GlooRateLimit{
+				Global: &gloogateway.GlobalRateLimit{
+					// Need to find the Gateway Extension for Global Rate Limit Server
+					ExtensionRef: &corev1.LocalObjectReference{
+						Name: "rate-limit",
+					},
+					// RateLimitConfig for the policy, not sure how it works for rate limit basic
+					// TODO(nick) grab the global rate limit config ref
+					RateLimitConfigRef: gloogateway.RateLimitConfigRef{},
+				},
+			}
 		}
 		if vho.GetHeaderManipulation() != nil {
 			// this is natively supported on the HTTPRoute
@@ -495,36 +552,36 @@ func (g *GatewayAPIOutput) convertVHOOptionsToTrafficPolicySpec(vho *gloov1.Virt
 		}
 		if vho.GetStagedTransformations() != nil {
 			transformation := g.convertStagedTransformation(vho.GetStagedTransformations(), wrapper)
-			spec.TransformationEnterprise = transformation
+			spec.GlooTransformation = transformation
 		}
 		if vho.GetJwt() != nil {
 			// TODO(nick) should we try to translate this or require the end user to migrate to staged?
 			g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "jwt is deprecated in edge and supported")
 		}
 		if vho.GetJwtStaged() != nil {
-			spec.JWTEnterprise = &gloogateway.StagedJWT{
+			spec.GlooJWT = &gloogateway.StagedJWT{
 				AfterExtAuth:  nil, // existing
 				BeforeExtAuth: nil, // existing
 			}
 			if vho.GetJwtStaged().GetBeforeExtAuth() != nil {
 				jwte := g.convertJWTStagedExtAuth(vho.GetJwtStaged().GetBeforeExtAuth(), wrapper)
-				spec.JWTEnterprise.BeforeExtAuth = jwte
+				spec.GlooJWT.BeforeExtAuth = jwte
 			}
 			if vho.GetJwtStaged().GetAfterExtAuth() != nil {
 				jwte := g.convertJWTStagedExtAuth(vho.GetJwtStaged().GetAfterExtAuth(), wrapper)
-				spec.JWTEnterprise.BeforeExtAuth = jwte
+				spec.GlooJWT.BeforeExtAuth = jwte
 			}
 		}
 		if vho.GetRbac() != nil {
 			rbe := g.convertRBAC(vho.GetRbac())
-			spec.RBACEnterprise = rbe
+			spec.GlooRBAC = rbe
 		}
 		if vho.GetBufferPerRoute() != nil && vho.GetBufferPerRoute().GetBuffer() != nil && vho.GetBufferPerRoute().GetBuffer().GetMaxRequestBytes() != nil {
 			spec.Buffer = &kgateway.Buffer{
 				MaxRequestSize: resource.NewQuantity(int64(vho.GetBufferPerRoute().GetBuffer().GetMaxRequestBytes().GetValue()), resource.BinarySI),
 			}
 			if vho.GetBufferPerRoute().GetDisabled() {
-				g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "bufferPerRoute.disabled is not supported")
+				spec.Buffer.Disable = &kgateway.PolicyDisable{}
 			}
 		}
 		if vho.GetIncludeRequestAttemptCount() != nil {
@@ -672,6 +729,7 @@ func (g *GatewayAPIOutput) convertListenerOptions(glooGateway *snapshot.GlooGate
 			ServerHeaderTransformation: nil, // existing
 			StreamIdleTimeout:          nil, // existing
 			HealthCheck:                nil, // existing
+			PreserveHttp1HeaderCase:    nil, // existing
 		},
 	}
 	if options.GetExtensions() != nil {
@@ -711,9 +769,10 @@ func (g *GatewayAPIOutput) convertListenerOptionAccessLogging(glooGateway *snaps
 			listenerPolicy.Spec.AccessLog = []kgateway.AccessLog{}
 		}
 		accessLog := kgateway.AccessLog{
-			FileSink:    nil, // existing
-			GrpcService: nil, // existing
-			Filter:      nil, // existing
+			FileSink:      nil, // existing
+			GrpcService:   nil, // existing
+			Filter:        nil, // existing
+			OpenTelemetry: nil, //existing
 		}
 		if edgeAccessLog.GetFileSink() != nil {
 			fileSink := &kgateway.FileSink{
@@ -930,20 +989,20 @@ func (g *GatewayAPIOutput) convertHTTPListenerOptions(options *gloov1.HttpListen
 			ExtProc:         nil, // existing
 			ExtAuth:         nil, // existing
 			RateLimit:       nil, // existing
-			Cors:            nil,
-			Csrf:            nil,
+			Cors:            nil, // existing
+			Csrf:            nil, // existing
 			HashPolicies:    nil,
 			AutoHostRewrite: nil,
 			Buffer:          nil, // existing
 		},
-		Waf:                      nil, // existing
-		Retry:                    nil, // existing
-		Timeouts:                 nil, // existing
-		RateLimitEnterprise:      nil, // existing
-		ExtAuthEnterprise:        nil, // existing
-		TransformationEnterprise: nil, // existing
-		JWTEnterprise:            nil,
-		RBACEnterprise:           nil,
+		Waf:                nil, // existing
+		Retry:              nil, // existing
+		Timeouts:           nil, // existing
+		GlooRateLimit:      nil, // existing
+		GlooExtAuth:        nil, // existing
+		GlooTransformation: nil, // existing
+		GlooJWT:            nil, // existing
+		GlooRBAC:           nil, // existing
 	}
 
 	// go through each option in Gateway Options and convert to listener policy
@@ -987,7 +1046,7 @@ func (g *GatewayAPIOutput) convertHTTPListenerOptions(options *gloov1.HttpListen
 				rl.Local.TokenBucket.TokensPerFill = ptr.To(options.GetHttpLocalRatelimit().GetDefaultLimit().GetTokensPerFill().GetValue())
 			}
 			if options.GetHttpLocalRatelimit().GetDefaultLimit().GetFillInterval() != nil {
-				rl.Local.TokenBucket.FillInterval = gwv1.Duration(options.GetHttpLocalRatelimit().GetDefaultLimit().GetFillInterval().AsDuration().String())
+				rl.Local.TokenBucket.FillInterval = metav1.Duration{Duration: options.GetHttpLocalRatelimit().GetDefaultLimit().GetFillInterval().AsDuration()}
 			}
 			tps.TrafficPolicySpec.RateLimit = rl
 		}
@@ -1422,17 +1481,17 @@ func (g *GatewayAPIOutput) convertCSRF(policy *v4.CsrfPolicy) *kgateway.CSRFPoli
 	}
 	if policy.GetAdditionalOrigins() != nil {
 		// Convert the additional origins from Gloo Edge format to kgateway format
-		var additionalOrigins []*kgateway.StringMatcher
+		var additionalOrigins []kgateway.StringMatcher
 		for _, origin := range policy.GetAdditionalOrigins() {
 			switch typed := origin.GetMatchPattern().(type) {
 			case *gloo_type_matcher.StringMatcher_Exact:
-				additionalOrigins = append(additionalOrigins, &kgateway.StringMatcher{Exact: ptr.To(typed.Exact)})
+				additionalOrigins = append(additionalOrigins, kgateway.StringMatcher{Exact: ptr.To(typed.Exact)})
 			case *gloo_type_matcher.StringMatcher_Prefix:
-				additionalOrigins = append(additionalOrigins, &kgateway.StringMatcher{Prefix: ptr.To(typed.Prefix)})
+				additionalOrigins = append(additionalOrigins, kgateway.StringMatcher{Prefix: ptr.To(typed.Prefix)})
 			case *gloo_type_matcher.StringMatcher_Suffix:
-				additionalOrigins = append(additionalOrigins, &kgateway.StringMatcher{Suffix: ptr.To(typed.Suffix)})
+				additionalOrigins = append(additionalOrigins, kgateway.StringMatcher{Suffix: ptr.To(typed.Suffix)})
 			case *gloo_type_matcher.StringMatcher_SafeRegex:
-				additionalOrigins = append(additionalOrigins, &kgateway.StringMatcher{SafeRegex: ptr.To(typed.SafeRegex.GetRegex())})
+				additionalOrigins = append(additionalOrigins, kgateway.StringMatcher{SafeRegex: ptr.To(typed.SafeRegex.GetRegex())})
 			}
 		}
 		csrf.AdditionalOrigins = additionalOrigins
@@ -1572,7 +1631,7 @@ func (g *GatewayAPIOutput) generateGatewayExtensionForRateLimit(rateLimitSetting
 		gatewayExtension.Spec.RateLimit.FailOpen = !rateLimitSettings.GetDenyOnFail()
 	}
 	if rateLimitSettings.GetRequestTimeout() != nil {
-		gatewayExtension.Spec.RateLimit.Timeout = gwv1.Duration(rateLimitSettings.GetRequestTimeout().String())
+		gatewayExtension.Spec.RateLimit.Timeout = metav1.Duration{Duration: rateLimitSettings.GetRequestTimeout().AsDuration()}
 	}
 	if rateLimitSettings.GetRatelimitServerRef() != nil {
 		backend := g.GetGatewayAPICache().GetBackend(types.NamespacedName{Namespace: rateLimitSettings.GetRatelimitServerRef().GetNamespace(), Name: rateLimitSettings.GetRatelimitServerRef().GetName()})

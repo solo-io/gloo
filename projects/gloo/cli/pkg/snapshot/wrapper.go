@@ -5,6 +5,7 @@ import (
 
 	kgateway "github.com/kgateway-dev/kgateway/v2/api/v1alpha1"
 	gloogateway "github.com/solo-io/gloo-gateway/api/v1alpha1"
+	glooratelimit "github.com/solo-io/gloo-gateway/external/ratelimit.solo.io/v1alpha1"
 	gatewaykube "github.com/solo-io/gloo/projects/gateway/pkg/api/v1/kube/apis/gateway.solo.io/v1"
 	"github.com/solo-io/gloo/projects/gateway2/api/v1alpha1"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1/kube/apis/enterprise.gloo.solo.io/v1"
@@ -158,6 +159,29 @@ func (w *VirtualHostOptionWrapper) FileOrigin() string {
 	return w.fileOrigin
 }
 func (w *VirtualHostOptionWrapper) HasFileOrigin(fileOrigin string) *VirtualHostOptionWrapper {
+	w.fileOrigin = fileOrigin
+	return w
+}
+
+type RateLimitConfigWrapper struct {
+	*glooratelimit.RateLimitConfig
+	fileOrigin string
+}
+
+func NewRateLimitConfigPolicyWrapper(policy *glooratelimit.RateLimitConfig, fileOrigin string) *RateLimitConfigWrapper {
+	return &RateLimitConfigWrapper{
+		RateLimitConfig: policy,
+		fileOrigin:      fileOrigin,
+	}
+}
+
+func (w *RateLimitConfigWrapper) Index() types.NamespacedName {
+	return types.NamespacedName{Name: w.Name, Namespace: w.Namespace}
+}
+func (w *RateLimitConfigWrapper) FileOrigin() string {
+	return w.fileOrigin
+}
+func (w *RateLimitConfigWrapper) HasFileOrigin(fileOrigin string) *RateLimitConfigWrapper {
 	w.fileOrigin = fileOrigin
 	return w
 }

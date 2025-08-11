@@ -185,6 +185,14 @@ type GatewayAPICache struct {
 	GatewayExtensions    map[types.NamespacedName]*snapshot.GatewayExtensionWrapper
 	KGatewayParameters   map[types.NamespacedName]*snapshot.GatewayParametersWrapper
 	BackendConfigPolicy  map[types.NamespacedName]*snapshot.BackendConfigPolicyWrapper
+	RateLimitConfigs     map[types.NamespacedName]*snapshot.RateLimitConfigWrapper
+}
+
+func (g *GatewayAPICache) AddRateLimitConfigs(policy *snapshot.RateLimitConfigWrapper) {
+	if g.RateLimitConfigs == nil {
+		g.RateLimitConfigs = make(map[types.NamespacedName]*snapshot.RateLimitConfigWrapper)
+	}
+	g.RateLimitConfigs[policy.Index()] = policy
 }
 
 func (g *GatewayAPICache) AddBackendConfigPolicy(policy *snapshot.BackendConfigPolicyWrapper) {

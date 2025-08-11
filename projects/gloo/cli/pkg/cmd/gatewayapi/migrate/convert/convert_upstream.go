@@ -159,14 +159,15 @@ func (g *GatewayAPIOutput) convertUpstreamPolicy(upstream *snapshot.UpstreamWrap
 
 	if upstream.Spec.GetSslConfig() != nil {
 		tls := kgateway.TLS{
-			SecretRef:            nil,                                   // existing
-			TLSFiles:             nil,                                   // existing
-			Sni:                  upstream.Spec.GetSslConfig().GetSni(), // existing
-			VerifySubjectAltName: nil,                                   // existing
-			Parameters:           nil,                                   // existing
-			AlpnProtocols:        nil,                                   // existing
-			AllowRenegotiation:   nil,                                   // existing
-			OneWayTLS:            nil,                                   // existing
+			SecretRef:            nil, // existing
+			TLSFiles:             nil, // existing
+			InsecureSkipVerify:   nil,
+			Sni:                  ptr.To(upstream.Spec.GetSslConfig().GetSni()), // existing
+			VerifySubjectAltName: nil,                                           // existing
+			Parameters:           nil,                                           // existing
+			AlpnProtocols:        nil,                                           // existing
+			AllowRenegotiation:   nil,                                           // existing
+			SimpleTLS:            nil,                                           // existing
 		}
 		if upstream.Spec.GetSslConfig().GetSecretRef() != nil {
 			if upstream.Spec.GetSslConfig().GetSecretRef().GetNamespace() != upstream.GetNamespace() {
@@ -178,9 +179,9 @@ func (g *GatewayAPIOutput) convertUpstreamPolicy(upstream *snapshot.UpstreamWrap
 		}
 		if upstream.Spec.GetSslConfig().GetSslFiles() != nil {
 			tls.TLSFiles = &kgateway.TLSFiles{
-				TLSCertificate: upstream.Spec.GetSslConfig().GetSslFiles().GetTlsCert(),
-				TLSKey:         upstream.Spec.GetSslConfig().GetSslFiles().GetTlsKey(),
-				RootCA:         upstream.Spec.GetSslConfig().GetSslFiles().GetRootCa(),
+				TLSCertificate: ptr.To(upstream.Spec.GetSslConfig().GetSslFiles().GetTlsCert()),
+				TLSKey:         ptr.To(upstream.Spec.GetSslConfig().GetSslFiles().GetTlsKey()),
+				RootCA:         ptr.To(upstream.Spec.GetSslConfig().GetSslFiles().GetRootCa()),
 			}
 			if upstream.Spec.GetSslConfig().GetSslFiles().GetOcspStaple() != "" {
 				g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "sslConfig.sslFiles.ocspStaple is not supported")
@@ -188,7 +189,7 @@ func (g *GatewayAPIOutput) convertUpstreamPolicy(upstream *snapshot.UpstreamWrap
 		}
 
 		if upstream.Spec.GetSslConfig().GetOneWayTls() != nil {
-			tls.OneWayTLS = ptr.To(upstream.Spec.GetSslConfig().GetOneWayTls().GetValue())
+			tls.SimpleTLS = ptr.To(upstream.Spec.GetSslConfig().GetOneWayTls().GetValue())
 		}
 		if len(upstream.Spec.GetSslConfig().GetAlpnProtocols()) > 0 {
 			tls.AlpnProtocols = upstream.Spec.GetSslConfig().GetAlpnProtocols()
@@ -239,7 +240,7 @@ func (g *GatewayAPIOutput) convertUpstreamPolicy(upstream *snapshot.UpstreamWrap
 			g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "sslConfig.sds is not supported")
 		}
 		if upstream.Spec.GetSslConfig().GetOneWayTls() != nil {
-			tls.OneWayTLS = ptr.To(upstream.Spec.GetSslConfig().GetOneWayTls().GetValue())
+			tls.SimpleTLS = ptr.To(upstream.Spec.GetSslConfig().GetOneWayTls().GetValue())
 		}
 		if upstream.Spec.GetSslConfig().GetVerifySubjectAltName() != nil {
 			tls.VerifySubjectAltName = upstream.Spec.GetSslConfig().GetVerifySubjectAltName()
@@ -304,8 +305,8 @@ func (g *GatewayAPIOutput) convertUpstreamPolicy(upstream *snapshot.UpstreamWrap
 		if upstream.Spec.GetConnectionConfig().GetHttp1ProtocolOptions() != nil {
 			options := &kgateway.Http1ProtocolOptions{
 				EnableTrailers:                          nil,
-				HeaderFormat:                            nil,
 				OverrideStreamErrorOnInvalidHttpMessage: nil,
+				PreserveHttp1HeaderCase:                 nil,
 			}
 			if upstream.Spec.GetConnectionConfig().GetHttp1ProtocolOptions().GetOverrideStreamErrorOnInvalidHttpMessage() != nil {
 				options.OverrideStreamErrorOnInvalidHttpMessage = ptr.To(upstream.Spec.GetConnectionConfig().GetHttp1ProtocolOptions().GetOverrideStreamErrorOnInvalidHttpMessage().GetValue())
@@ -316,9 +317,9 @@ func (g *GatewayAPIOutput) convertUpstreamPolicy(upstream *snapshot.UpstreamWrap
 			if upstream.Spec.GetConnectionConfig().GetHttp1ProtocolOptions().GetHeaderFormat() != nil {
 				switch upstream.Spec.GetConnectionConfig().GetHttp1ProtocolOptions().GetHeaderFormat().(type) {
 				case *protocol.Http1ProtocolOptions_ProperCaseHeaderKeyFormat:
-					options.HeaderFormat = ptr.To(kgateway.ProperCaseHeaderKeyFormat)
+					g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "connectionConfig.http1ProtocolOptions.headerFormat.ProperCaseHeaderKeyFormat is not supported")
 				case *protocol.Http1ProtocolOptions_PreserveCaseHeaderKeyFormat:
-					options.HeaderFormat = ptr.To(kgateway.PreserveCaseHeaderKeyFormat)
+					options.PreserveHttp1HeaderCase = ptr.To(true)
 				}
 
 				backendConfig.Spec.Http1ProtocolOptions = options
@@ -537,7 +538,7 @@ func (g *GatewayAPIOutput) convertAWSBackend(upstream *snapshot.UpstreamWrapper,
 	}
 	if lambda != nil {
 		backend.Spec.Aws.Lambda = kgateway.AwsLambda{
-			EndpointURL:          "",                             // existing
+			EndpointURL:          nil,                            // existing
 			FunctionName:         lambda.GetLambdaFunctionName(), // existing
 			InvocationMode:       "",                             // existing
 			Qualifier:            lambda.GetQualifier(),          // existing
