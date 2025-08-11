@@ -14,6 +14,8 @@ import (
 	"google.golang.org/protobuf/proto"
 
 	github_com_solo_io_solo_kit_pkg_api_v1_resources_core "github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+
+	google_golang_org_protobuf_types_known_wrapperspb "google.golang.org/protobuf/types/known/wrapperspb"
 )
 
 // ensure the imports are used
@@ -36,6 +38,12 @@ func (m *OpenTelemetryConfig) Clone() proto.Message {
 	target = &OpenTelemetryConfig{}
 
 	target.ServiceName = m.GetServiceName()
+
+	if h, ok := interface{}(m.GetMaxCacheSize()).(clone.Cloner); ok {
+		target.MaxCacheSize = h.Clone().(*google_golang_org_protobuf_types_known_wrapperspb.UInt32Value)
+	} else {
+		target.MaxCacheSize = proto.Clone(m.GetMaxCacheSize()).(*google_golang_org_protobuf_types_known_wrapperspb.UInt32Value)
+	}
 
 	switch m.CollectorCluster.(type) {
 

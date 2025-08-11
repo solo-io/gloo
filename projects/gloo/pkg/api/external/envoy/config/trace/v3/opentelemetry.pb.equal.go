@@ -50,6 +50,16 @@ func (m *OpenTelemetryConfig) Equal(that interface{}) bool {
 		return false
 	}
 
+	if h, ok := interface{}(m.GetMaxCacheSize()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetMaxCacheSize()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetMaxCacheSize(), target.GetMaxCacheSize()) {
+			return false
+		}
+	}
+
 	switch m.CollectorCluster.(type) {
 
 	case *OpenTelemetryConfig_CollectorUpstreamRef:
