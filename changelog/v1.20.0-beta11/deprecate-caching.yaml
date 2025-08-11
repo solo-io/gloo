@@ -4,3 +4,5 @@ changelog:
     resolvesIssue: false
     description: >-
       Mark the cache filter as deprecated.
+
+      skipCI-kube-tests:true
