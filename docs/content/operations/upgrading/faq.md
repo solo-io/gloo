@@ -52,12 +52,16 @@ Review the following changes made to Gloo Gateway in version {{< readfile file="
 
 **Envoy version upgrade**
 
-The Envoy dependency in Gloo Gateway 1.20 was upgraded from 1.33.x to 1.34.x. This change includes the following upstream breaking changes. For more information about these changes, see the [Envoy changelog documentation](https://www.envoyproxy.io/docs/envoy/latest/version_history/v1.34/v1.34).
+The Envoy dependency in Gloo Gateway 1.20 was upgraded from 1.33.x to 1.35.x. This change includes the following upstream breaking changes. For more information about these changes, see the [Envoy v1.34 changelog documentation](https://www.envoyproxy.io/docs/envoy/latest/version_history/v1.34/v1.34) and [Envoy v1.35 changelog documentation](https://www.envoyproxy.io/docs/envoy/latest/version_history/v1.35/v1.35).
 
+From Envoy v1.34:
 * **Extproc - Tracing changes**: When the `modeOverride` fields of the header and trailer modes have the value `DEFAULT` or are unset, no change is made to the processing mode that is set in the filter configuration. Additionally, a bug was fixed in which local replies were incorrectly sent to the extProc server for external processing. You can temoporarily revert this change by setting the runtime guard field `envoy.reloadable_features.skip_ext_proc_on_local_reply` to `false`.
 * **TLS - Envoy FIPS**: The Envoy FIPS build is updated to use the same version of BoringSSL as the Envoy standard build to meet the requirements of the revised FedRAMP policy. Default values might have changed in the encyrption settings due to the large version bump.
 * **HTTP connection manager - Generate request ID**: When the `x-request-id` header is empty, `generateRequestId` now generates a request ID on the request. Previously, it only generated an ID when the header was missing.
 * **Formatters**: The `%CEL%` and `%METADATA%` formatters are now considered built-in, and can be used directly in substitution format strings if the related extensions are linked.
+
+From Envoy v1.35:
+* **tracing changes**: Added `max_cache_size` to the OpenTelemetry tracer config. This limits the number of spans that can be cached before flushing. The default is 1024 spans. Previously, flushing only happens at the set interval. User should tune this setting based on their environment's expected telemetry volume.
 
 ## New features
 
