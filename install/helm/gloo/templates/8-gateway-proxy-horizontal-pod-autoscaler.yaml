@@ -34,8 +34,8 @@ spec:
   behavior:
   {{ toYaml $spec.horizontalPodAutoscaler.behavior | nindent 4 }}
   {{- end }}
-{{- end }} {{/* if $spec.kind.deployment */}}
 {{- end }} {{/* if $spec.horizontalPodAutoscaler */}}
+{{- end }} {{/* if $spec.kind.deployment */}}
 {{- end }} {{/* if not $spec.disabled */}}
 {{- end }} {{/* with */}}
 {{- end }} {{/* define gatewayProxy.autoscalerSpec*/}}
