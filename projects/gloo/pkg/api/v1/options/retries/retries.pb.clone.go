@@ -53,6 +53,21 @@ func (m *RetryBackOff) Clone() proto.Message {
 }
 
 // Clone function
+func (m *ResetHeader) Clone() proto.Message {
+	var target *ResetHeader
+	if m == nil {
+		return target
+	}
+	target = &ResetHeader{}
+
+	target.Name = m.GetName()
+
+	target.Format = m.GetFormat()
+
+	return target
+}
+
+// Clone function
 func (m *RateLimitedRetryBackOff) Clone() proto.Message {
 	var target *RateLimitedRetryBackOff
 	if m == nil {
@@ -60,10 +75,17 @@ func (m *RateLimitedRetryBackOff) Clone() proto.Message {
 	}
 	target = &RateLimitedRetryBackOff{}
 
-	if h, ok := interface{}(m.GetIncludeResetHeaders()).(clone.Cloner); ok {
-		target.IncludeResetHeaders = h.Clone().(*google_golang_org_protobuf_types_known_wrapperspb.BoolValue)
-	} else {
-		target.IncludeResetHeaders = proto.Clone(m.GetIncludeResetHeaders()).(*google_golang_org_protobuf_types_known_wrapperspb.BoolValue)
+	if m.GetResetHeaders() != nil {
+		target.ResetHeaders = make([]*ResetHeader, len(m.GetResetHeaders()))
+		for idx, v := range m.GetResetHeaders() {
+
+			if h, ok := interface{}(v).(clone.Cloner); ok {
+				target.ResetHeaders[idx] = h.Clone().(*ResetHeader)
+			} else {
+				target.ResetHeaders[idx] = proto.Clone(v).(*ResetHeader)
+			}
+
+		}
 	}
 
 	if h, ok := interface{}(m.GetMaxInterval()).(clone.Cloner); ok {

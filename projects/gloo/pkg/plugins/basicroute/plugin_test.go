@@ -4,10 +4,11 @@ import (
 	"context"
 	"time"
 
-	"github.com/solo-io/gloo/pkg/utils/regexutils"
-	"github.com/solo-io/gloo/pkg/utils/settingsutil"
 	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/wrapperspb"
+
+	"github.com/solo-io/gloo/pkg/utils/regexutils"
+	"github.com/solo-io/gloo/pkg/utils/settingsutil"
 
 	envoy_config_route_v3 "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
 	envoy_retry_priorities_v3 "github.com/envoyproxy/go-control-plane/envoy/extensions/retry/priority/previous_priorities/v3"
@@ -15,6 +16,9 @@ import (
 	"github.com/golang/protobuf/ptypes/wrappers"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.com/solo-io/solo-kit/pkg/errors"
+	"github.com/solo-io/solo-kit/pkg/utils/prototime"
+
 	v3 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/type/matcher/v3"
 	v32 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/type/matcher/v3"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
@@ -23,8 +27,6 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	. "github.com/solo-io/gloo/projects/gloo/pkg/plugins/basicroute"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
-	"github.com/solo-io/solo-kit/pkg/errors"
-	"github.com/solo-io/solo-kit/pkg/utils/prototime"
 )
 
 var _ = Describe("prefix rewrite", func() {
@@ -566,7 +568,6 @@ var _ = Describe("retries priority predicate", func() {
 
 var _ = Describe("host rewrite", func() {
 	It("rewrites using provided string", func() {
-
 		p := NewPlugin()
 		routeAction := &envoy_config_route_v3.RouteAction{
 			HostRewriteSpecifier: &envoy_config_route_v3.RouteAction_HostRewriteLiteral{HostRewriteLiteral: "/"},
@@ -587,7 +588,6 @@ var _ = Describe("host rewrite", func() {
 	})
 
 	It("Sets x-forwarded-host", func() {
-
 		p := NewPlugin()
 		routeAction := &envoy_config_route_v3.RouteAction{
 			HostRewriteSpecifier: &envoy_config_route_v3.RouteAction_HostRewriteLiteral{HostRewriteLiteral: "/"},
@@ -639,7 +639,6 @@ var _ = Describe("host rewrite", func() {
 	})
 
 	It("sets auto_host_rewrite", func() {
-
 		p := NewPlugin()
 		routeAction := &envoy_config_route_v3.RouteAction{
 			HostRewriteSpecifier: &envoy_config_route_v3.RouteAction_AutoHostRewrite{

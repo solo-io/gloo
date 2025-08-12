@@ -12,6 +12,8 @@ weight: 5
 
 
 - [RetryBackOff](#retrybackoff)
+- [ResetHeader](#resetheader)
+- [HeaderFormat](#headerformat)
 - [RateLimitedRetryBackOff](#ratelimitedretrybackoff)
 - [RetryPolicy](#retrypolicy)
 - [PreviousPriorities](#previouspriorities)
@@ -46,6 +48,38 @@ This specifies the retry policy interval for backoffs. Note that if the base int
 
 
 ---
+### ResetHeader
+
+
+
+```yaml
+"name": string
+"format": .retries.options.gloo.solo.io.ResetHeader.HeaderFormat
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+| `name` | `string` | The name of the header to set. |
+| `format` | [.retries.options.gloo.solo.io.ResetHeader.HeaderFormat](../retries.proto.sk/#headerformat) | The format of the header to set. |
+
+
+
+
+---
+### HeaderFormat
+
+
+
+| Name | Description |
+| ----- | ----------- | 
+| `SECONDS` |  |
+| `UNIX_TIMESTAMP` |  |
+
+
+
+
+---
 ### RateLimitedRetryBackOff
 
  
@@ -54,14 +88,14 @@ Inspired by: https://github.com/envoyproxy/envoy/blob/4a134ce926cf0b882a4c416734
 We chose a more simple approach to avoid the complexity of the Envoy implementation.
 
 ```yaml
-"includeResetHeaders": .google.protobuf.BoolValue
+"resetHeaders": []retries.options.gloo.solo.io.ResetHeader
 "maxInterval": .google.protobuf.Duration
 
 ```
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `includeResetHeaders` | [.google.protobuf.BoolValue](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/bool-value) | If true, configure the retry backoff to include the reset headers for Retry-After (seconds) and X-RateLimit-Reset (unix timestamp). |
+| `resetHeaders` | [[]retries.options.gloo.solo.io.ResetHeader](../retries.proto.sk/#resetheader) | The ordered list of reset headers to consider for the rate limited retry backoff. |
 | `maxInterval` | [.google.protobuf.Duration](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/duration) | Specifies the max interval for a retry. |
 
 
