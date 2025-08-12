@@ -1,0 +1,45 @@
+changelog:
+- type: DEPENDENCY_BUMP
+  dependencyOwner: golang
+  dependencyRepo: go
+  dependencyTag: v1.24.6
+  issueLink: https://github.com/solo-io/gloo/issues/10932
+  resolvesIssue: false
+  description: >-
+    Bump go to 1.24.6 to fix CVE-2025-47907
+- type: DEPENDENCY_BUMP
+  dependencyOwner: solo-io
+  dependencyRepo: cloud-builders
+  dependencyTag: v0.13.1
+- type: DEPENDENCY_BUMP
+  dependencyOwner: solo-io
+  dependencyRepo: go-utils
+  dependencyTag: v0.28.6
+- type: DEPENDENCY_BUMP
+  dependencyOwner: solo-io
+  dependencyRepo: k8s-utils
+  dependencyTag: v0.11.1
+- type: DEPENDENCY_BUMP
+  dependencyOwner: solo-io
+  dependencyRepo: skv2
+  dependencyTag: v0.44.1
+- type: DEPENDENCY_BUMP
+  dependencyOwner: solo-io
+  dependencyRepo: solo-kit
+  dependencyTag: v0.39.1
+- type: DEPENDENCY_BUMP
+  dependencyOwner: bitnami
+  dependencyRepo: kubectl
+  dependencyTag: v1.33.3
+  description: >-
+    Bump kubectl image to 1.33.3 to fix CVE-2025-22868
+  issueLink: https://github.com/solo-io/gloo/issues/10932
+  resolvesIssue: false
+- type: DEPENDENCY_BUMP
+  dependencyOwner: helm.sh
+  dependencyRepo: helm
+  dependencyTag: v3.18.4
+  description: >-
+    Bump helm to 3.18.4 to fix CVE-2025-53547
+  issueLink: https://github.com/solo-io/gloo/issues/10919
+  resolvesIssue: false
