@@ -12,7 +12,6 @@ import (
 	github_com_solo_io_gloo_projects_gloo_pkg_api_external_solo_ratelimit "github.com/solo-io/gloo/projects/gloo/pkg/api/external/solo/ratelimit"
 	gloo_solo_io "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	enterprise_gloo_solo_io "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
-	graphql_gloo_solo_io "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/graphql/v1beta1"
 
 	"github.com/rotisserie/eris"
 	"github.com/solo-io/go-utils/hashutils"
@@ -38,7 +37,6 @@ type ApiSnapshot struct {
 	RouteOptions       gateway_solo_io.RouteOptionList
 	HttpGateways       gateway_solo_io.MatchableHttpGatewayList
 	TcpGateways        gateway_solo_io.MatchableTcpGatewayList
-	GraphqlApis        graphql_gloo_solo_io.GraphQLApiList
 }
 
 func (s ApiSnapshot) Clone() ApiSnapshot {
@@ -58,7 +56,6 @@ func (s ApiSnapshot) Clone() ApiSnapshot {
 		RouteOptions:       s.RouteOptions.Clone(),
 		HttpGateways:       s.HttpGateways.Clone(),
 		TcpGateways:        s.TcpGateways.Clone(),
-		GraphqlApis:        s.GraphqlApis.Clone(),
 	}
 }
 
@@ -109,9 +106,6 @@ func (s ApiSnapshot) Hash(hasher hash.Hash64) (uint64, error) {
 		return 0, err
 	}
 	if _, err := s.hashTcpGateways(hasher); err != nil {
-		return 0, err
-	}
-	if _, err := s.hashGraphqlApis(hasher); err != nil {
 		return 0, err
 	}
 	return hasher.Sum64(), nil
@@ -183,10 +177,6 @@ func (s ApiSnapshot) hashHttpGateways(hasher hash.Hash64) (uint64, error) {
 
 func (s ApiSnapshot) hashTcpGateways(hasher hash.Hash64) (uint64, error) {
 	return hashutils.HashAllSafe(hasher, s.TcpGateways.AsInterfaces()...)
-}
-
-func (s ApiSnapshot) hashGraphqlApis(hasher hash.Hash64) (uint64, error) {
-	return hashutils.HashAllSafe(hasher, s.GraphqlApis.AsInterfaces()...)
 }
 
 func (s ApiSnapshot) HashFields() []zap.Field {
@@ -267,11 +257,6 @@ func (s ApiSnapshot) HashFields() []zap.Field {
 		log.Println(eris.Wrapf(err, "error hashing, this should never happen"))
 	}
 	fields = append(fields, zap.Uint64("tcpGateways", TcpGatewaysHash))
-	GraphqlApisHash, err := s.hashGraphqlApis(hasher)
-	if err != nil {
-		log.Println(eris.Wrapf(err, "error hashing, this should never happen"))
-	}
-	fields = append(fields, zap.Uint64("graphqlApis", GraphqlApisHash))
 	snapshotHash, err := s.Hash(hasher)
 	if err != nil {
 		log.Println(eris.Wrapf(err, "error hashing, this should never happen"))
@@ -311,8 +296,6 @@ func (s *ApiSnapshot) GetResourcesList(resource resources.Resource) (resources.R
 		return s.HttpGateways.AsResources(), nil
 	case *gateway_solo_io.MatchableTcpGateway:
 		return s.TcpGateways.AsResources(), nil
-	case *graphql_gloo_solo_io.GraphQLApi:
-		return s.GraphqlApis.AsResources(), nil
 	default:
 		return resources.ResourceList{}, eris.New("did not contain the input resource type returning empty list")
 	}
@@ -456,15 +439,6 @@ func (s *ApiSnapshot) RemoveFromResourceList(resource resources.Resource) error 
 			}
 		}
 		return nil
-	case *graphql_gloo_solo_io.GraphQLApi:
-
-		for i, res := range s.GraphqlApis {
-			if refKey == res.GetMetadata().Ref().Key() {
-				s.GraphqlApis = append(s.GraphqlApis[:i], s.GraphqlApis[i+1:]...)
-				break
-			}
-		}
-		return nil
 	default:
 		return eris.Errorf("did not remove the resource because its type does not exist [%T]", resource)
 	}
@@ -576,13 +550,6 @@ func (s *ApiSnapshot) RemoveMatches(predicate core.Predicate) {
 		}
 	}
 	s.TcpGateways = TcpGateways
-	var GraphqlApis graphql_gloo_solo_io.GraphQLApiList
-	for _, res := range s.GraphqlApis {
-		if matches := predicate(res.GetMetadata()); !matches {
-			GraphqlApis = append(GraphqlApis, res)
-		}
-	}
-	s.GraphqlApis = GraphqlApis
 }
 
 func (s *ApiSnapshot) UpsertToResourceList(resource resources.Resource) error {
@@ -783,19 +750,6 @@ func (s *ApiSnapshot) UpsertToResourceList(resource resources.Resource) error {
 		}
 		s.TcpGateways.Sort()
 		return nil
-	case *graphql_gloo_solo_io.GraphQLApi:
-		updated := false
-		for i, res := range s.GraphqlApis {
-			if refKey == res.GetMetadata().Ref().Key() {
-				s.GraphqlApis[i] = typed
-				updated = true
-			}
-		}
-		if !updated {
-			s.GraphqlApis = append(s.GraphqlApis, typed)
-		}
-		s.GraphqlApis.Sort()
-		return nil
 	default:
 		return eris.Errorf("did not add/replace the resource type because it does not exist %T", resource)
 	}
@@ -818,7 +772,6 @@ type ApiSnapshotStringer struct {
 	RouteOptions       []string
 	HttpGateways       []string
 	TcpGateways        []string
-	GraphqlApis        []string
 }
 
 func (ss ApiSnapshotStringer) String() string {
@@ -899,11 +852,6 @@ func (ss ApiSnapshotStringer) String() string {
 		s += fmt.Sprintf("    %v\n", name)
 	}
 
-	s += fmt.Sprintf("  GraphqlApis %v\n", len(ss.GraphqlApis))
-	for _, name := range ss.GraphqlApis {
-		s += fmt.Sprintf("    %v\n", name)
-	}
-
 	return s
 }
 
@@ -929,7 +877,6 @@ func (s ApiSnapshot) Stringer() ApiSnapshotStringer {
 		RouteOptions:       s.RouteOptions.NamespacesDotNames(),
 		HttpGateways:       s.HttpGateways.NamespacesDotNames(),
 		TcpGateways:        s.TcpGateways.NamespacesDotNames(),
-		GraphqlApis:        s.GraphqlApis.NamespacesDotNames(),
 	}
 }
 
@@ -949,5 +896,4 @@ var ApiGvkToHashableResource = map[schema.GroupVersionKind]func() resources.Hash
 	gateway_solo_io.RouteOptionGVK:          gateway_solo_io.NewRouteOptionHashableResource,
 	gateway_solo_io.MatchableHttpGatewayGVK: gateway_solo_io.NewMatchableHttpGatewayHashableResource,
 	gateway_solo_io.MatchableTcpGatewayGVK:  gateway_solo_io.NewMatchableTcpGatewayHashableResource,
-	graphql_gloo_solo_io.GraphQLApiGVK:      graphql_gloo_solo_io.NewGraphQLApiHashableResource,
 }

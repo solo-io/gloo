@@ -951,7 +951,6 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 		routeOptionClient,
 		matchableHttpGatewayClient,
 		matchableTcpGatewayClient,
-		nil, // GraphQL client removed
 		extensions.ApiEmitterChannel,
 	)
 

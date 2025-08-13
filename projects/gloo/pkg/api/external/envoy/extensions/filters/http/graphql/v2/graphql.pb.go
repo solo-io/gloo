@@ -11,13 +11,8 @@ import (
 	sync "sync"
 	unsafe "unsafe"
 
-	_ "github.com/envoyproxy/protoc-gen-validate/validate"
-	_ "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/config/core/v3"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
-	_ "google.golang.org/protobuf/types/known/anypb"
-	_ "google.golang.org/protobuf/types/known/durationpb"
-	_ "google.golang.org/protobuf/types/known/wrapperspb"
 )
 
 const (
@@ -1429,7 +1424,7 @@ var File_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_gra
 
 const file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_rawDesc = "" +
 	"\n" +
-	"Ygithub.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/graphql/graphql.proto\x12#envoy.config.filter.http.graphql.v2\x1a\x1egoogle/protobuf/duration.proto\x1a\x19google/protobuf/any.proto\x1a\x17validate/validate.proto\x1aVgithub.com/solo-io/gloo/projects/gloo/api/external/envoy/config/core/v3/http_uri.proto\x1aWgithub.com/solo-io/gloo/projects/gloo/api/external/envoy/config/core/v3/extension.proto\x1aRgithub.com/solo-io/gloo/projects/gloo/api/external/envoy/config/core/v3/base.proto\x1a\x1egoogle/protobuf/wrappers.proto\"0\n" +
+	"Ygithub.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/graphql/graphql.proto\x12#envoy.config.filter.http.graphql.v2\"0\n" +
 	"\vPathSegmentJ\x04\b\x01\x10\x02J\x04\b\x02\x10\x03J\x04\b\x03\x10\x04R\x03keyR\x05indexR\x03all\"\x16\n" +
 	"\x04PathJ\x04\b\x01\x10\x02R\bsegments\"7\n" +
 	"\rTemplatedPathJ\x04\b\x01\x10\x02J\x04\b\x02\x10\x03R\rpath_templateR\vnamed_paths\"\xd1\x02\n" +

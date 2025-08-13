@@ -195,8 +195,6 @@ message VirtualHost {
 * top-level `RouteTable` resources.
 */
 message Route {
-
-
     // Matchers contain parameters for matching requests (i.e., based on HTTP path, headers, etc.).
     // If empty, the route will match all requests (i.e, a single "/" path prefix matcher).
     // For delegated routes, any parent matcher must have a `prefix` path matcher.
@@ -224,12 +222,10 @@ message Route {
 
         // Delegate routing actions for the given matcher to one or more RouteTables.
         DelegateAction delegate_action = 5;
-
     }
     reserved 11; // deprecated graphql_api_ref
     reserved "graphql_api_ref";
 
-    
     // Route Options extend the behavior of routes.
     // Route options include configuration such as retries, rate limiting, and request/response transformation.
     // RouteOption behavior will be inherited by delegated routes which do not specify their own `options`
