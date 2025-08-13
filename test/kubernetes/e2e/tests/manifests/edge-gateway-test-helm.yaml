@@ -20,3 +20,4 @@ settings:
             labelToPath:
               name: '{.metadata.name}'
               namespace: '{.metadata.namespace}'
+

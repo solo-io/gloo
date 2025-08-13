@@ -12,9 +12,10 @@ import (
 )
 
 const (
-	GatewayProxyName        = "gateway-proxy"
-	GatewayBindAddress      = "::"
-	ConfigDumpServiceSuffix = "-config-dump-service"
+	GatewayProxyName                  = "gateway-proxy"
+	GatewayBindAddress                = "::"
+	ConfigDumpServiceSuffix           = "-config-dump-service"
+	GatewayProxyMonitoringServiceName = "gateway-proxy-monitoring-service"
 )
 
 func DefaultGateway(writeNamespace string) *v1.Gateway {
