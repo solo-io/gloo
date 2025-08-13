@@ -1,0 +1,9 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/solo-projects/issues/8461
+    resolvesIssue: true
+    description: >-
+      Document envoy 1.35 change in upgrade faq
+
+      skipCI-kube-tests:true
+      skipCI-docs-build:true
