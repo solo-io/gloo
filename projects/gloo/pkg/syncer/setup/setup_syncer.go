@@ -69,7 +69,6 @@ import (
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	extauth "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/graphql/v1beta1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ratelimit"
 	v1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
 	"github.com/solo-io/gloo/projects/gloo/pkg/bootstrap"
@@ -584,14 +583,6 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 		return err
 	}
 
-	graphqlApiClient, err := v1beta1.NewGraphQLApiClient(watchOpts.Ctx, opts.GraphQLApis)
-	if err != nil {
-		return err
-	}
-	if err := graphqlApiClient.Register(); err != nil {
-		return err
-	}
-
 	rlClient, rlReporterClient, err := rlv1alpha1.NewRateLimitClients(watchOpts.Ctx, opts.RateLimitConfigs)
 	if err != nil {
 		return err
@@ -960,7 +951,7 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 		routeOptionClient,
 		matchableHttpGatewayClient,
 		matchableTcpGatewayClient,
-		graphqlApiClient,
+		nil, // GraphQL client removed
 		extensions.ApiEmitterChannel,
 	)
 
@@ -1233,11 +1224,6 @@ func constructOpts(ctx context.Context, setup *bootstrap.SetupOpts, params const
 		return bootstrap.Opts{}, err
 	}
 
-	graphqlApiFactory, err := bootstrap_clients.ConfigFactoryForSettings(factoryParams, v1beta1.GraphQLApiCrd)
-	if err != nil {
-		return bootstrap.Opts{}, err
-	}
-
 	virtualServiceFactory, err := bootstrap_clients.ConfigFactoryForSettings(factoryParams, gateway.VirtualServiceCrd)
 	if err != nil {
 		return bootstrap.Opts{}, err
@@ -1343,7 +1329,6 @@ func constructOpts(ctx context.Context, setup *bootstrap.SetupOpts, params const
 		Artifacts:                    artifactFactory,
 		AuthConfigs:                  authConfigFactory,
 		RateLimitConfigs:             rateLimitConfigFactory,
-		GraphQLApis:                  graphqlApiFactory,
 		VirtualServices:              virtualServiceFactory,
 		RouteTables:                  routeTableFactory,
 		VirtualHostOptions:           virtualHostOptionFactory,
