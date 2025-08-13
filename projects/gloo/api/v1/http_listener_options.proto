@@ -60,7 +60,8 @@ message HttpListenerOptions {
     // Enterprise-only: Settings for the rate limiting server itself
     ratelimit.options.gloo.solo.io.Settings ratelimit_server = 11;
     // Enterprise-only: Settings for the cache server itself
-    caching.options.gloo.solo.io.Settings caching = 17;
+    // Deprecated: The caching filter is deprecated and planned to be removed in Gloo Gateway version 1.21.
+    caching.options.gloo.solo.io.Settings caching = 17 [ deprecated = true ];
 
     oneof ext_proc_config {
         // Enterprise-only: Set to true to disable the External Processing filter for this listener.
@@ -149,3 +150,4 @@ message HttpListenerOptions {
     adaptive_concurrency.options.gloo.solo.io.FilterConfig adaptive_concurrency = 37;
 
 }
+

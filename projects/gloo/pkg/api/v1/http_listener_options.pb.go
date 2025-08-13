@@ -74,6 +74,9 @@ type HttpListenerOptions struct {
 	// Enterprise-only: Settings for the rate limiting server itself
 	RatelimitServer *ratelimit.Settings `protobuf:"bytes,11,opt,name=ratelimit_server,json=ratelimitServer,proto3" json:"ratelimit_server,omitempty"`
 	// Enterprise-only: Settings for the cache server itself
+	// Deprecated: The caching filter is deprecated and planned to be removed in Gloo Gateway version 1.21.
+	//
+	// Deprecated: Marked as deprecated in github.com/solo-io/gloo/projects/gloo/api/v1/http_listener_options.proto.
 	Caching *caching.Settings `protobuf:"bytes,17,opt,name=caching,proto3" json:"caching,omitempty"`
 	// Types that are valid to be assigned to ExtProcConfig:
 	//
@@ -238,6 +241,7 @@ func (x *HttpListenerOptions) GetRatelimitServer() *ratelimit.Settings {
 	return nil
 }
 
+// Deprecated: Marked as deprecated in github.com/solo-io/gloo/projects/gloo/api/v1/http_listener_options.proto.
 func (x *HttpListenerOptions) GetCaching() *caching.Settings {
 	if x != nil {
 		return x.Caching
@@ -420,8 +424,8 @@ const file_github_com_solo_io_gloo_projects_gloo_api_v1_http_listener_options_pr
 	"\x04wasm\x18\a \x01(\v2'.wasm.options.gloo.solo.io.PluginSourceR\x04wasm\x12;\n" +
 	"\aextauth\x18\n" +
 	" \x01(\v2!.enterprise.gloo.solo.io.SettingsR\aextauth\x12S\n" +
-	"\x10ratelimit_server\x18\v \x01(\v2(.ratelimit.options.gloo.solo.io.SettingsR\x0fratelimitServer\x12@\n" +
-	"\acaching\x18\x11 \x01(\v2&.caching.options.gloo.solo.io.SettingsR\acaching\x12F\n" +
+	"\x10ratelimit_server\x18\v \x01(\v2(.ratelimit.options.gloo.solo.io.SettingsR\x0fratelimitServer\x12D\n" +
+	"\acaching\x18\x11 \x01(\v2&.caching.options.gloo.solo.io.SettingsB\x02\x18\x01R\acaching\x12F\n" +
 	"\x10disable_ext_proc\x18\x1e \x01(\v2\x1a.google.protobuf.BoolValueH\x00R\x0edisableExtProc\x12C\n" +
 	"\bext_proc\x18\x1f \x01(\v2&.extproc.options.gloo.solo.io.SettingsH\x00R\aextProc\x12B\n" +
 	"\x04gzip\x18\b \x01(\v2..solo.io.envoy.config.filter.http.gzip.v2.GzipR\x04gzip\x12[\n" +
