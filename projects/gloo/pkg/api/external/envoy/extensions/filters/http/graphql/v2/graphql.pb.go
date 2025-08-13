@@ -12,12 +12,12 @@ import (
 	unsafe "unsafe"
 
 	_ "github.com/envoyproxy/protoc-gen-validate/validate"
-	v3 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/config/core/v3"
+	_ "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/config/core/v3"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
-	anypb "google.golang.org/protobuf/types/known/anypb"
+	_ "google.golang.org/protobuf/types/known/anypb"
 	_ "google.golang.org/protobuf/types/known/durationpb"
-	wrapperspb "google.golang.org/protobuf/types/known/wrapperspb"
+	_ "google.golang.org/protobuf/types/known/wrapperspb"
 )
 
 const (
@@ -27,7 +27,7 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// if empty, defaults to string. similar to typeUrl in other envoy config
+// DEPRECATED: This enum is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
 type ValueProvider_TypedValueProvider_Type int32
 
 const (
@@ -80,25 +80,12 @@ func (ValueProvider_TypedValueProvider_Type) EnumDescriptor() ([]byte, []int) {
 	return file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_rawDescGZIP(), []int{3, 2, 0}
 }
 
+// DEPRECATED: This enum is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
 type CacheControl_CacheControlScope int32
 
 const (
-	CacheControl_UNSET CacheControl_CacheControlScope = 0
-	// Responses for requests with Authorization header fields must not be stored in a shared cache.
-	// But the public directive will cause such responses to be stored in a shared cache.
-	//
-	// In general, when pages are under Basic Auth or Digest Auth, the browser sends requests with
-	// the Authorization header. That means the response is access-controlled for restricted users
-	// (who have accounts), and it's fundamentally not shared-cacheable, even if it has max-age.
-	//
-	// You can use the public directive to unlock that restriction.
-	CacheControl_PUBLIC CacheControl_CacheControlScope = 1
-	// You should add the private directive for user-personalized content — in particular, responses
-	// received after login, and sessions managed via cookies.
-	//
-	// If you forget to add private to a response with personalized content, then that response can be
-	// stored in a shared cache and end up being reused for multiple users, which can cause personal
-	// information to leak.
+	CacheControl_UNSET   CacheControl_CacheControlScope = 0
+	CacheControl_PUBLIC  CacheControl_CacheControlScope = 1
 	CacheControl_PRIVATE CacheControl_CacheControlScope = 2
 )
 
@@ -143,15 +130,9 @@ func (CacheControl_CacheControlScope) EnumDescriptor() ([]byte, []int) {
 	return file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_rawDescGZIP(), []int{18, 0}
 }
 
-// used to reference into json structures by key(s)
+// DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
 type PathSegment struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// Types that are valid to be assigned to Segment:
-	//
-	//	*PathSegment_Key
-	//	*PathSegment_Index
-	//	*PathSegment_All
-	Segment       isPathSegment_Segment `protobuf_oneof:"segment"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -186,68 +167,9 @@ func (*PathSegment) Descriptor() ([]byte, []int) {
 	return file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *PathSegment) GetSegment() isPathSegment_Segment {
-	if x != nil {
-		return x.Segment
-	}
-	return nil
-}
-
-func (x *PathSegment) GetKey() string {
-	if x != nil {
-		if x, ok := x.Segment.(*PathSegment_Key); ok {
-			return x.Key
-		}
-	}
-	return ""
-}
-
-func (x *PathSegment) GetIndex() uint32 {
-	if x != nil {
-		if x, ok := x.Segment.(*PathSegment_Index); ok {
-			return x.Index
-		}
-	}
-	return 0
-}
-
-func (x *PathSegment) GetAll() bool {
-	if x != nil {
-		if x, ok := x.Segment.(*PathSegment_All); ok {
-			return x.All
-		}
-	}
-	return false
-}
-
-type isPathSegment_Segment interface {
-	isPathSegment_Segment()
-}
-
-type PathSegment_Key struct {
-	// This will extract a key from a Map value.
-	Key string `protobuf:"bytes,1,opt,name=key,proto3,oneof"`
-}
-
-type PathSegment_Index struct {
-	// Extract element at list
-	Index uint32 `protobuf:"varint,2,opt,name=index,proto3,oneof"`
-}
-
-type PathSegment_All struct {
-	// Extracts all elements from a map or a list
-	All bool `protobuf:"varint,3,opt,name=all,proto3,oneof"`
-}
-
-func (*PathSegment_Key) isPathSegment_Segment() {}
-
-func (*PathSegment_Index) isPathSegment_Segment() {}
-
-func (*PathSegment_All) isPathSegment_Segment() {}
-
+// DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
 type Path struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Segments      []*PathSegment         `protobuf:"bytes,1,rep,name=segments,proto3" json:"segments,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -282,25 +204,9 @@ func (*Path) Descriptor() ([]byte, []int) {
 	return file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *Path) GetSegments() []*PathSegment {
-	if x != nil {
-		return x.Segments
-	}
-	return nil
-}
-
+// DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
 type TemplatedPath struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// If non-empty, Inserts named paths into a template string.
-	// For example, if the template is '/api/{apiVersionPath}/pet/{petIdPath}'
-	// and we have two named paths defined in `named_paths`, apiVersionPath and petIdPath, with extracted values 'v2' and '123' respectively,
-	// the final resulting value will be '/api/v2/pet/123'
-	// Use {PATH_NAME} as the interpolation notation (even repeated) regardless of the type of the
-	// provided value.
-	// If an undefined PATH_NAME is used in the template, this will nack during configuration.
-	// If this is empty, only the value of the first provider will be used as the resulting value.
-	PathTemplate  string           `protobuf:"bytes,1,opt,name=path_template,json=pathTemplate,proto3" json:"path_template,omitempty"`
-	NamedPaths    map[string]*Path `protobuf:"bytes,2,rep,name=named_paths,json=namedPaths,proto3" json:"named_paths,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -335,37 +241,11 @@ func (*TemplatedPath) Descriptor() ([]byte, []int) {
 	return file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_rawDescGZIP(), []int{2}
 }
 
-func (x *TemplatedPath) GetPathTemplate() string {
-	if x != nil {
-		return x.PathTemplate
-	}
-	return ""
-}
-
-func (x *TemplatedPath) GetNamedPaths() map[string]*Path {
-	if x != nil {
-		return x.NamedPaths
-	}
-	return nil
-}
-
-// In the future we may add support for regex and subgroups
+// DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
 type ValueProvider struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// Map of provider name to provider definition.
-	// The name will be used to insert the provider value in the provider_template.
-	Providers map[string]*ValueProvider_Provider `protobuf:"bytes,3,rep,name=providers,proto3" json:"providers,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	// If non-empty, Inserts named providers into a template string.
-	// For example, if the provider_template is '/api/{apiVersionProvider}/pet/{petIdProvider}'
-	// and we have two named providers defined in `providers`, apiVersionProvider and petIdProvider, with extracted values 'v2' and '123' respectively,
-	// the final resulting value will be '/api/v2/pet/123'
-	// Use {PROVIDER_NAME} as the interpolation notation (even repeated) regardless of the type of the
-	// provided value.
-	// If an undefined PROVIDER_NAME is used in the provider_template, this will nack during configuration.
-	// If this is empty, only the value of the first provider will be used as the resulting value.
-	ProviderTemplate string `protobuf:"bytes,4,opt,name=provider_template,json=providerTemplate,proto3" json:"provider_template,omitempty"`
-	unknownFields    protoimpl.UnknownFields
-	sizeCache        protoimpl.SizeCache
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ValueProvider) Reset() {
@@ -398,23 +278,9 @@ func (*ValueProvider) Descriptor() ([]byte, []int) {
 	return file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_rawDescGZIP(), []int{3}
 }
 
-func (x *ValueProvider) GetProviders() map[string]*ValueProvider_Provider {
-	if x != nil {
-		return x.Providers
-	}
-	return nil
-}
-
-func (x *ValueProvider) GetProviderTemplate() string {
-	if x != nil {
-		return x.ProviderTemplate
-	}
-	return ""
-}
-
+// DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
 type JsonValueList struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Values        []*JsonValue           `protobuf:"bytes,1,rep,name=values,proto3" json:"values,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -449,21 +315,9 @@ func (*JsonValueList) Descriptor() ([]byte, []int) {
 	return file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_rawDescGZIP(), []int{4}
 }
 
-func (x *JsonValueList) GetValues() []*JsonValue {
-	if x != nil {
-		return x.Values
-	}
-	return nil
-}
-
+// DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
 type JsonValue struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// Types that are valid to be assigned to JsonVal:
-	//
-	//	*JsonValue_Node
-	//	*JsonValue_ValueProvider
-	//	*JsonValue_List
-	JsonVal       isJsonValue_JsonVal `protobuf_oneof:"json_val"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -498,70 +352,9 @@ func (*JsonValue) Descriptor() ([]byte, []int) {
 	return file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_rawDescGZIP(), []int{5}
 }
 
-func (x *JsonValue) GetJsonVal() isJsonValue_JsonVal {
-	if x != nil {
-		return x.JsonVal
-	}
-	return nil
-}
-
-func (x *JsonValue) GetNode() *JsonNode {
-	if x != nil {
-		if x, ok := x.JsonVal.(*JsonValue_Node); ok {
-			return x.Node
-		}
-	}
-	return nil
-}
-
-func (x *JsonValue) GetValueProvider() *ValueProvider {
-	if x != nil {
-		if x, ok := x.JsonVal.(*JsonValue_ValueProvider); ok {
-			return x.ValueProvider
-		}
-	}
-	return nil
-}
-
-func (x *JsonValue) GetList() *JsonValueList {
-	if x != nil {
-		if x, ok := x.JsonVal.(*JsonValue_List); ok {
-			return x.List
-		}
-	}
-	return nil
-}
-
-type isJsonValue_JsonVal interface {
-	isJsonValue_JsonVal()
-}
-
-type JsonValue_Node struct {
-	Node *JsonNode `protobuf:"bytes,1,opt,name=node,proto3,oneof"`
-}
-
-type JsonValue_ValueProvider struct {
-	ValueProvider *ValueProvider `protobuf:"bytes,2,opt,name=value_provider,json=valueProvider,proto3,oneof"`
-}
-
-type JsonValue_List struct {
-	List *JsonValueList `protobuf:"bytes,3,opt,name=list,proto3,oneof"`
-}
-
-func (*JsonValue_Node) isJsonValue_JsonVal() {}
-
-func (*JsonValue_ValueProvider) isJsonValue_JsonVal() {}
-
-func (*JsonValue_List) isJsonValue_JsonVal() {}
-
+// DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
 type JsonKeyValue struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// PARTIALLY IMPLEMENTED
-	// if empty, the value will be parsed as json and replace the entire
-	// previously-parsed json value --> this part is only needed for gRPC
-	// and thus not implemented yet
-	Key           string     `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
-	Value         *JsonValue `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -596,31 +389,9 @@ func (*JsonKeyValue) Descriptor() ([]byte, []int) {
 	return file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_rawDescGZIP(), []int{6}
 }
 
-func (x *JsonKeyValue) GetKey() string {
-	if x != nil {
-		return x.Key
-	}
-	return ""
-}
-
-func (x *JsonKeyValue) GetValue() *JsonValue {
-	if x != nil {
-		return x.Value
-	}
-	return nil
-}
-
-// Represents a typed JSON structure
+// DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
 type JsonNode struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// if keys repeat, the latest one replaces any earlier values associated
-	// with that key.
-	//
-	// repeated list, rather than a map, to have ordering to allow for merge
-	// semantics within the data plane, for example:
-	// - gRPC input uses special empty string for input key to set entire body
-	// - gRPC wants to replace a certain field in parsed body from GraphQL arg
-	KeyValues     []*JsonKeyValue `protobuf:"bytes,1,rep,name=key_values,json=keyValues,proto3" json:"key_values,omitempty"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -655,33 +426,9 @@ func (*JsonNode) Descriptor() ([]byte, []int) {
 	return file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_rawDescGZIP(), []int{7}
 }
 
-func (x *JsonNode) GetKeyValues() []*JsonKeyValue {
-	if x != nil {
-		return x.KeyValues
-	}
-	return nil
-}
-
-// Defines a configuration for generating outgoing requests for a resolver.
+// DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
 type RequestTemplate struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// Use this attribute to set request headers to your REST service. It consists of a
-	// map of strings to value providers. The string key determines the name of the
-	// resulting header, the value provided will be the value.
-	//
-	// at least need ":method" and ":path"
-	Headers map[string]*ValueProvider `protobuf:"bytes,1,rep,name=headers,proto3" json:"headers,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	// Use this attribute to set query parameters to your REST service. It consists of a
-	// map of strings to value providers. The string key determines the name of the
-	// query param, the provided value will be the value. This value is appended to any
-	// value set to the :path header in `headers`.
-	//
-	// Interpolation is done in envoy rather than the control plane to prevent escaped
-	// character issues. Additionally, we may be providing values not known until
-	// the request is being executed (e.g., graphql parent info).
-	QueryParams map[string]*ValueProvider `protobuf:"bytes,2,rep,name=query_params,json=queryParams,proto3" json:"query_params,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	// implementation specific, gRPC will want gRPC message and struct to instantiate
-	OutgoingBody  *JsonValue `protobuf:"bytes,3,opt,name=outgoing_body,json=outgoingBody,proto3" json:"outgoing_body,omitempty"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -716,76 +463,9 @@ func (*RequestTemplate) Descriptor() ([]byte, []int) {
 	return file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_rawDescGZIP(), []int{8}
 }
 
-func (x *RequestTemplate) GetHeaders() map[string]*ValueProvider {
-	if x != nil {
-		return x.Headers
-	}
-	return nil
-}
-
-func (x *RequestTemplate) GetQueryParams() map[string]*ValueProvider {
-	if x != nil {
-		return x.QueryParams
-	}
-	return nil
-}
-
-func (x *RequestTemplate) GetOutgoingBody() *JsonValue {
-	if x != nil {
-		return x.OutgoingBody
-	}
-	return nil
-}
-
-// Defines a response transformation template.
-// modify JSON response from upstream before it is processed by execution engine.
+// DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
 type ResponseTemplate struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// In cases where the data to populate the graphql type is not in the
-	// root object of the result, use result root to specify the path
-	// of the response we should use as the root.
-	// If {"a": {"b": [1,2,3]}} is the response from the api, setting resultroot as `a.b`
-	// will pass on [1,2,3] to the execution engine rather than the whole api response
-	ResultRoot []*PathSegment `protobuf:"bytes,1,rep,name=result_root,json=resultRoot,proto3" json:"result_root,omitempty"`
-	// Example:
-	// ```
-	// type Query {
-	// getSimple: Simple
-	// }
-	//
-	// type Simple {
-	// name String
-	// address String
-	// }```
-	//
-	// if we do `getsimple` and the response we get back from the upstream is
-	// ```
-	// {"data": {
-	// "people":
-	// {
-	// "name": "John Doe",
-	// "details": {
-	// "address": "123 Turnip Rd"
-	// }
-	// }
-	// }
-	// }
-	// ```
-	// the following response transform would let the graphql execution engine correctly
-	// marshal the upstream resposne into the expected graphql response:
-	// `
-	// responseTransform:
-	// result_root:
-	// segments:
-	// - key: data
-	// - key: people
-	// setters:
-	// address:
-	// segments:
-	// - key: details
-	// - key: address
-	// `yaml
-	Setters       map[string]*TemplatedPath `protobuf:"bytes,2,rep,name=setters,proto3" json:"setters,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -820,34 +500,11 @@ func (*ResponseTemplate) Descriptor() ([]byte, []int) {
 	return file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_rawDescGZIP(), []int{9}
 }
 
-func (x *ResponseTemplate) GetResultRoot() []*PathSegment {
-	if x != nil {
-		return x.ResultRoot
-	}
-	return nil
-}
-
-func (x *ResponseTemplate) GetSetters() map[string]*TemplatedPath {
-	if x != nil {
-		return x.Setters
-	}
-	return nil
-}
-
+// DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
 type RESTResolver struct {
-	state     protoimpl.MessageState `protogen:"open.v1"`
-	ServerUri *v3.HttpUri            `protobuf:"bytes,1,opt,name=server_uri,json=serverUri,proto3" json:"server_uri,omitempty"`
-	// configuration used to compose the outgoing request to a REST API
-	RequestTransform *RequestTemplate `protobuf:"bytes,2,opt,name=request_transform,json=requestTransform,proto3" json:"request_transform,omitempty"`
-	// pre-execution engine transformations
-	//
-	// Request flow: GraphQL request -> request_transform (instantiate REST request) ->
-	// REST API resp -> pre_execution_transform -> execution engine ->
-	// complete GraphQL field response
-	PreExecutionTransform *ResponseTemplate `protobuf:"bytes,3,opt,name=pre_execution_transform,json=preExecutionTransform,proto3" json:"pre_execution_transform,omitempty"`
-	SpanName              string            `protobuf:"bytes,4,opt,name=span_name,json=spanName,proto3" json:"span_name,omitempty"`
-	unknownFields         protoimpl.UnknownFields
-	sizeCache             protoimpl.SizeCache
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *RESTResolver) Reset() {
@@ -880,50 +537,11 @@ func (*RESTResolver) Descriptor() ([]byte, []int) {
 	return file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_rawDescGZIP(), []int{10}
 }
 
-func (x *RESTResolver) GetServerUri() *v3.HttpUri {
-	if x != nil {
-		return x.ServerUri
-	}
-	return nil
-}
-
-func (x *RESTResolver) GetRequestTransform() *RequestTemplate {
-	if x != nil {
-		return x.RequestTransform
-	}
-	return nil
-}
-
-func (x *RESTResolver) GetPreExecutionTransform() *ResponseTemplate {
-	if x != nil {
-		return x.PreExecutionTransform
-	}
-	return nil
-}
-
-func (x *RESTResolver) GetSpanName() string {
-	if x != nil {
-		return x.SpanName
-	}
-	return ""
-}
-
-// Defines a configuration for generating outgoing requests for a resolver.
+// DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
 type GrpcRequestTemplate struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// json representation of outgoing gRPC message to be sent to gRPC service
-	OutgoingMessageJson *JsonValue `protobuf:"bytes,1,opt,name=outgoing_message_json,json=outgoingMessageJson,proto3" json:"outgoing_message_json,omitempty"`
-	// request has shape matching service with name registered in registry
-	// is the full_name(), e.g. main.Bookstore
-	ServiceName string `protobuf:"bytes,2,opt,name=service_name,json=serviceName,proto3" json:"service_name,omitempty"`
-	// make request to method with this name on the grpc service defined above
-	// is just the name(), e.g. GetBook
-	MethodName string `protobuf:"bytes,3,opt,name=method_name,json=methodName,proto3" json:"method_name,omitempty"`
-	// in the future, we may want to make this a map<string, ValueProvider>
-	// once we know better what the use cases are
-	RequestMetadata map[string]string `protobuf:"bytes,4,rep,name=request_metadata,json=requestMetadata,proto3" json:"request_metadata,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *GrpcRequestTemplate) Reset() {
@@ -956,41 +574,11 @@ func (*GrpcRequestTemplate) Descriptor() ([]byte, []int) {
 	return file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_rawDescGZIP(), []int{11}
 }
 
-func (x *GrpcRequestTemplate) GetOutgoingMessageJson() *JsonValue {
-	if x != nil {
-		return x.OutgoingMessageJson
-	}
-	return nil
-}
-
-func (x *GrpcRequestTemplate) GetServiceName() string {
-	if x != nil {
-		return x.ServiceName
-	}
-	return ""
-}
-
-func (x *GrpcRequestTemplate) GetMethodName() string {
-	if x != nil {
-		return x.MethodName
-	}
-	return ""
-}
-
-func (x *GrpcRequestTemplate) GetRequestMetadata() map[string]string {
-	if x != nil {
-		return x.RequestMetadata
-	}
-	return nil
-}
-
-// Defines a configuration for serializing and deserializing requests for a gRPC resolver.
-// Is a Schema Extension
+// DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
 type GrpcDescriptorRegistry struct {
-	state            protoimpl.MessageState `protogen:"open.v1"`
-	ProtoDescriptors *v3.DataSource         `protobuf:"bytes,1,opt,name=proto_descriptors,json=protoDescriptors,proto3" json:"proto_descriptors,omitempty"`
-	unknownFields    protoimpl.UnknownFields
-	sizeCache        protoimpl.SizeCache
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *GrpcDescriptorRegistry) Reset() {
@@ -1023,26 +611,9 @@ func (*GrpcDescriptorRegistry) Descriptor() ([]byte, []int) {
 	return file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_rawDescGZIP(), []int{12}
 }
 
-func (x *GrpcDescriptorRegistry) GetProtoDescriptors() *v3.DataSource {
-	if x != nil {
-		return x.ProtoDescriptors
-	}
-	return nil
-}
-
+// DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
 type GrpcResolver struct {
-	state     protoimpl.MessageState `protogen:"open.v1"`
-	ServerUri *v3.HttpUri            `protobuf:"bytes,1,opt,name=server_uri,json=serverUri,proto3" json:"server_uri,omitempty"`
-	// configuration used to compose the outgoing request to a gRPC endpoint
-	RequestTransform *GrpcRequestTemplate `protobuf:"bytes,2,opt,name=request_transform,json=requestTransform,proto3" json:"request_transform,omitempty"`
-	// pre-execution engine transformations
-	//
-	// Request flow: GraphQL request -> request_transform (instantiate gRPC request) ->
-	// gRPC API resp -> pre_execution_transform -> execution engine ->
-	// complete GraphQL field response
-	//
-	// ResponseTemplate pre_execution_transform = 3;
-	SpanName      string `protobuf:"bytes,4,opt,name=span_name,json=spanName,proto3" json:"span_name,omitempty"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1077,36 +648,9 @@ func (*GrpcResolver) Descriptor() ([]byte, []int) {
 	return file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_rawDescGZIP(), []int{13}
 }
 
-func (x *GrpcResolver) GetServerUri() *v3.HttpUri {
-	if x != nil {
-		return x.ServerUri
-	}
-	return nil
-}
-
-func (x *GrpcResolver) GetRequestTransform() *GrpcRequestTemplate {
-	if x != nil {
-		return x.RequestTransform
-	}
-	return nil
-}
-
-func (x *GrpcResolver) GetSpanName() string {
-	if x != nil {
-		return x.SpanName
-	}
-	return ""
-}
-
-// Only meant for integration testing
+// DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
 type StaticResolver struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// Types that are valid to be assigned to Response:
-	//
-	//	*StaticResolver_SyncResponse
-	//	*StaticResolver_AsyncResponse_
-	//	*StaticResolver_ErrorResponse
-	Response      isStaticResolver_Response `protobuf_oneof:"response"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1141,67 +685,7 @@ func (*StaticResolver) Descriptor() ([]byte, []int) {
 	return file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_rawDescGZIP(), []int{14}
 }
 
-func (x *StaticResolver) GetResponse() isStaticResolver_Response {
-	if x != nil {
-		return x.Response
-	}
-	return nil
-}
-
-func (x *StaticResolver) GetSyncResponse() string {
-	if x != nil {
-		if x, ok := x.Response.(*StaticResolver_SyncResponse); ok {
-			return x.SyncResponse
-		}
-	}
-	return ""
-}
-
-func (x *StaticResolver) GetAsyncResponse() *StaticResolver_AsyncResponse {
-	if x != nil {
-		if x, ok := x.Response.(*StaticResolver_AsyncResponse_); ok {
-			return x.AsyncResponse
-		}
-	}
-	return nil
-}
-
-func (x *StaticResolver) GetErrorResponse() string {
-	if x != nil {
-		if x, ok := x.Response.(*StaticResolver_ErrorResponse); ok {
-			return x.ErrorResponse
-		}
-	}
-	return ""
-}
-
-type isStaticResolver_Response interface {
-	isStaticResolver_Response()
-}
-
-type StaticResolver_SyncResponse struct {
-	// Responds synchronously (on the same dispatch loop as the resolve call)
-	SyncResponse string `protobuf:"bytes,1,opt,name=sync_response,json=syncResponse,proto3,oneof"`
-}
-
-type StaticResolver_AsyncResponse_ struct {
-	// Responds asynchronously after delay_ms
-	AsyncResponse *StaticResolver_AsyncResponse `protobuf:"bytes,2,opt,name=async_response,json=asyncResponse,proto3,oneof"`
-}
-
-type StaticResolver_ErrorResponse struct {
-	ErrorResponse string `protobuf:"bytes,3,opt,name=error_response,json=errorResponse,proto3,oneof"`
-}
-
-func (*StaticResolver_SyncResponse) isStaticResolver_Response() {}
-
-func (*StaticResolver_AsyncResponse_) isStaticResolver_Response() {}
-
-func (*StaticResolver_ErrorResponse) isStaticResolver_Response() {}
-
-// NOT IMPLEMENTED
-// Resolve an abstract type (union or interface) to a real type.
-// When implemented, this message will be a field in the Resolution message.
+// DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
 type AbstractTypeResolver struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
@@ -1238,12 +722,9 @@ func (*AbstractTypeResolver) Descriptor() ([]byte, []int) {
 	return file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_rawDescGZIP(), []int{15}
 }
 
+// DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
 type QueryMatcher struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// Types that are valid to be assigned to Match:
-	//
-	//	*QueryMatcher_FieldMatcher_
-	Match         isQueryMatcher_Match `protobuf_oneof:"match"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1278,48 +759,9 @@ func (*QueryMatcher) Descriptor() ([]byte, []int) {
 	return file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_rawDescGZIP(), []int{16}
 }
 
-func (x *QueryMatcher) GetMatch() isQueryMatcher_Match {
-	if x != nil {
-		return x.Match
-	}
-	return nil
-}
-
-func (x *QueryMatcher) GetFieldMatcher() *QueryMatcher_FieldMatcher {
-	if x != nil {
-		if x, ok := x.Match.(*QueryMatcher_FieldMatcher_); ok {
-			return x.FieldMatcher
-		}
-	}
-	return nil
-}
-
-type isQueryMatcher_Match interface {
-	isQueryMatcher_Match()
-}
-
-type QueryMatcher_FieldMatcher_ struct {
-	FieldMatcher *QueryMatcher_FieldMatcher `protobuf:"bytes,1,opt,name=field_matcher,json=fieldMatcher,proto3,oneof"`
-}
-
-func (*QueryMatcher_FieldMatcher_) isQueryMatcher_Match() {}
-
-// This is the resolver map for the schema.
-// For each Type.Field, we can define a resolver.
-// if a field does not have resolver, the default resolver will be used.
-// the default resolver takes the field with the same name from the parent, and
-// uses that value to resolve the field. if a field with the same name does not
-// exist in the parent, null will be used.
+// DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
 type Resolution struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// Match an object type and field
-	Matcher *QueryMatcher `protobuf:"bytes,1,opt,name=matcher,proto3" json:"matcher,omitempty"`
-	// The resolver to use.
-	Resolver *v3.TypedExtensionConfig `protobuf:"bytes,2,opt,name=resolver,proto3" json:"resolver,omitempty"`
-	// The stats prefix which will be used for this resolver.
-	StatPrefix string `protobuf:"bytes,3,opt,name=stat_prefix,json=statPrefix,proto3" json:"stat_prefix,omitempty"`
-	// caching configuration, defaults to no caching
-	CacheControl  *CacheControl `protobuf:"bytes,4,opt,name=cache_control,json=cacheControl,proto3" json:"cache_control,omitempty"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1354,53 +796,9 @@ func (*Resolution) Descriptor() ([]byte, []int) {
 	return file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_rawDescGZIP(), []int{17}
 }
 
-func (x *Resolution) GetMatcher() *QueryMatcher {
-	if x != nil {
-		return x.Matcher
-	}
-	return nil
-}
-
-func (x *Resolution) GetResolver() *v3.TypedExtensionConfig {
-	if x != nil {
-		return x.Resolver
-	}
-	return nil
-}
-
-func (x *Resolution) GetStatPrefix() string {
-	if x != nil {
-		return x.StatPrefix
-	}
-	return ""
-}
-
-func (x *Resolution) GetCacheControl() *CacheControl {
-	if x != nil {
-		return x.CacheControl
-	}
-	return nil
-}
-
-// Resolvers for scalar, non-root fields rarely fetch data and instead usually populate data via the parent argument.
-// Consequently, these fields inherit their default maxAge from their parent to reduce schema clutter.
-//
-// TODO: Talk with product -- apollo does not do this, but we could factor in upstream Cache-Control header
-// response into our inheritance model.
+// DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
 type CacheControl struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// number of seconds to cache result for. the max_age used for a single graphql request is the minimum
-	// of all fields requested.
-	//
-	// default max_age rules work as follows:
-	// - root fields (i.e. Query, Mutation, Subscription) default to 0s
-	// - non-root, non-scalar fields (i.e. object, interface, or union; or a list of those types) default to 0s
-	// - all other fields inherit the max_age from their parent.
-	MaxAge *wrapperspb.UInt32Value `protobuf:"bytes,1,opt,name=max_age,json=maxAge,proto3" json:"max_age,omitempty"`
-	// provide controls to which users can access cached content
-	Scope CacheControl_CacheControlScope `protobuf:"varint,2,opt,name=scope,proto3,enum=envoy.config.filter.http.graphql.v2.CacheControl_CacheControlScope" json:"scope,omitempty"`
-	// whether or not to inherit the caching configuration of any parent fields
-	InheritMaxAge bool `protobuf:"varint,3,opt,name=inherit_max_age,json=inheritMaxAge,proto3" json:"inherit_max_age,omitempty"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1435,29 +833,7 @@ func (*CacheControl) Descriptor() ([]byte, []int) {
 	return file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_rawDescGZIP(), []int{18}
 }
 
-func (x *CacheControl) GetMaxAge() *wrapperspb.UInt32Value {
-	if x != nil {
-		return x.MaxAge
-	}
-	return nil
-}
-
-func (x *CacheControl) GetScope() CacheControl_CacheControlScope {
-	if x != nil {
-		return x.Scope
-	}
-	return CacheControl_UNSET
-}
-
-func (x *CacheControl) GetInheritMaxAge() bool {
-	if x != nil {
-		return x.InheritMaxAge
-	}
-	return false
-}
-
-// Filter Listener config. Empty as the filter must be configured on the route
-// level.
+// DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
 type GraphQLConfig struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
@@ -1494,21 +870,11 @@ func (*GraphQLConfig) Descriptor() ([]byte, []int) {
 	return file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_rawDescGZIP(), []int{19}
 }
 
-// Filter Route config. Routes that have this config will execute graphql
-// queries, and will not make it to the router filter. i.e. this filter will
-// terminate the request for these routes.
+// DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
 type GraphQLRouteConfig struct {
-	state            protoimpl.MessageState `protogen:"open.v1"`
-	ExecutableSchema *ExecutableSchema      `protobuf:"bytes,4,opt,name=executable_schema,json=executableSchema,proto3" json:"executable_schema,omitempty"`
-	// The stats prefix which will be used for this route config.
-	StatPrefix string `protobuf:"bytes,5,opt,name=stat_prefix,json=statPrefix,proto3" json:"stat_prefix,omitempty"`
-	// Configuration settings for persisted query cache
-	PersistedQueryCacheConfig *PersistedQueryCacheConfig `protobuf:"bytes,6,opt,name=persisted_query_cache_config,json=persistedQueryCacheConfig,proto3" json:"persisted_query_cache_config,omitempty"`
-	// Safelist: only allow queries to be executed that match these sha256 hashes.
-	// The hash can be computed from the query string or provided (i.e. persisted queries).
-	AllowedQueryHashes []string `protobuf:"bytes,7,rep,name=allowed_query_hashes,json=allowedQueryHashes,proto3" json:"allowed_query_hashes,omitempty"`
-	unknownFields      protoimpl.UnknownFields
-	sizeCache          protoimpl.SizeCache
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *GraphQLRouteConfig) Reset() {
@@ -1541,39 +907,9 @@ func (*GraphQLRouteConfig) Descriptor() ([]byte, []int) {
 	return file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_rawDescGZIP(), []int{20}
 }
 
-func (x *GraphQLRouteConfig) GetExecutableSchema() *ExecutableSchema {
-	if x != nil {
-		return x.ExecutableSchema
-	}
-	return nil
-}
-
-func (x *GraphQLRouteConfig) GetStatPrefix() string {
-	if x != nil {
-		return x.StatPrefix
-	}
-	return ""
-}
-
-func (x *GraphQLRouteConfig) GetPersistedQueryCacheConfig() *PersistedQueryCacheConfig {
-	if x != nil {
-		return x.PersistedQueryCacheConfig
-	}
-	return nil
-}
-
-func (x *GraphQLRouteConfig) GetAllowedQueryHashes() []string {
-	if x != nil {
-		return x.AllowedQueryHashes
-	}
-	return nil
-}
-
-// This message specifies Persisted Query Cache configuration.
+// DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
 type PersistedQueryCacheConfig struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// The unit is number of queries to store, default to 1000.
-	CacheSize     uint32 `protobuf:"varint,1,opt,name=cache_size,json=cacheSize,proto3" json:"cache_size,omitempty"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1608,26 +944,11 @@ func (*PersistedQueryCacheConfig) Descriptor() ([]byte, []int) {
 	return file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_rawDescGZIP(), []int{21}
 }
 
-func (x *PersistedQueryCacheConfig) GetCacheSize() uint32 {
-	if x != nil {
-		return x.CacheSize
-	}
-	return 0
-}
-
+// DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
 type ExecutableSchema struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// Schema to use in string format.
-	SchemaDefinition *v3.DataSource `protobuf:"bytes,1,opt,name=schema_definition,json=schemaDefinition,proto3" json:"schema_definition,omitempty"`
-	// how to execute the schema
-	Executor *Executor `protobuf:"bytes,2,opt,name=executor,proto3" json:"executor,omitempty"`
-	// Schema extensions
-	Extensions map[string]*anypb.Any `protobuf:"bytes,3,rep,name=extensions,proto3" json:"extensions,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	// Logs request / response sensitive information
-	// By default, this is false so no request or response sensitive information is logged.
-	LogRequestResponseInfo bool `protobuf:"varint,4,opt,name=log_request_response_info,json=logRequestResponseInfo,proto3" json:"log_request_response_info,omitempty"`
-	unknownFields          protoimpl.UnknownFields
-	sizeCache              protoimpl.SizeCache
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ExecutableSchema) Reset() {
@@ -1660,41 +981,9 @@ func (*ExecutableSchema) Descriptor() ([]byte, []int) {
 	return file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_rawDescGZIP(), []int{22}
 }
 
-func (x *ExecutableSchema) GetSchemaDefinition() *v3.DataSource {
-	if x != nil {
-		return x.SchemaDefinition
-	}
-	return nil
-}
-
-func (x *ExecutableSchema) GetExecutor() *Executor {
-	if x != nil {
-		return x.Executor
-	}
-	return nil
-}
-
-func (x *ExecutableSchema) GetExtensions() map[string]*anypb.Any {
-	if x != nil {
-		return x.Extensions
-	}
-	return nil
-}
-
-func (x *ExecutableSchema) GetLogRequestResponseInfo() bool {
-	if x != nil {
-		return x.LogRequestResponseInfo
-	}
-	return false
-}
-
+// DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
 type Executor struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// Types that are valid to be assigned to Executor:
-	//
-	//	*Executor_Local_
-	//	*Executor_Remote_
-	Executor      isExecutor_Executor `protobuf_oneof:"executor"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1729,63 +1018,16 @@ func (*Executor) Descriptor() ([]byte, []int) {
 	return file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_rawDescGZIP(), []int{23}
 }
 
-func (x *Executor) GetExecutor() isExecutor_Executor {
-	if x != nil {
-		return x.Executor
-	}
-	return nil
-}
-
-func (x *Executor) GetLocal() *Executor_Local {
-	if x != nil {
-		if x, ok := x.Executor.(*Executor_Local_); ok {
-			return x.Local
-		}
-	}
-	return nil
-}
-
-func (x *Executor) GetRemote() *Executor_Remote {
-	if x != nil {
-		if x, ok := x.Executor.(*Executor_Remote_); ok {
-			return x.Remote
-		}
-	}
-	return nil
-}
-
-type isExecutor_Executor interface {
-	isExecutor_Executor()
-}
-
-type Executor_Local_ struct {
-	Local *Executor_Local `protobuf:"bytes,1,opt,name=local,proto3,oneof"`
-}
-
-type Executor_Remote_ struct {
-	Remote *Executor_Remote `protobuf:"bytes,2,opt,name=remote,proto3,oneof"`
-}
-
-func (*Executor_Local_) isExecutor_Executor() {}
-
-func (*Executor_Remote_) isExecutor_Executor() {}
-
+// DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
 type ValueProvider_GraphQLArgExtraction struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// The argument name to fetch. The argument value fetched
-	// will have a type from the schema that we validate in envoy.
-	// If the name is invalid, returns the zero-value primitive or null.
-	ArgName string `protobuf:"bytes,1,opt,name=arg_name,json=argName,proto3" json:"arg_name,omitempty"`
-	// Optional: fetches the value in the argument selected at this key.
-	// If the key is invalid, returns the zero-value primitive or null.
-	Path          []*PathSegment `protobuf:"bytes,2,rep,name=path,proto3" json:"path,omitempty"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ValueProvider_GraphQLArgExtraction) Reset() {
 	*x = ValueProvider_GraphQLArgExtraction{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_msgTypes[25]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1797,7 +1039,7 @@ func (x *ValueProvider_GraphQLArgExtraction) String() string {
 func (*ValueProvider_GraphQLArgExtraction) ProtoMessage() {}
 
 func (x *ValueProvider_GraphQLArgExtraction) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_msgTypes[25]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1813,36 +1055,16 @@ func (*ValueProvider_GraphQLArgExtraction) Descriptor() ([]byte, []int) {
 	return file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_rawDescGZIP(), []int{3, 0}
 }
 
-func (x *ValueProvider_GraphQLArgExtraction) GetArgName() string {
-	if x != nil {
-		return x.ArgName
-	}
-	return ""
-}
-
-func (x *ValueProvider_GraphQLArgExtraction) GetPath() []*PathSegment {
-	if x != nil {
-		return x.Path
-	}
-	return nil
-}
-
-// Does not do type coercion, but instead if the type does not match the
-// expected primitive type we throw an error.
-// In the future we may add support for type coercion.
+// DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
 type ValueProvider_GraphQLParentExtraction struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// Fetches the value in the graphql parent at this key. The value will
-	// always be accepted since the parent object is not strongly-typed.
-	// If the key is invalid, returns null.
-	Path          []*PathSegment `protobuf:"bytes,1,rep,name=path,proto3" json:"path,omitempty"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ValueProvider_GraphQLParentExtraction) Reset() {
 	*x = ValueProvider_GraphQLParentExtraction{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_msgTypes[26]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1854,7 +1076,7 @@ func (x *ValueProvider_GraphQLParentExtraction) String() string {
 func (*ValueProvider_GraphQLParentExtraction) ProtoMessage() {}
 
 func (x *ValueProvider_GraphQLParentExtraction) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_msgTypes[26]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1870,31 +1092,16 @@ func (*ValueProvider_GraphQLParentExtraction) Descriptor() ([]byte, []int) {
 	return file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_rawDescGZIP(), []int{3, 1}
 }
 
-func (x *ValueProvider_GraphQLParentExtraction) GetPath() []*PathSegment {
-	if x != nil {
-		return x.Path
-	}
-	return nil
-}
-
+// DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
 type ValueProvider_TypedValueProvider struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// Type that the value will be coerced into.
-	// For example if the extracted value is "9", and type is INT,
-	// this value will be cast to an int type.
-	Type ValueProvider_TypedValueProvider_Type `protobuf:"varint,1,opt,name=type,proto3,enum=envoy.config.filter.http.graphql.v2.ValueProvider_TypedValueProvider_Type" json:"type,omitempty"`
-	// Types that are valid to be assigned to ValProvider:
-	//
-	//	*ValueProvider_TypedValueProvider_Header
-	//	*ValueProvider_TypedValueProvider_Value
-	ValProvider   isValueProvider_TypedValueProvider_ValProvider `protobuf_oneof:"val_provider"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ValueProvider_TypedValueProvider) Reset() {
 	*x = ValueProvider_TypedValueProvider{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_msgTypes[27]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1906,7 +1113,7 @@ func (x *ValueProvider_TypedValueProvider) String() string {
 func (*ValueProvider_TypedValueProvider) ProtoMessage() {}
 
 func (x *ValueProvider_TypedValueProvider) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_msgTypes[27]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1922,71 +1129,16 @@ func (*ValueProvider_TypedValueProvider) Descriptor() ([]byte, []int) {
 	return file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_rawDescGZIP(), []int{3, 2}
 }
 
-func (x *ValueProvider_TypedValueProvider) GetType() ValueProvider_TypedValueProvider_Type {
-	if x != nil {
-		return x.Type
-	}
-	return ValueProvider_TypedValueProvider_STRING
-}
-
-func (x *ValueProvider_TypedValueProvider) GetValProvider() isValueProvider_TypedValueProvider_ValProvider {
-	if x != nil {
-		return x.ValProvider
-	}
-	return nil
-}
-
-func (x *ValueProvider_TypedValueProvider) GetHeader() string {
-	if x != nil {
-		if x, ok := x.ValProvider.(*ValueProvider_TypedValueProvider_Header); ok {
-			return x.Header
-		}
-	}
-	return ""
-}
-
-func (x *ValueProvider_TypedValueProvider) GetValue() string {
-	if x != nil {
-		if x, ok := x.ValProvider.(*ValueProvider_TypedValueProvider_Value); ok {
-			return x.Value
-		}
-	}
-	return ""
-}
-
-type isValueProvider_TypedValueProvider_ValProvider interface {
-	isValueProvider_TypedValueProvider_ValProvider()
-}
-
-type ValueProvider_TypedValueProvider_Header struct {
-	// Fetches the request/response header's value. If not found, uses empty string
-	Header string `protobuf:"bytes,2,opt,name=header,proto3,oneof"`
-}
-
-type ValueProvider_TypedValueProvider_Value struct {
-	// inline value, use as provided rather than extracting from another source
-	Value string `protobuf:"bytes,3,opt,name=value,proto3,oneof"`
-}
-
-func (*ValueProvider_TypedValueProvider_Header) isValueProvider_TypedValueProvider_ValProvider() {}
-
-func (*ValueProvider_TypedValueProvider_Value) isValueProvider_TypedValueProvider_ValProvider() {}
-
+// DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
 type ValueProvider_Provider struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// Types that are valid to be assigned to Provider:
-	//
-	//	*ValueProvider_Provider_GraphqlArg
-	//	*ValueProvider_Provider_TypedProvider
-	//	*ValueProvider_Provider_GraphqlParent
-	Provider      isValueProvider_Provider_Provider `protobuf_oneof:"provider"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ValueProvider_Provider) Reset() {
 	*x = ValueProvider_Provider{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_msgTypes[28]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1998,7 +1150,7 @@ func (x *ValueProvider_Provider) String() string {
 func (*ValueProvider_Provider) ProtoMessage() {}
 
 func (x *ValueProvider_Provider) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_msgTypes[28]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2014,75 +1166,16 @@ func (*ValueProvider_Provider) Descriptor() ([]byte, []int) {
 	return file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_rawDescGZIP(), []int{3, 3}
 }
 
-func (x *ValueProvider_Provider) GetProvider() isValueProvider_Provider_Provider {
-	if x != nil {
-		return x.Provider
-	}
-	return nil
-}
-
-func (x *ValueProvider_Provider) GetGraphqlArg() *ValueProvider_GraphQLArgExtraction {
-	if x != nil {
-		if x, ok := x.Provider.(*ValueProvider_Provider_GraphqlArg); ok {
-			return x.GraphqlArg
-		}
-	}
-	return nil
-}
-
-func (x *ValueProvider_Provider) GetTypedProvider() *ValueProvider_TypedValueProvider {
-	if x != nil {
-		if x, ok := x.Provider.(*ValueProvider_Provider_TypedProvider); ok {
-			return x.TypedProvider
-		}
-	}
-	return nil
-}
-
-func (x *ValueProvider_Provider) GetGraphqlParent() *ValueProvider_GraphQLParentExtraction {
-	if x != nil {
-		if x, ok := x.Provider.(*ValueProvider_Provider_GraphqlParent); ok {
-			return x.GraphqlParent
-		}
-	}
-	return nil
-}
-
-type isValueProvider_Provider_Provider interface {
-	isValueProvider_Provider_Provider()
-}
-
-type ValueProvider_Provider_GraphqlArg struct {
-	// type inferred from schema, no need to provide it.
-	GraphqlArg *ValueProvider_GraphQLArgExtraction `protobuf:"bytes,1,opt,name=graphql_arg,json=graphqlArg,proto3,oneof"`
-}
-
-type ValueProvider_Provider_TypedProvider struct {
-	TypedProvider *ValueProvider_TypedValueProvider `protobuf:"bytes,2,opt,name=typed_provider,json=typedProvider,proto3,oneof"`
-}
-
-type ValueProvider_Provider_GraphqlParent struct {
-	// Fetch value from the graphql_parent of the current field.
-	GraphqlParent *ValueProvider_GraphQLParentExtraction `protobuf:"bytes,3,opt,name=graphql_parent,json=graphqlParent,proto3,oneof"`
-}
-
-func (*ValueProvider_Provider_GraphqlArg) isValueProvider_Provider_Provider() {}
-
-func (*ValueProvider_Provider_TypedProvider) isValueProvider_Provider_Provider() {}
-
-func (*ValueProvider_Provider_GraphqlParent) isValueProvider_Provider_Provider() {}
-
+// DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
 type StaticResolver_AsyncResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Response      string                 `protobuf:"bytes,1,opt,name=response,proto3" json:"response,omitempty"`
-	DelayMs       uint32                 `protobuf:"varint,2,opt,name=delay_ms,json=delayMs,proto3" json:"delay_ms,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *StaticResolver_AsyncResponse) Reset() {
 	*x = StaticResolver_AsyncResponse{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_msgTypes[34]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2094,7 +1187,7 @@ func (x *StaticResolver_AsyncResponse) String() string {
 func (*StaticResolver_AsyncResponse) ProtoMessage() {}
 
 func (x *StaticResolver_AsyncResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_msgTypes[34]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2110,33 +1203,16 @@ func (*StaticResolver_AsyncResponse) Descriptor() ([]byte, []int) {
 	return file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_rawDescGZIP(), []int{14, 0}
 }
 
-func (x *StaticResolver_AsyncResponse) GetResponse() string {
-	if x != nil {
-		return x.Response
-	}
-	return ""
-}
-
-func (x *StaticResolver_AsyncResponse) GetDelayMs() uint32 {
-	if x != nil {
-		return x.DelayMs
-	}
-	return 0
-}
-
+// DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
 type QueryMatcher_FieldMatcher struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// Object type. For example, Query.
-	Type string `protobuf:"bytes,1,opt,name=type,proto3" json:"type,omitempty"`
-	// Field within the object.
-	Field         string `protobuf:"bytes,2,opt,name=field,proto3" json:"field,omitempty"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *QueryMatcher_FieldMatcher) Reset() {
 	*x = QueryMatcher_FieldMatcher{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_msgTypes[35]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2148,7 +1224,7 @@ func (x *QueryMatcher_FieldMatcher) String() string {
 func (*QueryMatcher_FieldMatcher) ProtoMessage() {}
 
 func (x *QueryMatcher_FieldMatcher) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_msgTypes[35]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2164,49 +1240,16 @@ func (*QueryMatcher_FieldMatcher) Descriptor() ([]byte, []int) {
 	return file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_rawDescGZIP(), []int{16, 0}
 }
 
-func (x *QueryMatcher_FieldMatcher) GetType() string {
-	if x != nil {
-		return x.Type
-	}
-	return ""
-}
-
-func (x *QueryMatcher_FieldMatcher) GetField() string {
-	if x != nil {
-		return x.Field
-	}
-	return ""
-}
-
-// Execute schema using resolvers.
+// DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
 type Executor_Local struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// The resolver map to use to resolve the schema.
-	Resolutions []*Resolution `protobuf:"bytes,1,rep,name=resolutions,proto3" json:"resolutions,omitempty"`
-	// Do we enable introspection for the schema? general recommendation is to
-	// disable this for production and hence it defaults to false.
-	EnableIntrospection bool `protobuf:"varint,2,opt,name=enable_introspection,json=enableIntrospection,proto3" json:"enable_introspection,omitempty"`
-	// The max amount of nesting a query can be executed against this schema.
-	// e.g. the following query has these depths:
-	// query {         # Depth: 0
-	//
-	//	  me {          # Depth: 1
-	//	    friends {   # Depth: 2
-	//	       friends  # Depth: 3
-	//	    }
-	//	  }
-	//	}
-	//
-	// If the max_depth is set to 2, then the query at depth 3 will receive an error as a response.
-	// The max_depth value of 0 (set by default) will allow an unbounded query depth.
-	MaxDepth      uint32 `protobuf:"varint,3,opt,name=max_depth,json=maxDepth,proto3" json:"max_depth,omitempty"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *Executor_Local) Reset() {
 	*x = Executor_Local{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_msgTypes[37]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2218,7 +1261,7 @@ func (x *Executor_Local) String() string {
 func (*Executor_Local) ProtoMessage() {}
 
 func (x *Executor_Local) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_msgTypes[37]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2234,41 +1277,16 @@ func (*Executor_Local) Descriptor() ([]byte, []int) {
 	return file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_rawDescGZIP(), []int{23, 0}
 }
 
-func (x *Executor_Local) GetResolutions() []*Resolution {
-	if x != nil {
-		return x.Resolutions
-	}
-	return nil
-}
-
-func (x *Executor_Local) GetEnableIntrospection() bool {
-	if x != nil {
-		return x.EnableIntrospection
-	}
-	return false
-}
-
-func (x *Executor_Local) GetMaxDepth() uint32 {
-	if x != nil {
-		return x.MaxDepth
-	}
-	return 0
-}
-
-// Execute schema by querying a graphql upstream.
+// DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
 type Executor_Remote struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// Server URI of the remote graphql cluster.
-	ServerUri     *v3.HttpUri                          `protobuf:"bytes,1,opt,name=server_uri,json=serverUri,proto3" json:"server_uri,omitempty"`
-	Request       *Executor_Remote_RemoteSchemaRequest `protobuf:"bytes,2,opt,name=request,proto3" json:"request,omitempty"`
-	SpanName      string                               `protobuf:"bytes,3,opt,name=span_name,json=spanName,proto3" json:"span_name,omitempty"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *Executor_Remote) Reset() {
 	*x = Executor_Remote{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_msgTypes[38]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2280,7 +1298,7 @@ func (x *Executor_Remote) String() string {
 func (*Executor_Remote) ProtoMessage() {}
 
 func (x *Executor_Remote) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_msgTypes[38]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2296,42 +1314,16 @@ func (*Executor_Remote) Descriptor() ([]byte, []int) {
 	return file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_rawDescGZIP(), []int{23, 1}
 }
 
-func (x *Executor_Remote) GetServerUri() *v3.HttpUri {
-	if x != nil {
-		return x.ServerUri
-	}
-	return nil
-}
-
-func (x *Executor_Remote) GetRequest() *Executor_Remote_RemoteSchemaRequest {
-	if x != nil {
-		return x.Request
-	}
-	return nil
-}
-
-func (x *Executor_Remote) GetSpanName() string {
-	if x != nil {
-		return x.SpanName
-	}
-	return ""
-}
-
+// DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
 type Executor_Remote_Extraction struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// Types that are valid to be assigned to ExtractionType:
-	//
-	//	*Executor_Remote_Extraction_Value
-	//	*Executor_Remote_Extraction_Header
-	//	*Executor_Remote_Extraction_DynamicMetadata
-	ExtractionType isExecutor_Remote_Extraction_ExtractionType `protobuf_oneof:"extraction_type"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *Executor_Remote_Extraction) Reset() {
 	*x = Executor_Remote_Extraction{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_msgTypes[39]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2343,7 +1335,7 @@ func (x *Executor_Remote_Extraction) String() string {
 func (*Executor_Remote_Extraction) ProtoMessage() {}
 
 func (x *Executor_Remote_Extraction) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_msgTypes[39]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2359,79 +1351,16 @@ func (*Executor_Remote_Extraction) Descriptor() ([]byte, []int) {
 	return file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_rawDescGZIP(), []int{23, 1, 0}
 }
 
-func (x *Executor_Remote_Extraction) GetExtractionType() isExecutor_Remote_Extraction_ExtractionType {
-	if x != nil {
-		return x.ExtractionType
-	}
-	return nil
-}
-
-func (x *Executor_Remote_Extraction) GetValue() string {
-	if x != nil {
-		if x, ok := x.ExtractionType.(*Executor_Remote_Extraction_Value); ok {
-			return x.Value
-		}
-	}
-	return ""
-}
-
-func (x *Executor_Remote_Extraction) GetHeader() string {
-	if x != nil {
-		if x, ok := x.ExtractionType.(*Executor_Remote_Extraction_Header); ok {
-			return x.Header
-		}
-	}
-	return ""
-}
-
-func (x *Executor_Remote_Extraction) GetDynamicMetadata() *Executor_Remote_Extraction_DynamicMetadataExtraction {
-	if x != nil {
-		if x, ok := x.ExtractionType.(*Executor_Remote_Extraction_DynamicMetadata); ok {
-			return x.DynamicMetadata
-		}
-	}
-	return nil
-}
-
-type isExecutor_Remote_Extraction_ExtractionType interface {
-	isExecutor_Remote_Extraction_ExtractionType()
-}
-
-type Executor_Remote_Extraction_Value struct {
-	// Set the extraction type to use a static value.
-	Value string `protobuf:"bytes,1,opt,name=value,proto3,oneof"`
-}
-
-type Executor_Remote_Extraction_Header struct {
-	// Set the extraction type to use a header value.
-	// Specify the name of the header to extract the value from on the original request.
-	Header string `protobuf:"bytes,2,opt,name=header,proto3,oneof"`
-}
-
-type Executor_Remote_Extraction_DynamicMetadata struct {
-	// Set the extraction type to use a dynamic metadata value.
-	DynamicMetadata *Executor_Remote_Extraction_DynamicMetadataExtraction `protobuf:"bytes,3,opt,name=dynamic_metadata,json=dynamicMetadata,proto3,oneof"`
-}
-
-func (*Executor_Remote_Extraction_Value) isExecutor_Remote_Extraction_ExtractionType() {}
-
-func (*Executor_Remote_Extraction_Header) isExecutor_Remote_Extraction_ExtractionType() {}
-
-func (*Executor_Remote_Extraction_DynamicMetadata) isExecutor_Remote_Extraction_ExtractionType() {}
-
+// DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
 type Executor_Remote_RemoteSchemaRequest struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// Map of headers to header value which will be included in the request to the remote graphql server.
-	Headers map[string]*Executor_Remote_Extraction `protobuf:"bytes,2,rep,name=headers,proto3" json:"headers,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	// Query params to set on the request to the remote graphql server.
-	QueryParams   map[string]*Executor_Remote_Extraction `protobuf:"bytes,3,rep,name=query_params,json=queryParams,proto3" json:"query_params,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *Executor_Remote_RemoteSchemaRequest) Reset() {
 	*x = Executor_Remote_RemoteSchemaRequest{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_msgTypes[40]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2443,7 +1372,7 @@ func (x *Executor_Remote_RemoteSchemaRequest) String() string {
 func (*Executor_Remote_RemoteSchemaRequest) ProtoMessage() {}
 
 func (x *Executor_Remote_RemoteSchemaRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_msgTypes[40]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2459,33 +1388,16 @@ func (*Executor_Remote_RemoteSchemaRequest) Descriptor() ([]byte, []int) {
 	return file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_rawDescGZIP(), []int{23, 1, 1}
 }
 
-func (x *Executor_Remote_RemoteSchemaRequest) GetHeaders() map[string]*Executor_Remote_Extraction {
-	if x != nil {
-		return x.Headers
-	}
-	return nil
-}
-
-func (x *Executor_Remote_RemoteSchemaRequest) GetQueryParams() map[string]*Executor_Remote_Extraction {
-	if x != nil {
-		return x.QueryParams
-	}
-	return nil
-}
-
+// DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
 type Executor_Remote_Extraction_DynamicMetadataExtraction struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// The namespace that the dynamic metadata is stored in.
-	MetadataNamespace string `protobuf:"bytes,1,opt,name=metadata_namespace,json=metadataNamespace,proto3" json:"metadata_namespace,omitempty"`
-	// The key in the namespace that the dynamic metadata is stored under.
-	Key           string `protobuf:"bytes,2,opt,name=key,proto3" json:"key,omitempty"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *Executor_Remote_Extraction_DynamicMetadataExtraction) Reset() {
 	*x = Executor_Remote_Extraction_DynamicMetadataExtraction{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_msgTypes[41]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2497,7 +1409,7 @@ func (x *Executor_Remote_Extraction_DynamicMetadataExtraction) String() string {
 func (*Executor_Remote_Extraction_DynamicMetadataExtraction) ProtoMessage() {}
 
 func (x *Executor_Remote_Extraction_DynamicMetadataExtraction) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_msgTypes[41]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2513,206 +1425,65 @@ func (*Executor_Remote_Extraction_DynamicMetadataExtraction) Descriptor() ([]byt
 	return file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_rawDescGZIP(), []int{23, 1, 0, 0}
 }
 
-func (x *Executor_Remote_Extraction_DynamicMetadataExtraction) GetMetadataNamespace() string {
-	if x != nil {
-		return x.MetadataNamespace
-	}
-	return ""
-}
-
-func (x *Executor_Remote_Extraction_DynamicMetadataExtraction) GetKey() string {
-	if x != nil {
-		return x.Key
-	}
-	return ""
-}
-
 var File_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto protoreflect.FileDescriptor
 
 const file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_rawDesc = "" +
 	"\n" +
-	"Ygithub.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/graphql/graphql.proto\x12#envoy.config.filter.http.graphql.v2\x1a\x1egoogle/protobuf/duration.proto\x1a\x19google/protobuf/any.proto\x1a\x17validate/validate.proto\x1aVgithub.com/solo-io/gloo/projects/gloo/api/external/envoy/config/core/v3/http_uri.proto\x1aWgithub.com/solo-io/gloo/projects/gloo/api/external/envoy/config/core/v3/extension.proto\x1aRgithub.com/solo-io/gloo/projects/gloo/api/external/envoy/config/core/v3/base.proto\x1a\x1egoogle/protobuf/wrappers.proto\"f\n" +
-	"\vPathSegment\x12\x1b\n" +
-	"\x03key\x18\x01 \x01(\tB\a\xfaB\x04r\x02\x10\x01H\x00R\x03key\x12\x16\n" +
-	"\x05index\x18\x02 \x01(\rH\x00R\x05index\x12\x12\n" +
-	"\x03all\x18\x03 \x01(\bH\x00R\x03allB\x0e\n" +
-	"\asegment\x12\x03\xf8B\x01\"T\n" +
-	"\x04Path\x12L\n" +
-	"\bsegments\x18\x01 \x03(\v20.envoy.config.filter.http.graphql.v2.PathSegmentR\bsegments\"\x83\x02\n" +
-	"\rTemplatedPath\x12#\n" +
-	"\rpath_template\x18\x01 \x01(\tR\fpathTemplate\x12c\n" +
-	"\vnamed_paths\x18\x02 \x03(\v2B.envoy.config.filter.http.graphql.v2.TemplatedPath.NamedPathsEntryR\n" +
-	"namedPaths\x1ah\n" +
-	"\x0fNamedPathsEntry\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\tR\x03key\x12?\n" +
-	"\x05value\x18\x02 \x01(\v2).envoy.config.filter.http.graphql.v2.PathR\x05value:\x028\x01\"\xca\b\n" +
-	"\rValueProvider\x12_\n" +
-	"\tproviders\x18\x03 \x03(\v2A.envoy.config.filter.http.graphql.v2.ValueProvider.ProvidersEntryR\tproviders\x12+\n" +
-	"\x11provider_template\x18\x04 \x01(\tR\x10providerTemplate\x1aw\n" +
-	"\x14GraphQLArgExtraction\x12\x19\n" +
-	"\barg_name\x18\x01 \x01(\tR\aargName\x12D\n" +
-	"\x04path\x18\x02 \x03(\v20.envoy.config.filter.http.graphql.v2.PathSegmentR\x04path\x1a_\n" +
-	"\x17GraphQLParentExtraction\x12D\n" +
-	"\x04path\x18\x01 \x03(\v20.envoy.config.filter.http.graphql.v2.PathSegmentR\x04path\x1a\xeb\x01\n" +
-	"\x12TypedValueProvider\x12^\n" +
-	"\x04type\x18\x01 \x01(\x0e2J.envoy.config.filter.http.graphql.v2.ValueProvider.TypedValueProvider.TypeR\x04type\x12\x18\n" +
-	"\x06header\x18\x02 \x01(\tH\x00R\x06header\x12\x16\n" +
-	"\x05value\x18\x03 \x01(\tH\x00R\x05value\"3\n" +
+	"Ygithub.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/graphql/graphql.proto\x12#envoy.config.filter.http.graphql.v2\x1a\x1egoogle/protobuf/duration.proto\x1a\x19google/protobuf/any.proto\x1a\x17validate/validate.proto\x1aVgithub.com/solo-io/gloo/projects/gloo/api/external/envoy/config/core/v3/http_uri.proto\x1aWgithub.com/solo-io/gloo/projects/gloo/api/external/envoy/config/core/v3/extension.proto\x1aRgithub.com/solo-io/gloo/projects/gloo/api/external/envoy/config/core/v3/base.proto\x1a\x1egoogle/protobuf/wrappers.proto\"0\n" +
+	"\vPathSegmentJ\x04\b\x01\x10\x02J\x04\b\x02\x10\x03J\x04\b\x03\x10\x04R\x03keyR\x05indexR\x03all\"\x16\n" +
+	"\x04PathJ\x04\b\x01\x10\x02R\bsegments\"7\n" +
+	"\rTemplatedPathJ\x04\b\x01\x10\x02J\x04\b\x02\x10\x03R\rpath_templateR\vnamed_paths\"\xd1\x02\n" +
+	"\rValueProvider\x1a2\n" +
+	"\x14GraphQLArgExtractionJ\x04\b\x01\x10\x02J\x04\b\x02\x10\x03R\barg_nameR\x04path\x1a%\n" +
+	"\x17GraphQLParentExtractionJ\x04\b\x01\x10\x02R\x04path\x1ap\n" +
+	"\x12TypedValueProvider\"3\n" +
 	"\x04Type\x12\n" +
 	"\n" +
 	"\x06STRING\x10\x00\x12\a\n" +
 	"\x03INT\x10\x01\x12\t\n" +
 	"\x05FLOAT\x10\x02\x12\v\n" +
-	"\aBOOLEAN\x10\x03B\x0e\n" +
-	"\fval_provider\x1a\xe7\x02\n" +
-	"\bProvider\x12j\n" +
-	"\vgraphql_arg\x18\x01 \x01(\v2G.envoy.config.filter.http.graphql.v2.ValueProvider.GraphQLArgExtractionH\x00R\n" +
-	"graphqlArg\x12n\n" +
-	"\x0etyped_provider\x18\x02 \x01(\v2E.envoy.config.filter.http.graphql.v2.ValueProvider.TypedValueProviderH\x00R\rtypedProvider\x12s\n" +
-	"\x0egraphql_parent\x18\x03 \x01(\v2J.envoy.config.filter.http.graphql.v2.ValueProvider.GraphQLParentExtractionH\x00R\rgraphqlParentB\n" +
+	"\aBOOLEAN\x10\x03J\x04\b\x01\x10\x02J\x04\b\x02\x10\x03J\x04\b\x03\x10\x04R\x04typeR\x06headerR\x05value\x1aI\n" +
+	"\bProviderJ\x04\b\x01\x10\x02J\x04\b\x02\x10\x03J\x04\b\x03\x10\x04R\vgraphql_argR\x0etyped_providerR\x0egraphql_parentJ\x04\b\x03\x10\x04J\x04\b\x04\x10\x05R\tprovidersR\x11provider_template\"\x1d\n" +
+	"\rJsonValueListJ\x04\b\x01\x10\x02R\x06values\"9\n" +
+	"\tJsonValueJ\x04\b\x01\x10\x02J\x04\b\x02\x10\x03J\x04\b\x03\x10\x04R\x04nodeR\x0evalue_providerR\x04list\"&\n" +
+	"\fJsonKeyValueJ\x04\b\x01\x10\x02J\x04\b\x02\x10\x03R\x03keyR\x05value\"\x1c\n" +
+	"\bJsonNodeJ\x04\b\x01\x10\x02R\n" +
+	"key_values\"I\n" +
+	"\x0fRequestTemplateJ\x04\b\x01\x10\x02J\x04\b\x02\x10\x03J\x04\b\x03\x10\x04R\aheadersR\fquery_paramsR\routgoing_body\"4\n" +
+	"\x10ResponseTemplateJ\x04\b\x01\x10\x02J\x04\b\x02\x10\x03R\vresult_rootR\asetters\"i\n" +
+	"\fRESTResolverJ\x04\b\x01\x10\x02J\x04\b\x02\x10\x03J\x04\b\x03\x10\x04J\x04\b\x04\x10\x05R\n" +
+	"server_uriR\x11request_transformR\x17pre_execution_transformR\tspan_name\"q\n" +
+	"\x13GrpcRequestTemplateJ\x04\b\x01\x10\x02J\x04\b\x02\x10\x03J\x04\b\x03\x10\x04J\x04\b\x04\x10\x05R\x15outgoing_message_jsonR\fservice_nameR\vmethod_nameR\x10request_metadata\"1\n" +
+	"\x16GrpcDescriptorRegistryJ\x04\b\x01\x10\x02R\x11proto_descriptors\"J\n" +
+	"\fGrpcResolverJ\x04\b\x01\x10\x02J\x04\b\x02\x10\x03J\x04\b\x04\x10\x05R\n" +
+	"server_uriR\x11request_transformR\tspan_name\"\x82\x01\n" +
+	"\x0eStaticResolver\x1a/\n" +
+	"\rAsyncResponseJ\x04\b\x01\x10\x02J\x04\b\x02\x10\x03R\bresponseR\bdelay_msJ\x04\b\x01\x10\x02J\x04\b\x02\x10\x03J\x04\b\x03\x10\x04R\rsync_responseR\x0easync_responseR\x0eerror_response\"\x16\n" +
+	"\x14AbstractTypeResolver\"L\n" +
+	"\fQueryMatcher\x1a'\n" +
+	"\fFieldMatcherJ\x04\b\x01\x10\x02J\x04\b\x02\x10\x03R\x04typeR\x05fieldJ\x04\b\x01\x10\x02R\rfield_matcher\"_\n" +
 	"\n" +
-	"\bprovider\x1ay\n" +
-	"\x0eProvidersEntry\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\tR\x03key\x12Q\n" +
-	"\x05value\x18\x02 \x01(\v2;.envoy.config.filter.http.graphql.v2.ValueProvider.ProviderR\x05value:\x028\x01\"W\n" +
-	"\rJsonValueList\x12F\n" +
-	"\x06values\x18\x01 \x03(\v2..envoy.config.filter.http.graphql.v2.JsonValueR\x06values\"\x83\x02\n" +
-	"\tJsonValue\x12C\n" +
-	"\x04node\x18\x01 \x01(\v2-.envoy.config.filter.http.graphql.v2.JsonNodeH\x00R\x04node\x12[\n" +
-	"\x0evalue_provider\x18\x02 \x01(\v22.envoy.config.filter.http.graphql.v2.ValueProviderH\x00R\rvalueProvider\x12H\n" +
-	"\x04list\x18\x03 \x01(\v22.envoy.config.filter.http.graphql.v2.JsonValueListH\x00R\x04listB\n" +
-	"\n" +
-	"\bjson_val\"f\n" +
-	"\fJsonKeyValue\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\tR\x03key\x12D\n" +
-	"\x05value\x18\x02 \x01(\v2..envoy.config.filter.http.graphql.v2.JsonValueR\x05value\"\\\n" +
-	"\bJsonNode\x12P\n" +
-	"\n" +
-	"key_values\x18\x01 \x03(\v21.envoy.config.filter.http.graphql.v2.JsonKeyValueR\tkeyValues\"\x91\x04\n" +
-	"\x0fRequestTemplate\x12[\n" +
-	"\aheaders\x18\x01 \x03(\v2A.envoy.config.filter.http.graphql.v2.RequestTemplate.HeadersEntryR\aheaders\x12h\n" +
-	"\fquery_params\x18\x02 \x03(\v2E.envoy.config.filter.http.graphql.v2.RequestTemplate.QueryParamsEntryR\vqueryParams\x12S\n" +
-	"\routgoing_body\x18\x03 \x01(\v2..envoy.config.filter.http.graphql.v2.JsonValueR\foutgoingBody\x1an\n" +
-	"\fHeadersEntry\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\tR\x03key\x12H\n" +
-	"\x05value\x18\x02 \x01(\v22.envoy.config.filter.http.graphql.v2.ValueProviderR\x05value:\x028\x01\x1ar\n" +
-	"\x10QueryParamsEntry\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\tR\x03key\x12H\n" +
-	"\x05value\x18\x02 \x01(\v22.envoy.config.filter.http.graphql.v2.ValueProviderR\x05value:\x028\x01\"\xb3\x02\n" +
-	"\x10ResponseTemplate\x12Q\n" +
-	"\vresult_root\x18\x01 \x03(\v20.envoy.config.filter.http.graphql.v2.PathSegmentR\n" +
-	"resultRoot\x12\\\n" +
-	"\asetters\x18\x02 \x03(\v2B.envoy.config.filter.http.graphql.v2.ResponseTemplate.SettersEntryR\asetters\x1an\n" +
-	"\fSettersEntry\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\tR\x03key\x12H\n" +
-	"\x05value\x18\x02 \x01(\v22.envoy.config.filter.http.graphql.v2.TemplatedPathR\x05value:\x028\x01\"\xc3\x02\n" +
-	"\fRESTResolver\x12D\n" +
-	"\n" +
-	"server_uri\x18\x01 \x01(\v2%.solo.io.envoy.config.core.v3.HttpUriR\tserverUri\x12a\n" +
-	"\x11request_transform\x18\x02 \x01(\v24.envoy.config.filter.http.graphql.v2.RequestTemplateR\x10requestTransform\x12m\n" +
-	"\x17pre_execution_transform\x18\x03 \x01(\v25.envoy.config.filter.http.graphql.v2.ResponseTemplateR\x15preExecutionTransform\x12\x1b\n" +
-	"\tspan_name\x18\x04 \x01(\tR\bspanName\"\xfb\x02\n" +
-	"\x13GrpcRequestTemplate\x12b\n" +
-	"\x15outgoing_message_json\x18\x01 \x01(\v2..envoy.config.filter.http.graphql.v2.JsonValueR\x13outgoingMessageJson\x12!\n" +
-	"\fservice_name\x18\x02 \x01(\tR\vserviceName\x12\x1f\n" +
-	"\vmethod_name\x18\x03 \x01(\tR\n" +
-	"methodName\x12x\n" +
-	"\x10request_metadata\x18\x04 \x03(\v2M.envoy.config.filter.http.graphql.v2.GrpcRequestTemplate.RequestMetadataEntryR\x0frequestMetadata\x1aB\n" +
-	"\x14RequestMetadataEntry\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"o\n" +
-	"\x16GrpcDescriptorRegistry\x12U\n" +
-	"\x11proto_descriptors\x18\x01 \x01(\v2(.solo.io.envoy.config.core.v3.DataSourceR\x10protoDescriptors\"\xd8\x01\n" +
-	"\fGrpcResolver\x12D\n" +
-	"\n" +
-	"server_uri\x18\x01 \x01(\v2%.solo.io.envoy.config.core.v3.HttpUriR\tserverUri\x12e\n" +
-	"\x11request_transform\x18\x02 \x01(\v28.envoy.config.filter.http.graphql.v2.GrpcRequestTemplateR\x10requestTransform\x12\x1b\n" +
-	"\tspan_name\x18\x04 \x01(\tR\bspanName\"\xa0\x02\n" +
-	"\x0eStaticResolver\x12%\n" +
-	"\rsync_response\x18\x01 \x01(\tH\x00R\fsyncResponse\x12j\n" +
-	"\x0easync_response\x18\x02 \x01(\v2A.envoy.config.filter.http.graphql.v2.StaticResolver.AsyncResponseH\x00R\rasyncResponse\x12'\n" +
-	"\x0eerror_response\x18\x03 \x01(\tH\x00R\rerrorResponse\x1aF\n" +
-	"\rAsyncResponse\x12\x1a\n" +
-	"\bresponse\x18\x01 \x01(\tR\bresponse\x12\x19\n" +
-	"\bdelay_ms\x18\x02 \x01(\rR\adelayMsB\n" +
-	"\n" +
-	"\bresponse\"\x16\n" +
-	"\x14AbstractTypeResolver\"\xb8\x01\n" +
-	"\fQueryMatcher\x12e\n" +
-	"\rfield_matcher\x18\x01 \x01(\v2>.envoy.config.filter.http.graphql.v2.QueryMatcher.FieldMatcherH\x00R\ffieldMatcher\x1a8\n" +
-	"\fFieldMatcher\x12\x12\n" +
-	"\x04type\x18\x01 \x01(\tR\x04type\x12\x14\n" +
-	"\x05field\x18\x02 \x01(\tR\x05fieldB\a\n" +
-	"\x05match\"\xae\x02\n" +
-	"\n" +
-	"Resolution\x12K\n" +
-	"\amatcher\x18\x01 \x01(\v21.envoy.config.filter.http.graphql.v2.QueryMatcherR\amatcher\x12N\n" +
-	"\bresolver\x18\x02 \x01(\v22.solo.io.envoy.config.core.v3.TypedExtensionConfigR\bresolver\x12\x1f\n" +
-	"\vstat_prefix\x18\x03 \x01(\tR\n" +
-	"statPrefix\x12V\n" +
-	"\rcache_control\x18\x04 \x01(\v21.envoy.config.filter.http.graphql.v2.CacheControlR\fcacheControlJ\x04\b\x05\x10\x06J\x04\b\x06\x10\a\"\x81\x02\n" +
-	"\fCacheControl\x125\n" +
-	"\amax_age\x18\x01 \x01(\v2\x1c.google.protobuf.UInt32ValueR\x06maxAge\x12Y\n" +
-	"\x05scope\x18\x02 \x01(\x0e2C.envoy.config.filter.http.graphql.v2.CacheControl.CacheControlScopeR\x05scope\x12&\n" +
-	"\x0finherit_max_age\x18\x03 \x01(\bR\rinheritMaxAge\"7\n" +
+	"ResolutionJ\x04\b\x01\x10\x02J\x04\b\x02\x10\x03J\x04\b\x03\x10\x04J\x04\b\x04\x10\x05J\x04\b\x05\x10\x06J\x04\b\x06\x10\aR\amatcherR\bresolverR\vstat_prefixR\rcache_control\"z\n" +
+	"\fCacheControl\"7\n" +
 	"\x11CacheControlScope\x12\t\n" +
 	"\x05UNSET\x10\x00\x12\n" +
 	"\n" +
 	"\x06PUBLIC\x10\x01\x12\v\n" +
-	"\aPRIVATE\x10\x02\"\x0f\n" +
-	"\rGraphQLConfig\"\xcc\x02\n" +
-	"\x12GraphQLRouteConfig\x12b\n" +
-	"\x11executable_schema\x18\x04 \x01(\v25.envoy.config.filter.http.graphql.v2.ExecutableSchemaR\x10executableSchema\x12\x1f\n" +
-	"\vstat_prefix\x18\x05 \x01(\tR\n" +
-	"statPrefix\x12\x7f\n" +
-	"\x1cpersisted_query_cache_config\x18\x06 \x01(\v2>.envoy.config.filter.http.graphql.v2.PersistedQueryCacheConfigR\x19persistedQueryCacheConfig\x120\n" +
-	"\x14allowed_query_hashes\x18\a \x03(\tR\x12allowedQueryHashes\":\n" +
-	"\x19PersistedQueryCacheConfig\x12\x1d\n" +
+	"\aPRIVATE\x10\x02J\x04\b\x01\x10\x02J\x04\b\x02\x10\x03J\x04\b\x03\x10\x04R\amax_ageR\x05scopeR\x0finherit_max_age\"\x0f\n" +
+	"\rGraphQLConfig\"\x80\x01\n" +
+	"\x12GraphQLRouteConfigJ\x04\b\x04\x10\x05J\x04\b\x05\x10\x06J\x04\b\x06\x10\aJ\x04\b\a\x10\bR\x11executable_schemaR\vstat_prefixR\x1cpersisted_query_cache_configR\x14allowed_query_hashes\"-\n" +
+	"\x19PersistedQueryCacheConfigJ\x04\b\x01\x10\x02R\n" +
+	"cache_size\"n\n" +
+	"\x10ExecutableSchemaJ\x04\b\x01\x10\x02J\x04\b\x02\x10\x03J\x04\b\x03\x10\x04J\x04\b\x04\x10\x05R\x11schema_definitionR\bexecutorR\n" +
+	"extensionsR\x19log_request_response_info\"\xe9\x02\n" +
+	"\bExecutor\x1aG\n" +
+	"\x05LocalJ\x04\b\x01\x10\x02J\x04\b\x02\x10\x03J\x04\b\x03\x10\x04R\vresolutionsR\x14enable_introspectionR\tmax_depth\x1a\xf8\x01\n" +
+	"\x06Remote\x1a\x81\x01\n" +
 	"\n" +
-	"cache_size\x18\x01 \x01(\rR\tcacheSize\"\xab\x03\n" +
-	"\x10ExecutableSchema\x12U\n" +
-	"\x11schema_definition\x18\x01 \x01(\v2(.solo.io.envoy.config.core.v3.DataSourceR\x10schemaDefinition\x12I\n" +
-	"\bexecutor\x18\x02 \x01(\v2-.envoy.config.filter.http.graphql.v2.ExecutorR\bexecutor\x12e\n" +
-	"\n" +
-	"extensions\x18\x03 \x03(\v2E.envoy.config.filter.http.graphql.v2.ExecutableSchema.ExtensionsEntryR\n" +
-	"extensions\x129\n" +
-	"\x19log_request_response_info\x18\x04 \x01(\bR\x16logRequestResponseInfo\x1aS\n" +
-	"\x0fExtensionsEntry\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\tR\x03key\x12*\n" +
-	"\x05value\x18\x02 \x01(\v2\x14.google.protobuf.AnyR\x05value:\x028\x01\"\xf2\n" +
-	"\n" +
-	"\bExecutor\x12K\n" +
-	"\x05local\x18\x01 \x01(\v23.envoy.config.filter.http.graphql.v2.Executor.LocalH\x00R\x05local\x12N\n" +
-	"\x06remote\x18\x02 \x01(\v24.envoy.config.filter.http.graphql.v2.Executor.RemoteH\x00R\x06remote\x1a\xaa\x01\n" +
-	"\x05Local\x12Q\n" +
-	"\vresolutions\x18\x01 \x03(\v2/.envoy.config.filter.http.graphql.v2.ResolutionR\vresolutions\x121\n" +
-	"\x14enable_introspection\x18\x02 \x01(\bR\x13enableIntrospection\x12\x1b\n" +
-	"\tmax_depth\x18\x03 \x01(\rR\bmaxDepth\x1a\x8f\b\n" +
-	"\x06Remote\x12D\n" +
-	"\n" +
-	"server_uri\x18\x01 \x01(\v2%.solo.io.envoy.config.core.v3.HttpUriR\tserverUri\x12b\n" +
-	"\arequest\x18\x02 \x01(\v2H.envoy.config.filter.http.graphql.v2.Executor.Remote.RemoteSchemaRequestR\arequest\x12\x1b\n" +
-	"\tspan_name\x18\x03 \x01(\tR\bspanName\x1a\xb8\x02\n" +
-	"\n" +
-	"Extraction\x12\x16\n" +
-	"\x05value\x18\x01 \x01(\tH\x00R\x05value\x12\x18\n" +
-	"\x06header\x18\x02 \x01(\tH\x00R\x06header\x12\x86\x01\n" +
-	"\x10dynamic_metadata\x18\x03 \x01(\v2Y.envoy.config.filter.http.graphql.v2.Executor.Remote.Extraction.DynamicMetadataExtractionH\x00R\x0fdynamicMetadata\x1a\\\n" +
-	"\x19DynamicMetadataExtraction\x12-\n" +
-	"\x12metadata_namespace\x18\x01 \x01(\tR\x11metadataNamespace\x12\x10\n" +
-	"\x03key\x18\x02 \x01(\tR\x03keyB\x11\n" +
-	"\x0fextraction_type\x1a\x82\x04\n" +
-	"\x13RemoteSchemaRequest\x12o\n" +
-	"\aheaders\x18\x02 \x03(\v2U.envoy.config.filter.http.graphql.v2.Executor.Remote.RemoteSchemaRequest.HeadersEntryR\aheaders\x12|\n" +
-	"\fquery_params\x18\x03 \x03(\v2Y.envoy.config.filter.http.graphql.v2.Executor.Remote.RemoteSchemaRequest.QueryParamsEntryR\vqueryParams\x1a{\n" +
-	"\fHeadersEntry\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\tR\x03key\x12U\n" +
-	"\x05value\x18\x02 \x01(\v2?.envoy.config.filter.http.graphql.v2.Executor.Remote.ExtractionR\x05value:\x028\x01\x1a\x7f\n" +
-	"\x10QueryParamsEntry\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\tR\x03key\x12U\n" +
-	"\x05value\x18\x02 \x01(\v2?.envoy.config.filter.http.graphql.v2.Executor.Remote.ExtractionR\x05value:\x028\x01B\n" +
-	"\n" +
-	"\bexecutorB\xaa\x01\n" +
+	"Extraction\x1a@\n" +
+	"\x19DynamicMetadataExtractionJ\x04\b\x01\x10\x02J\x04\b\x02\x10\x03R\x12metadata_namespaceR\x03keyJ\x04\b\x01\x10\x02J\x04\b\x02\x10\x03J\x04\b\x03\x10\x04R\x05valueR\x06headerR\x10dynamic_metadata\x1a8\n" +
+	"\x13RemoteSchemaRequestJ\x04\b\x02\x10\x03J\x04\b\x03\x10\x04R\aheadersR\fquery_paramsJ\x04\b\x01\x10\x02J\x04\b\x02\x10\x03J\x04\b\x03\x10\x04R\n" +
+	"server_uriR\arequestR\tspan_nameJ\x04\b\x01\x10\x02J\x04\b\x02\x10\x03R\x05localR\x06remoteB\xaa\x01\n" +
 	"1io.envoyproxy.envoy.config.filter.http.graphql.v2B\x12GraphQLFilterProtoP\x01Z_github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/filters/http/graphql/v2b\x06proto3"
 
 var (
@@ -2728,122 +1499,52 @@ func file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_gr
 }
 
 var file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_msgTypes = make([]protoimpl.MessageInfo, 44)
+var file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_msgTypes = make([]protoimpl.MessageInfo, 35)
 var file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_goTypes = []any{
-	(ValueProvider_TypedValueProvider_Type)(0),    // 0: envoy.config.filter.http.graphql.v2.ValueProvider.TypedValueProvider.Type
-	(CacheControl_CacheControlScope)(0),           // 1: envoy.config.filter.http.graphql.v2.CacheControl.CacheControlScope
-	(*PathSegment)(nil),                           // 2: envoy.config.filter.http.graphql.v2.PathSegment
-	(*Path)(nil),                                  // 3: envoy.config.filter.http.graphql.v2.Path
-	(*TemplatedPath)(nil),                         // 4: envoy.config.filter.http.graphql.v2.TemplatedPath
-	(*ValueProvider)(nil),                         // 5: envoy.config.filter.http.graphql.v2.ValueProvider
-	(*JsonValueList)(nil),                         // 6: envoy.config.filter.http.graphql.v2.JsonValueList
-	(*JsonValue)(nil),                             // 7: envoy.config.filter.http.graphql.v2.JsonValue
-	(*JsonKeyValue)(nil),                          // 8: envoy.config.filter.http.graphql.v2.JsonKeyValue
-	(*JsonNode)(nil),                              // 9: envoy.config.filter.http.graphql.v2.JsonNode
-	(*RequestTemplate)(nil),                       // 10: envoy.config.filter.http.graphql.v2.RequestTemplate
-	(*ResponseTemplate)(nil),                      // 11: envoy.config.filter.http.graphql.v2.ResponseTemplate
-	(*RESTResolver)(nil),                          // 12: envoy.config.filter.http.graphql.v2.RESTResolver
-	(*GrpcRequestTemplate)(nil),                   // 13: envoy.config.filter.http.graphql.v2.GrpcRequestTemplate
-	(*GrpcDescriptorRegistry)(nil),                // 14: envoy.config.filter.http.graphql.v2.GrpcDescriptorRegistry
-	(*GrpcResolver)(nil),                          // 15: envoy.config.filter.http.graphql.v2.GrpcResolver
-	(*StaticResolver)(nil),                        // 16: envoy.config.filter.http.graphql.v2.StaticResolver
-	(*AbstractTypeResolver)(nil),                  // 17: envoy.config.filter.http.graphql.v2.AbstractTypeResolver
-	(*QueryMatcher)(nil),                          // 18: envoy.config.filter.http.graphql.v2.QueryMatcher
-	(*Resolution)(nil),                            // 19: envoy.config.filter.http.graphql.v2.Resolution
-	(*CacheControl)(nil),                          // 20: envoy.config.filter.http.graphql.v2.CacheControl
-	(*GraphQLConfig)(nil),                         // 21: envoy.config.filter.http.graphql.v2.GraphQLConfig
-	(*GraphQLRouteConfig)(nil),                    // 22: envoy.config.filter.http.graphql.v2.GraphQLRouteConfig
-	(*PersistedQueryCacheConfig)(nil),             // 23: envoy.config.filter.http.graphql.v2.PersistedQueryCacheConfig
-	(*ExecutableSchema)(nil),                      // 24: envoy.config.filter.http.graphql.v2.ExecutableSchema
-	(*Executor)(nil),                              // 25: envoy.config.filter.http.graphql.v2.Executor
-	nil,                                           // 26: envoy.config.filter.http.graphql.v2.TemplatedPath.NamedPathsEntry
-	(*ValueProvider_GraphQLArgExtraction)(nil),    // 27: envoy.config.filter.http.graphql.v2.ValueProvider.GraphQLArgExtraction
-	(*ValueProvider_GraphQLParentExtraction)(nil), // 28: envoy.config.filter.http.graphql.v2.ValueProvider.GraphQLParentExtraction
-	(*ValueProvider_TypedValueProvider)(nil),      // 29: envoy.config.filter.http.graphql.v2.ValueProvider.TypedValueProvider
-	(*ValueProvider_Provider)(nil),                // 30: envoy.config.filter.http.graphql.v2.ValueProvider.Provider
-	nil,                                           // 31: envoy.config.filter.http.graphql.v2.ValueProvider.ProvidersEntry
-	nil,                                           // 32: envoy.config.filter.http.graphql.v2.RequestTemplate.HeadersEntry
-	nil,                                           // 33: envoy.config.filter.http.graphql.v2.RequestTemplate.QueryParamsEntry
-	nil,                                           // 34: envoy.config.filter.http.graphql.v2.ResponseTemplate.SettersEntry
-	nil,                                           // 35: envoy.config.filter.http.graphql.v2.GrpcRequestTemplate.RequestMetadataEntry
-	(*StaticResolver_AsyncResponse)(nil),          // 36: envoy.config.filter.http.graphql.v2.StaticResolver.AsyncResponse
-	(*QueryMatcher_FieldMatcher)(nil),             // 37: envoy.config.filter.http.graphql.v2.QueryMatcher.FieldMatcher
-	nil,                                           // 38: envoy.config.filter.http.graphql.v2.ExecutableSchema.ExtensionsEntry
-	(*Executor_Local)(nil),                        // 39: envoy.config.filter.http.graphql.v2.Executor.Local
-	(*Executor_Remote)(nil),                       // 40: envoy.config.filter.http.graphql.v2.Executor.Remote
-	(*Executor_Remote_Extraction)(nil),            // 41: envoy.config.filter.http.graphql.v2.Executor.Remote.Extraction
-	(*Executor_Remote_RemoteSchemaRequest)(nil),   // 42: envoy.config.filter.http.graphql.v2.Executor.Remote.RemoteSchemaRequest
-	(*Executor_Remote_Extraction_DynamicMetadataExtraction)(nil), // 43: envoy.config.filter.http.graphql.v2.Executor.Remote.Extraction.DynamicMetadataExtraction
-	nil,                             // 44: envoy.config.filter.http.graphql.v2.Executor.Remote.RemoteSchemaRequest.HeadersEntry
-	nil,                             // 45: envoy.config.filter.http.graphql.v2.Executor.Remote.RemoteSchemaRequest.QueryParamsEntry
-	(*v3.HttpUri)(nil),              // 46: solo.io.envoy.config.core.v3.HttpUri
-	(*v3.DataSource)(nil),           // 47: solo.io.envoy.config.core.v3.DataSource
-	(*v3.TypedExtensionConfig)(nil), // 48: solo.io.envoy.config.core.v3.TypedExtensionConfig
-	(*wrapperspb.UInt32Value)(nil),  // 49: google.protobuf.UInt32Value
-	(*anypb.Any)(nil),               // 50: google.protobuf.Any
+	(ValueProvider_TypedValueProvider_Type)(0),                   // 0: envoy.config.filter.http.graphql.v2.ValueProvider.TypedValueProvider.Type
+	(CacheControl_CacheControlScope)(0),                          // 1: envoy.config.filter.http.graphql.v2.CacheControl.CacheControlScope
+	(*PathSegment)(nil),                                          // 2: envoy.config.filter.http.graphql.v2.PathSegment
+	(*Path)(nil),                                                 // 3: envoy.config.filter.http.graphql.v2.Path
+	(*TemplatedPath)(nil),                                        // 4: envoy.config.filter.http.graphql.v2.TemplatedPath
+	(*ValueProvider)(nil),                                        // 5: envoy.config.filter.http.graphql.v2.ValueProvider
+	(*JsonValueList)(nil),                                        // 6: envoy.config.filter.http.graphql.v2.JsonValueList
+	(*JsonValue)(nil),                                            // 7: envoy.config.filter.http.graphql.v2.JsonValue
+	(*JsonKeyValue)(nil),                                         // 8: envoy.config.filter.http.graphql.v2.JsonKeyValue
+	(*JsonNode)(nil),                                             // 9: envoy.config.filter.http.graphql.v2.JsonNode
+	(*RequestTemplate)(nil),                                      // 10: envoy.config.filter.http.graphql.v2.RequestTemplate
+	(*ResponseTemplate)(nil),                                     // 11: envoy.config.filter.http.graphql.v2.ResponseTemplate
+	(*RESTResolver)(nil),                                         // 12: envoy.config.filter.http.graphql.v2.RESTResolver
+	(*GrpcRequestTemplate)(nil),                                  // 13: envoy.config.filter.http.graphql.v2.GrpcRequestTemplate
+	(*GrpcDescriptorRegistry)(nil),                               // 14: envoy.config.filter.http.graphql.v2.GrpcDescriptorRegistry
+	(*GrpcResolver)(nil),                                         // 15: envoy.config.filter.http.graphql.v2.GrpcResolver
+	(*StaticResolver)(nil),                                       // 16: envoy.config.filter.http.graphql.v2.StaticResolver
+	(*AbstractTypeResolver)(nil),                                 // 17: envoy.config.filter.http.graphql.v2.AbstractTypeResolver
+	(*QueryMatcher)(nil),                                         // 18: envoy.config.filter.http.graphql.v2.QueryMatcher
+	(*Resolution)(nil),                                           // 19: envoy.config.filter.http.graphql.v2.Resolution
+	(*CacheControl)(nil),                                         // 20: envoy.config.filter.http.graphql.v2.CacheControl
+	(*GraphQLConfig)(nil),                                        // 21: envoy.config.filter.http.graphql.v2.GraphQLConfig
+	(*GraphQLRouteConfig)(nil),                                   // 22: envoy.config.filter.http.graphql.v2.GraphQLRouteConfig
+	(*PersistedQueryCacheConfig)(nil),                            // 23: envoy.config.filter.http.graphql.v2.PersistedQueryCacheConfig
+	(*ExecutableSchema)(nil),                                     // 24: envoy.config.filter.http.graphql.v2.ExecutableSchema
+	(*Executor)(nil),                                             // 25: envoy.config.filter.http.graphql.v2.Executor
+	(*ValueProvider_GraphQLArgExtraction)(nil),                   // 26: envoy.config.filter.http.graphql.v2.ValueProvider.GraphQLArgExtraction
+	(*ValueProvider_GraphQLParentExtraction)(nil),                // 27: envoy.config.filter.http.graphql.v2.ValueProvider.GraphQLParentExtraction
+	(*ValueProvider_TypedValueProvider)(nil),                     // 28: envoy.config.filter.http.graphql.v2.ValueProvider.TypedValueProvider
+	(*ValueProvider_Provider)(nil),                               // 29: envoy.config.filter.http.graphql.v2.ValueProvider.Provider
+	(*StaticResolver_AsyncResponse)(nil),                         // 30: envoy.config.filter.http.graphql.v2.StaticResolver.AsyncResponse
+	(*QueryMatcher_FieldMatcher)(nil),                            // 31: envoy.config.filter.http.graphql.v2.QueryMatcher.FieldMatcher
+	(*Executor_Local)(nil),                                       // 32: envoy.config.filter.http.graphql.v2.Executor.Local
+	(*Executor_Remote)(nil),                                      // 33: envoy.config.filter.http.graphql.v2.Executor.Remote
+	(*Executor_Remote_Extraction)(nil),                           // 34: envoy.config.filter.http.graphql.v2.Executor.Remote.Extraction
+	(*Executor_Remote_RemoteSchemaRequest)(nil),                  // 35: envoy.config.filter.http.graphql.v2.Executor.Remote.RemoteSchemaRequest
+	(*Executor_Remote_Extraction_DynamicMetadataExtraction)(nil), // 36: envoy.config.filter.http.graphql.v2.Executor.Remote.Extraction.DynamicMetadataExtraction
 }
 var file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_depIdxs = []int32{
-	2,  // 0: envoy.config.filter.http.graphql.v2.Path.segments:type_name -> envoy.config.filter.http.graphql.v2.PathSegment
-	26, // 1: envoy.config.filter.http.graphql.v2.TemplatedPath.named_paths:type_name -> envoy.config.filter.http.graphql.v2.TemplatedPath.NamedPathsEntry
-	31, // 2: envoy.config.filter.http.graphql.v2.ValueProvider.providers:type_name -> envoy.config.filter.http.graphql.v2.ValueProvider.ProvidersEntry
-	7,  // 3: envoy.config.filter.http.graphql.v2.JsonValueList.values:type_name -> envoy.config.filter.http.graphql.v2.JsonValue
-	9,  // 4: envoy.config.filter.http.graphql.v2.JsonValue.node:type_name -> envoy.config.filter.http.graphql.v2.JsonNode
-	5,  // 5: envoy.config.filter.http.graphql.v2.JsonValue.value_provider:type_name -> envoy.config.filter.http.graphql.v2.ValueProvider
-	6,  // 6: envoy.config.filter.http.graphql.v2.JsonValue.list:type_name -> envoy.config.filter.http.graphql.v2.JsonValueList
-	7,  // 7: envoy.config.filter.http.graphql.v2.JsonKeyValue.value:type_name -> envoy.config.filter.http.graphql.v2.JsonValue
-	8,  // 8: envoy.config.filter.http.graphql.v2.JsonNode.key_values:type_name -> envoy.config.filter.http.graphql.v2.JsonKeyValue
-	32, // 9: envoy.config.filter.http.graphql.v2.RequestTemplate.headers:type_name -> envoy.config.filter.http.graphql.v2.RequestTemplate.HeadersEntry
-	33, // 10: envoy.config.filter.http.graphql.v2.RequestTemplate.query_params:type_name -> envoy.config.filter.http.graphql.v2.RequestTemplate.QueryParamsEntry
-	7,  // 11: envoy.config.filter.http.graphql.v2.RequestTemplate.outgoing_body:type_name -> envoy.config.filter.http.graphql.v2.JsonValue
-	2,  // 12: envoy.config.filter.http.graphql.v2.ResponseTemplate.result_root:type_name -> envoy.config.filter.http.graphql.v2.PathSegment
-	34, // 13: envoy.config.filter.http.graphql.v2.ResponseTemplate.setters:type_name -> envoy.config.filter.http.graphql.v2.ResponseTemplate.SettersEntry
-	46, // 14: envoy.config.filter.http.graphql.v2.RESTResolver.server_uri:type_name -> solo.io.envoy.config.core.v3.HttpUri
-	10, // 15: envoy.config.filter.http.graphql.v2.RESTResolver.request_transform:type_name -> envoy.config.filter.http.graphql.v2.RequestTemplate
-	11, // 16: envoy.config.filter.http.graphql.v2.RESTResolver.pre_execution_transform:type_name -> envoy.config.filter.http.graphql.v2.ResponseTemplate
-	7,  // 17: envoy.config.filter.http.graphql.v2.GrpcRequestTemplate.outgoing_message_json:type_name -> envoy.config.filter.http.graphql.v2.JsonValue
-	35, // 18: envoy.config.filter.http.graphql.v2.GrpcRequestTemplate.request_metadata:type_name -> envoy.config.filter.http.graphql.v2.GrpcRequestTemplate.RequestMetadataEntry
-	47, // 19: envoy.config.filter.http.graphql.v2.GrpcDescriptorRegistry.proto_descriptors:type_name -> solo.io.envoy.config.core.v3.DataSource
-	46, // 20: envoy.config.filter.http.graphql.v2.GrpcResolver.server_uri:type_name -> solo.io.envoy.config.core.v3.HttpUri
-	13, // 21: envoy.config.filter.http.graphql.v2.GrpcResolver.request_transform:type_name -> envoy.config.filter.http.graphql.v2.GrpcRequestTemplate
-	36, // 22: envoy.config.filter.http.graphql.v2.StaticResolver.async_response:type_name -> envoy.config.filter.http.graphql.v2.StaticResolver.AsyncResponse
-	37, // 23: envoy.config.filter.http.graphql.v2.QueryMatcher.field_matcher:type_name -> envoy.config.filter.http.graphql.v2.QueryMatcher.FieldMatcher
-	18, // 24: envoy.config.filter.http.graphql.v2.Resolution.matcher:type_name -> envoy.config.filter.http.graphql.v2.QueryMatcher
-	48, // 25: envoy.config.filter.http.graphql.v2.Resolution.resolver:type_name -> solo.io.envoy.config.core.v3.TypedExtensionConfig
-	20, // 26: envoy.config.filter.http.graphql.v2.Resolution.cache_control:type_name -> envoy.config.filter.http.graphql.v2.CacheControl
-	49, // 27: envoy.config.filter.http.graphql.v2.CacheControl.max_age:type_name -> google.protobuf.UInt32Value
-	1,  // 28: envoy.config.filter.http.graphql.v2.CacheControl.scope:type_name -> envoy.config.filter.http.graphql.v2.CacheControl.CacheControlScope
-	24, // 29: envoy.config.filter.http.graphql.v2.GraphQLRouteConfig.executable_schema:type_name -> envoy.config.filter.http.graphql.v2.ExecutableSchema
-	23, // 30: envoy.config.filter.http.graphql.v2.GraphQLRouteConfig.persisted_query_cache_config:type_name -> envoy.config.filter.http.graphql.v2.PersistedQueryCacheConfig
-	47, // 31: envoy.config.filter.http.graphql.v2.ExecutableSchema.schema_definition:type_name -> solo.io.envoy.config.core.v3.DataSource
-	25, // 32: envoy.config.filter.http.graphql.v2.ExecutableSchema.executor:type_name -> envoy.config.filter.http.graphql.v2.Executor
-	38, // 33: envoy.config.filter.http.graphql.v2.ExecutableSchema.extensions:type_name -> envoy.config.filter.http.graphql.v2.ExecutableSchema.ExtensionsEntry
-	39, // 34: envoy.config.filter.http.graphql.v2.Executor.local:type_name -> envoy.config.filter.http.graphql.v2.Executor.Local
-	40, // 35: envoy.config.filter.http.graphql.v2.Executor.remote:type_name -> envoy.config.filter.http.graphql.v2.Executor.Remote
-	3,  // 36: envoy.config.filter.http.graphql.v2.TemplatedPath.NamedPathsEntry.value:type_name -> envoy.config.filter.http.graphql.v2.Path
-	2,  // 37: envoy.config.filter.http.graphql.v2.ValueProvider.GraphQLArgExtraction.path:type_name -> envoy.config.filter.http.graphql.v2.PathSegment
-	2,  // 38: envoy.config.filter.http.graphql.v2.ValueProvider.GraphQLParentExtraction.path:type_name -> envoy.config.filter.http.graphql.v2.PathSegment
-	0,  // 39: envoy.config.filter.http.graphql.v2.ValueProvider.TypedValueProvider.type:type_name -> envoy.config.filter.http.graphql.v2.ValueProvider.TypedValueProvider.Type
-	27, // 40: envoy.config.filter.http.graphql.v2.ValueProvider.Provider.graphql_arg:type_name -> envoy.config.filter.http.graphql.v2.ValueProvider.GraphQLArgExtraction
-	29, // 41: envoy.config.filter.http.graphql.v2.ValueProvider.Provider.typed_provider:type_name -> envoy.config.filter.http.graphql.v2.ValueProvider.TypedValueProvider
-	28, // 42: envoy.config.filter.http.graphql.v2.ValueProvider.Provider.graphql_parent:type_name -> envoy.config.filter.http.graphql.v2.ValueProvider.GraphQLParentExtraction
-	30, // 43: envoy.config.filter.http.graphql.v2.ValueProvider.ProvidersEntry.value:type_name -> envoy.config.filter.http.graphql.v2.ValueProvider.Provider
-	5,  // 44: envoy.config.filter.http.graphql.v2.RequestTemplate.HeadersEntry.value:type_name -> envoy.config.filter.http.graphql.v2.ValueProvider
-	5,  // 45: envoy.config.filter.http.graphql.v2.RequestTemplate.QueryParamsEntry.value:type_name -> envoy.config.filter.http.graphql.v2.ValueProvider
-	4,  // 46: envoy.config.filter.http.graphql.v2.ResponseTemplate.SettersEntry.value:type_name -> envoy.config.filter.http.graphql.v2.TemplatedPath
-	50, // 47: envoy.config.filter.http.graphql.v2.ExecutableSchema.ExtensionsEntry.value:type_name -> google.protobuf.Any
-	19, // 48: envoy.config.filter.http.graphql.v2.Executor.Local.resolutions:type_name -> envoy.config.filter.http.graphql.v2.Resolution
-	46, // 49: envoy.config.filter.http.graphql.v2.Executor.Remote.server_uri:type_name -> solo.io.envoy.config.core.v3.HttpUri
-	42, // 50: envoy.config.filter.http.graphql.v2.Executor.Remote.request:type_name -> envoy.config.filter.http.graphql.v2.Executor.Remote.RemoteSchemaRequest
-	43, // 51: envoy.config.filter.http.graphql.v2.Executor.Remote.Extraction.dynamic_metadata:type_name -> envoy.config.filter.http.graphql.v2.Executor.Remote.Extraction.DynamicMetadataExtraction
-	44, // 52: envoy.config.filter.http.graphql.v2.Executor.Remote.RemoteSchemaRequest.headers:type_name -> envoy.config.filter.http.graphql.v2.Executor.Remote.RemoteSchemaRequest.HeadersEntry
-	45, // 53: envoy.config.filter.http.graphql.v2.Executor.Remote.RemoteSchemaRequest.query_params:type_name -> envoy.config.filter.http.graphql.v2.Executor.Remote.RemoteSchemaRequest.QueryParamsEntry
-	41, // 54: envoy.config.filter.http.graphql.v2.Executor.Remote.RemoteSchemaRequest.HeadersEntry.value:type_name -> envoy.config.filter.http.graphql.v2.Executor.Remote.Extraction
-	41, // 55: envoy.config.filter.http.graphql.v2.Executor.Remote.RemoteSchemaRequest.QueryParamsEntry.value:type_name -> envoy.config.filter.http.graphql.v2.Executor.Remote.Extraction
-	56, // [56:56] is the sub-list for method output_type
-	56, // [56:56] is the sub-list for method input_type
-	56, // [56:56] is the sub-list for extension type_name
-	56, // [56:56] is the sub-list for extension extendee
-	0,  // [0:56] is the sub-list for field type_name
+	0, // [0:0] is the sub-list for method output_type
+	0, // [0:0] is the sub-list for method input_type
+	0, // [0:0] is the sub-list for extension type_name
+	0, // [0:0] is the sub-list for extension extendee
+	0, // [0:0] is the sub-list for field type_name
 }
 
 func init() {
@@ -2853,49 +1554,13 @@ func file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_gr
 	if File_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto != nil {
 		return
 	}
-	file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_msgTypes[0].OneofWrappers = []any{
-		(*PathSegment_Key)(nil),
-		(*PathSegment_Index)(nil),
-		(*PathSegment_All)(nil),
-	}
-	file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_msgTypes[5].OneofWrappers = []any{
-		(*JsonValue_Node)(nil),
-		(*JsonValue_ValueProvider)(nil),
-		(*JsonValue_List)(nil),
-	}
-	file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_msgTypes[14].OneofWrappers = []any{
-		(*StaticResolver_SyncResponse)(nil),
-		(*StaticResolver_AsyncResponse_)(nil),
-		(*StaticResolver_ErrorResponse)(nil),
-	}
-	file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_msgTypes[16].OneofWrappers = []any{
-		(*QueryMatcher_FieldMatcher_)(nil),
-	}
-	file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_msgTypes[23].OneofWrappers = []any{
-		(*Executor_Local_)(nil),
-		(*Executor_Remote_)(nil),
-	}
-	file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_msgTypes[27].OneofWrappers = []any{
-		(*ValueProvider_TypedValueProvider_Header)(nil),
-		(*ValueProvider_TypedValueProvider_Value)(nil),
-	}
-	file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_msgTypes[28].OneofWrappers = []any{
-		(*ValueProvider_Provider_GraphqlArg)(nil),
-		(*ValueProvider_Provider_TypedProvider)(nil),
-		(*ValueProvider_Provider_GraphqlParent)(nil),
-	}
-	file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_msgTypes[39].OneofWrappers = []any{
-		(*Executor_Remote_Extraction_Value)(nil),
-		(*Executor_Remote_Extraction_Header)(nil),
-		(*Executor_Remote_Extraction_DynamicMetadata)(nil),
-	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_rawDesc), len(file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_graphql_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   44,
+			NumMessages:   35,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

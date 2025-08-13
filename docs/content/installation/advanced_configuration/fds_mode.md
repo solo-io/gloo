@@ -195,22 +195,6 @@ We can use these configuration settings to restrict FDS to discover only the nam
 
 You can enable FDS mode with Helm or the Settings CR in the `gloo-system` namespace.
 
-**Enterprise-only**: Automated schema generation for GraphQL is enabled by default. This can be disabled by modifying the `gloo.solo.io/v1.Settings` custom resource as shown in the following tabs.
-
-{{< tabs >}} 
-{{% tab name="Helm values file" %}}
-Add the `discovery.fdsMode` setting to your Helm overrides file. For Gloo Gateway Enterprise, remember to set discovery under the `gloo` section, such as `gloo.discovery.fdsMode=BLACKLIST`.
-
-```yaml
-settings:
-  create: true
-
-discovery:
-  # set to either WHITELIST, BLACKLIST, or DISABLED
-  # WHITELIST is the default value
-  fdsMode: BLACKLIST
-```
-{{% /tab %}}
 
 {{% tab name="Helm CLI" %}}
 Add the following CLI flags to `helm install|template` commands. For Gloo Gateway Enterprise, remember to set discovery under the `gloo` section, such as `gloo.discovery.fdsMode=BLACKLIST`.

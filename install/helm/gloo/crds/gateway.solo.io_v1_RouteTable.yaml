@@ -84,13 +84,6 @@ spec:
                           minimum: 0
                           type: integer
                       type: object
-                    graphqlApiRef:
-                      properties:
-                        name:
-                          type: string
-                        namespace:
-                          type: string
-                      type: object
                     inheritableMatchers:
                       nullable: true
                       type: boolean
