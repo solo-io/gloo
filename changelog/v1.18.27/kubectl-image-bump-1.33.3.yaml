@@ -1,0 +1,9 @@
+changelog:
+- type: DEPENDENCY_BUMP
+  dependencyOwner: bitnami
+  dependencyRepo: kubectl
+  dependencyTag: v1.33.3
+  description: >-
+    Bump kubectl distroless image to 1.33.3 to fix CVE-2025-22868
+  issueLink: https://github.com/solo-io/gloo/issues/10932
+  resolvesIssue: false
