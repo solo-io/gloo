@@ -838,3 +838,67 @@ var _ = Describe("upgrades", func() {
 		Expect(err).To(MatchError(ContainSubstring("upgrade config websocket is not unique")))
 	})
 })
+
+var _ = Describe("rate limited backoff", func() {
+	It("works", func() {
+		p := NewPlugin()
+
+		outRouteAction := &envoy_config_route_v3.RouteAction{}
+		out := &envoy_config_route_v3.Route{
+			Action: &envoy_config_route_v3.Route_Route{
+				Route: outRouteAction,
+			},
+		}
+
+		err := p.ProcessRoute(plugins.RouteParams{}, &v1.Route{
+			Options: &v1.RouteOptions{
+				Retries: &retries.RetryPolicy{
+					RateLimitedRetryBackOff: &retries.RateLimitedRetryBackOff{
+						ResetHeaders: []*retries.ResetHeader{
+							{
+								Name:   "Retry-After",
+								Format: retries.ResetHeader_SECONDS,
+							},
+							{
+								Name:   "X-RateLimit-Reset",
+								Format: retries.ResetHeader_UNIX_TIMESTAMP,
+							},
+							{
+								Name: "X-RateLimit-Header-Without-Format",
+								// Default format should be SECONDS
+							},
+						},
+						MaxInterval: &durationpb.Duration{
+							Seconds: 10,
+						},
+					},
+				},
+			},
+			Action: &v1.Route_RouteAction{},
+		}, out)
+
+		expectedRateLimitedBackoff := &envoy_config_route_v3.RetryPolicy_RateLimitedRetryBackOff{
+			MaxInterval: &durationpb.Duration{
+				Seconds: 10,
+			},
+			// Order of reset headers should be preserved
+			ResetHeaders: []*envoy_config_route_v3.RetryPolicy_ResetHeader{
+				{
+					Name:   "Retry-After",
+					Format: envoy_config_route_v3.RetryPolicy_SECONDS,
+				},
+				{
+					Name:   "X-RateLimit-Reset",
+					Format: envoy_config_route_v3.RetryPolicy_UNIX_TIMESTAMP,
+				},
+				{
+					Name:   "X-RateLimit-Header-Without-Format",
+					Format: envoy_config_route_v3.RetryPolicy_SECONDS,
+				},
+			},
+		}
+
+		Expect(err).NotTo(HaveOccurred())
+		Expect(outRouteAction.GetRetryPolicy().GetRateLimitedRetryBackOff()).To(Equal(expectedRateLimitedBackoff))
+	})
+})
