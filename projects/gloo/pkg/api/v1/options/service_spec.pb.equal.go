@@ -46,5 +46,59 @@ func (m *ServiceSpec) Equal(that interface{}) bool {
 		return false
 	}
 
+	switch m.PluginType.(type) {
+
+	case *ServiceSpec_Rest:
+		if _, ok := target.PluginType.(*ServiceSpec_Rest); !ok {
+			return false
+		}
+
+		if h, ok := interface{}(m.GetRest()).(equality.Equalizer); ok {
+			if !h.Equal(target.GetRest()) {
+				return false
+			}
+		} else {
+			if !proto.Equal(m.GetRest(), target.GetRest()) {
+				return false
+			}
+		}
+
+	case *ServiceSpec_Grpc:
+		if _, ok := target.PluginType.(*ServiceSpec_Grpc); !ok {
+			return false
+		}
+
+		if h, ok := interface{}(m.GetGrpc()).(equality.Equalizer); ok {
+			if !h.Equal(target.GetGrpc()) {
+				return false
+			}
+		} else {
+			if !proto.Equal(m.GetGrpc(), target.GetGrpc()) {
+				return false
+			}
+		}
+
+	case *ServiceSpec_GrpcJsonTranscoder:
+		if _, ok := target.PluginType.(*ServiceSpec_GrpcJsonTranscoder); !ok {
+			return false
+		}
+
+		if h, ok := interface{}(m.GetGrpcJsonTranscoder()).(equality.Equalizer); ok {
+			if !h.Equal(target.GetGrpcJsonTranscoder()) {
+				return false
+			}
+		} else {
+			if !proto.Equal(m.GetGrpcJsonTranscoder(), target.GetGrpcJsonTranscoder()) {
+				return false
+			}
+		}
+
+	default:
+		// m is nil but target is not nil
+		if m.PluginType != target.PluginType {
+			return false
+		}
+	}
+
 	return true
 }
