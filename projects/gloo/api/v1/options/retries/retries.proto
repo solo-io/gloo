@@ -28,8 +28,9 @@ message RetryBackOff {
     google.protobuf.Duration max_interval = 2 [(validate.rules).duration = {gt {}}];
 }
 
+// ResetHeader is a header that is used to reset the retry backoff.
 message ResetHeader {
-    // The name of the header to set
+    // Specifies the name of the header to interpret as a timestamp for the retry backoff.
     string name = 1;
 
     enum HeaderFormat {
@@ -37,19 +38,23 @@ message ResetHeader {
         UNIX_TIMESTAMP = 1;
     }
 
-    // The format of the header to set
+    // Specifies the format of the header to interpret for the retry backoff.
     HeaderFormat format = 2;
 }
 
 // This specifies the retry policy interval for rate limited requests.
 // Inspired by: https://github.com/envoyproxy/envoy/blob/4a134ce926cf0b882a4c416734b579f9722ed1eb/api/envoy/config/route/v3/route_components.proto#L1522
-// We chose a more simple approach to avoid the complexity of the Envoy implementation.
 message RateLimitedRetryBackOff {
 
-    // The ordered list of reset headers to consider for the rate limited retry backoff.
+    // Specifies the reset headers (like ``Retry-After`` or ``X-RateLimit-Reset``)
+    // to match against the response. Headers are tried in order, and matched case
+    // insensitive. The first header to be parsed successfully is used. If no headers
+    // match the default exponential back-off is used instead.
     repeated ResetHeader reset_headers = 1;
 
-    // Specifies the max interval for a retry
+    // Specifies the maximum back off interval that Envoy will allow. If a reset
+    // header contains an interval longer than this then it will be discarded and
+    // the next header will be tried. Defaults to 300 seconds.
     google.protobuf.Duration max_interval = 2 [(validate.rules).duration = {gt {}}];
 }
 
