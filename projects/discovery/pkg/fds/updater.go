@@ -7,8 +7,6 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/graphql/v1beta1"
-
 	"github.com/golang/protobuf/proto"
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
@@ -42,7 +40,6 @@ type Updater struct {
 	logger            *zap.SugaredLogger
 
 	upstreamWriter UpstreamWriterClient
-	graphqlClient  v1beta1.GraphQLApiClient
 
 	maxInParallelSemaphore chan struct{}
 
@@ -63,7 +60,7 @@ func getConcurrencyChan(maxOnCurrency uint) chan struct{} {
 
 }
 
-func NewUpdater(ctx context.Context, resolver Resolver, graphqlClient v1beta1.GraphQLApiClient, upstreamclient UpstreamWriterClient, maxconncurrency uint, functionalPlugins []FunctionDiscoveryFactory) *Updater {
+func NewUpdater(ctx context.Context, resolver Resolver, upstreamclient UpstreamWriterClient, maxconncurrency uint, functionalPlugins []FunctionDiscoveryFactory) *Updater {
 	ctx = contextutils.WithLogger(ctx, "function-discovery-updater")
 	return &Updater{
 		logger:                 contextutils.LoggerFrom(ctx),
@@ -73,7 +70,6 @@ func NewUpdater(ctx context.Context, resolver Resolver, graphqlClient v1beta1.Gr
 		activeUpstreams:        make(map[string]*updaterUpdater),
 		maxInParallelSemaphore: getConcurrencyChan(maxconncurrency),
 		upstreamWriter:         upstreamclient,
-		graphqlClient:          graphqlClient,
 	}
 }
 
@@ -99,9 +95,7 @@ func (u *Updater) GetSecrets() v1.SecretList {
 func (u *Updater) createDiscoveries(upstream *v1.Upstream) []UpstreamFunctionDiscovery {
 	var ret []UpstreamFunctionDiscovery
 	for _, e := range u.functionalPlugins {
-		ret = append(ret, e.NewFunctionDiscovery(upstream, AdditionalClients{
-			GraphqlClient: u.graphqlClient,
-		}))
+		ret = append(ret, e.NewFunctionDiscovery(upstream, AdditionalClients{}))
 	}
 	return ret
 }

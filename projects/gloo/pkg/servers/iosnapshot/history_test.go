@@ -32,8 +32,6 @@ import (
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	extauthv1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
 	extauthkubev1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1/kube/apis/enterprise.gloo.solo.io/v1"
-	graphqlv1beta1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/graphql/v1beta1"
-	graphqlkubev1beta1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/graphql/v1beta1/kube/apis/graphql.gloo.solo.io/v1beta1"
 	v1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/gloo/projects/gloo/pkg/xds"
@@ -286,15 +284,6 @@ var _ = Describe("History", func() {
 						}},
 					},
 				},
-				&graphqlkubev1beta1.GraphQLApi{
-					ObjectMeta: metav1.ObjectMeta{
-						Name:      "kube-graphql",
-						Namespace: "graphql",
-						ManagedFields: []metav1.ManagedFieldsEntry{{
-							Manager: "manager",
-						}},
-					},
-				},
 				&gloov1.Settings{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "kube-settings",
@@ -540,13 +529,6 @@ var _ = Describe("History", func() {
 				Expect(returnedResources).NotTo(ContainElement(
 					matchers.MatchClientObjectGvk(ratelimitv1alpha1.RateLimitConfigGVK),
 				), fmt.Sprintf("results should not contain %v", ratelimitv1alpha1.RateLimitConfigGVK))
-			})
-
-			It("Excludes GraphQLApis", func() {
-				returnedResources := getInputSnapshotObjects(ctx, history)
-				Expect(returnedResources).NotTo(ContainElement(
-					matchers.MatchClientObjectGvk(graphqlv1beta1.GraphQLApiGVK),
-				), fmt.Sprintf("results should not contain %v", graphqlv1beta1.GraphQLApiGVK))
 			})
 
 		})

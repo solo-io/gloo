@@ -6,7 +6,6 @@ import (
 
 	v1alpha1 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/solo/ratelimit"
 	extauthv1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
-	graphqlv1beta1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/graphql/v1beta1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/bootstrap/clients/vault"
 	"github.com/solo-io/gloo/projects/gloo/pkg/xds"
 
@@ -345,7 +344,6 @@ func constructTestOpts(ctx context.Context, runOptions *RunOptions, settings *gl
 		Artifacts:               f,
 		AuthConfigs:             f,
 		RateLimitConfigs:        f,
-		GraphQLApis:             f,
 		Gateways:                f,
 		MatchableHttpGateways:   f,
 		MatchableTcpGateways:    f,
@@ -453,8 +451,6 @@ func getTestClients(ctx context.Context, bootstrapOpts bootstrap.Opts) TestClien
 	Expect(err).NotTo(HaveOccurred())
 	rlcClient, err := v1alpha1.NewRateLimitConfigClient(ctx, bootstrapOpts.RateLimitConfigs)
 	Expect(err).NotTo(HaveOccurred())
-	gqlClient, err := graphqlv1beta1.NewGraphQLApiClient(ctx, bootstrapOpts.GraphQLApis)
-	Expect(err).NotTo(HaveOccurred())
 
 	return TestClients{
 		GatewayClient:        gatewayClient,
@@ -470,7 +466,6 @@ func getTestClients(ctx context.Context, bootstrapOpts bootstrap.Opts) TestClien
 
 		AuthConfigClient:      authConfigClient,
 		RateLimitConfigClient: rlcClient,
-		GraphQLApiClient:      gqlClient,
 	}
 }
 
@@ -489,7 +484,6 @@ type TestClients struct {
 
 	AuthConfigClient      extauthv1.AuthConfigClient
 	RateLimitConfigClient v1alpha1.RateLimitConfigClient
-	GraphQLApiClient      graphqlv1beta1.GraphQLApiClient
 
 	GlooPort    int
 	RestXdsPort int
@@ -526,11 +520,6 @@ func (c TestClients) WriteSnapshot(ctx context.Context, snapshot *gloosnapshot.A
 	}
 	for _, rlc := range snapshot.Ratelimitconfigs {
 		if _, writeErr := c.RateLimitConfigClient.Write(rlc, writeOptions); writeErr != nil {
-			return writeErr
-		}
-	}
-	for _, gql := range snapshot.GraphqlApis {
-		if _, writeErr := c.GraphQLApiClient.Write(gql, writeOptions); writeErr != nil {
 			return writeErr
 		}
 	}
@@ -608,21 +597,15 @@ func (c TestClients) DeleteSnapshot(ctx context.Context, snapshot *gloosnapshot.
 			return deleteErr
 		}
 	}
-	for _, gql := range snapshot.GraphqlApis {
-		gqlNamespace, gqlName := gql.GetMetadata().Ref().Strings()
-		if deleteErr := c.GraphQLApiClient.Delete(gqlNamespace, gqlName, deleteOptions); deleteErr != nil {
-			return deleteErr
-		}
-	}
 	for _, rlc := range snapshot.Ratelimitconfigs {
 		rlcNamespace, rlcName := rlc.GetMetadata().Ref().Strings()
-		if deleteErr := c.GraphQLApiClient.Delete(rlcNamespace, rlcName, deleteOptions); deleteErr != nil {
+		if deleteErr := c.RateLimitConfigClient.Delete(rlcNamespace, rlcName, deleteOptions); deleteErr != nil {
 			return deleteErr
 		}
 	}
 	for _, ac := range snapshot.AuthConfigs {
 		acNamespace, acName := ac.GetMetadata().Ref().Strings()
-		if deleteErr := c.GraphQLApiClient.Delete(acNamespace, acName, deleteOptions); deleteErr != nil {
+		if deleteErr := c.AuthConfigClient.Delete(acNamespace, acName, deleteOptions); deleteErr != nil {
 			return deleteErr
 		}
 	}

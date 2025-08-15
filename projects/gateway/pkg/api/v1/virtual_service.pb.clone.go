@@ -218,18 +218,6 @@ func (m *Route) Clone() proto.Message {
 			}
 		}
 
-	case *Route_GraphqlApiRef:
-
-		if h, ok := interface{}(m.GetGraphqlApiRef()).(clone.Cloner); ok {
-			target.Action = &Route_GraphqlApiRef{
-				GraphqlApiRef: h.Clone().(*github_com_solo_io_solo_kit_pkg_api_v1_resources_core.ResourceRef),
-			}
-		} else {
-			target.Action = &Route_GraphqlApiRef{
-				GraphqlApiRef: proto.Clone(m.GetGraphqlApiRef()).(*github_com_solo_io_solo_kit_pkg_api_v1_resources_core.ResourceRef),
-			}
-		}
-
 	}
 
 	switch m.ExternalOptionsConfig.(type) {

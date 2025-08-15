@@ -5504,17 +5504,6 @@ metadata:
 						testManifest.ExpectDeploymentAppsV1(discoveryDeployment)
 					})
 
-					It("allows disabling FDS GraphQL discovery", func() {
-						settings := makeUnstructureFromTemplateFile("fixtures/settings/graphql_fds_disabled.yaml", namespace)
-						prepareMakefile(namespace, glootestutils.HelmValues{
-							ValuesArgs: []string{
-								"discovery.enabled=true",
-								"discovery.fdsOptions.graphqlEnabled=false",
-							},
-						})
-						testManifest.ExpectUnstructured(settings.GetKind(), settings.GetNamespace(), settings.GetName()).To(BeEquivalentTo(settings))
-					})
-
 					It("allows disabling upstream discovery", func() {
 						settings := makeUnstructureFromTemplateFile("fixtures/settings/uds_disabled.yaml", namespace)
 						prepareMakefile(namespace, glootestutils.HelmValues{

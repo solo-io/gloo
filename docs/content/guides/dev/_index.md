@@ -44,7 +44,7 @@ Check out the following developer guides:
 
   A single proxy CRD contains all the configuration necessary to be applied to an instance of Envoy. In the Gloo Gateway system, Proxies are treated as an intermediary representation of config, while user-facing config is imported from simpler, more opinionated resources such as the {{< protobuf name="gateway.solo.io.VirtualService">}} or [Kubernetes Ingress objects](https://kubernetes.io/docs/concepts/services-networking/ingress/).
   
-  For this reason, a standard Gloo Gateway deployment contains one or more controllers which programmatically generate and write these CRDs to provide simpler, use-case specific APIs such as API Gateway and Ingress. You can extend these capabilities even more with Gloo Gateway modules, such as [Gloo Gateway GraphQL]({{< versioned_link_path fromRoot="/guides/graphql/" >}}). This optional module is an advanced controller which creates routing configuration for Gloo Gateway from [**GraphQL Schemas**](https://graphql.org/).
+  For this reason, a standard Gloo Gateway deployment contains one or more controllers which programmatically generate and write these CRDs to provide simpler, use-case specific APIs such as API Gateway and Ingress.
 
 * **Upstreams** represent destinations for routing requests in Gloo Gateway. Routes in Gloo Gateway specify one or more Upstreams (by name) as their destination. Upstreams have a `type` which is provided in their `upstreamSpec` field. Each type of upstream corresponds to an **Upstream Plugin**, which tells Gloo Gateway how to translate upstreams of that type to Envoy clusters. When a route is declared for an upstream, Gloo Gateway invokes the corresponding plugin for that type 
 

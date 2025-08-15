@@ -11,7 +11,6 @@ import (
 	sync "sync"
 	unsafe "unsafe"
 
-	graphql "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/graphql"
 	grpc "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/grpc"
 	grpc_json "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/grpc_json"
 	rest "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/rest"
@@ -35,14 +34,12 @@ type ServiceSpec struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Note to developers: new Service plugins must be added to this oneof field
 	// to be usable by Gloo. (plugins currently need to be compiled into Gloo)
-	// The GraphQL feature is deprecated and will be removed in a future release.
 	//
 	// Types that are valid to be assigned to PluginType:
 	//
 	//	*ServiceSpec_Rest
 	//	*ServiceSpec_Grpc
 	//	*ServiceSpec_GrpcJsonTranscoder
-	//	*ServiceSpec_Graphql
 	PluginType    isServiceSpec_PluginType `protobuf_oneof:"plugin_type"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -113,15 +110,6 @@ func (x *ServiceSpec) GetGrpcJsonTranscoder() *grpc_json.GrpcJsonTranscoder {
 	return nil
 }
 
-func (x *ServiceSpec) GetGraphql() *graphql.ServiceSpec {
-	if x != nil {
-		if x, ok := x.PluginType.(*ServiceSpec_Graphql); ok {
-			return x.Graphql
-		}
-	}
-	return nil
-}
-
 type isServiceSpec_PluginType interface {
 	isServiceSpec_PluginType()
 }
@@ -139,29 +127,22 @@ type ServiceSpec_GrpcJsonTranscoder struct {
 	GrpcJsonTranscoder *grpc_json.GrpcJsonTranscoder `protobuf:"bytes,3,opt,name=grpc_json_transcoder,json=grpcJsonTranscoder,proto3,oneof"`
 }
 
-type ServiceSpec_Graphql struct {
-	Graphql *graphql.ServiceSpec `protobuf:"bytes,4,opt,name=graphql,proto3,oneof"`
-}
-
 func (*ServiceSpec_Rest) isServiceSpec_PluginType() {}
 
 func (*ServiceSpec_Grpc) isServiceSpec_PluginType() {}
 
 func (*ServiceSpec_GrpcJsonTranscoder) isServiceSpec_PluginType() {}
 
-func (*ServiceSpec_Graphql) isServiceSpec_PluginType() {}
-
 var File_github_com_solo_io_gloo_projects_gloo_api_v1_options_service_spec_proto protoreflect.FileDescriptor
 
 const file_github_com_solo_io_gloo_projects_gloo_api_v1_options_service_spec_proto_rawDesc = "" +
 	"\n" +
-	"Ggithub.com/solo-io/gloo/projects/gloo/api/v1/options/service_spec.proto\x12\x14options.gloo.solo.io\x1aDgithub.com/solo-io/gloo/projects/gloo/api/v1/options/rest/rest.proto\x1aDgithub.com/solo-io/gloo/projects/gloo/api/v1/options/grpc/grpc.proto\x1aJgithub.com/solo-io/gloo/projects/gloo/api/v1/options/graphql/graphql.proto\x1aNgithub.com/solo-io/gloo/projects/gloo/api/v1/options/grpc_json/grpc_json.proto\x1a\x12extproto/ext.proto\"\xcb\x02\n" +
+	"Ggithub.com/solo-io/gloo/projects/gloo/api/v1/options/service_spec.proto\x12\x14options.gloo.solo.io\x1aDgithub.com/solo-io/gloo/projects/gloo/api/v1/options/rest/rest.proto\x1aDgithub.com/solo-io/gloo/projects/gloo/api/v1/options/grpc/grpc.proto\x1aNgithub.com/solo-io/gloo/projects/gloo/api/v1/options/grpc_json/grpc_json.proto\x1a\x12extproto/ext.proto\"\x93\x02\n" +
 	"\vServiceSpec\x12<\n" +
 	"\x04rest\x18\x01 \x01(\v2&.rest.options.gloo.solo.io.ServiceSpecH\x00R\x04rest\x12@\n" +
 	"\x04grpc\x18\x02 \x01(\v2&.grpc.options.gloo.solo.io.ServiceSpecB\x02\x18\x01H\x00R\x04grpc\x12f\n" +
-	"\x14grpc_json_transcoder\x18\x03 \x01(\v22.grpc_json.options.gloo.solo.io.GrpcJsonTranscoderH\x00R\x12grpcJsonTranscoder\x12E\n" +
-	"\agraphql\x18\x04 \x01(\v2).graphql.options.gloo.solo.io.ServiceSpecH\x00R\agraphqlB\r\n" +
-	"\vplugin_typeBF\xb8\xf5\x04\x01\xc0\xf5\x04\x01\xd0\xf5\x04\x01Z8github.com/solo-io/gloo/projects/gloo/pkg/api/v1/optionsb\x06proto3"
+	"\x14grpc_json_transcoder\x18\x03 \x01(\v22.grpc_json.options.gloo.solo.io.GrpcJsonTranscoderH\x00R\x12grpcJsonTranscoderB\r\n" +
+	"\vplugin_typeJ\x04\b\x04\x10\x05R\agraphqlBF\xb8\xf5\x04\x01\xc0\xf5\x04\x01\xd0\xf5\x04\x01Z8github.com/solo-io/gloo/projects/gloo/pkg/api/v1/optionsb\x06proto3"
 
 var (
 	file_github_com_solo_io_gloo_projects_gloo_api_v1_options_service_spec_proto_rawDescOnce sync.Once
@@ -181,18 +162,16 @@ var file_github_com_solo_io_gloo_projects_gloo_api_v1_options_service_spec_proto
 	(*rest.ServiceSpec)(nil),             // 1: rest.options.gloo.solo.io.ServiceSpec
 	(*grpc.ServiceSpec)(nil),             // 2: grpc.options.gloo.solo.io.ServiceSpec
 	(*grpc_json.GrpcJsonTranscoder)(nil), // 3: grpc_json.options.gloo.solo.io.GrpcJsonTranscoder
-	(*graphql.ServiceSpec)(nil),          // 4: graphql.options.gloo.solo.io.ServiceSpec
 }
 var file_github_com_solo_io_gloo_projects_gloo_api_v1_options_service_spec_proto_depIdxs = []int32{
 	1, // 0: options.gloo.solo.io.ServiceSpec.rest:type_name -> rest.options.gloo.solo.io.ServiceSpec
 	2, // 1: options.gloo.solo.io.ServiceSpec.grpc:type_name -> grpc.options.gloo.solo.io.ServiceSpec
 	3, // 2: options.gloo.solo.io.ServiceSpec.grpc_json_transcoder:type_name -> grpc_json.options.gloo.solo.io.GrpcJsonTranscoder
-	4, // 3: options.gloo.solo.io.ServiceSpec.graphql:type_name -> graphql.options.gloo.solo.io.ServiceSpec
-	4, // [4:4] is the sub-list for method output_type
-	4, // [4:4] is the sub-list for method input_type
-	4, // [4:4] is the sub-list for extension type_name
-	4, // [4:4] is the sub-list for extension extendee
-	0, // [0:4] is the sub-list for field type_name
+	3, // [3:3] is the sub-list for method output_type
+	3, // [3:3] is the sub-list for method input_type
+	3, // [3:3] is the sub-list for extension type_name
+	3, // [3:3] is the sub-list for extension extendee
+	0, // [0:3] is the sub-list for field type_name
 }
 
 func init() { file_github_com_solo_io_gloo_projects_gloo_api_v1_options_service_spec_proto_init() }
@@ -204,7 +183,6 @@ func file_github_com_solo_io_gloo_projects_gloo_api_v1_options_service_spec_prot
 		(*ServiceSpec_Rest)(nil),
 		(*ServiceSpec_Grpc)(nil),
 		(*ServiceSpec_GrpcJsonTranscoder)(nil),
-		(*ServiceSpec_Graphql)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{

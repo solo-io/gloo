@@ -18,7 +18,6 @@ Other use cases Gloo Gateway can solve:
 
 * Kubernetes cluster Ingress (supporting both [Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/) as well as a [more powerful API]({{< versioned_link_path fromRoot="/reference/api" >}}))
 * API Gateway functionality running *outside* Kubernetes
-* GraphQL endpoint for the services that Gloo Gateway can discover
 
 ### What's the difference between Gloo Gateway and Envoy?
 
@@ -39,12 +38,11 @@ Envoy Proxy is a data-plane component with powerful routing, observability, and 
 Gloo Gateway is NOT a service mesh but can be deployed complementary to a service mesh like Istio. Istio solves the challenges of service-to-service communication by controlling requests as they flow through the system. Gloo Gateway can be deployed at the edge of the service-mesh boundary, between service meshes, or within the mesh to add the following capabilities:
 
 * Oauth flows for end-user authentication
-* GraphQL endpoints for aggregation of multiple services/APIs
 * Transformation of request/response to decouple backend APIs from front end
 * Function routing to Google Cloud Function, AWS Lambda, Azure Functions, etc
 * Request/response caching
 * Unified discovery services of infrastructure like Kubernetes, Consul, Vault, AWS EC2
-* Unified discovery services of functions like REST/OAS spec, gRPC reflection, SOAP/WSDL, GraphQL, WebSockets, Cloud Functions, AWS Lambda
+* Unified discovery services of functions like REST/OAS spec, gRPC reflection, SOAP/WSDL, WebSockets, Cloud Functions, AWS Lambda
 
 See our blog on [API Gateways and Service Mesh](https://medium.com/solo-io/api-gateways-are-going-through-an-identity-crisis-d1d833a313d7) as well as [Integrating Gloo Gateway with Istio 1.1](https://medium.com/solo-io/integrating-istio-1-1-mtls-and-gloo-proxy-f84be943e65e)
 
@@ -52,7 +50,7 @@ See our blog on [API Gateways and Service Mesh](https://medium.com/solo-io/api-g
 
 Gloo Gateway open source software (OSS) is an effective solution to operationalize Envoy proxies across your environment. Beyond basic Envoy proxy functionality, Gloo Gateway OSS includes helpful management features like a user interface and telemetry.
 
-Gloo Gateway Enterprise Edition (EE) hardens the OSS version further with advanced features and routing capabilities. These include features such as distributed gateways, the ability to route to other upstreams like AWS Lambda, support for GraphQL APIs built into the gateway, and a developer portal.
+Gloo Gateway Enterprise Edition (EE) hardens the OSS version further with advanced features and routing capabilities. These include features such as distributed gateways, the ability to route to other upstreams like AWS Lambda, and a developer portal.
 
 For a comparison of features, refer to the [Gloo Gateway product page on solo.io](https://www.solo.io/products/gloo-gateway/).
 

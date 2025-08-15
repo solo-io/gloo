@@ -11,7 +11,6 @@ Gloo Gateway complements service-mesh technology by bringing a powerful "API Gat
 
 * Oauth Flows
 * Request/Response transformation
-* API Aggregation with GraphQL
 * Function routing
 * And more.
 

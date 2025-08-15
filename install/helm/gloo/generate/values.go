@@ -35,7 +35,6 @@ type Global struct {
 	ExtraSpecs           *bool                 `json:"extraSpecs,omitempty" desc:"Add additional specs to include in the settings manifest, as defined by a helm partial. Defaults to false in open source, and true in enterprise."`
 	ExtauthCustomYaml    *bool                 `json:"extauthCustomYaml,omitempty" desc:"Inject whatever yaml exists in .Values.global.extensions.extAuth into settings.spec.extauth, instead of structured yaml (which is enterprise only). Defaults to true in open source, and false in enterprise"`
 	Console              interface{}           `json:"console,omitempty" desc:"Configuration options for the Enterprise Console (UI)."`
-	Graphql              interface{}           `json:"graphql,omitempty" desc:"(Enterprise Only): GraphQL configuration options."`
 	ConfigMaps           []*GlobalConfigMap    `json:"configMaps,omitempty" desc:"Config used to create ConfigMaps at install time to store arbitrary data."`
 	ExtraCustomResources *bool                 `json:"extraCustomResources,omitempty" desc:"Add additional custom resources to create, as defined by a helm partial. Defaults to false in open source, and true in enterprise."`
 	AdditionalLabels     map[string]string     `json:"additionalLabels,omitempty" desc:"Additional labels to add to all gloo resources."`
@@ -457,9 +456,7 @@ type UdsOptions struct {
 }
 
 // Configuration options for the Function Discovery Service (FDS).
-type FdsOptions struct {
-	GraphqlEnabled *bool `json:"graphqlEnabled,omitempty" desc:"Enable GraphQL schema generation on the function discovery service. Defaults to true."`
-}
+type FdsOptions struct{}
 
 type Gateway struct {
 	Enabled                        *bool             `json:"enabled,omitempty" desc:"enable Gloo Edge API Gateway features"`

@@ -148,7 +148,6 @@ func recordKubeState(f *os.File) {
 		"listeneroptions.gateway.solo.io",     // only implemented for kube gw as of now
 		"httplisteneroptions.gateway.solo.io", // only implemented for kube gw as of now
 		// GG Gloo resources
-		"graphqlapis.graphql.gloo.solo.io",
 		"proxies.gloo.solo.io",
 		"settings.gloo.solo.io",
 		"upstreamgroups.gloo.solo.io",

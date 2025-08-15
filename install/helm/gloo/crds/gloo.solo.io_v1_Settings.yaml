@@ -70,13 +70,6 @@ spec:
                     type: string
                 type: object
               consoleOptions:
-                properties:
-                  apiExplorerEnabled:
-                    nullable: true
-                    type: boolean
-                  readOnly:
-                    nullable: true
-                    type: boolean
                 type: object
               consul:
                 properties:
@@ -182,10 +175,6 @@ spec:
                     type: string
                     x-kubernetes-int-or-string: true
                   fdsOptions:
-                    properties:
-                      graphqlEnabled:
-                        nullable: true
-                        type: boolean
                     type: object
                   udsOptions:
                     properties:
@@ -678,20 +667,6 @@ spec:
                     type: string
                   xdsBindAddr:
                     type: string
-                type: object
-              graphqlOptions:
-                properties:
-                  schemaChangeValidationOptions:
-                    properties:
-                      processingRules:
-                        items:
-                          type: string
-                          x-kubernetes-int-or-string: true
-                        type: array
-                      rejectBreakingChanges:
-                        nullable: true
-                        type: boolean
-                    type: object
                 type: object
               knative:
                 properties:

@@ -223,15 +223,6 @@ var _ = Describe("Upstream", func() {
 						},
 					},
 				}}),
-			Entry("Kube with Graphql ServiceSpec", &v1.Upstream{
-				NamespacedStatuses: initialStatuses(),
-				UpstreamType: &v1.Upstream_Kube{
-					Kube: &kubernetes.UpstreamSpec{
-						ServiceSpec: &options.ServiceSpec{
-							PluginType: &options.ServiceSpec_Graphql{},
-						},
-					},
-				}}),
 			Entry("Kube with empty GrpcJsonTranscoder ServiceSpec", &v1.Upstream{
 				NamespacedStatuses: initialStatuses(),
 				UpstreamType: &v1.Upstream_Kube{
@@ -304,15 +295,6 @@ var _ = Describe("Upstream", func() {
 						},
 					},
 				}}),
-			Entry("Static with Graphql ServiceSpec", &v1.Upstream{
-				NamespacedStatuses: initialStatuses(),
-				UpstreamType: &v1.Upstream_Static{
-					Static: &static.UpstreamSpec{
-						ServiceSpec: &options.ServiceSpec{
-							PluginType: &options.ServiceSpec_Graphql{},
-						},
-					},
-				}}),
 			Entry("Static with empty GrpcJsonTranscoder ServiceSpec", &v1.Upstream{
 				NamespacedStatuses: initialStatuses(),
 				UpstreamType: &v1.Upstream_Static{
@@ -382,15 +364,6 @@ var _ = Describe("Upstream", func() {
 					Consul: &consul.UpstreamSpec{
 						ServiceSpec: &options.ServiceSpec{
 							PluginType: &options.ServiceSpec_Grpc{},
-						},
-					},
-				}}),
-			Entry("Consul with Graphql ServiceSpec", &v1.Upstream{
-				NamespacedStatuses: initialStatuses(),
-				UpstreamType: &v1.Upstream_Consul{
-					Consul: &consul.UpstreamSpec{
-						ServiceSpec: &options.ServiceSpec{
-							PluginType: &options.ServiceSpec_Graphql{},
 						},
 					},
 				}}),

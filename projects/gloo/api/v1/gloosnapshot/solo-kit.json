@@ -73,10 +73,6 @@
         "name": "MatchableTcpGateway",
         "package": "gateway.solo.io",
         "version": "v1"
-      },
-      {
-        "name": "GraphQLApi",
-        "package": "graphql.gloo.solo.io"
       }
     ]
   },
