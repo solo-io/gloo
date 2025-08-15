@@ -180,12 +180,6 @@ func (f *FeatureCalculator) processSettings(proxyNames []string) error {
 					Metadata: defaultMetadata,
 				})
 			}
-			if settings.Spec.GetDiscovery().GetFdsOptions() != nil && settings.Spec.GetDiscovery().GetFdsOptions().GetGraphqlEnabled() != nil && settings.Spec.GetDiscovery().GetFdsOptions().GetGraphqlEnabled().GetValue() == true {
-				f.AddUsageStat(&UsageStat{
-					Type:     GRAPHQL_FDS,
-					Metadata: defaultMetadata,
-				})
-			}
 		}
 		if settings.Spec.GetGloo() != nil {
 			if settings.Spec.GetGloo().GetXdsBindAddr() != "" {
@@ -404,12 +398,6 @@ func (f *FeatureCalculator) processSettings(proxyNames []string) error {
 			if settings.Spec.GetUpstreamOptions() != nil {
 				f.AddUsageStat(&UsageStat{
 					Type:     GLOBAL_UPSTREAM_SETTINGS,
-					Metadata: defaultMetadata,
-				})
-			}
-			if settings.Spec.GetGraphqlOptions() != nil {
-				f.AddUsageStat(&UsageStat{
-					Type:     GLOBAL_GRAPHQL_SETTINGS,
 					Metadata: defaultMetadata,
 				})
 			}
