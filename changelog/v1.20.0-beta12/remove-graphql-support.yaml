@@ -4,6 +4,5 @@ changelog:
     resolvesIssue: true
     description: >-
       Remove GraphQL support from Gloo Gateway. GraphQL functionality has been fully removed 
-      after being deprecated in v1.18.0. Any existing GraphQL routes will return a 501 Not 
-      Implemented response. The GraphQL CRDs, client code, discovery functionality, and route 
-      processing have been removed.
+      after being deprecated in v1.18.0. The GraphQL CRDs, client code, discovery functionality, and route 
+      processing have been removed.  Some proto files remain to prevent future use of these names and fields.
