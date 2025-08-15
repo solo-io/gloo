@@ -4,10 +4,11 @@ import (
 	"context"
 	"time"
 
-	"github.com/solo-io/gloo/pkg/utils/regexutils"
-	"github.com/solo-io/gloo/pkg/utils/settingsutil"
 	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/wrapperspb"
+
+	"github.com/solo-io/gloo/pkg/utils/regexutils"
+	"github.com/solo-io/gloo/pkg/utils/settingsutil"
 
 	envoy_config_route_v3 "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
 	envoy_retry_priorities_v3 "github.com/envoyproxy/go-control-plane/envoy/extensions/retry/priority/previous_priorities/v3"
@@ -15,6 +16,9 @@ import (
 	"github.com/golang/protobuf/ptypes/wrappers"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.com/solo-io/solo-kit/pkg/errors"
+	"github.com/solo-io/solo-kit/pkg/utils/prototime"
+
 	v3 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/type/matcher/v3"
 	v32 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/type/matcher/v3"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
@@ -23,8 +27,6 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	. "github.com/solo-io/gloo/projects/gloo/pkg/plugins/basicroute"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
-	"github.com/solo-io/solo-kit/pkg/errors"
-	"github.com/solo-io/solo-kit/pkg/utils/prototime"
 )
 
 var _ = Describe("prefix rewrite", func() {
@@ -566,7 +568,6 @@ var _ = Describe("retries priority predicate", func() {
 
 var _ = Describe("host rewrite", func() {
 	It("rewrites using provided string", func() {
-
 		p := NewPlugin()
 		routeAction := &envoy_config_route_v3.RouteAction{
 			HostRewriteSpecifier: &envoy_config_route_v3.RouteAction_HostRewriteLiteral{HostRewriteLiteral: "/"},
@@ -587,7 +588,6 @@ var _ = Describe("host rewrite", func() {
 	})
 
 	It("Sets x-forwarded-host", func() {
-
 		p := NewPlugin()
 		routeAction := &envoy_config_route_v3.RouteAction{
 			HostRewriteSpecifier: &envoy_config_route_v3.RouteAction_HostRewriteLiteral{HostRewriteLiteral: "/"},
@@ -639,7 +639,6 @@ var _ = Describe("host rewrite", func() {
 	})
 
 	It("sets auto_host_rewrite", func() {
-
 		p := NewPlugin()
 		routeAction := &envoy_config_route_v3.RouteAction{
 			HostRewriteSpecifier: &envoy_config_route_v3.RouteAction_AutoHostRewrite{
@@ -837,5 +836,69 @@ var _ = Describe("upgrades", func() {
 		}, out)
 
 		Expect(err).To(MatchError(ContainSubstring("upgrade config websocket is not unique")))
+	})
+})
+
+var _ = Describe("rate limited backoff", func() {
+	It("works", func() {
+		p := NewPlugin()
+
+		outRouteAction := &envoy_config_route_v3.RouteAction{}
+		out := &envoy_config_route_v3.Route{
+			Action: &envoy_config_route_v3.Route_Route{
+				Route: outRouteAction,
+			},
+		}
+
+		err := p.ProcessRoute(plugins.RouteParams{}, &v1.Route{
+			Options: &v1.RouteOptions{
+				Retries: &retries.RetryPolicy{
+					RateLimitedRetryBackOff: &retries.RateLimitedRetryBackOff{
+						ResetHeaders: []*retries.ResetHeader{
+							{
+								Name:   "Retry-After",
+								Format: retries.ResetHeader_SECONDS,
+							},
+							{
+								Name:   "X-RateLimit-Reset",
+								Format: retries.ResetHeader_UNIX_TIMESTAMP,
+							},
+							{
+								Name: "X-RateLimit-Header-Without-Format",
+								// Default format should be SECONDS
+							},
+						},
+						MaxInterval: &durationpb.Duration{
+							Seconds: 10,
+						},
+					},
+				},
+			},
+			Action: &v1.Route_RouteAction{},
+		}, out)
+
+		expectedRateLimitedBackoff := &envoy_config_route_v3.RetryPolicy_RateLimitedRetryBackOff{
+			MaxInterval: &durationpb.Duration{
+				Seconds: 10,
+			},
+			// Order of reset headers should be preserved
+			ResetHeaders: []*envoy_config_route_v3.RetryPolicy_ResetHeader{
+				{
+					Name:   "Retry-After",
+					Format: envoy_config_route_v3.RetryPolicy_SECONDS,
+				},
+				{
+					Name:   "X-RateLimit-Reset",
+					Format: envoy_config_route_v3.RetryPolicy_UNIX_TIMESTAMP,
+				},
+				{
+					Name:   "X-RateLimit-Header-Without-Format",
+					Format: envoy_config_route_v3.RetryPolicy_SECONDS,
+				},
+			},
+		}
+
+		Expect(err).NotTo(HaveOccurred())
+		Expect(outRouteAction.GetRetryPolicy().GetRateLimitedRetryBackOff()).To(Equal(expectedRateLimitedBackoff))
 	})
 })

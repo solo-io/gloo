@@ -10,10 +10,12 @@ import (
 	adminv3 "github.com/envoyproxy/go-control-plane/envoy/admin/v3"
 	clusterv3 "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
 	listenerv3 "github.com/envoyproxy/go-control-plane/envoy/config/listener/v3"
+	route_configv3 "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
+	"github.com/solo-io/go-utils/threadsafe"
+
 	"github.com/solo-io/gloo/pkg/utils/cmdutils"
 	"github.com/solo-io/gloo/pkg/utils/protoutils"
 	"github.com/solo-io/gloo/pkg/utils/requestutils/curl"
-	"github.com/solo-io/go-utils/threadsafe"
 
 	"github.com/solo-io/gloo/pkg/utils/kubeutils/kubectl"
 	"github.com/solo-io/gloo/pkg/utils/kubeutils/portforward"
@@ -306,6 +308,44 @@ func (c *Client) GetSingleListenerFromDynamicListeners(
 		return nil, fmt.Errorf("could not unmarshal listener from listener dump: %w", err)
 	}
 	return &listener, nil
+}
+
+// GetSingleRouteConfig queries for a single, route configuration in the envoy config dump
+// and returns it as an envoy v3.RouteConfiguration.
+// This helper will only work if the provided name_regex matches a single route configuration
+// but will always use the first set of configs returned regardless
+func (c *Client) GetSingleRouteConfig(
+	ctx context.Context,
+	routeConfigNameRegex string,
+) (*route_configv3.RouteConfiguration, error) {
+	queryParams := map[string]string{
+		"resource":   "dynamic_route_configs",
+		"name_regex": routeConfigNameRegex,
+	}
+	cfgDump, err := c.GetConfigDump(ctx, queryParams)
+	if err != nil {
+		return nil, fmt.Errorf("could not get envoy config_dump from adminClient: %w", err)
+	}
+
+	configs := cfgDump.GetConfigs()
+
+	// if no dynamic route configs name matching routeConfigNameRegex or before envoy is full configured
+	if len(configs) == 0 {
+		return nil, fmt.Errorf("could not get config: config is empty")
+	}
+
+	dynamicRouteConfig := adminv3.RoutesConfigDump_DynamicRouteConfig{}
+	err = configs[0].UnmarshalTo(&dynamicRouteConfig)
+	if err != nil {
+		return nil, fmt.Errorf("could not unmarshal envoy config_dump: %w", err)
+	}
+
+	routeConfig := route_configv3.RouteConfiguration{}
+	err = dynamicRouteConfig.GetRouteConfig().UnmarshalTo(&routeConfig)
+	if err != nil {
+		return nil, fmt.Errorf("could not unmarshal route config from route config dump: %w", err)
+	}
+	return &routeConfig, nil
 }
 
 // WriteEnvoyDumpToZip will dump config, stats, clusters and listeners to zipfile in the current directory.

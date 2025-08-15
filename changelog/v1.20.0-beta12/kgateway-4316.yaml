@@ -1,0 +1,7 @@
+changelog:
+  - type: NEW_FEATURE
+    issueLink: https://github.com/kgateway-dev/kgateway/issues/4316
+    resolvesIssue: false
+    description: >-
+      Add support for rate limited retry backoff with reset headers.
+      This is available on the RouteOptions API as a new field `rate_limited_retry_backoff`.
