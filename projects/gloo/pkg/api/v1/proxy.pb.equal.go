@@ -1065,21 +1065,6 @@ func (m *Route) Equal(that interface{}) bool {
 			}
 		}
 
-	case *Route_GraphqlApiRef:
-		if _, ok := target.Action.(*Route_GraphqlApiRef); !ok {
-			return false
-		}
-
-		if h, ok := interface{}(m.GetGraphqlApiRef()).(equality.Equalizer); ok {
-			if !h.Equal(target.GetGraphqlApiRef()) {
-				return false
-			}
-		} else {
-			if !proto.Equal(m.GetGraphqlApiRef(), target.GetGraphqlApiRef()) {
-				return false
-			}
-		}
-
 	default:
 		// m is nil but target is not nil
 		if m.Action != target.Action {

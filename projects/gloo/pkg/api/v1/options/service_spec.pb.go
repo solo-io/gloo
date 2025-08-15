@@ -11,9 +11,9 @@ import (
 	sync "sync"
 	unsafe "unsafe"
 
-	grpc "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/grpc"
-	grpc_json "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/grpc_json"
-	rest "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/rest"
+	_ "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/grpc"
+	_ "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/grpc_json"
+	_ "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/rest"
 	_ "github.com/solo-io/protoc-gen-ext/extproto"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -31,16 +31,7 @@ const (
 // of upstreams, including Kubernetes, Consul, and Static.
 // ServiceSpec configuration is opaque to Gloo and handled by Service Options.
 type ServiceSpec struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// Note to developers: new Service plugins must be added to this oneof field
-	// to be usable by Gloo. (plugins currently need to be compiled into Gloo)
-	//
-	// Types that are valid to be assigned to PluginType:
-	//
-	//	*ServiceSpec_Rest
-	//	*ServiceSpec_Grpc
-	//	*ServiceSpec_GrpcJsonTranscoder
-	PluginType    isServiceSpec_PluginType `protobuf_oneof:"plugin_type"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -75,74 +66,12 @@ func (*ServiceSpec) Descriptor() ([]byte, []int) {
 	return file_github_com_solo_io_gloo_projects_gloo_api_v1_options_service_spec_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *ServiceSpec) GetPluginType() isServiceSpec_PluginType {
-	if x != nil {
-		return x.PluginType
-	}
-	return nil
-}
-
-func (x *ServiceSpec) GetRest() *rest.ServiceSpec {
-	if x != nil {
-		if x, ok := x.PluginType.(*ServiceSpec_Rest); ok {
-			return x.Rest
-		}
-	}
-	return nil
-}
-
-// Deprecated: Marked as deprecated in github.com/solo-io/gloo/projects/gloo/api/v1/options/service_spec.proto.
-func (x *ServiceSpec) GetGrpc() *grpc.ServiceSpec {
-	if x != nil {
-		if x, ok := x.PluginType.(*ServiceSpec_Grpc); ok {
-			return x.Grpc
-		}
-	}
-	return nil
-}
-
-func (x *ServiceSpec) GetGrpcJsonTranscoder() *grpc_json.GrpcJsonTranscoder {
-	if x != nil {
-		if x, ok := x.PluginType.(*ServiceSpec_GrpcJsonTranscoder); ok {
-			return x.GrpcJsonTranscoder
-		}
-	}
-	return nil
-}
-
-type isServiceSpec_PluginType interface {
-	isServiceSpec_PluginType()
-}
-
-type ServiceSpec_Rest struct {
-	Rest *rest.ServiceSpec `protobuf:"bytes,1,opt,name=rest,proto3,oneof"`
-}
-
-type ServiceSpec_Grpc struct {
-	// Deprecated: Marked as deprecated in github.com/solo-io/gloo/projects/gloo/api/v1/options/service_spec.proto.
-	Grpc *grpc.ServiceSpec `protobuf:"bytes,2,opt,name=grpc,proto3,oneof"`
-}
-
-type ServiceSpec_GrpcJsonTranscoder struct {
-	GrpcJsonTranscoder *grpc_json.GrpcJsonTranscoder `protobuf:"bytes,3,opt,name=grpc_json_transcoder,json=grpcJsonTranscoder,proto3,oneof"`
-}
-
-func (*ServiceSpec_Rest) isServiceSpec_PluginType() {}
-
-func (*ServiceSpec_Grpc) isServiceSpec_PluginType() {}
-
-func (*ServiceSpec_GrpcJsonTranscoder) isServiceSpec_PluginType() {}
-
 var File_github_com_solo_io_gloo_projects_gloo_api_v1_options_service_spec_proto protoreflect.FileDescriptor
 
 const file_github_com_solo_io_gloo_projects_gloo_api_v1_options_service_spec_proto_rawDesc = "" +
 	"\n" +
-	"Ggithub.com/solo-io/gloo/projects/gloo/api/v1/options/service_spec.proto\x12\x14options.gloo.solo.io\x1aDgithub.com/solo-io/gloo/projects/gloo/api/v1/options/rest/rest.proto\x1aDgithub.com/solo-io/gloo/projects/gloo/api/v1/options/grpc/grpc.proto\x1aNgithub.com/solo-io/gloo/projects/gloo/api/v1/options/grpc_json/grpc_json.proto\x1a\x12extproto/ext.proto\"\x93\x02\n" +
-	"\vServiceSpec\x12<\n" +
-	"\x04rest\x18\x01 \x01(\v2&.rest.options.gloo.solo.io.ServiceSpecH\x00R\x04rest\x12@\n" +
-	"\x04grpc\x18\x02 \x01(\v2&.grpc.options.gloo.solo.io.ServiceSpecB\x02\x18\x01H\x00R\x04grpc\x12f\n" +
-	"\x14grpc_json_transcoder\x18\x03 \x01(\v22.grpc_json.options.gloo.solo.io.GrpcJsonTranscoderH\x00R\x12grpcJsonTranscoderB\r\n" +
-	"\vplugin_typeJ\x04\b\x04\x10\x05R\agraphqlBF\xb8\xf5\x04\x01\xc0\xf5\x04\x01\xd0\xf5\x04\x01Z8github.com/solo-io/gloo/projects/gloo/pkg/api/v1/optionsb\x06proto3"
+	"Ggithub.com/solo-io/gloo/projects/gloo/api/v1/options/service_spec.proto\x12\x14options.gloo.solo.io\x1aDgithub.com/solo-io/gloo/projects/gloo/api/v1/options/rest/rest.proto\x1aDgithub.com/solo-io/gloo/projects/gloo/api/v1/options/grpc/grpc.proto\x1aNgithub.com/solo-io/gloo/projects/gloo/api/v1/options/grpc_json/grpc_json.proto\x1a\x12extproto/ext.proto\"P\n" +
+	"\vServiceSpecJ\x04\b\x01\x10\x02J\x04\b\x02\x10\x03J\x04\b\x03\x10\x04J\x04\b\x04\x10\x05R\x04restR\x04grpcR\x14grpc_json_transcoderR\agraphqlBF\xb8\xf5\x04\x01\xc0\xf5\x04\x01\xd0\xf5\x04\x01Z8github.com/solo-io/gloo/projects/gloo/pkg/api/v1/optionsb\x06proto3"
 
 var (
 	file_github_com_solo_io_gloo_projects_gloo_api_v1_options_service_spec_proto_rawDescOnce sync.Once
@@ -158,31 +87,20 @@ func file_github_com_solo_io_gloo_projects_gloo_api_v1_options_service_spec_prot
 
 var file_github_com_solo_io_gloo_projects_gloo_api_v1_options_service_spec_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
 var file_github_com_solo_io_gloo_projects_gloo_api_v1_options_service_spec_proto_goTypes = []any{
-	(*ServiceSpec)(nil),                  // 0: options.gloo.solo.io.ServiceSpec
-	(*rest.ServiceSpec)(nil),             // 1: rest.options.gloo.solo.io.ServiceSpec
-	(*grpc.ServiceSpec)(nil),             // 2: grpc.options.gloo.solo.io.ServiceSpec
-	(*grpc_json.GrpcJsonTranscoder)(nil), // 3: grpc_json.options.gloo.solo.io.GrpcJsonTranscoder
+	(*ServiceSpec)(nil), // 0: options.gloo.solo.io.ServiceSpec
 }
 var file_github_com_solo_io_gloo_projects_gloo_api_v1_options_service_spec_proto_depIdxs = []int32{
-	1, // 0: options.gloo.solo.io.ServiceSpec.rest:type_name -> rest.options.gloo.solo.io.ServiceSpec
-	2, // 1: options.gloo.solo.io.ServiceSpec.grpc:type_name -> grpc.options.gloo.solo.io.ServiceSpec
-	3, // 2: options.gloo.solo.io.ServiceSpec.grpc_json_transcoder:type_name -> grpc_json.options.gloo.solo.io.GrpcJsonTranscoder
-	3, // [3:3] is the sub-list for method output_type
-	3, // [3:3] is the sub-list for method input_type
-	3, // [3:3] is the sub-list for extension type_name
-	3, // [3:3] is the sub-list for extension extendee
-	0, // [0:3] is the sub-list for field type_name
+	0, // [0:0] is the sub-list for method output_type
+	0, // [0:0] is the sub-list for method input_type
+	0, // [0:0] is the sub-list for extension type_name
+	0, // [0:0] is the sub-list for extension extendee
+	0, // [0:0] is the sub-list for field type_name
 }
 
 func init() { file_github_com_solo_io_gloo_projects_gloo_api_v1_options_service_spec_proto_init() }
 func file_github_com_solo_io_gloo_projects_gloo_api_v1_options_service_spec_proto_init() {
 	if File_github_com_solo_io_gloo_projects_gloo_api_v1_options_service_spec_proto != nil {
 		return
-	}
-	file_github_com_solo_io_gloo_projects_gloo_api_v1_options_service_spec_proto_msgTypes[0].OneofWrappers = []any{
-		(*ServiceSpec_Rest)(nil),
-		(*ServiceSpec_Grpc)(nil),
-		(*ServiceSpec_GrpcJsonTranscoder)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{

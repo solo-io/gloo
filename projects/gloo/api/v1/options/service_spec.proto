@@ -18,13 +18,6 @@ option (extproto.equal_all) = true;
 // of upstreams, including Kubernetes, Consul, and Static.
 // ServiceSpec configuration is opaque to Gloo and handled by Service Options.
 message ServiceSpec {
-    // Note to developers: new Service plugins must be added to this oneof field
-    // to be usable by Gloo. (plugins currently need to be compiled into Gloo)
-    oneof plugin_type {
-        rest.options.gloo.solo.io.ServiceSpec rest = 1;
-        grpc.options.gloo.solo.io.ServiceSpec grpc = 2 [deprecated = true];
-        grpc_json.options.gloo.solo.io.GrpcJsonTranscoder grpc_json_transcoder = 3;
-    }
-    reserved 4;
-    reserved "graphql";
+    reserved 1,2,3,4;
+    reserved "rest","grpc","grpc_json_transcoder","graphql";
 }
