@@ -50,7 +50,8 @@ This specifies the retry policy interval for backoffs. Note that if the base int
 ---
 ### ResetHeader
 
-
+ 
+ResetHeader is a header that is used to reset the retry backoff.
 
 ```yaml
 "name": string
@@ -60,8 +61,8 @@ This specifies the retry policy interval for backoffs. Note that if the base int
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `name` | `string` | The name of the header to set. |
-| `format` | [.retries.options.gloo.solo.io.ResetHeader.HeaderFormat](../retries.proto.sk/#headerformat) | The format of the header to set. |
+| `name` | `string` | Specifies the name of the header to interpret as a timestamp for the retry backoff. |
+| `format` | [.retries.options.gloo.solo.io.ResetHeader.HeaderFormat](../retries.proto.sk/#headerformat) | Specifies the format of the header to interpret for the retry backoff. |
 
 
 
@@ -85,7 +86,6 @@ This specifies the retry policy interval for backoffs. Note that if the base int
  
 This specifies the retry policy interval for rate limited requests.
 Inspired by: https://github.com/envoyproxy/envoy/blob/4a134ce926cf0b882a4c416734b579f9722ed1eb/api/envoy/config/route/v3/route_components.proto#L1522
-We chose a more simple approach to avoid the complexity of the Envoy implementation.
 
 ```yaml
 "resetHeaders": []retries.options.gloo.solo.io.ResetHeader
@@ -95,8 +95,8 @@ We chose a more simple approach to avoid the complexity of the Envoy implementat
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `resetHeaders` | [[]retries.options.gloo.solo.io.ResetHeader](../retries.proto.sk/#resetheader) | The ordered list of reset headers to consider for the rate limited retry backoff. |
-| `maxInterval` | [.google.protobuf.Duration](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/duration) | Specifies the max interval for a retry. |
+| `resetHeaders` | [[]retries.options.gloo.solo.io.ResetHeader](../retries.proto.sk/#resetheader) | Specifies the reset headers (like ``Retry-After`` or ``X-RateLimit-Reset``) to match against the response. Headers are tried in order, and matched case insensitive. The first header to be parsed successfully is used. If no headers match the default exponential back-off is used instead. |
+| `maxInterval` | [.google.protobuf.Duration](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/duration) | Specifies the maximum back off interval that Envoy will allow. If a reset header contains an interval longer than this then it will be discarded and the next header will be tried. Defaults to 300 seconds. |
 
 
 

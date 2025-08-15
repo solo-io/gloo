@@ -127,11 +127,12 @@ func (x *RetryBackOff) GetMaxInterval() *durationpb.Duration {
 	return nil
 }
 
+// ResetHeader is a header that is used to reset the retry backoff.
 type ResetHeader struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// The name of the header to set
+	// Specifies the name of the header to interpret as a timestamp for the retry backoff.
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	// The format of the header to set
+	// Specifies the format of the header to interpret for the retry backoff.
 	Format        ResetHeader_HeaderFormat `protobuf:"varint,2,opt,name=format,proto3,enum=retries.options.gloo.solo.io.ResetHeader_HeaderFormat" json:"format,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -183,12 +184,16 @@ func (x *ResetHeader) GetFormat() ResetHeader_HeaderFormat {
 
 // This specifies the retry policy interval for rate limited requests.
 // Inspired by: https://github.com/envoyproxy/envoy/blob/4a134ce926cf0b882a4c416734b579f9722ed1eb/api/envoy/config/route/v3/route_components.proto#L1522
-// We chose a more simple approach to avoid the complexity of the Envoy implementation.
 type RateLimitedRetryBackOff struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// The ordered list of reset headers to consider for the rate limited retry backoff.
+	// Specifies the reset headers (like “Retry-After“ or “X-RateLimit-Reset“)
+	// to match against the response. Headers are tried in order, and matched case
+	// insensitive. The first header to be parsed successfully is used. If no headers
+	// match the default exponential back-off is used instead.
 	ResetHeaders []*ResetHeader `protobuf:"bytes,1,rep,name=reset_headers,json=resetHeaders,proto3" json:"reset_headers,omitempty"`
-	// Specifies the max interval for a retry
+	// Specifies the maximum back off interval that Envoy will allow. If a reset
+	// header contains an interval longer than this then it will be discarded and
+	// the next header will be tried. Defaults to 300 seconds.
 	MaxInterval   *durationpb.Duration `protobuf:"bytes,2,opt,name=max_interval,json=maxInterval,proto3" json:"max_interval,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
