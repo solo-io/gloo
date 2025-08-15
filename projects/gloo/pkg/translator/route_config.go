@@ -314,15 +314,6 @@ func (h *httpRouteConfigurationTranslator) setAction(
 		}
 		h.runRoutePlugins(params, routeReport, in, out)
 
-	case *v1.Route_GraphqlApiRef:
-		// GraphQL is no longer supported - return error response
-		out.Action = &envoy_config_route_v3.Route_DirectResponse{
-			DirectResponse: &envoy_config_route_v3.DirectResponseAction{
-				Status: 501, // Not Implemented
-				Body:   DataSourceFromString("GraphQL is no longer supported"),
-			},
-		}
-
 	case *v1.Route_RedirectAction:
 		redir := &envoy_config_route_v3.RedirectAction{
 			HostRedirect:           action.RedirectAction.GetHostRedirect(),
