@@ -2010,8 +2010,8 @@ github.com/solo-io/go-control-plane-fork-v2 v1.29.0-patch1/go.mod h1:ZBTaoJ23lqI
 github.com/solo-io/go-list-licenses v0.1.4 h1:u4xh1OUORT4iSWuAp3Q4NsfHcDaeUV8QRDH8ACQqbxw=
 github.com/solo-io/go-list-licenses v0.1.4/go.mod h1:x6LSp/NrYgVXwNum7ZOiaAYTpg6B3F6TrWYfcdHVroA=
 github.com/solo-io/go-utils v0.20.2/go.mod h1:6e8K1spnMWwlnJRSNp/J84GEyJbrcK4Gm7i+ehzCi8c=
-github.com/solo-io/go-utils v0.25.3 h1:nk3ZcZRqL0lojyb+VjWwHilOz9bdKQ+feGFrlaa1a30=
-github.com/solo-io/go-utils v0.25.3/go.mod h1:bFFKO4Ih+sPViwNdVxv3z5dRrzMcJjNMHlx4zA8vxSg=
+github.com/solo-io/go-utils v0.25.4 h1:IVn9DLjces0I61clJoxUgLSk94H+wB4HEWWqqvG8pls=
+github.com/solo-io/go-utils v0.25.4/go.mod h1:NaWON7qH9MKonTYChOu07+GLTaJRblQ7+9VHmbElYWk=
 github.com/solo-io/k8s-utils v0.7.2 h1:pIRiTOpwymdCHUOSjzKDi/Ay16FNtF7JV7NIRlC2ZNQ=
 github.com/solo-io/k8s-utils v0.7.2/go.mod h1:RrT6PVTSD1X0vteKCQmGzoAAfjI1U5oV/wA+T3T+NoM=
 github.com/solo-io/protoc-gen-ext v0.0.18 h1:zSAL8NzWpJUGYoA5IyjHiKASNyHjR0uxBQ7eQS94i3A=
@@ -2465,8 +2465,8 @@ golang.org/x/oauth2 v0.6.0/go.mod h1:ycmewcwgD4Rpr3eZJLSB4Kyyljb3qDh40vJ8STE5HKw
 golang.org/x/oauth2 v0.7.0/go.mod h1:hPLQkd9LyjfXTiRohC/41GhcFqxisoUQ99sCUOHO9x4=
 golang.org/x/oauth2 v0.8.0/go.mod h1:yr7u4HXZRm1R1kBWqr/xKNqewf0plRYoB7sla+BCIXE=
 golang.org/x/oauth2 v0.10.0/go.mod h1:kTpgurOux7LqtuxjuyZa4Gj2gdezIt/jQtGnNFfypQI=
-golang.org/x/oauth2 v0.23.0 h1:PbgcYx2W7i4LvjJWEbf0ngHV6qJYr86PkAV3bXdLEbs=
-golang.org/x/oauth2 v0.23.0/go.mod h1:XYTD2NtWslqkgxebSiOHnXEap4TF09sJSc7H1sXbhtI=
+golang.org/x/oauth2 v0.27.0 h1:da9Vo7/tDv5RH/7nZDz1eMGS/q1Vv1N/7FCrBhI9I3M=
+golang.org/x/oauth2 v0.27.0/go.mod h1:onh5ek6nERTohokkhCD/y2cV4Do3fxFHFuAejCkRWT8=
 golang.org/x/sync v0.0.0-20180314180146-1d60e4601c6f/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
 golang.org/x/sync v0.0.0-20181108010431-42b317875d0f/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
 golang.org/x/sync v0.0.0-20181221193216-37e7f081c4d4/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
