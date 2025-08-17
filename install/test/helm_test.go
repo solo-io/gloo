@@ -5785,6 +5785,26 @@ metadata:
 					testManifest.ExpectConfigMapWithYamlData(cm)
 				})
 
+				It("can create ipv6 only binding listeners and clusters", func() {
+					prepareMakefileFromValuesFile("values/val_ipv6.yaml")
+
+					byt, err := os.ReadFile("fixtures/envoy_config/bootstrap_ipv6.yaml")
+					Expect(err).ToNot(HaveOccurred())
+					envoyBootstrapYaml := string(byt)
+
+					envoyBootstrapSpec := make(map[string]string)
+					envoyBootstrapSpec["envoy.yaml"] = envoyBootstrapYaml
+
+					cmRb := ResourceBuilder{
+						Namespace: namespace,
+						Name:      gatewayProxyConfigMapName,
+						Labels:    labels,
+						Data:      envoyBootstrapSpec,
+					}
+					envoyBootstrapCm := cmRb.GetConfigMap()
+					testManifest.ExpectConfigMapWithYamlData(envoyBootstrapCm)
+				})
+
 				Describe("gateway proxy - AWS", func() {
 					It("has a global cluster", func() {
 						prepareMakefile(namespace, glootestutils.HelmValues{

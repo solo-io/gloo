@@ -17,6 +17,7 @@ import (
 	v1static "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/static"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/edsupstream"
+	plugin_utils "github.com/solo-io/gloo/projects/gloo/pkg/plugins/utils"
 	upstream_proxy_protocol "github.com/solo-io/gloo/projects/gloo/pkg/plugins/utils/upstreamproxyprotocol"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	"github.com/solo-io/go-utils/contextutils"
@@ -246,8 +247,7 @@ func (p *plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *en
 			Type: envoy_config_cluster_v3.Cluster_STRICT_DNS,
 		}
 
-		// fix issue where ipv6 addr cannot bind
-		out.DnsLookupFamily = envoy_config_cluster_v3.Cluster_V4_ONLY
+		out.DnsLookupFamily = plugin_utils.TranslateIpFamily(p.settings.GetGloo().GetDnsLookupIpFamily())
 	}
 
 	return nil

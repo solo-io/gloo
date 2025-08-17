@@ -70,6 +70,59 @@ var _ = Describe("Plugin", func() {
 		})
 	})
 
+	Context("dns family type", func() {
+		It("default to ipv4 only", func() {
+			upstreamSpec.Hosts = []*v1static.Host{{
+				Addr: "test.solo.io",
+				Port: 1234,
+			}}
+
+			err := p.ProcessUpstream(params, upstream, out)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(out.GetDnsLookupFamily()).To(Equal(envoy_config_cluster_v3.Cluster_V4_ONLY))
+		})
+
+		It("should handle ipv6 only", func() {
+			initParams = plugins.InitParams{
+				Settings: &v1.Settings{
+					Gloo: &v1.GlooOptions{
+						DnsLookupIpFamily: v1.GlooOptions_V6_ONLY,
+					},
+				},
+			}
+			p.Init(initParams)
+
+			upstreamSpec.Hosts = []*v1static.Host{{
+				Addr: "test.solo.io",
+				Port: 1234,
+			}}
+
+			err := p.ProcessUpstream(params, upstream, out)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(out.GetDnsLookupFamily()).To(Equal(envoy_config_cluster_v3.Cluster_V6_ONLY))
+		})
+
+		It("should handle ipv4 preferred", func() {
+			initParams = plugins.InitParams{
+				Settings: &v1.Settings{
+					Gloo: &v1.GlooOptions{
+						DnsLookupIpFamily: v1.GlooOptions_V4_PREFERRED,
+					},
+				},
+			}
+			p.Init(initParams)
+
+			upstreamSpec.Hosts = []*v1static.Host{{
+				Addr: "test.solo.io",
+				Port: 1234,
+			}}
+
+			err := p.ProcessUpstream(params, upstream, out)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(out.GetDnsLookupFamily()).To(Equal(envoy_config_cluster_v3.Cluster_V4_PREFERRED))
+		})
+	})
+
 	Context("cluster type", func() {
 
 		It("use strict dns", func() {

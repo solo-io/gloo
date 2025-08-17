@@ -803,6 +803,10 @@ func (m *GlooOptions) Equal(that interface{}) bool {
 		}
 	}
 
+	if m.GetDnsLookupIpFamily() != target.GetDnsLookupIpFamily() {
+		return false
+	}
+
 	return true
 }
 

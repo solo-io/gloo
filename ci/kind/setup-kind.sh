@@ -23,8 +23,11 @@ CONFORMANCE_VERSION="${CONFORMANCE_VERSION:-v1.3.0}"
 CONFORMANCE_CHANNEL="${CONFORMANCE_CHANNEL:-"experimental"}"
 # The version of Cilium to install.
 CILIUM_VERSION="${CILIUM_VERSION:-1.15.5}"
+# Enable IPv6 only environment
+ENABLE_IPV6_ONLY="${ENABLE_IPV6_ONLY:-false}"
 
 function create_kind_cluster_or_skip() {
+  is_ipv6=$1
   activeClusters=$(kind get clusters)
 
   # if the kind cluster exists already, return
@@ -33,21 +36,49 @@ function create_kind_cluster_or_skip() {
     return
   fi
 
-  echo "creating cluster ${CLUSTER_NAME}"
-  kind create cluster \
-    --name "$CLUSTER_NAME" \
-    --image "kindest/node:$CLUSTER_NODE_VERSION" \
-    --config="$SCRIPT_DIR/cluster.yaml"
+  if [[ "$is_ipv6" = true ]]; then
+    echo "creating ipv6 based cluster ${CLUSTER_NAME}"
+    kind create cluster \
+      --name "$CLUSTER_NAME" \
+      --image "kindest/node:$CLUSTER_NODE_VERSION" \
+      --config="$SCRIPT_DIR/cluster_ipv6.yaml"
+  else
+    echo "creating cluster ${CLUSTER_NAME}"
+    kind create cluster \
+      --name "$CLUSTER_NAME" \
+      --image "kindest/node:$CLUSTER_NODE_VERSION" \
+      --config="$SCRIPT_DIR/cluster.yaml"
+  fi
 
   # Install cilium as we need to define custom network policies to simulate kube api server unavailability
   # in some of our kube2e tests
+
+        #--set routingMode=native \
+        #--set autoDirectNodeRoutes=true \
+        #--set ipv6.clusterPoolIPv6PodCIDR="fd00:10:244::/56" \
+        #--set ipv6.serviceCIDR="fd00:10:96::/112" \
+              #--set k8s.requireIPv6PodCIDR=true
+
+
   helm repo add cilium-setup-kind https://helm.cilium.io/
   helm repo update
-  helm install cilium cilium-setup-kind/cilium --version $CILIUM_VERSION \
-   --namespace kube-system \
-   --set image.pullPolicy=IfNotPresent \
-   --set ipam.mode=kubernetes \
-   --set operator.replicas=1
+  if [[ "$is_ipv6" = true ]]; then
+    helm install cilium cilium-setup-kind/cilium --version $CILIUM_VERSION \
+      --namespace kube-system \
+      --set image.pullPolicy=IfNotPresent \
+      --set ipam.mode=kubernetes \
+      --set operator.replicas=1 \
+      --set ipv6.enabled=true \
+      --set ipv4.enabled=false \
+      --set routingMode=native \
+      --set enableIPv6Masquerade=false
+  else
+    helm install cilium cilium-setup-kind/cilium --version $CILIUM_VERSION \
+      --namespace kube-system \
+      --set image.pullPolicy=IfNotPresent \
+      --set ipam.mode=kubernetes \
+      --set operator.replicas=1
+  fi
   helm repo remove cilium-setup-kind
   echo "Finished setting up cluster $CLUSTER_NAME"
 
@@ -60,7 +91,11 @@ function create_kind_cluster_or_skip() {
 
 # 1. Create a kind cluster (or skip creation if a cluster with name=CLUSTER_NAME already exists)
 # This config is roughly based on: https://kind.sigs.k8s.io/docs/user/ingress/
-create_kind_cluster_or_skip
+if [[ $ENABLE_IPV6_ONLY == "true" ]]; then
+  create_kind_cluster_or_skip true
+else
+  create_kind_cluster_or_skip false
+fi
 
 if [[ $SKIP_DOCKER == 'true' ]]; then
   # TODO(tim): refactor the Makefile & CI scripts so we're loading local

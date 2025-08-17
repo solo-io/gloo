@@ -532,6 +532,8 @@ func (m *GlooOptions) Clone() proto.Message {
 		target.IstioOptions = proto.Clone(m.GetIstioOptions()).(*GlooOptions_IstioOptions)
 	}
 
+	target.DnsLookupIpFamily = m.GetDnsLookupIpFamily()
+
 	return target
 }
 

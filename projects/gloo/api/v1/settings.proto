@@ -830,8 +830,24 @@ message GlooOptions {
     }
 
     IstioOptions istio_options = 18;
-}
 
+    enum IpFamily {
+        // Defaults to IPv4 family when performing DNS address lookup
+        V4_ONLY = 0;
+
+        // Forces DNS lookup to IPv6 only addresses
+        V6_ONLY = 1;
+
+        // If specified will lookup IPv4 family first and if unavailable will fallback to IPv6 family
+        V4_PREFERRED = 2;
+    }
+
+    // By default, IP family will default to IPv4 when performing DNS lookup.
+    // Otherwise `V4_PREFERRED` is used. This is preferred over `V6_ONLY` option as in certain environments like AWS when routing traffic
+    // to IPv4 addresses, the resolved addresses will be synthesized to AAAA records. This is typically already managed.
+    // If you need to enforce IPv6 then use `V6_ONLY`.
+    IpFamily dns_lookup_ip_family = 19;
+}
 
 // Default configuration to use for VirtualServices, when not provided by a specific virtual service
 // When these properties are defined on a specific VirtualService, this configuration will be ignored

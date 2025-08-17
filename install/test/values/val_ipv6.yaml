@@ -1,0 +1,4 @@
+gatewayProxies:
+  gatewayProxy:
+    gatewaySettings:
+      ipv4Only: false

@@ -235,6 +235,7 @@ type Settings struct {
 	// NOTE: DevMode is deprecated. See https://docs.solo.io/gloo-edge/latest/operations/debugging_gloo/#debugging-the-control-plane for more details.
 	DevMode       *bool         `json:"devMode,omitempty" desc:"Whether or not to enable dev mode. Defaults to false. Setting to true at install time will expose the gloo dev admin endpoint on port 10010. Not recommended for production. Warning: this value is deprecated as of 1.17 and will be removed in a future release."`
 	SecretOptions SecretOptions `json:"secretOptions,omitempty" desc:"Options for how Gloo Edge should handle secrets."`
+	Ipv4Only      *bool         `json:"ipv4Only,omitempty" desc:"When explicitly set to false, DNS resolution operates in IPv4-preferred mode. This means a hostname may resolve to either IPv4 or IPv6, depending on availability. This setting is useful in IPv6-capable environments. If not set to false, the default behavior forces DNS resolution to IPv4-only mode."`
 	*KubeResourceOverride
 }
 

@@ -61,17 +61,22 @@ spec:
 {{- else if .Values.settings.aws.enableCredentialsDiscovery }}
       enableCredentialsDiscovey: true
 {{- end }}
-
- {{- if  .Values.settings.aws.credential_refresh_delay }}
-      credentialRefreshDelay: {{  .Values.settings.aws.credential_refresh_delay }}
+{{- if .Values.settings.aws.credential_refresh_delay }}
+      credentialRefreshDelay: {{ .Values.settings.aws.credential_refresh_delay }}
 {{- end }}
-{{- if  .Values.settings.aws.propagateOriginalRouting }}
+{{- if .Values.settings.aws.propagateOriginalRouting }}
       propagateOriginalRouting: {{ .Values.settings.aws.propagateOriginalRouting }}
 {{- end }}
-  {{- if .Values.settings.aws.fallbackToFirstFunction }}
+{{- if .Values.settings.aws.fallbackToFirstFunction }}
       fallbackToFirstFunction: {{ .Values.settings.aws.fallbackToFirstFunction }}
-  {{- end }}
 {{- end }}
+{{- end }}
+{{- if or .Values.settings.ipv4Only (not (hasKey .Values.settings "ipv4Only")) }}
+    dnsLookupIpFamily: V4_ONLY
+{{- else }}
+    dnsLookupIpFamily: V4_PREFERRED
+{{- end }}
+
   {{- if .Values.global.istioIntegration }}
     istioOptions:
       appendXForwardedHost: {{ .Values.global.istioIntegration.appendXForwardedHost }}

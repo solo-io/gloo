@@ -209,7 +209,7 @@ spec:
               command:
               - /bin/sh
               - -c
-              - wget --post-data "" -O /dev/null {{ $spec.loopBackAddress }}:19000/healthcheck/fail;
+              - wget --post-data "" -O /dev/null http://[{{ $spec.loopBackAddress }}]:19000/healthcheck/fail;
                 sleep {{ $spec.podTemplate.gracefulShutdown.sleepTimeSeconds }}
         {{- end}}
         {{- end}}
@@ -260,7 +260,7 @@ spec:
             - wget
             - -O
             - /dev/null
-            - {{ $spec.loopBackAddress }}:19000/ready
+            - http://[{{ $spec.loopBackAddress }}]:19000/ready
           initialDelaySeconds: 3
           periodSeconds: 10
           failureThreshold: 3
@@ -275,7 +275,7 @@ spec:
             - wget
             - -O
             - /dev/null
-            - {{ $spec.loopBackAddress }}:19000/server_info
+            - http://[{{ $spec.loopBackAddress }}]:19000/server_info
           initialDelaySeconds: 3
           periodSeconds: 10
           failureThreshold: 3
