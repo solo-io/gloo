@@ -5,7 +5,6 @@ import (
 	"github.com/solo-io/gloo/pkg/utils/setuputils"
 	discoveryRegistry "github.com/solo-io/gloo/projects/discovery/pkg/fds/discoveries/registry"
 	syncerutils "github.com/solo-io/gloo/projects/discovery/pkg/syncer"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/graphql/v1beta1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/syncer/setup"
 
 	"github.com/solo-io/go-utils/contextutils"
@@ -68,13 +67,6 @@ func RunFDSWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 	if err := secretClient.Register(); err != nil {
 		return err
 	}
-	graphqlClient, err := v1beta1.NewGraphQLApiClient(watchOpts.Ctx, opts.GraphQLApis)
-	if err != nil {
-		return err
-	}
-	if err := graphqlClient.Register(); err != nil {
-		return err
-	}
 
 	var nsClient skkube.KubeNamespaceClient
 	if opts.KubeClient != nil && opts.KubeCoreCache.NamespaceLister() != nil {
@@ -97,7 +89,7 @@ func RunFDSWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 	functionalPlugins := GetFunctionDiscoveriesWithExtensions(opts, extensions)
 
 	// TODO(yuval-k): max Concurrency here
-	updater := fds.NewUpdater(watchOpts.Ctx, resolvers, graphqlClient, upstreamClient, 0, functionalPlugins)
+	updater := fds.NewUpdater(watchOpts.Ctx, resolvers, upstreamClient, 0, functionalPlugins)
 	disc := fds.NewFunctionDiscovery(updater)
 
 	sync := NewDiscoverySyncer(disc, fdsMode)

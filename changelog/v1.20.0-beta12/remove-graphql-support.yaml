@@ -1,0 +1,8 @@
+changelog:
+  - type: BREAKING_CHANGE
+    issueLink: https://github.com/solo-io/solo-projects/issues/7162
+    resolvesIssue: true
+    description: >-
+      Remove GraphQL support from Gloo Gateway. GraphQL functionality has been fully removed 
+      after being deprecated in v1.18.0. The GraphQL CRDs, client code, discovery functionality, and route 
+      processing have been removed.  Some proto files remain to prevent future use of these names and fields.
