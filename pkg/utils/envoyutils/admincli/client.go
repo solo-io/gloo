@@ -310,10 +310,9 @@ func (c *Client) GetSingleListenerFromDynamicListeners(
 	return &listener, nil
 }
 
-// GetSingleRouteConfig queries for a single, route configuration in the envoy config dump
+// GetSingleRouteConfig accepts the regex for a route configuration in the envoy config dump
 // and returns it as an envoy v3.RouteConfiguration.
-// This helper will only work if the provided name_regex matches a single route configuration
-// but will always use the first set of configs returned regardless
+// If the provides regex matches multiple route configurations, the first one is returned.
 func (c *Client) GetSingleRouteConfig(
 	ctx context.Context,
 	routeConfigNameRegex string,
@@ -329,7 +328,9 @@ func (c *Client) GetSingleRouteConfig(
 
 	configs := cfgDump.GetConfigs()
 
-	// if no dynamic route config's name matches routeConfigNameRegex or before envoy is fully configured
+	// No configs can be found if:
+	// 1. No dynamic route config's name matches routeConfigNameRegex
+	// 2. Envoy has not yet received the latest configuration from the control plane
 	if len(configs) == 0 {
 		return nil, fmt.Errorf("could not get config: config is empty")
 	}
@@ -343,7 +344,7 @@ func (c *Client) GetSingleRouteConfig(
 	routeConfig := route_configv3.RouteConfiguration{}
 	err = dynamicRouteConfig.GetRouteConfig().UnmarshalTo(&routeConfig)
 	if err != nil {
-		return nil, fmt.Errorf("could not unmarshal route config from route config dump: %w", err)
+		return nil, fmt.Errorf("could not unmarshal RouteConfiguration from route config dump: %w", err)
 	}
 	return &routeConfig, nil
 }
