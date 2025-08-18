@@ -157,6 +157,7 @@ func routeRetriesAssertion(testInstallation *e2e.TestInstallation, t *testing.T)
 			route := routeConfig.GetVirtualHosts()[0].GetRoutes()[0]
 			g.Expect(route.GetRoute().GetRetryPolicy().GetRetryOn()).To(gomega.Equal("5xx"))
 			g.Expect(route.GetRoute().GetRetryPolicy().GetRetryBackOff()).NotTo(gomega.BeNil())
+			g.Expect(route.GetRoute().GetRetryPolicy().GetRateLimitedRetryBackOff().GetMaxInterval().GetSeconds()).To(gomega.Equal(int64(1)))
 			g.Expect(route.GetRoute().GetRetryPolicy().GetRateLimitedRetryBackOff().GetResetHeaders()).To(gomega.ContainElements(
 				&route_configv3.RetryPolicy_ResetHeader{
 					Name:   "X-RateLimit-Reset",
