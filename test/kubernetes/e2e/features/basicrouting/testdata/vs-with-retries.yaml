@@ -12,7 +12,7 @@ spec:
         routeAction:
           single:
             upstream:
-              name: nginx-upstream
+              name: nginx-upstream-basicroute
         options:
           retries:
             retryOn: "5xx"
