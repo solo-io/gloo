@@ -161,28 +161,5 @@ roleRef:
   kind: {{ include "gloo.roleKind" . }}
   name: gateway-resource-reader{{ include "gloo.rbacNameSuffix" . }}
   apiGroup: rbac.authorization.k8s.io
----
-kind: {{ include "gloo.roleKind" . }}Binding
-apiVersion: rbac.authorization.k8s.io/v1
-metadata:
-  name: gloo-graphqlapi-mutator-binding{{ include "gloo.rbacNameSuffix" . }}
-  {{- if .Values.global.glooRbac.namespaced }}
-  namespace: {{ .Release.Namespace }}
-  {{- end }}
-  labels:
-{{ include "gloo.labels" . | indent 4}}
-    gloo: rbac
-subjects:
-{{- if .Values.discovery.enabled }}
-  - kind: ServiceAccount
-    name: discovery
-    namespace: {{ .Release.Namespace }}
-{{- else }}
-  []
-{{- end}}
-roleRef:
-  kind: {{ include "gloo.roleKind" . }}
-  name: gloo-graphqlapi-mutator{{ include "gloo.rbacNameSuffix" . }}
-  apiGroup: rbac.authorization.k8s.io
 {{- end -}}
 {{- end -}}

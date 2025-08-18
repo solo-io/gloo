@@ -11,7 +11,6 @@ import (
 	sync "sync"
 	unsafe "unsafe"
 
-	_ "github.com/solo-io/protoc-gen-ext/extproto"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 )
@@ -23,17 +22,9 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// Deprecated: The GraphQL feature of Gloo Gateway will be removed in a future release.
-// Only supported in enterprise with the GraphQL addon.
-// This is the service spec describing GraphQL upstreams. This will usually be filled
-// automatically via function discovery (if the upstream supports introspection).
-// If your upstream service is a GraphQL service, use this service spec (an empty
-// spec is fine).
+// DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
 type ServiceSpec struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// Endpoint provides the endpoint information, and how to call the GraphQL Server.
-	// This endpoint must be called via HTTP POST sending form data as mentioned in [the GraphQL Docs](https://graphql.org/learn/serving-over-http/#post-request).
-	Endpoint      *ServiceSpec_Endpoint `protobuf:"bytes,1,opt,name=endpoint,proto3" json:"endpoint,omitempty"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -68,18 +59,8 @@ func (*ServiceSpec) Descriptor() ([]byte, []int) {
 	return file_github_com_solo_io_gloo_projects_gloo_api_v1_options_graphql_graphql_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *ServiceSpec) GetEndpoint() *ServiceSpec_Endpoint {
-	if x != nil {
-		return x.Endpoint
-	}
-	return nil
-}
-
-// Describes a GraphQL Endpoint information
 type ServiceSpec_Endpoint struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// The url for the graphql endpoint. Automation via Discovery only supports `http://<host>/graphql` ie: http://myurl.com/graphql
-	Url           string `protobuf:"bytes,1,opt,name=url,proto3" json:"url,omitempty"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -114,22 +95,13 @@ func (*ServiceSpec_Endpoint) Descriptor() ([]byte, []int) {
 	return file_github_com_solo_io_gloo_projects_gloo_api_v1_options_graphql_graphql_proto_rawDescGZIP(), []int{0, 0}
 }
 
-func (x *ServiceSpec_Endpoint) GetUrl() string {
-	if x != nil {
-		return x.Url
-	}
-	return ""
-}
-
 var File_github_com_solo_io_gloo_projects_gloo_api_v1_options_graphql_graphql_proto protoreflect.FileDescriptor
 
 const file_github_com_solo_io_gloo_projects_gloo_api_v1_options_graphql_graphql_proto_rawDesc = "" +
 	"\n" +
-	"Jgithub.com/solo-io/gloo/projects/gloo/api/v1/options/graphql/graphql.proto\x12\x1cgraphql.options.gloo.solo.io\x1a\x12extproto/ext.proto\"{\n" +
-	"\vServiceSpec\x12N\n" +
-	"\bendpoint\x18\x01 \x01(\v22.graphql.options.gloo.solo.io.ServiceSpec.EndpointR\bendpoint\x1a\x1c\n" +
-	"\bEndpoint\x12\x10\n" +
-	"\x03url\x18\x01 \x01(\tR\x03urlBN\xb8\xf5\x04\x01\xc0\xf5\x04\x01\xd0\xf5\x04\x01Z@github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/graphqlb\x06proto3"
+	"Jgithub.com/solo-io/gloo/projects/gloo/api/v1/options/graphql/graphql.proto\x12\x1cgraphql.options.gloo.solo.io\"4\n" +
+	"\vServiceSpec\x1a\x15\n" +
+	"\bEndpointJ\x04\b\x01\x10\x02R\x03urlJ\x04\b\x01\x10\x02R\bendpointBBZ@github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/graphqlb\x06proto3"
 
 var (
 	file_github_com_solo_io_gloo_projects_gloo_api_v1_options_graphql_graphql_proto_rawDescOnce sync.Once
@@ -149,12 +121,11 @@ var file_github_com_solo_io_gloo_projects_gloo_api_v1_options_graphql_graphql_pr
 	(*ServiceSpec_Endpoint)(nil), // 1: graphql.options.gloo.solo.io.ServiceSpec.Endpoint
 }
 var file_github_com_solo_io_gloo_projects_gloo_api_v1_options_graphql_graphql_proto_depIdxs = []int32{
-	1, // 0: graphql.options.gloo.solo.io.ServiceSpec.endpoint:type_name -> graphql.options.gloo.solo.io.ServiceSpec.Endpoint
-	1, // [1:1] is the sub-list for method output_type
-	1, // [1:1] is the sub-list for method input_type
-	1, // [1:1] is the sub-list for extension type_name
-	1, // [1:1] is the sub-list for extension extendee
-	0, // [0:1] is the sub-list for field type_name
+	0, // [0:0] is the sub-list for method output_type
+	0, // [0:0] is the sub-list for method input_type
+	0, // [0:0] is the sub-list for extension type_name
+	0, // [0:0] is the sub-list for extension extendee
+	0, // [0:0] is the sub-list for field type_name
 }
 
 func init() { file_github_com_solo_io_gloo_projects_gloo_api_v1_options_graphql_graphql_proto_init() }
