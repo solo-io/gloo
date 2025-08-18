@@ -72,7 +72,7 @@ Name|Version|License
 [google.golang.org/protobuf](https://google.golang.org/protobuf)|v1.36.6|BSD 3-clause "New" or "Revised" License
 [AlecAivazis/survey.v1](https://gopkg.in/AlecAivazis/survey.v1)|v1.8.7|MIT License
 [gopkg.in/yaml.v3](https://gopkg.in/yaml.v3)|v3.0.1|MIT License
-[helm/v3](https://helm.sh/helm/v3)|v3.17.3|Apache License 2.0
+[helm/v3](https://helm.sh/helm/v3)|v3.18.4|Apache License 2.0
 [istio.io/api](https://istio.io/api)|v1.25.2-0.20250410212420-84c271001f68|Apache License 2.0
 [istio.io/client-go](https://istio.io/client-go)|v1.25.2-0.20250410213018-e5f6074bc228|Apache License 2.0
 [istio.io/istio](https://istio.io/istio)|v0.0.0-20250411142419-0d83506c2883|Apache License 2.0
