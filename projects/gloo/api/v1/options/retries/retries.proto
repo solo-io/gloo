@@ -30,7 +30,7 @@ message RetryBackOff {
 
 // ResetHeader is a header that is used to reset the retry backoff.
 message ResetHeader {
-    // Specifies the name of the header to interpret as a timestamp for the retry backoff.
+    // Specifies the name of the header to interpret for the retry backoff.
     string name = 1;
 
     enum HeaderFormat {
@@ -43,7 +43,7 @@ message ResetHeader {
 }
 
 // This specifies the retry policy interval for rate limited requests.
-// Inspired by: https://github.com/envoyproxy/envoy/blob/4a134ce926cf0b882a4c416734b579f9722ed1eb/api/envoy/config/route/v3/route_components.proto#L1522
+// Based on: https://github.com/envoyproxy/envoy/blob/4a134ce926cf0b882a4c416734b579f9722ed1eb/api/envoy/config/route/v3/route_components.proto#L1522
 message RateLimitedRetryBackOff {
 
     // Specifies the reset headers (like ``Retry-After`` or ``X-RateLimit-Reset``)
@@ -52,7 +52,7 @@ message RateLimitedRetryBackOff {
     // match the default exponential back-off is used instead.
     repeated ResetHeader reset_headers = 1;
 
-    // Specifies the maximum back off interval that Envoy will allow. If a reset
+    // Specifies the maximum back off interval that Gloo will allow. If a reset
     // header contains an interval longer than this then it will be discarded and
     // the next header will be tried. Defaults to 300 seconds.
     google.protobuf.Duration max_interval = 2 [(validate.rules).duration = {gt {}}];
@@ -93,7 +93,7 @@ message RetryPolicy {
     repeated uint32 retriable_status_codes = 6;
 
 
-    // Optional: Specifies the retry backoff for rate limited requests.
+    // Optional: Specifies the retry backoff strategy for rate limited requests.
     RateLimitedRetryBackOff rate_limited_retry_back_off = 7;
 
 

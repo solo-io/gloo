@@ -329,7 +329,7 @@ func (c *Client) GetSingleRouteConfig(
 
 	configs := cfgDump.GetConfigs()
 
-	// if no dynamic route configs name matching routeConfigNameRegex or before envoy is full configured
+	// if no dynamic route config's name matches routeConfigNameRegex or before envoy is fully configured
 	if len(configs) == 0 {
 		return nil, fmt.Errorf("could not get config: config is empty")
 	}
