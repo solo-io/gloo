@@ -47,39 +47,41 @@ func NewBasicEdgeRoutingSuite(ctx context.Context, testInst *e2e.TestInstallatio
 	}
 }
 
+func (s *edgeBasicRoutingSuite) SetupSuite() {
+	err := s.testInstallation.Actions.Kubectl().Apply(s.ctx, testdefaults.NginxPodYaml)
+	s.NoError(err, "can apply Nginx setup manifest")
+	err = s.testInstallation.Actions.Kubectl().Apply(s.ctx, testdefaults.CurlPodYaml)
+	s.NoError(err, "can apply Curl setup manifest")
+
+	// Check that test resources are running
+	s.testInstallation.AssertionsT(s.T()).EventuallyPodsRunning(s.ctx, testdefaults.NginxPod.ObjectMeta.GetNamespace(), metav1.ListOptions{
+		LabelSelector: "app.kubernetes.io/name=nginx",
+	})
+	s.testInstallation.AssertionsT(s.T()).EventuallyPodsRunning(s.ctx, testdefaults.CurlPod.ObjectMeta.GetNamespace(), metav1.ListOptions{
+		LabelSelector: "app.kubernetes.io/name=curl",
+	})
+}
+
+func (s *edgeBasicRoutingSuite) TearDownSuite() {
+	err := s.testInstallation.Actions.Kubectl().Delete(s.ctx, testdefaults.NginxPodYaml)
+	s.NoError(err, "can delete Nginx setup manifest")
+	err = s.testInstallation.Actions.Kubectl().Delete(s.ctx, testdefaults.CurlPodYaml)
+	s.NoError(err, "can delete Curl setup manifest")
+}
+
 func (s *edgeBasicRoutingSuite) TestBasicVirtualServiceRouting() {
 	s.T().Cleanup(func() {
-		err := s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, testdefaults.NginxPodManifest)
-		s.Assertions.NoError(err, "can delete nginx pod")
-
-		err = s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, testdefaults.CurlPodManifest)
-		s.Assertions.NoError(err, "can delete curl pod")
-
-		err = s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, ossvalidation.ExampleVS, "-n", s.testInstallation.Metadata.InstallNamespace)
+		err := s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, ossvalidation.ExampleVS, "-n", s.testInstallation.Metadata.InstallNamespace)
 		s.Assertions.NoError(err, "can delete virtual service")
 
 		err = s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, ossvalidation.ExampleUpstream, "-n", s.testInstallation.Metadata.InstallNamespace)
 		s.Assertions.NoError(err, "can delete upstream")
 	})
 
-	err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, testdefaults.NginxPodManifest)
-	s.Assert().NoError(err)
-	// Check that test resources are running
-	s.testInstallation.AssertionsT(s.T()).EventuallyPodsRunning(s.ctx, testdefaults.NginxPod.ObjectMeta.GetNamespace(), metav1.ListOptions{
-		LabelSelector: "app.kubernetes.io/name=nginx",
-	})
-
-	err = s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, testdefaults.CurlPodManifest)
-	s.Assert().NoError(err)
-	// Check that test resources are running
-	s.testInstallation.AssertionsT(s.T()).EventuallyPodsRunning(s.ctx, testdefaults.CurlPod.ObjectMeta.GetNamespace(), metav1.ListOptions{
-		LabelSelector: "app.kubernetes.io/name=curl",
-	})
-
 	// Upstream is only rejected when the upstream plugin is run when a valid cluster is present
 	// Upstreams no longer report status if they have not been translated at all to avoid conflicting with
 	// other syncers that have translated them, so we can only detect that the objects exist here
-	err = s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, ossvalidation.ExampleUpstream, "-n", s.testInstallation.Metadata.InstallNamespace)
+	err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, ossvalidation.ExampleUpstream, "-n", s.testInstallation.Metadata.InstallNamespace)
 	s.Assert().NoError(err, "can apply valid upstream")
 	s.testInstallation.AssertionsT(s.T()).EventuallyResourceExists(
 		func() (resources.Resource, error) {
