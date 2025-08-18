@@ -50,6 +50,8 @@ func NewBasicEdgeRoutingSuite(ctx context.Context, testInst *e2e.TestInstallatio
 func (s *edgeBasicRoutingSuite) SetupSuite() {
 	err := s.testInstallation.Actions.Kubectl().Apply(s.ctx, testdefaults.NginxPodYaml)
 	s.NoError(err, "can apply Nginx setup manifest")
+	err = s.testInstallation.Actions.Kubectl().Apply(s.ctx, NginxUpstreamYaml, "-n", s.testInstallation.Metadata.InstallNamespace)
+	s.NoError(err, "can apply Nginx upstream manifest")
 	err = s.testInstallation.Actions.Kubectl().Apply(s.ctx, testdefaults.CurlPodYaml)
 	s.NoError(err, "can apply Curl setup manifest")
 
@@ -65,6 +67,8 @@ func (s *edgeBasicRoutingSuite) SetupSuite() {
 func (s *edgeBasicRoutingSuite) TearDownSuite() {
 	err := s.testInstallation.Actions.Kubectl().Delete(s.ctx, testdefaults.NginxPodYaml)
 	s.NoError(err, "can delete Nginx setup manifest")
+	err = s.testInstallation.Actions.Kubectl().Delete(s.ctx, NginxUpstreamYaml, "-n", s.testInstallation.Metadata.InstallNamespace)
+	s.NoError(err, "can delete Nginx upstream manifest")
 	err = s.testInstallation.Actions.Kubectl().Delete(s.ctx, testdefaults.CurlPodYaml)
 	s.NoError(err, "can delete Curl setup manifest")
 }
@@ -132,11 +136,16 @@ func (s *edgeBasicRoutingSuite) TestBasicVirtualServiceRouting() {
 // are correctly set in the envoy configuration, and not a true end-to-end test.
 func (s *edgeBasicRoutingSuite) TestVirtualServiceWithRetriesIntegration() {
 	s.T().Cleanup(func() {
-		err := s.testInstallation.Actions.Kubectl().Delete(s.ctx, VirtualServiceWithRetriesYaml, "-n", s.testInstallation.Metadata.InstallNamespace)
+		err := s.testInstallation.Actions.Kubectl().Delete(s.ctx, NginxUpstreamYaml, "-n", s.testInstallation.Metadata.InstallNamespace)
+		s.Assert().NoError(err)
+
+		err = s.testInstallation.Actions.Kubectl().Delete(s.ctx, VirtualServiceWithRetriesYaml, "-n", s.testInstallation.Metadata.InstallNamespace)
 		s.Assert().NoError(err)
 	})
 
-	err := s.testInstallation.Actions.Kubectl().Apply(s.ctx, VirtualServiceWithRetriesYaml, "-n", s.testInstallation.Metadata.InstallNamespace)
+	err := s.testInstallation.Actions.Kubectl().Apply(s.ctx, NginxUpstreamYaml, "-n", s.testInstallation.Metadata.InstallNamespace)
+	s.Assert().NoError(err)
+	err = s.testInstallation.Actions.Kubectl().Apply(s.ctx, VirtualServiceWithRetriesYaml, "-n", s.testInstallation.Metadata.InstallNamespace)
 	s.Assert().NoError(err)
 
 	s.testInstallation.AssertionsT(s.T()).AssertEnvoyAdminApi(
