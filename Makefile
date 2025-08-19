@@ -54,7 +54,8 @@ SOURCES := $(shell find . -name "*.go" | grep -v test.go)
 # for more information, see https://github.com/solo-io/gloo/pull/9633
 # and
 # https://soloio.slab.com/posts/extended-http-methods-design-doc-40j7pjeu
-ENVOY_GLOO_IMAGE ?= quay.io/solo-io/envoy-gloo:1.35.0-patch1
+# ENVOY_GLOO_IMAGE ?= quay.io/solo-io/envoy-gloo:1.35.0-patch1
+ENVOY_GLOO_IMAGE ?= us-docker.pkg.dev/developers-369321/envoy-gloo-ee-dev/envoy-gloo-ee-standard-release:ashish-test-20250819-114400
 LDFLAGS := "-X github.com/solo-io/gloo/pkg/version.Version=$(VERSION)"
 GCFLAGS ?=
 
