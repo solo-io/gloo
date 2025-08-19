@@ -90,21 +90,13 @@ Check the changelogs for the type of Gloo Gateway deployment that you have. Focu
 You can use the changelogs' built-in [comparison tool]({{< versioned_link_path fromRoot="/reference/changelog/open_source/#compareversions" >}}) to compare between your current version and the version that you want to upgrade to.
 {{% /notice %}}
 
-<!--
 
 ### Feature changes {#features}
 
-Review the following summary of important new, deprecated, or removed features.
+#### GraphQL support removed
 
-{{% notice note %}}
-The following lists consist of the changes that were initially introduced with the {{< readfile file="static/content/version_geoss_latest_minor.md" markdown="true">}}.0 release. These changes might be backported to earlier versions of Gloo Gateway. Additionally, there might be other changes that are introduced in later {{< readfile file="static/content/version_geoss_latest_minor.md" markdown="true">}} patch releases. For patch release changes, check the [changelogs](#changelogs).
-{{% /notice %}}
+In version 1.20.0, support for GraphQL is removed. Any related documentation was also removed. If you need to access GraphQL-specific documentation, such as guides or the API reference, refer to previous documentation versions, such as [1.19.x](https://docs.solo.io/gloo-edge/v1.19.x). 
 
-**New or improved features**:
-
-**Deprecated features**:
-
--->
 
 ### Helm changes {#helm}
 
