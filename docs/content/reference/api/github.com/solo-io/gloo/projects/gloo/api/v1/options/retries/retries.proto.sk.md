@@ -12,6 +12,9 @@ weight: 5
 
 
 - [RetryBackOff](#retrybackoff)
+- [ResetHeader](#resetheader)
+- [HeaderFormat](#headerformat)
+- [RateLimitedRetryBackOff](#ratelimitedretrybackoff)
 - [RetryPolicy](#retrypolicy)
 - [PreviousPriorities](#previouspriorities)
   
@@ -45,6 +48,60 @@ This specifies the retry policy interval for backoffs. Note that if the base int
 
 
 ---
+### ResetHeader
+
+ 
+ResetHeader is a header that is used to reset the retry backoff.
+
+```yaml
+"name": string
+"format": .retries.options.gloo.solo.io.ResetHeader.HeaderFormat
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+| `name` | `string` | Specifies the name of the header to interpret for the retry backoff. |
+| `format` | [.retries.options.gloo.solo.io.ResetHeader.HeaderFormat](../retries.proto.sk/#headerformat) | Specifies the format of the header to interpret for the retry backoff. |
+
+
+
+
+---
+### HeaderFormat
+
+
+
+| Name | Description |
+| ----- | ----------- | 
+| `SECONDS` |  |
+| `UNIX_TIMESTAMP` |  |
+
+
+
+
+---
+### RateLimitedRetryBackOff
+
+ 
+This specifies the retry policy interval for rate limited requests.
+Based on: https://github.com/envoyproxy/envoy/blob/4a134ce926cf0b882a4c416734b579f9722ed1eb/api/envoy/config/route/v3/route_components.proto#L1522
+
+```yaml
+"resetHeaders": []retries.options.gloo.solo.io.ResetHeader
+"maxInterval": .google.protobuf.Duration
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+| `resetHeaders` | [[]retries.options.gloo.solo.io.ResetHeader](../retries.proto.sk/#resetheader) | Specifies the reset headers (like ``Retry-After`` or ``X-RateLimit-Reset``) to match against the response. Headers are tried in order, and matched case insensitive. The first header to be parsed successfully is used. If no headers match the default exponential back-off is used instead. |
+| `maxInterval` | [.google.protobuf.Duration](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/duration) | Specifies the maximum back off interval that Gloo will allow. If a reset header contains an interval longer than this then it will be discarded and the next header will be tried. Defaults to 300 seconds. |
+
+
+
+
+---
 ### RetryPolicy
 
  
@@ -57,6 +114,7 @@ Retry Policy applied at the Route and/or Virtual Hosts levels.
 "retryBackOff": .retries.options.gloo.solo.io.RetryBackOff
 "previousPriorities": .retries.options.gloo.solo.io.RetryPolicy.PreviousPriorities
 "retriableStatusCodes": []int
+"rateLimitedRetryBackOff": .retries.options.gloo.solo.io.RateLimitedRetryBackOff
 
 ```
 
@@ -68,6 +126,7 @@ Retry Policy applied at the Route and/or Virtual Hosts levels.
 | `retryBackOff` | [.retries.options.gloo.solo.io.RetryBackOff](../retries.proto.sk/#retrybackoff) | Specifies the retry policy interval. |
 | `previousPriorities` | [.retries.options.gloo.solo.io.RetryPolicy.PreviousPriorities](../retries.proto.sk/#previouspriorities) | Specify the previous priorities. For more information about previous priorities, see the [Envoy docs](https://www.envoyproxy.io/docs/envoy/v1.30.1/api-v3/extensions/retry/priority/previous_priorities/v3/previous_priorities_config.proto#envoy-v3-api-file-envoy-extensions-retry-priority-previous-priorities-v3-previous-priorities-config-proto). |
 | `retriableStatusCodes` | `[]int` | Optional: HTTP status codes that should trigger a retry in addition to those specified by retry_on. This can be useful if you want to retry on a status code that is not in the retry_on list. Specifically those in the 4xx range. |
+| `rateLimitedRetryBackOff` | [.retries.options.gloo.solo.io.RateLimitedRetryBackOff](../retries.proto.sk/#ratelimitedretrybackoff) | Optional: Specifies the retry backoff strategy for rate limited requests. |
 
 
 
