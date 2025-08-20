@@ -1684,8 +1684,7 @@ type UpstreamSpec_OpenAI struct {
 	// This token is automatically sent in the `Authorization` header of the
 	// request and prefixed with `Bearer`.
 	AuthToken *SingleAuthToken `protobuf:"bytes,1,opt,name=auth_token,json=authToken,proto3" json:"auth_token,omitempty"`
-	// Optional: Send requests to a custom host and port, such as to proxy the request,
-	// or to use a different backend that is API-compliant with the upstream version.
+	// Optional: Send requests to a custom host and port or configure custom path override or hostname
 	CustomHost *UpstreamSpec_CustomHost `protobuf:"bytes,2,opt,name=custom_host,json=customHost,proto3" json:"custom_host,omitempty"`
 	// Optional: Override the model name, such as `gpt-4o-mini`.
 	// If unset, the model name is taken from the request.
@@ -1769,7 +1768,9 @@ type UpstreamSpec_AzureOpenAI struct {
 	DeploymentName string `protobuf:"bytes,3,opt,name=deployment_name,json=deploymentName,proto3" json:"deployment_name,omitempty"`
 	// The version of the Azure OpenAI API to use.
 	// For more information, see the [Azure OpenAI API version reference](https://learn.microsoft.com/en-us/azure/ai-services/openai/reference#api-specs).
-	ApiVersion    string `protobuf:"bytes,4,opt,name=api_version,json=apiVersion,proto3" json:"api_version,omitempty"`
+	ApiVersion string `protobuf:"bytes,4,opt,name=api_version,json=apiVersion,proto3" json:"api_version,omitempty"`
+	// Optional: Send requests to a custom host and port or configure custom path override or hostname
+	CustomHost    *UpstreamSpec_CustomHost `protobuf:"bytes,5,opt,name=custom_host,json=customHost,proto3" json:"custom_host,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1841,6 +1842,13 @@ func (x *UpstreamSpec_AzureOpenAI) GetApiVersion() string {
 	return ""
 }
 
+func (x *UpstreamSpec_AzureOpenAI) GetCustomHost() *UpstreamSpec_CustomHost {
+	if x != nil {
+		return x.CustomHost
+	}
+	return nil
+}
+
 type isUpstreamSpec_AzureOpenAI_AuthTokenSource interface {
 	isUpstreamSpec_AzureOpenAI_AuthTokenSource()
 }
@@ -1873,7 +1881,9 @@ type UpstreamSpec_Gemini struct {
 	Model string `protobuf:"bytes,2,opt,name=model,proto3" json:"model,omitempty"`
 	// The version of the Gemini API to use.
 	// For more information, see the [Gemini API version docs](https://ai.google.dev/gemini-api/docs/api-versions).
-	ApiVersion    string `protobuf:"bytes,3,opt,name=api_version,json=apiVersion,proto3" json:"api_version,omitempty"`
+	ApiVersion string `protobuf:"bytes,3,opt,name=api_version,json=apiVersion,proto3" json:"api_version,omitempty"`
+	// Optional: Send requests to a custom host and port or configure custom path override or hostname
+	CustomHost    *UpstreamSpec_CustomHost `protobuf:"bytes,4,opt,name=custom_host,json=customHost,proto3" json:"custom_host,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1938,6 +1948,13 @@ func (x *UpstreamSpec_Gemini) GetApiVersion() string {
 	return ""
 }
 
+func (x *UpstreamSpec_Gemini) GetCustomHost() *UpstreamSpec_CustomHost {
+	if x != nil {
+		return x.CustomHost
+	}
+	return nil
+}
+
 type isUpstreamSpec_Gemini_AuthTokenSource interface {
 	isUpstreamSpec_Gemini_AuthTokenSource()
 }
@@ -1980,7 +1997,9 @@ type UpstreamSpec_VertexAI struct {
 	// The type of publisher model to use. Currently, only Google is supported.
 	Publisher UpstreamSpec_VertexAI_Publisher `protobuf:"varint,7,opt,name=publisher,proto3,enum=ai.options.gloo.solo.io.UpstreamSpec_VertexAI_Publisher" json:"publisher,omitempty"`
 	// Optional: Specify the API json schema the model uses, default to GEMINI if not set
-	JsonSchema    ApiJsonSchema `protobuf:"varint,8,opt,name=json_schema,json=jsonSchema,proto3,enum=ai.options.gloo.solo.io.ApiJsonSchema" json:"json_schema,omitempty"`
+	JsonSchema ApiJsonSchema `protobuf:"varint,8,opt,name=json_schema,json=jsonSchema,proto3,enum=ai.options.gloo.solo.io.ApiJsonSchema" json:"json_schema,omitempty"`
+	// Optional: Send requests to a custom host and port or configure custom path override or hostname
+	CustomHost    *UpstreamSpec_CustomHost `protobuf:"bytes,9,opt,name=custom_host,json=customHost,proto3" json:"custom_host,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2080,6 +2099,13 @@ func (x *UpstreamSpec_VertexAI) GetJsonSchema() ApiJsonSchema {
 	return ApiJsonSchema_NOT_SET
 }
 
+func (x *UpstreamSpec_VertexAI) GetCustomHost() *UpstreamSpec_CustomHost {
+	if x != nil {
+		return x.CustomHost
+	}
+	return nil
+}
+
 type isUpstreamSpec_VertexAI_AuthTokenSource interface {
 	isUpstreamSpec_VertexAI_AuthTokenSource()
 }
@@ -2102,8 +2128,7 @@ type UpstreamSpec_Mistral struct {
 	// This token is automatically sent in the `Authorization` header of the
 	// request and prefixed with `Bearer`.
 	AuthToken *SingleAuthToken `protobuf:"bytes,1,opt,name=auth_token,json=authToken,proto3" json:"auth_token,omitempty"`
-	// Optional: Send requests to a custom host and port, such as to proxy the request,
-	// or to use a different backend that is API-compliant with the upstream version.
+	// Optional: Send requests to a custom host and port or configure custom path override or hostname
 	CustomHost *UpstreamSpec_CustomHost `protobuf:"bytes,2,opt,name=custom_host,json=customHost,proto3" json:"custom_host,omitempty"`
 	// Optional: Override the model name.
 	// If unset, the model name is taken from the request.
@@ -2173,8 +2198,7 @@ type UpstreamSpec_Anthropic struct {
 	// The authorization token that the AI gateway uses to access the Anthropic API.
 	// This token is automatically sent in the `x-api-key` header of the request.
 	AuthToken *SingleAuthToken `protobuf:"bytes,1,opt,name=auth_token,json=authToken,proto3" json:"auth_token,omitempty"`
-	// Optional: Send requests to a custom host and port, such as to proxy the request,
-	// or to use a different backend that is API-compliant with the upstream version.
+	// Optional: Send requests to a custom host and port or configure custom path override or hostname
 	CustomHost *UpstreamSpec_CustomHost `protobuf:"bytes,2,opt,name=custom_host,json=customHost,proto3" json:"custom_host,omitempty"`
 	// Optional: The version string used to override the `anthropic-version` header to pass to the Anthropic API.
 	// Note: This does not control the api version (eg `/v1`) in the url.
@@ -2254,8 +2278,7 @@ type UpstreamSpec_Bedrock struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// The authorization config used to access authenticated AWS Bedrock services.
 	CredentialProvider *UpstreamSpec_AwsCredentialProvider `protobuf:"bytes,1,opt,name=credential_provider,json=credentialProvider,proto3" json:"credential_provider,omitempty"`
-	// Optional: Send requests to a custom host and port, such as to proxy the request,
-	// or to use a different backend that is API-compliant with the upstream version.
+	// Optional: Send requests to a custom host and port or configure custom path override or hostname
 	// Note: For AWS Bedrock, if custom_host is set, host_rewrite will be used to override the Host header before signing the request
 	CustomHost *UpstreamSpec_CustomHost `protobuf:"bytes,2,opt,name=custom_host,json=customHost,proto3" json:"custom_host,omitempty"`
 	// Required: model string.
@@ -3957,7 +3980,7 @@ const file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai
 	"secret_ref\x18\x02 \x01(\v2\x19.core.solo.io.ResourceRefH\x00R\tsecretRef\x12X\n" +
 	"\vpassthrough\x18\x03 \x01(\v24.ai.options.gloo.solo.io.SingleAuthToken.PassthroughH\x00R\vpassthrough\x1a\r\n" +
 	"\vPassthroughB\x13\n" +
-	"\x11auth_token_source\"\xd0\x1c\n" +
+	"\x11auth_token_source\"\xc9\x1e\n" +
 	"\fUpstreamSpec\x12F\n" +
 	"\x06openai\x18\x01 \x01(\v2,.ai.options.gloo.solo.io.UpstreamSpec.OpenAIH\x00R\x06openai\x12I\n" +
 	"\amistral\x18\x02 \x01(\v2-.ai.options.gloo.solo.io.UpstreamSpec.MistralH\x00R\amistral\x12O\n" +
@@ -3982,22 +4005,26 @@ const file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai
 	"auth_token\x18\x01 \x01(\v2(.ai.options.gloo.solo.io.SingleAuthTokenR\tauthToken\x12Q\n" +
 	"\vcustom_host\x18\x02 \x01(\v20.ai.options.gloo.solo.io.UpstreamSpec.CustomHostR\n" +
 	"customHost\x12\x14\n" +
-	"\x05model\x18\x03 \x01(\tR\x05model\x1a\xd3\x01\n" +
+	"\x05model\x18\x03 \x01(\tR\x05model\x1a\xa6\x02\n" +
 	"\vAzureOpenAI\x12I\n" +
 	"\n" +
 	"auth_token\x18\x01 \x01(\v2(.ai.options.gloo.solo.io.SingleAuthTokenH\x00R\tauthToken\x12\x1a\n" +
 	"\bendpoint\x18\x02 \x01(\tR\bendpoint\x12'\n" +
 	"\x0fdeployment_name\x18\x03 \x01(\tR\x0edeploymentName\x12\x1f\n" +
 	"\vapi_version\x18\x04 \x01(\tR\n" +
-	"apiVersionB\x13\n" +
-	"\x11auth_token_source\x1a\x9f\x01\n" +
+	"apiVersion\x12Q\n" +
+	"\vcustom_host\x18\x05 \x01(\v20.ai.options.gloo.solo.io.UpstreamSpec.CustomHostR\n" +
+	"customHostB\x13\n" +
+	"\x11auth_token_source\x1a\xf2\x01\n" +
 	"\x06Gemini\x12I\n" +
 	"\n" +
 	"auth_token\x18\x01 \x01(\v2(.ai.options.gloo.solo.io.SingleAuthTokenH\x00R\tauthToken\x12\x14\n" +
 	"\x05model\x18\x02 \x01(\tR\x05model\x12\x1f\n" +
 	"\vapi_version\x18\x03 \x01(\tR\n" +
-	"apiVersionB\x13\n" +
-	"\x11auth_token_source\x1a\xb5\x03\n" +
+	"apiVersion\x12Q\n" +
+	"\vcustom_host\x18\x04 \x01(\v20.ai.options.gloo.solo.io.UpstreamSpec.CustomHostR\n" +
+	"customHostB\x13\n" +
+	"\x11auth_token_source\x1a\x88\x04\n" +
 	"\bVertexAI\x12I\n" +
 	"\n" +
 	"auth_token\x18\x01 \x01(\v2(.ai.options.gloo.solo.io.SingleAuthTokenH\x00R\tauthToken\x12\x14\n" +
@@ -4011,7 +4038,9 @@ const file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai
 	"model_path\x18\x06 \x01(\tR\tmodelPath\x12V\n" +
 	"\tpublisher\x18\a \x01(\x0e28.ai.options.gloo.solo.io.UpstreamSpec.VertexAI.PublisherR\tpublisher\x12G\n" +
 	"\vjson_schema\x18\b \x01(\x0e2&.ai.options.gloo.solo.io.ApiJsonSchemaR\n" +
-	"jsonSchema\"\x17\n" +
+	"jsonSchema\x12Q\n" +
+	"\vcustom_host\x18\t \x01(\v20.ai.options.gloo.solo.io.UpstreamSpec.CustomHostR\n" +
+	"customHost\"\x17\n" +
 	"\tPublisher\x12\n" +
 	"\n" +
 	"\x06GOOGLE\x10\x00B\x13\n" +
@@ -4298,50 +4327,53 @@ var file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_p
 	7,  // 30: ai.options.gloo.solo.io.UpstreamSpec.OpenAI.auth_token:type_name -> ai.options.gloo.solo.io.SingleAuthToken
 	19, // 31: ai.options.gloo.solo.io.UpstreamSpec.OpenAI.custom_host:type_name -> ai.options.gloo.solo.io.UpstreamSpec.CustomHost
 	7,  // 32: ai.options.gloo.solo.io.UpstreamSpec.AzureOpenAI.auth_token:type_name -> ai.options.gloo.solo.io.SingleAuthToken
-	7,  // 33: ai.options.gloo.solo.io.UpstreamSpec.Gemini.auth_token:type_name -> ai.options.gloo.solo.io.SingleAuthToken
-	7,  // 34: ai.options.gloo.solo.io.UpstreamSpec.VertexAI.auth_token:type_name -> ai.options.gloo.solo.io.SingleAuthToken
-	1,  // 35: ai.options.gloo.solo.io.UpstreamSpec.VertexAI.publisher:type_name -> ai.options.gloo.solo.io.UpstreamSpec.VertexAI.Publisher
-	0,  // 36: ai.options.gloo.solo.io.UpstreamSpec.VertexAI.json_schema:type_name -> ai.options.gloo.solo.io.ApiJsonSchema
-	7,  // 37: ai.options.gloo.solo.io.UpstreamSpec.Mistral.auth_token:type_name -> ai.options.gloo.solo.io.SingleAuthToken
-	19, // 38: ai.options.gloo.solo.io.UpstreamSpec.Mistral.custom_host:type_name -> ai.options.gloo.solo.io.UpstreamSpec.CustomHost
-	7,  // 39: ai.options.gloo.solo.io.UpstreamSpec.Anthropic.auth_token:type_name -> ai.options.gloo.solo.io.SingleAuthToken
-	19, // 40: ai.options.gloo.solo.io.UpstreamSpec.Anthropic.custom_host:type_name -> ai.options.gloo.solo.io.UpstreamSpec.CustomHost
-	27, // 41: ai.options.gloo.solo.io.UpstreamSpec.Bedrock.credential_provider:type_name -> ai.options.gloo.solo.io.UpstreamSpec.AwsCredentialProvider
-	19, // 42: ai.options.gloo.solo.io.UpstreamSpec.Bedrock.custom_host:type_name -> ai.options.gloo.solo.io.UpstreamSpec.CustomHost
-	48, // 43: ai.options.gloo.solo.io.UpstreamSpec.AwsCredentialProvider.secret_ref:type_name -> core.solo.io.ResourceRef
-	28, // 44: ai.options.gloo.solo.io.UpstreamSpec.AwsCredentialProvider.inline:type_name -> ai.options.gloo.solo.io.UpstreamSpec.AWSInline
-	31, // 45: ai.options.gloo.solo.io.UpstreamSpec.MultiPool.priorities:type_name -> ai.options.gloo.solo.io.UpstreamSpec.MultiPool.Priority
-	20, // 46: ai.options.gloo.solo.io.UpstreamSpec.MultiPool.Backend.openai:type_name -> ai.options.gloo.solo.io.UpstreamSpec.OpenAI
-	24, // 47: ai.options.gloo.solo.io.UpstreamSpec.MultiPool.Backend.mistral:type_name -> ai.options.gloo.solo.io.UpstreamSpec.Mistral
-	25, // 48: ai.options.gloo.solo.io.UpstreamSpec.MultiPool.Backend.anthropic:type_name -> ai.options.gloo.solo.io.UpstreamSpec.Anthropic
-	21, // 49: ai.options.gloo.solo.io.UpstreamSpec.MultiPool.Backend.azure_openai:type_name -> ai.options.gloo.solo.io.UpstreamSpec.AzureOpenAI
-	22, // 50: ai.options.gloo.solo.io.UpstreamSpec.MultiPool.Backend.gemini:type_name -> ai.options.gloo.solo.io.UpstreamSpec.Gemini
-	23, // 51: ai.options.gloo.solo.io.UpstreamSpec.MultiPool.Backend.vertex_ai:type_name -> ai.options.gloo.solo.io.UpstreamSpec.VertexAI
-	26, // 52: ai.options.gloo.solo.io.UpstreamSpec.MultiPool.Backend.bedrock:type_name -> ai.options.gloo.solo.io.UpstreamSpec.Bedrock
-	30, // 53: ai.options.gloo.solo.io.UpstreamSpec.MultiPool.Priority.pool:type_name -> ai.options.gloo.solo.io.UpstreamSpec.MultiPool.Backend
-	7,  // 54: ai.options.gloo.solo.io.Embedding.OpenAI.auth_token:type_name -> ai.options.gloo.solo.io.SingleAuthToken
-	7,  // 55: ai.options.gloo.solo.io.Embedding.AzureOpenAI.auth_token:type_name -> ai.options.gloo.solo.io.SingleAuthToken
-	34, // 56: ai.options.gloo.solo.io.SemanticCache.DataStore.redis:type_name -> ai.options.gloo.solo.io.SemanticCache.Redis
-	35, // 57: ai.options.gloo.solo.io.SemanticCache.DataStore.weaviate:type_name -> ai.options.gloo.solo.io.SemanticCache.Weaviate
-	11, // 58: ai.options.gloo.solo.io.RAG.DataStore.postgres:type_name -> ai.options.gloo.solo.io.Postgres
-	44, // 59: ai.options.gloo.solo.io.AIPromptGuard.Regex.matches:type_name -> ai.options.gloo.solo.io.AIPromptGuard.Regex.RegexMatch
-	4,  // 60: ai.options.gloo.solo.io.AIPromptGuard.Regex.builtins:type_name -> ai.options.gloo.solo.io.AIPromptGuard.Regex.BuiltIn
-	5,  // 61: ai.options.gloo.solo.io.AIPromptGuard.Regex.action:type_name -> ai.options.gloo.solo.io.AIPromptGuard.Regex.Action
-	45, // 62: ai.options.gloo.solo.io.AIPromptGuard.Webhook.forwardHeaders:type_name -> ai.options.gloo.solo.io.AIPromptGuard.Webhook.HeaderMatch
-	46, // 63: ai.options.gloo.solo.io.AIPromptGuard.Moderation.openai:type_name -> ai.options.gloo.solo.io.AIPromptGuard.Moderation.OpenAI
-	47, // 64: ai.options.gloo.solo.io.AIPromptGuard.Request.custom_response:type_name -> ai.options.gloo.solo.io.AIPromptGuard.Request.CustomResponse
-	39, // 65: ai.options.gloo.solo.io.AIPromptGuard.Request.regex:type_name -> ai.options.gloo.solo.io.AIPromptGuard.Regex
-	40, // 66: ai.options.gloo.solo.io.AIPromptGuard.Request.webhook:type_name -> ai.options.gloo.solo.io.AIPromptGuard.Webhook
-	41, // 67: ai.options.gloo.solo.io.AIPromptGuard.Request.moderation:type_name -> ai.options.gloo.solo.io.AIPromptGuard.Moderation
-	39, // 68: ai.options.gloo.solo.io.AIPromptGuard.Response.regex:type_name -> ai.options.gloo.solo.io.AIPromptGuard.Regex
-	40, // 69: ai.options.gloo.solo.io.AIPromptGuard.Response.webhook:type_name -> ai.options.gloo.solo.io.AIPromptGuard.Webhook
-	6,  // 70: ai.options.gloo.solo.io.AIPromptGuard.Webhook.HeaderMatch.match_type:type_name -> ai.options.gloo.solo.io.AIPromptGuard.Webhook.HeaderMatch.MatchType
-	7,  // 71: ai.options.gloo.solo.io.AIPromptGuard.Moderation.OpenAI.auth_token:type_name -> ai.options.gloo.solo.io.SingleAuthToken
-	72, // [72:72] is the sub-list for method output_type
-	72, // [72:72] is the sub-list for method input_type
-	72, // [72:72] is the sub-list for extension type_name
-	72, // [72:72] is the sub-list for extension extendee
-	0,  // [0:72] is the sub-list for field type_name
+	19, // 33: ai.options.gloo.solo.io.UpstreamSpec.AzureOpenAI.custom_host:type_name -> ai.options.gloo.solo.io.UpstreamSpec.CustomHost
+	7,  // 34: ai.options.gloo.solo.io.UpstreamSpec.Gemini.auth_token:type_name -> ai.options.gloo.solo.io.SingleAuthToken
+	19, // 35: ai.options.gloo.solo.io.UpstreamSpec.Gemini.custom_host:type_name -> ai.options.gloo.solo.io.UpstreamSpec.CustomHost
+	7,  // 36: ai.options.gloo.solo.io.UpstreamSpec.VertexAI.auth_token:type_name -> ai.options.gloo.solo.io.SingleAuthToken
+	1,  // 37: ai.options.gloo.solo.io.UpstreamSpec.VertexAI.publisher:type_name -> ai.options.gloo.solo.io.UpstreamSpec.VertexAI.Publisher
+	0,  // 38: ai.options.gloo.solo.io.UpstreamSpec.VertexAI.json_schema:type_name -> ai.options.gloo.solo.io.ApiJsonSchema
+	19, // 39: ai.options.gloo.solo.io.UpstreamSpec.VertexAI.custom_host:type_name -> ai.options.gloo.solo.io.UpstreamSpec.CustomHost
+	7,  // 40: ai.options.gloo.solo.io.UpstreamSpec.Mistral.auth_token:type_name -> ai.options.gloo.solo.io.SingleAuthToken
+	19, // 41: ai.options.gloo.solo.io.UpstreamSpec.Mistral.custom_host:type_name -> ai.options.gloo.solo.io.UpstreamSpec.CustomHost
+	7,  // 42: ai.options.gloo.solo.io.UpstreamSpec.Anthropic.auth_token:type_name -> ai.options.gloo.solo.io.SingleAuthToken
+	19, // 43: ai.options.gloo.solo.io.UpstreamSpec.Anthropic.custom_host:type_name -> ai.options.gloo.solo.io.UpstreamSpec.CustomHost
+	27, // 44: ai.options.gloo.solo.io.UpstreamSpec.Bedrock.credential_provider:type_name -> ai.options.gloo.solo.io.UpstreamSpec.AwsCredentialProvider
+	19, // 45: ai.options.gloo.solo.io.UpstreamSpec.Bedrock.custom_host:type_name -> ai.options.gloo.solo.io.UpstreamSpec.CustomHost
+	48, // 46: ai.options.gloo.solo.io.UpstreamSpec.AwsCredentialProvider.secret_ref:type_name -> core.solo.io.ResourceRef
+	28, // 47: ai.options.gloo.solo.io.UpstreamSpec.AwsCredentialProvider.inline:type_name -> ai.options.gloo.solo.io.UpstreamSpec.AWSInline
+	31, // 48: ai.options.gloo.solo.io.UpstreamSpec.MultiPool.priorities:type_name -> ai.options.gloo.solo.io.UpstreamSpec.MultiPool.Priority
+	20, // 49: ai.options.gloo.solo.io.UpstreamSpec.MultiPool.Backend.openai:type_name -> ai.options.gloo.solo.io.UpstreamSpec.OpenAI
+	24, // 50: ai.options.gloo.solo.io.UpstreamSpec.MultiPool.Backend.mistral:type_name -> ai.options.gloo.solo.io.UpstreamSpec.Mistral
+	25, // 51: ai.options.gloo.solo.io.UpstreamSpec.MultiPool.Backend.anthropic:type_name -> ai.options.gloo.solo.io.UpstreamSpec.Anthropic
+	21, // 52: ai.options.gloo.solo.io.UpstreamSpec.MultiPool.Backend.azure_openai:type_name -> ai.options.gloo.solo.io.UpstreamSpec.AzureOpenAI
+	22, // 53: ai.options.gloo.solo.io.UpstreamSpec.MultiPool.Backend.gemini:type_name -> ai.options.gloo.solo.io.UpstreamSpec.Gemini
+	23, // 54: ai.options.gloo.solo.io.UpstreamSpec.MultiPool.Backend.vertex_ai:type_name -> ai.options.gloo.solo.io.UpstreamSpec.VertexAI
+	26, // 55: ai.options.gloo.solo.io.UpstreamSpec.MultiPool.Backend.bedrock:type_name -> ai.options.gloo.solo.io.UpstreamSpec.Bedrock
+	30, // 56: ai.options.gloo.solo.io.UpstreamSpec.MultiPool.Priority.pool:type_name -> ai.options.gloo.solo.io.UpstreamSpec.MultiPool.Backend
+	7,  // 57: ai.options.gloo.solo.io.Embedding.OpenAI.auth_token:type_name -> ai.options.gloo.solo.io.SingleAuthToken
+	7,  // 58: ai.options.gloo.solo.io.Embedding.AzureOpenAI.auth_token:type_name -> ai.options.gloo.solo.io.SingleAuthToken
+	34, // 59: ai.options.gloo.solo.io.SemanticCache.DataStore.redis:type_name -> ai.options.gloo.solo.io.SemanticCache.Redis
+	35, // 60: ai.options.gloo.solo.io.SemanticCache.DataStore.weaviate:type_name -> ai.options.gloo.solo.io.SemanticCache.Weaviate
+	11, // 61: ai.options.gloo.solo.io.RAG.DataStore.postgres:type_name -> ai.options.gloo.solo.io.Postgres
+	44, // 62: ai.options.gloo.solo.io.AIPromptGuard.Regex.matches:type_name -> ai.options.gloo.solo.io.AIPromptGuard.Regex.RegexMatch
+	4,  // 63: ai.options.gloo.solo.io.AIPromptGuard.Regex.builtins:type_name -> ai.options.gloo.solo.io.AIPromptGuard.Regex.BuiltIn
+	5,  // 64: ai.options.gloo.solo.io.AIPromptGuard.Regex.action:type_name -> ai.options.gloo.solo.io.AIPromptGuard.Regex.Action
+	45, // 65: ai.options.gloo.solo.io.AIPromptGuard.Webhook.forwardHeaders:type_name -> ai.options.gloo.solo.io.AIPromptGuard.Webhook.HeaderMatch
+	46, // 66: ai.options.gloo.solo.io.AIPromptGuard.Moderation.openai:type_name -> ai.options.gloo.solo.io.AIPromptGuard.Moderation.OpenAI
+	47, // 67: ai.options.gloo.solo.io.AIPromptGuard.Request.custom_response:type_name -> ai.options.gloo.solo.io.AIPromptGuard.Request.CustomResponse
+	39, // 68: ai.options.gloo.solo.io.AIPromptGuard.Request.regex:type_name -> ai.options.gloo.solo.io.AIPromptGuard.Regex
+	40, // 69: ai.options.gloo.solo.io.AIPromptGuard.Request.webhook:type_name -> ai.options.gloo.solo.io.AIPromptGuard.Webhook
+	41, // 70: ai.options.gloo.solo.io.AIPromptGuard.Request.moderation:type_name -> ai.options.gloo.solo.io.AIPromptGuard.Moderation
+	39, // 71: ai.options.gloo.solo.io.AIPromptGuard.Response.regex:type_name -> ai.options.gloo.solo.io.AIPromptGuard.Regex
+	40, // 72: ai.options.gloo.solo.io.AIPromptGuard.Response.webhook:type_name -> ai.options.gloo.solo.io.AIPromptGuard.Webhook
+	6,  // 73: ai.options.gloo.solo.io.AIPromptGuard.Webhook.HeaderMatch.match_type:type_name -> ai.options.gloo.solo.io.AIPromptGuard.Webhook.HeaderMatch.MatchType
+	7,  // 74: ai.options.gloo.solo.io.AIPromptGuard.Moderation.OpenAI.auth_token:type_name -> ai.options.gloo.solo.io.SingleAuthToken
+	75, // [75:75] is the sub-list for method output_type
+	75, // [75:75] is the sub-list for method input_type
+	75, // [75:75] is the sub-list for extension type_name
+	75, // [75:75] is the sub-list for extension extendee
+	0,  // [0:75] is the sub-list for field type_name
 }
 
 func init() { file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ai_ai_proto_init() }
