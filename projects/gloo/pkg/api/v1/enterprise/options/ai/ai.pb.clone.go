@@ -530,6 +530,12 @@ func (m *UpstreamSpec_AzureOpenAI) Clone() proto.Message {
 
 	target.ApiVersion = m.GetApiVersion()
 
+	if h, ok := interface{}(m.GetCustomHost()).(clone.Cloner); ok {
+		target.CustomHost = h.Clone().(*UpstreamSpec_CustomHost)
+	} else {
+		target.CustomHost = proto.Clone(m.GetCustomHost()).(*UpstreamSpec_CustomHost)
+	}
+
 	switch m.AuthTokenSource.(type) {
 
 	case *UpstreamSpec_AzureOpenAI_AuthToken:
@@ -560,6 +566,12 @@ func (m *UpstreamSpec_Gemini) Clone() proto.Message {
 	target.Model = m.GetModel()
 
 	target.ApiVersion = m.GetApiVersion()
+
+	if h, ok := interface{}(m.GetCustomHost()).(clone.Cloner); ok {
+		target.CustomHost = h.Clone().(*UpstreamSpec_CustomHost)
+	} else {
+		target.CustomHost = proto.Clone(m.GetCustomHost()).(*UpstreamSpec_CustomHost)
+	}
 
 	switch m.AuthTokenSource.(type) {
 
@@ -601,6 +613,12 @@ func (m *UpstreamSpec_VertexAI) Clone() proto.Message {
 	target.Publisher = m.GetPublisher()
 
 	target.JsonSchema = m.GetJsonSchema()
+
+	if h, ok := interface{}(m.GetCustomHost()).(clone.Cloner); ok {
+		target.CustomHost = h.Clone().(*UpstreamSpec_CustomHost)
+	} else {
+		target.CustomHost = proto.Clone(m.GetCustomHost()).(*UpstreamSpec_CustomHost)
+	}
 
 	switch m.AuthTokenSource.(type) {
 

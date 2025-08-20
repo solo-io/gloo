@@ -1,0 +1,6 @@
+changelog:
+  - type: NEW_FEATURE
+    issueLink: https://github.com/solo-io/solo-projects/issues/8438
+    resolvesIssue: false
+    description: >-
+      updated ai.proto to support customhost in all AI providers
