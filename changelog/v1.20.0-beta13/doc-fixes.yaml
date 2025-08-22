@@ -1,0 +1,7 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >-
+      Fix the docs build workflow to not fail when the docsgen fails.
+
+      skipCI-kube-tests:true
+      skipCI-docs-build:true
