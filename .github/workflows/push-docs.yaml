@@ -234,8 +234,8 @@ jobs:
       env:
         # channel: #doctopus-tests - https://solo-io-corp.slack.com/archives/C04DYBSJK0R
         SLACK_CHANNEL_ID: C04DYBSJK0R
-        JOB_URL: https://github.com/solo-io/gloo-cli/actions/runs/${GITHUB_RUN_ID}
-        MESSAGE: "❌ *Failure:* Automated copy of reference docs for ${VERSION} failed. <${JOB_URL}|Review the workflow failure>"
+        JOB_URL: https://github.com/solo-io/gloo/actions/runs/${GITHUB_RUN_ID}
+        MESSAGE: "❌ *Failure*: Automated copy of reference docs in the gloo repo failed. <${JOB_URL}|Review the workflow failure>"
       with:
         method: chat.postMessage
         token: ${{ secrets.SLACK_BOT_TOKEN }}
