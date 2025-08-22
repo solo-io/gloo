@@ -18,14 +18,9 @@ on:
   # Month of the year [1,12]
   # Day of the week ([0,6] with 0=Sunday)
 
-  # ON_LTS_UPDATE: Update schedule. The easiest way to do this is probably to update the comment of the oldest branch here to reflect the new LTS branch,
-  #  and then use that schedule in the "if" for the new test run job for the LTS. This way, no other schedules need to be changed.
-  #  There is no need for the LTS branches to run in any specfic order.
-  schedule:
-    - cron: "0 5 * * *" # every day @ 05:00 UTC, run tests against latest main
-    - cron: "0 6 * * 1" # monday    @ 06:00 UTC, run expanded tests against v1.19.x
-    - cron: "0 7 * * 1" # monday    @ 07:00 UTC, run expanded tests against v1.18.x
-    - cron: "0 8 * * 1" # monday    @ 08:00 UTC, run expanded tests against v1.17.x
+  # Since this is an LTS branch, we removed the schedule, since that is defined on the `main` branch
+  # schedule:
+  # -
   workflow_dispatch:
     inputs:
       branch:
@@ -35,9 +30,9 @@ on:
           - main
             # ON_LTS_UPDATE: Add new LTS branch here
             # We decided to go with branch names instead of latest_stable based on the discussion [here](https://solo-io-corp.slack.com/archives/C0899JVG486/p1745354465272779)
+          - v1.20.x
           - v1.19.x
           - v1.18.x
-          - v1.17.x
           - workflow_initiating_branch
       run-regression:
         description: "Run regression tests"
@@ -747,13 +742,13 @@ jobs:
             branch="main"
           elif [[ ${{github.event.schedule == '0 6 * * 1'}} = true ]]; then
             trigger="Gloo OSS weeklies"
-            branch="v1.19.x"
+            branch="v1.20.x"
           elif [[ ${{github.event.schedule == '0 7 * * 1'}} = true ]]; then
             trigger="Gloo OSS weeklies"
-            branch="v1.18.x"
+            branch="v1.19.x"
           elif [[ ${{github.event.schedule == '0 8 * * 1'}} = true ]]; then
             trigger="Gloo OSS nightlies"
-            branch="v1.17.x"
+            branch="v1.18.x"
           fi
           preamble="$trigger ($branch)"
           echo "Setting PREAMBLE as $preamble"
