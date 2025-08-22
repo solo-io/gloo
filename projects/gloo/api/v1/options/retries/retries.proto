@@ -28,6 +28,36 @@ message RetryBackOff {
     google.protobuf.Duration max_interval = 2 [(validate.rules).duration = {gt {}}];
 }
 
+// ResetHeader is a header that is used to reset the retry backoff.
+message ResetHeader {
+    // Specifies the name of the header to interpret for the retry backoff.
+    string name = 1;
+
+    enum HeaderFormat {
+        SECONDS = 0;
+        UNIX_TIMESTAMP = 1;
+    }
+
+    // Specifies the format of the header to interpret for the retry backoff.
+    HeaderFormat format = 2;
+}
+
+// This specifies the retry policy interval for rate limited requests.
+// Based on: https://github.com/envoyproxy/envoy/blob/4a134ce926cf0b882a4c416734b579f9722ed1eb/api/envoy/config/route/v3/route_components.proto#L1522
+message RateLimitedRetryBackOff {
+
+    // Specifies the reset headers (like ``Retry-After`` or ``X-RateLimit-Reset``)
+    // to match against the response. Headers are tried in order, and matched case
+    // insensitive. The first header to be parsed successfully is used. If no headers
+    // match the default exponential back-off is used instead.
+    repeated ResetHeader reset_headers = 1;
+
+    // Specifies the maximum back off interval that Gloo will allow. If a reset
+    // header contains an interval longer than this then it will be discarded and
+    // the next header will be tried. Defaults to 300 seconds.
+    google.protobuf.Duration max_interval = 2 [(validate.rules).duration = {gt {}}];
+}
+
 // Retry Policy applied at the Route and/or Virtual Hosts levels.
 message RetryPolicy {
     // Specifies the conditions under which retry takes place. These are the same
@@ -61,4 +91,10 @@ message RetryPolicy {
     // This can be useful if you want to retry on a status code that is not in the retry_on list.
     // Specifically those in the 4xx range.
     repeated uint32 retriable_status_codes = 6;
+
+
+    // Optional: Specifies the retry backoff strategy for rate limited requests.
+    RateLimitedRetryBackOff rate_limited_retry_back_off = 7;
+
+
 }

@@ -136,7 +136,6 @@ If the cluster to register is running with KinD, empty the ca-cert section of yo
       - gateway.solo.io
       - enterprise.gloo.solo.io
       - ratelimit.solo.io
-      - graphql.gloo.solo.io
       resources:
       - '*'
       verbs:

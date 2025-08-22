@@ -226,12 +226,6 @@ func (f *FeatureCalculator) processRoute(route *api.Route, parentName string, pa
 			}
 		}
 	}
-	if route.GetGraphqlApiRef() != nil {
-		f.AddUsageStat(&UsageStat{
-			Type:     GRAPHQL,
-			Metadata: defaultMetadata,
-		})
-	}
 	if route.GetOptions() != nil {
 		f.processRouteOptions(route.GetOptions(), parentName, parentKind, parentNamespace, GlooEdgeAPI, proxyNames)
 	}

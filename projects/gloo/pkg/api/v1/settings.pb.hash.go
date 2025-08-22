@@ -487,26 +487,6 @@ func (m *Settings) Hash(hasher hash.Hash64) (uint64, error) {
 		}
 	}
 
-	if h, ok := interface{}(m.GetGraphqlOptions()).(safe_hasher.SafeHasher); ok {
-		if _, err = hasher.Write([]byte("GraphqlOptions")); err != nil {
-			return 0, err
-		}
-		if _, err = h.Hash(hasher); err != nil {
-			return 0, err
-		}
-	} else {
-		if fieldValue, err := hashstructure.Hash(m.GetGraphqlOptions(), nil); err != nil {
-			return 0, err
-		} else {
-			if _, err = hasher.Write([]byte("GraphqlOptions")); err != nil {
-				return 0, err
-			}
-			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
-				return 0, err
-			}
-		}
-	}
-
 	if h, ok := interface{}(m.GetExtProc()).(safe_hasher.SafeHasher); ok {
 		if _, err = hasher.Write([]byte("ExtProc")); err != nil {
 			return 0, err
@@ -1447,46 +1427,6 @@ func (m *ConsoleOptions) Hash(hasher hash.Hash64) (uint64, error) {
 		return 0, err
 	}
 
-	if h, ok := interface{}(m.GetReadOnly()).(safe_hasher.SafeHasher); ok {
-		if _, err = hasher.Write([]byte("ReadOnly")); err != nil {
-			return 0, err
-		}
-		if _, err = h.Hash(hasher); err != nil {
-			return 0, err
-		}
-	} else {
-		if fieldValue, err := hashstructure.Hash(m.GetReadOnly(), nil); err != nil {
-			return 0, err
-		} else {
-			if _, err = hasher.Write([]byte("ReadOnly")); err != nil {
-				return 0, err
-			}
-			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
-				return 0, err
-			}
-		}
-	}
-
-	if h, ok := interface{}(m.GetApiExplorerEnabled()).(safe_hasher.SafeHasher); ok {
-		if _, err = hasher.Write([]byte("ApiExplorerEnabled")); err != nil {
-			return 0, err
-		}
-		if _, err = h.Hash(hasher); err != nil {
-			return 0, err
-		}
-	} else {
-		if fieldValue, err := hashstructure.Hash(m.GetApiExplorerEnabled(), nil); err != nil {
-			return 0, err
-		} else {
-			if _, err = hasher.Write([]byte("ApiExplorerEnabled")); err != nil {
-				return 0, err
-			}
-			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
-				return 0, err
-			}
-		}
-	}
-
 	return hasher.Sum64(), nil
 }
 
@@ -1505,26 +1445,6 @@ func (m *GraphqlOptions) Hash(hasher hash.Hash64) (uint64, error) {
 	var err error
 	if _, err = hasher.Write([]byte("gloo.solo.io.github.com/solo-io/gloo/projects/gloo/pkg/api/v1.GraphqlOptions")); err != nil {
 		return 0, err
-	}
-
-	if h, ok := interface{}(m.GetSchemaChangeValidationOptions()).(safe_hasher.SafeHasher); ok {
-		if _, err = hasher.Write([]byte("SchemaChangeValidationOptions")); err != nil {
-			return 0, err
-		}
-		if _, err = h.Hash(hasher); err != nil {
-			return 0, err
-		}
-	} else {
-		if fieldValue, err := hashstructure.Hash(m.GetSchemaChangeValidationOptions(), nil); err != nil {
-			return 0, err
-		} else {
-			if _, err = hasher.Write([]byte("SchemaChangeValidationOptions")); err != nil {
-				return 0, err
-			}
-			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
-				return 0, err
-			}
-		}
 	}
 
 	return hasher.Sum64(), nil
@@ -2560,26 +2480,6 @@ func (m *Settings_DiscoveryOptions_FdsOptions) Hash(hasher hash.Hash64) (uint64,
 		return 0, err
 	}
 
-	if h, ok := interface{}(m.GetGraphqlEnabled()).(safe_hasher.SafeHasher); ok {
-		if _, err = hasher.Write([]byte("GraphqlEnabled")); err != nil {
-			return 0, err
-		}
-		if _, err = h.Hash(hasher); err != nil {
-			return 0, err
-		}
-	} else {
-		if fieldValue, err := hashstructure.Hash(m.GetGraphqlEnabled(), nil); err != nil {
-			return 0, err
-		} else {
-			if _, err = hasher.Write([]byte("GraphqlEnabled")); err != nil {
-				return 0, err
-			}
-			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
-				return 0, err
-			}
-		}
-	}
-
 	return hasher.Sum64(), nil
 }
 
@@ -3171,35 +3071,6 @@ func (m *GraphqlOptions_SchemaChangeValidationOptions) Hash(hasher hash.Hash64) 
 	var err error
 	if _, err = hasher.Write([]byte("gloo.solo.io.github.com/solo-io/gloo/projects/gloo/pkg/api/v1.GraphqlOptions_SchemaChangeValidationOptions")); err != nil {
 		return 0, err
-	}
-
-	if h, ok := interface{}(m.GetRejectBreakingChanges()).(safe_hasher.SafeHasher); ok {
-		if _, err = hasher.Write([]byte("RejectBreakingChanges")); err != nil {
-			return 0, err
-		}
-		if _, err = h.Hash(hasher); err != nil {
-			return 0, err
-		}
-	} else {
-		if fieldValue, err := hashstructure.Hash(m.GetRejectBreakingChanges(), nil); err != nil {
-			return 0, err
-		} else {
-			if _, err = hasher.Write([]byte("RejectBreakingChanges")); err != nil {
-				return 0, err
-			}
-			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
-				return 0, err
-			}
-		}
-	}
-
-	for _, v := range m.GetProcessingRules() {
-
-		err = binary.Write(hasher, binary.LittleEndian, v)
-		if err != nil {
-			return 0, err
-		}
-
 	}
 
 	return hasher.Sum64(), nil

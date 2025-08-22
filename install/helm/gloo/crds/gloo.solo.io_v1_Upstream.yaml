@@ -725,14 +725,6 @@ spec:
                     type: string
                   serviceSpec:
                     properties:
-                      graphql:
-                        properties:
-                          endpoint:
-                            properties:
-                              url:
-                                type: string
-                            type: object
-                        type: object
                       grpc:
                         properties:
                           descriptors:
@@ -1391,14 +1383,6 @@ spec:
                     type: integer
                   serviceSpec:
                     properties:
-                      graphql:
-                        properties:
-                          endpoint:
-                            properties:
-                              url:
-                                type: string
-                            type: object
-                        type: object
                       grpc:
                         properties:
                           descriptors:
@@ -1765,14 +1749,6 @@ spec:
                     type: string
                   serviceSpec:
                     properties:
-                      graphql:
-                        properties:
-                          endpoint:
-                            properties:
-                              url:
-                                type: string
-                            type: object
-                        type: object
                       grpc:
                         properties:
                           descriptors:
@@ -2088,14 +2064,6 @@ spec:
                     type: array
                   serviceSpec:
                     properties:
-                      graphql:
-                        properties:
-                          endpoint:
-                            properties:
-                              url:
-                                type: string
-                            type: object
-                        type: object
                       grpc:
                         properties:
                           descriptors:
