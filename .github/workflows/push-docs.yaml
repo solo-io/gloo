@@ -56,14 +56,17 @@ jobs:
         minor=""
         directory=""
         if [[ "${{ steps.lts-version.outputs.lts }}" == "main" ]]; then
-          minor="1.20"
+          minor="1.21"
+          directory="main"
+        elif [[ "${{ steps.lts-version.outputs.lts }}" == "v1.21.x" ]]; then
+          minor="1.21"
           directory="main"
         elif [[ "${{ steps.lts-version.outputs.lts }}" == "v1.20.x" ]]; then
           minor="1.20"
-          directory="main"
+          directory="latest"
         elif [[ "${{ steps.lts-version.outputs.lts }}" == "v1.19.x" ]]; then
           minor="1.19"
-          directory="latest"
+          directory="v1.19.x"
         elif [[ "${{ steps.lts-version.outputs.lts }}" == "v1.18.x" ]]; then
           minor="1.18"
           directory="1.18.x"
@@ -71,7 +74,7 @@ jobs:
           minor="1.17"
           directory="1.17.x"
         else
-          minor="1.20"
+          minor="1.21"
           directory="main"
         fi
         echo "minor=${minor}" >> $GITHUB_OUTPUT

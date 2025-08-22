@@ -1,0 +1,7 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >-
+      Update the main branch workflows after cutting the v1.20.x branch and add changelog placeholder for v1.21.0-beta1.
+      
+      skipCI-kube-tests:true
+      skipCI-docs-build:true
