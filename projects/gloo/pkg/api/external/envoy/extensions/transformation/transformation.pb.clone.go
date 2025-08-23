@@ -62,6 +62,8 @@ func (m *FilterTransformations) Clone() proto.Message {
 
 	target.LogRequestResponseInfo = m.GetLogRequestResponseInfo()
 
+	target.AutoWebsocketPassthrough = m.GetAutoWebsocketPassthrough()
+
 	return target
 }
 

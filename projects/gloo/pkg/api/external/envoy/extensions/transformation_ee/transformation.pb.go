@@ -31,8 +31,11 @@ type FilterTransformations struct {
 	// Specifies transformations based on the route matches. The first matched transformation will be
 	// applied. If there are overlapped match conditions, please put the most specific match first.
 	Transformations []*TransformationRule `protobuf:"bytes,1,rep,name=transformations,proto3" json:"transformations,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	// Automatically detect websocket upgrade request and pass through the request and response
+	// body without applying body transformations. Header transformation will still apply.
+	AutoWebsocketPassthrough bool `protobuf:"varint,3,opt,name=auto_websocket_passthrough,json=autoWebsocketPassthrough,proto3" json:"auto_websocket_passthrough,omitempty"`
+	unknownFields            protoimpl.UnknownFields
+	sizeCache                protoimpl.SizeCache
 }
 
 func (x *FilterTransformations) Reset() {
@@ -70,6 +73,13 @@ func (x *FilterTransformations) GetTransformations() []*TransformationRule {
 		return x.Transformations
 	}
 	return nil
+}
+
+func (x *FilterTransformations) GetAutoWebsocketPassthrough() bool {
+	if x != nil {
+		return x.AutoWebsocketPassthrough
+	}
+	return false
 }
 
 type TransformationRule struct {
@@ -696,9 +706,10 @@ var File_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_tra
 
 const file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_transformation_ee_transformation_proto_rawDesc = "" +
 	"\n" +
-	"jgithub.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/transformation_ee/transformation.proto\x12-envoy.config.filter.http.transformation_ee.v2\x1a\x17validate/validate.proto\x1a\x1eenvoy/api/v2/route/route.proto\x1aAgithub.com/solo-io/solo-kit/api/external/envoy/type/percent.proto\x1a_github.com/solo-io/gloo/projects/gloo/api/external/envoy/config/route/v3/route_components.proto\"\x84\x01\n" +
+	"jgithub.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/transformation_ee/transformation.proto\x12-envoy.config.filter.http.transformation_ee.v2\x1a\x17validate/validate.proto\x1a\x1eenvoy/api/v2/route/route.proto\x1aAgithub.com/solo-io/solo-kit/api/external/envoy/type/percent.proto\x1a_github.com/solo-io/gloo/projects/gloo/api/external/envoy/config/route/v3/route_components.proto\"\xc2\x01\n" +
 	"\x15FilterTransformations\x12k\n" +
-	"\x0ftransformations\x18\x01 \x03(\v2A.envoy.config.filter.http.transformation_ee.v2.TransformationRuleR\x0ftransformations\"\x92\x02\n" +
+	"\x0ftransformations\x18\x01 \x03(\v2A.envoy.config.filter.http.transformation_ee.v2.TransformationRuleR\x0ftransformations\x12<\n" +
+	"\x1aauto_websocket_passthrough\x18\x03 \x01(\bR\x18autoWebsocketPassthrough\"\x92\x02\n" +
 	"\x12TransformationRule\x12<\n" +
 	"\x05match\x18\x01 \x01(\v2&.solo.io.envoy.api.v2.route.RouteMatchR\x05match\x12D\n" +
 	"\bmatch_v3\x18\x03 \x01(\v2).solo.io.envoy.config.route.v3.RouteMatchR\amatchV3\x12x\n" +

@@ -154,8 +154,11 @@ type FilterTransformations struct {
 	// If set to true, the filter will log the request/response body and headers before and
 	// after any transformation is applied.
 	LogRequestResponseInfo bool `protobuf:"varint,3,opt,name=log_request_response_info,json=logRequestResponseInfo,proto3" json:"log_request_response_info,omitempty"`
-	unknownFields          protoimpl.UnknownFields
-	sizeCache              protoimpl.SizeCache
+	// Automatically detect websocket upgrade request and pass through the request and response
+	// body without applying body transformations. Header transformation will still apply.
+	AutoWebsocketPassthrough bool `protobuf:"varint,5,opt,name=auto_websocket_passthrough,json=autoWebsocketPassthrough,proto3" json:"auto_websocket_passthrough,omitempty"`
+	unknownFields            protoimpl.UnknownFields
+	sizeCache                protoimpl.SizeCache
 }
 
 func (x *FilterTransformations) Reset() {
@@ -205,6 +208,13 @@ func (x *FilterTransformations) GetStage() uint32 {
 func (x *FilterTransformations) GetLogRequestResponseInfo() bool {
 	if x != nil {
 		return x.LogRequestResponseInfo
+	}
+	return false
+}
+
+func (x *FilterTransformations) GetAutoWebsocketPassthrough() bool {
+	if x != nil {
+		return x.AutoWebsocketPassthrough
 	}
 	return false
 }
@@ -2032,12 +2042,13 @@ var File_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_tra
 
 const file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_transformation_transformation_proto_rawDesc = "" +
 	"\n" +
-	"ggithub.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/transformation/transformation.proto\x12\x18envoy.api.v2.filter.http\x1a\x12extproto/ext.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1egoogle/protobuf/wrappers.proto\x1a\x17validate/validate.proto\x1a_github.com/solo-io/gloo/projects/gloo/api/external/envoy/config/route/v3/route_components.proto\x1aUgithub.com/solo-io/gloo/projects/gloo/api/external/envoy/type/matcher/v3/string.proto\x1aWgithub.com/solo-io/gloo/projects/gloo/api/external/envoy/config/core/v3/extension.proto\"\xc9\x01\n" +
+	"ggithub.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/transformation/transformation.proto\x12\x18envoy.api.v2.filter.http\x1a\x12extproto/ext.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1egoogle/protobuf/wrappers.proto\x1a\x17validate/validate.proto\x1a_github.com/solo-io/gloo/projects/gloo/api/external/envoy/config/route/v3/route_components.proto\x1aUgithub.com/solo-io/gloo/projects/gloo/api/external/envoy/type/matcher/v3/string.proto\x1aWgithub.com/solo-io/gloo/projects/gloo/api/external/envoy/config/core/v3/extension.proto\"\x87\x02\n" +
 	"\x15FilterTransformations\x12V\n" +
 	"\x0ftransformations\x18\x01 \x03(\v2,.envoy.api.v2.filter.http.TransformationRuleR\x0ftransformations\x12\x1d\n" +
 	"\x05stage\x18\x02 \x01(\rB\a\xfaB\x04*\x02\x18\n" +
 	"R\x05stage\x129\n" +
-	"\x19log_request_response_info\x18\x03 \x01(\bR\x16logRequestResponseInfo\"\xcf\x04\n" +
+	"\x19log_request_response_info\x18\x03 \x01(\bR\x16logRequestResponseInfo\x12<\n" +
+	"\x1aauto_websocket_passthrough\x18\x05 \x01(\bR\x18autoWebsocketPassthrough\"\xcf\x04\n" +
 	"\x12TransformationRule\x12I\n" +
 	"\x05match\x18\x01 \x01(\v2).solo.io.envoy.config.route.v3.RouteMatchB\b\xfaB\x05\x8a\x01\x02\x10\x01R\x05match\x12q\n" +
 	"\x15route_transformations\x18\x02 \x01(\v2<.envoy.api.v2.filter.http.TransformationRule.TransformationsR\x14routeTransformations\x1a\xfa\x02\n" +
