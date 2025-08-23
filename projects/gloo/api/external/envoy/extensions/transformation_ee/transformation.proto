@@ -18,6 +18,15 @@ message FilterTransformations {
     // Specifies transformations based on the route matches. The first matched transformation will be
     // applied. If there are overlapped match conditions, please put the most specific match first.
     repeated TransformationRule transformations = 1;
+
+    // There is a log_request_response_info field in
+    // envoy-gloo-ee/api/envoy/config/filter/http/transformation_ee/v2/transformation_ee_filter.proto
+    // that's using field #2 but never made it here. So, we never used it in the control plane? 
+    // Commenting here just so we don't accidentally use field # 2
+
+    // Automatically detect websocket upgrade request and pass through the request and response
+    // body without applying body transformations. Header transformation will still apply.
+    bool auto_websocket_passthrough = 3;
 }
 
 message TransformationRule {
