@@ -42,6 +42,13 @@ function create_kind_cluster_or_skip() {
       --name "$CLUSTER_NAME" \
       --image "kindest/node:$CLUSTER_NODE_VERSION" \
       --config="$SCRIPT_DIR/cluster_ipv6.yaml"
+
+    # this is a hack to bypass lack of a docker ipv6 dns resolver.
+    # see https://github.com/kubernetes-sigs/kind/issues/1736
+    # and https://github.com/moby/moby/issues/41651
+    new_core_file=$(kubectl get cm -n kube-system coredns -o jsonpath='{.data.Corefile}' | sed 's,forward . /etc/resolv.conf,forward . [64:ff9b::8.8.8.8]:53 [64:ff9b::8.8.4.4]:53,' | sed -z 's/\n/\\n/g')
+    kubectl patch configmap/coredns -n kube-system --type merge -p '{"data":{"Corefile": "'"$new_core_file"'"}}'
+
   else
     echo "creating cluster ${CLUSTER_NAME}"
     kind create cluster \
@@ -63,17 +70,21 @@ function create_kind_cluster_or_skip() {
   helm repo add cilium-setup-kind https://helm.cilium.io/
   helm repo update
   if [[ "$is_ipv6" = true ]]; then
-    helm install cilium cilium-setup-kind/cilium --version $CILIUM_VERSION \
+    helm install cilium cilium-setup-kind/cilium \
+      --version $CILIUM_VERSION \
       --namespace kube-system \
       --set image.pullPolicy=IfNotPresent \
-      --set ipam.mode=kubernetes \
       --set operator.replicas=1 \
       --set ipv6.enabled=true \
       --set ipv4.enabled=false \
+      --set ipam.mode=kubernetes \
       --set routingMode=native \
-      --set enableIPv6Masquerade=false
+      --set autoDirectNodeRoutes=true \
+      --set ipv6NativeRoutingCIDR=fd00:10:244::/48 \
+      --set enableIPv6Masquerade=true
   else
-    helm install cilium cilium-setup-kind/cilium --version $CILIUM_VERSION \
+    helm install cilium cilium-setup-kind/cilium \
+      --version $CILIUM_VERSION \
       --namespace kube-system \
       --set image.pullPolicy=IfNotPresent \
       --set ipam.mode=kubernetes \

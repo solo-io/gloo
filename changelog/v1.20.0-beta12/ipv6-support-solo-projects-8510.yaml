@@ -1,0 +1,14 @@
+changelog:
+  - type: NEW_FEATURE
+    issueLink: https://github.com/solo-io/gloo/issues/8510
+    resolvesIssue: false
+    description: >-
+      This adds the initial support for IPv6.
+      - Exposes IP family management (`DnsIpFamily`) via `Settings.UpstreamOptions.DnsLookupIpFamily`  and `Upstream.DnsLookupIpFamily` for DNS lookup.
+        `DnsLookupIpFamily` under `Upstream` helps to manage it at the upstream level but other will inherit the global configuration under `Settings`.
+  - type: HELM
+    issueLink: https://github.com/solo-io/gloo/issues/8510
+    resolvesIssue: false
+    description: >-
+      - Adds `upstreamOptions.dnsLookupIpFamily` to settings.yaml to manage the IP family globally.
+      - Proxy bootstrap configuration is updated to handle V6 listeners.

@@ -37,7 +37,9 @@ data:
     http {
       server {
           listen              80;
+          listen              [::]:80;
           listen              443 ssl;
+          listen              [::]:443 ssl;
           server_name         localhost nginx nginx.nginx nginx.nginx.svc nginx.nginx.svc.cluster.local;
           ssl_certificate     /etc/nginx/tls/tls.crt;
           ssl_certificate_key /etc/nginx/tls/tls.key;

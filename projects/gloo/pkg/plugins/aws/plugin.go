@@ -7,6 +7,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/hashicorp/go-multierror"
+	plugin_utils "github.com/solo-io/gloo/projects/gloo/pkg/plugins/utils"
 
 	envoy_config_cluster_v3 "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
 	envoy_config_core_v3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
@@ -60,7 +61,7 @@ var (
 type Plugin struct {
 	perRouteConfigGenerator      PerRouteConfigGenerator
 	recordedUpstreams            map[string]*aws.UpstreamSpec
-	settings                     *v1.GlooOptions_AWSOptions
+	settings                     *v1.Settings
 	upstreamOptions              *v1.UpstreamOptions
 	requiresTransformationFilter bool
 }
@@ -82,7 +83,7 @@ func (p *Plugin) Name() string {
 // the current settings for the plugin, and whether we currently need transformation.
 func (p *Plugin) Init(params plugins.InitParams) {
 	p.recordedUpstreams = make(map[string]*aws.UpstreamSpec)
-	p.settings = params.Settings.GetGloo().GetAwsOptions()
+	p.settings = params.Settings
 	p.upstreamOptions = params.Settings.GetUpstreamOptions()
 	p.requiresTransformationFilter = false
 }
@@ -106,9 +107,15 @@ func (p *Plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *en
 	out.ClusterDiscoveryType = &envoy_config_cluster_v3.Cluster_Type{
 		Type: envoy_config_cluster_v3.Cluster_LOGICAL_DNS,
 	}
-	// TODO(yuval-k): why do we need to make sure we use ipv4 only dns?
+
 	// TODO(nfuden): Update to reasonable ipv6 https://aws.amazon.com/about-aws/whats-new/2021/12/aws-lambda-ipv6-endpoints-inbound-connections/
-	out.DnsLookupFamily = envoy_config_cluster_v3.Cluster_V4_ONLY
+	ipFamily := p.settings.GetUpstreamOptions().GetDnsLookupIpFamily()
+	// if not auto then just override to whatever family that is at the upstream level, otherwise use the global
+	if in.GetDnsLookupIpFamily() != v1.DnsIpFamily_AUTO {
+		ipFamily = in.GetDnsLookupIpFamily()
+	}
+	out.DnsLookupFamily = plugin_utils.TranslateIpFamily(ipFamily)
+
 	pluginutils.EnvoySingleEndpointLoadAssignment(out, lambdaHostname, 443)
 
 	commonTlsContext, err := utils.GetCommonTlsContextFromUpstreamOptions(p.upstreamOptions)
@@ -134,8 +141,8 @@ func (p *Plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *en
 	// Currently: static secret ref, credential discovery or ServiceAccountCreds such in eks
 
 	if upstreamSpec.Aws.GetSecretRef() == nil &&
-		!p.settings.GetEnableCredentialsDiscovey() &&
-		p.settings.GetServiceAccountCredentials() == nil {
+		!p.settings.GetGloo().GetAwsOptions().GetEnableCredentialsDiscovey() &&
+		p.settings.GetGloo().GetAwsOptions().GetServiceAccountCredentials() == nil {
 		return errors.Errorf("no aws secret provided. consider setting enableCredentialsDiscovey to true or enabling service account credentials if running in EKS")
 	}
 
@@ -170,7 +177,7 @@ func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 			logger := contextutils.LoggerFrom(params.Ctx)
 			// local variable to avoid side effects for calls that are not to aws upstreams
 			dest := spec.GetDestinationSpec()
-			tryingNonExplicitAWSDest := dest == nil && p.settings.GetFallbackToFirstFunction().GetValue()
+			tryingNonExplicitAWSDest := dest == nil && p.settings.GetGloo().GetAwsOptions().GetFallbackToFirstFunction().GetValue()
 
 			// users do not have to set the aws destination spec on the route if they have fallback enabled.
 			// check for this and update the local variable to not cause destination side effects until the end when we
@@ -227,7 +234,7 @@ func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 				spec.DestinationSpec = dest
 			}
 
-			return p.perRouteConfigGenerator(p.settings, awsDestinationSpec.Aws, lambdaSpec)
+			return p.perRouteConfigGenerator(p.settings.GetGloo().GetAwsOptions(), awsDestinationSpec.Aws, lambdaSpec)
 		},
 	)
 
@@ -304,7 +311,7 @@ func (p *Plugin) HttpFilters(_ plugins.Params, _ *v1.HttpListener) ([]plugins.St
 		return nil, nil
 	}
 	filterConfig := &AWSLambdaConfig{}
-	switch typedFetcher := p.settings.GetCredentialsFetcher().(type) {
+	switch typedFetcher := p.settings.GetGloo().GetAwsOptions().GetCredentialsFetcher().(type) {
 	case *v1.GlooOptions_AWSOptions_EnableCredentialsDiscovey:
 		filterConfig.CredentialsFetcher = &AWSLambdaConfig_UseDefaultCredentials{
 			UseDefaultCredentials: &wrappers.BoolValue{
@@ -316,8 +323,8 @@ func (p *Plugin) HttpFilters(_ plugins.Params, _ *v1.HttpListener) ([]plugins.St
 			ServiceAccountCredentials: typedFetcher.ServiceAccountCredentials,
 		}
 	}
-	filterConfig.CredentialRefreshDelay = p.settings.GetCredentialRefreshDelay()
-	filterConfig.PropagateOriginalRouting = p.settings.GetPropagateOriginalRouting().GetValue()
+	filterConfig.CredentialRefreshDelay = p.settings.GetGloo().GetAwsOptions().GetCredentialRefreshDelay()
+	filterConfig.PropagateOriginalRouting = p.settings.GetGloo().GetAwsOptions().GetPropagateOriginalRouting().GetValue()
 
 	f, err := plugins.NewStagedFilter(FilterName, filterConfig, pluginStage)
 	if err != nil {

@@ -35,16 +35,16 @@ func TestGlooGatewayEdgeGateway(t *testing.T) {
 
 	// We register the cleanup function _before_ we actually perform the installation.
 	// This allows us to uninstall Gloo Gateway, in case the original installation only completed partially
-	//t.Cleanup(func() {
-	//	if !nsEnvPredefined {
-	//		os.Unsetenv(testutils.InstallNamespace)
-	//	}
-	//	if t.Failed() {
-	//		testInstallation.PreFailHandler(ctx)
-	//	}
-	//
-	//	testInstallation.UninstallGlooGatewayWithTestHelper(ctx, testHelper)
-	//})
+	t.Cleanup(func() {
+		if !nsEnvPredefined {
+			os.Unsetenv(testutils.InstallNamespace)
+		}
+		if t.Failed() {
+			testInstallation.PreFailHandler(ctx)
+		}
+
+		testInstallation.UninstallGlooGatewayWithTestHelper(ctx, testHelper)
+	})
 
 	// Install Gloo Gateway with only Gloo Edge Gateway APIs enabled
 	testInstallation.InstallGlooGatewayWithTestHelper(ctx, testHelper, 5*time.Minute)

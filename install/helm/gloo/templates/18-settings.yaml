@@ -71,11 +71,6 @@ spec:
       fallbackToFirstFunction: {{ .Values.settings.aws.fallbackToFirstFunction }}
 {{- end }}
 {{- end }}
-{{- if or .Values.settings.ipv4Only (not (hasKey .Values.settings "ipv4Only")) }}
-    dnsLookupIpFamily: V4_ONLY
-{{- else }}
-    dnsLookupIpFamily: V4_PREFERRED
-{{- end }}
 
   {{- if .Values.global.istioIntegration }}
     istioOptions:
@@ -205,6 +200,13 @@ spec:
   watchNamespaceSelectors:
   {{ toYaml .Values.settings.watchNamespaceSelectors | nindent 4 }}
 {{- end }} {{/* if .Values.settings.watchNamespaceSelectors */}}
+
+  upstreamOptions:
+    {{- if or .Values.settings.ipv4Only (not (hasKey .Values.settings "ipv4Only")) }}
+    dnsLookupIpFamily: V4_ONLY
+    {{- else }}
+    dnsLookupIpFamily: V6_ONLY
+    {{- end }}
 
 {{- end }} {{/* if .Values.settings.create  */}}
 {{- end }} {{/* define "settings.settingsSpec" */}}

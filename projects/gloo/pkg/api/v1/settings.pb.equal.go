@@ -629,6 +629,10 @@ func (m *UpstreamOptions) Equal(that interface{}) bool {
 
 	}
 
+	if m.GetDnsLookupIpFamily() != target.GetDnsLookupIpFamily() {
+		return false
+	}
+
 	return true
 }
 
@@ -801,10 +805,6 @@ func (m *GlooOptions) Equal(that interface{}) bool {
 		if !proto.Equal(m.GetIstioOptions(), target.GetIstioOptions()) {
 			return false
 		}
-	}
-
-	if m.GetDnsLookupIpFamily() != target.GetDnsLookupIpFamily() {
-		return false
 	}
 
 	return true

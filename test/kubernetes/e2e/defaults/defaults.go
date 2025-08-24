@@ -28,6 +28,9 @@ var NginxPodYaml []byte
 //go:embed testdata/httpbin.yaml
 var HttpbinYaml []byte
 
+//go:embed testdata/httpbin_ipv6.yaml
+var HttpbinIpv6Yaml []byte
+
 var (
 	CurlPodExecOpt = kubectl.PodExecOptions{
 		Name:      "curl",

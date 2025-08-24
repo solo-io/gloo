@@ -936,6 +936,9 @@ spec:
                       type: string
                     type: object
                 type: object
+              dnsLookupIpFamily:
+                type: string
+                x-kubernetes-int-or-string: true
               dnsRefreshRate:
                 type: string
               failover:

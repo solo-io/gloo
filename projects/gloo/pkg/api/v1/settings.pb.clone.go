@@ -433,6 +433,8 @@ func (m *UpstreamOptions) Clone() proto.Message {
 		}
 	}
 
+	target.DnsLookupIpFamily = m.GetDnsLookupIpFamily()
+
 	return target
 }
 
@@ -531,8 +533,6 @@ func (m *GlooOptions) Clone() proto.Message {
 	} else {
 		target.IstioOptions = proto.Clone(m.GetIstioOptions()).(*GlooOptions_IstioOptions)
 	}
-
-	target.DnsLookupIpFamily = m.GetDnsLookupIpFamily()
 
 	return target
 }

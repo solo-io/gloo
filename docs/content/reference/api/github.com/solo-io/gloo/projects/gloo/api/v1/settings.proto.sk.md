@@ -42,7 +42,6 @@ weight: 5
 - [AWSOptions](#awsoptions)
 - [InvalidConfigPolicy](#invalidconfigpolicy)
 - [IstioOptions](#istiooptions)
-- [IpFamily](#ipfamily)
 - [VirtualServiceOptions](#virtualserviceoptions)
 - [GatewayOptions](#gatewayoptions)
 - [ValidationOptions](#validationoptions)
@@ -727,6 +726,7 @@ When these properties are defined on a specific upstream, this configuration wil
 ```yaml
 "sslParameters": .gloo.solo.io.SslParameters
 "globalAnnotations": map<string, string>
+"dnsLookupIpFamily": .gloo.solo.io.DnsIpFamily
 
 ```
 
@@ -734,6 +734,7 @@ When these properties are defined on a specific upstream, this configuration wil
 | ----- | ---- | ----------- | 
 | `sslParameters` | [.gloo.solo.io.SslParameters](../ssl/ssl.proto.sk/#sslparameters) | Default ssl parameter configuration to use for upstreams. |
 | `globalAnnotations` | `map<string, string>` | Annotations to apply to all upstreams. |
+| `dnsLookupIpFamily` | [.gloo.solo.io.DnsIpFamily](../upstream.proto.sk/#dnsipfamily) | This specifies the IP family used when resolving DNS addresses. - This will default to `V4_ONLY` when not specified. This is the default option because the common use case is to support V4 addresses. - For V6 environments the preferred option is `V6_ONLY`. - If environments support dual stack family, i.e. both V4 and V6, then use the option `V4_PREFERRED`. The DNS resolver performs an IPv4 lookup first, and falls back to IPv6 only if no IPv4 addresses are returned. The callback target receives IPv6 addresses only when IPv4 results are unavailable. - If `ALL` is specified, the DNS resolver queries both IPv4 and IPv6 records and returns all resolved addresses. In this mode, Happy Eyeballs is enabled for upstream connections. This is particularly applicable in IPv6 environments, such as AWS EKS IPv6 with DNS64 and NAT64, where SNAT to IPv4 addresses is supported. |
 
 
 
@@ -763,7 +764,6 @@ Settings specific to the gloo (Envoy xDS server) controller
 "logTransformationRequestResponseInfo": .google.protobuf.BoolValue
 "transformationEscapeCharacters": .google.protobuf.BoolValue
 "istioOptions": .gloo.solo.io.GlooOptions.IstioOptions
-"dnsLookupIpFamily": .gloo.solo.io.GlooOptions.IpFamily
 
 ```
 
@@ -787,7 +787,6 @@ Settings specific to the gloo (Envoy xDS server) controller
 | `logTransformationRequestResponseInfo` | [.google.protobuf.BoolValue](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/bool-value) | When enabled, log the request/response body and headers before and after any transformations are applied. May be useful in the case where many transformations are applied and it is difficult to determine which are causing issues. Defaults to false. |
 | `transformationEscapeCharacters` | [.google.protobuf.BoolValue](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/bool-value) | Set escapeCharacters for all TransformationTemplates on all vhosts and routes. This setting can be overridden in individual TransformationTemplates. |
 | `istioOptions` | [.gloo.solo.io.GlooOptions.IstioOptions](../settings.proto.sk/#istiooptions) |  |
-| `dnsLookupIpFamily` | [.gloo.solo.io.GlooOptions.IpFamily](../settings.proto.sk/#ipfamily) | By default, IP family will default to IPv4 when performing DNS lookup. Otherwise `V4_PREFERRED` is used. This is preferred over `V6_ONLY` option as in certain environments like AWS when routing traffic to IPv4 addresses, the resolved addresses will be synthesized to AAAA records. This is typically already managed. If you need to enforce IPv6 then use `V6_ONLY`. |
 
 
 
@@ -857,20 +856,6 @@ Policy for how Gloo should handle invalid config
 | `appendXForwardedHost` | [.google.protobuf.BoolValue](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/bool-value) | Set to false to disable adding X-Forwarded-Host header in Istio integration Defaults to true Warning: This value is deprecated and will be removed in a future release. Also, you cannot use this value with a Kubernetes Gateway API proxy. |
 | `enableAutoMtls` | [.google.protobuf.BoolValue](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/bool-value) | Set to true to enable automatic mTLS for all upstreams. Istio integration must be enabled for this to take effect. Defaults to false. |
 | `enableIntegration` | [.google.protobuf.BoolValue](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/bool-value) | Istio integration is enabled via global.istioIntegration.enabled on the helm chart. If enabled, an istio-proxy container and sds container are assumed to exist alongside the gateway proxy. These containers are created by enabling the istioIntegration.enabled option in the helm chart. Defaults to false. |
-
-
-
-
----
-### IpFamily
-
-
-
-| Name | Description |
-| ----- | ----------- | 
-| `V4_ONLY` | Defaults to IPv4 family when performing DNS address lookup |
-| `V6_ONLY` | Forces DNS lookup to IPv6 only addresses |
-| `V4_PREFERRED` | If specified will lookup IPv4 family first and if unavailable will fallback to IPv6 family |
 
 
 

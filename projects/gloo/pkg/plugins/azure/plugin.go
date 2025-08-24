@@ -12,6 +12,7 @@ import (
 	"github.com/golang/protobuf/proto"
 	transformationapi "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/transformation"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	plugin_utils "github.com/solo-io/gloo/projects/gloo/pkg/plugins/utils"
 
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/azure"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
@@ -69,8 +70,14 @@ func (p *plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *en
 	out.ClusterDiscoveryType = &envoy_config_cluster_v3.Cluster_Type{
 		Type: envoy_config_cluster_v3.Cluster_LOGICAL_DNS,
 	}
-	// TODO(yuval-k): why do we need to make sure we use ipv4 only dns?
-	out.DnsLookupFamily = envoy_config_cluster_v3.Cluster_V4_ONLY
+
+	ipFamily := p.settings.GetUpstreamOptions().GetDnsLookupIpFamily()
+	// if not auto then just override to whatever family that is at the upstream level, otherwise use the global
+	if in.GetDnsLookupIpFamily() != v1.DnsIpFamily_AUTO {
+		ipFamily = in.GetDnsLookupIpFamily()
+	}
+	out.DnsLookupFamily = plugin_utils.TranslateIpFamily(ipFamily)
+
 	hostname := GetHostname(upstreamSpec.Azure)
 
 	pluginutils.EnvoySingleEndpointLoadAssignment(out, hostname, 443)

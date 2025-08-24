@@ -12,6 +12,7 @@ data:
     http {
       server {
           listen       80 http2;
+          listen       [::]:80 http2;
           server_name  localhost;
           location / {
             root   /usr/share/nginx/html;

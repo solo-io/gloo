@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"os"
 	"regexp"
 	"time"
 
@@ -53,11 +54,16 @@ func NewTestingSuite(
 }
 
 func (s *testingSuite) SetupSuite() {
-	err := s.testInstallation.Actions.Kubectl().Apply(s.ctx, testDefaults.HttpbinYaml)
+	err := s.testInstallation.Actions.Kubectl().Apply(s.ctx, testDefaults.CurlPodYaml)
 	s.Require().NoError(err)
 
-	err = s.testInstallation.Actions.Kubectl().Apply(s.ctx, testDefaults.CurlPodYaml)
-	s.Require().NoError(err)
+	if os.Getenv("ENABLE_IPV6_ONLY") != "true" {
+		err = s.testInstallation.Actions.Kubectl().Apply(s.ctx, testDefaults.HttpbinYaml)
+		s.Require().NoError(err)
+	} else {
+		err = s.testInstallation.Actions.Kubectl().Apply(s.ctx, testDefaults.HttpbinIpv6Yaml)
+		s.Require().NoError(err)
+	}
 }
 
 func (s *testingSuite) BeforeTest(suiteName, testName string) {
@@ -94,8 +100,13 @@ func (s *testingSuite) TearDownSuite() {
 	err := s.testInstallation.Actions.Kubectl().Delete(s.ctx, testDefaults.CurlPodYaml)
 	s.Require().NoError(err)
 
-	err = s.testInstallation.Actions.Kubectl().Delete(s.ctx, testDefaults.HttpbinYaml)
-	s.Require().NoError(err)
+	if os.Getenv("ENABLE_IPV6_ONLY") != "true" {
+		err = s.testInstallation.Actions.Kubectl().Delete(s.ctx, testDefaults.HttpbinYaml)
+		s.Require().NoError(err)
+	} else {
+		err = s.testInstallation.Actions.Kubectl().Delete(s.ctx, testDefaults.HttpbinIpv6Yaml)
+		s.Require().NoError(err)
+	}
 }
 
 func (s *testingSuite) TestHttpTunnel() {

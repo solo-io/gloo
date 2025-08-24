@@ -42,7 +42,7 @@ metadata:
 spec:
   containers:
     - name: curl
-      image: curlimages/curl:7.83.1
+      image: curlimages/curl:8.15.0
       imagePullPolicy: IfNotPresent
       command:
         - "tail"

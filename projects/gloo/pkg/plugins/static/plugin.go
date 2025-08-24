@@ -247,7 +247,12 @@ func (p *plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *en
 			Type: envoy_config_cluster_v3.Cluster_STRICT_DNS,
 		}
 
-		out.DnsLookupFamily = plugin_utils.TranslateIpFamily(p.settings.GetGloo().GetDnsLookupIpFamily())
+		ipFamily := p.settings.GetUpstreamOptions().GetDnsLookupIpFamily()
+		// if not auto then just override to whatever family that is at the upstream level, otherwise use the global
+		if in.GetDnsLookupIpFamily() != v1.DnsIpFamily_AUTO {
+			ipFamily = in.GetDnsLookupIpFamily()
+		}
+		out.DnsLookupFamily = plugin_utils.TranslateIpFamily(ipFamily)
 	}
 
 	return nil

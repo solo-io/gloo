@@ -626,9 +626,6 @@ spec:
                   disableProxyGarbageCollection:
                     nullable: true
                     type: boolean
-                  dnsLookupIpFamily:
-                    type: string
-                    x-kubernetes-int-or-string: true
                   enableRestEds:
                     nullable: true
                     type: boolean
@@ -980,6 +977,9 @@ spec:
                 type: object
               upstreamOptions:
                 properties:
+                  dnsLookupIpFamily:
+                    type: string
+                    x-kubernetes-int-or-string: true
                   globalAnnotations:
                     additionalProperties:
                       type: string

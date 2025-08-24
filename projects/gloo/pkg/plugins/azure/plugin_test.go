@@ -204,6 +204,42 @@ var _ = Describe("Plugin", func() {
 			})
 
 		})
+
+		Context("with dns family", func() {
+			It("should default to V4", func() {
+				err = p.(plugins.UpstreamPlugin).ProcessUpstream(params, upstream, out)
+
+				Expect(out.GetType()).To(Equal(envoy_config_cluster_v3.Cluster_LOGICAL_DNS))
+				Expect(out.DnsLookupFamily).To(Equal(envoy_config_cluster_v3.Cluster_V4_ONLY))
+			})
+
+			It("should set via global settings", func() {
+				initParams.Settings = &v1.Settings{
+					UpstreamOptions: &v1.UpstreamOptions{
+						DnsLookupIpFamily: v1.DnsIpFamily_V6_ONLY,
+					},
+				}
+				p.Init(initParams)
+				err = p.(plugins.UpstreamPlugin).ProcessUpstream(params, upstream, out)
+
+				Expect(out.GetType()).To(Equal(envoy_config_cluster_v3.Cluster_LOGICAL_DNS))
+				Expect(out.DnsLookupFamily).To(Equal(envoy_config_cluster_v3.Cluster_V6_ONLY))
+			})
+
+			It("should override global settings", func() {
+				initParams.Settings = &v1.Settings{
+					UpstreamOptions: &v1.UpstreamOptions{
+						DnsLookupIpFamily: v1.DnsIpFamily_V4_ONLY,
+					},
+				}
+				p.Init(initParams)
+				upstream.DnsLookupIpFamily = v1.DnsIpFamily_V6_ONLY
+				err = p.(plugins.UpstreamPlugin).ProcessUpstream(params, upstream, out)
+
+				Expect(out.GetType()).To(Equal(envoy_config_cluster_v3.Cluster_LOGICAL_DNS))
+				Expect(out.DnsLookupFamily).To(Equal(envoy_config_cluster_v3.Cluster_V6_ONLY))
+			})
+		})
 	})
 })
 

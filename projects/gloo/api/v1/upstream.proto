@@ -39,8 +39,6 @@ import "validate/validate.proto";
  */
 message Upstream {
 
-
-
     option (core.solo.io.resource).short_name = "us";
     option (core.solo.io.resource).plural_name = "upstreams";
 
@@ -178,7 +176,6 @@ message Upstream {
     // Only valid for STRICT_DNS and LOGICAL_DNS cluster types. All other cluster types are considered invalid.
     google.protobuf.Duration dns_refresh_rate = 30;
 
-
     // Proxy Protocol Version to add when communicating with the upstream.
     // If unset will not wrap the transport socket. 
     // These are of the format "V1" or "V2"
@@ -193,6 +190,13 @@ message Upstream {
     // If set to true, the proxy will not allow automatic mTLS detection for Istio upstreams.
     // Defaults to false.
     google.protobuf.BoolValue disable_istio_auto_mtls = 33;
+
+    // Provides the ability to override the globally configured IP family setting.
+    // - For V4 environments use `V4_ONLY`.
+    // - For V6 environments the preferred option is `V6_ONLY`.
+    // - If environments support dual stack family, i.e. both V4 and V6, then use the option `V4_PREFERRED`. The DNS resolver performs an IPv4 lookup first, and falls back to IPv6 only if no IPv4 addresses are returned. The callback target receives IPv6 addresses only when IPv4 results are unavailable.
+    // - If `ALL` is specified, the DNS resolver queries both IPv4 and IPv6 records and returns all resolved addresses. In this mode, Happy Eyeballs is enabled for upstream connections. This is particularly applicable in IPv6 environments, such as AWS EKS IPv6 with DNS64 and NAT64, where SNAT to IPv4 addresses is supported.
+    DnsIpFamily dns_lookup_ip_family = 40;
 }
 
 // created by discovery services
@@ -261,4 +265,23 @@ message PreconnectPolicy {
     // upstream.
     google.protobuf.DoubleValue predictive_preconnect_ratio = 2
         [(validate.rules).double = {lte: 3.0 gte: 1.0}];
-  }
+}
+
+// For managing IP families
+enum DnsIpFamily {
+    // Automatically sets IP family to IPv4
+    AUTO = 0;
+
+    // Defaults to IPv4 family when performing DNS address lookup
+    V4_ONLY = 1;
+
+    // Forces DNS lookup to IPv6 only addresses
+    V6_ONLY = 2;
+
+    // If specified will lookup IPv4 family first and if unavailable will fallback to IPv6 family
+    V4_PREFERRED = 3;
+
+    // This will manage both V4 and V6 address families. When this option is used Happy Eyeballs will be enabled for upstream connections.
+    // Refer to https://www.envoyproxy.io/docs/envoy/latest/intro/arch_overview/upstream/connection_pooling#arch-overview-happy-eyeballs
+    ALL = 4;
+}

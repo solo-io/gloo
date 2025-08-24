@@ -22,6 +22,7 @@ import "github.com/solo-io/gloo/projects/gloo/api/v1/circuit_breaker/circuit_bre
 import "github.com/solo-io/gloo/projects/gloo/api/v1/ssl/ssl.proto";
 import "github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/aws/filter.proto";
 import "github.com/solo-io/gloo/projects/gloo/api/v1/options/consul/query_options.proto";
+import "github.com/solo-io/gloo/projects/gloo/api/v1/upstream.proto";
 
 import "google/protobuf/duration.proto";
 import "google/protobuf/wrappers.proto";
@@ -433,7 +434,6 @@ message Settings {
 
     ConsulUpstreamDiscoveryConfiguration consulDiscovery = 30;
 
-
     // Provides overrides for the default configuration parameters used to interact with Kubernetes.
     message KubernetesConfiguration {
 
@@ -486,9 +486,8 @@ message Settings {
 
     // Enterprise-only: Settings for the caching server itself
     // This may eventually be able to be set at a per listener level.
-	// At this time is used for plugin translation via the init.Params.
+	  // At this time is used for plugin translation via the init.Params.
     caching.options.gloo.solo.io.Settings caching_server = 36;
-
 
     // Metadata contains the object metadata for this resource
     core.solo.io.Metadata metadata = 14;
@@ -557,7 +556,7 @@ message Settings {
 
     // Default configuration to use for upstreams, when not provided by specific upstream
     // When these properties are defined on an upstream, this configuration will be ignored
-    UpstreamOptions upstreamOptions = 32;
+    UpstreamOptions upstream_options = 32;
 
     // Enterprise-only: Settings for the Gloo Edge Enterprise Console (UI)
     ConsoleOptions console_options = 35;
@@ -653,6 +652,13 @@ message UpstreamOptions {
 
     // Annotations to apply to all upstreams
     map<string, string> global_annotations = 2;
+
+    // This specifies the IP family used when resolving DNS addresses.
+    // - This will default to `V4_ONLY` when not specified. This is the default option because the common use case is to support V4 addresses.
+    // - For V6 environments the preferred option is `V6_ONLY`.
+    // - If environments support dual stack family, i.e. both V4 and V6, then use the option `V4_PREFERRED`. The DNS resolver performs an IPv4 lookup first, and falls back to IPv6 only if no IPv4 addresses are returned. The callback target receives IPv6 addresses only when IPv4 results are unavailable.
+    // - If `ALL` is specified, the DNS resolver queries both IPv4 and IPv6 records and returns all resolved addresses. In this mode, Happy Eyeballs is enabled for upstream connections. This is particularly applicable in IPv6 environments, such as AWS EKS IPv6 with DNS64 and NAT64, where SNAT to IPv4 addresses is supported.
+    gloo.solo.io.DnsIpFamily dns_lookup_ip_family = 3;
 }
 
 // Settings specific to the gloo (Envoy xDS server) controller
@@ -830,23 +836,6 @@ message GlooOptions {
     }
 
     IstioOptions istio_options = 18;
-
-    enum IpFamily {
-        // Defaults to IPv4 family when performing DNS address lookup
-        V4_ONLY = 0;
-
-        // Forces DNS lookup to IPv6 only addresses
-        V6_ONLY = 1;
-
-        // If specified will lookup IPv4 family first and if unavailable will fallback to IPv6 family
-        V4_PREFERRED = 2;
-    }
-
-    // By default, IP family will default to IPv4 when performing DNS lookup.
-    // Otherwise `V4_PREFERRED` is used. This is preferred over `V6_ONLY` option as in certain environments like AWS when routing traffic
-    // to IPv4 addresses, the resolved addresses will be synthesized to AAAA records. This is typically already managed.
-    // If you need to enforce IPv6 then use `V6_ONLY`.
-    IpFamily dns_lookup_ip_family = 19;
 }
 
 // Default configuration to use for VirtualServices, when not provided by a specific virtual service

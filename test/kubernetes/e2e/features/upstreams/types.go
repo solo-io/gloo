@@ -16,8 +16,11 @@ import (
 )
 
 var (
-	routeWithUpstreamManifest = filepath.Join(util.MustGetThisDir(), "inputs/route-with-upstream.yaml")
-	upstreamManifest          = filepath.Join(util.MustGetThisDir(), "inputs/upstream-for-route.yaml")
+	k8sRouteWithUpstreamManifest = filepath.Join(util.MustGetThisDir(), "inputs/k8s/route-with-upstream.yaml")
+	k8sUpstreamManifest          = filepath.Join(util.MustGetThisDir(), "inputs/k8s/upstream-for-route.yaml")
+
+	edgeRouteWithUpstreamManifest = filepath.Join(util.MustGetThisDir(), "inputs/edge/route-with-upstream.yaml")
+	edgeUpstreamManifest          = filepath.Join(util.MustGetThisDir(), "inputs/edge/upstream-for-route.yaml")
 
 	// Proxy resource to be translated
 	glooProxyObjectMeta = metav1.ObjectMeta{
