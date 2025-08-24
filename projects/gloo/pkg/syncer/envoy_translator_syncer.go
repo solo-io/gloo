@@ -103,8 +103,8 @@ func (s *translatorSyncer) syncEnvoy(ctx context.Context, snap *v1snap.ApiSnapsh
 	ctx = contextutils.WithLogger(ctx, "envoyTranslatorSyncer")
 	logger := contextutils.LoggerFrom(ctx)
 	snapHash := hashutils.MustHash(snap)
-	logger.Infof("begin sync %v (%d edge proxies, %d upstreams, %d endpoints, %d secrets, %d artifacts, %d auth configs, %d rate limit configs, %d graphql apis)", snapHash,
-		len(nonKubeProxies), len(snap.Upstreams), len(snap.Endpoints), len(snap.Secrets), len(snap.Artifacts), len(snap.AuthConfigs), len(snap.Ratelimitconfigs), len(snap.GraphqlApis))
+	logger.Infof("begin sync %v (%d edge proxies, %d upstreams, %d endpoints, %d secrets, %d artifacts, %d auth configs, %d rate limit configs)", snapHash,
+		len(nonKubeProxies), len(snap.Upstreams), len(snap.Endpoints), len(snap.Secrets), len(snap.Artifacts), len(snap.AuthConfigs), len(snap.Ratelimitconfigs))
 	defer logger.Infof("end sync %v", snapHash)
 
 	// stringifying the snapshot may be an expensive operation, so we'd like to avoid building the large

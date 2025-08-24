@@ -10,7 +10,6 @@ import (
 	github_com_solo_io_gloo_projects_gloo_pkg_api_external_solo_ratelimit "github.com/solo-io/gloo/projects/gloo/pkg/api/external/solo/ratelimit"
 	gloo_solo_io "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	enterprise_gloo_solo_io "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
-	graphql_gloo_solo_io "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/graphql/v1beta1"
 
 	"go.opencensus.io/stats"
 	"go.opencensus.io/stats/view"
@@ -101,14 +100,13 @@ type ApiEmitter interface {
 	RouteOption() gateway_solo_io.RouteOptionClient
 	MatchableHttpGateway() gateway_solo_io.MatchableHttpGatewayClient
 	MatchableTcpGateway() gateway_solo_io.MatchableTcpGatewayClient
-	GraphQLApi() graphql_gloo_solo_io.GraphQLApiClient
 }
 
-func NewApiEmitter(artifactClient gloo_solo_io.ArtifactClient, endpointClient gloo_solo_io.EndpointClient, proxyClient gloo_solo_io.ProxyClient, upstreamGroupClient gloo_solo_io.UpstreamGroupClient, secretClient gloo_solo_io.SecretClient, upstreamClient gloo_solo_io.UpstreamClient, authConfigClient enterprise_gloo_solo_io.AuthConfigClient, rateLimitConfigClient github_com_solo_io_gloo_projects_gloo_pkg_api_external_solo_ratelimit.RateLimitConfigClient, virtualServiceClient gateway_solo_io.VirtualServiceClient, routeTableClient gateway_solo_io.RouteTableClient, gatewayClient gateway_solo_io.GatewayClient, virtualHostOptionClient gateway_solo_io.VirtualHostOptionClient, routeOptionClient gateway_solo_io.RouteOptionClient, matchableHttpGatewayClient gateway_solo_io.MatchableHttpGatewayClient, matchableTcpGatewayClient gateway_solo_io.MatchableTcpGatewayClient, graphQLApiClient graphql_gloo_solo_io.GraphQLApiClient) ApiEmitter {
-	return NewApiEmitterWithEmit(artifactClient, endpointClient, proxyClient, upstreamGroupClient, secretClient, upstreamClient, authConfigClient, rateLimitConfigClient, virtualServiceClient, routeTableClient, gatewayClient, virtualHostOptionClient, routeOptionClient, matchableHttpGatewayClient, matchableTcpGatewayClient, graphQLApiClient, make(chan struct{}))
+func NewApiEmitter(artifactClient gloo_solo_io.ArtifactClient, endpointClient gloo_solo_io.EndpointClient, proxyClient gloo_solo_io.ProxyClient, upstreamGroupClient gloo_solo_io.UpstreamGroupClient, secretClient gloo_solo_io.SecretClient, upstreamClient gloo_solo_io.UpstreamClient, authConfigClient enterprise_gloo_solo_io.AuthConfigClient, rateLimitConfigClient github_com_solo_io_gloo_projects_gloo_pkg_api_external_solo_ratelimit.RateLimitConfigClient, virtualServiceClient gateway_solo_io.VirtualServiceClient, routeTableClient gateway_solo_io.RouteTableClient, gatewayClient gateway_solo_io.GatewayClient, virtualHostOptionClient gateway_solo_io.VirtualHostOptionClient, routeOptionClient gateway_solo_io.RouteOptionClient, matchableHttpGatewayClient gateway_solo_io.MatchableHttpGatewayClient, matchableTcpGatewayClient gateway_solo_io.MatchableTcpGatewayClient) ApiEmitter {
+	return NewApiEmitterWithEmit(artifactClient, endpointClient, proxyClient, upstreamGroupClient, secretClient, upstreamClient, authConfigClient, rateLimitConfigClient, virtualServiceClient, routeTableClient, gatewayClient, virtualHostOptionClient, routeOptionClient, matchableHttpGatewayClient, matchableTcpGatewayClient, make(chan struct{}))
 }
 
-func NewApiEmitterWithEmit(artifactClient gloo_solo_io.ArtifactClient, endpointClient gloo_solo_io.EndpointClient, proxyClient gloo_solo_io.ProxyClient, upstreamGroupClient gloo_solo_io.UpstreamGroupClient, secretClient gloo_solo_io.SecretClient, upstreamClient gloo_solo_io.UpstreamClient, authConfigClient enterprise_gloo_solo_io.AuthConfigClient, rateLimitConfigClient github_com_solo_io_gloo_projects_gloo_pkg_api_external_solo_ratelimit.RateLimitConfigClient, virtualServiceClient gateway_solo_io.VirtualServiceClient, routeTableClient gateway_solo_io.RouteTableClient, gatewayClient gateway_solo_io.GatewayClient, virtualHostOptionClient gateway_solo_io.VirtualHostOptionClient, routeOptionClient gateway_solo_io.RouteOptionClient, matchableHttpGatewayClient gateway_solo_io.MatchableHttpGatewayClient, matchableTcpGatewayClient gateway_solo_io.MatchableTcpGatewayClient, graphQLApiClient graphql_gloo_solo_io.GraphQLApiClient, emit <-chan struct{}) ApiEmitter {
+func NewApiEmitterWithEmit(artifactClient gloo_solo_io.ArtifactClient, endpointClient gloo_solo_io.EndpointClient, proxyClient gloo_solo_io.ProxyClient, upstreamGroupClient gloo_solo_io.UpstreamGroupClient, secretClient gloo_solo_io.SecretClient, upstreamClient gloo_solo_io.UpstreamClient, authConfigClient enterprise_gloo_solo_io.AuthConfigClient, rateLimitConfigClient github_com_solo_io_gloo_projects_gloo_pkg_api_external_solo_ratelimit.RateLimitConfigClient, virtualServiceClient gateway_solo_io.VirtualServiceClient, routeTableClient gateway_solo_io.RouteTableClient, gatewayClient gateway_solo_io.GatewayClient, virtualHostOptionClient gateway_solo_io.VirtualHostOptionClient, routeOptionClient gateway_solo_io.RouteOptionClient, matchableHttpGatewayClient gateway_solo_io.MatchableHttpGatewayClient, matchableTcpGatewayClient gateway_solo_io.MatchableTcpGatewayClient, emit <-chan struct{}) ApiEmitter {
 	return &apiEmitter{
 		artifact:             artifactClient,
 		endpoint:             endpointClient,
@@ -125,7 +123,6 @@ func NewApiEmitterWithEmit(artifactClient gloo_solo_io.ArtifactClient, endpointC
 		routeOption:          routeOptionClient,
 		matchableHttpGateway: matchableHttpGatewayClient,
 		matchableTcpGateway:  matchableTcpGatewayClient,
-		graphQLApi:           graphQLApiClient,
 		forceEmit:            emit,
 	}
 }
@@ -147,7 +144,6 @@ type apiEmitter struct {
 	routeOption          gateway_solo_io.RouteOptionClient
 	matchableHttpGateway gateway_solo_io.MatchableHttpGatewayClient
 	matchableTcpGateway  gateway_solo_io.MatchableTcpGatewayClient
-	graphQLApi           graphql_gloo_solo_io.GraphQLApiClient
 }
 
 func (c *apiEmitter) Register() error {
@@ -194,9 +190,6 @@ func (c *apiEmitter) Register() error {
 		return err
 	}
 	if err := c.matchableTcpGateway.Register(); err != nil {
-		return err
-	}
-	if err := c.graphQLApi.Register(); err != nil {
 		return err
 	}
 	return nil
@@ -260,10 +253,6 @@ func (c *apiEmitter) MatchableHttpGateway() gateway_solo_io.MatchableHttpGateway
 
 func (c *apiEmitter) MatchableTcpGateway() gateway_solo_io.MatchableTcpGatewayClient {
 	return c.matchableTcpGateway
-}
-
-func (c *apiEmitter) GraphQLApi() graphql_gloo_solo_io.GraphQLApiClient {
-	return c.graphQLApi
 }
 
 func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-chan *ApiSnapshot, <-chan error, error) {
@@ -402,14 +391,6 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 	matchableTcpGatewayChan := make(chan matchableTcpGatewayListWithNamespace)
 
 	var initialMatchableTcpGatewayList gateway_solo_io.MatchableTcpGatewayList
-	/* Create channel for GraphQLApi */
-	type graphQLApiListWithNamespace struct {
-		list      graphql_gloo_solo_io.GraphQLApiList
-		namespace string
-	}
-	graphQLApiChan := make(chan graphQLApiListWithNamespace)
-
-	var initialGraphQLApiList graphql_gloo_solo_io.GraphQLApiList
 
 	currentSnapshot := ApiSnapshot{}
 	artifactsByNamespace := make(map[string]gloo_solo_io.ArtifactList)
@@ -427,7 +408,6 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 	routeOptionsByNamespace := make(map[string]gateway_solo_io.RouteOptionList)
 	httpGatewaysByNamespace := make(map[string]gateway_solo_io.MatchableHttpGatewayList)
 	tcpGatewaysByNamespace := make(map[string]gateway_solo_io.MatchableTcpGatewayList)
-	graphqlApisByNamespace := make(map[string]graphql_gloo_solo_io.GraphQLApiList)
 
 	for _, namespace := range watchNamespaces {
 		/* Setup namespaced watch for Artifact */
@@ -715,25 +695,6 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 			defer done.Done()
 			errutils.AggregateErrs(ctx, errs, matchableTcpGatewayErrs, namespace+"-tcpGateways")
 		}(namespace)
-		/* Setup namespaced watch for GraphQLApi */
-		{
-			graphqlApis, err := c.graphQLApi.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})
-			if err != nil {
-				return nil, nil, errors.Wrapf(err, "initial GraphQLApi list")
-			}
-			initialGraphQLApiList = append(initialGraphQLApiList, graphqlApis...)
-			graphqlApisByNamespace[namespace] = graphqlApis
-		}
-		graphQLApiNamespacesChan, graphQLApiErrs, err := c.graphQLApi.Watch(namespace, opts)
-		if err != nil {
-			return nil, nil, errors.Wrapf(err, "starting GraphQLApi watch")
-		}
-
-		done.Add(1)
-		go func(namespace string) {
-			defer done.Done()
-			errutils.AggregateErrs(ctx, errs, graphQLApiErrs, namespace+"-graphqlApis")
-		}(namespace)
 
 		/* Watch for changes and update snapshot */
 		go func(namespace string) {
@@ -876,15 +837,6 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 						return
 					case matchableTcpGatewayChan <- matchableTcpGatewayListWithNamespace{list: matchableTcpGatewayList, namespace: namespace}:
 					}
-				case graphQLApiList, ok := <-graphQLApiNamespacesChan:
-					if !ok {
-						return
-					}
-					select {
-					case <-ctx.Done():
-						return
-					case graphQLApiChan <- graphQLApiListWithNamespace{list: graphQLApiList, namespace: namespace}:
-					}
 				}
 			}
 		}(namespace)
@@ -919,8 +871,6 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 	currentSnapshot.HttpGateways = initialMatchableHttpGatewayList.Sort()
 	/* Initialize snapshot for TcpGateways */
 	currentSnapshot.TcpGateways = initialMatchableTcpGatewayList.Sort()
-	/* Initialize snapshot for GraphqlApis */
-	currentSnapshot.GraphqlApis = initialGraphQLApiList.Sort()
 
 	snapshots := make(chan *ApiSnapshot)
 	go func() {
@@ -1301,28 +1251,6 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 					matchableTcpGatewayList = append(matchableTcpGatewayList, tcpGateways...)
 				}
 				currentSnapshot.TcpGateways = matchableTcpGatewayList.Sort()
-			case graphQLApiNamespacedList, ok := <-graphQLApiChan:
-				if !ok {
-					return
-				}
-				record()
-
-				namespace := graphQLApiNamespacedList.namespace
-
-				skstats.IncrementResourceCount(
-					ctx,
-					namespace,
-					"graph_ql_api",
-					mApiResourcesIn,
-				)
-
-				// merge lists by namespace
-				graphqlApisByNamespace[namespace] = graphQLApiNamespacedList.list
-				var graphQLApiList graphql_gloo_solo_io.GraphQLApiList
-				for _, graphqlApis := range graphqlApisByNamespace {
-					graphQLApiList = append(graphQLApiList, graphqlApis...)
-				}
-				currentSnapshot.GraphqlApis = graphQLApiList.Sort()
 			}
 		}
 	}()

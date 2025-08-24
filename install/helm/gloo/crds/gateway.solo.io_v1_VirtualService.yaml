@@ -1440,6 +1440,21 @@ spec:
                                 nullable: true
                                 type: integer
                             type: object
+                          rateLimitedRetryBackOff:
+                            properties:
+                              maxInterval:
+                                type: string
+                              resetHeaders:
+                                items:
+                                  properties:
+                                    format:
+                                      type: string
+                                      x-kubernetes-int-or-string: true
+                                    name:
+                                      type: string
+                                  type: object
+                                type: array
+                            type: object
                           retriableStatusCodes:
                             items:
                               maximum: 4294967295
@@ -3197,13 +3212,6 @@ spec:
                               minimum: 0
                               type: integer
                           type: object
-                        graphqlApiRef:
-                          properties:
-                            name:
-                              type: string
-                            namespace:
-                              type: string
-                          type: object
                         inheritableMatchers:
                           nullable: true
                           type: boolean
@@ -4904,6 +4912,21 @@ spec:
                                       minimum: 0
                                       nullable: true
                                       type: integer
+                                  type: object
+                                rateLimitedRetryBackOff:
+                                  properties:
+                                    maxInterval:
+                                      type: string
+                                    resetHeaders:
+                                      items:
+                                        properties:
+                                          format:
+                                            type: string
+                                            x-kubernetes-int-or-string: true
+                                          name:
+                                            type: string
+                                        type: object
+                                      type: array
                                   type: object
                                 retriableStatusCodes:
                                   items:

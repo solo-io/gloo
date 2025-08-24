@@ -436,7 +436,6 @@ type Route struct {
 	//	*Route_RedirectAction
 	//	*Route_DirectResponseAction
 	//	*Route_DelegateAction
-	//	*Route_GraphqlApiRef
 	Action isRoute_Action `protobuf_oneof:"action"`
 	// Route Options extend the behavior of routes.
 	// Route options include configuration such as retries, rate limiting, and request/response transformation.
@@ -546,15 +545,6 @@ func (x *Route) GetDelegateAction() *DelegateAction {
 	return nil
 }
 
-func (x *Route) GetGraphqlApiRef() *core.ResourceRef {
-	if x != nil {
-		if x, ok := x.Action.(*Route_GraphqlApiRef); ok {
-			return x.GraphqlApiRef
-		}
-	}
-	return nil
-}
-
 func (x *Route) GetOptions() *v1.RouteOptions {
 	if x != nil {
 		return x.Options
@@ -610,15 +600,6 @@ type Route_DelegateAction struct {
 	DelegateAction *DelegateAction `protobuf:"bytes,5,opt,name=delegate_action,json=delegateAction,proto3,oneof"`
 }
 
-type Route_GraphqlApiRef struct {
-	// Deprecated, Enterprise-Only: THIS FEATURE WILL BE REMOVED IN A FUTURE RELEASE. APIs are versioned as alpha and subject to change.
-	// A reference to a GraphQLApi CR. Resolution of the client request to upstream(s) will be delegated to
-	// the resolution policies defined in the GraphQLApi CR. If configured, the graphql filter will operate
-	// instead of the envoy router filter, so configuration (such as retries) that applies to the router filter
-	// will not be applied.
-	GraphqlApiRef *core.ResourceRef `protobuf:"bytes,11,opt,name=graphql_api_ref,json=graphqlApiRef,proto3,oneof"`
-}
-
 func (*Route_RouteAction) isRoute_Action() {}
 
 func (*Route_RedirectAction) isRoute_Action() {}
@@ -626,8 +607,6 @@ func (*Route_RedirectAction) isRoute_Action() {}
 func (*Route_DirectResponseAction) isRoute_Action() {}
 
 func (*Route_DelegateAction) isRoute_Action() {}
-
-func (*Route_GraphqlApiRef) isRoute_Action() {}
 
 type isRoute_ExternalOptionsConfig interface {
 	isRoute_ExternalOptionsConfig()
@@ -953,7 +932,7 @@ const file_github_com_solo_io_gloo_projects_gateway_api_v1_virtual_service_proto
 	"\x06routes\x18\x03 \x03(\v2\x16.gateway.solo.io.RouteR\x06routes\x12:\n" +
 	"\aoptions\x18\x04 \x01(\v2 .gloo.solo.io.VirtualHostOptionsR\aoptions\x12V\n" +
 	"\x13options_config_refs\x18\x05 \x01(\v2$.gateway.solo.io.DelegateOptionsRefsH\x00R\x11optionsConfigRefsB\x19\n" +
-	"\x17external_options_config\"\xac\x06\n" +
+	"\x17external_options_config\"\xfe\x05\n" +
 	"\x05Route\x12?\n" +
 	"\bmatchers\x18\x01 \x03(\v2#.matchers.core.gloo.solo.io.MatcherR\bmatchers\x12M\n" +
 	"\x14inheritable_matchers\x18\b \x01(\v2\x1a.google.protobuf.BoolValueR\x13inheritableMatchers\x12V\n" +
@@ -961,14 +940,13 @@ const file_github_com_solo_io_gloo_projects_gateway_api_v1_virtual_service_proto
 	"\froute_action\x18\x02 \x01(\v2\x19.gloo.solo.io.RouteActionH\x00R\vrouteAction\x12G\n" +
 	"\x0fredirect_action\x18\x03 \x01(\v2\x1c.gloo.solo.io.RedirectActionH\x00R\x0eredirectAction\x12Z\n" +
 	"\x16direct_response_action\x18\x04 \x01(\v2\".gloo.solo.io.DirectResponseActionH\x00R\x14directResponseAction\x12J\n" +
-	"\x0fdelegate_action\x18\x05 \x01(\v2\x1f.gateway.solo.io.DelegateActionH\x00R\x0edelegateAction\x12C\n" +
-	"\x0fgraphql_api_ref\x18\v \x01(\v2\x19.core.solo.io.ResourceRefH\x00R\rgraphqlApiRef\x124\n" +
+	"\x0fdelegate_action\x18\x05 \x01(\v2\x1f.gateway.solo.io.DelegateActionH\x00R\x0edelegateAction\x124\n" +
 	"\aoptions\x18\x06 \x01(\v2\x1a.gloo.solo.io.RouteOptionsR\aoptions\x12\x12\n" +
 	"\x04name\x18\a \x01(\tR\x04name\x12V\n" +
 	"\x13options_config_refs\x18\n" +
 	" \x01(\v2$.gateway.solo.io.DelegateOptionsRefsH\x01R\x11optionsConfigRefsB\b\n" +
 	"\x06actionB\x19\n" +
-	"\x17external_options_config\"[\n" +
+	"\x17external_options_configJ\x04\b\v\x10\fR\x0fgraphql_api_ref\"[\n" +
 	"\x13DelegateOptionsRefs\x12D\n" +
 	"\x10delegate_options\x18\x01 \x03(\v2\x19.core.solo.io.ResourceRefR\x0fdelegateOptions\"\xcf\x01\n" +
 	"\x0eDelegateAction\x12\x16\n" +
@@ -1037,8 +1015,8 @@ var file_github_com_solo_io_gloo_projects_gateway_api_v1_virtual_service_proto_g
 	(*v1.RouteAction)(nil),                      // 15: gloo.solo.io.RouteAction
 	(*v1.RedirectAction)(nil),                   // 16: gloo.solo.io.RedirectAction
 	(*v1.DirectResponseAction)(nil),             // 17: gloo.solo.io.DirectResponseAction
-	(*core.ResourceRef)(nil),                    // 18: core.solo.io.ResourceRef
-	(*v1.RouteOptions)(nil),                     // 19: gloo.solo.io.RouteOptions
+	(*v1.RouteOptions)(nil),                     // 18: gloo.solo.io.RouteOptions
+	(*core.ResourceRef)(nil),                    // 19: core.solo.io.ResourceRef
 }
 var file_github_com_solo_io_gloo_projects_gateway_api_v1_virtual_service_proto_depIdxs = []int32{
 	2,  // 0: gateway.solo.io.VirtualService.virtual_host:type_name -> gateway.solo.io.VirtualHost
@@ -1055,20 +1033,19 @@ var file_github_com_solo_io_gloo_projects_gateway_api_v1_virtual_service_proto_d
 	16, // 11: gateway.solo.io.Route.redirect_action:type_name -> gloo.solo.io.RedirectAction
 	17, // 12: gateway.solo.io.Route.direct_response_action:type_name -> gloo.solo.io.DirectResponseAction
 	5,  // 13: gateway.solo.io.Route.delegate_action:type_name -> gateway.solo.io.DelegateAction
-	18, // 14: gateway.solo.io.Route.graphql_api_ref:type_name -> core.solo.io.ResourceRef
-	19, // 15: gateway.solo.io.Route.options:type_name -> gloo.solo.io.RouteOptions
-	4,  // 16: gateway.solo.io.Route.options_config_refs:type_name -> gateway.solo.io.DelegateOptionsRefs
-	18, // 17: gateway.solo.io.DelegateOptionsRefs.delegate_options:type_name -> core.solo.io.ResourceRef
-	18, // 18: gateway.solo.io.DelegateAction.ref:type_name -> core.solo.io.ResourceRef
-	6,  // 19: gateway.solo.io.DelegateAction.selector:type_name -> gateway.solo.io.RouteTableSelector
-	7,  // 20: gateway.solo.io.RouteTableSelector.labels:type_name -> gateway.solo.io.RouteTableSelector.LabelsEntry
-	8,  // 21: gateway.solo.io.RouteTableSelector.expressions:type_name -> gateway.solo.io.RouteTableSelector.Expression
-	0,  // 22: gateway.solo.io.RouteTableSelector.Expression.operator:type_name -> gateway.solo.io.RouteTableSelector.Expression.Operator
-	23, // [23:23] is the sub-list for method output_type
-	23, // [23:23] is the sub-list for method input_type
-	23, // [23:23] is the sub-list for extension type_name
-	23, // [23:23] is the sub-list for extension extendee
-	0,  // [0:23] is the sub-list for field type_name
+	18, // 14: gateway.solo.io.Route.options:type_name -> gloo.solo.io.RouteOptions
+	4,  // 15: gateway.solo.io.Route.options_config_refs:type_name -> gateway.solo.io.DelegateOptionsRefs
+	19, // 16: gateway.solo.io.DelegateOptionsRefs.delegate_options:type_name -> core.solo.io.ResourceRef
+	19, // 17: gateway.solo.io.DelegateAction.ref:type_name -> core.solo.io.ResourceRef
+	6,  // 18: gateway.solo.io.DelegateAction.selector:type_name -> gateway.solo.io.RouteTableSelector
+	7,  // 19: gateway.solo.io.RouteTableSelector.labels:type_name -> gateway.solo.io.RouteTableSelector.LabelsEntry
+	8,  // 20: gateway.solo.io.RouteTableSelector.expressions:type_name -> gateway.solo.io.RouteTableSelector.Expression
+	0,  // 21: gateway.solo.io.RouteTableSelector.Expression.operator:type_name -> gateway.solo.io.RouteTableSelector.Expression.Operator
+	22, // [22:22] is the sub-list for method output_type
+	22, // [22:22] is the sub-list for method input_type
+	22, // [22:22] is the sub-list for extension type_name
+	22, // [22:22] is the sub-list for extension extendee
+	0,  // [0:22] is the sub-list for field type_name
 }
 
 func init() { file_github_com_solo_io_gloo_projects_gateway_api_v1_virtual_service_proto_init() }
@@ -1084,7 +1061,6 @@ func file_github_com_solo_io_gloo_projects_gateway_api_v1_virtual_service_proto_
 		(*Route_RedirectAction)(nil),
 		(*Route_DirectResponseAction)(nil),
 		(*Route_DelegateAction)(nil),
-		(*Route_GraphqlApiRef)(nil),
 		(*Route_OptionsConfigRefs)(nil),
 	}
 	file_github_com_solo_io_gloo_projects_gateway_api_v1_virtual_service_proto_msgTypes[4].OneofWrappers = []any{

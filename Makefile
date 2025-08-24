@@ -1274,7 +1274,7 @@ SCAN_DIR ?= $(OUTPUT_DIR)/scans
 SCAN_BUCKET ?= solo-gloo-security-scans
 # The minimum version to scan with trivy
 # ON_LTS_UPDATE - bump version
-MIN_SCANNED_VERSION ?= v1.15.0
+MIN_SCANNED_VERSION ?= v1.17.0
 
 .PHONY: run-security-scans
 run-security-scan:

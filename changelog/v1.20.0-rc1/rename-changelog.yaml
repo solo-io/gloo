@@ -1,0 +1,7 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >-
+      Rename changelog/v1.20.0-beta13 to changelog/v1.20.0-rc1 for release.
+
+      skipCI-kube-tests:true
+      skipCI-docs-build:true

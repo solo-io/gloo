@@ -48,7 +48,6 @@ weight: 5
 - [ConsoleOptions](#consoleoptions)
 - [GraphqlOptions](#graphqloptions)
 - [SchemaChangeValidationOptions](#schemachangevalidationoptions)
-- [ProcessingRule](#processingrule)
   
 
 
@@ -100,7 +99,6 @@ Represents global settings for all the Gloo components.
 "observabilityOptions": .gloo.solo.io.Settings.ObservabilityOptions
 "upstreamOptions": .gloo.solo.io.UpstreamOptions
 "consoleOptions": .gloo.solo.io.ConsoleOptions
-"graphqlOptions": .gloo.solo.io.GraphqlOptions
 "extProc": .extproc.options.gloo.solo.io.Settings
 "watchNamespaceSelectors": []gloo.solo.io.LabelSelector
 
@@ -142,7 +140,6 @@ Represents global settings for all the Gloo components.
 | `observabilityOptions` | [.gloo.solo.io.Settings.ObservabilityOptions](../settings.proto.sk/#observabilityoptions) | Provides settings related to the observability deployment (enterprise only). |
 | `upstreamOptions` | [.gloo.solo.io.UpstreamOptions](../settings.proto.sk/#upstreamoptions) | Default configuration to use for upstreams, when not provided by specific upstream When these properties are defined on an upstream, this configuration will be ignored. |
 | `consoleOptions` | [.gloo.solo.io.ConsoleOptions](../settings.proto.sk/#consoleoptions) | Enterprise-only: Settings for the Gloo Edge Enterprise Console (UI). |
-| `graphqlOptions` | [.gloo.solo.io.GraphqlOptions](../settings.proto.sk/#graphqloptions) | Deprecated: The GraphQL feature will be removed in a future release. Enterprise-only: GraphQL settings. |
 | `extProc` | [.extproc.options.gloo.solo.io.Settings](../enterprise/options/extproc/extproc.proto.sk/#settings) | Enterprise-only: External Processing filter settings. These settings are used as defaults globally, and can be overridden by HttpListenerOptions, VirtualHostOptions, or RouteOptions. |
 | `watchNamespaceSelectors` | [[]gloo.solo.io.LabelSelector](../settings.proto.sk/#labelselector) | A list of Kubernetes selectors that specify the set of namespaces to restrict the namespaces that Gloo controllers take into consideration when watching for resources. Elements in the list are disjunctive (OR semantics), i.e. a namespace will be included if it matches any selector. The following example selects any namespace that matches either below: 1. The namespace has both of these labels: `env: prod` and `region: us-east1` 2. The namespace has label `app` equal to `cassandra` or `spark`. ```yaml watchNamespaceSelectors: - matchLabels: env: prod region: us-east1 - matchExpressions: - key: app operator: In values: - cassandra - spark ``` However, if the match conditions are part of the same same list item, the namespace must match all conditions. ```yaml watchNamespaceSelectors: - matchLabels: env: prod region: us-east1 matchExpressions: - key: app operator: In values: - cassandra - spark ``` Refer to the [Kubernetes selector docs](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#label-selectors) for additional detail on selector semantics. |
 
@@ -444,13 +441,11 @@ This option determines the root of the directory tree used to this end.
 
 
 ```yaml
-"graphqlEnabled": .google.protobuf.BoolValue
 
 ```
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `graphqlEnabled` | [.google.protobuf.BoolValue](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/bool-value) | Deprecated: The GraphQL feature will be removed in a future release. Enable function discovery service on GraphQL gRPC and OpenApi upstreams. Defaults to true. |
 
 
 
@@ -959,19 +954,14 @@ options for configuring admission control / validation
 ### ConsoleOptions
 
  
-Deprecated: The GraphQL feature will be removed in a future release.
-Settings used by the Enterprise Console (UI)
+DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
 
 ```yaml
-"readOnly": .google.protobuf.BoolValue
-"apiExplorerEnabled": .google.protobuf.BoolValue
 
 ```
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `readOnly` | [.google.protobuf.BoolValue](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/bool-value) | If true, then custom resources can only be viewed in read-only mode in the UI. If false, then resources can be created, updated, and deleted via the UI. Currently, create/update/delete operations are only supported for GraphQL resources. This feature requires a Gloo Edge Enterprise license with GraphQL enabled. Defaults to true. |
-| `apiExplorerEnabled` | [.google.protobuf.BoolValue](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/bool-value) | Whether to enable the GraphQL API Explorer. This feature requires a Gloo Edge Enterprise license with GraphQL enabled. Defaults to true. |
 
 
 
@@ -980,17 +970,14 @@ Settings used by the Enterprise Console (UI)
 ### GraphqlOptions
 
  
-Deprecated: The GraphQL feature will be removed in a future release.
-GraphQL settings used by the control plane and UI.
+DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
 
 ```yaml
-"schemaChangeValidationOptions": .gloo.solo.io.GraphqlOptions.SchemaChangeValidationOptions
 
 ```
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `schemaChangeValidationOptions` | [.gloo.solo.io.GraphqlOptions.SchemaChangeValidationOptions](../settings.proto.sk/#schemachangevalidationoptions) | Options for how to validate changes to schema definitions. |
 
 
 
@@ -998,34 +985,15 @@ GraphQL settings used by the control plane and UI.
 ---
 ### SchemaChangeValidationOptions
 
-
+ 
+DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
 
 ```yaml
-"rejectBreakingChanges": .google.protobuf.BoolValue
-"processingRules": []gloo.solo.io.GraphqlOptions.SchemaChangeValidationOptions.ProcessingRule
 
 ```
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `rejectBreakingChanges` | [.google.protobuf.BoolValue](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/bool-value) | Schema definition updates can be considered safe, dangerous, or breaking. If this field is set to true, then breaking schema updates will be rejected. Defaults to false. |
-| `processingRules` | [[]gloo.solo.io.GraphqlOptions.SchemaChangeValidationOptions.ProcessingRule](../settings.proto.sk/#processingrule) | We use [GraphQL Inspector](https://www.graphql-inspector.com/docs/essentials/diff) to detect breaking changes to GraphQL schemas. This field allows for passing [processing rules](https://www.graphql-inspector.com/docs/essentials/diff#rules) to GraphQL Inspector to customize how various change types are handled. |
-
-
-
-
----
-### ProcessingRule
-
-
-
-| Name | Description |
-| ----- | ----------- | 
-| `RULE_UNSPECIFIED` |  |
-| `RULE_DANGEROUS_TO_BREAKING` | Turn every dangerous change into a breaking change. |
-| `RULE_DEPRECATED_FIELD_REMOVAL_DANGEROUS` | Treat the removal of a deprecated field as a dangerous change, instead of a breaking change. |
-| `RULE_IGNORE_DESCRIPTION_CHANGES` | Ignore description changes. |
-| `RULE_IGNORE_UNREACHABLE` | Ignore breaking changes on parts of the schema that are not reachable starting from the root types. |
 
 
 
