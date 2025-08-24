@@ -1,6 +1,8 @@
 package convert
 
 import (
+	"crypto/sha1"
+	"encoding/hex"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -300,7 +302,7 @@ func writeObjectToFile(opts *Options, wrapper snapshot.Wrapper, stringBytes []by
 		}
 	} else {
 		// by file per namespace
-		fileName := fmt.Sprintf("%s-%s.yaml", wrapper.GetObjectKind().GroupVersionKind().Kind, wrapper.GetName())
+		fileName := fmt.Sprintf("%s-%s.yaml", wrapper.GetObjectKind().GroupVersionKind().Kind, truncateAndHash(wrapper.GetName()))
 		if err := appendToFile(filepath.Join(opts.OutputDir, wrapper.GetNamespace()), fileName, stringBytes); err != nil {
 			return err
 		}
@@ -357,4 +359,19 @@ func removeNullYamlFields(yamlData []byte) string {
 	re = regexp.MustCompile(`\n  generation: .*`)
 	stringData = re.ReplaceAllString(stringData, "")
 	return stringData
+}
+
+func truncateAndHash(s string) string {
+	maxLen := 20
+	prefix := s
+	if len(s) > maxLen {
+		prefix = s[:maxLen]
+	}
+
+	// Generate SHA-1 hash
+	h := sha1.New()
+	h.Write([]byte(s))
+	hash := hex.EncodeToString(h.Sum(nil))[:8] // use first 8 chars for brevity
+
+	return prefix + "-" + hash
 }
