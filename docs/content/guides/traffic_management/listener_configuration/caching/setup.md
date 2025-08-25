@@ -6,6 +6,10 @@ description: Deploy the caching server and start caching responses from upstream
 
 Set up the Gloo Gateway caching server to cache responses from upstream services for quicker response times.
 
+{{% notice warning %}}
+The caching filter is deprecated and planned to be removed in Gloo Gateway version 1.21.
+{{% /notice %}}
+
 {{% notice note %}}
 This feature is available only for Gloo Gateway Enterprise v1.12.x and later.
 {{% /notice %}}
