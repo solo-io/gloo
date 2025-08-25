@@ -72,7 +72,7 @@ The Envoy dependency in Gloo Gateway 1.20 was upgraded from 1.33.x to 1.35.x. Th
 
 ##### Caching filter deprecated
 
-Solo.io The [caching filter]({{< versioned_link_path fromRoot="/guides/traffic_management/listener_configuration/caching/" >}}) is deprecated and planned to be removed in Gloo Gateway version 1.21. 
+The [caching filter]({{< versioned_link_path fromRoot="/guides/traffic_management/listener_configuration/caching/" >}}) is deprecated and planned to be removed in Gloo Gateway version 1.21. 
 
 
 ## New features
