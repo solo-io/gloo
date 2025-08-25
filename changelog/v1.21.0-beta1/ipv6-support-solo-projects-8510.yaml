@@ -6,6 +6,7 @@ changelog:
       This adds the initial support for IPv6.
       - Exposes IP family management (`DnsIpFamily`) via `Settings.UpstreamOptions.DnsLookupIpFamily`  and `Upstream.DnsLookupIpFamily` for DNS lookup.
         `DnsLookupIpFamily` under `Upstream` helps to manage it at the upstream level but other will inherit the global configuration under `Settings`.
+      - This applies to upstreams such as static, aws, and azure.
   - type: HELM
     issueLink: https://github.com/solo-io/gloo/issues/8510
     resolvesIssue: false
