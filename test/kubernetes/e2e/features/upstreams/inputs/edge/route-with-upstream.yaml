@@ -1,0 +1,17 @@
+apiVersion: gateway.solo.io/v1
+kind: VirtualService
+metadata:
+  name: example-vs
+spec:
+  virtualHost:
+    domains:
+      - "example.com"
+    routes:
+      - matchers:
+          - prefix: /
+        routeAction:
+          single:
+            upstream:
+              name: json-upstream
+        options:
+          hostRewrite: jsonplaceholder.typicode.com

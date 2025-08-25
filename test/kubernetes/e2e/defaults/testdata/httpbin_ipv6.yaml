@@ -14,7 +14,12 @@ metadata:
 spec:
   containers:
     - name: httpbin
-      image: mccutchen/go-httpbin:v2.18.3
+      image: mccutchen/go-httpbin:2.18.3
+      command:
+        - /bin/go-httpbin
+      args:
+        - "--host"
+        - "::"
       ports:
         - containerPort: 8080
           name: http

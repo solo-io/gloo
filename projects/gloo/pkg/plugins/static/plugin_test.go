@@ -54,7 +54,6 @@ var _ = Describe("Plugin", func() {
 				Static: upstreamSpec,
 			},
 		}
-
 	})
 
 	JustBeforeEach(func() {
@@ -67,6 +66,76 @@ var _ = Describe("Plugin", func() {
 			err := p.ProcessUpstream(params, upstream, out)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(out.Http2ProtocolOptions).To(BeNil())
+		})
+	})
+
+	Context("dns family type", func() {
+		It("default to ipv4 only", func() {
+			err := p.ProcessUpstream(params, upstream, out)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(out.GetDnsLookupFamily()).To(Equal(envoy_config_cluster_v3.Cluster_V4_ONLY))
+		})
+
+		It("should handle V6_ONLY", func() {
+			initParams = plugins.InitParams{
+				Settings: &v1.Settings{
+					UpstreamOptions: &v1.UpstreamOptions{
+						DnsLookupIpFamily: v1.DnsIpFamily_V6_ONLY,
+					},
+				},
+			}
+			p.Init(initParams)
+
+			err := p.ProcessUpstream(params, upstream, out)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(out.GetDnsLookupFamily()).To(Equal(envoy_config_cluster_v3.Cluster_V6_ONLY))
+		})
+
+		It("should handle V4_PREFERRED", func() {
+			initParams = plugins.InitParams{
+				Settings: &v1.Settings{
+					UpstreamOptions: &v1.UpstreamOptions{
+						DnsLookupIpFamily: v1.DnsIpFamily_V4_PREFERRED,
+					},
+				},
+			}
+			p.Init(initParams)
+
+			err := p.ProcessUpstream(params, upstream, out)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(out.GetDnsLookupFamily()).To(Equal(envoy_config_cluster_v3.Cluster_V4_PREFERRED))
+		})
+
+		It("should handle ALL dns family", func() {
+			initParams = plugins.InitParams{
+				Settings: &v1.Settings{
+					UpstreamOptions: &v1.UpstreamOptions{
+						DnsLookupIpFamily: v1.DnsIpFamily_ALL,
+					},
+				},
+			}
+			p.Init(initParams)
+
+			err := p.ProcessUpstream(params, upstream, out)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(out.GetDnsLookupFamily()).To(Equal(envoy_config_cluster_v3.Cluster_ALL))
+		})
+
+		It("should handle override to V6 dns family", func() {
+			initParams = plugins.InitParams{
+				Settings: &v1.Settings{
+					UpstreamOptions: &v1.UpstreamOptions{
+						DnsLookupIpFamily: v1.DnsIpFamily_AUTO,
+					},
+				},
+			}
+			p.Init(initParams)
+
+			upstream.DnsLookupIpFamily = v1.DnsIpFamily_V6_ONLY
+
+			err := p.ProcessUpstream(params, upstream, out)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(out.GetDnsLookupFamily()).To(Equal(envoy_config_cluster_v3.Cluster_V6_ONLY))
 		})
 	})
 

@@ -165,6 +165,50 @@ var _ = Describe("Plugin", func() {
 			Expect(lpe.Host).To(Equal("lambda.us-east1.amazonaws.com"))
 		})
 
+		It("should process global dns family", func() {
+			initParams.Settings = &v1.Settings{
+				UpstreamOptions: &v1.UpstreamOptions{
+					DnsLookupIpFamily: v1.DnsIpFamily_V4_ONLY,
+				},
+			}
+			awsPlugin.Init(initParams)
+
+			err := awsPlugin.(plugins.UpstreamPlugin).ProcessUpstream(params, upstream, out)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(out.TypedExtensionProtocolOptions).NotTo(BeEmpty())
+			Expect(out.TypedExtensionProtocolOptions).To(HaveKey(FilterName))
+			Expect(out.DnsLookupFamily).To(Equal(envoy_config_cluster_v3.Cluster_V4_ONLY))
+			processProtocolOptions()
+
+			Expect(lpe.AccessKey).To(Equal(accessKeyValue))
+			Expect(lpe.SecretKey).To(Equal(secretKeyValue))
+			Expect(lpe.Region).To(Equal("us-east1"))
+			Expect(lpe.Host).To(Equal("lambda.us-east1.amazonaws.com"))
+		})
+
+		It("should override global dns family with upstream config", func() {
+			initParams.Settings = &v1.Settings{
+				UpstreamOptions: &v1.UpstreamOptions{
+					DnsLookupIpFamily: v1.DnsIpFamily_V4_ONLY,
+				},
+			}
+			awsPlugin.Init(initParams)
+
+			upstream.DnsLookupIpFamily = v1.DnsIpFamily_V6_ONLY
+
+			err := awsPlugin.(plugins.UpstreamPlugin).ProcessUpstream(params, upstream, out)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(out.TypedExtensionProtocolOptions).NotTo(BeEmpty())
+			Expect(out.TypedExtensionProtocolOptions).To(HaveKey(FilterName))
+			Expect(out.DnsLookupFamily).To(Equal(envoy_config_cluster_v3.Cluster_V6_ONLY))
+			processProtocolOptions()
+
+			Expect(lpe.AccessKey).To(Equal(accessKeyValue))
+			Expect(lpe.SecretKey).To(Equal(secretKeyValue))
+			Expect(lpe.Region).To(Equal("us-east1"))
+			Expect(lpe.Host).To(Equal("lambda.us-east1.amazonaws.com"))
+		})
+
 		It("should error upstream with no secrets", func() {
 			params.Snapshot.Secrets = nil
 			err := awsPlugin.(plugins.UpstreamPlugin).ProcessUpstream(params, upstream, out)

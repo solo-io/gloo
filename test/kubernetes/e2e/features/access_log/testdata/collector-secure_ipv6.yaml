@@ -1,0 +1,180 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: otel-collector-conf
+  labels:
+    app: opentelemetry
+    component: otel-collector-conf
+data:
+  otel-collector-config: |
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+            include_metadata: true
+            endpoint: 0.0.0.0:4317
+            tls:
+              cert_file: /conf/collector.crt
+              key_file: /conf/collector.key
+    exporters:
+      debug:
+        verbosity: detailed
+    service:
+      extensions: []
+      pipelines:
+        logs:
+          receivers: [otlp]
+          processors: []
+          exporters: [debug]
+      telemetry:
+        logs:
+          level: "DEBUG"
+          development: true
+          encoding: "json"
+  # openssl req -x509 -newkey rsa:4096 -sha256 -days 3650 \
+  #   -nodes -keyout collector.key -out collector.crt \
+  #   -subj "/CN=otel-collector.default.svc.cluster.local" \
+  #   -addext "subjectAltName=DNS:collector.example.com"
+  collector.crt: |
+    -----BEGIN CERTIFICATE-----
+    MIIFaTCCA1GgAwIBAgIUFV2mbavCasXIACIYJpZrmHnIuYowDQYJKoZIhvcNAQEL
+    BQAwMzExMC8GA1UEAwwob3RlbC1jb2xsZWN0b3IuZGVmYXVsdC5zdmMuY2x1c3Rl
+    ci5sb2NhbDAeFw0yNTA0MTcxNzUwNDFaFw0zNTA0MTUxNzUwNDFaMDMxMTAvBgNV
+    BAMMKG90ZWwtY29sbGVjdG9yLmRlZmF1bHQuc3ZjLmNsdXN0ZXIubG9jYWwwggIi
+    MA0GCSqGSIb3DQEBAQUAA4ICDwAwggIKAoICAQCqq5Yv8OILRaRqaQnvB13L318V
+    RPjn57D1ZeM2WQYR7fpRhxYf66vKf3ZSps4XUrsXC4p961ldKbGC+zb7pjKJUeW7
+    ogL+ZLzakDHICKpsnUS4QbaF9wkocqkIMZTTs5C5K8VsoYrghwunaRIPBJ/pdW7a
+    9mCfmKhW8FEaG7wP2zNqr85j8jDS4C1kB7C/zTV/YdYH7/PH3c0JMFyj5zKZaSNQ
+    qoV7/ghJuDsiX8jmBz6DdQxLEmaj0WYddQYBQC/YXMo8rw1FtGi+IX5T7TCDjdxO
+    Vmqijq+z7QMNESqnRZQ9nsoOjg2VK0txhh7zMvHTrdsXuMIx8bmU8jT1mIQKqEn8
+    9uzKbqWoNahtpKe+vhnN5QRNszsC8DuBndMk527/k4odz5v2yroZ0ID89iS2yQhW
+    B0RicrlkQfjgvxHruEFavbsgz6eMpn93qJndE8U19C3HldE38B3KPFP/Wgowo74h
+    zLTP7FsAhbWLh3VIbkc4mQSLotA7JpAmc1c4JLVyvQkRomLRcOt5o4PE3uHTrcr1
+    B8hVn95G+Z4RAQFAeABrXi0jXWkg9BIEnt2QhjKQzfqKjHcc+L0HQ6B7dUpiTDuP
+    nX0AQA4yJomDJhWdD+q0ykvsJD+IdOa7j5HaPj340Iq1rPiHKjgEb0PMPQmFh9wq
+    vIHkrMc3eNkYbC0WRQIDAQABo3UwczAdBgNVHQ4EFgQU5SJlQOWZ2c2dwQ6dOCZL
+    qGu6niIwHwYDVR0jBBgwFoAU5SJlQOWZ2c2dwQ6dOCZLqGu6niIwDwYDVR0TAQH/
+    BAUwAwEB/zAgBgNVHREEGTAXghVjb2xsZWN0b3IuZXhhbXBsZS5jb20wDQYJKoZI
+    hvcNAQELBQADggIBAH4uVLp6WB/YsJJsObGRs8Lh5MLJ3g3jcCOd7HuLk2kQ7lpj
+    DiAp1MtM9my4nr72hB2FRuhdOGTV36xo8xhu/Q8OVA/AaddLVa/VuthcyiIdRxoO
+    siOj3Wo9f7OuNa25efKTcakCsSPqQ0twnIRPfI52JaVbDD313OLal7SZCqS0ZPdm
+    8I5zNwgl2mYJmf/Yey7axIF8v1le2g3RRsli18Tl2GQf9S5woK/RJQQknLKgtXUA
+    7iLKU3QYvUks9LHyDTiW1buDQSqlHEddG/5BdgNZPTZ8+S7Q3bP3muChg5TCDCIU
+    YZ9uZ1x31qceg8ZO+VJz3XBugVElCsZlpHWJQbMJvID/2so7gCHXl/cngr7fHUfg
+    AE6py0DeuKCNtAILvSDbyKZLr2CCgaH5uVfdaA3uE85cqQycWEjXf8duAs/BcU2D
+    t79nuH5Xepe9vbtxAgqvPtLiC5LGIt8smi1SdSrR3yWYscO1O/JporJB6/G2IXrz
+    S8ItOxJlP0C4Ug1D3KttI7mEBnwTW+5VUYbeRbYgm4e4HmQzDtFjBrhH7zKzQovu
+    5gAcBDOl5C43ULzcCZobolHSQCjlrVzh2bcohk5JVhfjlUpF7oA/C9evmszcEknd
+    mdiMqL5Lcx/hmrJS8iW3MEtvYuChm5rCxFD/i2ZP39vwwaCyKsjyPmYqAbNU
+    -----END CERTIFICATE-----
+  collector.key: |
+    -----BEGIN PRIVATE KEY-----
+    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
+    l6yxoBAggEdLi7TU8CEG23pJnPVidg==
+    -----END PRIVATE KEY-----
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: otel-collector
+  labels:
+    app: opentelemetry
+    component: otel-collector
+    app.kubernetes.io/name: otel-collector
+spec:
+  containers:
+  - command:
+      - "/otelcol-contrib"
+      - "--config"
+      - "/conf/otel-collector-config.yaml"
+    image: otel/opentelemetry-collector-contrib:0.116.1
+    name: otel-collector
+    resources:
+      limits:
+        cpu: 1
+        memory: 2Gi
+      requests:
+        cpu: 200m
+        memory: 400Mi
+    ports: # Comment out ports for platforms as needed.
+    - containerPort: 4317 # Default gRPC endpoint for OpenTelemetry receiver.
+    volumeMounts:
+    - name: otel-collector-config-vol
+      mountPath: /conf
+  volumes:
+    - name: otel-collector-config-vol
+      configMap:
+        name: otel-collector-conf
+        items:
+          - key: otel-collector-config
+            path: otel-collector-config.yaml
+          - key: collector.crt
+            path: collector.crt
+          - key: collector.key
+            path: collector.key
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: otel-collector
+  labels:
+    app: opentelemetry
+    component: otel-collector
+    app.kubernetes.io/name: opentelemetry
+spec:
+  ports:
+  - name: otlp-grpc # Default endpoint for OpenTelemetry gRPC receiver.
+    port: 4317
+    protocol: TCP
+    targetPort: 4317
+  selector:
+    app.kubernetes.io/name: otel-collector
