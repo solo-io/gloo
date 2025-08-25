@@ -109,8 +109,12 @@ func (p *Plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *en
 	}
 
 	// TODO(nfuden): Update to reasonable ipv6 https://aws.amazon.com/about-aws/whats-new/2021/12/aws-lambda-ipv6-endpoints-inbound-connections/
-	ipFamily := p.settings.GetUpstreamOptions().GetDnsLookupIpFamily()
-	// if not auto then just override to whatever family that is at the upstream level, otherwise use the global
+	ipFamily := v1.DnsIpFamily_V4_ONLY
+	// use the global defined value
+	if p.settings.GetUpstreamOptions() != nil {
+		ipFamily = p.settings.GetUpstreamOptions().GetDnsLookupIpFamily()
+	}
+	// if not auto then just override to whatever family that is at the upstream level
 	if in.GetDnsLookupIpFamily() != v1.DnsIpFamily_AUTO {
 		ipFamily = in.GetDnsLookupIpFamily()
 	}

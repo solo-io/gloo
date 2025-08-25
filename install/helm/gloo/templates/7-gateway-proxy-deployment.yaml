@@ -206,11 +206,19 @@ spec:
         lifecycle:
           preStop:
             exec:
+        {{- if or $spec.gatewaySettings.ipv4Only (not (hasKey $spec.gatewaySettings "ipv4Only")) }}
               command:
               - /bin/sh
               - -c
-              - wget --post-data "" -O /dev/null http://[{{ $spec.loopBackAddress }}]:19000/healthcheck/fail;
+              - wget --post-data "" -O /dev/null {{ $spec.loopBackAddress }}:19000/healthcheck/fail;
                 sleep {{ $spec.podTemplate.gracefulShutdown.sleepTimeSeconds }}
+        {{- else }}
+              command:
+                - /bin/sh
+                - -c
+                - wget --post-data "" -O /dev/null http://[{{ $spec.loopBackAddress }}]:19000/healthcheck/fail;
+                  sleep {{ $spec.podTemplate.gracefulShutdown.sleepTimeSeconds }}
+        {{- end }}{{- /* $spec.gatewaySettings.ipv4Only */}}
         {{- end}}
         {{- end}}
         name: {{ $name | kebabcase }}
@@ -256,11 +264,19 @@ spec:
 {{ toYaml $spec.podTemplate.customReadinessProbe | indent 10}}
 {{- else }}
           exec:
+{{- if or $spec.gatewaySettings.ipv4Only (not (hasKey $spec.gatewaySettings "ipv4Only")) }}
             command:
             - wget
             - -O
             - /dev/null
-            - http://[{{ $spec.loopBackAddress }}]:19000/ready
+            - {{ $spec.loopBackAddress }}:19000/ready
+{{- else }}
+            command:
+              - wget
+              - -O
+              - /dev/null
+              - http://[{{ $spec.loopBackAddress }}]:19000/ready
+{{- end }}{{- /* $spec.gatewaySettings.ipv4Only */}}
           initialDelaySeconds: 3
           periodSeconds: 10
           failureThreshold: 3
@@ -271,11 +287,19 @@ spec:
 {{ toYaml $spec.podTemplate.customLivenessProbe | indent 10}}
 {{- else }}
           exec:
+{{- if or $spec.gatewaySettings.ipv4Only (not (hasKey $spec.gatewaySettings "ipv4Only")) }}
             command:
             - wget
             - -O
             - /dev/null
-            - http://[{{ $spec.loopBackAddress }}]:19000/server_info
+            - {{ $spec.loopBackAddress }}:19000/server_info
+{{- else }}
+            command:
+              - wget
+              - -O
+              - /dev/null
+              - http://[{{ $spec.loopBackAddress }}]:19000/server_info
+{{- end }}{{- /* $spec.gatewaySettings.ipv4Only */}}
           initialDelaySeconds: 3
           periodSeconds: 10
           failureThreshold: 3

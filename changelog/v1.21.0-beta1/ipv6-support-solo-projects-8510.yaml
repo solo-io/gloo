@@ -11,5 +11,6 @@ changelog:
     issueLink: https://github.com/solo-io/solo-projects/issues/8510
     resolvesIssue: false
     description: >-
-      - Adds `upstreamOptions.dnsLookupIpFamily` to settings.yaml to manage the IP family globally.
-      - Proxy bootstrap configuration is updated to handle V6 listeners.
+      - Chart values expose `settings.upstreamOptions.ipv4Only` to manage V4 or V6 family
+      - Adds `upstreamOptions.dnsLookupIpFamily` to settings.yaml template to manage the IP family globally.
+      - Proxy bootstrap configuration `gateway-proxy-configmap.yaml` and `gateway-proxy-deploy.yaml` are updated to handle the V6 listeners and probes.

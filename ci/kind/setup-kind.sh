@@ -59,14 +59,6 @@ function create_kind_cluster_or_skip() {
 
   # Install cilium as we need to define custom network policies to simulate kube api server unavailability
   # in some of our kube2e tests
-
-        #--set routingMode=native \
-        #--set autoDirectNodeRoutes=true \
-        #--set ipv6.clusterPoolIPv6PodCIDR="fd00:10:244::/56" \
-        #--set ipv6.serviceCIDR="fd00:10:96::/112" \
-              #--set k8s.requireIPv6PodCIDR=true
-
-
   helm repo add cilium-setup-kind https://helm.cilium.io/
   helm repo update
   if [[ "$is_ipv6" = true ]]; then

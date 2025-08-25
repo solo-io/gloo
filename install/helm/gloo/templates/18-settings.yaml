@@ -61,17 +61,17 @@ spec:
 {{- else if .Values.settings.aws.enableCredentialsDiscovery }}
       enableCredentialsDiscovey: true
 {{- end }}
-{{- if .Values.settings.aws.credential_refresh_delay }}
-      credentialRefreshDelay: {{ .Values.settings.aws.credential_refresh_delay }}
+
+ {{- if  .Values.settings.aws.credential_refresh_delay }}
+      credentialRefreshDelay: {{  .Values.settings.aws.credential_refresh_delay }}
 {{- end }}
-{{- if .Values.settings.aws.propagateOriginalRouting }}
+{{- if  .Values.settings.aws.propagateOriginalRouting }}
       propagateOriginalRouting: {{ .Values.settings.aws.propagateOriginalRouting }}
 {{- end }}
-{{- if .Values.settings.aws.fallbackToFirstFunction }}
+  {{- if .Values.settings.aws.fallbackToFirstFunction }}
       fallbackToFirstFunction: {{ .Values.settings.aws.fallbackToFirstFunction }}
+  {{- end }}
 {{- end }}
-{{- end }}
-
   {{- if .Values.global.istioIntegration }}
     istioOptions:
       appendXForwardedHost: {{ .Values.global.istioIntegration.appendXForwardedHost }}
@@ -201,12 +201,14 @@ spec:
   {{ toYaml .Values.settings.watchNamespaceSelectors | nindent 4 }}
 {{- end }} {{/* if .Values.settings.watchNamespaceSelectors */}}
 
+{{- if .Values.settings.upstreamOptions }}
   upstreamOptions:
-    {{- if or .Values.settings.ipv4Only (not (hasKey .Values.settings "ipv4Only")) }}
+    {{- if or .Values.settings.upstreamOptions.ipv4Only (not (hasKey .Values.settings.upstreamOptions "ipv4Only")) }}
     dnsLookupIpFamily: V4_ONLY
     {{- else }}
     dnsLookupIpFamily: V6_ONLY
     {{- end }}
+{{- end }} {{/* if .Values.settings.upstreamOptions */}}
 
 {{- end }} {{/* if .Values.settings.create  */}}
 {{- end }} {{/* define "settings.settingsSpec" */}}

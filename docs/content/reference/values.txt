@@ -410,7 +410,7 @@
 |settings.secretOptions.sources[].vault.aws.sessionToken|string||The Session Token as provided by the security credentials on the AWS IAM resource.|
 |settings.secretOptions.sources[].vault.aws.leaseIncrement|uint32||The time increment, in seconds, used in renewing the lease of the Vault token. See: https://developer.hashicorp.com/vault/docs/concepts/lease#lease-durations-and-renewal. Defaults to 0, which causes the default TTL to be used.|
 |settings.secretOptions.sources[].directory.directory|string||Directory to read secrets from.|
-|settings.ipv4Only|bool||When explicitly set to false, DNS resolution operates in IPv4-preferred mode. This means a hostname may resolve to either IPv4 or IPv6, depending on availability. This setting is useful in IPv6-capable environments. If not set to false, the default behavior forces DNS resolution to IPv4-only mode.|
+|settings.upstreamOptions.ipv4Only|bool||When explicitly set to false, DNS resolution operates in IPv6 mode. This setting is useful in IPv6-capable environments. If not set to false, the default behavior forces DNS resolution to IPv4-only mode.|
 |settings.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |gloo.deployment.xdsPort|int|9977|port where gloo serves xDS API to Envoy.|
 |gloo.deployment.restXdsPort|uint32|9976|port where gloo serves REST xDS API to Envoy.|

@@ -232,9 +232,9 @@ type Settings struct {
 	CircuitBreakers               CircuitBreakersSettings `json:"circuitBreakers,omitempty" desc:"Set this to configure the circuit breaker settings for Gloo."`
 	EnableRestEds                 *bool                   `json:"enableRestEds,omitempty" desc:"Whether or not to use rest xds for all EDS by default. Defaults to false."`
 	// NOTE: DevMode is deprecated. See https://docs.solo.io/gloo-edge/latest/operations/debugging_gloo/#debugging-the-control-plane for more details.
-	DevMode       *bool         `json:"devMode,omitempty" desc:"Whether or not to enable dev mode. Defaults to false. Setting to true at install time will expose the gloo dev admin endpoint on port 10010. Not recommended for production. Warning: this value is deprecated as of 1.17 and will be removed in a future release."`
-	SecretOptions SecretOptions `json:"secretOptions,omitempty" desc:"Options for how Gloo Edge should handle secrets."`
-	Ipv4Only      *bool         `json:"ipv4Only,omitempty" desc:"When explicitly set to false, DNS resolution operates in IPv4-preferred mode. This means a hostname may resolve to either IPv4 or IPv6, depending on availability. This setting is useful in IPv6-capable environments. If not set to false, the default behavior forces DNS resolution to IPv4-only mode."`
+	DevMode         *bool           `json:"devMode,omitempty" desc:"Whether or not to enable dev mode. Defaults to false. Setting to true at install time will expose the gloo dev admin endpoint on port 10010. Not recommended for production. Warning: this value is deprecated as of 1.17 and will be removed in a future release."`
+	SecretOptions   SecretOptions   `json:"secretOptions,omitempty" desc:"Options for how Gloo Edge should handle secrets."`
+	UpstreamOptions UpstreamOptions `json:"upstreamOptions,omitempty" desc:"Options for managing global configuration for upstreams."`
 	*KubeResourceOverride
 }
 
@@ -922,4 +922,8 @@ type GatewayParamsAIExtension struct {
 	Resources       *ResourceRequirements         `json:"resources,omitempty" desc:"Sets default resource requirements for the extension."`
 	Env             []*corev1.EnvVar              `json:"env,omitempty" desc:"Container environment variables for the extension."`
 	Ports           []*corev1.ContainerPort       `json:"ports,omitempty" desc:"Container ports for the extension."`
+}
+
+type UpstreamOptions struct {
+	Ipv4Only *bool `json:"ipv4Only,omitempty" desc:"When explicitly set to false, DNS resolution operates in IPv6 mode. This setting is useful in IPv6-capable environments. If not set to false, the default behavior forces DNS resolution to IPv4-only mode."`
 }
