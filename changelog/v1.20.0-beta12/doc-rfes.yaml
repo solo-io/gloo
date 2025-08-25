@@ -1,0 +1,7 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >-
+      Adds docs for RFEs, such as usedonly stats. 
+
+      skipCI-kube-tests:true
+      skipCI-docs-build:true
