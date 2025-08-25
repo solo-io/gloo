@@ -1350,6 +1350,21 @@ spec:
                             nullable: true
                             type: integer
                         type: object
+                      rateLimitedRetryBackOff:
+                        properties:
+                          maxInterval:
+                            type: string
+                          resetHeaders:
+                            items:
+                              properties:
+                                format:
+                                  type: string
+                                  x-kubernetes-int-or-string: true
+                                name:
+                                  type: string
+                              type: object
+                            type: array
+                        type: object
                       retriableStatusCodes:
                         items:
                           maximum: 4294967295

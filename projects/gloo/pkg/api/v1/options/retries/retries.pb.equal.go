@@ -70,6 +70,89 @@ func (m *RetryBackOff) Equal(that interface{}) bool {
 }
 
 // Equal function
+func (m *ResetHeader) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*ResetHeader)
+	if !ok {
+		that2, ok := that.(ResetHeader)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	if strings.Compare(m.GetName(), target.GetName()) != 0 {
+		return false
+	}
+
+	if m.GetFormat() != target.GetFormat() {
+		return false
+	}
+
+	return true
+}
+
+// Equal function
+func (m *RateLimitedRetryBackOff) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*RateLimitedRetryBackOff)
+	if !ok {
+		that2, ok := that.(RateLimitedRetryBackOff)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	if len(m.GetResetHeaders()) != len(target.GetResetHeaders()) {
+		return false
+	}
+	for idx, v := range m.GetResetHeaders() {
+
+		if h, ok := interface{}(v).(equality.Equalizer); ok {
+			if !h.Equal(target.GetResetHeaders()[idx]) {
+				return false
+			}
+		} else {
+			if !proto.Equal(v, target.GetResetHeaders()[idx]) {
+				return false
+			}
+		}
+
+	}
+
+	if h, ok := interface{}(m.GetMaxInterval()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetMaxInterval()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetMaxInterval(), target.GetMaxInterval()) {
+			return false
+		}
+	}
+
+	return true
+}
+
+// Equal function
 func (m *RetryPolicy) Equal(that interface{}) bool {
 	if that == nil {
 		return m == nil
@@ -127,6 +210,16 @@ func (m *RetryPolicy) Equal(that interface{}) bool {
 			return false
 		}
 
+	}
+
+	if h, ok := interface{}(m.GetRateLimitedRetryBackOff()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetRateLimitedRetryBackOff()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetRateLimitedRetryBackOff(), target.GetRateLimitedRetryBackOff()) {
+			return false
+		}
 	}
 
 	switch m.PriorityPredicate.(type) {
