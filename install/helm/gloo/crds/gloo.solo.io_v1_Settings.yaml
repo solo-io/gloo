@@ -615,6 +615,9 @@ spec:
                   disableProxyGarbageCollection:
                     nullable: true
                     type: boolean
+                  enableAutoWebsocketTransformationPassthrough:
+                    nullable: true
+                    type: boolean
                   enableRestEds:
                     nullable: true
                     type: boolean

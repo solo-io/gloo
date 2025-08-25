@@ -71,6 +71,7 @@ type Plugin struct {
 	logRequestResponseInfo     bool
 	escapeCharacters           *wrapperspb.BoolValue
 	validator                  validator.Validator
+	autoWebsocketPassthrough   bool
 }
 
 func NewPlugin() *Plugin {
@@ -97,6 +98,7 @@ func (p *Plugin) Init(params plugins.InitParams) {
 	p.TranslateTransformation = TranslateTransformation
 	p.escapeCharacters = params.Settings.GetGloo().GetTransformationEscapeCharacters()
 	p.logRequestResponseInfo = params.Settings.GetGloo().GetLogTransformationRequestResponseInfo().GetValue()
+	p.autoWebsocketPassthrough = params.Settings.GetGloo().GetEnableAutoWebsocketTransformationPassthrough().GetValue()
 }
 
 func mergeFunc(tx *envoytransformation.RouteTransformations) pluginutils.ModifyFunc {
@@ -207,8 +209,9 @@ func (p *Plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) (
 		// only add early transformations if we have to, to allow rolling gloo updates;
 		// i.e. an older envoy without stages connects to gloo, it shouldn't have 2 filters.
 		earlyStageConfig := &envoytransformation.FilterTransformations{
-			Stage:                  EarlyStageNumber,
-			LogRequestResponseInfo: p.logRequestResponseInfo,
+			Stage:                    EarlyStageNumber,
+			LogRequestResponseInfo:   p.logRequestResponseInfo,
+			AutoWebsocketPassthrough: p.autoWebsocketPassthrough,
 		}
 		earlyFilter, err := plugins.NewStagedFilter(FilterName, earlyStageConfig, earlyPluginStage)
 		if err != nil {
@@ -220,7 +223,8 @@ func (p *Plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) (
 	filters = append(filters,
 		plugins.MustNewStagedFilter(FilterName,
 			&envoytransformation.FilterTransformations{
-				LogRequestResponseInfo: p.logRequestResponseInfo,
+				LogRequestResponseInfo:   p.logRequestResponseInfo,
+				AutoWebsocketPassthrough: p.autoWebsocketPassthrough,
 			},
 			pluginStage),
 	)
@@ -240,8 +244,9 @@ func (p *Plugin) UpstreamHttpFilters(params plugins.Params, listener *v1.HttpLis
 	}
 
 	transformationMsg, err := proto_utils.MessageToAny(&envoytransformation.FilterTransformations{
-		LogRequestResponseInfo: p.logRequestResponseInfo,
-		Stage:                  PostRoutingNumber,
+		LogRequestResponseInfo:   p.logRequestResponseInfo,
+		AutoWebsocketPassthrough: p.autoWebsocketPassthrough,
+		Stage:                    PostRoutingNumber,
 	})
 	if err != nil {
 		return nil, err
