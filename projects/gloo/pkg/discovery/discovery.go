@@ -2,6 +2,7 @@ package discovery
 
 import (
 	"context"
+	"fmt"
 	"reflect"
 	"sort"
 	"strings"
@@ -174,10 +175,19 @@ func setLabels(udsName string, upstreamList v1.UpstreamList) v1.UpstreamList {
 func (d *EndpointDiscovery) StartEds(upstreamsToTrack v1.UpstreamList, opts clients.WatchOpts) (chan error, error) {
 	aggregatedErrs := make(chan error)
 	logger := contextutils.LoggerFrom(opts.Ctx)
+
+	logger.Debugw("Starting endpoint discovery for upstreams",
+		"issue", "8539",
+		"upstreamCount", len(upstreamsToTrack),
+		"discoveryPluginCount", len(d.discoveryPlugins))
+
 	for _, eds := range d.discoveryPlugins {
 		endpoints, errs, err := eds.WatchEndpoints(d.writeNamespace, upstreamsToTrack, opts)
 		if err != nil {
-			logger.Errorw("initializing EDS plugin failed", "plugin", reflect.TypeOf(eds).String(), "error", err)
+			logger.Errorw("initializing EDS plugin failed",
+				"plugin", reflect.TypeOf(eds).String(),
+				"error", err,
+				"issue", "8539")
 			continue
 		}
 
@@ -191,17 +201,36 @@ func (d *EndpointDiscovery) StartEds(upstreamsToTrack v1.UpstreamList, opts clie
 					}
 					d.lock.Lock()
 					if _, ok := d.endpointsByEds[eds]; !ok {
-						logger.Infof("Received first EDS update from plugin: %T", eds)
+						logger.Infow("Received first EDS update from plugin",
+							"plugin", fmt.Sprintf("%T", eds),
+							"issue", "8539",
+							"endpointCount", len(endpointList))
 					}
 					d.endpointsByEds[eds] = endpointList
 					desiredEndpoints := aggregateEndpoints(d.endpointsByEds)
+
+					logger.Debugw("Reconciling endpoints from EDS plugin",
+						"issue", "8539",
+						"plugin", edsName,
+						"endpointCount", len(endpointList),
+						"totalEndpoints", len(desiredEndpoints),
+						"pluginsReady", fmt.Sprintf("%d/%d", len(d.endpointsByEds), len(d.discoveryPlugins)))
+
 					if err := d.endpointReconciler.Reconcile(d.writeNamespace, desiredEndpoints, txnEndpoint, clients.ListOpts{
 						Ctx:      opts.Ctx,
 						Selector: opts.Selector,
 					}); err != nil {
+						logger.Warnw("Endpoint reconciliation failed",
+							"issue", "8539",
+							"plugin", edsName,
+							"error", err.Error())
 						aggregatedErrs <- err
 					}
 					if len(d.endpointsByEds) == len(d.discoveryPlugins) {
+						logger.Infow("All discovery plugins are ready - signaling discovery ready",
+							"issue", "8539",
+							"pluginCount", len(d.discoveryPlugins),
+							"totalEndpoints", len(desiredEndpoints))
 						d.signalReady()
 					}
 					d.lock.Unlock()
@@ -209,12 +238,21 @@ func (d *EndpointDiscovery) StartEds(upstreamsToTrack v1.UpstreamList, opts clie
 					if !ok {
 						return
 					}
+					logger.Warnw("Error from EDS plugin during discovery",
+						"issue", "8539",
+						"plugin", edsName,
+						"error", err.Error())
 					select {
 					case aggregatedErrs <- errors.Wrapf(err, "error in eds plugin %v", edsName):
 					default:
-						logger.Desugar().Warn("received error and cannot aggregate it.", zap.Error(err))
+						logger.Desugar().Warn("received error and cannot aggregate it.",
+							zap.Error(err),
+							zap.String("issue", "8539"))
 					}
 				case <-opts.Ctx.Done():
+					logger.Debugw("EDS plugin context cancelled",
+						"issue", "8539",
+						"plugin", edsName)
 					return
 				}
 			}
@@ -227,6 +265,10 @@ func (d *EndpointDiscovery) signalReady() {
 	if !d.readyClosed {
 		d.readyClosed = true
 		close(d.ready)
+		logger := contextutils.LoggerFrom(context.Background())
+		logger.Infow("Endpoint discovery is ready",
+			"issue", "8539",
+			"discoveryPluginCount", len(d.discoveryPlugins))
 	}
 }
 

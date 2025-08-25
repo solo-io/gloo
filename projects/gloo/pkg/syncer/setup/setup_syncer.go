@@ -688,36 +688,139 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 	errs := make(chan error)
 
 	// MARK: build and run EDS loop
+	logger.Debugw("Starting EDS (Endpoint Discovery Service) setup",
+		"issue", "8539",
+		"watchNamespaces", opts.WatchNamespaces,
+		"writeNamespace", opts.WriteNamespace,
+		"discoveryPluginCount", len(discoveryPlugins))
+
 	disc := discovery.NewEndpointDiscovery(opts.WatchNamespaces, opts.WriteNamespace, endpointClient, statusClient, discoveryPlugins)
 	edsSync := discovery.NewEdsSyncer(disc, discovery.Opts{}, watchOpts.RefreshRate)
 	edsEmitter := v1.NewEdsEmitter(hybridUsClient)
 	edsEventLoop := v1.NewEdsEventLoop(edsEmitter, edsSync)
+
+	logger.Debugw("Running EDS event loop",
+		"issue", "8539",
+		"refreshRate", watchOpts.RefreshRate)
+
 	edsErrs, err := edsEventLoop.Run(opts.WatchNamespaces, watchOpts)
 	if err != nil {
+		logger.Errorw("Failed to start EDS event loop",
+			"issue", "8539",
+			"error", err.Error())
 		return err
 	}
 
+	logger.Debugw("EDS event loop started successfully",
+		"issue", "8539")
+
+	// GET WARMING TIMEOUT CONFIGURATION
 	warmTimeout := opts.Settings.GetGloo().GetEndpointsWarmingTimeout()
 
 	if warmTimeout == nil {
 		warmTimeout = &duration.Duration{
 			Seconds: 5 * 60,
 		}
+		logger.Debugw("No endpoints warming timeout configured, using default",
+			"issue", "8539",
+			"defaultTimeoutSeconds", 300)
+	} else {
+		logger.Debugw("Endpoints warming timeout configured",
+			"issue", "8539",
+			"timeoutSeconds", warmTimeout.GetSeconds(),
+			"timeoutNanos", warmTimeout.GetNanos())
 	}
+
+	// CHECK IF WARMING IS ENABLED
 	if warmTimeout.GetSeconds() != 0 || warmTimeout.GetNanos() != 0 {
 		warmTimeoutDuration := prototime.DurationFromProto(warmTimeout)
 		ctx := watchOpts.Ctx
+
+		logger.Infow("Starting cache warming process",
+			"issue", "8539",
+			"warmingTimeout", warmTimeoutDuration.String(),
+			"edsReady", "waiting",
+			"discoveryReady", "waiting")
+
+		// Monitor ready state in a separate goroutine
+		go func() {
+			edsReady := false
+			discoveryReady := false
+
+			for {
+				select {
+				case <-ctx.Done():
+					return
+				case <-edsEventLoop.Ready():
+					if !edsReady {
+						edsReady = true
+						logger.Debugw("EDS event loop is ready",
+							"issue", "8539",
+							"discoveryReady", discoveryReady)
+					}
+					return
+				case <-disc.Ready():
+					if !discoveryReady {
+						discoveryReady = true
+						logger.Debugw("Discovery service is ready",
+							"issue", "8539",
+							"edsReady", edsReady)
+					}
+					return
+				case <-time.After(5 * time.Second):
+					logger.Debugw("Cache warming status check",
+						"issue", "8539",
+						"edsReady", edsReady,
+						"discoveryReady", discoveryReady,
+						"warmingTimeout", warmTimeoutDuration.String())
+				}
+			}
+		}()
+
+		// WAIT FOR CACHE TO WARM
+		warmStartTime := time.Now()
+		logger.Debugw("Waiting for caches to warm",
+			"issue", "8539",
+			"timeout", warmTimeoutDuration.String())
+
 		err = channelutils.WaitForReady(ctx, warmTimeoutDuration, edsEventLoop.Ready(), disc.Ready())
+		warmDuration := time.Since(warmStartTime)
+
 		if err != nil {
 			// make sure that the reason we got here is not context cancellation
 			if ctx.Err() != nil {
+				logger.Errorw("Cache warming interrupted by context cancellation",
+					"issue", "8539",
+					"warmDuration", warmDuration.String(),
+					"contextError", ctx.Err().Error())
 				return ctx.Err()
 			}
-			logger.Panicw("failed warming up endpoints - consider adjusting endpointsWarmingTimeout", "warmTimeoutDuration", warmTimeoutDuration)
+
+			logger.Errorw("Cache warming failed - endpoints did not warm within timeout",
+				"issue", "8539",
+				"warmTimeout", warmTimeoutDuration.String(),
+				"actualWarmDuration", warmDuration.String(),
+				"error", err.Error())
+
+			logger.Panicw("failed warming up endpoints - consider adjusting endpointsWarmingTimeout",
+				"warmTimeoutDuration", warmTimeoutDuration,
+				"issue", "8539")
+		} else {
+			logger.Infow("Cache warming completed successfully",
+				"issue", "8539",
+				"warmDuration", warmDuration.String(),
+				"warmTimeout", warmTimeoutDuration.String())
 		}
+	} else {
+		logger.Infow("Cache warming is disabled (timeout set to 0)",
+			"issue", "8539",
+			"timeoutSeconds", warmTimeout.GetSeconds(),
+			"timeoutNanos", warmTimeout.GetNanos())
 	}
 
 	// We are ready!
+	logger.Infow("Gloo is ready to serve traffic",
+		"issue", "8539")
 
 	go errutils.AggregateErrs(watchOpts.Ctx, errs, edsErrs, "eds.gloo")
 

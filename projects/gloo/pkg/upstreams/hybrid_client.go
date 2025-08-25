@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/solo-io/go-utils/contextutils"
-	"go.uber.org/zap"
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/rotisserie/eris"
@@ -120,6 +119,20 @@ type upstreamsWithSource struct {
 func (c *hybridUpstreamClient) Watch(namespace string, opts clients.WatchOpts) (<-chan v1.UpstreamList, <-chan error, error) {
 	opts = opts.WithDefaults()
 	ctx := contextutils.WithLogger(opts.Ctx, "hybrid upstream client")
+	logger := contextutils.LoggerFrom(ctx)
+
+	logger.Debugw("Starting hybrid upstream client watch",
+		"issue", "8539",
+		"namespace", namespace,
+		"clientSources", func() []string {
+			var sources []string
+			for source := range c.clientMap {
+				sources = append(sources, source)
+			}
+			return sources
+		}(),
+		"refreshRate", opts.RefreshRate)
+
 	var (
 		eg                   = errgroup.Group{}
 		collectErrsChan      = make(chan error)
@@ -129,28 +142,60 @@ func (c *hybridUpstreamClient) Watch(namespace string, opts clients.WatchOpts) (
 	// first thing, do a list of everything to get the current state
 	current := &hybridUpstreamSnapshot{upstreamsBySource: map[string]v1.UpstreamList{}}
 	for source, client := range c.clientMap {
+		logger.Debugw("Getting initial upstream list from source",
+			"issue", "8539",
+			"source", source)
+
 		upstreams, err := client.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})
 		if err != nil {
+			logger.Errorw("Failed to get initial upstream list from source",
+				"issue", "8539",
+				"source", source,
+				"error", err.Error())
 			return nil, nil, err
 		}
+
+		logger.Debugw("Got initial upstream list from source",
+			"issue", "8539",
+			"source", source,
+			"upstreamCount", len(upstreams))
+
 		current.setUpstreams(source, upstreams)
 	}
+
+	logger.Debugw("Starting watch loops for all sources",
+		"issue", "8539",
+		"sourceCount", len(c.clientMap))
 
 	for source, client := range c.clientMap {
 		upstreamsFromSourceChan, errsFromSourceChan, err := client.Watch(namespace, opts)
 		if err != nil {
+			logger.Errorw("Failed to start watch for source",
+				"issue", "8539",
+				"source", source,
+				"error", err.Error())
 			return nil, nil, err
 		}
 
 		// Copy before passing to goroutines
 		sourceName := source
 
+		logger.Debugw("Started watch for source",
+			"issue", "8539",
+			"source", sourceName)
+
 		eg.Go(func() error {
+			logger.Debugw("Starting error aggregation goroutine",
+				"issue", "8539",
+				"source", sourceName)
 			errutils.AggregateErrs(ctx, collectErrsChan, errsFromSourceChan, sourceName)
 			return nil
 		})
 
 		eg.Go(func() error {
+			logger.Debugw("Starting upstream aggregation goroutine",
+				"issue", "8539",
+				"source", sourceName)
 			aggregateUpstreams(ctx, collectUpstreamsChan, upstreamsFromSourceChan, sourceName)
 			return nil
 		})
@@ -158,27 +203,67 @@ func (c *hybridUpstreamClient) Watch(namespace string, opts clients.WatchOpts) (
 
 	upstreamsOut := make(chan v1.UpstreamList, 1)
 
+	logger.Debugw("Created output channel",
+		"issue", "8539",
+		"channelBufferSize", 1)
+
 	go func() {
 		var previousHash uint64
+		syncCount := 0
+		channelFullCount := 0
+
+		logger.Debugw("Starting sync goroutine",
+			"issue", "8539")
 
 		// return success for the sync (ie if there still needs changes or there is a hash error it's a false)
 		syncFunc := func() bool {
 			currentHash, err := current.hash()
 			if currentHash == previousHash && err == nil {
+				logger.Debugw("Hash unchanged, skipping sync",
+					"issue", "8539",
+					"hash", currentHash)
 				return true
 			}
+
 			toSend := current.clone()
+			upstreamList := toSend.toList()
+
+			logger.Debugw("Syncing upstream list",
+				"issue", "8539",
+				"previousHash", previousHash,
+				"currentHash", currentHash,
+				"upstreamCount", len(upstreamList),
+				"syncCount", syncCount)
 
 			// empty the channel if not empty, as we only care about the latest
 			select {
-			case <-upstreamsOut:
+			case oldList := <-upstreamsOut:
+				logger.Debugw("Drained old upstream list from channel",
+					"issue", "8539",
+					"oldListSize", len(oldList),
+					"newListSize", len(upstreamList))
 			default:
+				logger.Debugw("Output channel was empty",
+					"issue", "8539")
 			}
 
 			select {
-			case upstreamsOut <- toSend.toList():
+			case upstreamsOut <- upstreamList:
+				logger.Debugw("Successfully sent upstream list to channel",
+					"issue", "8539",
+					"upstreamCount", len(upstreamList),
+					"hash", currentHash,
+					"syncCount", syncCount)
 				previousHash = currentHash
+				syncCount++
 			default:
+				logger.Warnw("Failed to send upstream list - channel is full",
+					"issue", "8539",
+					"upstreamCount", len(upstreamList),
+					"hash", currentHash,
+					"syncCount", syncCount,
+					"channelFullCount", channelFullCount)
+				channelFullCount++
 				contextutils.LoggerFrom(ctx).DPanic("sending to a buffered channel blocked")
 				return false
 			}
@@ -186,16 +271,27 @@ func (c *hybridUpstreamClient) Watch(namespace string, opts clients.WatchOpts) (
 		}
 
 		// First time - sync the current state
+		logger.Debugw("Performing initial sync",
+			"issue", "8539")
 		needsSync := syncFunc()
+
 		timerC := TimerOverride
 		if timerC == nil {
 			timer := time.NewTicker(time.Second * 1)
 			timerC = timer.C
 			defer timer.Stop()
+			logger.Debugw("Started retry timer",
+				"issue", "8539",
+				"interval", "1s")
 		}
+
 		for {
 			select {
 			case <-ctx.Done():
+				logger.Debugw("Context cancelled, shutting down sync goroutine",
+					"issue", "8539",
+					"finalSyncCount", syncCount,
+					"finalChannelFullCount", channelFullCount)
 				close(upstreamsOut)
 				_ = eg.Wait() // will never return an error
 				close(collectUpstreamsChan)
@@ -203,42 +299,90 @@ func (c *hybridUpstreamClient) Watch(namespace string, opts clients.WatchOpts) (
 				return
 			case upstreamWithSource, ok := <-collectUpstreamsChan:
 				if ok {
+					logger.Debugw("Received upstream update from source",
+						"issue", "8539",
+						"source", upstreamWithSource.source,
+						"upstreamCount", len(upstreamWithSource.upstreams))
 					needsSync = true
 					current.setUpstreams(upstreamWithSource.source, upstreamWithSource.upstreams)
+				} else {
+					logger.Warnw("Upstream collection channel closed",
+						"issue", "8539")
 				}
 			case <-timerC:
 				if len(upstreamsOut) != 0 {
-					contextutils.LoggerFrom(ctx).Debugw("failed to push hybrid upstream list to "+
-						"channel (must be full), retrying in 1s", zap.Uint64("list hash", previousHash))
+					logger.Debugw("failed to push hybrid upstream list to "+
+						"channel (must be full), retrying in 1s",
+						"issue", "8539",
+						"list hash", previousHash,
+						"channelLength", len(upstreamsOut),
+						"channelFullCount", channelFullCount)
 				}
 				if needsSync {
-
+					logger.Debugw("Timer triggered sync attempt",
+						"issue", "8539",
+						"syncCount", syncCount)
 					needsSync = !syncFunc()
 				}
 			}
 		}
 	}()
 
+	logger.Debugw("Hybrid upstream client watch setup complete",
+		"issue", "8539")
+
 	return upstreamsOut, collectErrsChan, nil
 }
 
 // Redirects src to dest adding source information
 func aggregateUpstreams(ctx context.Context, dest chan *upstreamsWithSource, src <-chan v1.UpstreamList, sourceName string) {
+	logger := contextutils.LoggerFrom(ctx)
+	logger.Debugw("Starting upstream aggregation",
+		"issue", "8539",
+		"source", sourceName)
+
+	upstreamUpdateCount := 0
+
 	for {
 		select {
 		case upstreams, ok := <-src:
 			if !ok {
+				logger.Debugw("Source channel closed, stopping aggregation",
+					"issue", "8539",
+					"source", sourceName,
+					"totalUpdates", upstreamUpdateCount)
 				return
 			}
+
+			logger.Debugw("Received upstream update from source",
+				"issue", "8539",
+				"source", sourceName,
+				"upstreamCount", len(upstreams),
+				"updateNumber", upstreamUpdateCount)
+
+			upstreamUpdateCount++
+
 			select {
 			case dest <- &upstreamsWithSource{
 				source:    sourceName,
 				upstreams: upstreams,
 			}:
+				logger.Debugw("Successfully forwarded upstream update",
+					"issue", "8539",
+					"source", sourceName,
+					"upstreamCount", len(upstreams))
 			case <-ctx.Done():
+				logger.Debugw("Context cancelled during upstream forwarding",
+					"issue", "8539",
+					"source", sourceName,
+					"totalUpdates", upstreamUpdateCount)
 				return
 			}
 		case <-ctx.Done():
+			logger.Debugw("Context cancelled, stopping upstream aggregation",
+				"issue", "8539",
+				"source", sourceName,
+				"totalUpdates", upstreamUpdateCount)
 			return
 		}
 	}
