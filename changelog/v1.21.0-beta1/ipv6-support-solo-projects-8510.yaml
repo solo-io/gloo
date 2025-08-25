@@ -1,6 +1,6 @@
 changelog:
   - type: NEW_FEATURE
-    issueLink: https://github.com/solo-io/gloo/issues/8510
+    issueLink: https://github.com/solo-io/solo-projects/issues/8510
     resolvesIssue: false
     description: >-
       This adds the initial support for IPv6.
@@ -8,7 +8,7 @@ changelog:
         `DnsLookupIpFamily` under `Upstream` helps to manage it at the upstream level but other will inherit the global configuration under `Settings`.
       - This applies to upstreams such as static, aws, and azure.
   - type: HELM
-    issueLink: https://github.com/solo-io/gloo/issues/8510
+    issueLink: https://github.com/solo-io/solo-projects/issues/8510
     resolvesIssue: false
     description: >-
       - Adds `upstreamOptions.dnsLookupIpFamily` to settings.yaml to manage the IP family globally.
