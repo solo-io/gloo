@@ -1,26 +1,27 @@
 package translator
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/transformation"
-	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
-
 	"github.com/golang/protobuf/ptypes/wrappers"
-	"k8s.io/apimachinery/pkg/util/sets"
-
-	"github.com/golang/protobuf/proto"
 	errors "github.com/rotisserie/eris"
-	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gateway/pkg/defaults"
-	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
-	matchersv1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
-	gloov1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
+	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	glooutils "github.com/solo-io/gloo/projects/gloo/pkg/utils"
+	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
+	"google.golang.org/protobuf/proto"
+	"k8s.io/apimachinery/pkg/util/sets"
+
+	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
+	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	matchersv1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
+	gloov1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/transformation"
 )
 
 const (
@@ -265,13 +266,34 @@ func (rv *routeVisitor) visit(
 			for _, weight := range sortedWeights {
 				routeTablesForWeight := routeTablesByWeight[weight]
 
+				contextutils.LoggerFrom(context.Background()).Debugw("Processing RouteTable weight group",
+					"issue", "8539",
+					"weight", weight,
+					"tableCount", len(routeTablesForWeight),
+					"tables", func() []string {
+						var names []string
+						for _, rt := range routeTablesForWeight {
+							names = append(names, rt.GetMetadata().Ref().Key())
+						}
+						return names
+					}())
+
 				var rtRoutesForWeight []*gloov1.Route
 				for _, routeTable := range routeTablesForWeight {
+
+					contextutils.LoggerFrom(context.Background()).Debugw("Processing individual RouteTable",
+						"issue", "8539",
+						"routeTable", routeTable.GetMetadata().Ref().Key(),
+						"visitedTableCount", len(visitedRouteTables))
 
 					// Check for delegation cycles
 					if err := checkForCycles(routeTable, visitedRouteTables); err != nil {
 						// Note that we do not report the error on the table we are currently visiting, but on the
 						// one we are about to visit, since that is the one that started the cycle.
+						contextutils.LoggerFrom(context.Background()).Warnw("Delegation cycle detected, skipping RouteTable",
+							"issue", "8539",
+							"routeTable", routeTable.GetMetadata().Ref().Key(),
+							"error", err.Error())
 						reporterHelper.addError(routeTable, err)
 						continue
 					}
@@ -441,14 +463,37 @@ func convertSimpleAction(simpleRoute *gatewayv1.Route) (*gloov1.Route, error) {
 }
 
 // If any of the matching route tables has already been visited, then we have a delegation cycle.
-func checkForCycles(toVisit *gatewayv1.RouteTable, visited gatewayv1.RouteTableList) error {
-	for _, alreadyVisitedTable := range visited {
-		if toVisit == alreadyVisitedTable {
-			return DelegationCycleErr(
-				buildCycleInfoString(append(append(gatewayv1.RouteTableList{}, visited...), toVisit)),
-			)
+func checkForCycles(routeTable *gatewayv1.RouteTable, visitedRouteTables gatewayv1.RouteTableList) error {
+	logger := contextutils.LoggerFrom(context.Background())
+	currentRef := routeTable.GetMetadata().Ref().Key()
+
+	logger.Debugw("Checking for delegation cycles",
+		"issue", "8539",
+		"currentRouteTable", currentRef,
+		"visitedCount", len(visitedRouteTables),
+		"visitedTables", func() []string {
+			var visited []string
+			for _, rt := range visitedRouteTables {
+				visited = append(visited, rt.GetMetadata().Ref().Key())
+			}
+			return visited
+		}())
+
+	for _, visitedRouteTable := range visitedRouteTables {
+		if visitedRouteTable.GetMetadata().Ref().Equal(routeTable.GetMetadata().Ref()) {
+			cycleInfo := buildCycleInfoString(append(visitedRouteTables, routeTable))
+			logger.Warnw("Delegation cycle detected",
+				"issue", "8539",
+				"cycleInfo", cycleInfo,
+				"offendingTable", currentRef,
+				"visitedTables", len(visitedRouteTables))
+			return DelegationCycleErr(cycleInfo)
 		}
 	}
+
+	logger.Debugw("No delegation cycle detected",
+		"issue", "8539",
+		"currentRouteTable", currentRef)
 	return nil
 }
 

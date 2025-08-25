@@ -1,8 +1,11 @@
 package translator
 
 import (
+	"context"
+
 	errors "github.com/rotisserie/eris"
 	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
+	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/selection"
@@ -59,21 +62,73 @@ func (s *selector) SelectRouteTables(action *gatewayv1.DelegateAction, parentNam
 	if routeTableRef := getRouteTableRef(action); routeTableRef != nil {
 		// missing refs should only result in a warning
 		// this allows resources to be applied asynchronously if the validation webhook is configured to allow warnings
+		contextutils.LoggerFrom(context.Background()).Debugw("RouteTable delegation by reference",
+			"issue", "8539",
+			"routeTableRef", routeTableRef.String(),
+			"parentNamespace", parentNamespace,
+			"availableRouteTables", len(s.toSearch))
+
 		routeTable, err := s.toSearch.Find((*routeTableRef).Strings())
 		if err != nil {
+			contextutils.LoggerFrom(context.Background()).Warnw("RouteTable reference not found during selection",
+				"issue", "8539",
+				"routeTableRef", routeTableRef.String(),
+				"parentNamespace", parentNamespace,
+				"availableRouteTables", len(s.toSearch),
+				"error", err.Error(),
+				"searchContext", "delegation_selection")
 			return nil, RouteTableMissingWarning(*routeTableRef)
 		}
+
+		contextutils.LoggerFrom(context.Background()).Debugw("RouteTable reference found successfully",
+			"issue", "8539",
+			"routeTableRef", routeTableRef.String(),
+			"parentNamespace", parentNamespace,
+			"routeTableNamespace", routeTable.GetMetadata().GetNamespace(),
+			"routeTableName", routeTable.GetMetadata().GetName())
 		routeTables = gatewayv1.RouteTableList{routeTable}
 
 	} else if rtSelector := action.GetSelector(); rtSelector != nil {
+		contextutils.LoggerFrom(context.Background()).Debugw("Using RouteTable selector for delegation",
+			"issue", "8539",
+			"selector", rtSelector,
+			"parentNamespace", parentNamespace,
+			"availableRouteTables", len(s.toSearch))
+
 		routeTables, err = RouteTablesForSelector(s.toSearch, rtSelector, parentNamespace)
 		if err != nil {
+			contextutils.LoggerFrom(context.Background()).Warnw("RouteTable selector failed",
+				"issue", "8539",
+				"selector", rtSelector,
+				"parentNamespace", parentNamespace,
+				"error", err.Error())
 			return nil, err
 		}
 		if len(routeTables) == 0 {
+			contextutils.LoggerFrom(context.Background()).Warnw("No RouteTable matches the given selector",
+				"issue", "8539",
+				"selector", rtSelector,
+				"parentNamespace", parentNamespace,
+				"availableRouteTables", len(s.toSearch))
 			return nil, NoMatchingRouteTablesWarning
 		}
+
+		contextutils.LoggerFrom(context.Background()).Debugw("RouteTable selector matched tables",
+			"issue", "8539",
+			"selector", rtSelector,
+			"parentNamespace", parentNamespace,
+			"matchedCount", len(routeTables),
+			"matchedTables", func() []string {
+				var names []string
+				for _, rt := range routeTables {
+					names = append(names, rt.GetMetadata().Ref().Key())
+				}
+				return names
+			}())
 	} else {
+		contextutils.LoggerFrom(context.Background()).Warnw("DelegateAction missing both ref and selector",
+			"issue", "8539",
+			"parentNamespace", parentNamespace)
 		return nil, MissingRefAndSelectorWarning
 	}
 	return routeTables, nil

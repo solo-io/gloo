@@ -510,6 +510,13 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 	runErrorGroup, _ := errgroup.WithContext(watchOpts.Ctx)
 	logger := contextutils.LoggerFrom(watchOpts.Ctx)
 
+	// ADD STARTUP TIMING LOGGING
+	logger.Debugw("Starting Gloo with extensions",
+		"issue", "8539",
+		"watchNamespaces", opts.WatchNamespaces,
+		"writeNamespace", opts.WriteNamespace,
+		"gatewayControllerEnabled", opts.GatewayControllerEnabled)
+
 	// MARK: build resource clients
 	upstreamClient, err := v1.NewUpstreamClient(watchOpts.Ctx, opts.Upstreams)
 	if err != nil {
@@ -588,6 +595,11 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 		return err
 	}
 
+	logger.Debugw("Creating gateway resource clients",
+		"issue", "8539",
+		"watchNamespaces", opts.WatchNamespaces,
+		"writeNamespace", opts.WriteNamespace)
+
 	virtualServiceClient, err := gateway.NewVirtualServiceClient(watchOpts.Ctx, opts.VirtualServices)
 	if err != nil {
 		return err
@@ -595,14 +607,21 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 	if err := virtualServiceClient.Register(); err != nil {
 		return err
 	}
+	logger.Debugw("VirtualService client registered successfully",
+		"issue", "8539")
 
 	rtClient, err := gateway.NewRouteTableClient(watchOpts.Ctx, opts.RouteTables)
 	if err != nil {
 		return err
 	}
 	if err := rtClient.Register(); err != nil {
+		logger.Errorw("Failed to register RouteTable client",
+			"issue", "8539",
+			"error", err)
 		return err
 	}
+	logger.Debugw("RouteTable client registered successfully",
+		"issue", "8539")
 
 	gatewayClient, err := gateway.NewGatewayClient(watchOpts.Ctx, opts.Gateways)
 	if err != nil {
@@ -611,6 +630,8 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 	if err := gatewayClient.Register(); err != nil {
 		return err
 	}
+	logger.Debugw("Gateway client registered successfully",
+		"issue", "8539")
 
 	matchableHttpGatewayClient, err := gateway.NewMatchableHttpGatewayClient(watchOpts.Ctx, opts.MatchableHttpGateways)
 	if err != nil {
@@ -932,6 +953,12 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 	)
 
 	// MARK: build & run api snap loop
+	logger.Debugw("Setting up API event loop",
+		"issue", "8539",
+		"watchNamespaces", opts.WatchNamespaces,
+		"writeNamespace", opts.WriteNamespace,
+		"gatewayControllerEnabled", opts.GatewayControllerEnabled)
+
 	apiEmitter := v1snap.NewApiEmitterWithEmit(
 		artifactClient,
 		endpointClient,
@@ -951,6 +978,8 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 		graphqlApiClient,
 		extensions.ApiEmitterChannel,
 	)
+	logger.Debugw("API emitter created with all resource clients",
+		"issue", "8539")
 
 	syncers := v1snap.ApiSyncers{
 		validator,
@@ -958,13 +987,27 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 	}
 	if opts.GatewayControllerEnabled {
 		syncers = append(syncers, gwValidationSyncer)
+		logger.Debugw("Gateway validation syncer added to API syncers",
+			"issue", "8539")
 	}
 
 	apiEventLoop := v1snap.NewApiEventLoop(apiEmitter, syncers)
+	logger.Debugw("API event loop created",
+		"issue", "8539",
+		"syncerCount", len(syncers))
+
 	apiEventLoopErrs, err := apiEventLoop.Run(opts.WatchNamespaces, watchOpts)
 	if err != nil {
+		logger.Errorw("Failed to start API event loop",
+			"issue", "8539",
+			"error", err)
 		return err
 	}
+	logger.Infow("API event loop started successfully",
+		"issue", "8539",
+		"watchNamespaces", opts.WatchNamespaces,
+		"refreshRate", watchOpts.RefreshRate)
+
 	go errutils.AggregateErrs(watchOpts.Ctx, errs, apiEventLoopErrs, "event_loop.gloo")
 
 	go func() {
@@ -1002,6 +1045,15 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 				}
 			}
 
+			logger.Debugw("Creating gateway validation webhook",
+				"issue", "8539",
+				"port", gwOpts.Validation.ValidatingWebhookPort,
+				"certPath", gwOpts.Validation.ValidatingWebhookCertPath,
+				"keyPath", gwOpts.Validation.ValidatingWebhookKeyPath,
+				"alwaysAcceptResources", gwOpts.Validation.AlwaysAcceptResources,
+				"allowWarnings", gwOpts.Validation.AllowWarnings,
+				"watchNamespaces", gwOpts.WatchNamespaces)
+
 			validationWebhook, err := k8sadmission.NewGatewayValidatingWebhook(
 				k8sadmission.NewWebhookConfig(
 					watchOpts.Ctx,
@@ -1017,12 +1069,19 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 				),
 			)
 			if err != nil {
+				logger.Errorw("Failed to create validation webhook",
+					"issue", "8539",
+					"error", err)
 				return errors.Wrapf(err, "creating validating webhook")
 			}
+			logger.Debugw("Validation webhook created successfully",
+				"issue", "8539")
 
 			go func() {
 				// close out validation server when context is cancelled
 				<-watchOpts.Ctx.Done()
+				logger.Debugw("Shutting down validation webhook due to context cancellation",
+					"issue", "8539")
 				validationWebhook.Close()
 			}()
 			go func() {
@@ -1032,11 +1091,19 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 					zap.String("key", gwOpts.Validation.ValidatingWebhookKeyPath),
 				)
 				if err := validationWebhook.ListenAndServeTLS("", ""); err != nil && err != http.ErrServerClosed {
+					logger.Errorw("Validation webhook server failed",
+						"issue", "8539",
+						"error", err,
+						"port", gwOpts.Validation.ValidatingWebhookPort)
 					select {
 					case validationServerErr <- err:
 					default:
 						logger.DPanicw("failed to start validation webhook server", zap.Error(err))
 					}
+				} else {
+					logger.Debugw("Validation webhook server started successfully",
+						"issue", "8539",
+						"port", gwOpts.Validation.ValidatingWebhookPort)
 				}
 			}()
 		}
@@ -1044,8 +1111,13 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 		// give the validation server 100ms to start
 		select {
 		case err := <-validationServerErr:
+			logger.Errorw("Validation server startup failed",
+				"issue", "8539",
+				"error", err)
 			return errors.Wrapf(err, "failed to start validation webhook server")
 		case <-time.After(time.Millisecond * 100):
+			logger.Debugw("Validation server startup grace period completed",
+				"issue", "8539")
 		}
 	}
 
@@ -1082,7 +1154,8 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 		}
 	}()
 
-	logger.Infof("Gloo setup completed successfully")
+	logger.Infow("Gloo setup completed successfully",
+		"issue", "8539")
 	return nil
 }
 
