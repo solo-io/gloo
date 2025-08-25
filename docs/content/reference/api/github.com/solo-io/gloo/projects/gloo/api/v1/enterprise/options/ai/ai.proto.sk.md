@@ -236,7 +236,7 @@ The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
 | `authToken` | [.ai.options.gloo.solo.io.SingleAuthToken](../ai.proto.sk/#singleauthtoken) | The authorization token that the AI gateway uses to access the OpenAI API. This token is automatically sent in the `Authorization` header of the request and prefixed with `Bearer`. |
-| `customHost` | [.ai.options.gloo.solo.io.UpstreamSpec.CustomHost](../ai.proto.sk/#customhost) | Optional: Send requests to a custom host and port, such as to proxy the request, or to use a different backend that is API-compliant with the upstream version. |
+| `customHost` | [.ai.options.gloo.solo.io.UpstreamSpec.CustomHost](../ai.proto.sk/#customhost) | Optional: Send requests to a custom host and port or configure custom path override or hostname. |
 | `model` | `string` | Optional: Override the model name, such as `gpt-4o-mini`. If unset, the model name is taken from the request. This setting can be useful when setting up model failover within the same LLM provider. |
 
 
@@ -258,6 +258,7 @@ The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://
 "endpoint": string
 "deploymentName": string
 "apiVersion": string
+"customHost": .ai.options.gloo.solo.io.UpstreamSpec.CustomHost
 
 ```
 
@@ -267,6 +268,7 @@ The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://
 | `endpoint` | `string` | The endpoint for the Azure OpenAI API to use, such as `my-endpoint.openai.azure.com`. If the scheme is included, it is stripped. |
 | `deploymentName` | `string` | The name of the Azure OpenAI model deployment to use. For more information, see the [Azure OpenAI model docs](https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/models). |
 | `apiVersion` | `string` | The version of the Azure OpenAI API to use. For more information, see the [Azure OpenAI API version reference](https://learn.microsoft.com/en-us/azure/ai-services/openai/reference#api-specs). |
+| `customHost` | [.ai.options.gloo.solo.io.UpstreamSpec.CustomHost](../ai.proto.sk/#customhost) | Optional: Send requests to a custom host and port or configure custom path override or hostname. |
 
 
 
@@ -286,6 +288,7 @@ The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://
 "authToken": .ai.options.gloo.solo.io.SingleAuthToken
 "model": string
 "apiVersion": string
+"customHost": .ai.options.gloo.solo.io.UpstreamSpec.CustomHost
 
 ```
 
@@ -294,6 +297,7 @@ The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://
 | `authToken` | [.ai.options.gloo.solo.io.SingleAuthToken](../ai.proto.sk/#singleauthtoken) | The authorization token that the AI gateway uses to access the Gemini API. This token is automatically sent in the `x-goog-api-key` header of the request. |
 | `model` | `string` | The Gemini model to use. For more information, see the [Gemini models docs](https://ai.google.dev/gemini-api/docs/models/gemini). |
 | `apiVersion` | `string` | The version of the Gemini API to use. For more information, see the [Gemini API version docs](https://ai.google.dev/gemini-api/docs/api-versions). |
+| `customHost` | [.ai.options.gloo.solo.io.UpstreamSpec.CustomHost](../ai.proto.sk/#customhost) | Optional: Send requests to a custom host and port or configure custom path override or hostname. |
 
 
 
@@ -318,6 +322,7 @@ The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://
 "modelPath": string
 "publisher": .ai.options.gloo.solo.io.UpstreamSpec.VertexAI.Publisher
 "jsonSchema": .ai.options.gloo.solo.io.ApiJsonSchema
+"customHost": .ai.options.gloo.solo.io.UpstreamSpec.CustomHost
 
 ```
 
@@ -331,6 +336,7 @@ The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://
 | `modelPath` | `string` | Optional: The model path to route to. Defaults to the Gemini model path, `generateContent`. |
 | `publisher` | [.ai.options.gloo.solo.io.UpstreamSpec.VertexAI.Publisher](../ai.proto.sk/#publisher) | The type of publisher model to use. Currently, only Google is supported. |
 | `jsonSchema` | [.ai.options.gloo.solo.io.ApiJsonSchema](../ai.proto.sk/#apijsonschema) | Optional: Specify the API json schema the model uses, default to GEMINI if not set. |
+| `customHost` | [.ai.options.gloo.solo.io.UpstreamSpec.CustomHost](../ai.proto.sk/#customhost) | Optional: Send requests to a custom host and port or configure custom path override or hostname. |
 
 
 
@@ -370,7 +376,7 @@ The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
 | `authToken` | [.ai.options.gloo.solo.io.SingleAuthToken](../ai.proto.sk/#singleauthtoken) | The authorization token that the AI gateway uses to access the OpenAI API. This token is automatically sent in the `Authorization` header of the request and prefixed with `Bearer`. |
-| `customHost` | [.ai.options.gloo.solo.io.UpstreamSpec.CustomHost](../ai.proto.sk/#customhost) | Optional: Send requests to a custom host and port, such as to proxy the request, or to use a different backend that is API-compliant with the upstream version. |
+| `customHost` | [.ai.options.gloo.solo.io.UpstreamSpec.CustomHost](../ai.proto.sk/#customhost) | Optional: Send requests to a custom host and port or configure custom path override or hostname. |
 | `model` | `string` | Optional: Override the model name. If unset, the model name is taken from the request. This setting can be useful when testing model failover scenarios. |
 
 
@@ -396,7 +402,7 @@ The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
 | `authToken` | [.ai.options.gloo.solo.io.SingleAuthToken](../ai.proto.sk/#singleauthtoken) | The authorization token that the AI gateway uses to access the Anthropic API. This token is automatically sent in the `x-api-key` header of the request. |
-| `customHost` | [.ai.options.gloo.solo.io.UpstreamSpec.CustomHost](../ai.proto.sk/#customhost) | Optional: Send requests to a custom host and port, such as to proxy the request, or to use a different backend that is API-compliant with the upstream version. |
+| `customHost` | [.ai.options.gloo.solo.io.UpstreamSpec.CustomHost](../ai.proto.sk/#customhost) | Optional: Send requests to a custom host and port or configure custom path override or hostname. |
 | `version` | `string` | Optional: The version string used to override the `anthropic-version` header to pass to the Anthropic API. Note: This does not control the api version (eg `/v1`) in the url. For more information, see the [Anthropic API versioning docs](https://docs.anthropic.com/en/api/versioning). |
 | `model` | `string` | Optional: Override the model name. If unset, the model name is taken from the request. This setting can be useful when testing model failover scenarios. |
 
@@ -423,7 +429,7 @@ The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
 | `credentialProvider` | [.ai.options.gloo.solo.io.UpstreamSpec.AwsCredentialProvider](../ai.proto.sk/#awscredentialprovider) | The authorization config used to access authenticated AWS Bedrock services. |
-| `customHost` | [.ai.options.gloo.solo.io.UpstreamSpec.CustomHost](../ai.proto.sk/#customhost) | Optional: Send requests to a custom host and port, such as to proxy the request, or to use a different backend that is API-compliant with the upstream version. Note: For AWS Bedrock, if custom_host is set, host_rewrite will be used to override the Host header before signing the request. |
+| `customHost` | [.ai.options.gloo.solo.io.UpstreamSpec.CustomHost](../ai.proto.sk/#customhost) | Optional: Send requests to a custom host and port or configure custom path override or hostname Note: For AWS Bedrock, if custom_host is set, host_rewrite will be used to override the Host header before signing the request. |
 | `model` | `string` | Required: model string. The model field is the supported model id published by AWS. See <https://docs.aws.amazon.com/bedrock/latest/userguide/models-supported.html>. |
 | `region` | `string` | Required: region string. The region is a string for the standard AWS region for the service that hosts the HTTP endpoint. The `AWS_SIGV4` signing algorithm is currently used by default. For more regions, see the AWS docs <https://docs.aws.amazon.com/general/latest/gr/rande.html> Example: us-west-2 NOTE: Multiple regions are not currently supported. |
 

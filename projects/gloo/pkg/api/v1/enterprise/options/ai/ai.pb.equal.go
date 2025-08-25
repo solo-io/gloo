@@ -886,6 +886,16 @@ func (m *UpstreamSpec_AzureOpenAI) Equal(that interface{}) bool {
 		return false
 	}
 
+	if h, ok := interface{}(m.GetCustomHost()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetCustomHost()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetCustomHost(), target.GetCustomHost()) {
+			return false
+		}
+	}
+
 	switch m.AuthTokenSource.(type) {
 
 	case *UpstreamSpec_AzureOpenAI_AuthToken:
@@ -940,6 +950,16 @@ func (m *UpstreamSpec_Gemini) Equal(that interface{}) bool {
 
 	if strings.Compare(m.GetApiVersion(), target.GetApiVersion()) != 0 {
 		return false
+	}
+
+	if h, ok := interface{}(m.GetCustomHost()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetCustomHost()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetCustomHost(), target.GetCustomHost()) {
+			return false
+		}
 	}
 
 	switch m.AuthTokenSource.(type) {
@@ -1016,6 +1036,16 @@ func (m *UpstreamSpec_VertexAI) Equal(that interface{}) bool {
 
 	if m.GetJsonSchema() != target.GetJsonSchema() {
 		return false
+	}
+
+	if h, ok := interface{}(m.GetCustomHost()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetCustomHost()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetCustomHost(), target.GetCustomHost()) {
+			return false
+		}
 	}
 
 	switch m.AuthTokenSource.(type) {
