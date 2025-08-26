@@ -11,7 +11,6 @@ import (
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/metrics"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/port_routing"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/tracing"
-	"github.com/solo-io/gloo/test/kubernetes/e2e/features/upstreams"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/validation/validation_allow_warnings"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/validation/validation_reject_invalid"
 )
@@ -19,7 +18,8 @@ import (
 func EdgeGwIpv6SuiteRunner() e2e.SuiteRunner {
 	edgeGwSuiteRunner := e2e.NewSuiteRunner(false)
 
-	edgeGwSuiteRunner.Register("Upstreams", upstreams.NewTestingSuite)
+	// FIXME: currently github runners do not support SNAT to external ipv6 hence disabled this.
+	// edgeGwSuiteRunner.Register("Upstreams", upstreams.NewTestingSuite)
 	edgeGwSuiteRunner.Register("BasicRouting", basicrouting.NewBasicEdgeRoutingSuite)
 	edgeGwSuiteRunner.Register("HeadlessSvc", headless_svc.NewEdgeGatewayHeadlessSvcSuite)
 	edgeGwSuiteRunner.Register("PortRouting", port_routing.NewEdgeGatewayApiTestingSuite)
