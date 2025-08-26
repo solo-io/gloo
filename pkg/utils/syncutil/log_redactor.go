@@ -9,6 +9,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 
 	"github.com/golang/protobuf/proto"
+	"github.com/solo-io/gloo/pkg/utils/envutils"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/protoc-gen-ext/pkg/redaction"
 )
@@ -24,6 +25,10 @@ const (
 // and "REDACTED" for their data. Secrets or Artifacts may contain sensitive data like TLS private keys,
 // so be sure to use this whenever you'd like to stringify a snapshot rather than Go's %v formatter
 func StringifySnapshot(snapshot interface{}) string {
+	if !envutils.IsEnvTruthy("GLOO_LOG_SNAPSHOTS") {
+		return "Snapshot omitted to simplify logs. Set GLOO_LOG_SNAPSHOTS=true to see the snapshot."
+	}
+
 	snapshotStruct := reflect.ValueOf(snapshot).Elem()
 	stringBuilder := strings.Builder{}
 
