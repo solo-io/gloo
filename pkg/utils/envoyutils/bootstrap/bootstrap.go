@@ -18,6 +18,7 @@ import (
 	anypb "github.com/golang/protobuf/ptypes/any"
 	"github.com/rotisserie/eris"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
+	"github.com/solo-io/go-utils/contextutils"
 	envoycache "github.com/solo-io/solo-kit/pkg/api/v1/control-plane/cache"
 )
 
@@ -29,6 +30,14 @@ var (
 )
 
 func FromEnvoyResources(resources *EnvoyResources) (string, error) {
+	logger := contextutils.LoggerFrom(context.Background())
+	logger.Debugw("Starting bootstrap generation from EnvoyResources",
+		"issue", "8539",
+		"listeners_count", len(resources.Listeners),
+		"clusters_count", len(resources.Clusters),
+		"secrets_count", len(resources.Secrets),
+	)
+
 	bootstrap := &envoy_config_bootstrap_v3.Bootstrap{
 		Node: &envoy_config_core_v3.Node{
 			Id:      "validation-node-id",
@@ -47,6 +56,11 @@ func FromEnvoyResources(resources *EnvoyResources) (string, error) {
 	}
 	marshaler.Marshal(buf, bootstrap)
 	json := string(buf.Bytes())
+
+	logger.Debugw("Completed bootstrap generation from EnvoyResources",
+		"issue", "8539",
+		"json_length", len(json),
+	)
 	return json, nil // returns a json, but json is valid yaml
 }
 
@@ -55,6 +69,11 @@ func FromEnvoyResources(resources *EnvoyResources) (string, error) {
 // per-filter config matching the arguments, marshals it to json, and returns
 // the stringified json or any error if it occurred.
 func FromFilter(filterName string, msg proto.Message) (string, error) {
+	logger := contextutils.LoggerFrom(context.Background())
+	logger.Debugw("Starting bootstrap generation from filter",
+		"issue", "8539",
+		"filter_name", filterName,
+	)
 
 	typedFilter, err := utils.MessageToAny(msg)
 	if err != nil {
@@ -113,6 +132,10 @@ func FromFilter(filterName string, msg proto.Message) (string, error) {
 		},
 	}
 
+	logger.Debugw("Completed bootstrap generation from filter",
+		"issue", "8539",
+		"filter_name", filterName,
+	)
 	return FromEnvoyResources(&EnvoyResources{Listeners: []*envoy_config_listener_v3.Listener{listener}})
 }
 
@@ -121,25 +144,55 @@ func FromSnapshot(
 	ctx context.Context,
 	snap envoycache.Snapshot,
 ) (string, error) {
+	logger := contextutils.LoggerFrom(ctx)
+	logger.Debugw("Starting bootstrap generation from snapshot",
+		"issue", "8539",
+	)
 
 	// Get the resources we're going to need as concrete types.
 	resources, err := resourcesFromSnapshot(snap)
 	if err != nil {
+		logger.Debugw("Failed to extract resources from snapshot",
+			"issue", "8539",
+			"error", err,
+		)
 		return "", err
 	}
+
+	logger.Debugw("Extracted resources from snapshot",
+		"issue", "8539",
+		"listeners_count", len(resources.Listeners),
+		"clusters_count", len(resources.Clusters),
+		"routes_count", len(resources.routes),
+		"endpoints_count", len(resources.endpoints),
+	)
 
 	// This map will hold the aggregate of all cluster names that are routed to
 	// by a FilterChain.
 	routedCluster := map[string]struct{}{}
 
 	// Gather up all of the clusters that we target with RouteConfigs that are associated with a FilterChain.
-	if err := extractRoutedClustersFromListeners(routedCluster, resources.Listeners, resources.routes); err != nil {
+	if err := extractRoutedClustersFromListeners(ctx, routedCluster, resources.Listeners, resources.routes); err != nil {
+		logger.Debugw("Failed to extract routed clusters from listeners",
+			"issue", "8539",
+			"error", err,
+		)
 		return "", err
 	}
 
+	logger.Debugw("Extracted routed clusters from listeners",
+		"issue", "8539",
+		"routed_clusters_count", len(routedCluster),
+	)
+
 	// Next, we will look through our Snapshot's clusters and delete the ones which are
 	// already routed to.
-	convertToStaticClusters(routedCluster, resources.Clusters, resources.endpoints)
+	convertToStaticClusters(ctx, routedCluster, resources.Clusters, resources.endpoints)
+
+	logger.Debugw("Converted clusters to static configuration",
+		"issue", "8539",
+		"remaining_routed_clusters", len(routedCluster),
+	)
 
 	// We now need to find clusters which do not exist, even though they are targeted by
 	// a route. In static mode, envoy won't start without these. At this point in the
@@ -147,9 +200,28 @@ func FromSnapshot(
 	// clusters for these routes to target. It is important to have unique clusters
 	// for the targets since some envoy functionality relies on such setup, like
 	// weighted destinations.
-	resources.Clusters = addBlackholeClusters(routedCluster, resources.Clusters)
+	resources.Clusters = addBlackholeClusters(ctx, routedCluster, resources.Clusters)
 
-	return FromEnvoyResources(resources)
+	logger.Debugw("Added blackhole clusters",
+		"issue", "8539",
+		"blackhole_clusters_count", len(routedCluster),
+		"total_clusters_count", len(resources.Clusters),
+	)
+
+	result, err := FromEnvoyResources(resources)
+	if err != nil {
+		logger.Debugw("Failed to generate bootstrap from resources",
+			"issue", "8539",
+			"error", err,
+		)
+		return "", err
+	}
+
+	logger.Debugw("Completed bootstrap generation from snapshot",
+		"issue", "8539",
+		"result_length", len(result),
+	)
+	return result, nil
 }
 
 // extractRoutedClustersFromListeners accepts a hash set of strings containing the names of clusters
@@ -160,20 +232,45 @@ func FromSnapshot(
 // converts the hcm config to use static RouteConfiguration. routedCluster and elements
 // of listeners are mutated in this function.
 func extractRoutedClustersFromListeners(
+	ctx context.Context,
 	routedCluster map[string]struct{},
 	listeners []*envoy_config_listener_v3.Listener,
 	routes []*envoy_config_route_v3.RouteConfiguration,
 ) error {
+	logger := contextutils.LoggerFrom(ctx)
+	logger.Debugw("Starting extraction of routed clusters from listeners",
+		"issue", "8539",
+		"listeners_count", len(listeners),
+		"routes_count", len(routes),
+	)
+
 	for _, l := range listeners {
+		logger.Debugw("Processing listener",
+			"issue", "8539",
+			"listener_name", l.GetName(),
+			"filter_chains_count", len(l.GetFilterChains()),
+		)
+
 		for _, fc := range l.GetFilterChains() {
 			// Get the HttpConnectionManager for this FilterChain if it exists.
 			hcm, f, err := getHcmForFilterChain(fc)
 			if err != nil {
 				// If we just don't have an hcm on this filter chain, skip to the next one.
 				if errors.Is(err, errNoHcm) {
+					logger.Debugw("No HttpConnectionManager found for filter chain, skipping",
+						"issue", "8539",
+						"listener_name", l.GetName(),
+						"filter_chain_name", fc.GetName(),
+					)
 					continue
 				}
 				// If we encountered any other error, fail loudly.
+				logger.Debugw("Error getting HttpConnectionManager for filter chain",
+					"issue", "8539",
+					"listener_name", l.GetName(),
+					"filter_chain_name", fc.GetName(),
+					"error", err,
+				)
 				return err
 			}
 
@@ -182,8 +279,21 @@ func extractRoutedClustersFromListeners(
 			// which contain what we serve over RDS.
 			routeConfigName := hcm.GetRds().GetRouteConfigName()
 			if routeConfigName == "" {
+				logger.Debugw("No route config name found for HttpConnectionManager",
+					"issue", "8539",
+					"listener_name", l.GetName(),
+					"filter_chain_name", fc.GetName(),
+				)
 				continue
 			}
+
+			logger.Debugw("Found route config name",
+				"issue", "8539",
+				"listener_name", l.GetName(),
+				"filter_chain_name", fc.GetName(),
+				"route_config_name", routeConfigName,
+			)
+
 			// Find matching route config from snapshot.
 			for _, r := range routes {
 				if r.GetName() != routeConfigName {
@@ -191,18 +301,38 @@ func extractRoutedClustersFromListeners(
 					continue
 				}
 
+				logger.Debugw("Processing matching route configuration",
+					"issue", "8539",
+					"route_config_name", routeConfigName,
+					"virtual_hosts_count", len(r.GetVirtualHosts()),
+				)
+
 				// Add clusters targeted by routes on this config to our aggregate list of all targeted clusters
-				findTargetedClusters(r, routedCluster)
+				findTargetedClusters(ctx, r, routedCluster)
 
 				// We need to add our route table as a static config to this hcm instead of
 				// relying on RDS, the we pack it back up and set it back on the filter chain.
 				if err = setStaticRouteConfig(f, hcm, r); err != nil {
+					logger.Debugw("Failed to set static route config",
+						"issue", "8539",
+						"route_config_name", routeConfigName,
+						"error", err,
+					)
 					return err
 				}
+
+				logger.Debugw("Set static route config successfully",
+					"issue", "8539",
+					"route_config_name", routeConfigName,
+				)
 			}
 		}
 	}
 
+	logger.Debugw("Completed extraction of routed clusters from listeners",
+		"issue", "8539",
+		"total_routed_clusters", len(routedCluster),
+	)
 	return nil
 }
 
@@ -213,26 +343,54 @@ func extractRoutedClustersFromListeners(
 // the cluster's EDS config to static config using the endpoints from the snapshot.
 // clusters is mutated in this function.
 func convertToStaticClusters(
+	ctx context.Context,
 	routedCluster map[string]struct{},
 	clusters []*envoy_config_cluster_v3.Cluster,
 	endpoints []*envoy_config_endpoint_v3.ClusterLoadAssignment,
 ) {
+	logger := contextutils.LoggerFrom(ctx)
+	logger.Debugw("Starting conversion to static clusters",
+		"issue", "8539",
+		"routed_clusters_count", len(routedCluster),
+		"clusters_count", len(clusters),
+		"endpoints_count", len(endpoints),
+	)
+
 	for _, c := range clusters {
-		delete(routedCluster, c.GetName())
+		clusterName := c.GetName()
+		logger.Debugw("Processing cluster",
+			"issue", "8539",
+			"cluster_name", clusterName,
+			"has_eds_config", c.GetEdsClusterConfig() != nil,
+		)
+
+		delete(routedCluster, clusterName)
 
 		// We use Endpoint Discovery Service (EDS) in lieu of static endpoint config, so we
 		// need to get the EDS ServiceName name to lookup in our Snapshot-provided endpoints,
 		// which contain what we serve over EDS.
 		if c.GetEdsClusterConfig() != nil {
-			clusterName := c.GetName()
+			edsClusterName := clusterName
 			if edsServiceName := c.GetEdsClusterConfig().GetServiceName(); edsServiceName != "" {
-				clusterName = edsServiceName
+				edsClusterName = edsServiceName
 			}
+
+			logger.Debugw("Converting EDS cluster to static",
+				"issue", "8539",
+				"cluster_name", clusterName,
+				"eds_cluster_name", edsClusterName,
+			)
 
 			// Find endpoints matching our EDS config and convert the cluster to use
 			// static endpoint config matching that which would have been served over EDS.
 			for _, e := range endpoints {
-				if e.GetClusterName() == clusterName {
+				if e.GetClusterName() == edsClusterName {
+					logger.Debugw("Found matching endpoints for cluster",
+						"issue", "8539",
+						"cluster_name", clusterName,
+						"eds_cluster_name", edsClusterName,
+						"endpoints_count", len(e.GetEndpoints()),
+					)
 					c.LoadAssignment = e
 					c.EdsClusterConfig = nil
 					c.ClusterDiscoveryType = &envoy_config_cluster_v3.Cluster_Type{
@@ -242,6 +400,11 @@ func convertToStaticClusters(
 			}
 		}
 	}
+
+	logger.Debugw("Completed conversion to static clusters",
+		"issue", "8539",
+		"remaining_routed_clusters", len(routedCluster),
+	)
 }
 
 // addBlackholeClusters accepts a hash set of strings containing the names of clusters
@@ -249,10 +412,22 @@ func convertToStaticClusters(
 // adds an cluster to clusters for each entry in the routedCluster set. clusters is mutated
 // by this function.
 func addBlackholeClusters(
+	ctx context.Context,
 	routedCluster map[string]struct{},
 	clusters []*envoy_config_cluster_v3.Cluster,
 ) []*envoy_config_cluster_v3.Cluster {
+	logger := contextutils.LoggerFrom(ctx)
+	logger.Debugw("Starting addition of blackhole clusters",
+		"issue", "8539",
+		"blackhole_clusters_needed", len(routedCluster),
+		"existing_clusters_count", len(clusters),
+	)
+
 	for c := range routedCluster {
+		logger.Debugw("Adding blackhole cluster",
+			"issue", "8539",
+			"cluster_name", c,
+		)
 		clusters = append(clusters, &envoy_config_cluster_v3.Cluster{
 			Name: c,
 			ClusterDiscoveryType: &envoy_config_cluster_v3.Cluster_Type{
@@ -264,6 +439,11 @@ func addBlackholeClusters(
 			},
 		})
 	}
+
+	logger.Debugw("Completed addition of blackhole clusters",
+		"issue", "8539",
+		"total_clusters_count", len(clusters),
+	)
 	return clusters
 }
 
@@ -297,23 +477,57 @@ func getHcmForFilterChain(fc *envoy_config_listener_v3.FilterChain) (
 // findTargetedClusters accepts a pointer to a RouteConfiguration and a hash set of strings. It
 // finds all clusters and weighted clusters targeted by routes on the virtual hosts in the RouteConfiguration
 // and adds their names to the routedCluster hash set. routedCluster is mutated in this function.
-func findTargetedClusters(r *envoy_config_route_v3.RouteConfiguration, routedCluster map[string]struct{}) {
+func findTargetedClusters(ctx context.Context, r *envoy_config_route_v3.RouteConfiguration, routedCluster map[string]struct{}) {
+	logger := contextutils.LoggerFrom(ctx)
+	logger.Debugw("Starting search for targeted clusters",
+		"issue", "8539",
+		"route_config_name", r.GetName(),
+		"virtual_hosts_count", len(r.GetVirtualHosts()),
+	)
+
 	for _, v := range r.GetVirtualHosts() {
-		for _, r := range v.GetRoutes() {
-			if r.GetRoute() == nil {
+		logger.Debugw("Processing virtual host",
+			"issue", "8539",
+			"virtual_host_name", v.GetName(),
+			"routes_count", len(v.GetRoutes()),
+		)
+
+		for _, route := range v.GetRoutes() {
+			if route.GetRoute() == nil {
 				continue
 			}
 
-			if c := r.GetRoute().GetCluster(); c != "" {
+			if c := route.GetRoute().GetCluster(); c != "" {
+				logger.Debugw("Found cluster target",
+					"issue", "8539",
+					"cluster_name", c,
+					"virtual_host_name", v.GetName(),
+				)
 				routedCluster[c] = struct{}{}
 			}
-			if wc := r.GetRoute().GetWeightedClusters().GetClusters(); len(wc) != 0 {
+			if wc := route.GetRoute().GetWeightedClusters().GetClusters(); len(wc) != 0 {
+				logger.Debugw("Found weighted clusters",
+					"issue", "8539",
+					"weighted_clusters_count", len(wc),
+					"virtual_host_name", v.GetName(),
+				)
 				for _, c := range wc {
+					logger.Debugw("Found weighted cluster target",
+						"issue", "8539",
+						"cluster_name", c.GetName(),
+						"virtual_host_name", v.GetName(),
+					)
 					routedCluster[c.GetName()] = struct{}{}
 				}
 			}
 		}
 	}
+
+	logger.Debugw("Completed search for targeted clusters",
+		"issue", "8539",
+		"route_config_name", r.GetName(),
+		"total_targeted_clusters", len(routedCluster),
+	)
 }
 
 // setStaticRouteConfig accepts pointers to each of a Filter, HttpConnectionManager, and RouteConfiguration.
