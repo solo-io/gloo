@@ -209,7 +209,7 @@ func (s *translatorSyncer) syncEnvoy(ctx context.Context, snap *v1snap.ApiSnapsh
 			"routes", routesLen,
 			"endpoints", endpointsLen)
 
-		logger.Debugf("Full snapshot for proxy %v: %+v", proxy.GetMetadata().GetName(), xdsSnapshot)
+		//logger.Debugf("Full snapshot for proxy %v: %+v", proxy.GetMetadata().GetName(), xdsSnapshot)
 	}
 
 	logger.Debugf("gloo reports to be written: %v", allReports)
