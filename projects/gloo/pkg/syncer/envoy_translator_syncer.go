@@ -212,7 +212,7 @@ func (s *translatorSyncer) syncEnvoy(ctx context.Context, snap *v1snap.ApiSnapsh
 		//logger.Debugf("Full snapshot for proxy %v: %+v", proxy.GetMetadata().GetName(), xdsSnapshot)
 	}
 
-	logger.Debugf("gloo reports to be written: %v", allReports)
+	//logger.Debugf("gloo reports to be written: %v", allReports)
 }
 
 // ServeXdsSnapshots exposes Gloo configuration as an API when `devMode` in Settings is True.
