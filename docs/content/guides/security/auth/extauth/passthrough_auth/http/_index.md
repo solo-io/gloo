@@ -9,7 +9,7 @@ By creating requests from the external authentication server to your own authent
 to authenticate requests.
 
 ## Setup
-{{< readfile file="/static/content/setup_notes" markdown="true">}}
+{{< readfile file="/static/content/setup_notes" markdown="true" >}}
 
 Let's start by creating a [Static Upstream]({{< versioned_link_path fromRoot="/guides/traffic_management/destination_types/static_upstream/" >}}) 
 that routes to a website; we will send requests to it during this tutorial.

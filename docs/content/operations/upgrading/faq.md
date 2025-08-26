@@ -46,11 +46,17 @@ Review the following changes made to Gloo Gateway in version {{< readfile file="
 
 ### Breaking changes
 
-**AuthPlugin removed**: The `AuthPlugin` auth config type is removed in 1.20. If you use this config type, you must remove it from your Helm values file before upgrading. If you need to configure your own auth service, check out [Custom Auth server]({{< versioned_link_path fromRoot="/guides/security/auth/custom_auth/" >}}).
+Review the breaking changes in this release. 
 
-**Discovery disabled by default**: To improve performance, discovery is now disabled by default in 1.20. Upstreams are no longer automatically created for discovered Kubernetes services. If you want to continue using discovery, set `discovery.enabled=true` (or `gloo.discovery.enabled` in Gloo Gateway Enterprise) in your Helm values file before upgrading. For more information, see the [Discovery guide]({{< versioned_link_path fromRoot="/installation/advanced_configuration/fds_mode/" >}}).
+##### AuthPlugin removed
 
-**Envoy version upgrade**
+The `AuthPlugin` auth config type is removed in 1.20. If you use this config type, you must remove it from your Helm values file before upgrading. If you need to configure your own auth service, check out [Custom Auth server]({{< versioned_link_path fromRoot="/guides/security/auth/custom_auth/" >}}).
+
+##### Discovery disabled by default
+
+To improve performance, discovery is now disabled by default in 1.20. Upstreams are no longer automatically created for discovered Kubernetes services. If you want to continue using discovery, set `discovery.enabled=true` (or `gloo.discovery.enabled` in Gloo Gateway Enterprise) in your Helm values file before upgrading. For more information, see the [Discovery guide]({{< versioned_link_path fromRoot="/installation/advanced_configuration/fds_mode/" >}}).
+
+##### Envoy version upgrade
 
 The Envoy dependency in Gloo Gateway 1.20 was upgraded from 1.33.x to 1.35.x. This change includes the following upstream breaking changes. For more information about these changes, see the changelog documentation for [Envoy v1.34](https://www.envoyproxy.io/docs/envoy/latest/version_history/v1.34/v1.34) and [Envoy v1.35](https://www.envoyproxy.io/docs/envoy/latest/version_history/v1.35/v1.35).
 
@@ -62,6 +68,12 @@ The Envoy dependency in Gloo Gateway 1.20 was upgraded from 1.33.x to 1.35.x. Th
 
 **Envoy v1.35**:
 * **Tracing changes**: Added `max_cache_size` to the OpenTelemetry tracer config. This limits the number of spans that can be cached before the cache is flushed. The default is 1024 spans. Previously, flushing only happened at the interval that you set. You can change this setting based on the expected telemetry volume in your environment.
+
+
+##### Caching filter deprecated
+
+The [caching filter]({{< versioned_link_path fromRoot="/guides/traffic_management/listener_configuration/caching/" >}}) is deprecated and planned to be removed in Gloo Gateway version 1.21. 
+
 
 ## New features
 
@@ -145,21 +157,13 @@ Check the changelogs for the type of Gloo Gateway deployment that you have. Focu
 You can use the changelogs' built-in [comparison tool]({{< versioned_link_path fromRoot="/reference/changelog/open_source/#compareversions" >}}) to compare between your current version and the version that you want to upgrade to.
 {{% /notice %}}
 
-<!--
 
 ### Feature changes {#features}
 
-Review the following summary of important new, deprecated, or removed features.
+##### GraphQL support removed
 
-{{% notice note %}}
-The following lists consist of the changes that were initially introduced with the {{< readfile file="static/content/version_geoss_latest_minor.md" markdown="true">}}.0 release. These changes might be backported to earlier versions of Gloo Gateway. Additionally, there might be other changes that are introduced in later {{< readfile file="static/content/version_geoss_latest_minor.md" markdown="true">}} patch releases. For patch release changes, check the [changelogs](#changelogs).
-{{% /notice %}}
+In version 1.20.0, support for GraphQL is removed. Any related documentation was also removed. If you need to access GraphQL-specific documentation, such as guides or the API reference, refer to previous documentation versions, such as [1.19.x](https://docs.solo.io/gloo-edge/v1.19.x). 
 
-**New or improved features**:
-
-**Deprecated features**:
-
--->
 
 ### Helm changes {#helm}
 
