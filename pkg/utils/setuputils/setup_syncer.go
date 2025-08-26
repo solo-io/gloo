@@ -120,7 +120,7 @@ func (s *SetupSyncer) ShouldSync(ctx context.Context, oldSnapshot, newSnapshot *
 
 	// 2. Check if a namespace is added / deleted / modified
 	// If a namespace was modified, check if it changes the namespaces to watch
-	contextutils.LoggerFrom(ctx).Debugw("received updated list of namespaces", zap.Any("namespaces", newSnapshot.Kubenamespaces))
+	contextutils.LoggerFrom(ctx).Debugw("received updated list of namespaces") // zap.Any("namespaces", newSnapshot.Kubenamespaces))
 	newNamespacesToWatch, err := settingsutil.GenerateNamespacesToWatch(newSettings, newSnapshot.Kubenamespaces)
 	if err != nil {
 		return true
