@@ -275,6 +275,10 @@ func (c *hybridUpstreamClient) Watch(namespace string, opts clients.WatchOpts) (
 			"issue", "8539")
 		needsSync := syncFunc()
 
+		logger.Debugw("Initial sync complete",
+			"issue", "8539",
+			"needsSync", needsSync)
+
 		timerC := TimerOverride
 		if timerC == nil {
 			timer := time.NewTicker(time.Second * 1)
