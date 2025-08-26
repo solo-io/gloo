@@ -117,14 +117,7 @@ func (s *selector) SelectRouteTables(action *gatewayv1.DelegateAction, parentNam
 			"issue", "8539",
 			"selector", rtSelector,
 			"parentNamespace", parentNamespace,
-			"matchedCount", len(routeTables),
-			"matchedTables", func() []string {
-				var names []string
-				for _, rt := range routeTables {
-					names = append(names, rt.GetMetadata().Ref().Key())
-				}
-				return names
-			}())
+			"matchedCount", len(routeTables))
 	} else {
 		contextutils.LoggerFrom(context.Background()).Warnw("DelegateAction missing both ref and selector",
 			"issue", "8539",

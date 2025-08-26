@@ -269,14 +269,7 @@ func (rv *routeVisitor) visit(
 				contextutils.LoggerFrom(context.Background()).Debugw("Processing RouteTable weight group",
 					"issue", "8539",
 					"weight", weight,
-					"tableCount", len(routeTablesForWeight),
-					"tables", func() []string {
-						var names []string
-						for _, rt := range routeTablesForWeight {
-							names = append(names, rt.GetMetadata().Ref().Key())
-						}
-						return names
-					}())
+					"tableCount", len(routeTablesForWeight))
 
 				var rtRoutesForWeight []*gloov1.Route
 				for _, routeTable := range routeTablesForWeight {
