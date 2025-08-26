@@ -1,5 +1,5 @@
 changelog:
-  - type: NON_USER_FACING
+  - type: NON_USER_FACING 
     description: >-
       Adds docs for RFEs, such as usedonly stats. 
 
