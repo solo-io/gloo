@@ -1117,6 +1117,26 @@ func (m *UpstreamSpec_AzureOpenAI) HashUnique(hasher hash.Hash64) (uint64, error
 		return 0, err
 	}
 
+	if h, ok := interface{}(m.GetCustomHost()).(safe_hasher.SafeHasher); ok {
+		if _, err = hasher.Write([]byte("CustomHost")); err != nil {
+			return 0, err
+		}
+		if _, err = h.Hash(hasher); err != nil {
+			return 0, err
+		}
+	} else {
+		if fieldValue, err := hashstructure.Hash(m.GetCustomHost(), nil); err != nil {
+			return 0, err
+		} else {
+			if _, err = hasher.Write([]byte("CustomHost")); err != nil {
+				return 0, err
+			}
+			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
+				return 0, err
+			}
+		}
+	}
+
 	switch m.AuthTokenSource.(type) {
 
 	case *UpstreamSpec_AzureOpenAI_AuthToken:
@@ -1174,6 +1194,26 @@ func (m *UpstreamSpec_Gemini) HashUnique(hasher hash.Hash64) (uint64, error) {
 	}
 	if _, err = hasher.Write([]byte(m.GetApiVersion())); err != nil {
 		return 0, err
+	}
+
+	if h, ok := interface{}(m.GetCustomHost()).(safe_hasher.SafeHasher); ok {
+		if _, err = hasher.Write([]byte("CustomHost")); err != nil {
+			return 0, err
+		}
+		if _, err = h.Hash(hasher); err != nil {
+			return 0, err
+		}
+	} else {
+		if fieldValue, err := hashstructure.Hash(m.GetCustomHost(), nil); err != nil {
+			return 0, err
+		} else {
+			if _, err = hasher.Write([]byte("CustomHost")); err != nil {
+				return 0, err
+			}
+			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
+				return 0, err
+			}
+		}
 	}
 
 	switch m.AuthTokenSource.(type) {
@@ -1270,6 +1310,26 @@ func (m *UpstreamSpec_VertexAI) HashUnique(hasher hash.Hash64) (uint64, error) {
 	err = binary.Write(hasher, binary.LittleEndian, m.GetJsonSchema())
 	if err != nil {
 		return 0, err
+	}
+
+	if h, ok := interface{}(m.GetCustomHost()).(safe_hasher.SafeHasher); ok {
+		if _, err = hasher.Write([]byte("CustomHost")); err != nil {
+			return 0, err
+		}
+		if _, err = h.Hash(hasher); err != nil {
+			return 0, err
+		}
+	} else {
+		if fieldValue, err := hashstructure.Hash(m.GetCustomHost(), nil); err != nil {
+			return 0, err
+		} else {
+			if _, err = hasher.Write([]byte("CustomHost")); err != nil {
+				return 0, err
+			}
+			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
+				return 0, err
+			}
+		}
 	}
 
 	switch m.AuthTokenSource.(type) {
