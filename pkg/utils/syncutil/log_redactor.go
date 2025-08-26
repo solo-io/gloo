@@ -25,8 +25,8 @@ const (
 // and "REDACTED" for their data. Secrets or Artifacts may contain sensitive data like TLS private keys,
 // so be sure to use this whenever you'd like to stringify a snapshot rather than Go's %v formatter
 func StringifySnapshot(snapshot interface{}) string {
-	if !envutils.IsEnvTruthy("GLOO_LOG_SNAPSHOTS") {
-		return "Snapshot omitted to simplify logs. Set GLOO_LOG_SNAPSHOTS=true to see the snapshot."
+	if !envutils.IsEnvTruthy("GLOO_DEBUG_LOG_SNAPSHOTS") {
+		return "Snapshot omitted to simplify logs. Set GLOO_DEBUG_LOG_SNAPSHOTS=true to see the snapshot."
 	}
 
 	snapshotStruct := reflect.ValueOf(snapshot).Elem()
