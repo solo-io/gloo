@@ -353,6 +353,8 @@ Some notes on key/value actions:
  - You cannot use key/value actions to mask pseudo headers.
  - Key/value actions do not mask data in response bodies. They mask only the value of request headers, response headers, and dynamic metadata in access logs.
  - To apply key/value actions, you must set `dlp.enabledFor` to `ALL` or `ACCESS_LOGS`.
+ 
+
 
 ### Summary
 
