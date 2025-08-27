@@ -39,7 +39,7 @@ spec:
 
 ## Retries for rate limited requests
 
-You can configure a separate retry backoff strategy for requests that got rate limited. This way, you can prevent retries on already rate limited services. 
+You can configure a separate retry backoff strategy for requests that are rate limited. This way, you can prevent retries on already rate limited services. 
 
 To determine if a request was rate limited, a specific reset header is used, such as the `X-RateLimit-Reset` or `Retry-After` headers. If the header is present in the response, the backoff strategy for rate limited requests is applied and the general retry backoff strategy is ignored.
 
