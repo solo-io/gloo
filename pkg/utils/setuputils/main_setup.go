@@ -70,44 +70,95 @@ func Main(opts SetupOpts) error {
 	loggingContext := append([]interface{}{"version", opts.Version}, opts.LoggingPrefixVals...)
 	ctx = contextutils.WithLoggerValues(ctx, loggingContext...)
 
+	logger := contextutils.LoggerFrom(ctx)
+	logger.Debugw("Starting main setup function",
+		"issue", "8539",
+		"loggerName", opts.LoggerName,
+		"version", opts.Version,
+		"exitOnError", opts.ExitOnError,
+		"hasElectionConfig", opts.ElectionConfig != nil)
+
+	logger.Debug("Initializing settings client", "issue", "8539")
 	settingsClient, err := fileOrKubeSettingsClient(ctx, setupNamespace, setupDir)
 	if err != nil {
+		logger.Errorw("Failed to create settings client", "issue", "8539", "error", err)
 		return err
 	}
+	logger.Debug("Settings client created successfully", "issue", "8539")
 
 	if err := settingsClient.Register(); err != nil {
+		logger.Errorw("Failed to register settings client", "issue", "8539", "error", err)
 		return err
 	}
+	logger.Debug("Settings client registered successfully", "issue", "8539")
 
+	logger.Debug("Starting leader election process", "issue", "8539")
 	identity, err := startLeaderElection(ctx, setupDir, opts.ElectionConfig)
 	if err != nil {
+		logger.Errorw("Leader election failed to start", "issue", "8539", "error", err)
 		return err
 	}
+	logger.Debugw("Leader election started",
+		"issue", "8539",
+		"isLeader", identity.IsLeader(),
+		"hasElectionConfig", opts.ElectionConfig != nil,
+		"settingsDir", setupDir)
 
+	// Wait a moment to see if we become leader and log the result
+	go func() {
+		time.Sleep(100 * time.Millisecond)
+		logger.Debugw("Initial leadership status", "issue", "8539", "isLeader", identity.IsLeader())
+
+		// Monitor for leadership changes
+		go func() {
+			<-identity.Elected()
+			logger.Infow("Component elected as leader", "issue", "8539")
+		}()
+	}()
+
+	logger.Debug("Creating namespace client", "issue", "8539")
 	namespaceClient, err := namespaces.NewKubeNamespaceClient(ctx)
 	// If there is any error when creating a KubeNamespaceClient (RBAC issues) default to a fake client
 	if err != nil {
+		logger.Warnw("Failed to create KubeNamespaceClient, using NoOp client", "issue", "8539", "error", err)
 		namespaceClient = &namespaces.NoOpKubeNamespaceWatcher{}
+	} else {
+		logger.Debug("Namespace client created successfully", "issue", "8539")
 	}
 
+	logger.Debug("Setting up event loop", "issue", "8539")
 	// settings come from the ResourceClient in the settingsClient
 	// the eventLoop will Watch the emitter's settingsClient to receive settings from the ResourceClient
 	emitter := v1.NewSetupEmitter(settingsClient, namespaceClient)
 	settingsRef := &core.ResourceRef{Namespace: setupNamespace, Name: setupName}
+	logger.Debugw("Created settings reference",
+		"issue", "8539",
+		"namespace", setupNamespace,
+		"name", setupName)
+
 	eventLoop := v1.NewSetupEventLoop(emitter, NewSetupSyncer(settingsRef, opts.SetupFunc, identity))
+	logger.Debugw("Starting event loop",
+		"issue", "8539",
+		"watchNamespaces", []string{setupNamespace},
+		"refreshRate", time.Second)
+
 	errs, err := eventLoop.Run([]string{setupNamespace}, clients.WatchOpts{
 		Ctx:         ctx,
 		RefreshRate: time.Second,
 	})
 	if err != nil {
+		logger.Errorw("Failed to start event loop", "issue", "8539", "error", err)
 		return err
 	}
+	logger.Debug("Event loop started successfully", "issue", "8539")
+
 	for err := range errs {
 		if opts.ExitOnError {
-			contextutils.LoggerFrom(ctx).Fatalf("error in setup: %v", err)
+			logger.Fatalw("Fatal error in setup", "issue", "8539", "error", err, "exitOnError", true)
 		}
-		contextutils.LoggerFrom(ctx).Errorf("error in setup: %v", err)
+		logger.Errorw("Error in setup", "issue", "8539", "error", err)
 	}
+	logger.Debug("Main setup function completed", "issue", "8539")
 	return nil
 }
 
@@ -132,19 +183,53 @@ func fileOrKubeSettingsClient(ctx context.Context, setupNamespace, settingsDir s
 }
 
 func startLeaderElection(ctx context.Context, settingsDir string, electionConfig *leaderelector.ElectionConfig) (leaderelector.Identity, error) {
+	logger := contextutils.LoggerFrom(ctx)
+
+	logger.Debugw("Evaluating leader election requirements",
+		"issue", "8539",
+		"hasElectionConfig", electionConfig != nil,
+		"settingsDir", settingsDir,
+		"leaderElectionDisabled", leaderelector.IsDisabled())
+
 	if electionConfig == nil || settingsDir != "" || leaderelector.IsDisabled() {
 		// If a component does not contain election config, it does not support HA
 		// If the settingsDir is non-empty, it means that Settings are not defined in Kubernetes and therefore we can't use the
 		// leader election library which depends on Kubernetes
 		// If leader election is explicitly disabled, it means a user has decided not to opt-into HA
+
+		var reason string
+		if electionConfig == nil {
+			reason = "no election config provided - component does not support HA"
+		} else if settingsDir != "" {
+			reason = "using file-based settings - kubernetes leader election not available"
+		} else if leaderelector.IsDisabled() {
+			reason = "leader election explicitly disabled"
+		}
+
+		logger.Infow("Using single replica election (no HA)", "issue", "8539", "reason", reason)
 		return singlereplica.NewElectionFactory().StartElection(ctx, electionConfig)
 	}
 
+	logger.Debugw("Using Kubernetes-based leader election",
+		"issue", "8539",
+		"electionId", electionConfig.Id,
+		"namespace", electionConfig.Namespace)
+
 	cfg, err := kubeutils.GetRestConfigWithKubeContext("")
 	if err != nil {
+		logger.Errorw("Failed to get kubernetes config for leader election", "issue", "8539", "error", err)
 		return nil, err
 	}
-	return kube2.NewElectionFactory(cfg).StartElection(ctx, electionConfig)
+
+	logger.Debug("Kubernetes config obtained, starting election factory", "issue", "8539")
+	identity, err := kube2.NewElectionFactory(cfg).StartElection(ctx, electionConfig)
+	if err != nil {
+		logger.Errorw("Failed to start kubernetes leader election", "issue", "8539", "error", err)
+		return nil, err
+	}
+
+	logger.Debug("Kubernetes leader election factory started successfully", "issue", "8539")
+	return identity, nil
 }
 
 // SetupLogging sets up controller-runtime logging
