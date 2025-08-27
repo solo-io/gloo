@@ -16,7 +16,7 @@ metadata:
 spec:
   containers:
     - name: curl
-      image: curlimages/curl:8.15.0
+      image: curlimages/curl:7.83.1
       imagePullPolicy: IfNotPresent
       command:
         - "tail"
