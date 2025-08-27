@@ -29,6 +29,8 @@ quit() {
 while true; do
     rm -f restart.txt
 
+     echo "$(ls)"
+
     "$@" &
     process_id=$!
     echo "$process_id" > process.txt
