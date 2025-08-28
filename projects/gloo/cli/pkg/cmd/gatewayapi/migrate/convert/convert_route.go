@@ -326,13 +326,13 @@ func (g *GatewayAPIOutput) convertRouteOptions(
 			RateLimit:       nil, // existing
 			Cors:            nil, // existing
 			Csrf:            nil, // existing
-			HashPolicies:    nil, // existing
+			HeaderModifiers: nil,
 			AutoHostRewrite: nil, // existing
 			Buffer:          nil, // existing
+			Timeouts:        nil, // existing
+			Retry:           nil, // existing
+			RBAC:            nil,
 		},
-		Waf:                nil, // existing
-		Retry:              nil, // existing
-		Timeouts:           nil, // existing
 		GlooRateLimit:      nil, // existing
 		GlooExtAuth:        nil, // existing
 		GlooTransformation: nil, // existing
@@ -383,8 +383,9 @@ func (g *GatewayAPIOutput) convertRouteOptions(
 			g.gatewayAPICache.AddAuthConfig(ac)
 
 			gtpSpec.GlooExtAuth = &gloogateway.GlooExtAuth{
-				ExtensionRef: &corev1.LocalObjectReference{
-					Name: "ext-authz",
+				ExtensionRef: &kgateway.NamespacedObjectReference{
+					Name:      "ext-authz",
+					Namespace: ptr.To(gwv1.Namespace(wrapper.GetNamespace())),
 				},
 				AuthConfigRef: &gloogateway.AuthConfigRef{
 					Name:      gwv1.ObjectName(ac.GetName()),
@@ -438,35 +439,36 @@ func (g *GatewayAPIOutput) convertRouteOptions(
 
 	if options.GetWaf() != nil {
 		// TODO(nick): Finish Implementing WAF -https://github.com/solo-io/gloo-gateway/issues/32
-		gtpSpec.Waf = &gloogateway.Waf{
-			Disabled:      ptr.To(options.GetWaf().GetDisabled()),
-			Rules:         []gloogateway.WafRule{},
-			CustomMessage: ptr.To(options.GetWaf().GetCustomInterventionMessage()),
-		}
-		for _, rule := range options.GetWaf().GetRuleSets() {
-			gtpSpec.Waf.Rules = append(gtpSpec.Waf.Rules, gloogateway.WafRule{RuleStr: ptr.To(rule.GetRuleStr())})
-			if rule.GetFiles() != nil {
-				g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "WAF rule files is not supported")
-			}
-			if rule.GetDirectory() != "" {
-				g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "WAF rule directory %s is not supported", rule.GetDirectory())
-			}
-		}
-		if len(options.GetWaf().GetConfigMapRuleSets()) > 0 {
-			g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "WAF configMapRuleSets is not supported")
-		}
-		if options.GetWaf().GetCoreRuleSet() != nil {
-			g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "WAF coreRuleSets is not supported")
-		}
-		if options.GetWaf().GetRequestHeadersOnly() == true {
-			g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "WAF requestHeadersOnly is not supported")
-		}
-		if options.GetWaf().GetResponseHeadersOnly() == true {
-			g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "WAF responseHeadersOnly is not supported")
-		}
-		if options.GetWaf().GetAuditLogging() != nil {
-			g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "WAF auditLogging is not supported")
-		}
+		g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "WAF is not supported")
+		//gtpSpec.Waf = &gloogateway.Waf{
+		//	Disabled:      ptr.To(options.GetWaf().GetDisabled()),
+		//	Rules:         []gloogateway.WafRule{},
+		//	CustomMessage: ptr.To(options.GetWaf().GetCustomInterventionMessage()),
+		//}
+		//for _, rule := range options.GetWaf().GetRuleSets() {
+		//	gtpSpec.Waf.Rules = append(gtpSpec.Waf.Rules, gloogateway.WafRule{RuleStr: ptr.To(rule.GetRuleStr())})
+		//	if rule.GetFiles() != nil {
+		//		g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "WAF rule files is not supported")
+		//	}
+		//	if rule.GetDirectory() != "" {
+		//		g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "WAF rule directory %s is not supported", rule.GetDirectory())
+		//	}
+		//}
+		//if len(options.GetWaf().GetConfigMapRuleSets()) > 0 {
+		//	g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "WAF configMapRuleSets is not supported")
+		//}
+		//if options.GetWaf().GetCoreRuleSet() != nil {
+		//	g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "WAF coreRuleSets is not supported")
+		//}
+		//if options.GetWaf().GetRequestHeadersOnly() == true {
+		//	g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "WAF requestHeadersOnly is not supported")
+		//}
+		//if options.GetWaf().GetResponseHeadersOnly() == true {
+		//	g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "WAF responseHeadersOnly is not supported")
+		//}
+		//if options.GetWaf().GetAuditLogging() != nil {
+		//	g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "WAF auditLogging is not supported")
+		//}
 	}
 	if options.GetCors() != nil {
 		policy := g.convertCORS(options.GetCors(), wrapper)
@@ -527,8 +529,9 @@ func (g *GatewayAPIOutput) convertRouteOptions(
 		gtpSpec.GlooRateLimit = &gloogateway.GlooRateLimit{
 			Global: &gloogateway.GlobalRateLimit{
 				// Need to find the Gateway Extension for Global Rate Limit Server
-				ExtensionRef: &corev1.LocalObjectReference{
-					Name: "rate-limit",
+				ExtensionRef: &kgateway.NamespacedObjectReference{
+					Name:      "rate-limit",
+					Namespace: ptr.To(gwv1.Namespace(wrapper.GetNamespace())),
 				},
 				// RateLimitConfig for the policy, not sure how it works for rate limit basic
 				RateLimitConfigRef: gloogateway.RateLimitConfigRef{
@@ -634,39 +637,41 @@ func (g *GatewayAPIOutput) convertRouteOptions(
 		}
 	}
 	if options.GetLbHash() != nil && len(options.GetLbHash().GetHashPolicies()) > 0 {
-		gtpSpec.TrafficPolicySpec.HashPolicies = []*kgateway.HashPolicy{}
-		for _, policy := range options.GetLbHash().GetHashPolicies() {
-			hashPolicy := &kgateway.HashPolicy{
-				Header:   nil, // existing
-				Cookie:   nil, // existing
-				SourceIP: nil, // existing
-				Terminal: nil, // existing
-			}
-			if policy.GetHeader() != "" {
-				hashPolicy.Header = &kgateway.Header{Name: policy.GetHeader()}
-			}
-			if policy.GetCookie() != nil {
-				hashPolicy.Cookie = &kgateway.Cookie{
-					Name:       policy.GetCookie().GetName(),
-					Path:       nil, // existing
-					TTL:        nil, // existing
-					Attributes: nil, // existing
-				}
-				if policy.GetCookie().GetPath() != "" {
-					hashPolicy.Cookie.Path = ptr.To(policy.GetCookie().GetPath())
-				}
-				if policy.GetCookie().GetTtl() != nil {
-					hashPolicy.Cookie.TTL = ptr.To(metav1.Duration{Duration: policy.GetCookie().GetTtl().AsDuration()})
-				}
-			}
-			if policy.GetSourceIp() {
-				hashPolicy.SourceIP = &kgateway.SourceIP{}
-			}
-			if policy.GetTerminal() {
-				hashPolicy.Terminal = ptr.To(true)
-			}
-			gtpSpec.TrafficPolicySpec.HashPolicies = append(gtpSpec.TrafficPolicySpec.HashPolicies, hashPolicy)
-		}
+		g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "hashPolicy is not supported")
+
+		//gtpSpec.TrafficPolicySpec.HashPolicies = []*kgateway.HashPolicy{}
+		//for _, policy := range options.GetLbHash().GetHashPolicies() {
+		//	hashPolicy := &kgateway.HashPolicy{
+		//		Header:   nil, // existing
+		//		Cookie:   nil, // existing
+		//		SourceIP: nil, // existing
+		//		Terminal: nil, // existing
+		//	}
+		//	if policy.GetHeader() != "" {
+		//		hashPolicy.Header = &kgateway.Header{Name: policy.GetHeader()}
+		//	}
+		//	if policy.GetCookie() != nil {
+		//		hashPolicy.Cookie = &kgateway.Cookie{
+		//			Name:       policy.GetCookie().GetName(),
+		//			Path:       nil, // existing
+		//			TTL:        nil, // existing
+		//			Attributes: nil, // existing
+		//		}
+		//		if policy.GetCookie().GetPath() != "" {
+		//			hashPolicy.Cookie.Path = ptr.To(policy.GetCookie().GetPath())
+		//		}
+		//		if policy.GetCookie().GetTtl() != nil {
+		//			hashPolicy.Cookie.TTL = ptr.To(metav1.Duration{Duration: policy.GetCookie().GetTtl().AsDuration()})
+		//		}
+		//	}
+		//	if policy.GetSourceIp() {
+		//		hashPolicy.SourceIP = &kgateway.SourceIP{}
+		//	}
+		//	if policy.GetTerminal() {
+		//		hashPolicy.Terminal = ptr.To(true)
+		//	}
+		//	gtpSpec.TrafficPolicySpec.HashPolicies = append(gtpSpec.TrafficPolicySpec.HashPolicies, hashPolicy)
+		//}
 	}
 	if options.GetMaxStreamDuration() != nil {
 		g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "maxStreamDuration is not supported")

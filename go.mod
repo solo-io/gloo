@@ -112,9 +112,9 @@ require (
 	golang.org/x/mod v0.27.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20250811230008-5f3141c8851a
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250811230008-5f3141c8851a
-	istio.io/api v1.26.0-alpha.0.0.20250820113222-47f832b86cdd
-	istio.io/client-go v1.26.0-alpha.0.0.20250820113822-8b883d128bac
-	istio.io/istio v0.0.0-20250728092114-6111de93199e
+	istio.io/api v1.27.0-beta.0.0.20250731082105-36763529c462
+	istio.io/client-go v1.27.0-beta.0.0.20250731082605-b098a6e566f4
+	istio.io/istio v0.0.0-20250808040725-7359d8be2504
 	k8s.io/utils v0.0.0-20250604170112-4c0f3b243397
 	sigs.k8s.io/controller-tools v0.18.1-0.20250625175829-8d11ce77f347
 	sigs.k8s.io/structured-merge-diff/v4 v4.7.0
@@ -130,10 +130,17 @@ require (
 )
 
 require (
-	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/go-viper/mapstructure/v2 v2.4.0 // indirect
+	github.com/grafana/regexp v0.0.0-20240518133315-a468a5bfb3bc // indirect
+	github.com/prometheus/otlptranslator v0.0.0-20250717125610-8549f4ab4f8f // indirect
+	github.com/santhosh-tekuri/jsonschema/v6 v6.0.2 // indirect
 	go.yaml.in/yaml/v2 v2.4.2 // indirect
 	go.yaml.in/yaml/v3 v3.0.3 // indirect
+	golang.org/x/tools/go/expect v0.1.1-deprecated // indirect
+	k8s.io/apiserver v0.33.4 // indirect
+	k8s.io/cli-runtime v0.33.3 // indirect
+	k8s.io/klog/v2 v2.130.1 // indirect
+	oras.land/oras-go/v2 v2.6.0 // indirect
 	sigs.k8s.io/gateway-api-inference-extension v1.0.0-rc.1 // indirect
 )
 
@@ -151,7 +158,6 @@ require (
 	github.com/Masterminds/sprig/v3 v3.3.0 // indirect
 	github.com/Masterminds/squirrel v1.5.4 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
-	github.com/Microsoft/hcsshim v0.11.4 // indirect
 	github.com/ProtonMail/go-crypto v1.3.0 // indirect
 	github.com/antlr4-go/antlr/v4 v4.13.1 // indirect
 	github.com/armon/go-metrics v0.4.1 // indirect
@@ -165,23 +171,13 @@ require (
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/chai2010/gettext-go v1.0.3 // indirect
 	github.com/cockroachdb/apd/v3 v3.2.1 // indirect
-	github.com/containerd/cgroups v1.1.0 // indirect
 	github.com/containerd/containerd v1.7.27 // indirect
-	github.com/containerd/continuity v0.4.3 // indirect
-	github.com/containerd/errdefs v1.0.0 // indirect
-	github.com/containerd/log v0.1.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.7 // indirect
 	github.com/creack/pty v1.1.18 // indirect
 	github.com/cyphar/filepath-securejoin v0.4.1 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.4.0 // indirect
 	github.com/distribution/reference v0.6.0 // indirect
-	github.com/docker/cli v28.3.3+incompatible // indirect
-	github.com/docker/distribution v2.8.3+incompatible // indirect
-	github.com/docker/docker v28.3.3+incompatible // indirect
-	github.com/docker/docker-credential-helpers v0.9.3 // indirect
-	github.com/docker/go-connections v0.5.0 // indirect
-	github.com/docker/go-metrics v0.0.1 // indirect
 	github.com/emicklei/go-restful/v3 v3.12.2 // indirect
 	github.com/emicklei/proto v1.13.2 // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
@@ -323,9 +319,6 @@ require (
 	github.com/subosito/gotenv v1.6.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	github.com/xanzy/ssh-agent v0.3.3 // indirect
-	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect
-	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
-	github.com/xeipuuv/gojsonschema v1.2.0 // indirect
 	github.com/xlab/treeprint v1.2.0 // indirect
 	github.com/yuin/goldmark v1.7.4 // indirect
 	go.mongodb.org/mongo-driver v1.17.3 // indirect
@@ -353,14 +346,11 @@ require (
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1
-	k8s.io/apiserver v0.33.4 // indirect
-	k8s.io/cli-runtime v0.33.3 // indirect
-	k8s.io/component-helpers v0.33.1 // indirect
+	k8s.io/component-helpers v0.33.3 // indirect
 	k8s.io/gengo v0.0.0-20230829151522-9cce18d56c01 // indirect
 	k8s.io/gengo/v2 v2.0.0-20250207200755-1244d31929d7 // indirect
-	k8s.io/klog/v2 v2.130.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20250318190949-c8a335a9a2ff // indirect
-	k8s.io/metrics v0.33.1 // indirect
+	k8s.io/metrics v0.33.3 // indirect
 	sigs.k8s.io/json v0.0.0-20241014173422-cfa47c3a1cc8 // indirect
 	sigs.k8s.io/kustomize/api v0.19.0 // indirect
 	sigs.k8s.io/kustomize/kustomize/v5 v5.6.0 // indirect
@@ -412,9 +402,12 @@ replace (
 	k8s.io/component-helpers => k8s.io/component-helpers v0.33.1
 	// version of kube-openapi used by client-go v0.33.1
 	k8s.io/kube-openapi => k8s.io/kube-openapi v0.0.0-20250318190949-c8a335a9a2ff
-	k8s.io/kubectl => k8s.io/kubectl v0.33.1
+	k8s.io/kubectl => k8s.io/kubectl v0.33.3
 	k8s.io/metrics => k8s.io/metrics v0.33.1
-	k8s.io/utils => k8s.io/utils v0.0.0-20240711033017-18e509b52bc8
+	k8s.io/utils => k8s.io/utils v0.0.0-20250604170112-4c0f3b243397
+
+	sigs.k8s.io/gateway-api-inference-extension => sigs.k8s.io/gateway-api-inference-extension v0.5.1
+
 )
 
 exclude (
