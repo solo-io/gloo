@@ -101,9 +101,18 @@ func (s *TranslatorSyncer) Sync(ctx context.Context, snap *gloov1snap.ApiSnapsho
 		logger.Debug(syncutil.StringifySnapshot(snap))
 	}
 
+	logger.Debugw("TranslatorSyncer Sync starting GeneratedDesiredProxies", "issue", "8539", "snapHash", snapHash)
 	desiredProxies, invalidProxies := s.GeneratedDesiredProxies(ctx, snap)
+	logger.Debugw("TranslatorSyncer Sync completed GeneratedDesiredProxies", "issue", "8539", "snapHash", snapHash, "desiredProxiesCount", len(desiredProxies), "invalidProxiesCount", len(invalidProxies))
 
-	return s.reconcile(ctx, desiredProxies, invalidProxies)
+	logger.Debugw("TranslatorSyncer Sync starting reconcile", "issue", "8539", "snapHash", snapHash)
+	err := s.reconcile(ctx, desiredProxies, invalidProxies)
+	if err != nil {
+		logger.Debugw("TranslatorSyncer Sync reconcile failed", "issue", "8539", "snapHash", snapHash, "error", err)
+	} else {
+		logger.Debugw("TranslatorSyncer Sync reconcile completed successfully", "issue", "8539", "snapHash", snapHash)
+	}
+	return err
 }
 
 // This replaced a watch on the proxy CR from when the gloo and gateway pods were separate
@@ -125,14 +134,18 @@ func (s *TranslatorSyncer) GeneratedDesiredProxies(
 	logger := contextutils.LoggerFrom(ctx)
 	logger.Debugw("TranslatorSyncer GeneratedDesiredProxies start", "issue", "8539")
 	gatewaysByProxyName := utils.GatewaysByProxyName(snap.Gateways)
+	logger.Debugw("TranslatorSyncer GeneratedDesiredProxies grouped gateways", "issue", "8539", "gatewayGroupCount", len(gatewaysByProxyName))
 
 	desiredProxies := make(reconciler.GeneratedProxies)
 	invalidProxies := make(reconciler.InvalidProxies)
 	for proxyName, gatewayList := range gatewaysByProxyName {
+		logger.Debugw("TranslatorSyncer GeneratedDesiredProxies translating proxy", "issue", "8539", "proxyName", proxyName, "gatewayCount", len(gatewayList))
 		proxy, reports := s.translator.Translate(ctx, proxyName, snap, gatewayList)
 		if proxy != nil {
+			logger.Debugw("TranslatorSyncer GeneratedDesiredProxies translation successful", "issue", "8539", "proxyName", proxyName, "proxyRef", proxy.GetMetadata().Ref())
 
 			if s.shouldCompresss(ctx) {
+				logger.Debugw("TranslatorSyncer GeneratedDesiredProxies setting compression", "issue", "8539", "proxyName", proxyName)
 				compress.SetShouldCompressed(proxy)
 			}
 			if s.proxyStatusMaxSize != "" {
@@ -145,6 +158,7 @@ func (s *TranslatorSyncer) GeneratedDesiredProxies(
 			proxy.GetMetadata().Labels = proxyLabelsToWrite
 			desiredProxies[proxy] = reports
 		} else {
+			logger.Debugw("TranslatorSyncer GeneratedDesiredProxies translation failed", "issue", "8539", "proxyName", proxyName, "reportsCount", len(reports))
 			// We were unable to create a proxy
 			// Ensure that reports for that proxy are propagated to the relevant gateway resources
 			invalidProxyRef := &core.ResourceRef{
@@ -154,6 +168,7 @@ func (s *TranslatorSyncer) GeneratedDesiredProxies(
 			invalidProxies[invalidProxyRef] = reports
 		}
 	}
+	logger.Debugw("TranslatorSyncer GeneratedDesiredProxies complete", "issue", "8539", "desiredProxiesCount", len(desiredProxies), "invalidProxiesCount", len(invalidProxies))
 	return desiredProxies, invalidProxies
 }
 
@@ -161,12 +176,18 @@ func (s *TranslatorSyncer) shouldCompresss(ctx context.Context) bool {
 	return settingsutil.MaybeFromContext(ctx).GetGateway().GetCompressedProxySpec()
 }
 func (s *TranslatorSyncer) reconcile(ctx context.Context, desiredProxies reconciler.GeneratedProxies, invalidProxies reconciler.InvalidProxies) error {
+	logger := contextutils.LoggerFrom(ctx)
+	logger.Debugw("TranslatorSyncer reconcile starting", "issue", "8539", "desiredProxiesCount", len(desiredProxies), "invalidProxiesCount", len(invalidProxies))
+
 	if err := s.proxyReconciler.ReconcileProxies(ctx, desiredProxies, s.writeNamespace, proxyLabelSelectorOptions); err != nil {
+		logger.Debugw("TranslatorSyncer reconcile ReconcileProxies failed", "issue", "8539", "error", err)
 		return err
 	}
+	logger.Debugw("TranslatorSyncer reconcile ReconcileProxies completed", "issue", "8539")
 
 	s.statusSyncer.setCurrentProxies(desiredProxies, invalidProxies)
 	s.statusSyncer.forceSync()
+	logger.Debugw("TranslatorSyncer reconcile completed", "issue", "8539")
 	return nil
 }
 
@@ -258,6 +279,8 @@ func (s *statusSyncer) setCurrentProxies(desiredProxies reconciler.GeneratedProx
 
 func (s *statusSyncer) handleUpdatedProxies(ctx context.Context) {
 	logger := contextutils.LoggerFrom(ctx)
+	logger.Debugw("statusSyncer handleUpdatedProxies starting", "issue", "8539")
+
 	proxyList, err := s.proxyClient.List(s.writeNamespace, clients.ListOpts{
 		Ctx: ctx,
 	})
@@ -266,6 +289,8 @@ func (s *statusSyncer) handleUpdatedProxies(ctx context.Context) {
 		logger.Errorw("Error reading updated proxies, statuses may be out of date.", err)
 		return
 	}
+	logger.Debugw("statusSyncer handleUpdatedProxies retrieved proxy list", "issue", "8539", "proxyCount", len(proxyList))
+
 	currentHash, err := s.hashStatuses(proxyList)
 	if err != nil {
 		logger.DPanicw("error while hashing, this should never happen", zap.Error(err))
@@ -279,6 +304,9 @@ func (s *statusSyncer) handleUpdatedProxies(ctx context.Context) {
 		s.previousProxyStatusHash = currentHash
 		s.setStatuses(proxyList)
 		s.forceSync()
+		logger.Debugw("statusSyncer handleUpdatedProxies status sync forced", "issue", "8539", "currentHash", currentHash)
+	} else {
+		logger.Debugw("statusSyncer handleUpdatedProxies no hash change, skipping sync", "issue", "8539", "currentHash", currentHash)
 	}
 }
 
@@ -401,10 +429,16 @@ func (s *statusSyncer) extractCurrentReports() (reporter.ResourceReports, map[re
 }
 
 func (s *statusSyncer) syncStatus(ctx context.Context) error {
+	logger := contextutils.LoggerFrom(ctx)
+	logger.Debugw("statusSyncer syncStatus starting", "issue", "8539")
+
 	allReports, inputResourceBySubresourceStatuses, localInputResourceLastStatus := s.extractCurrentReports()
+	logger.Debugw("statusSyncer syncStatus extracted reports", "issue", "8539", "allReportsCount", len(allReports), "inputResourceBySubresourceStatusesCount", len(inputResourceBySubresourceStatuses))
 
 	var errs error
 	for inputResource, subresourceStatuses := range allReports {
+		logger.Debugw("statusSyncer syncStatus processing resource", "issue", "8539", "resourceRef", inputResource.GetMetadata().Ref(), "isLeader", s.identity.IsLeader())
+
 		// write reports may update the status, so clone the object
 		clonedInputResource := resources.Clone(inputResource).(resources.InputResource)
 		// set the last known status on the input resource.
@@ -422,6 +456,7 @@ func (s *statusSyncer) syncStatus(ctx context.Context) error {
 			//
 			// while tempting to write statuses in parallel to increase performance, we should actually first consider recommending the user tunes k8s qps/burst:
 			// https://github.com/solo-io/gloo/blob/a083522af0a4ce22f4d2adf3a02470f782d5a865/projects/gloo/api/v1/settings.proto#L337-L350
+			logger.Debugw("statusSyncer syncStatus writing reports as leader", "issue", "8539", "resourceRef", inputResource.GetMetadata().Ref())
 			if err := s.reporter.WriteReports(ctx, reports, currentStatuses); err != nil {
 				// add TEMPORARY wrap to our WriteReports error that we should remove in Gloo Edge ~v1.16.0+.
 				// to get the status performance improvements, we need to make the assumption that the user has the latest CRDs installed.
@@ -429,11 +464,13 @@ func (s *statusSyncer) syncStatus(ctx context.Context) error {
 				// this should help them understand what's going on in case they did not read the changelog.
 				wrappedErr := errors.Wrapf(err, "failed to write reports for %v; "+
 					"did you make sure your CRDs have been updated since v1.13.0-beta14? (i.e. `status` and `status.statuses` fields exist on your CR)", inputResource.GetMetadata().Ref().Key())
+				logger.Debugw("statusSyncer syncStatus write reports failed", "issue", "8539", "resourceRef", inputResource.GetMetadata().Ref(), "error", wrappedErr)
 				errs = multierror.Append(errs, wrappedErr)
 			} else {
 				// The inputResource's status was successfully written, update the cache and metric with that status
 				status := s.reporter.StatusFromReport(subresourceStatuses, currentStatuses)
 				localInputResourceLastStatus[inputResource] = status
+				logger.Debugw("statusSyncer syncStatus write reports succeeded", "issue", "8539", "resourceRef", inputResource.GetMetadata().Ref())
 			}
 		} else {
 			contextutils.LoggerFrom(ctx).Debug("Not a leader, skipping reports writing")
@@ -448,5 +485,12 @@ func (s *statusSyncer) syncStatus(ctx context.Context) error {
 		status := s.reporter.StatusFromReport(subresourceStatuses, currentStatuses)
 		s.statusMetrics.SetResourceStatus(ctx, inputResource, status)
 	}
+	logger.Debugw("statusSyncer syncStatus completed", "issue", "8539", "errorCount", func() int {
+		if errs != nil {
+			return len(errs.(*multierror.Error).Errors)
+		} else {
+			return 0
+		}
+	}())
 	return errs
 }

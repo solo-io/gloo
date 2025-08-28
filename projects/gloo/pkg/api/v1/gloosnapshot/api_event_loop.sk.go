@@ -44,9 +44,18 @@ type ApiSyncer interface {
 
 type ApiSyncers []ApiSyncer
 
+// Kind of cheating for debugging -
+var syncerNames = []string{
+	"validator", "translation_syncer", "gateway_validation_syncer",
+}
+
 func (s ApiSyncers) Sync(ctx context.Context, snapshot *ApiSnapshot) error {
+	logger := contextutils.LoggerFrom(ctx)
+	logger.Debugw("ApiSyncers Sync start", "issue", "8539")
+	defer logger.Debugw("ApiSyncers Sync end", "issue", "8539")
 	var multiErr *multierror.Error
-	for _, syncer := range s {
+	for i, syncer := range s {
+		logger.Debugw("ApiSyncers Sync syncer", "issue", "8539", "syncer", syncerNames[i])
 		if err := syncer.Sync(ctx, snapshot); err != nil {
 			multiErr = multierror.Append(multiErr, err)
 		}
