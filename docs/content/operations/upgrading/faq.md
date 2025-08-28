@@ -60,11 +60,19 @@ The Envoy dependency in Gloo Gateway 1.19 was upgraded from 1.31.x to 1.33.x. Th
 
 ## New features
 
-#### Set circuit breakers for dynamic forward proxies
+### Circuit breakers for DFP-enabled routes
 
-When using a dynamic forward proxy, Envoy sets a limit of 1024 connections for dynamically discovered upstreams. Starting in Gloo Gateway Enterprise version 1.19.3, you can override this setting by setting custom circuit breakers for your dynamic forward proxy. 
+Starting in version 1.19.3 you can configure separate circuit breakers for dynamically discovered upstream hosts. By default, Envoy creates a cluster for each resolved upstream and limits the number of connections to this cluster to 1024. When using Dynamic Forward Proxies, Envoy creates a cluster for each host and applies the default circuit breaker settings to it. 
 
-For more information, see [Set circuit breakers for dynamically discovered upstreams]({{% versioned_link_path fromRoot="/guides/traffic_management/listener_configuration/http_connection_manager/dfp/#dfp-circuit-breakers" %}}). 
+Depending on your setup, you might quickly reach the circuit breaker limit for each upstream host, even though overall traffic is not high. To overwrite the default circuit breaker settings, configure the `dynamicForwardProxy.circuitBreakers` fields on your gateway proxy. 
+
+For more information, see [Set circuit breakers for dynamically discovered upstreams]({{< versioned_link_path fromRoot="/guides/traffic_management/listener_configuration/http_connection_manager/dfp/" >}})
+
+### Change proxy metrics to `usedonly` stats
+
+By default, the Gloo Gateway Prometheus endpoint emits large numbers of metrics that can overwhelm your Prometheus instance or other instances that scrape these metrics. Starting in version 1.19.4, you can apply a query parameter to the Prometheus scraping endpoint to reduce the number of metrics that the proxy emits. 
+
+For more information, see [Apply metrics filter to Prometheus scraping endpoint]({{< versioned_link_path fromRoot="/operations/production_deployment/#apply-metrics-filter-to-prometheus-scraping-endpoint" >}}).
 
 ### Set authority header for gRPC OpenTelemetry collectors
 
