@@ -149,7 +149,7 @@ func (tc TestCase) Run(ctx context.Context) (map[types.NamespacedName]ActualTest
 	for _, rtOpt := range routeOptions {
 		routeOptionClient.Write(&rtOpt.Spec, clients.WriteOpts{Ctx: ctx})
 	}
-	routeOptionCollection := krt.NewStaticCollection(routeOptions)
+	routeOptionCollection := krt.NewStaticCollection(nil, routeOptions)
 	vhOptionCollection := krt.NewStatic[*solokubev1.VirtualHostOption](nil, true).AsCollection()
 	listenerOptionCollection := krt.NewStatic[*solokubev1.ListenerOption](nil, true).AsCollection()
 

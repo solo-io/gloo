@@ -110,9 +110,9 @@ require (
 	golang.org/x/mod v0.27.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20250811230008-5f3141c8851a
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250811230008-5f3141c8851a
-	istio.io/api v1.27.0
-	istio.io/client-go v1.27.0
-	istio.io/istio v0.0.0-20250828124706-650bdccfa346
+	istio.io/api v1.27.0-beta.0.0.20250731082105-36763529c462
+	istio.io/client-go v1.27.0-beta.0.0.20250731082605-b098a6e566f4
+	istio.io/istio v0.0.0-20250808040725-7359d8be2504
 	k8s.io/utils v0.0.0-20250604170112-4c0f3b243397
 	sigs.k8s.io/controller-tools v0.18.0
 	sigs.k8s.io/structured-merge-diff/v4 v4.7.0
@@ -129,7 +129,7 @@ require (
 	go.yaml.in/yaml/v3 v3.0.3 // indirect
 	golang.org/x/tools/go/packages/packagestest v0.1.1-deprecated // indirect
 	oras.land/oras-go/v2 v2.6.0 // indirect
-	sigs.k8s.io/gateway-api-inference-extension v1.0.0-rc.1 // indirect
+	sigs.k8s.io/gateway-api-inference-extension v0.5.0 // indirect
 )
 
 require (
