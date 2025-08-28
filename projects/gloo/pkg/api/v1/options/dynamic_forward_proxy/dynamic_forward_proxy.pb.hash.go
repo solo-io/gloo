@@ -87,6 +87,26 @@ func (m *FilterConfig) Hash(hasher hash.Hash64) (uint64, error) {
 		}
 	}
 
+	if h, ok := interface{}(m.GetCircuitBreakers()).(safe_hasher.SafeHasher); ok {
+		if _, err = hasher.Write([]byte("CircuitBreakers")); err != nil {
+			return 0, err
+		}
+		if _, err = h.Hash(hasher); err != nil {
+			return 0, err
+		}
+	} else {
+		if fieldValue, err := hashstructure.Hash(m.GetCircuitBreakers(), nil); err != nil {
+			return 0, err
+		} else {
+			if _, err = hasher.Write([]byte("CircuitBreakers")); err != nil {
+				return 0, err
+			}
+			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
+				return 0, err
+			}
+		}
+	}
+
 	return hasher.Sum64(), nil
 }
 

@@ -653,22 +653,25 @@ type OpenTelemetryService struct {
 	// If true, Envoy logger will not generate built-in resource labels like log_name,
 	// zone_name, cluster_name, node_name
 	DisableBuiltinLabels bool `protobuf:"varint,4,opt,name=disable_builtin_labels,json=disableBuiltinLabels,proto3" json:"disable_builtin_labels,omitempty"`
-	// A value containing the body of the log record. Can be for example a human-readable
-	// string message (including multi-line) describing the event in a free form or it can
-	// be a structured data composed of arrays and maps of other values.
+	// The body of the log record. Supported formats include human-readable
+	// string messages, including multiline, that describe the event in free form, or
+	// structured data composed of arrays and maps of other values. For more
+	// information about the format, see the [OpenTelementry `common.proto`](https://github.com/open-telemetry/opentelemetry-proto/blob/main/opentelemetry/proto/common/v1/common.proto).
 	//
-	// Example: {"int_value": 1}
-	// Example: {"string_value": "hello world"}
-	// Example: {"kvlist_value": {"values": [{"key": "k1", "value": {"int_value": 1}}, {"key": "k2", "value": {"string_value": "v2"}}]}}
-	// Example: {"array_value": {"values": [{"int_value": 1}, {"string_value": "hello world"}]}}
+	// </br></br>Examples:
+	// <ul><li>{"int_value": 1}</li>
+	// <li>{"string_value": "hello world"}</li>
+	// <li>{"kvlist_value": {"values": [{"key": "k1", "value": {"int_value": 1}}, {"key": "k2", "value": {"string_value": "v2"}}]}}</li>
+	// <li>{"array_value": {"values": [{"int_value": 1}, {"string_value": "hello world"}]}}</li></ul>
 	Body *v1.AnyValue `protobuf:"bytes,5,opt,name=body,proto3" json:"body,omitempty"`
-	// Additional attributes that describe the specific event occurrence. [Optional].
-	// Attribute keys MUST be unique (it is not allowed to have more than one
-	// attribute with the same key).
+	// Optional: Additional attributes that describe the specific event occurrence.
+	// Attribute keys must be unique to each attribute. For more
+	// information about the format, see the [OpenTelementry `common.proto`](https://github.com/open-telemetry/opentelemetry-proto/blob/main/opentelemetry/proto/common/v1/common.proto).
 	//
-	// Example: {"values": [{"key": "k1", "value": {"int_value": 1}}, {"key": "k2", "value": {"string_value": "v2"}}]}
-	// Example: {"values": [{"key": "k1", "values": {kvlist_value: {values: [{"key": "k2", "value": {"int_value": 1}}, {"key": "k3", "value": {"string_value": "v2"}}]}}}]}
-	// Example: {"values": [{"key": "k1", "value": {"int_value": 1}}, {"key": "k2", "value": {"string_value": "v2"}}]}
+	// </br></br>Examples:
+	// <ul><li>{"values": [{"key": "k1", "value": {"int_value": 1}}, {"key": "k2", "value": {"string_value": "v2"}}]}</li>
+	// <li>{"values": [{"key": "k1", "values": {kvlist_value: {values: [{"key": "k2", "value": {"int_value": 1}}, {"key": "k3", "value": {"string_value": "v2"}}]}}}]}</li>
+	// <li>{"values": [{"key": "k1", "value": {"int_value": 1}}, {"key": "k2", "value": {"string_value": "v2"}}]}</li></ul>
 	Attributes    *v1.KeyValueList `protobuf:"bytes,6,opt,name=attributes,proto3" json:"attributes,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache

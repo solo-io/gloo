@@ -12,6 +12,7 @@ import (
 	unsafe "unsafe"
 
 	aws "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/aws"
+	circuit_breaker "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/circuit_breaker"
 	caching "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/caching"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
 	extproc "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extproc"
@@ -913,7 +914,7 @@ type GlooOptions struct {
 	ValidationBindAddr string `protobuf:"bytes,2,opt,name=validation_bind_addr,json=validationBindAddr,proto3" json:"validation_bind_addr,omitempty"`
 	// Default circuit breaker configuration to use for upstream requests,
 	// when not provided by specific upstream.
-	CircuitBreakers *CircuitBreakerConfig `protobuf:"bytes,3,opt,name=circuit_breakers,json=circuitBreakers,proto3" json:"circuit_breakers,omitempty"`
+	CircuitBreakers *circuit_breaker.CircuitBreakerConfig `protobuf:"bytes,3,opt,name=circuit_breakers,json=circuitBreakers,proto3" json:"circuit_breakers,omitempty"`
 	// Timeout to get initial snapshot of resources. If set to zero, Gloo will not wait for initial
 	// snapshot - if nonzero and gloo could not fetch it's initial snapshot before the timeout
 	// reached, gloo will panic. If unset, Gloo defaults to 5 minutes.
@@ -1022,7 +1023,7 @@ func (x *GlooOptions) GetValidationBindAddr() string {
 	return ""
 }
 
-func (x *GlooOptions) GetCircuitBreakers() *CircuitBreakerConfig {
+func (x *GlooOptions) GetCircuitBreakers() *circuit_breaker.CircuitBreakerConfig {
 	if x != nil {
 		return x.CircuitBreakers
 	}
@@ -3631,7 +3632,7 @@ var File_github_com_solo_io_gloo_projects_gloo_api_v1_settings_proto protoreflec
 
 const file_github_com_solo_io_gloo_projects_gloo_api_v1_settings_proto_rawDesc = "" +
 	"\n" +
-	";github.com/solo-io/gloo/projects/gloo/api/v1/settings.proto\x12\fgloo.solo.io\x1a\x12extproto/ext.proto\x1a1github.com/solo-io/solo-kit/api/v1/metadata.proto\x1a/github.com/solo-io/solo-kit/api/v1/status.proto\x1a1github.com/solo-io/solo-kit/api/v1/solo-kit.proto\x1a,github.com/solo-io/solo-kit/api/v1/ref.proto\x1a=github.com/solo-io/gloo/projects/gloo/api/v1/extensions.proto\x1aYgithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/ratelimit/ratelimit.proto\x1aUgithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/caching/caching.proto\x1aXgithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth.proto\x1aUgithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/extproc/extproc.proto\x1aOgithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/rbac/rbac.proto\x1aBgithub.com/solo-io/gloo/projects/gloo/api/v1/circuit_breaker.proto\x1a:github.com/solo-io/gloo/projects/gloo/api/v1/ssl/ssl.proto\x1aTgithub.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/aws/filter.proto\x1aOgithub.com/solo-io/gloo/projects/gloo/api/v1/options/consul/query_options.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1egoogle/protobuf/wrappers.proto\"\xfb:\n" +
+	";github.com/solo-io/gloo/projects/gloo/api/v1/settings.proto\x12\fgloo.solo.io\x1a\x12extproto/ext.proto\x1a1github.com/solo-io/solo-kit/api/v1/metadata.proto\x1a/github.com/solo-io/solo-kit/api/v1/status.proto\x1a1github.com/solo-io/solo-kit/api/v1/solo-kit.proto\x1a,github.com/solo-io/solo-kit/api/v1/ref.proto\x1a=github.com/solo-io/gloo/projects/gloo/api/v1/extensions.proto\x1aYgithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/ratelimit/ratelimit.proto\x1aUgithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/caching/caching.proto\x1aXgithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth.proto\x1aUgithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/extproc/extproc.proto\x1aOgithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/rbac/rbac.proto\x1aRgithub.com/solo-io/gloo/projects/gloo/api/v1/circuit_breaker/circuit_breaker.proto\x1a:github.com/solo-io/gloo/projects/gloo/api/v1/ssl/ssl.proto\x1aTgithub.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/aws/filter.proto\x1aOgithub.com/solo-io/gloo/projects/gloo/api/v1/options/consul/query_options.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1egoogle/protobuf/wrappers.proto\"\xfb:\n" +
 	"\bSettings\x12/\n" +
 	"\x13discovery_namespace\x18\x01 \x01(\tR\x12discoveryNamespace\x12)\n" +
 	"\x10watch_namespaces\x18\x02 \x03(\tR\x0fwatchNamespaces\x12a\n" +
@@ -3985,7 +3986,7 @@ var file_github_com_solo_io_gloo_projects_gloo_api_v1_settings_proto_goTypes = [
 	(*core.NamespacedStatuses)(nil),                       // 52: core.solo.io.NamespacedStatuses
 	(*extproc.Settings)(nil),                              // 53: extproc.options.gloo.solo.io.Settings
 	(*ssl.SslParameters)(nil),                             // 54: gloo.solo.io.SslParameters
-	(*CircuitBreakerConfig)(nil),                          // 55: gloo.solo.io.CircuitBreakerConfig
+	(*circuit_breaker.CircuitBreakerConfig)(nil),          // 55: gloo.solo.io.CircuitBreakerConfig
 	(*wrapperspb.BoolValue)(nil),                          // 56: google.protobuf.BoolValue
 	(*wrapperspb.UInt32Value)(nil),                        // 57: google.protobuf.UInt32Value
 	(*core.ResourceRef)(nil),                              // 58: core.solo.io.ResourceRef
@@ -4114,7 +4115,6 @@ func file_github_com_solo_io_gloo_projects_gloo_api_v1_settings_proto_init() {
 		return
 	}
 	file_github_com_solo_io_gloo_projects_gloo_api_v1_extensions_proto_init()
-	file_github_com_solo_io_gloo_projects_gloo_api_v1_circuit_breaker_proto_init()
 	file_github_com_solo_io_gloo_projects_gloo_api_v1_settings_proto_msgTypes[0].OneofWrappers = []any{
 		(*Settings_KubernetesConfigSource)(nil),
 		(*Settings_DirectoryConfigSource)(nil),

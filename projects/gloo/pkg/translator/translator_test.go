@@ -55,6 +55,7 @@ import (
 	v32 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/type/matcher/v3"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/grpc/validation"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	v1_circuitbreaker "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/circuit_breaker"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
 	extauth "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ratelimit"
@@ -1417,7 +1418,7 @@ var _ = Describe("Translator", func() {
 		})
 
 		It("should translate circuit breakers on upstream", func() {
-			upstream.CircuitBreakers = &v1.CircuitBreakerConfig{
+			upstream.CircuitBreakers = &v1_circuitbreaker.CircuitBreakerConfig{
 				MaxConnections:     &wrappers.UInt32Value{Value: 1},
 				MaxPendingRequests: &wrappers.UInt32Value{Value: 2},
 				MaxRequests:        &wrappers.UInt32Value{Value: 3},
@@ -1441,7 +1442,7 @@ var _ = Describe("Translator", func() {
 
 		It("should translate circuit breakers on settings", func() {
 			settings.Gloo = &v1.GlooOptions{}
-			settings.Gloo.CircuitBreakers = &v1.CircuitBreakerConfig{
+			settings.Gloo.CircuitBreakers = &v1_circuitbreaker.CircuitBreakerConfig{
 				MaxConnections:     &wrappers.UInt32Value{Value: 1},
 				MaxPendingRequests: &wrappers.UInt32Value{Value: 2},
 				MaxRequests:        &wrappers.UInt32Value{Value: 3},
@@ -1465,14 +1466,14 @@ var _ = Describe("Translator", func() {
 
 		It("should override circuit breakers on upstream", func() {
 			settings.Gloo = &v1.GlooOptions{}
-			settings.Gloo.CircuitBreakers = &v1.CircuitBreakerConfig{
+			settings.Gloo.CircuitBreakers = &v1_circuitbreaker.CircuitBreakerConfig{
 				MaxConnections:     &wrappers.UInt32Value{Value: 11},
 				MaxPendingRequests: &wrappers.UInt32Value{Value: 12},
 				MaxRequests:        &wrappers.UInt32Value{Value: 13},
 				MaxRetries:         &wrappers.UInt32Value{Value: 14},
 			}
 
-			upstream.CircuitBreakers = &v1.CircuitBreakerConfig{
+			upstream.CircuitBreakers = &v1_circuitbreaker.CircuitBreakerConfig{
 				MaxConnections:     &wrappers.UInt32Value{Value: 1},
 				MaxPendingRequests: &wrappers.UInt32Value{Value: 2},
 				MaxRequests:        &wrappers.UInt32Value{Value: 3},
@@ -1500,7 +1501,7 @@ var _ = Describe("Translator", func() {
 			translate()
 			version1 := endpoints.Version
 			// change the cluster
-			upstream.CircuitBreakers = &v1.CircuitBreakerConfig{
+			upstream.CircuitBreakers = &v1_circuitbreaker.CircuitBreakerConfig{
 				MaxRetries: &wrappers.UInt32Value{Value: 5},
 			}
 			translate()

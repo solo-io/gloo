@@ -57,6 +57,68 @@ spec:
             autoHostRewriteHeader: "x-rewrite-me" # host header will be rewritten to the value of this header
 ```
 
+## Set circuit breakers for dynamically discovered upstreams {#dfp-circuit-breakers}
+
+By default, Envoy allows a maximum of 1024 connections to dynamically discovered upstreams. Starting in Gloo Gateway Enterprise version 1.19.3, you can override these settings by defining custom circuit breakers for your dynamic forward proxy. 
+
+1. Update your gateway proxy to add custom circuit breaker settings for your dynamic forward proxy. The following example overrides the default number of connections, requests, pending requests, and retries to 40,000. For more information, see the [Circuit breaker configuration]({{% versioned_link_path fromRoot="/reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/circuit_breaker/circuit_breaker.proto.sk/#circuitbreakerconfig" %}}).
+
+   ```bash
+   kubectl -n gloo-system patch gw/gateway-proxy --type merge -p "
+   spec:
+     httpGateway:
+       options:
+         dynamicForwardProxy: 
+           circuitBreakers:
+             maxConnections: 40000
+             maxPendingRequests: 40000
+             maxRequests: 40000
+             maxRetries: 40000
+             trackRemaining: true
+   "
+   ```
+
+   | Setting | Description | 
+   | -- | -- | 
+   | `maxConnections` | The maximum number of connections that Envoy makes to the upstream cluster. If not specified, the default is 1024. | 
+   | `maxPendingRequests` | The maximum number of pending requests that Envoy allows to the upstream cluster. If not specified, the default is 1024.| 
+   | `maxRequests` | The maximum number of parallel requests that Envoy makes to the upstream cluster. If not specified, the default is 1024.| 
+   | `maxRetries` | The maximum number of parallel retries that Envoy allows to the upstream cluster. If not specified, the default is 3. | 
+   | `trackRemaining` | If set to `true`, then stats are published that expose the number of resources remaining until the circuit breakers open. If not specified, the default is `false`.| 
+
+2. Verify that your circuit breaker settings were applied. 
+   1. Port-forward your gateway proxy on port 19000. 
+      ```sh
+      kubectl port-forward deploy/gateway-proxy 19000:19000 -n gloo-system
+      ```
+   2. Get the config dump for your gateway proxy. 
+      ```sh
+      curl http://localhost:19000/config_dump | jq -r '.configs[] | select(.["@type"]=="type.googleapis.com/envoy.admin.v3.ClustersConfigDump") | .dynamic_active_clusters | map(select(.cluster.name | startswith("solo_io_generated_dfp")))'
+      ```
+      
+      Example output: 
+      ```
+      ...
+      "version_info": "5428280815645392517",
+       "cluster": {
+         "@type": "type.googleapis.com/envoy.config.cluster.v3.Cluster",
+         "name": "solo_io_generated_dfp:8973398522796813204",
+         "connect_timeout": "5s",
+         "lb_policy": "CLUSTER_PROVIDED",
+         "circuit_breakers": {
+           "thresholds": [
+             {
+               "max_connections": 40000,
+               "max_pending_requests": 40000,
+               "max_requests": 40000,
+               "max_retries": 40000,
+               "track_remaining": true
+             }
+           ]
+        },
+      ...
+      ```
+
 
 
 
