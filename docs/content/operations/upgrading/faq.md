@@ -77,40 +77,12 @@ The [caching filter]({{< versioned_link_path fromRoot="/guides/traffic_managemen
 
 ## New features
 
-### Update metrics to `usedonly` stats
+### Change proxy metrics to `usedonly` stats
 
-By default, Gloo Gateway exposes the `/metrics` scraping endpoint on Gloo Gateway proxies. This endpoint is used by instances, such as Prometheus, to scrape metrics from your proxies. By default, the `/metrics` endpoint is rewritten to Envoy's `/stats/prometheus` endpoint. Envoy proxies emit large numbers of metrics on the `/stats/prometheus` endpoint. These metrics include downstream statistics to analyze incoming requests and connections, upstream statistics to understand outgoing requests and connections, and statistics about the Envoy server instance itself. Depending on your environment, the number of metrics that Prometheus scrapes from the Envoy proxies might be too large and can lead to performance issues and failures in Prometheus. 
+By default, the Gloo Gateway Prometheus endpoint emits large numbers of metrics that can overwhelm your Prometheus instance or other instances that scrape these metrics. You can apply a query parameter to the Prometheus scraping endpoint to reduce the number of metrics that the proxy emits. 
 
-You can change the scraping path and apply a filter to the `/stats/prometheus` endpoint, such as the `usedonly` filter. This filter emits only the metrics that Envoy changed, such as when counters were incremented, gauges were changed, and histograms were added at least once. Endpoints that did not receive or send traffic are not included in these metrics. This way, you can reduce the number of metrics that Prometheus scrapes from the proxies significantly. For more information about the `usedonly` filter and other filters that you can apply, see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest/operations/admin#get--stats?format=prometheus&usedonly). 
+For more information, see [Apply metrics filter to Prometheus scraping endpoint]({{< versioned_link_path fromRoot="/operations/production_deployment/#apply-metrics-filter-to-prometheus-scraping-endpoint" >}}).
 
-{{% notice note %}}
-Updating the Prometheus scraping endpoint URL only changes the number of metrics that can be scraped from the Envoy proxy. This update does not change the number of metrics that Envoy emits on the `/stats` endpoint. You can still access the full metrics by port-forwarding your Envoy proxy on port 19000 with `kubectl -n gloo-system port-forward <pod name> 19000` and accessing the `http://localhost:19000/stats` endpoint. 
-{{% /notice %}}
-
-To change the scraping endpoint for your proxies, add the following snippet to your Gloo Gateway Helm chart. Then, [upgrade Gloo Gateway]({{< versioned_link_path fromRoot="/operations/upgrading/upgrade_steps/" >}}). 
-
-* OSS:
-
-  ```yaml
-
-  gatewayProxies:
-    gatewayProxy:
-      stats:
-        enabled: true
-        routePrefixRewrite: "/stats/prometheus?usedonly"
-  ```
-
-* Enterprise: 
-
-  ```yaml
-
-  gloo: 
-    gatewayProxies:
-      gatewayProxy:
-        stats:
-          enabled: true
-          routePrefixRewrite: "/stats/prometheus?usedonly"
-  ```
 
 ### Retries on rate limited requests 
 
@@ -122,7 +94,7 @@ For more information, see [Retries for rate limited requests]({{< versioned_link
 
 ### Circuit breakers for DFP-enabled routes
 
-You can configure separate circuit breakers for dynamically discovered upstream hosts. By default, Envoy creates a cluster for each resolved upstream and limits the number of connections to this cluster to 1024. When using Dynamic Forward Proxies, Envoy creates a cluster for each host and applies the same circuit breaker settings to it. 
+You can configure separate circuit breakers for dynamically discovered upstream hosts. By default, Envoy creates a cluster for each resolved upstream and limits the number of connections to this cluster to 1024. When using Dynamic Forward Proxies, Envoy creates a cluster for each host and applies the default circuit breaker settings to it.
 
 Depending on your setup, you might quickly reach the circuit breaker limit for each upstream host, even though overall traffic is not high. To overwrite the default circuit breaker settings, configure the `dynamicForwardProxy.circuitBreakers` fields on your gateway proxy. 
 
