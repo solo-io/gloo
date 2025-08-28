@@ -9,7 +9,7 @@ By creating requests from the external authentication server to your own authent
 to authenticate requests.
 
 ## Setup
-{{< readfile file="/static/content/setup_notes" markdown="true">}}
+{{< readfile file="/static/content/setup_notes" markdown="true" >}}
 
 Let's start by creating a [Static Upstream]({{< versioned_link_path fromRoot="/guides/traffic_management/destination_types/static_upstream/" >}}) 
 that routes to a website; we will send requests to it during this tutorial.
@@ -294,6 +294,20 @@ spec:
           # If this and allowed_upstream_headers are empty, by default, no authorization response headers are added to the upstream request.
           # Header names cannot be included in both allowed_upstream_headers and allowed_upstream_headers_to_overwrite.
           allowedClientHeadersOnDenied: string[]
+        # Configure simple or mutual TLS when connecting to the passthrough server. To configure simple TLS, use tlsConfig: {}. 
+        tlsConfig: 
+          # The reference to the Kubernetes secret with the mutual TLS credentials. 
+          secretRef: 
+            # The name of the Kubernetes secret that holds the TLS certificates for mutual TLS authentication.
+            name: 
+            # The namespace of the Kubernetes secret that holds the TLS certificates for mutual TLS authentication. 
+            namespace: 
+          # Set additional TLS parameters. 
+          sslParams: 
+            # The minimum TLS protocol version to use. 
+            minimumProtocolVersion: 
+            # The maximum TLS protocol version to allow.
+            maximumProtocolVersion: 
 ```
 
 

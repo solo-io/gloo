@@ -4,11 +4,11 @@ description: Learn about how caching works in Gloo Gateway Enterprise with and w
 weight: 10
 ---
 
+With response caching, you can significantly reduce the number of requests Gloo Gateway makes to its upstream services.
+
 {{% notice warning %}}
 The caching filter is deprecated and planned to be removed in Gloo Gateway version 1.21.
 {{% /notice %}}
-
-With response caching, you can significantly reduce the number of requests Gloo Gateway makes to its upstream services.
 
 {{% notice note %}}
 This feature is available only for Gloo Gateway Enterprise v1.12.x and later.
