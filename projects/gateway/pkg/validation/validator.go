@@ -161,6 +161,8 @@ func (v *validator) ready() bool {
 }
 
 func (v *validator) Sync(ctx context.Context, snap *gloov1snap.ApiSnapshot) error {
+	logger := contextutils.LoggerFrom(ctx)
+	logger.Debugf("Gateway Validator Syncing snapshot", "issue", "8539")
 	v.lock.Lock() // hashing and cloning resources may mutate the object, so we need to lock
 	defer v.lock.Unlock()
 	if !v.gatewayUpdate(snap) {
@@ -169,14 +171,19 @@ func (v *validator) Sync(ctx context.Context, snap *gloov1snap.ApiSnapshot) erro
 	snapCopy := snap.Clone()
 	gatewaysByProxy := utils.GatewaysByProxyName(snap.Gateways)
 	var errs error
+	logger.Debugf("Gateway Validator Sync translating gatewaysByProxy", "issue", "8539")
 	for proxyName, gatewayList := range gatewaysByProxy {
+		logger.Debugf("Gateway Validator Sync translating gateway", "issue", "8539", "proxyName", proxyName)
 		_, reports := v.translator.Translate(ctx, proxyName, snap, gatewayList)
 		validate := reports.ValidateStrict
 		if v.allowWarnings {
 			validate = reports.Validate
 		}
 		if err := validate(); err != nil {
+			logger.Debugf("Gateway Validator Sync translate error", "issue", "8539", "err", err, "proxyName", proxyName)
 			errs = multierror.Append(errs, err)
+		} else {
+			logger.Debugf("Gateway Validator Sync translate success", "issue", "8539", "proxyName", proxyName)
 		}
 	}
 
@@ -185,13 +192,18 @@ func (v *validator) Sync(ctx context.Context, snap *gloov1snap.ApiSnapshot) erro
 	// Without this, mValidConfig will not be exported on /metrics until a new
 	// resource is applied (https://github.com/solo-io/gloo/issues/5949).
 	if v.latestSnapshot == nil {
+		logger.Debugf("Gateway Validator Sync latestSnapshot is nil", "issue", "8539", "errs", errs)
 		if errs == nil {
 			utils2.MeasureOne(ctx, mValidConfig)
 		} else {
 			utils2.MeasureZero(ctx, mValidConfig)
 		}
+	} else {
+		logger.Debugf("Gateway Validator Sync latestSnapshot is not nil", "issue", "8539", "errs", errs)
 	}
 	v.latestSnapshotErr = errs
+
+	logger.Debugf("Gateway Validator Setting latestSnapshot", "issue", "8539", "errs", errs)
 	v.latestSnapshot = &snapCopy
 
 	if errs != nil {

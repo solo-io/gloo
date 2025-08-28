@@ -1092,6 +1092,9 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 		syncers = append(syncers, gwValidationSyncer)
 		logger.Infow("Gateway validation syncer added to API syncers",
 			"issue", "8539")
+	} else {
+		logger.Infow("Gateway validation syncer not added to API syncers",
+			"issue", "8539")
 	}
 
 	apiEventLoop := v1snap.NewApiEventLoop(apiEmitter, syncers)
