@@ -65,6 +65,11 @@ spec:
         options:
           retries:
             retryOn: "retriable-status-codes"
+            retriable_status_codes:
+               - 502
+               - 503
+               - 504
+               - 429
             retryBackOff:
               baseInterval: "1s"
               maxInterval: "1s"
