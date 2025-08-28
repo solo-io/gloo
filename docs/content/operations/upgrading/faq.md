@@ -60,6 +60,14 @@ The Envoy dependency in Gloo Gateway 1.19 was upgraded from 1.31.x to 1.33.x. Th
 
 ## New features
 
+### Circuit breakers for DFP-enabled routes
+
+You can configure separate circuit breakers for dynamically discovered upstream hosts. By default, Envoy creates a cluster for each resolved upstream and limits the number of connections to this cluster to 1024. When using Dynamic Forward Proxies, Envoy creates a cluster for each host and applies the same circuit breaker settings to it. 
+
+Depending on your setup, you might quickly reach the circuit breaker limit for each upstream host, even though overall traffic is not high. To overwrite the default circuit breaker settings, configure the `dynamicForwardProxy.circuitBreakers` fields on your gateway proxy. 
+
+For more information, see [Set circuit breakers for dynamically discovered upstreams]({{< versioned_link_path fromRoot="/guides/traffic_management/listener_configuration/http_connection_manager/dfp/" >}})
+
 ### Update metrics to `usedonly` stats
 
 By default, Gloo Gateway exposes the `/metrics` scraping endpoint on Gloo Gateway proxies. This endpoint is used by instances, such as Prometheus, to scrape metrics from your proxies. By default, the `/metrics` endpoint is rewritten to Envoy's `/stats/prometheus` endpoint. Envoy proxies emit large numbers of metrics on the `/stats/prometheus` endpoint. These metrics include downstream statistics to analyze incoming requests and connections, upstream statistics to understand outgoing requests and connections, and statistics about the Envoy server instance itself. Depending on your environment, the number of metrics that Prometheus scrapes from the Envoy proxies might be too large and can lead to performance issues and failures in Prometheus. 
