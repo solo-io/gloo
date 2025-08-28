@@ -123,6 +123,7 @@ func (s *TranslatorSyncer) GeneratedDesiredProxies(
 	snap *gloov1snap.ApiSnapshot,
 ) (reconciler.GeneratedProxies, reconciler.InvalidProxies) {
 	logger := contextutils.LoggerFrom(ctx)
+	logger.Debugw("TranslatorSyncer GeneratedDesiredProxies start", "issue", "8539")
 	gatewaysByProxyName := utils.GatewaysByProxyName(snap.Gateways)
 
 	desiredProxies := make(reconciler.GeneratedProxies)

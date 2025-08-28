@@ -128,6 +128,8 @@ func (s *validator) pushNotifications() {
 // the gloo snapshot has changed.
 // update the local snapshot, notify subscribers
 func (s *validator) Sync(ctx context.Context, snap *v1snap.ApiSnapshot) error {
+	logger := contextutils.LoggerFrom(ctx)
+	logger.Debugf("Gloo Validator Syncing snapshot", "issue", "8539")
 	snapCopy := snap.Clone()
 	s.lock.Lock()
 	if s.shouldNotify(snap) {
@@ -135,6 +137,7 @@ func (s *validator) Sync(ctx context.Context, snap *v1snap.ApiSnapshot) error {
 	}
 	s.latestSnapshot = &snapCopy
 	s.lock.Unlock()
+	logger.Debugf("Gloo Validator Synced snapshot", "issue", "8539")
 	return nil
 }
 

@@ -538,10 +538,14 @@ func (wh *gatewayValidationWebhook) validateGvk(ctx context.Context, gvk schema.
 		return nil, nil
 	}
 
+	logger := contextutils.LoggerFrom(ctx)
+	logger.Debugf("Gateway Validation Webhook Validating GVK", "issue", "8539", "gvk", gvk)
 	reports, err := wh.validator.ValidateModifiedGvk(ctx, gvk, newResource, isDryRun(admissionRequest))
 	if err != nil {
+		logger.Debugf("Gateway Validation Webhook Validated GVK with error", "issue", "8539", "gvk", gvk, "err", err)
 		return reports, &multierror.Error{Errors: []error{errors.Wrapf(err, "Validating %T failed", newResource)}}
 	}
+	logger.Debugf("Gateway Validation Webhook Validated GVK", "issue", "8539", "gvk", gvk)
 	return reports, nil
 }
 

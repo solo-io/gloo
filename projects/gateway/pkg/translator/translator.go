@@ -99,6 +99,7 @@ func (t *GwTranslator) Translate(
 ) (*gloov1.Proxy, reporter.ResourceReports) {
 	logger := contextutils.LoggerFrom(ctx)
 
+	logger.Debugf("GwTranslator Translate start", "issue", "8539", "proxyName", proxyName)
 	reports := make(reporter.ResourceReports)
 	reports.Accept(snap.Gateways.AsInputResources()...)
 	reports.Accept(snap.VirtualServices.AsInputResources()...)
@@ -127,9 +128,11 @@ func (t *GwTranslator) Translate(
 	}
 
 	if len(listeners) == 0 {
+		logger.Debugf("GwTranslator Translate no listeners", "issue", "8539", "proxyName", proxyName)
 		return nil, reports
 	}
 
+	logger.Debugf("GwTranslator Translate returning proxy", "issue", "8539", "proxyName", proxyName)
 	return &gloov1.Proxy{
 		Metadata: &core.Metadata{
 			Name:      proxyName,
