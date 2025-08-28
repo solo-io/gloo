@@ -22,7 +22,6 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/protocol_upgrade"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/tracing"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
-	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -334,13 +333,13 @@ func (g *GatewayAPIOutput) convertVHOOptionsToTrafficPolicySpec(vho *gloov1.Virt
 			RateLimit:       nil, // existing
 			Cors:            nil, // existing
 			Csrf:            nil, // existing
-			HashPolicies:    nil,
+			HeaderModifiers: nil,
 			AutoHostRewrite: nil, // existing
 			Buffer:          nil, // existing
+			Timeouts:        nil, // existing
+			Retry:           nil, // existing
+			RBAC:            nil,
 		},
-		Waf:                nil, // existing
-		Retry:              nil, // existing
-		Timeouts:           nil, // existing
 		GlooRateLimit:      nil, // existing
 		GlooExtAuth:        nil, // existing
 		GlooTransformation: nil, // existing
@@ -364,8 +363,9 @@ func (g *GatewayAPIOutput) convertVHOOptionsToTrafficPolicySpec(vho *gloov1.Virt
 				g.gatewayAPICache.AddAuthConfig(ac)
 
 				spec.GlooExtAuth = &gloogateway.GlooExtAuth{
-					ExtensionRef: &corev1.LocalObjectReference{
-						Name: "ext-authz",
+					ExtensionRef: &kgateway.NamespacedObjectReference{
+						Name:      "ext-authz",
+						Namespace: ptr.To(gwv1.Namespace(wrapper.GetNamespace())),
 					},
 					AuthConfigRef: &gloogateway.AuthConfigRef{
 						Name:      gwv1.ObjectName(vho.GetExtauth().GetConfigRef().GetName()),
@@ -398,20 +398,22 @@ func (g *GatewayAPIOutput) convertVHOOptionsToTrafficPolicySpec(vho *gloov1.Virt
 			//spec.TrafficPolicySpec.ExtProc = extProc
 		}
 		if vho.GetWaf() != nil {
-			waf := &gloogateway.Waf{
-				Disabled:      ptr.To(vho.GetWaf().GetDisabled()),
-				CustomMessage: ptr.To(vho.GetWaf().GetCustomInterventionMessage()),
-				Rules:         []gloogateway.WafRule{},
-			}
-			for _, r := range vho.GetWaf().GetRuleSets() {
-				waf.Rules = append(waf.Rules, gloogateway.WafRule{
-					RuleStr: ptr.To(r.GetRuleStr()),
-				})
-				if r.GetFiles() != nil && len(r.GetFiles()) > 0 {
-					g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "WAF files is not supported")
-				}
-			}
-			spec.Waf = waf
+			g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "WAF is not supported")
+
+			//waf := &gloogateway.Waf{
+			//	Disabled:      ptr.To(vho.GetWaf().GetDisabled()),
+			//	CustomMessage: ptr.To(vho.GetWaf().GetCustomInterventionMessage()),
+			//	Rules:         []gloogateway.WafRule{},
+			//}
+			//for _, r := range vho.GetWaf().GetRuleSets() {
+			//	waf.Rules = append(waf.Rules, gloogateway.WafRule{
+			//		RuleStr: ptr.To(r.GetRuleStr()),
+			//	})
+			//	if r.GetFiles() != nil && len(r.GetFiles()) > 0 {
+			//		g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "WAF files is not supported")
+			//	}
+			//}
+			//spec.Waf = waf
 		}
 		if vho.GetRatelimitBasic() != nil {
 			g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "rateLimitBasic is not supported")
@@ -469,8 +471,9 @@ func (g *GatewayAPIOutput) convertVHOOptionsToTrafficPolicySpec(vho *gloov1.Virt
 			spec.GlooRateLimit = &gloogateway.GlooRateLimit{
 				Global: &gloogateway.GlobalRateLimit{
 					// Need to find the Gateway Extension for Global Rate Limit Server
-					ExtensionRef: &corev1.LocalObjectReference{
-						Name: "rate-limit",
+					ExtensionRef: &kgateway.NamespacedObjectReference{
+						Name:      "rate-limit",
+						Namespace: ptr.To(gwv1.Namespace(wrapper.GetNamespace())),
 					},
 					// RateLimitConfig for the policy, not sure how it works for rate limit basic
 					RateLimitConfigRef: gloogateway.RateLimitConfigRef{
@@ -531,8 +534,9 @@ func (g *GatewayAPIOutput) convertVHOOptionsToTrafficPolicySpec(vho *gloov1.Virt
 			spec.GlooRateLimit = &gloogateway.GlooRateLimit{
 				Global: &gloogateway.GlobalRateLimit{
 					// Need to find the Gateway Extension for Global Rate Limit Server
-					ExtensionRef: &corev1.LocalObjectReference{
-						Name: "rate-limit",
+					ExtensionRef: &kgateway.NamespacedObjectReference{
+						Name:      "rate-limit",
+						Namespace: ptr.To(gwv1.Namespace(wrapper.GetNamespace())),
 					},
 					// RateLimitConfig for the policy, not sure how it works for rate limit basic
 					// TODO(nick) grab the global rate limit config ref
@@ -991,13 +995,13 @@ func (g *GatewayAPIOutput) convertHTTPListenerOptions(options *gloov1.HttpListen
 			RateLimit:       nil, // existing
 			Cors:            nil, // existing
 			Csrf:            nil, // existing
-			HashPolicies:    nil,
+			HeaderModifiers: nil,
 			AutoHostRewrite: nil,
 			Buffer:          nil, // existing
+			Timeouts:        nil, // existing
+			Retry:           nil, // existing
+			RBAC:            nil,
 		},
-		Waf:                nil, // existing
-		Retry:              nil, // existing
-		Timeouts:           nil, // existing
 		GlooRateLimit:      nil, // existing
 		GlooExtAuth:        nil, // existing
 		GlooTransformation: nil, // existing
@@ -1053,20 +1057,21 @@ func (g *GatewayAPIOutput) convertHTTPListenerOptions(options *gloov1.HttpListen
 	}
 
 	if options.GetWaf() != nil {
-		waf := &gloogateway.Waf{
-			Disabled:      ptr.To(options.GetWaf().GetDisabled()),
-			CustomMessage: ptr.To(options.GetWaf().GetCustomInterventionMessage()),
-			Rules:         []gloogateway.WafRule{},
-		}
-		for _, r := range options.GetWaf().GetRuleSets() {
-			waf.Rules = append(waf.Rules, gloogateway.WafRule{
-				RuleStr: ptr.To(r.GetRuleStr()),
-			})
-			if r.GetFiles() != nil && len(r.GetFiles()) > 0 {
-				g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "WAF files is not supported")
-			}
-		}
-		tps.Waf = waf
+		g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "WAF is not supported")
+		//waf := &gloogateway.Waf{
+		//	Disabled:      ptr.To(options.GetWaf().GetDisabled()),
+		//	CustomMessage: ptr.To(options.GetWaf().GetCustomInterventionMessage()),
+		//	Rules:         []gloogateway.WafRule{},
+		//}
+		//for _, r := range options.GetWaf().GetRuleSets() {
+		//	waf.Rules = append(waf.Rules, gloogateway.WafRule{
+		//		RuleStr: ptr.To(r.GetRuleStr()),
+		//	})
+		//	if r.GetFiles() != nil && len(r.GetFiles()) > 0 {
+		//		g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "WAF files is not supported")
+		//	}
+		//}
+		//tps.Waf = waf
 	}
 	if options.GetDisableExtProc() != nil {
 		g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "disableExtProc is not supported")
@@ -1403,12 +1408,12 @@ func (g *GatewayAPIOutput) convertHTTPListenerOptionsTracing(tracing *tracing.Li
 	if tracing.GetOpenTelemetryConfig() != nil {
 		otlp := &kgateway.OpenTelemetryTracingConfig{
 			GrpcService:       kgateway.CommonGrpcService{}, // existing
-			ServiceName:       "",                           // existing
+			ServiceName:       nil,                          // existing
 			ResourceDetectors: nil,                          // existing
 			Sampler:           nil,                          // existing
 		}
 		if tracing.GetOpenTelemetryConfig().GetServiceName() != "" {
-			otlp.ServiceName = tracing.GetOpenTelemetryConfig().GetServiceName()
+			otlp.ServiceName = ptr.To(tracing.GetOpenTelemetryConfig().GetServiceName())
 		}
 		if tracing.GetOpenTelemetryConfig().GetGrpcService() != nil {
 			gs := tracing.GetOpenTelemetryConfig().GetGrpcService()
@@ -1427,9 +1432,7 @@ func (g *GatewayAPIOutput) convertHTTPListenerOptionsTracing(tracing *tracing.Li
 
 			otlp.GrpcService = grpcService
 		}
-
 		kgatewayTracing.Provider.OpenTelemetry = otlp
-
 	}
 	if tracing.GetRequestHeadersForTags() != nil {
 		for _, tag := range tracing.GetRequestHeadersForTags() {
