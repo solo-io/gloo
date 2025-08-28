@@ -62,7 +62,7 @@ The Envoy dependency in Gloo Gateway 1.19 was upgraded from 1.31.x to 1.33.x. Th
 
 ### Circuit breakers for DFP-enabled routes
 
-You can configure separate circuit breakers for dynamically discovered upstream hosts. By default, Envoy creates a cluster for each resolved upstream and limits the number of connections to this cluster to 1024. When using Dynamic Forward Proxies, Envoy creates a cluster for each host and applies the same circuit breaker settings to it. 
+Starting in version 1.19.3 you can configure separate circuit breakers for dynamically discovered upstream hosts. By default, Envoy creates a cluster for each resolved upstream and limits the number of connections to this cluster to 1024. When using Dynamic Forward Proxies, Envoy creates a cluster for each host and applies the same circuit breaker settings to it. 
 
 Depending on your setup, you might quickly reach the circuit breaker limit for each upstream host, even though overall traffic is not high. To overwrite the default circuit breaker settings, configure the `dynamicForwardProxy.circuitBreakers` fields on your gateway proxy. 
 
