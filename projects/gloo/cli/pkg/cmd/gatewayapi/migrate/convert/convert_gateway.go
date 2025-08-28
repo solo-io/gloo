@@ -556,7 +556,7 @@ func (g *GatewayAPIOutput) convertVHOOptionsToTrafficPolicySpec(vho *gloov1.Virt
 		}
 		if vho.GetJwt() != nil {
 			// TODO(nick) should we try to translate this or require the end user to migrate to staged?
-			g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "jwt is deprecated in edge and supported")
+			g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "jwt is deprecated in edge and not supported")
 		}
 		if vho.GetJwtStaged() != nil {
 			spec.GlooJWT = &gloogateway.StagedJWT{
