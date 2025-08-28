@@ -52,12 +52,16 @@ var syncerNames = []string{
 func (s ApiSyncers) Sync(ctx context.Context, snapshot *ApiSnapshot) error {
 	logger := contextutils.LoggerFrom(ctx)
 	logger.Infow("ApiSyncers Sync start", "issue", "8539")
+	logger.Infow("Event loop execution: beginning sync of all syncers", "issue", "8539")
 	defer logger.Infow("ApiSyncers Sync end", "issue", "8539")
 	var multiErr *multierror.Error
 	for i, syncer := range s {
-		logger.Infow("ApiSyncers Sync syncer", "issue", "8539", "syncer", syncerNames[i])
+		logger.Infow("Event loop execution: calling Sync() on syncer", "issue", "8539", "syncerIndex", i, "syncerName", syncerNames[i])
 		if err := syncer.Sync(ctx, snapshot); err != nil {
+			logger.Infow("ApiSyncers Sync syncer failed", "issue", "8539", "syncer", syncerNames[i], "error", err)
 			multiErr = multierror.Append(multiErr, err)
+		} else {
+			logger.Infow("Event loop execution: syncer completed successfully", "issue", "8539", "syncerIndex", i, "syncerName", syncerNames[i])
 		}
 	}
 	return multiErr.ErrorOrNil()

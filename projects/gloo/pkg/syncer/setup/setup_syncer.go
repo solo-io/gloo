@@ -1013,7 +1013,9 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 			validationConfig.AllowWarnings = valOpts.AllowWarnings
 		}
 	}
+	logger.Infow("Gloo startup: creating gateway validation syncer", "issue", "8539")
 	gwValidationSyncer := gwvalidation.NewValidator(validationConfig)
+	logger.Infow("Gloo startup: gateway validation syncer created successfully", "issue", "8539")
 
 	// startFuncs represents the set of StartFunc that should be executed at startup
 	// At the moment, the functionality is used minimally.
@@ -1084,24 +1086,23 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 	logger.Infow("API emitter created with all resource clients",
 		"issue", "8539")
 
+	logger.Infow("Gloo startup: creating API syncers list", "issue", "8539")
 	syncers := v1snap.ApiSyncers{
 		validator,
 		translationSync,
 	}
 	if opts.GatewayControllerEnabled {
+		logger.Infow("Gloo startup: adding gateway validation syncer to API syncers (index 2)", "issue", "8539")
 		syncers = append(syncers, gwValidationSyncer)
-		logger.Infow("Gateway validation syncer added to API syncers",
-			"issue", "8539")
 	} else {
 		logger.Infow("Gateway validation syncer not added to API syncers",
 			"issue", "8539")
 	}
 
+	logger.Infow("Gloo startup: creating API event loop with all syncers", "issue", "8539", "syncerCount", len(syncers))
 	apiEventLoop := v1snap.NewApiEventLoop(apiEmitter, syncers)
-	logger.Infow("API event loop created",
-		"issue", "8539",
-		"syncerCount", len(syncers))
 
+	logger.Infow("Gloo startup: starting API event loop - this will begin watching for resource changes", "issue", "8539")
 	apiEventLoopErrs, err := apiEventLoop.Run(opts.WatchNamespaces, watchOpts)
 	if err != nil {
 		logger.Errorw("Failed to start API event loop",

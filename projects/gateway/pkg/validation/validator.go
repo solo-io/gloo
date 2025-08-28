@@ -162,28 +162,31 @@ func (v *validator) ready() bool {
 
 func (v *validator) Sync(ctx context.Context, snap *gloov1snap.ApiSnapshot) error {
 	logger := contextutils.LoggerFrom(ctx)
-	logger.Debugw("Gateway Validator Syncing snapshot", "issue", "8539")
+	logger.Infow("Gateway validation execution: Sync method called", "issue", "8539")
 	v.lock.Lock() // hashing and cloning resources may mutate the object, so we need to lock
 	defer v.lock.Unlock()
+	logger.Infow("Gateway validation execution: acquired lock, checking for gateway updates", "issue", "8539")
 	if !v.gatewayUpdate(snap) {
+		logger.Infow("Gateway validation execution: no gateway updates detected, skipping sync", "issue", "8539")
 		return nil
 	}
+	logger.Infow("Gateway validation execution: gateway updates detected, proceeding with sync", "issue", "8539")
 	snapCopy := snap.Clone()
 	gatewaysByProxy := utils.GatewaysByProxyName(snap.Gateways)
 	var errs error
-	logger.Debugw("Gateway Validator Sync translating gatewaysByProxy", "issue", "8539")
+	logger.Infow("Gateway Validator Sync translating gatewaysByProxy", "issue", "8539")
 	for proxyName, gatewayList := range gatewaysByProxy {
-		logger.Debugw("Gateway Validator Sync translating gateway", "issue", "8539", "proxyName", proxyName)
+		logger.Infow("Gateway Validator Sync translating gateway", "issue", "8539", "proxyName", proxyName)
 		_, reports := v.translator.Translate(ctx, proxyName, snap, gatewayList)
 		validate := reports.ValidateStrict
 		if v.allowWarnings {
 			validate = reports.Validate
 		}
 		if err := validate(); err != nil {
-			logger.Debugw("Gateway Validator Sync translate error", "issue", "8539", "err", err, "proxyName", proxyName)
+			logger.Infow("Gateway Validator Sync translate error", "issue", "8539", "err", err, "proxyName", proxyName)
 			errs = multierror.Append(errs, err)
 		} else {
-			logger.Debugw("Gateway Validator Sync translate success", "issue", "8539", "proxyName", proxyName)
+			logger.Infow("Gateway Validator Sync translate success", "issue", "8539", "proxyName", proxyName)
 		}
 	}
 
@@ -192,19 +195,21 @@ func (v *validator) Sync(ctx context.Context, snap *gloov1snap.ApiSnapshot) erro
 	// Without this, mValidConfig will not be exported on /metrics until a new
 	// resource is applied (https://github.com/solo-io/gloo/issues/5949).
 	if v.latestSnapshot == nil {
-		logger.Debugw("Gateway Validator Sync latestSnapshot is nil", "issue", "8539", "errs", errs)
+		logger.Infow("Gateway Validator Sync latestSnapshot is nil", "issue", "8539", "errs", errs)
 		if errs == nil {
 			utils2.MeasureOne(ctx, mValidConfig)
 		} else {
 			utils2.MeasureZero(ctx, mValidConfig)
 		}
 	} else {
-		logger.Debugw("Gateway Validator Sync latestSnapshot is not nil", "issue", "8539", "errs", errs)
+		logger.Infow("Gateway Validator Sync latestSnapshot is not nil", "issue", "8539", "errs", errs)
 	}
 	v.latestSnapshotErr = errs
 
-	logger.Debugw("Gateway Validator Setting latestSnapshot", "issue", "8539", "errs", errs)
+	logger.Infow("Gateway Validator Setting latestSnapshot", "issue", "8539", "errs", errs)
+	logger.Infow("Gateway validation execution: setting latestSnapshot to snapshot copy - TARGET REACHED", "issue", "8539", "hasErrors", errs != nil)
 	v.latestSnapshot = &snapCopy
+	logger.Infow("Gateway validation execution: latestSnapshot successfully updated", "issue", "8539")
 
 	if errs != nil {
 		return errors.Wrapf(errs, InvalidSnapshotErrMessage)

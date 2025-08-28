@@ -113,12 +113,34 @@ func (s *translatorSyncer) Sync(ctx context.Context, snap *v1snap.ApiSnapshot) e
 	logger := contextutils.LoggerFrom(ctx)
 	var multiErr *multierror.Error
 
+	// Log sync start with snapshot summary
+	logger.Infow("Starting translator sync",
+		"issue", "8539",
+		"proxies", len(snap.Proxies),
+		"upstreams", len(snap.Upstreams),
+		"endpoints", len(snap.Endpoints),
+		"secrets", len(snap.Secrets),
+		"authConfigs", len(snap.AuthConfigs),
+		"rateLimitConfigs", len(snap.Ratelimitconfigs),
+		"virtualServices", len(snap.VirtualServices),
+		"gateways", len(snap.Gateways),
+		"routeTables", len(snap.RouteTables))
+
 	// If gateway controller is enabled, run the gateway translation to generate proxies.
 	// Use the ProxyClient interface to persist them either to an in-memory store or etcd as configured at startup.
 	if s.gatewaySyncer != nil {
-		logger.Debugf("getting proxies from gateway translation")
+		logger.Infow("Starting gateway proxy translation",
+			"issue", "8539",
+			"gateways", len(snap.Gateways))
 		if err := s.translateProxies(ctx, snap); err != nil {
+			logger.Infow("Gateway proxy translation failed",
+				"issue", "8539",
+				"error", err.Error())
 			multiErr = multierror.Append(multiErr, eris.Wrapf(err, "translating proxies"))
+		} else {
+			logger.Infow("Gateway proxy translation completed",
+				"issue", "8539",
+				"proxies", len(snap.Proxies))
 		}
 	}
 
@@ -128,11 +150,21 @@ func (s *translatorSyncer) Sync(ctx context.Context, snap *v1snap.ApiSnapshot) e
 
 	// Execute the EnvoySyncer
 	// This will update the xDS SnapshotCache for each entry that corresponds to a non-kube gw Proxy in the API Snapshot
+	logger.Infow("Starting Envoy xDS sync",
+		"issue", "8539",
+		"proxies", len(snap.Proxies))
 	s.syncEnvoy(ctx, snap, reports)
+	logger.Infow("Envoy xDS sync completed",
+		"issue", "8539")
 
 	// Execute the SyncerExtensions
 	// Each of these are responsible for updating a single entry in the SnapshotCache
+	logger.Infow("Starting syncer extensions",
+		"issue", "8539",
+		"extensionCount", len(s.syncerExtensions))
 	s.syncExtensions(ctx, snap, reports)
+	logger.Infow("Syncer extensions completed",
+		"issue", "8539")
 
 	// Update resource status metrics and filter out kube gateway proxies
 	filteredReports := make(reporter.ResourceReports)
@@ -150,13 +182,28 @@ func (s *translatorSyncer) Sync(ctx context.Context, snap *v1snap.ApiSnapshot) e
 
 	// After reports are written for proxies, save in gateway syncer (previously gw watched for status changes to proxies)
 	if s.gatewaySyncer != nil {
+		logger.Infow("Updating gateway proxy status",
+			"issue", "8539")
 		s.gatewaySyncer.UpdateStatusForAllProxies(ctx)
 	}
 
+	// Update status syncer with latest reports
+	logger.Infow("Updating status reports",
+		"issue", "8539",
+		"reportCount", len(filteredReports))
 	s.statusSyncer.reportsLock.Lock()
 	s.statusSyncer.latestReports = filteredReports
 	s.statusSyncer.reportsLock.Unlock()
 	s.statusSyncer.forceSync()
+
+	if multiErr.ErrorOrNil() != nil {
+		logger.Infow("Translator sync completed with errors",
+			"issue", "8539",
+			"errorCount", len(multiErr.Errors))
+	} else {
+		logger.Infow("Translator sync completed successfully",
+			"issue", "8539")
+	}
 
 	return multiErr.ErrorOrNil()
 }
@@ -174,15 +221,43 @@ func (s *translatorSyncer) syncExtensions(ctx context.Context, snap *v1snap.ApiS
 // translateProxies will call the gatewaySyncer to translate Proxies for the Gateways in the provided snapshot.
 // It will then use the proxyClient to List() Proxies and *mutate the snapshot* to add those Proxies.
 func (s *translatorSyncer) translateProxies(ctx context.Context, snap *v1snap.ApiSnapshot) error {
+	logger := contextutils.LoggerFrom(ctx)
 	var multiErr *multierror.Error
+
+	logger.Infow("Starting gateway syncer translation",
+		"issue", "8539",
+		"gateways", len(snap.Gateways),
+		"writeNamespace", s.writeNamespace)
+
 	err := s.gatewaySyncer.Sync(ctx, snap)
 	if err != nil {
+		logger.Infow("Gateway syncer translation failed",
+			"issue", "8539",
+			"error", err.Error())
 		multiErr = multierror.Append(multiErr, err)
+	} else {
+		logger.Infow("Gateway syncer translation completed successfully",
+			"issue", "8539")
 	}
+
+	logger.Infow("Listing proxies from client",
+		"issue", "8539",
+		"namespace", s.writeNamespace)
+
 	proxyList, err := s.proxyClient.List(s.writeNamespace, clients.ListOpts{})
 	if err != nil {
+		logger.Infow("Failed to list proxies from client",
+			"issue", "8539",
+			"error", err.Error(),
+			"namespace", s.writeNamespace)
 		multiErr = multierror.Append(multiErr, err)
+	} else {
+		logger.Infow("Successfully retrieved proxies from client",
+			"issue", "8539",
+			"proxyCount", len(proxyList),
+			"namespace", s.writeNamespace)
 	}
+
 	snap.Proxies = proxyList
 	return multiErr.ErrorOrNil()
 }
@@ -234,6 +309,11 @@ func (s *statusSyncer) syncStatus(ctx context.Context) error {
 	}
 
 	logger := contextutils.LoggerFrom(ctx)
+	logger.Infow("Starting status sync",
+		"issue", "8539",
+		"reportCount", len(reports),
+		"isLeader", s.identity.IsLeader())
+
 	if s.identity.IsLeader() {
 		// Only leaders will write reports
 		//
@@ -245,11 +325,18 @@ func (s *statusSyncer) syncStatus(ctx context.Context) error {
 		// if a user forgets the error message is very confusing (invalid request during kubectl patch);
 		// this should help them understand what's going on in case they did not read the changelog.
 		if err := s.reporter.WriteReports(ctx, reports, nil); err != nil {
-			logger.Debugf("Failed writing report for proxies: %v", err)
+			logger.Infow("Failed to write status reports",
+				"issue", "8539",
+				"error", err.Error(),
+				"reportCount", len(reports))
 
 			wrappedErr := eris.Wrapf(err, "failed to write reports. "+
 				"did you make sure your CRDs have been updated since v1.13.0-beta14 of open-source? (i.e. `status` and `status.statuses` fields exist on your CR)")
 			return wrappedErr
+		} else {
+			logger.Infow("Successfully wrote status reports",
+				"issue", "8539",
+				"reportCount", len(reports))
 		}
 	} else {
 		logger.Debugf("Not a leader, skipping reports writing")

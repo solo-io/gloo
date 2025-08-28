@@ -32,6 +32,9 @@ func Main(customCtx context.Context) error {
 }
 
 func startSetupLoop(ctx context.Context) error {
+	logger := contextutils.LoggerFrom(ctx)
+	logger.Infow("Gloo startup: beginning setup loop", "issue", "8539")
+
 	k8sgw := envutils.IsEnvTruthy(constants.GlooGatewayEnableK8sGwControllerEnv)
 
 	// get settings:
@@ -47,6 +50,8 @@ func startSetupLoop(ctx context.Context) error {
 		setupOpts.ProxyReconcileQueue = ggv2utils.NewAsyncQueue[gloov1.ProxyList]()
 		go ggv2setup.StartGGv2(ctx, setupOpts, builder, extensions.NewK8sGatewayExtensions, registry.GetPluginRegistryFactory)
 	}
+
+	logger.Infow("Gloo startup: calling setuputils.Main with newSetupFunc", "issue", "8539")
 
 	return setuputils.Main(setuputils.SetupOpts{
 		LoggerName:  glooComponentName,
@@ -79,6 +84,8 @@ func startSetupLoop(ctx context.Context) error {
 func newSetupFunc(setupOpts *bootstrap.SetupOpts) setuputils.SetupFunc {
 
 	runFunc := func(opts bootstrap.Opts) error {
+		logger := contextutils.LoggerFrom(opts.WatchOpts.Ctx)
+		logger.Infow("Gloo startup: calling setup.RunGloo", "issue", "8539")
 		return setup.RunGloo(opts)
 	}
 
