@@ -511,7 +511,7 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 	logger := contextutils.LoggerFrom(watchOpts.Ctx)
 
 	// ADD STARTUP TIMING LOGGING
-	logger.Debugw("Starting Gloo with extensions",
+	logger.Infow("Starting Gloo with extensions",
 		"issue", "8539",
 		"watchNamespaces", opts.WatchNamespaces,
 		"writeNamespace", opts.WriteNamespace,
@@ -595,7 +595,7 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 		return err
 	}
 
-	logger.Debugw("Creating gateway resource clients",
+	logger.Infow("Creating gateway resource clients",
 		"issue", "8539",
 		"watchNamespaces", opts.WatchNamespaces,
 		"writeNamespace", opts.WriteNamespace)
@@ -607,7 +607,7 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 	if err := virtualServiceClient.Register(); err != nil {
 		return err
 	}
-	logger.Debugw("VirtualService client registered successfully",
+	logger.Infow("VirtualService client registered successfully",
 		"issue", "8539")
 
 	rtClient, err := gateway.NewRouteTableClient(watchOpts.Ctx, opts.RouteTables)
@@ -620,7 +620,7 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 			"error", err)
 		return err
 	}
-	logger.Debugw("RouteTable client registered successfully",
+	logger.Infow("RouteTable client registered successfully",
 		"issue", "8539")
 
 	gatewayClient, err := gateway.NewGatewayClient(watchOpts.Ctx, opts.Gateways)
@@ -630,7 +630,7 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 	if err := gatewayClient.Register(); err != nil {
 		return err
 	}
-	logger.Debugw("Gateway client registered successfully",
+	logger.Infow("Gateway client registered successfully",
 		"issue", "8539")
 
 	matchableHttpGatewayClient, err := gateway.NewMatchableHttpGatewayClient(watchOpts.Ctx, opts.MatchableHttpGateways)
@@ -688,7 +688,7 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 	errs := make(chan error)
 
 	// MARK: build and run EDS loop
-	logger.Debugw("Starting EDS (Endpoint Discovery Service) setup",
+	logger.Infow("Starting EDS (Endpoint Discovery Service) setup",
 		"issue", "8539",
 		"watchNamespaces", opts.WatchNamespaces,
 		"writeNamespace", opts.WriteNamespace,
@@ -699,7 +699,7 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 	edsEmitter := v1.NewEdsEmitter(hybridUsClient)
 	edsEventLoop := v1.NewEdsEventLoop(edsEmitter, edsSync)
 
-	logger.Debugw("Running EDS event loop",
+	logger.Infow("Running EDS event loop",
 		"issue", "8539",
 		"refreshRate", watchOpts.RefreshRate)
 
@@ -711,7 +711,7 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 		return err
 	}
 
-	logger.Debugw("EDS event loop started successfully",
+	logger.Infow("EDS event loop started successfully",
 		"issue", "8539")
 
 	// GET WARMING TIMEOUT CONFIGURATION
@@ -721,11 +721,11 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 		warmTimeout = &duration.Duration{
 			Seconds: 5 * 60,
 		}
-		logger.Debugw("No endpoints warming timeout configured, using default",
+		logger.Infow("No endpoints warming timeout configured, using default",
 			"issue", "8539",
 			"defaultTimeoutSeconds", 300)
 	} else {
-		logger.Debugw("Endpoints warming timeout configured",
+		logger.Infow("Endpoints warming timeout configured",
 			"issue", "8539",
 			"timeoutSeconds", warmTimeout.GetSeconds(),
 			"timeoutNanos", warmTimeout.GetNanos())
@@ -754,7 +754,7 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 				case <-edsEventLoop.Ready():
 					if !edsReady {
 						edsReady = true
-						logger.Debugw("EDS event loop is ready",
+						logger.Infow("EDS event loop is ready",
 							"issue", "8539",
 							"discoveryReady", discoveryReady)
 					}
@@ -762,13 +762,13 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 				case <-disc.Ready():
 					if !discoveryReady {
 						discoveryReady = true
-						logger.Debugw("Discovery service is ready",
+						logger.Infow("Discovery service is ready",
 							"issue", "8539",
 							"edsReady", edsReady)
 					}
 					return
 				case <-time.After(5 * time.Second):
-					logger.Debugw("Cache warming status check",
+					logger.Infow("Cache warming status check",
 						"issue", "8539",
 						"edsReady", edsReady,
 						"discoveryReady", discoveryReady,
@@ -779,7 +779,7 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 
 		// WAIT FOR CACHE TO WARM
 		warmStartTime := time.Now()
-		logger.Debugw("Waiting for caches to warm",
+		logger.Infow("Waiting for caches to warm",
 			"issue", "8539",
 			"timeout", warmTimeoutDuration.String())
 
@@ -1056,7 +1056,7 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 	)
 
 	// MARK: build & run api snap loop
-	logger.Debugw("Setting up API event loop",
+	logger.Infow("Setting up API event loop",
 		"issue", "8539",
 		"watchNamespaces", opts.WatchNamespaces,
 		"writeNamespace", opts.WriteNamespace,
@@ -1081,7 +1081,7 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 		graphqlApiClient,
 		extensions.ApiEmitterChannel,
 	)
-	logger.Debugw("API emitter created with all resource clients",
+	logger.Infow("API emitter created with all resource clients",
 		"issue", "8539")
 
 	syncers := v1snap.ApiSyncers{
@@ -1090,12 +1090,12 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 	}
 	if opts.GatewayControllerEnabled {
 		syncers = append(syncers, gwValidationSyncer)
-		logger.Debugw("Gateway validation syncer added to API syncers",
+		logger.Infow("Gateway validation syncer added to API syncers",
 			"issue", "8539")
 	}
 
 	apiEventLoop := v1snap.NewApiEventLoop(apiEmitter, syncers)
-	logger.Debugw("API event loop created",
+	logger.Infow("API event loop created",
 		"issue", "8539",
 		"syncerCount", len(syncers))
 
@@ -1148,7 +1148,7 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 				}
 			}
 
-			logger.Debugw("Creating gateway validation webhook",
+			logger.Infow("Creating gateway validation webhook",
 				"issue", "8539",
 				"port", gwOpts.Validation.ValidatingWebhookPort,
 				"certPath", gwOpts.Validation.ValidatingWebhookCertPath,
@@ -1177,13 +1177,13 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 					"error", err)
 				return errors.Wrapf(err, "creating validating webhook")
 			}
-			logger.Debugw("Validation webhook created successfully",
+			logger.Infow("Validation webhook created successfully",
 				"issue", "8539")
 
 			go func() {
 				// close out validation server when context is cancelled
 				<-watchOpts.Ctx.Done()
-				logger.Debugw("Shutting down validation webhook due to context cancellation",
+				logger.Infow("Shutting down validation webhook due to context cancellation",
 					"issue", "8539")
 				validationWebhook.Close()
 			}()
@@ -1204,7 +1204,7 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 						logger.DPanicw("failed to start validation webhook server", zap.Error(err))
 					}
 				} else {
-					logger.Debugw("Validation webhook server started successfully",
+					logger.Infow("Validation webhook server started successfully",
 						"issue", "8539",
 						"port", gwOpts.Validation.ValidatingWebhookPort)
 				}
@@ -1219,7 +1219,7 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 				"error", err)
 			return errors.Wrapf(err, "failed to start validation webhook server")
 		case <-time.After(time.Millisecond * 100):
-			logger.Debugw("Validation server startup grace period completed",
+			logger.Infow("Validation server startup grace period completed",
 				"issue", "8539")
 		}
 	}
