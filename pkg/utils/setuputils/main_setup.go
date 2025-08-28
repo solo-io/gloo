@@ -71,7 +71,7 @@ func Main(opts SetupOpts) error {
 	ctx = contextutils.WithLoggerValues(ctx, loggingContext...)
 
 	logger := contextutils.LoggerFrom(ctx)
-	logger.Debugw("Starting main setup function",
+	logger.Infow("Starting main setup function",
 		"issue", "8539",
 		"loggerName", opts.LoggerName,
 		"version", opts.Version,
@@ -98,7 +98,7 @@ func Main(opts SetupOpts) error {
 		logger.Errorw("Leader election failed to start", "issue", "8539", "error", err)
 		return err
 	}
-	logger.Debugw("Leader election started",
+	logger.Infow("Leader election started",
 		"issue", "8539",
 		"isLeader", identity.IsLeader(),
 		"hasElectionConfig", opts.ElectionConfig != nil,
@@ -107,7 +107,7 @@ func Main(opts SetupOpts) error {
 	// Wait a moment to see if we become leader and log the result
 	go func() {
 		time.Sleep(100 * time.Millisecond)
-		logger.Debugw("Initial leadership status", "issue", "8539", "isLeader", identity.IsLeader())
+		logger.Infow("Initial leadership status", "issue", "8539", "isLeader", identity.IsLeader())
 
 		// Monitor for leadership changes
 		go func() {
@@ -131,13 +131,13 @@ func Main(opts SetupOpts) error {
 	// the eventLoop will Watch the emitter's settingsClient to receive settings from the ResourceClient
 	emitter := v1.NewSetupEmitter(settingsClient, namespaceClient)
 	settingsRef := &core.ResourceRef{Namespace: setupNamespace, Name: setupName}
-	logger.Debugw("Created settings reference",
+	logger.Infow("Created settings reference",
 		"issue", "8539",
 		"namespace", setupNamespace,
 		"name", setupName)
 
 	eventLoop := v1.NewSetupEventLoop(emitter, NewSetupSyncer(settingsRef, opts.SetupFunc, identity))
-	logger.Debugw("Starting event loop",
+	logger.Infow("Starting event loop",
 		"issue", "8539",
 		"watchNamespaces", []string{setupNamespace},
 		"refreshRate", time.Second)
@@ -185,7 +185,7 @@ func fileOrKubeSettingsClient(ctx context.Context, setupNamespace, settingsDir s
 func startLeaderElection(ctx context.Context, settingsDir string, electionConfig *leaderelector.ElectionConfig) (leaderelector.Identity, error) {
 	logger := contextutils.LoggerFrom(ctx)
 
-	logger.Debugw("Evaluating leader election requirements",
+	logger.Infow("Evaluating leader election requirements",
 		"issue", "8539",
 		"hasElectionConfig", electionConfig != nil,
 		"settingsDir", settingsDir,
@@ -210,7 +210,7 @@ func startLeaderElection(ctx context.Context, settingsDir string, electionConfig
 		return singlereplica.NewElectionFactory().StartElection(ctx, electionConfig)
 	}
 
-	logger.Debugw("Using Kubernetes-based leader election",
+	logger.Infow("Using Kubernetes-based leader election",
 		"issue", "8539",
 		"electionId", electionConfig.Id,
 		"namespace", electionConfig.Namespace)
