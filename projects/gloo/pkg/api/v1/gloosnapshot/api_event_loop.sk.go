@@ -51,11 +51,11 @@ var syncerNames = []string{
 
 func (s ApiSyncers) Sync(ctx context.Context, snapshot *ApiSnapshot) error {
 	logger := contextutils.LoggerFrom(ctx)
-	logger.Debugw("ApiSyncers Sync start", "issue", "8539")
-	defer logger.Debugw("ApiSyncers Sync end", "issue", "8539")
+	logger.Infow("ApiSyncers Sync start", "issue", "8539")
+	defer logger.Infow("ApiSyncers Sync end", "issue", "8539")
 	var multiErr *multierror.Error
 	for i, syncer := range s {
-		logger.Debugw("ApiSyncers Sync syncer", "issue", "8539", "syncer", syncerNames[i])
+		logger.Infow("ApiSyncers Sync syncer", "issue", "8539", "syncer", syncerNames[i])
 		if err := syncer.Sync(ctx, snapshot); err != nil {
 			multiErr = multierror.Append(multiErr, err)
 		}
@@ -86,21 +86,21 @@ func (el *apiEventLoop) Run(namespaces []string, opts clients.WatchOpts) (<-chan
 	opts.Ctx = contextutils.WithLogger(opts.Ctx, "gloosnapshot.event_loop")
 	logger := contextutils.LoggerFrom(opts.Ctx)
 	logger.Infof("event loop started")
-	logger.Debugw("apiEventLoop Run starting", "issue", "8539", "namespaces", namespaces)
+	logger.Infow("apiEventLoop Run starting", "issue", "8539", "namespaces", namespaces)
 
 	errs := make(chan error)
 
-	logger.Debugw("apiEventLoop Run starting snapshot watch", "issue", "8539")
+	logger.Infow("apiEventLoop Run starting snapshot watch", "issue", "8539")
 	watch, emitterErrs, err := el.emitter.Snapshots(namespaces, opts)
 	if err != nil {
-		logger.Debugw("apiEventLoop Run snapshot watch failed", "issue", "8539", "error", err)
+		logger.Infow("apiEventLoop Run snapshot watch failed", "issue", "8539", "error", err)
 		return nil, errors.Wrapf(err, "starting snapshot watch")
 	}
-	logger.Debugw("apiEventLoop Run snapshot watch started successfully", "issue", "8539")
+	logger.Infow("apiEventLoop Run snapshot watch started successfully", "issue", "8539")
 
 	go errutils.AggregateErrs(opts.Ctx, errs, emitterErrs, "gloosnapshot.emitter errors")
 	go func() {
-		logger.Debugw("apiEventLoop Run main goroutine started", "issue", "8539")
+		logger.Infow("apiEventLoop Run main goroutine started", "issue", "8539")
 		var channelClosed bool
 
 		// create a new context for each loop, cancel it before each loop
@@ -108,7 +108,7 @@ func (el *apiEventLoop) Run(namespaces []string, opts clients.WatchOpts) (<-chan
 
 		// use closure to allow cancel function to be updated as context changes
 		defer func() {
-			logger.Debugw("apiEventLoop Run main goroutine ending", "issue", "8539")
+			logger.Infow("apiEventLoop Run main goroutine ending", "issue", "8539")
 			cancel()
 		}()
 
@@ -120,37 +120,37 @@ func (el *apiEventLoop) Run(namespaces []string, opts clients.WatchOpts) (<-chan
 			select {
 			case snapshot, ok := <-watch:
 				if !ok {
-					logger.Debugw("apiEventLoop Run watch channel closed", "issue", "8539")
+					logger.Infow("apiEventLoop Run watch channel closed", "issue", "8539")
 					return
 				}
 
 				snapshotCount++
-				logger.Debugw("apiEventLoop Run received snapshot", "issue", "8539", "snapshotCount", snapshotCount, "hasSnapshot", snapshot != nil)
+				logger.Infow("apiEventLoop Run received snapshot", "issue", "8539", "snapshotCount", snapshotCount, "hasSnapshot", snapshot != nil)
 
 				if syncDecider, isDecider := el.syncer.(ApiSyncDecider); isDecider {
-					logger.Debugw("apiEventLoop Run checking ApiSyncDecider", "issue", "8539", "snapshotCount", snapshotCount)
+					logger.Infow("apiEventLoop Run checking ApiSyncDecider", "issue", "8539", "snapshotCount", snapshotCount)
 					if shouldSync := syncDecider.ShouldSync(previousSnapshot, snapshot); !shouldSync {
-						logger.Debugw("apiEventLoop Run ApiSyncDecider decided to skip sync", "issue", "8539", "snapshotCount", snapshotCount)
+						logger.Infow("apiEventLoop Run ApiSyncDecider decided to skip sync", "issue", "8539", "snapshotCount", snapshotCount)
 						continue // skip syncing this syncer
 					}
-					logger.Debugw("apiEventLoop Run ApiSyncDecider decided to sync", "issue", "8539", "snapshotCount", snapshotCount)
+					logger.Infow("apiEventLoop Run ApiSyncDecider decided to sync", "issue", "8539", "snapshotCount", snapshotCount)
 				} else if syncDeciderWithContext, isDecider := el.syncer.(ApiSyncDeciderWithContext); isDecider {
-					logger.Debugw("apiEventLoop Run checking ApiSyncDeciderWithContext", "issue", "8539", "snapshotCount", snapshotCount)
+					logger.Infow("apiEventLoop Run checking ApiSyncDeciderWithContext", "issue", "8539", "snapshotCount", snapshotCount)
 					if shouldSync := syncDeciderWithContext.ShouldSync(opts.Ctx, previousSnapshot, snapshot); !shouldSync {
-						logger.Debugw("apiEventLoop Run ApiSyncDeciderWithContext decided to skip sync", "issue", "8539", "snapshotCount", snapshotCount)
+						logger.Infow("apiEventLoop Run ApiSyncDeciderWithContext decided to skip sync", "issue", "8539", "snapshotCount", snapshotCount)
 						continue // skip syncing this syncer
 					}
-					logger.Debugw("apiEventLoop Run ApiSyncDeciderWithContext decided to sync", "issue", "8539", "snapshotCount", snapshotCount)
+					logger.Infow("apiEventLoop Run ApiSyncDeciderWithContext decided to sync", "issue", "8539", "snapshotCount", snapshotCount)
 				} else {
-					logger.Debugw("apiEventLoop Run no sync decider, proceeding with sync", "issue", "8539", "snapshotCount", snapshotCount)
+					logger.Infow("apiEventLoop Run no sync decider, proceeding with sync", "issue", "8539", "snapshotCount", snapshotCount)
 				}
 
 				// cancel any open watches from previous loop
-				logger.Debugw("apiEventLoop Run canceling previous context", "issue", "8539", "snapshotCount", snapshotCount)
+				logger.Infow("apiEventLoop Run canceling previous context", "issue", "8539", "snapshotCount", snapshotCount)
 				cancel()
 
 				startTime := time.Now()
-				logger.Debugw("apiEventLoop Run starting sync", "issue", "8539", "snapshotCount", snapshotCount, "syncerType", fmt.Sprintf("%T", el.syncer))
+				logger.Infow("apiEventLoop Run starting sync", "issue", "8539", "snapshotCount", snapshotCount, "syncerType", fmt.Sprintf("%T", el.syncer))
 				ctx, span := trace.StartSpan(opts.Ctx, "api.gloosnapshot.gloo.solo.io.EventLoopSync")
 				ctx, canc := context.WithCancel(ctx)
 				cancel = canc
@@ -166,18 +166,18 @@ func (el *apiEventLoop) Run(namespaces []string, opts clients.WatchOpts) (<-chan
 				span.End()
 
 				if err != nil {
-					logger.Debugw("apiEventLoop Run sync failed", "issue", "8539", "snapshotCount", snapshotCount, "syncDuration", syncDuration, "error", err)
+					logger.Infow("apiEventLoop Run sync failed", "issue", "8539", "snapshotCount", snapshotCount, "syncDuration", syncDuration, "error", err)
 					select {
 					case errs <- err:
-						logger.Debugw("apiEventLoop Run sync error sent to error channel", "issue", "8539", "snapshotCount", snapshotCount)
+						logger.Infow("apiEventLoop Run sync error sent to error channel", "issue", "8539", "snapshotCount", snapshotCount)
 					default:
 						logger.Errorf("write error channel is full! could not propagate err: %v", err)
-						logger.Debugw("apiEventLoop Run error channel full", "issue", "8539", "snapshotCount", snapshotCount, "error", err)
+						logger.Infow("apiEventLoop Run error channel full", "issue", "8539", "snapshotCount", snapshotCount, "error", err)
 					}
 				} else {
-					logger.Debugw("apiEventLoop Run sync completed successfully", "issue", "8539", "snapshotCount", snapshotCount, "syncDuration", syncDuration)
+					logger.Infow("apiEventLoop Run sync completed successfully", "issue", "8539", "snapshotCount", snapshotCount, "syncDuration", syncDuration)
 					if !channelClosed {
-						logger.Debugw("apiEventLoop Run closing ready channel", "issue", "8539", "snapshotCount", snapshotCount)
+						logger.Infow("apiEventLoop Run closing ready channel", "issue", "8539", "snapshotCount", snapshotCount)
 						channelClosed = true
 						close(el.ready)
 					}
@@ -186,7 +186,7 @@ func (el *apiEventLoop) Run(namespaces []string, opts clients.WatchOpts) (<-chan
 				previousSnapshot = snapshot
 
 			case <-opts.Ctx.Done():
-				logger.Debugw("apiEventLoop Run context done", "issue", "8539", "snapshotCount", snapshotCount)
+				logger.Infow("apiEventLoop Run context done", "issue", "8539", "snapshotCount", snapshotCount)
 				return
 			}
 		}
