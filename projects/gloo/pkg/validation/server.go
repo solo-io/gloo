@@ -98,10 +98,13 @@ func (s *validator) shouldNotify(snap *v1snap.ApiSnapshot) bool {
 	// stringifying the snapshot may be an expensive operation, so we'd like to avoid building the large
 	// string if we're not even going to log it anyway
 	if contextutils.GetLogLevel() == zapcore.DebugLevel {
-		logger.Debugw("last validation snapshot", zap.Any("latestSnapshot", syncutil.StringifySnapshot(s.latestSnapshot)))
-		logger.Debugw("current validation snapshot", zap.Any("currentSnapshot", syncutil.StringifySnapshot(snap)))
+		logger.Infow("last validation snapshot", zap.Any("latestSnapshot", syncutil.StringifySnapshot(s.latestSnapshot)))
+		logger.Infow("current validation snapshot", zap.Any("currentSnapshot", syncutil.StringifySnapshot(snap)))
 	}
-	logger.Debugf("validation hash changed: %v", hashChanged)
+	logger.Infow("validation hash comparison",
+		zap.Bool("hashChanged", hashChanged),
+		zap.String("issue", "8539"),
+	)
 
 	// notify if the hash of what we care about has changed
 	return hashChanged
@@ -111,9 +114,17 @@ func (s *validator) shouldNotify(snap *v1snap.ApiSnapshot) bool {
 // notify all receivers
 func (s *validator) pushNotifications() {
 	logger := contextutils.LoggerFrom(s.ctx)
-	logger.Debugw("pushing notifications", zap.Any("validator", s))
-	for _, receiver := range s.notifyResync {
-		logger.Debugf("pushing notification for receiver %v", receiver)
+	receiverCount := len(s.notifyResync)
+	logger.Infow("pushing notifications",
+		zap.Int("receiverCount", receiverCount),
+		zap.String("issue", "8539"),
+	)
+	for req, receiver := range s.notifyResync {
+		logger.Infow("pushing notification for receiver",
+			zap.Any("receiver", receiver),
+			zap.Any("request", req),
+			zap.String("issue", "8539"),
+		)
 		receiver := receiver
 		go func() {
 			select {
@@ -129,15 +140,30 @@ func (s *validator) pushNotifications() {
 // update the local snapshot, notify subscribers
 func (s *validator) Sync(ctx context.Context, snap *v1snap.ApiSnapshot) error {
 	logger := contextutils.LoggerFrom(ctx)
-	logger.Debugf("Gloo Validator Syncing snapshot", "issue", "8539")
+	logger.Infow("Gloo Validator syncing snapshot",
+		zap.String("issue", "8539"),
+		zap.Int("upstreamCount", len(snap.Upstreams)),
+		zap.Int("secretCount", len(snap.Secrets)),
+		zap.Int("proxyCount", len(snap.Proxies)),
+		zap.Int("upstreamGroupCount", len(snap.UpstreamGroups)),
+		zap.Int("authConfigCount", len(snap.AuthConfigs)),
+		zap.Int("rateLimitConfigCount", len(snap.Ratelimitconfigs)),
+	)
 	snapCopy := snap.Clone()
 	s.lock.Lock()
-	if s.shouldNotify(snap) {
+	shouldNotify := s.shouldNotify(snap)
+	if shouldNotify {
+		logger.Infow("snapshot changed, pushing notifications", zap.String("issue", "8539"))
 		s.pushNotifications()
+	} else {
+		logger.Infow("snapshot unchanged, skipping notifications", zap.String("issue", "8539"))
 	}
 	s.latestSnapshot = &snapCopy
 	s.lock.Unlock()
-	logger.Debugf("Gloo Validator Synced snapshot", "issue", "8539")
+	logger.Infow("Gloo Validator synced snapshot",
+		zap.String("issue", "8539"),
+		zap.Bool("notificationsTriggered", shouldNotify),
+	)
 	return nil
 }
 
@@ -185,9 +211,18 @@ func (s *validator) NotifyOnResync(req *validation.NotifyOnResyncRequest, stream
 
 // Validate is a gRPC call that we use for validating resources against a request to add upstreams and secrets.
 func (s *validator) Validate(ctx context.Context, req *validation.GlooValidationServiceRequest) (*validation.GlooValidationServiceResponse, error) {
+	logger := contextutils.LoggerFrom(ctx)
+	logger.Infow("received proxy validation request",
+		zap.String("proxyName", req.GetProxy().GetMetadata().GetName()),
+		zap.String("proxyNamespace", req.GetProxy().GetMetadata().GetNamespace()),
+		zap.Bool("hasModifiedResources", req.GetModifiedResources() != nil),
+		zap.Bool("hasDeletedResources", req.GetDeletedResources() != nil),
+	)
+
 	s.lock.Lock()
 	// we may receive a Validate call before a Sync has occurred
 	if s.latestSnapshot == nil {
+		logger.Warnw("validation called before sync", zap.String("issue", "8539"))
 		s.lock.Unlock()
 		return nil, SyncNotCalledError
 	}
@@ -196,7 +231,6 @@ func (s *validator) Validate(ctx context.Context, req *validation.GlooValidation
 
 	// update the snapshot copy with the resources from the request
 	applyRequestToSnapshot(&snapCopy, req)
-	contextutils.LoggerFrom(ctx).Infof("received proxy validation request")
 
 	reports := s.validator.Validate(ctx, req.GetProxy(), &snapCopy, false)
 
@@ -205,6 +239,11 @@ func (s *validator) Validate(ctx context.Context, req *validation.GlooValidation
 	for _, rep := range reports {
 		validationReports = append(validationReports, convertToValidationReport(rep.ProxyReport, rep.ResourceReports, rep.Proxy))
 	}
+
+	logger.Infow("completed proxy validation request",
+		zap.Int("reportCount", len(validationReports)),
+	)
+
 	return &validation.GlooValidationServiceResponse{
 		ValidationReports: validationReports,
 	}, nil
@@ -226,10 +265,29 @@ func HandleResourceDeletion(snapshot *v1snap.ApiSnapshot, resource resources.Res
 // exported because it is used as a gRPC service. A synced version of the snapshot is needed for
 // gloo validation.
 func (s *validator) ValidateGloo(ctx context.Context, proxy *v1.Proxy, resource resources.Resource, shouldDelete bool) ([]*GlooValidationReport, error) {
+	logger := contextutils.LoggerFrom(ctx)
+
+	var resourceName, resourceNamespace, resourceKind string
+	if resource != nil {
+		resourceName = resource.GetMetadata().GetName()
+		resourceNamespace = resource.GetMetadata().GetNamespace()
+		resourceKind = sk_resources.Kind(resource)
+	}
+
+	logger.Infow("received gloo validation request",
+		zap.String("proxyName", proxy.GetMetadata().GetName()),
+		zap.String("proxyNamespace", proxy.GetMetadata().GetNamespace()),
+		zap.String("resourceName", resourceName),
+		zap.String("resourceNamespace", resourceNamespace),
+		zap.String("resourceKind", resourceKind),
+		zap.Bool("shouldDelete", shouldDelete),
+	)
+
 	// the gateway validator will call this function to validate Gloo resources.
 	s.lock.Lock()
 	// we may receive a Validate call before a Sync has occurred
 	if s.latestSnapshot == nil {
+		logger.Warnw("gloo validation called before sync", zap.String("issue", "8539"))
 		s.lock.Unlock()
 		return nil, SyncNotCalledError
 	}
@@ -238,7 +296,16 @@ func (s *validator) ValidateGloo(ctx context.Context, proxy *v1.Proxy, resource 
 
 	if resource != nil {
 		if shouldDelete {
+			logger.Infow("handling resource deletion",
+				zap.String("resourceName", resourceName),
+				zap.String("resourceKind", resourceKind),
+			)
 			if err := HandleResourceDeletion(&snapCopy, resource); err != nil {
+				logger.Errorw("failed to handle resource deletion",
+					zap.Error(err),
+					zap.String("resourceName", resourceName),
+					zap.String("resourceKind", resourceKind),
+				)
 				return nil, err
 			}
 
@@ -246,25 +313,50 @@ func (s *validator) ValidateGloo(ctx context.Context, proxy *v1.Proxy, resource 
 			switch typedResource := resource.(type) {
 			case *v1.Upstream:
 				if typedResource.GetKube() != nil {
+					fakeUpstreamName := fmt.Sprintf("%s%s", kubernetes.FakeUpstreamNamePrefix, resource.GetMetadata().GetName())
+					logger.Infow("removing associated fake upstream",
+						zap.String("fakeUpstreamName", fakeUpstreamName),
+						zap.String("originalUpstreamName", resourceName),
+					)
 					kubeSvcUs := &v1.Upstream{
 						Metadata: &core.Metadata{
 							Namespace: resource.GetMetadata().GetNamespace(),
-							Name:      fmt.Sprintf("%s%s", kubernetes.FakeUpstreamNamePrefix, resource.GetMetadata().GetName()),
+							Name:      fakeUpstreamName,
 						},
 					}
 					if err := snapCopy.RemoveFromResourceList(kubeSvcUs); err != nil {
+						logger.Errorw("failed to remove fake upstream",
+							zap.Error(err),
+							zap.String("fakeUpstreamName", fakeUpstreamName),
+						)
 						return nil, err
 					}
 				}
 			}
 		} else {
+			logger.Infow("upserting resource to snapshot",
+				zap.String("resourceName", resourceName),
+				zap.String("resourceKind", resourceKind),
+			)
 			if err := snapCopy.UpsertToResourceList(resource); err != nil {
+				logger.Errorw("failed to upsert resource",
+					zap.Error(err),
+					zap.String("resourceName", resourceName),
+					zap.String("resourceKind", resourceKind),
+				)
 				return nil, err
 			}
 		}
 	}
 
-	return s.validator.Validate(ctx, proxy, &snapCopy, shouldDelete), nil
+	reports := s.validator.Validate(ctx, proxy, &snapCopy, shouldDelete)
+
+	logger.Infow("completed gloo validation",
+		zap.Int("reportCount", len(reports)),
+		zap.String("proxyName", proxy.GetMetadata().GetName()),
+	)
+
+	return reports, nil
 }
 
 // updates the given snapshot with the resources from the request
