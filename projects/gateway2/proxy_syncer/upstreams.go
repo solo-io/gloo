@@ -134,7 +134,7 @@ func NewPerClientEnvoyClusters(
 		}
 		return uccWithClusterRet
 	}, krt.WithName("PerClientEnvoyClusters"), krt.WithDebugging(dbg))
-	idx := krt.NewIndex(clusters, func(ucc uccWithCluster) []string {
+	idx := krt.NewIndex(clusters, "ClusterIndex", func(ucc uccWithCluster) []string {
 		return []string{ucc.Client.ResourceName()}
 	})
 
