@@ -225,6 +225,8 @@ func (m *Upstream) Clone() proto.Message {
 		target.DisableIstioAutoMtls = proto.Clone(m.GetDisableIstioAutoMtls()).(*google_golang_org_protobuf_types_known_wrapperspb.BoolValue)
 	}
 
+	target.DnsLookupIpFamily = m.GetDnsLookupIpFamily()
+
 	switch m.UpstreamType.(type) {
 
 	case *Upstream_Kube:

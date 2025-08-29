@@ -201,6 +201,15 @@ spec:
   {{ toYaml .Values.settings.watchNamespaceSelectors | nindent 4 }}
 {{- end }} {{/* if .Values.settings.watchNamespaceSelectors */}}
 
+{{- if .Values.settings.upstreamOptions }}
+  upstreamOptions:
+    {{- if or .Values.settings.upstreamOptions.ipv4Only (not (hasKey .Values.settings.upstreamOptions "ipv4Only")) }}
+    dnsLookupIpFamily: V4_ONLY
+    {{- else }}
+    dnsLookupIpFamily: V6_ONLY
+    {{- end }}
+{{- end }} {{/* if .Values.settings.upstreamOptions */}}
+
 {{- end }} {{/* if .Values.settings.create  */}}
 {{- end }} {{/* define "settings.settingsSpec" */}}
 

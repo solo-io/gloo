@@ -3,6 +3,7 @@ package basicrouting
 import (
 	"context"
 	"net/http"
+	"os"
 	"testing"
 	"time"
 
@@ -48,7 +49,12 @@ func NewBasicEdgeRoutingSuite(ctx context.Context, testInst *e2e.TestInstallatio
 }
 
 func (s *edgeBasicRoutingSuite) SetupSuite() {
-	err := s.testInstallation.Actions.Kubectl().Apply(s.ctx, testdefaults.NginxPodYaml)
+	var err error
+	if os.Getenv("ENABLE_IPV6_ONLY") != "true" {
+		err = s.testInstallation.Actions.Kubectl().Apply(s.ctx, testdefaults.NginxPodYaml)
+	} else {
+		err = s.testInstallation.Actions.Kubectl().Apply(s.ctx, testdefaults.NginxIpv6PodYaml)
+	}
 	s.NoError(err, "can apply Nginx setup manifest")
 	err = s.testInstallation.Actions.Kubectl().Apply(s.ctx, testdefaults.CurlPodYaml)
 	s.NoError(err, "can apply Curl setup manifest")
@@ -63,7 +69,12 @@ func (s *edgeBasicRoutingSuite) SetupSuite() {
 }
 
 func (s *edgeBasicRoutingSuite) TearDownSuite() {
-	err := s.testInstallation.Actions.Kubectl().Delete(s.ctx, testdefaults.NginxPodYaml)
+	var err error
+	if os.Getenv("ENABLE_IPV6_ONLY") != "true" {
+		err = s.testInstallation.Actions.Kubectl().Delete(s.ctx, testdefaults.NginxPodYaml)
+	} else {
+		err = s.testInstallation.Actions.Kubectl().Delete(s.ctx, testdefaults.NginxIpv6PodYaml)
+	}
 	s.NoError(err, "can delete Nginx setup manifest")
 	err = s.testInstallation.Actions.Kubectl().Delete(s.ctx, testdefaults.CurlPodYaml)
 	s.NoError(err, "can delete Curl setup manifest")

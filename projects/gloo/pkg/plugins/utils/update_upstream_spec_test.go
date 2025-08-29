@@ -120,7 +120,7 @@ var _ = Describe("UpdateUpstream", func() {
 		// This test is important as it checks whether the upstream struct/proto have a new top level field.
 		// This should happen very rarely, and should be used as an indication that the `UpdateUpstream` function
 		// most likely needs to change.
-		assertions.ExpectNumFields(gloov1.Upstream{}, 29)
+		assertions.ExpectNumFields(gloov1.Upstream{}, 30)
 	})
 
 })

@@ -58,7 +58,11 @@ data:
         - name: prometheus_listener
           address:
             socket_address:
+{{- if or $spec.gatewaySettings.ipv4Only (not (hasKey $spec.gatewaySettings "ipv4Only")) }}
               address: 0.0.0.0
+{{- else }}
+              address: "::"
+{{- end }} {{- /* $spec.gatewaySettings.ipv4Only */}}
               port_value: 8081
           filter_chains:
             - filters:
@@ -108,7 +112,11 @@ data:
         - name: read_config_listener
           address:
             socket_address:
+{{- if or $spec.gatewaySettings.ipv4Only (not (hasKey $spec.gatewaySettings "ipv4Only")) }}
               address: 0.0.0.0
+{{- else }}
+              address: "::"
+  {{- end }} {{- /* $spec.gatewaySettings.ipv4Only */}}
               port_value: 8082
           filter_chains:
             - filters:
@@ -215,7 +223,11 @@ data:
             - endpoint:
                 address:
                   socket_address:
+{{- if or $spec.gatewaySettings.ipv4Only (not (hasKey $spec.gatewaySettings "ipv4Only")) }}
                     address: 127.0.0.1
+{{- else }}
+                    address: "::"
+{{- end }} {{- /* $spec.gatewaySettings.ipv4Only */}}
                     port_value: 8234
 {{- end }}
       - name: rest_xds_cluster
@@ -341,7 +353,11 @@ data:
             - endpoint:
                 address:
                   socket_address:
+{{- if or $spec.gatewaySettings.ipv4Only (not (hasKey $spec.gatewaySettings "ipv4Only")) }}
                     address: {{ $spec.loopBackAddress }}
+{{- else }}
+                    address: "::"
+{{- end }} {{- /* $spec.gatewaySettings.ipv4Only */}}
                     port_value: 19000
 {{- end}} {{- /* if or $statsConfig.enabled ($spec.readConfig) */}}
 {{- if $spec.envoyStaticClusters }}
@@ -376,7 +392,11 @@ data:
       access_log_path: /dev/null
       address:
         socket_address:
+{{- if or $spec.gatewaySettings.ipv4Only (not (hasKey $spec.gatewaySettings "ipv4Only")) }}
           address: {{ $spec.loopBackAddress }}
+{{- else }}
+          address: "::"
+{{- end }} {{- /* $spec.gatewaySettings.ipv4Only */}}
           port_value: 19000
 {{- else}}{{ toYaml $spec.configMap.data | indent 2}}
 {{- end }} {{/* if (empty $spec.configMap.data) ## allows full custom */}}

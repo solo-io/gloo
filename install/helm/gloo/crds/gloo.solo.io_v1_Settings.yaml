@@ -952,6 +952,9 @@ spec:
                 type: object
               upstreamOptions:
                 properties:
+                  dnsLookupIpFamily:
+                    type: string
+                    x-kubernetes-int-or-string: true
                   globalAnnotations:
                     additionalProperties:
                       type: string

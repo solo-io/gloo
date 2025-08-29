@@ -3,6 +3,7 @@ package access_log
 import (
 	"context"
 	"fmt"
+	"os"
 	"regexp"
 	"time"
 
@@ -38,8 +39,14 @@ var edgeSecureYaml []byte
 //go:embed testdata/collector.yaml
 var collectorYaml []byte
 
+//go:embed testdata/collector_ipv6.yaml
+var collectorIpv6Yaml []byte
+
 //go:embed testdata/collector-secure.yaml
 var collectorSecureYaml []byte
+
+//go:embed testdata/collector-secure_ipv6.yaml
+var collectorSecureIpv6Yaml []byte
 
 //go:embed testdata/httpbin-routes.yaml
 var httpbinRoutesYaml []byte
@@ -66,8 +73,14 @@ func NewAccessLogSuite(
 func (s *accessLogSuite) SetupSuite() {
 	err := s.testInstallation.Actions.Kubectl().Apply(s.ctx, testDefaults.CurlPodYaml)
 	s.Require().NoError(err)
-	err = s.testInstallation.Actions.Kubectl().Apply(s.ctx, testDefaults.HttpbinYaml)
-	s.Require().NoError(err)
+
+	if os.Getenv("ENABLE_IPV6_ONLY") != "true" {
+		err = s.testInstallation.Actions.Kubectl().Apply(s.ctx, testDefaults.HttpbinYaml)
+		s.Require().NoError(err)
+	} else {
+		err = s.testInstallation.Actions.Kubectl().Apply(s.ctx, testDefaults.HttpbinIpv6Yaml)
+		s.Require().NoError(err)
+	}
 
 	if s.testInstallation.Metadata.K8sGatewayEnabled {
 		err = s.testInstallation.Actions.Kubectl().Apply(s.ctx, httpbinRoutesYaml)
@@ -89,8 +102,14 @@ func (s *accessLogSuite) TearDownSuite() {
 
 	err := s.testInstallation.Actions.Kubectl().Delete(s.ctx, testDefaults.CurlPodYaml)
 	s.Require().NoError(err)
-	err = s.testInstallation.Actions.Kubectl().Delete(s.ctx, testDefaults.HttpbinYaml)
-	s.Require().NoError(err)
+
+	if os.Getenv("ENABLE_IPV6_ONLY") != "true" {
+		err = s.testInstallation.Actions.Kubectl().Delete(s.ctx, testDefaults.HttpbinYaml)
+		s.Require().NoError(err)
+	} else {
+		err = s.testInstallation.Actions.Kubectl().Delete(s.ctx, testDefaults.HttpbinIpv6Yaml)
+		s.Require().NoError(err)
+	}
 }
 
 func (s *accessLogSuite) AfterTest(suiteName, testName string) {
@@ -107,7 +126,11 @@ func (s *accessLogSuite) TestOTELAccessLog() {
 		gatewayNamespace = defaultNamespace
 	}
 
-	s.setupCollector(collectorYaml)
+	if os.Getenv("ENABLE_IPV6_ONLY") != "true" {
+		s.setupCollector(collectorYaml)
+	} else {
+		s.setupCollector(collectorIpv6Yaml)
+	}
 	s.setupGateway(testGatewayYaml, gatewayNamespace)
 
 	s.eventuallyFindRequestInCollectorLogs([]string{
@@ -126,7 +149,11 @@ func (s *accessLogSuite) TestOTELAccessLogSecure() {
 		gatewayNamespace = defaultNamespace
 	}
 
-	s.setupCollector(collectorSecureYaml)
+	if os.Getenv("ENABLE_IPV6_ONLY") != "true" {
+		s.setupCollector(collectorSecureYaml)
+	} else {
+		s.setupCollector(collectorSecureIpv6Yaml)
+	}
 	s.setupGateway(testGatewayYaml, gatewayNamespace)
 
 	s.eventuallyFindRequestInCollectorLogs([]string{

@@ -721,6 +721,7 @@ When these properties are defined on a specific upstream, this configuration wil
 ```yaml
 "sslParameters": .gloo.solo.io.SslParameters
 "globalAnnotations": map<string, string>
+"dnsLookupIpFamily": .gloo.solo.io.DnsIpFamily
 
 ```
 
@@ -728,6 +729,7 @@ When these properties are defined on a specific upstream, this configuration wil
 | ----- | ---- | ----------- | 
 | `sslParameters` | [.gloo.solo.io.SslParameters](../ssl/ssl.proto.sk/#sslparameters) | Default ssl parameter configuration to use for upstreams. |
 | `globalAnnotations` | `map<string, string>` | Annotations to apply to all upstreams. |
+| `dnsLookupIpFamily` | [.gloo.solo.io.DnsIpFamily](../upstream.proto.sk/#dnsipfamily) | This specifies the IP family used when resolving DNS addresses. - This will default to `V4_ONLY` when not specified. This is the default option because the common use case is to support V4 addresses. - For V6 environments the preferred option is `V6_ONLY`. - If environments support dual stack family, i.e. both V4 and V6, then use the option `V4_PREFERRED`. The DNS resolver performs an IPv4 lookup first, and falls back to IPv6 only if no IPv4 addresses are returned. The callback target receives IPv6 addresses only when IPv4 results are unavailable. - If `ALL` is specified, the DNS resolver queries both IPv4 and IPv6 records and returns all resolved addresses. In this mode, Happy Eyeballs is enabled for upstream connections. This is particularly applicable in IPv6 environments, such as AWS EKS IPv6 with DNS64 and NAT64, where SNAT to IPv4 addresses is supported. |
 
 
 

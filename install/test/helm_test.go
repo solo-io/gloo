@@ -3170,7 +3170,7 @@ spec:
 								"gatewayProxies.gatewayProxy.extraEnvoyArgs[1]=%L%m%d %T.%e %t envoy] [%t][%n]%v",
 							},
 						})
-						// deployment exists for for second declaration of gateway proxy
+						// deployment exists for second declaration of gateway proxy
 						gatewayProxyDeployment.Spec.Template.Spec.Containers[0].Args = append(
 							gatewayProxyDeployment.Spec.Template.Spec.Containers[0].Args,
 							"--log-format", "%L%m%d %T.%e %t envoy] [%t][%n]%v")
@@ -4886,6 +4886,26 @@ metadata:
 `)
 						testManifest.ExpectUnstructured(serviceAccount.GetKind(), serviceAccount.GetNamespace(), serviceAccount.GetName()).To(BeEquivalentTo(serviceAccount))
 					})
+
+					It("creates settings with the upstream options that include V4 family", func() {
+						settings := makeUnstructureFromTemplateFile("fixtures/settings/v4_upstream_settings.yaml", namespace)
+						prepareMakefile(namespace, glootestutils.HelmValues{
+							ValuesArgs: []string{
+								"settings.upstreamOptions.ipv4Only=true",
+							},
+						})
+						testManifest.ExpectUnstructured(settings.GetKind(), settings.GetNamespace(), settings.GetName()).To(BeEquivalentTo(settings))
+					})
+
+					It("creates settings with the upstream options that include V6 family", func() {
+						settings := makeUnstructureFromTemplateFile("fixtures/settings/v6_upstream_settings.yaml", namespace)
+						prepareMakefile(namespace, glootestutils.HelmValues{
+							ValuesArgs: []string{
+								"settings.upstreamOptions.ipv4Only=false",
+							},
+						})
+						testManifest.ExpectUnstructured(settings.GetKind(), settings.GetNamespace(), settings.GetName()).To(BeEquivalentTo(settings))
+					})
 				})
 			})
 
@@ -5772,6 +5792,26 @@ metadata:
 					}
 					cm := cmRb.GetConfigMap()
 					testManifest.ExpectConfigMapWithYamlData(cm)
+				})
+
+				It("can create ipv6 only binding listeners and clusters", func() {
+					prepareMakefileFromValuesFile("values/val_ipv6.yaml")
+
+					byt, err := os.ReadFile("fixtures/envoy_config/bootstrap_ipv6.yaml")
+					Expect(err).ToNot(HaveOccurred())
+					envoyBootstrapYaml := string(byt)
+
+					envoyBootstrapSpec := make(map[string]string)
+					envoyBootstrapSpec["envoy.yaml"] = envoyBootstrapYaml
+
+					cmRb := ResourceBuilder{
+						Namespace: namespace,
+						Name:      gatewayProxyConfigMapName,
+						Labels:    labels,
+						Data:      envoyBootstrapSpec,
+					}
+					envoyBootstrapCm := cmRb.GetConfigMap()
+					testManifest.ExpectConfigMapWithYamlData(envoyBootstrapCm)
 				})
 
 				Describe("gateway proxy - AWS", func() {

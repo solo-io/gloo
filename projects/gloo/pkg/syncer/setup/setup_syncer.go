@@ -318,6 +318,18 @@ func (s *setupSyncer) Setup(ctx context.Context, kubeCache kube.SharedCache, mem
 		settings.GetSecretOptions().Sources = sourceList
 	}
 
+	if settings.GetUpstreamOptions() != nil {
+		// if set to auto, hardcode to V4
+		if settings.GetUpstreamOptions().GetDnsLookupIpFamily() == v1.DnsIpFamily_AUTO {
+			settings.GetUpstreamOptions().DnsLookupIpFamily = v1.DnsIpFamily_V4_ONLY
+		}
+	} else {
+		// default to V4 if no upstream options given
+		settings.UpstreamOptions = &v1.UpstreamOptions{
+			DnsLookupIpFamily: v1.DnsIpFamily_V4_ONLY,
+		}
+	}
+
 	var clientset kubernetes.Interface
 	opts, err := constructOpts(ctx, s.setupOpts,
 		constructOptsParams{

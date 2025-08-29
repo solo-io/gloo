@@ -2,6 +2,7 @@ package client_tls
 
 import (
 	"context"
+	"os"
 
 	"github.com/stretchr/testify/suite"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -36,14 +37,24 @@ func NewTestingSuite(ctx context.Context, testInst *e2e.TestInstallation) suite.
 }
 
 func (s *clientTlsTestingSuite) SetupSuite() {
-	err := s.testInstallation.Actions.Kubectl().Apply(s.ctx, testdefaults.NginxPodYaml)
+	var err error
+	if os.Getenv("ENABLE_IPV6_ONLY") != "true" {
+		err = s.testInstallation.Actions.Kubectl().Apply(s.ctx, testdefaults.NginxPodYaml)
+	} else {
+		err = s.testInstallation.Actions.Kubectl().Apply(s.ctx, testdefaults.NginxIpv6PodYaml)
+	}
 	s.NoError(err, "can apply Nginx setup manifest")
 	err = s.testInstallation.Actions.Kubectl().Apply(s.ctx, testdefaults.CurlPodYaml)
 	s.NoError(err, "can apply Curl setup manifest")
 }
 
 func (s *clientTlsTestingSuite) TearDownSuite() {
-	err := s.testInstallation.Actions.Kubectl().Delete(s.ctx, testdefaults.NginxPodYaml)
+	var err error
+	if os.Getenv("ENABLE_IPV6_ONLY") != "true" {
+		err = s.testInstallation.Actions.Kubectl().Delete(s.ctx, testdefaults.NginxPodYaml)
+	} else {
+		err = s.testInstallation.Actions.Kubectl().Delete(s.ctx, testdefaults.NginxIpv6PodYaml)
+	}
 	s.NoError(err, "can delete Nginx setup manifest")
 	err = s.testInstallation.Actions.Kubectl().Delete(s.ctx, testdefaults.CurlPodYaml)
 	s.NoError(err, "can delete Curl setup manifest")
