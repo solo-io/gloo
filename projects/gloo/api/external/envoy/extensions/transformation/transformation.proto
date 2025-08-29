@@ -33,6 +33,14 @@ message FilterTransformations {
   // If set to true, the filter will log the request/response body and headers before and
   // after any transformation is applied.
   bool log_request_response_info = 3;
+
+  // There is a matcher field in envoy-gloo/api/envoy/config/filter/http/transformation/v2/transformation_filter.proto
+  // that using field # 4 but is not here! So, I assume we never used that in the control plane but 
+  // making a comment here so we don't accidentally use 4
+
+  // Automatically detect websocket upgrade request and pass through the request and response
+  // body without applying body transformations. Header transformation will still apply.
+  bool auto_websocket_passthrough = 5;
 }
 
 message TransformationRule {

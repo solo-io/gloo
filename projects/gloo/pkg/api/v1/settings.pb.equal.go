@@ -793,6 +793,16 @@ func (m *GlooOptions) Equal(that interface{}) bool {
 		}
 	}
 
+	if h, ok := interface{}(m.GetEnableAutoWebsocketTransformationPassthrough()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetEnableAutoWebsocketTransformationPassthrough()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetEnableAutoWebsocketTransformationPassthrough(), target.GetEnableAutoWebsocketTransformationPassthrough()) {
+			return false
+		}
+	}
+
 	return true
 }
 
