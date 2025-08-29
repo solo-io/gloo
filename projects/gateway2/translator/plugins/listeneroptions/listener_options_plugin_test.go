@@ -61,7 +61,7 @@ var _ = Describe("ListenerOptions Plugin", func() {
 				ret.Spec = *lo
 				return &ret
 			})
-			listenerOptionCollection = krt.NewStaticCollection(lokube)
+			listenerOptionCollection = krt.NewStaticCollection(nil, lokube)
 			for _, lo := range loptions {
 				listenerOptionClientFull.Write(lo, clients.WriteOpts{})
 			}
