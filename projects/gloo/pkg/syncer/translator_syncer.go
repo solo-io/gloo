@@ -194,7 +194,7 @@ func (s *translatorSyncer) Sync(ctx context.Context, snap *v1snap.ApiSnapshot) e
 	s.statusSyncer.reportsLock.Lock()
 	s.statusSyncer.latestReports = filteredReports
 	s.statusSyncer.reportsLock.Unlock()
-	s.statusSyncer.forceSync()
+	s.statusSyncer.forceSync(ctx)
 
 	if multiErr.ErrorOrNil() != nil {
 		logger.Infow("Translator sync completed with errors",
@@ -211,7 +211,10 @@ func (s *translatorSyncer) Sync(ctx context.Context, snap *v1snap.ApiSnapshot) e
 // syncExtensions executes each of the TranslatorSyncerExtensions
 // These are responsible for updating xDS cache entries
 func (s *translatorSyncer) syncExtensions(ctx context.Context, snap *v1snap.ApiSnapshot, reports reporter.ResourceReports) {
-	for _, syncerExtension := range s.syncerExtensions {
+	logger := contextutils.LoggerFrom(ctx)
+	logger.Infow("syncing extensions", "issue", "8539", "extensionCount", len(s.syncerExtensions))
+	for i, syncerExtension := range s.syncerExtensions {
+		logger.Infow("syncing extension", "issue", "8539", "extensionIndex", i, "extension", syncerExtension)
 		intermediateReports := make(reporter.ResourceReports)
 		syncerExtension.Sync(ctx, snap, s.settings, s.xdsCache, intermediateReports)
 		reports.Merge(intermediateReports)
@@ -265,10 +268,14 @@ func (s *translatorSyncer) translateProxies(ctx context.Context, snap *v1snap.Ap
 func (s *statusSyncer) syncStatusOnEmit(ctx context.Context) {
 	var retryChan <-chan time.Time
 
+	logger := contextutils.LoggerFrom(ctx)
+
+	logger.Infow("syncStatusOnEmit - starting", "issue", "8539")
 	doSync := func() {
+		logger.Infow("syncing status - in doSync", "issue", "8539")
 		err := s.syncStatus(ctx)
 		if err != nil {
-			contextutils.LoggerFrom(ctx).Debugw("failed to sync status; will try again shortly.", "error", err)
+			logger.Infow("failed to sync status; will try again shortly.", "error", err)
 			retryChan = time.After(time.Second)
 		} else {
 			retryChan = nil
@@ -278,20 +285,25 @@ func (s *statusSyncer) syncStatusOnEmit(ctx context.Context) {
 	for {
 		select {
 		case <-ctx.Done():
+			logger.Infow("syncStatusOnEmit - ctx done", "issue", "8539")
 			return
 		case <-retryChan:
+			logger.Infow("syncing status - retryChan calling doSync", "issue", "8539")
 			doSync()
 		case <-s.syncNeeded:
+			logger.Infow("syncing status - syncNeeded calling doSync", "issue", "8539")
 			doSync()
 		}
 	}
 }
 
-func (s *statusSyncer) forceSync() {
+func (s *statusSyncer) forceSync(ctx context.Context) {
+	logger := contextutils.LoggerFrom(ctx)
 	if len(s.syncNeeded) > 0 {
 		// sync is already needed; no reason to block on send
 		return
 	}
+	logger.Infow("forceSync - sending to syncNeeded", "issue", "8539")
 	s.syncNeeded <- struct{}{}
 }
 

@@ -683,6 +683,7 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 		}
 	}
 
+	logger.Infow("Starting REST XDS server", "issue", "8539")
 	startRestXdsServer(opts)
 
 	errs := make(chan error)
@@ -1134,6 +1135,7 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 		// Start the validation webhook
 		validationServerErr := make(chan error, 1)
 		if gwOpts.Validation != nil {
+			logger.Infow("Starting validation webhook", "issue", "8539")
 			// make sure non-empty WatchNamespaces contains the gloo instance's own namespace if
 			// ReadGatewaysFromAllNamespaces is false
 			if !gwOpts.ReadGatewaysFromAllNamespaces && !namespaces.AllNamespaces(opts.WatchNamespaces) {
@@ -1145,6 +1147,7 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 					}
 				}
 				if !foundSelf {
+					logger.Errorw("Validation webhook not found in watch namespaces", "issue", "8539")
 					return errors.Errorf("The gateway configuration value readGatewaysFromAllNamespaces was set "+
 						"to false, but the non-empty settings.watchNamespaces "+
 						"list (%s) did not contain this gloo instance's own namespace: %s.",
@@ -1267,6 +1270,8 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 }
 
 func startRestXdsServer(opts bootstrap.Opts) {
+	logger := contextutils.LoggerFrom(opts.WatchOpts.Ctx)
+	logger.Infow("Starting REST XDS server", "issue", "8539")
 	restClient := server.NewHTTPGateway(
 		contextutils.LoggerFrom(opts.WatchOpts.Ctx),
 		opts.ControlPlane.XDSServer,
@@ -1274,14 +1279,17 @@ func startRestXdsServer(opts bootstrap.Opts) {
 			types.FetchEndpointsV3: types.EndpointTypeV3,
 		},
 	)
+	logger.Infow("REST XDS server created successfully", "issue", "8539")
 	restXdsAddr := opts.Settings.GetGloo().GetRestXdsBindAddr()
 	if restXdsAddr == "" {
 		restXdsAddr = DefaultRestXdsBindAddr
 	}
+	logger.Infow("REST XDS server address", "issue", "8539", "restXdsAddr", restXdsAddr)
 	srv := &http.Server{
 		Addr:    restXdsAddr,
 		Handler: restClient,
 	}
+	logger.Infow("REST XDS server created successfully", "issue", "8539")
 	go func() {
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			// TODO: Add metrics for rest xds server
@@ -1558,12 +1566,14 @@ func runQueue(ctx context.Context, proxyReconcileQueue ggv2utils.AsyncQueue[gloo
 	ctx = contextutils.WithLogger(ctx, "proxyCache")
 	logger := contextutils.LoggerFrom(ctx)
 
+	logger.Infow("Gloo startup: creating proxy reconciler", "issue", "8539")
 	proxyReconciler := gloov1.NewProxyReconciler(proxyClient, statusutils.NewNoOpStatusClient())
 	for {
 		proxyList, err := proxyReconcileQueue.Dequeue(ctx)
 		if err != nil {
 			return
 		}
+		logger.Infow("Gloo startup: proxy reconciler dequeued proxy list", "issue", "8539")
 		// Proxy CR is located in the writeNamespace, which may be different from the originating Gateway CR
 		err = proxyReconciler.Reconcile(
 			writeNamespace,
@@ -1578,9 +1588,12 @@ func runQueue(ctx context.Context, proxyReconcileQueue ggv2utils.AsyncQueue[gloo
 				Selector: kubeGatewayProxyLabels,
 			})
 		if err != nil {
+			logger.Infow("Gloo startup: proxy reconciler failed to reconcile", "issue", "8539", "error", err)
 			// A write error to our cache should not impact translation
 			// We will emit a message, and continue
 			logger.Error(err)
+		} else {
+			logger.Infow("Gloo startup: proxy reconciler reconciled successfully", "issue", "8539")
 		}
 
 	}

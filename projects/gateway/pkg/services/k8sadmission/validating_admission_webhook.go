@@ -148,6 +148,8 @@ func NewGatewayValidatingWebhook(cfg WebhookConfig) (*http.Server, error) {
 		return nil, errors.Wrapf(err, "loading TLS certificate provider")
 	}
 
+	logger := contextutils.LoggerFrom(ctx)
+	logger.Infow("Creating gateway validation webhook", "issue", "8539")
 	handler := NewGatewayValidationHandler(
 		contextutils.WithLogger(ctx, "gateway-validation-webhook"),
 		validator,
@@ -157,10 +159,11 @@ func NewGatewayValidatingWebhook(cfg WebhookConfig) (*http.Server, error) {
 		webhookNamespace,
 		kubeGatewayEnabled,
 	)
-
+	logger.Infow("Gateway validation webhook created successfully", "issue", "8539")
 	mux := http.NewServeMux()
 	mux.Handle(ValidationPath, handler)
 
+	logger.Infow("Creating HTTP server", "issue", "8539")
 	return &http.Server{
 		Addr:      fmt.Sprintf(":%v", port),
 		TLSConfig: &tls.Config{GetCertificate: certProvider.GetCertificateFunc()},
