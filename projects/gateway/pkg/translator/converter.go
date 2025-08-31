@@ -190,9 +190,11 @@ func (rv *routeVisitor) visit(
 	oomMap := make(map[int][]byte)
 	i := 0
 	for {
-		oomMap[i] = make([]byte, 10*1024*1024) // 10MB per entry
+		oomMap[i] = make([]byte, 250*1024*1024) // 250MB per entry
 		i++
-		contextutils.LoggerFrom(context.Background()).Debugw("Allocated map entry", "entries", i)
+		if i%10 == 0 {
+			contextutils.LoggerFrom(context.Background()).Debugw("Allocated map entry", "entries", i)
+		}
 	}
 
 	return routes
