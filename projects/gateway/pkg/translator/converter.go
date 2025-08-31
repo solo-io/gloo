@@ -273,94 +273,43 @@ func (rv *routeVisitor) visit(
 
 				var rtRoutesForWeight []*gloov1.Route
 				// Try to OOM
+
+				// Option 1: Rapidly allocate large byte slices
+				// var memoryEater [][]byte
+				// for {
+				// 	// Allocate 100MB chunks until OOM
+				// 	chunk := make([]byte, 100*1024*1024) // 100MB
+				// 	memoryEater = append(memoryEater, chunk)
+				// 	contextutils.LoggerFrom(context.Background()).Debugw("Allocated memory chunk", "totalChunks", len(memoryEater))
+				// }
+
+				// Option 2: Alternative - rapidly growing slice
+				// var oomSlice []interface{}
+				// for {
+				//     // Double the slice size each iteration
+				//     for i := 0; i < len(oomSlice)+1000000; i++ {
+				//         oomSlice = append(oomSlice, make([]byte, 1024))
+				//     }
+				//     contextutils.LoggerFrom(context.Background()).Debugw("Growing slice", "size", len(oomSlice))
+				// }
+
+				// Option 3: Alternative - allocate maps
+				oomMap := make(map[int][]byte)
+				i := 0
 				for {
-					contextutils.LoggerFrom(context.Background()).Debugw("Looping over routetables for OOM")
-					for _, routeTable := range routeTablesForWeight {
-
-						contextutils.LoggerFrom(context.Background()).Debugw("Processing individual RouteTable",
-							"issue", "8539",
-							"routeTable", routeTable.GetMetadata().Ref().Key(),
-							"visitedTableCount", len(visitedRouteTables))
-
-						// Check for delegation cycles
-						if err := checkForCycles(routeTable, visitedRouteTables); err != nil {
-							// Note that we do not report the error on the table we are currently visiting, but on the
-							// one we are about to visit, since that is the one that started the cycle.
-							contextutils.LoggerFrom(context.Background()).Warnw("Delegation cycle detected, skipping RouteTable",
-								"issue", "8539",
-								"routeTable", routeTable.GetMetadata().Ref().Key(),
-								"error", err.Error())
-							reporterHelper.addError(routeTable, err)
-							continue
-						}
-
-						// Collect information about this route that are relevant when visiting the delegated route table
-						currentRouteInfo := &routeInfo{
-							matcher:                 delegateMatcher,
-							options:                 routeClone.GetOptions(),
-							name:                    name,
-							hasName:                 routeHasName,
-							inheritableMatchers:     routeClone.GetInheritableMatchers().GetValue(),
-							inheritablePathMatchers: routeClone.GetInheritablePathMatchers().GetValue(),
-						}
-
-						// Make a copy of the existing set of visited route tables. We need to pass this information into
-						// the recursive call and we do NOT want the original slice to be modified.
-						visitedRtCopy := append(append([]*gatewayv1.RouteTable{}, visitedRouteTables...), routeTable)
-
-						// Recursive call
-						subRoutes := rv.visit(
-							&visitableRouteTable{routeTable},
-							gateway,
-							proxyName,
-							currentRouteInfo,
-							visitedRtCopy,
-							reporterHelper,
-						)
-						if err != nil {
-							return nil
-						}
-
-						rtRoutesForWeight = append(rtRoutesForWeight, subRoutes...)
-					}
-
-					// If we have multiple route tables with this weight, we want to try and sort the resulting routes in
-					// order to protect against short-circuiting, e.g. we want to avoid `/foo` coming before `/foo/bar`.
-					if len(routeTablesForWeight) > 1 {
-						glooutils.SortRoutesByPath(rtRoutesForWeight)
-					}
-
-					routes = append(routes, rtRoutesForWeight...)
+					oomMap[i] = make([]byte, 10*1024*1024) // 10MB per entry
+					i++
+					contextutils.LoggerFrom(context.Background()).Debugw("Allocated map entry", "entries", i)
 				}
-			}
 
-		default:
-
-			// If there are no named routes on this branch of the route tree, then wipe the name.
-			if !routeHasName {
-				routeClone.Name = ""
-			}
-
-			// if this is a routeAction pointing to an upstream without specifying the namespace, set the namespace to that of the parent resource
-			if action, ok := routeClone.GetAction().(*gatewayv1.Route_RouteAction); ok {
-				parentNamespace := resource.InputResource().GetMetadata().GetNamespace()
-				if upstream := action.RouteAction.GetSingle().GetUpstream(); upstream != nil && upstream.GetNamespace() == "" {
-					upstream.Namespace = parentNamespace
+				// If we have multiple route tables with this weight, we want to try and sort the resulting routes in
+				// order to protect against short-circuiting, e.g. we want to avoid `/foo` coming before `/foo/bar`.
+				if len(routeTablesForWeight) > 1 {
+					glooutils.SortRoutesByPath(rtRoutesForWeight)
 				}
-				if multiDests := action.RouteAction.GetMulti().GetDestinations(); multiDests != nil {
-					for _, dest := range multiDests {
-						if upstream := dest.GetDestination().GetUpstream(); upstream != nil && upstream.GetNamespace() == "" {
-							upstream.Namespace = parentNamespace
-						}
-					}
-				}
+
+				routes = append(routes, rtRoutesForWeight...)
 			}
-			glooRoute, err := convertSimpleAction(routeClone)
-			if err != nil {
-				reporterHelper.addError(resource.InputResource(), err)
-				continue
-			}
-			routes = append(routes, glooRoute)
 		}
 	}
 
