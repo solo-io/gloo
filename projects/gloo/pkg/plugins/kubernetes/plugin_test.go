@@ -141,7 +141,7 @@ var _ = Describe("Plugin", func() {
 		It("should process upstream with default ip family", func() {
 			err := plugin.(plugins.UpstreamPlugin).ProcessUpstream(params, upstream, out)
 			Expect(err).To(Not(HaveOccurred()))
-			Expect(out.GetDnsLookupFamily()).To(Equal(envoy_config_cluster_v3.Cluster_V4_ONLY))
+			Expect(out.GetDnsLookupFamily()).To(Equal(envoy_config_cluster_v3.Cluster_AUTO))
 		})
 
 		It("should process upstream with custom ip family", func() {
