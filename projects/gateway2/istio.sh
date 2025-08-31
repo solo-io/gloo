@@ -1,4 +1,4 @@
-ISTIO_VERSION="${ISTIO_VERSION:-1.25.2}"
+ISTIO_VERSION="${ISTIO_VERSION:-1.27.0}"
 
 TARGET_ARCH=x86_64
 if [[ $ARCH == 'arm64' ]]; then
@@ -13,7 +13,7 @@ kubectl create namespace bookinfo
 
 kubectl label namespace bookinfo istio-injection=enabled
 
-kubectl apply -f https://raw.githubusercontent.com/istio/istio/release-1.20/samples/bookinfo/platform/kube/bookinfo.yaml -n bookinfo
+kubectl apply -f https://raw.githubusercontent.com/istio/istio/release-1.27/samples/bookinfo/platform/kube/bookinfo.yaml -n bookinfo
 kubectl rollout status deployment productpage-v2 -n bookinfo
 kubectl rollout status deployment details-v1 -n bookinfo
 kubectl rollout status deployment reviews-v1 -n bookinfo

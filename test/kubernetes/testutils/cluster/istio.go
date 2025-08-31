@@ -88,8 +88,8 @@ func manuallyManageDefaultRevisionTag() bool {
 }
 
 func setDefaultRevisionTag(ctx context.Context, istioctlBinary, kubeContext, revision string) error {
-	//  istioctl tag set default --revision <revision>
-	cmd := exec.Command(istioctlBinary, "tag", "set", "default", "--revision", revision, "--context", kubeContext)
+	//  istioctl tag set default --revision <revision> --overwrite
+	cmd := exec.Command(istioctlBinary, "tag", "set", "default", "--revision", revision, "--overwrite", "--context", kubeContext)
 
 	if out, err := cmd.CombinedOutput(); err != nil {
 		return fmt.Errorf("setting default revision tag failed: %w, output: %s", err, string(out))

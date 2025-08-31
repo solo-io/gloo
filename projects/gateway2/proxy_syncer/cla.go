@@ -118,7 +118,7 @@ func NewPerClientEnvoyEndpoints(logger *zap.Logger, dbg *krt.DebugHandler, uccs 
 		}
 		return uccWithEndpointsRet
 	}, krt.WithName("PerClientEnvoyEndpoints"), krt.WithDebugging(dbg))
-	idx := krt.NewIndex(clas, func(ucc UccWithEndpoints) []string {
+	idx := krt.NewIndex(clas, "CLAIndex", func(ucc UccWithEndpoints) []string {
 		return []string{ucc.Client.ResourceName()}
 	})
 
