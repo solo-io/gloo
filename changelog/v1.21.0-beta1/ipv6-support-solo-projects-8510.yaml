@@ -1,0 +1,16 @@
+changelog:
+  - type: NEW_FEATURE
+    issueLink: https://github.com/solo-io/solo-projects/issues/8510
+    resolvesIssue: false
+    description: >-
+      This adds the initial support for IPv6.
+      - Added IP family management (`DnsIpFamily`) via `Settings.UpstreamOptions.DnsLookupIpFamily` and `U`pstream.DnsLookupIpFamily`.
+      - Upstreams such as static, aws and azure inherit the global setting unless overridden at the Upstream level.
+      - In memory upstreams generated for kube services can be managed via an annotation `gloo.solo.io/dns_ip_family`. This can also be managed globally via `UpstreamOptions.GlobalAnnotations`.
+  - type: HELM
+    issueLink: https://github.com/solo-io/solo-projects/issues/8510
+    resolvesIssue: false
+    description: >-
+      - Chart values expose a new field `.Values.global.globalIpFamily` to manage IP family. If not specified then it falls back to the previous behavior of relying `ipv4Only` where necessary.
+      - `globalIpFamily` is used in `settings.yaml` to manage the global values.
+      - Proxy bootstrap configuration `gateway-proxy-configmap.yaml` and `gateway-proxy-deploy.yaml` are updated to handle the v6 listeners and probes.

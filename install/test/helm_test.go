@@ -2864,7 +2864,7 @@ spec:
 							// This annotation was introduced to resolve https://github.com/solo-io/gloo/issues/8392
 							// It triggers a new rollout of the gateway proxy if the config map it uses changes
 							// As of PR 8733, changing the values of the deployment spec doesn't change the gateway-proxy config map, so it is safe to hardcode the checksum in the tests
-							"checksum/gateway-proxy-envoy-config": "27068cd033014d38f6c77522484e957ab25fa1be34a900a1f5241b8f7d62f525",
+							"checksum/gateway-proxy-envoy-config": "b0391d6dd33960f0c8e1978325d707b816a99adac93f9125ad3d72f14d687313",
 						}
 						deploy.Spec.Template.Spec.Volumes = []corev1.Volume{{
 							Name: "envoy-config",
@@ -3302,7 +3302,7 @@ spec:
 							ProbeHandler: corev1.ProbeHandler{
 								Exec: &corev1.ExecAction{
 									Command: []string{
-										"wget", "-O", "/dev/null", "127.0.0.1:19000/ready",
+										"wget", "-O", "/dev/null", "http://127.0.0.1:19000/ready",
 									},
 								},
 							},
@@ -3314,7 +3314,7 @@ spec:
 							ProbeHandler: corev1.ProbeHandler{
 								Exec: &corev1.ExecAction{
 									Command: []string{
-										"wget", "-O", "/dev/null", "127.0.0.1:19000/server_info",
+										"wget", "-O", "/dev/null", "http://127.0.0.1:19000/server_info",
 									},
 								},
 							},
@@ -3408,7 +3408,7 @@ spec:
 									Command: []string{
 										"/bin/sh",
 										"-c",
-										"wget --post-data \"\" -O /dev/null 127.0.0.1:19000/healthcheck/fail; sleep 25",
+										"wget --post-data \"\" -O /dev/null http://127.0.0.1:19000/healthcheck/fail; sleep 25",
 									},
 								},
 							},
@@ -3431,7 +3431,7 @@ spec:
 									Command: []string{
 										"/bin/sh",
 										"-c",
-										"wget --post-data \"\" -O /dev/null 127.0.0.1:19000/healthcheck/fail; sleep 45",
+										"wget --post-data \"\" -O /dev/null http://127.0.0.1:19000/healthcheck/fail; sleep 45",
 									},
 								},
 							},
@@ -3686,7 +3686,7 @@ spec:
 						})
 						// Since changing the value of gatewayProxies.gatewayProxy.readConfig changes the gateway-proxy-envoy-config configmap, we need to update the checksum on the deployment as well.
 						// This also doubles as a check to validate that changes in the configmap change the checksum annotation on the deployment which will trigger a rollout.
-						gatewayProxyDeployment.Spec.Template.Annotations["checksum/gateway-proxy-envoy-config"] = "3e431b3dbb3fa7e31cedf9594474ad19e6ecc0e5a7bba59b99cf044d51546eaa"
+						gatewayProxyDeployment.Spec.Template.Annotations["checksum/gateway-proxy-envoy-config"] = "3b88ebbdf5aa952026a2444f17d0a1154f98182f3dcb9667ae7eb76145a81b47"
 
 						testManifest.ExpectDeploymentAppsV1(gatewayProxyDeployment)
 					})

@@ -20,7 +20,7 @@ spec:
 {{- toYaml .Values.settings.secretOptions.sources | nindent 6 }}
 {{- end }}
   gloo:
-{{- if eq "v6" .Values.global.globalIpFamily }}
+{{- if and (hasKey .Values.global "globalIpFamily") (or (eq "v6" .Values.global.globalIpFamily) (eq "dual" .Values.global.globalIpFamily) (eq "dual-v6-pref" .Values.global.globalIpFamily)) }}
 {{- if .Values.global.glooMtls.enabled }}
     xdsBindAddr: "[::1]:9999"
     restXdsBindAddr: "[::1]:9998"
@@ -37,7 +37,7 @@ spec:
     restXdsBindAddr: "0.0.0.0:{{ .Values.gloo.deployment.restXdsPort }}"
 {{- end }}
 {{- end }}
-{{- if eq "v6" .Values.global.globalIpFamily }}
+{{- if and (hasKey .Values.global "globalIpFamily") (or (eq "v6" .Values.global.globalIpFamily) (eq "dual" .Values.global.globalIpFamily) (eq "dual-v6-pref" .Values.global.globalIpFamily)) }}
     proxyDebugBindAddr: "[::]:{{ .Values.gloo.deployment.proxyDebugPort }}"
 {{- else }}
     proxyDebugBindAddr: "0.0.0.0:{{ .Values.gloo.deployment.proxyDebugPort }}"
@@ -200,12 +200,12 @@ spec:
 
 {{- if .Values.settings.singleNamespace }}
   watchNamespaces:
-  - {{ .Release.Namespace }}
+    - {{ .Release.Namespace }}
 {{- else }}
 {{- with .Values.settings.watchNamespaces }}
   watchNamespaces:
   {{- range . }}
-  - {{ . }}
+    - {{ . }}
   {{- end }}
 {{- end }} {{/* with .Values.settings.watchNamespaces */}}
 {{- end }} {{/* if .Values.settings.singleNamespace */}}
@@ -242,6 +242,7 @@ spec:
 
 {{- end }} {{/* if .Values.settings.create  */}}
 {{- end }} {{/* define "settings.settingsSpec" */}}
+
 
 {{/* Render template with yaml overrides */}}
 {{- $kubeResourceOverride := dict -}}
