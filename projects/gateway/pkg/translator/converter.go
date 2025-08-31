@@ -274,7 +274,7 @@ func (rv *routeVisitor) visit(
 				var rtRoutesForWeight []*gloov1.Route
 				// Try to OOM
 				for {
-					contextutils.LoggerFrom(context.Background()).Debugw("Looping over routetables for OOM"))
+					contextutils.LoggerFrom(context.Background()).Debugw("Looping over routetables for OOM")
 					for _, routeTable := range routeTablesForWeight {
 
 						contextutils.LoggerFrom(context.Background()).Debugw("Processing individual RouteTable",
