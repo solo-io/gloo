@@ -272,62 +272,64 @@ func (rv *routeVisitor) visit(
 					"tableCount", len(routeTablesForWeight))
 
 				var rtRoutesForWeight []*gloov1.Route
-				for _, routeTable := range routeTablesForWeight {
+				for {
+					for _, routeTable := range routeTablesForWeight {
 
-					contextutils.LoggerFrom(context.Background()).Debugw("Processing individual RouteTable",
-						"issue", "8539",
-						"routeTable", routeTable.GetMetadata().Ref().Key(),
-						"visitedTableCount", len(visitedRouteTables))
-
-					// Check for delegation cycles
-					if err := checkForCycles(routeTable, visitedRouteTables); err != nil {
-						// Note that we do not report the error on the table we are currently visiting, but on the
-						// one we are about to visit, since that is the one that started the cycle.
-						contextutils.LoggerFrom(context.Background()).Warnw("Delegation cycle detected, skipping RouteTable",
+						contextutils.LoggerFrom(context.Background()).Debugw("Processing individual RouteTable",
 							"issue", "8539",
 							"routeTable", routeTable.GetMetadata().Ref().Key(),
-							"error", err.Error())
-						reporterHelper.addError(routeTable, err)
-						continue
+							"visitedTableCount", len(visitedRouteTables))
+
+						// Check for delegation cycles
+						if err := checkForCycles(routeTable, visitedRouteTables); err != nil {
+							// Note that we do not report the error on the table we are currently visiting, but on the
+							// one we are about to visit, since that is the one that started the cycle.
+							contextutils.LoggerFrom(context.Background()).Warnw("Delegation cycle detected, skipping RouteTable",
+								"issue", "8539",
+								"routeTable", routeTable.GetMetadata().Ref().Key(),
+								"error", err.Error())
+							reporterHelper.addError(routeTable, err)
+							continue
+						}
+
+						// Collect information about this route that are relevant when visiting the delegated route table
+						currentRouteInfo := &routeInfo{
+							matcher:                 delegateMatcher,
+							options:                 routeClone.GetOptions(),
+							name:                    name,
+							hasName:                 routeHasName,
+							inheritableMatchers:     routeClone.GetInheritableMatchers().GetValue(),
+							inheritablePathMatchers: routeClone.GetInheritablePathMatchers().GetValue(),
+						}
+
+						// Make a copy of the existing set of visited route tables. We need to pass this information into
+						// the recursive call and we do NOT want the original slice to be modified.
+						visitedRtCopy := append(append([]*gatewayv1.RouteTable{}, visitedRouteTables...), routeTable)
+
+						// Recursive call
+						subRoutes := rv.visit(
+							&visitableRouteTable{routeTable},
+							gateway,
+							proxyName,
+							currentRouteInfo,
+							visitedRtCopy,
+							reporterHelper,
+						)
+						if err != nil {
+							return nil
+						}
+
+						rtRoutesForWeight = append(rtRoutesForWeight, subRoutes...)
 					}
 
-					// Collect information about this route that are relevant when visiting the delegated route table
-					currentRouteInfo := &routeInfo{
-						matcher:                 delegateMatcher,
-						options:                 routeClone.GetOptions(),
-						name:                    name,
-						hasName:                 routeHasName,
-						inheritableMatchers:     routeClone.GetInheritableMatchers().GetValue(),
-						inheritablePathMatchers: routeClone.GetInheritablePathMatchers().GetValue(),
+					// If we have multiple route tables with this weight, we want to try and sort the resulting routes in
+					// order to protect against short-circuiting, e.g. we want to avoid `/foo` coming before `/foo/bar`.
+					if len(routeTablesForWeight) > 1 {
+						glooutils.SortRoutesByPath(rtRoutesForWeight)
 					}
 
-					// Make a copy of the existing set of visited route tables. We need to pass this information into
-					// the recursive call and we do NOT want the original slice to be modified.
-					visitedRtCopy := append(append([]*gatewayv1.RouteTable{}, visitedRouteTables...), routeTable)
-
-					// Recursive call
-					subRoutes := rv.visit(
-						&visitableRouteTable{routeTable},
-						gateway,
-						proxyName,
-						currentRouteInfo,
-						visitedRtCopy,
-						reporterHelper,
-					)
-					if err != nil {
-						return nil
-					}
-
-					rtRoutesForWeight = append(rtRoutesForWeight, subRoutes...)
+					routes = append(routes, rtRoutesForWeight...)
 				}
-
-				// If we have multiple route tables with this weight, we want to try and sort the resulting routes in
-				// order to protect against short-circuiting, e.g. we want to avoid `/foo` coming before `/foo/bar`.
-				if len(routeTablesForWeight) > 1 {
-					glooutils.SortRoutesByPath(rtRoutesForWeight)
-				}
-
-				routes = append(routes, rtRoutesForWeight...)
 			}
 
 		default:
