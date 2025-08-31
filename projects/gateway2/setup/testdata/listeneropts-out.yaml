@@ -4,7 +4,7 @@ clusters:
     edsConfig:
       ads: {}
       resourceApiVersion: V3
-    serviceName: kube-svc:default-kubernetes-443_default-8057429479812104425
+    serviceName: kube-svc:default-kubernetes-443_default-2363148382108791817
   metadata: {}
   name: kube-svc:default-kubernetes-443_default
   transportSocketMatches:
@@ -54,7 +54,7 @@ clusters:
     edsConfig:
       ads: {}
       resourceApiVersion: V3
-    serviceName: kube-svc:gwtest-reviews-8080_gwtest-14235905899168282861
+    serviceName: kube-svc:gwtest-reviews-8080_gwtest-17703094018580697453
   metadata: {}
   name: kube-svc:gwtest-reviews-8080_gwtest
   transportSocketMatches:
@@ -100,7 +100,7 @@ clusters:
         '@type': type.googleapis.com/envoy.extensions.transport_sockets.raw_buffer.v3.RawBuffer
   type: EDS
 endpoints:
-- clusterName: kube-svc:gwtest-reviews-8080_gwtest-14235905899168282861
+- clusterName: kube-svc:gwtest-reviews-8080_gwtest-17703094018580697453
   endpoints:
   - lbEndpoints:
     - endpoint:

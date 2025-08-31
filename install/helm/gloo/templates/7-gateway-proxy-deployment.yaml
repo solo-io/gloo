@@ -116,12 +116,12 @@ spec:
 {{ if $spec.antiAffinity }}
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
-          - weight: 100
-            podAffinityTerm:
-              labelSelector:
-                matchLabels:
-                  gloo: gateway-proxy
-              topologyKey: kubernetes.io/hostname
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    gloo: gateway-proxy
+                topologyKey: kubernetes.io/hostname
 {{- end}}
 {{- if $spec.affinity }}
       {{ toYaml $spec.affinity | nindent 8 }}
@@ -173,47 +173,63 @@ spec:
       {{- if $spec.podTemplate.extraContainers }}
 {{ toYaml $spec.podTemplate.extraContainers | indent 6 }}
       {{- end }}
-      - args:
-          - --disable-hot-restart
+        - args:
+            - --disable-hot-restart
         {{- if $spec.envoyLogLevel }}
-          - --log-level {{ $spec.envoyLogLevel }}
+            - --log-level {{ $spec.envoyLogLevel }}
         {{- end}}
           {{- with $spec.extraEnvoyArgs}}
             {{- range . }}
-          - {{ . | quote }}
+            - {{ . | quote }}
             {{- end }}
           {{- end}}
-        env:
+          env:
 {{- if $spec.kind.deployment }}
 {{- if $spec.kind.deployment.customEnv }}
 {{ toYaml $spec.kind.deployment.customEnv | indent 8 }}
 {{- end }}
 {{- end }}
-        - name: POD_NAMESPACE
-          valueFrom:
-            fieldRef:
-              fieldPath: metadata.namespace
-        - name: POD_NAME
-          valueFrom:
-            fieldRef:
-              fieldPath: metadata.name
-        - name: DISABLE_CORE_DUMPS
-          value: {{ $spec.disableCoreDumps | quote }}
-        image: {{ template "gloo.image" $image }}
-        imagePullPolicy: {{ $image.pullPolicy }}
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: DISABLE_CORE_DUMPS
+              value: {{ $spec.disableCoreDumps | quote }}
+          image: {{ template "gloo.image" $image }}
+          imagePullPolicy: {{ $image.pullPolicy }}
         {{- if $spec.podTemplate.gracefulShutdown }}
         {{- if $spec.podTemplate.gracefulShutdown.enabled }}
-        lifecycle:
-          preStop:
-            exec:
-              command:
-              - /bin/sh
-              - -c
-              - wget --post-data "" -O /dev/null {{ $spec.loopBackAddress }}:19000/healthcheck/fail;
-                sleep {{ $spec.podTemplate.gracefulShutdown.sleepTimeSeconds }}
+          lifecycle:
+            preStop:
+              exec:
+{{- if hasKey .Values.global "globalIpFamily" }}
+{{- if or (eq "v6" .Values.global.globalIpFamily) (eq "dual" .Values.global.globalIpFamily) (eq "dual-v6-pref" .Values.global.globalIpFamily) }}
+                command:
+                  - /bin/sh
+                  - -c
+                  - wget --post-data "" -O /dev/null http://[::]:19000/healthcheck/fail;
+                    sleep {{ $spec.podTemplate.gracefulShutdown.sleepTimeSeconds }}
+{{- else }}
+                command:
+                  - /bin/sh
+                  - -c
+                  - wget --post-data "" -O /dev/null http://127.0.0.1:19000/healthcheck/fail;
+                    sleep {{ $spec.podTemplate.gracefulShutdown.sleepTimeSeconds }}
+{{- end }}
+{{- else }}
+                command:
+                  - /bin/sh
+                  - -c
+                  - wget --post-data "" -O /dev/null http://{{ $spec.loopBackAddress }}:19000/healthcheck/fail;
+                    sleep {{ $spec.podTemplate.gracefulShutdown.sleepTimeSeconds }}
+{{- end }}
         {{- end}}
         {{- end}}
-        name: {{ $name | kebabcase }}
+          name: {{ $name | kebabcase }}
         {{- $capabilities := dict "drop" (list "ALL") }}
         {{- if not $spec.podTemplate.disableNetBind -}}
           {{- $_ := set $capabilities "add"  (list "NET_BIND_SERVICE") }}
@@ -223,68 +239,100 @@ spec:
           {{- $_ := set $securityDefaults "runAsUser" $spec.podTemplate.runAsUser }}
         {{- end -}}
         {{- include "gloo.containerSecurityContext" (dict "values" $spec.podTemplate.glooContainerSecurityContext "defaults" $securityDefaults "podSecurityStandards" .Values.global.podSecurityStandards "indent" 8 "globalSec" $global.securitySettings) }}
-        ports:
-        - containerPort: {{ $spec.podTemplate.httpPort }}
-          name: http
-          protocol: TCP
+          ports:
+            - containerPort: {{ $spec.podTemplate.httpPort }}
+              name: http
+              protocol: TCP
           {{- if $spec.kind.daemonSet }}
           {{- if $spec.kind.daemonSet.hostPort}}
-          hostPort: {{ $spec.podTemplate.httpPort }}
+              hostPort: {{ $spec.podTemplate.httpPort }}
           {{- end}}
           {{- end}}
-        - containerPort: {{ $spec.podTemplate.httpsPort }}
-          name: https
-          protocol: TCP
+            - containerPort: {{ $spec.podTemplate.httpsPort }}
+              name: https
+              protocol: TCP
           {{- if  $spec.kind.daemonSet }}
           {{- if $spec.kind.daemonSet.hostPort}}
-          hostPort: {{ $spec.podTemplate.httpsPort }}
+              hostPort: {{ $spec.podTemplate.httpsPort }}
           {{- end}}
           {{- end}}
        {{- if and $statsConfig.enabled $statsConfig.podMonitorEnabled }}
-        - name: http-monitoring
-          containerPort: 8081
+            - name: http-monitoring
+              containerPort: 8081
        {{- end }}
 {{- with $spec.podTemplate.extraPorts }}
 {{toYaml . | indent 8}}{{- end }}
 {{- if $spec.podTemplate.resources }}
-        resources:
+          resources:
 {{ toYaml $spec.podTemplate.resources | indent 10}}
 {{- end}}
 {{- if $spec.podTemplate.probes }}
-        readinessProbe:
+          readinessProbe:
 {{- if $spec.podTemplate.customReadinessProbe }}
 {{ toYaml $spec.podTemplate.customReadinessProbe | indent 10}}
 {{- else }}
-          exec:
-            command:
-            - wget
-            - -O
-            - /dev/null
-            - {{ $spec.loopBackAddress }}:19000/ready
-          initialDelaySeconds: 3
-          periodSeconds: 10
-          failureThreshold: 3
+            exec:
+{{- if hasKey .Values.global "globalIpFamily" }}
+{{- if or (eq "v6" .Values.global.globalIpFamily) (eq "dual" .Values.global.globalIpFamily) (eq "dual-v6-pref" .Values.global.globalIpFamily) }}
+              command:
+                - wget
+                - -O
+                - /dev/null
+                - http://[::1]:19000/ready
+{{- else }}
+              command:
+                - wget
+                - -O
+                - /dev/null
+                - http://127.0.0.1:19000/ready
+{{- end }}
+{{- else }}
+              command:
+                - wget
+                - -O
+                - /dev/null
+                - http://{{ $spec.loopBackAddress }}:19000/ready
+{{- end }}
+            initialDelaySeconds: 3
+            periodSeconds: 10
+            failureThreshold: 3
 {{- end}}
 {{- if $spec.podTemplate.livenessProbeEnabled }}
-        livenessProbe:
+          livenessProbe:
 {{- if $spec.podTemplate.customLivenessProbe }}
 {{ toYaml $spec.podTemplate.customLivenessProbe | indent 10}}
 {{- else }}
-          exec:
-            command:
-            - wget
-            - -O
-            - /dev/null
-            - {{ $spec.loopBackAddress }}:19000/server_info
-          initialDelaySeconds: 3
-          periodSeconds: 10
-          failureThreshold: 3
+            exec:
+{{- if hasKey .Values.global "globalIpFamily" }}
+{{- if or (eq "v6" .Values.global.globalIpFamily) (eq "dual" .Values.global.globalIpFamily) (eq "dual-v6-pref" .Values.global.globalIpFamily) }}
+              command:
+                - wget
+                - -O
+                - /dev/null
+                - http://[::1]:19000/server_info
+{{- else }}
+              command:
+                - wget
+                - -O
+                - /dev/null
+                - http://127.0.0.1:19000/server_info
+{{- end }}
+{{- else }}
+              command:
+                - wget
+                - -O
+                - /dev/null
+                - http://{{ $spec.loopBackAddress }}:19000/server_info
+{{- end }}
+            initialDelaySeconds: 3
+            periodSeconds: 10
+            failureThreshold: 3
 {{- end }}{{/*if $spec.podTemplate.customLivenessProbe*/}}
 {{- end }}{{/*if $spec.podTemplate.livenessProbeEnabled*/}}
 {{- end }}{{/*if $spec.podTemplate.probes*/}}
-        volumeMounts:
-        - mountPath: /etc/envoy
-          name: envoy-config
+          volumeMounts:
+            - mountPath: /etc/envoy
+              name: envoy-config
 {{- if $spec.extraProxyVolumeMounts }}
 {{ toYaml $spec.extraProxyVolumeMounts | indent 8 }}
 {{- end }}
@@ -292,218 +340,218 @@ spec:
 {{- include $spec.extraProxyVolumeMountHelper . | nindent 8 }}
 {{- end }}
 {{- if $global.glooMtls.enabled }}
-        - mountPath: /etc/envoy/ssl
-          name: gloo-mtls-certs
-          readOnly: true
+            - mountPath: /etc/envoy/ssl
+              name: gloo-mtls-certs
+              readOnly: true
 {{- end}} {{- /* $global.glooMtls.enabled */}}
 {{- if $spec.extraContainersHelper }}
-        - mountPath: /usr/share/shared-data
-          name: shared-data
+            - mountPath: /usr/share/shared-data
+              name: shared-data
 {{- include $spec.extraContainersHelper . | nindent 6 }}
 {{- end }} {{- /* $spec.extraContainersHelper */}}
 {{- if or $global.glooMtls.enabled (or $global.istioSDS.enabled $global.istioIntegration.enabled) }}
       {{- $sdsImage := merge $global.glooMtls.sds.image $global.image }}
-      - name: sds
-        image: {{ template "gloo.image" $sdsImage }}
+        - name: sds
+          image: {{ template "gloo.image" $sdsImage }}
         {{- include "gloo.containerSecurityContext" (dict "values" $global.glooMtls.sds.securityContext "podSecurityStandards" .Values.global.podSecurityStandards "indent" 8 "globalSec" $global.securitySettings) }}
-        imagePullPolicy: {{ $sdsImage.pullPolicy }}
+          imagePullPolicy: {{ $sdsImage.pullPolicy }}
 {{- if $global.glooMtls.sdsResources }}
-        resources:
+          resources:
 {{ toYaml $global.glooMtls.sdsResources | indent 10}}
 {{- end}}
-        env:
-          - name: POD_NAME
-            valueFrom:
-              fieldRef:
-                fieldPath: metadata.name
-          - name: POD_NAMESPACE
-            valueFrom:
-              fieldRef:
-                fieldPath: metadata.namespace
+          env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
 {{- if $global.glooMtls.enabled }}
-          - name: GLOO_MTLS_SDS_ENABLED
-            value: "true"
+            - name: GLOO_MTLS_SDS_ENABLED
+              value: "true"
 {{- end }}
 {{- if or $global.istioSDS.enabled $global.istioIntegration.enabled }}
-          - name: ISTIO_MTLS_SDS_ENABLED
-            value: "true"
+            - name: ISTIO_MTLS_SDS_ENABLED
+              value: "true"
 {{- end }}
 {{- if $global.glooMtls.sds.logLevel }}
-          - name: LOG_LEVEL
-            value: {{ $global.glooMtls.sds.logLevel }}
+            - name: LOG_LEVEL
+              value: {{ $global.glooMtls.sds.logLevel }}
 {{- end}}
 {{- if $statsConfig.enabled }}
-          - name: START_STATS_SERVER
-            value: "true"
+            - name: START_STATS_SERVER
+              value: "true"
 {{- end}}
-        volumeMounts:
+          volumeMounts:
 {{- if $global.glooMtls.enabled }}
-        - mountPath: /etc/envoy/ssl
-          name: gloo-mtls-certs
-          readOnly: true
+            - mountPath: /etc/envoy/ssl
+              name: gloo-mtls-certs
+              readOnly: true
 {{- end }}
 {{- if or $global.istioSDS.enabled $global.istioIntegration.enabled }}
-        - mountPath: /etc/istio-certs/
-          name: istio-certs
-        - mountPath: /etc/envoy
-          name: envoy-config
+            - mountPath: /etc/istio-certs/
+              name: istio-certs
+            - mountPath: /etc/envoy
+              name: envoy-config
 {{- end }}
-        ports:
-        - containerPort: 8234
-          name: sds
-          protocol: TCP
+          ports:
+            - containerPort: 8234
+              name: sds
+              protocol: TCP
         {{- if and $statsConfig.enabled $statsConfig.podMonitorEnabled }}
-        - name: http-monitoring
-          containerPort: 9091
+            - name: http-monitoring
+              containerPort: 9091
         {{- end }}
-        readinessProbe:
-          tcpSocket:
-            port: 8234
-          initialDelaySeconds: 3
-          periodSeconds: 10
-          failureThreshold: 3
+          readinessProbe:
+            tcpSocket:
+              port: 8234
+            initialDelaySeconds: 3
+            periodSeconds: 10
+            failureThreshold: 3
 {{- end }} {{- /* or $global.glooMtls.enabled (or $.Values.istioSDS.enabled $global.istioIntegration.enabled) */}}
 {{- if or $global.istioSDS.enabled $global.istioIntegration.enabled }}
 {{- if $global.istioSDS.customSidecars }}
 {{ toYaml $global.istioSDS.customSidecars | indent 6}}
 {{- end }}
 {{- if not $global.istioSDS.customSidecars }}
-      - name: istio-proxy
+        - name: istio-proxy
         {{- include "gloo.containerSecurityContext" (dict "values" $global.glooMtls.istioProxy.securityContext "podSecurityStandards" .Values.global.podSecurityStandards "indent" 8 "globalSec" $global.securitySettings) }}
         {{- $istioProxyImage := merge $global.glooMtls.istioProxy.image $global.image }}
-        image: {{ template "gloo.image" $istioProxyImage }}
-        imagePullPolicy: {{ $istioProxyImage.pullPolicy }}
+          image: {{ template "gloo.image" $istioProxyImage }}
+          imagePullPolicy: {{ $istioProxyImage.pullPolicy }}
         {{- if $global.glooMtls.envoySidecarResources }}
-        resources:
+          resources:
 {{ toYaml $global.glooMtls.envoySidecarResources | indent 10}}
         {{- end}}
-        args:
-        - proxy
-        - sidecar
-        - --domain
-        - $(POD_NAMESPACE).svc.cluster.local
-        - --configPath
-        - /etc/istio/proxy
-        - --serviceCluster
-        - istio-proxy-prometheus
-        - --drainDuration
-        - 45s
-        - --parentShutdownDuration
-        - 1m0s
-        - --proxyLogLevel={{ $global.glooMtls.istioProxy.logLevel }}
-        - --proxyComponentLogLevel=misc:error
-        - --connectTimeout
-        - 10s
-        - --controlPlaneAuthPolicy
-        - NONE
-        - --dnsRefreshRate
-        - 300s
-        - --controlPlaneBootstrap=false
-        env:
-          - name: OUTPUT_CERTS
-            value: "/etc/istio-certs"
-          - name: JWT_POLICY
-            value: third-party-jwt
-          - name: PILOT_CERT_PROVIDER
-            value: istiod
-          - name: CA_ADDR
-            value: {{ $spec.istioSpiffeCertProviderAddress | default $spec.istioDiscoveryAddress }}
-          - name: ISTIO_META_MESH_ID
-            value: {{ $spec.istioMetaMeshId | default "cluster.local"}}
-          - name: ISTIO_META_CLUSTER_ID
-            value: {{ $spec.istioMetaClusterId | default "Kubernetes"}}
-          - name: PROXY_CONFIG
-            value: |
-              {"discoveryAddress": {{ $spec.istioDiscoveryAddress }}}
-          - name: POD_NAME
-            valueFrom:
-              fieldRef:
-                fieldPath: metadata.name
-          - name: POD_NAMESPACE
-            valueFrom:
-              fieldRef:
-                fieldPath: metadata.namespace
-          - name: INSTANCE_IP
-            valueFrom:
-              fieldRef:
-                fieldPath: status.podIP
-          - name: SERVICE_ACCOUNT
-            valueFrom:
-              fieldRef:
-                fieldPath: spec.serviceAccountName
-          - name: HOST_IP
-            valueFrom:
-              fieldRef:
-                fieldPath: status.hostIP
-          - name: ISTIO_META_POD_NAME
-            valueFrom:
-              fieldRef:
-                apiVersion: v1
-                fieldPath: metadata.name
-          - name: ISTIO_META_CONFIG_NAMESPACE
-            valueFrom:
-              fieldRef:
-                apiVersion: v1
-                fieldPath: metadata.namespace
-          - name: DISABLE_ENVOY
-            value: "true"
-        volumeMounts:
-        - mountPath: /var/run/secrets/istio
-          name: istiod-ca-cert
-        - mountPath: /etc/istio/proxy
-          name: istio-envoy
-        - mountPath: /etc/istio-certs/
-          name: istio-certs
-        - mountPath: /var/run/secrets/tokens
-          name: istio-token
-        - mountPath: /var/run/secrets/credential-uds
-          name: credential-socket
-        - mountPath: /var/run/secrets/workload-spiffe-uds
-          name: workload-socket
-        - mountPath: /var/run/secrets/workload-spiffe-credentials
-          name: workload-certs
+          args:
+            - proxy
+            - sidecar
+            - --domain
+            - $(POD_NAMESPACE).svc.cluster.local
+            - --configPath
+            - /etc/istio/proxy
+            - --serviceCluster
+            - istio-proxy-prometheus
+            - --drainDuration
+            - 45s
+            - --parentShutdownDuration
+            - 1m0s
+            - --proxyLogLevel={{ $global.glooMtls.istioProxy.logLevel }}
+            - --proxyComponentLogLevel=misc:error
+            - --connectTimeout
+            - 10s
+            - --controlPlaneAuthPolicy
+            - NONE
+            - --dnsRefreshRate
+            - 300s
+            - --controlPlaneBootstrap=false
+          env:
+            - name: OUTPUT_CERTS
+              value: "/etc/istio-certs"
+            - name: JWT_POLICY
+              value: third-party-jwt
+            - name: PILOT_CERT_PROVIDER
+              value: istiod
+            - name: CA_ADDR
+              value: {{ $spec.istioSpiffeCertProviderAddress | default $spec.istioDiscoveryAddress }}
+            - name: ISTIO_META_MESH_ID
+              value: {{ $spec.istioMetaMeshId | default "cluster.local"}}
+            - name: ISTIO_META_CLUSTER_ID
+              value: {{ $spec.istioMetaClusterId | default "Kubernetes"}}
+            - name: PROXY_CONFIG
+              value: |
+                {"discoveryAddress": {{ $spec.istioDiscoveryAddress }}}
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: INSTANCE_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: SERVICE_ACCOUNT
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.serviceAccountName
+            - name: HOST_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+            - name: ISTIO_META_POD_NAME
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.name
+            - name: ISTIO_META_CONFIG_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.namespace
+            - name: DISABLE_ENVOY
+              value: "true"
+          volumeMounts:
+            - mountPath: /var/run/secrets/istio
+              name: istiod-ca-cert
+            - mountPath: /etc/istio/proxy
+              name: istio-envoy
+            - mountPath: /etc/istio-certs/
+              name: istio-certs
+            - mountPath: /var/run/secrets/tokens
+              name: istio-token
+            - mountPath: /var/run/secrets/credential-uds
+              name: credential-socket
+            - mountPath: /var/run/secrets/workload-spiffe-uds
+              name: workload-socket
+            - mountPath: /var/run/secrets/workload-spiffe-credentials
+              name: workload-certs
 {{- end }} {{/* if not $global.istioSDS.customSidecars */}}
 {{- end }}{{/* if or $global.istioSDS.enabled $global.istioIntegration.enabled */}}
       volumes:
-      - configMap:
-          name: {{ $name | kebabcase }}-envoy-config
-        name: envoy-config
+        - configMap:
+            name: {{ $name | kebabcase }}-envoy-config
+          name: envoy-config
 {{- if or $global.istioSDS.enabled $global.istioIntegration.enabled }}
-      - name: istio-certs
-        emptyDir:
-          medium: Memory
-      - name: istiod-ca-cert
-        configMap:
-          defaultMode: 420
-          name: istio-ca-root-cert
-      - emptyDir:
-          medium: Memory
-        name: istio-envoy
-      - name: istio-token
-        projected:
-          defaultMode: 420
-          sources:
-          - serviceAccountToken:
-              audience: istio-ca
-              expirationSeconds: 43200
-              path: istio-token
-      - name: credential-socket
-        emptyDir: {}
-      - name: workload-socket
-        emptyDir: {}
-      - name: workload-certs
-        emptyDir: {}
+        - name: istio-certs
+          emptyDir:
+            medium: Memory
+        - name: istiod-ca-cert
+          configMap:
+            defaultMode: 420
+            name: istio-ca-root-cert
+        - emptyDir:
+            medium: Memory
+          name: istio-envoy
+        - name: istio-token
+          projected:
+            defaultMode: 420
+            sources:
+              - serviceAccountToken:
+                  audience: istio-ca
+                  expirationSeconds: 43200
+                  path: istio-token
+        - name: credential-socket
+          emptyDir: {}
+        - name: workload-socket
+          emptyDir: {}
+        - name: workload-certs
+          emptyDir: {}
 {{- end}}
 
 {{- if $global.glooMtls.enabled }}
-      - name: gloo-mtls-certs
-        secret:
-          defaultMode: 420
-          secretName: gloo-mtls-certs
+        - name: gloo-mtls-certs
+          secret:
+            defaultMode: 420
+            secretName: gloo-mtls-certs
 {{- end }} {{/* if $global.glooMtls.enabled */}}
       {{- if $spec.extraContainersHelper }}
-      - name: shared-data
-        emptyDir: {}
+        - name: shared-data
+          emptyDir: {}
       {{- end }}
       {{- if $spec.extraVolumes }}
       {{ toYaml $spec.extraVolumes | nindent 6 }}

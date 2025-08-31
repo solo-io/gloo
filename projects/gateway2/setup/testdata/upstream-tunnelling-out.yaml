@@ -36,7 +36,7 @@ clusters:
     edsConfig:
       ads: {}
       resourceApiVersion: V3
-    serviceName: kube-svc:default-kubernetes-443_default-8057429479812104425
+    serviceName: kube-svc:default-kubernetes-443_default-2363148382108791817
   metadata: {}
   name: kube-svc:default-kubernetes-443_default
   transportSocketMatches:

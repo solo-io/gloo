@@ -40,6 +40,7 @@ type Global struct {
 	AdditionalLabels     map[string]string     `json:"additionalLabels,omitempty" desc:"Additional labels to add to all gloo resources."`
 	PodSecurityStandards *PodSecurityStandards `json:"podSecurityStandards,omitempty" desc:"Configuration related to [Pod Security Standards](https://kubernetes.io/docs/concepts/security/pod-security-standards/)."`
 	SecuritySettings     *SecuritySettings     `json:"securitySettings,omitempty" desc:"Global settings for pod and container security contexts"`
+	GlobalIpFamily       *string               `json:"globalIpFamily,omitempty" desc:"Specifies the IP family for managing listeners and upstream DNS resolution. Supported values for single stack include 'v6' or 'v4'. Dual stack supported values include 'dual-v6-pref' or 'dual-v4-pref'."`
 }
 
 type SecuritySettings struct {
@@ -231,10 +232,10 @@ type Settings struct {
 	RatelimitServer               interface{}             `json:"ratelimitServer,omitempty" desc:"External Ratelimit Server configuration for Gloo Edge Open Sources’s rate-limiting service, based on Envoy’s rate-limit service; supports Envoy’s rate-limit service API. (reference here: https://docs.solo.io/gloo-edge/main/guides/security/rate_limiting/)"`
 	CircuitBreakers               CircuitBreakersSettings `json:"circuitBreakers,omitempty" desc:"Set this to configure the circuit breaker settings for Gloo."`
 	EnableRestEds                 *bool                   `json:"enableRestEds,omitempty" desc:"Whether or not to use rest xds for all EDS by default. Defaults to false."`
-	// NOTE: DevMode is deprecated. See https://docs.solo.io/gloo-edge/latest/operations/debugging_gloo/#debugging-the-control-plane for more details.
-	DevMode       *bool         `json:"devMode,omitempty" desc:"Whether or not to enable dev mode. Defaults to false. Setting to true at install time will expose the gloo dev admin endpoint on port 10010. Not recommended for production. Warning: this value is deprecated as of 1.17 and will be removed in a future release."`
-	SecretOptions SecretOptions `json:"secretOptions,omitempty" desc:"Options for how Gloo Edge should handle secrets."`
+	SecretOptions                 SecretOptions           `json:"secretOptions,omitempty" desc:"Options for how Gloo Edge should handle secrets."`
 	*KubeResourceOverride
+	// NOTE: DevMode is deprecated. See https://docs.solo.io/gloo-edge/latest/operations/debugging_gloo/#debugging-the-control-plane for more details.
+	DevMode *bool `json:"devMode,omitempty" desc:"Whether or not to enable dev mode. Defaults to false. Setting to true at install time will expose the gloo dev admin endpoint on port 10010. Not recommended for production. Warning: this value is deprecated as of 1.17 and will be removed in a future release."`
 }
 
 type AwsSettings struct {

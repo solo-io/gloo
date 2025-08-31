@@ -20,6 +20,15 @@ spec:
 {{- toYaml .Values.settings.secretOptions.sources | nindent 6 }}
 {{- end }}
   gloo:
+{{- if eq "v6" .Values.global.globalIpFamily }}
+{{- if .Values.global.glooMtls.enabled }}
+    xdsBindAddr: "[::1]:9999"
+    restXdsBindAddr: "[::1]:9998"
+{{- else }}
+    xdsBindAddr: "[::]:{{ .Values.gloo.deployment.xdsPort }}"
+    restXdsBindAddr: "[::]:{{ .Values.gloo.deployment.restXdsPort }}"
+{{- end }}
+{{- else }}
 {{- if .Values.global.glooMtls.enabled }}
     xdsBindAddr: "127.0.0.1:9999"
     restXdsBindAddr: "127.0.0.1:9998"
@@ -27,7 +36,12 @@ spec:
     xdsBindAddr: "0.0.0.0:{{ .Values.gloo.deployment.xdsPort }}"
     restXdsBindAddr: "0.0.0.0:{{ .Values.gloo.deployment.restXdsPort }}"
 {{- end }}
+{{- end }}
+{{- if eq "v6" .Values.global.globalIpFamily }}
+    proxyDebugBindAddr: "[::]:{{ .Values.gloo.deployment.proxyDebugPort }}"
+{{- else }}
     proxyDebugBindAddr: "0.0.0.0:{{ .Values.gloo.deployment.proxyDebugPort }}"
+{{- end }}
     enableRestEds: {{ .Values.settings.enableRestEds | default false }}
 {{- /* .Values.settings.replaceInvalidRoutes for backwards compatibility */}}
 {{- if or (.Values.settings.invalidConfigPolicy) (.Values.settings.replaceInvalidRoutes) }}
@@ -201,9 +215,33 @@ spec:
   {{ toYaml .Values.settings.watchNamespaceSelectors | nindent 4 }}
 {{- end }} {{/* if .Values.settings.watchNamespaceSelectors */}}
 
+{{- if hasKey .Values.global "globalIpFamily" }}
+  upstreamOptions:
+    {{- if eq "v6" .Values.global.globalIpFamily }}
+    dnsLookupIpFamily: V6_ONLY
+    globalAnnotations:
+      gloo.solo.io/dns_ip_family: "v6"
+    {{- else if eq "dual-v6-pref" .Values.global.globalIpFamily }}
+    dnsLookupIpFamily: V6_PREFERRED
+    globalAnnotations:
+      gloo.solo.io/dns_ip_family: "v6_pref"
+    {{- else if eq "dual-v4-pref" .Values.global.globalIpFamily }}
+    dnsLookupIpFamily: V4_PREFERRED
+    globalAnnotations:
+      gloo.solo.io/dns_ip_family: "v4_pref"
+    {{- else if eq "dual" .Values.global.globalIpFamily }}
+    dnsLookupIpFamily: DUAL_IP_FAMILY
+    globalAnnotations:
+      gloo.solo.io/dns_ip_family: "dual"
+    {{- else }}
+    dnsLookupIpFamily: V4_ONLY
+    globalAnnotations:
+      gloo.solo.io/dns_ip_family: "v4"
+    {{- end }}
+{{- end }} {{/* if .Values.global.globalIpFamily */}}
+
 {{- end }} {{/* if .Values.settings.create  */}}
 {{- end }} {{/* define "settings.settingsSpec" */}}
-
 
 {{/* Render template with yaml overrides */}}
 {{- $kubeResourceOverride := dict -}}

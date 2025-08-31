@@ -40,6 +40,74 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// For managing IP families for DNS lookups
+type DnsIpFamily int32
+
+const (
+	// Defers to IPv4 as the default mode.
+	DnsIpFamily_DEFAULT DnsIpFamily = 0
+	// This defaults to IPv4 only family when performing DNS address lookup.
+	DnsIpFamily_V4_ONLY DnsIpFamily = 1
+	// If V4_PREFERRED is specified, the DNS resolver will first perform a lookup for addresses in the IPv4 family and
+	// fallback to a lookup for addresses in the IPv6 family.
+	DnsIpFamily_V4_PREFERRED DnsIpFamily = 2
+	// Forces DNS lookup to IPv6 only addresses.
+	DnsIpFamily_V6_ONLY DnsIpFamily = 3
+	// If V6_PREFERRED is specified, the DNS resolver will first perform a lookup for addresses in the IPv6 family and fallback
+	// to a lookup for addresses in the IPv4 family.
+	DnsIpFamily_V6_PREFERRED DnsIpFamily = 4
+	// This will manage both V4 and V6 address families. When this option is used Happy Eyeballs will be enabled for upstream connections.
+	// Refer to https://www.envoyproxy.io/docs/envoy/latest/intro/arch_overview/upstream/connection_pooling#arch-overview-happy-eyeballs
+	DnsIpFamily_DUAL_IP_FAMILY DnsIpFamily = 5
+)
+
+// Enum value maps for DnsIpFamily.
+var (
+	DnsIpFamily_name = map[int32]string{
+		0: "DEFAULT",
+		1: "V4_ONLY",
+		2: "V4_PREFERRED",
+		3: "V6_ONLY",
+		4: "V6_PREFERRED",
+		5: "DUAL_IP_FAMILY",
+	}
+	DnsIpFamily_value = map[string]int32{
+		"DEFAULT":        0,
+		"V4_ONLY":        1,
+		"V4_PREFERRED":   2,
+		"V6_ONLY":        3,
+		"V6_PREFERRED":   4,
+		"DUAL_IP_FAMILY": 5,
+	}
+)
+
+func (x DnsIpFamily) Enum() *DnsIpFamily {
+	p := new(DnsIpFamily)
+	*p = x
+	return p
+}
+
+func (x DnsIpFamily) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (DnsIpFamily) Descriptor() protoreflect.EnumDescriptor {
+	return file_github_com_solo_io_gloo_projects_gloo_api_v1_upstream_proto_enumTypes[0].Descriptor()
+}
+
+func (DnsIpFamily) Type() protoreflect.EnumType {
+	return &file_github_com_solo_io_gloo_projects_gloo_api_v1_upstream_proto_enumTypes[0]
+}
+
+func (x DnsIpFamily) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use DnsIpFamily.Descriptor instead.
+func (DnsIpFamily) EnumDescriptor() ([]byte, []int) {
+	return file_github_com_solo_io_gloo_projects_gloo_api_v1_upstream_proto_rawDescGZIP(), []int{0}
+}
+
 type Upstream_ClusterProtocolSelection int32
 
 const (
@@ -74,11 +142,11 @@ func (x Upstream_ClusterProtocolSelection) String() string {
 }
 
 func (Upstream_ClusterProtocolSelection) Descriptor() protoreflect.EnumDescriptor {
-	return file_github_com_solo_io_gloo_projects_gloo_api_v1_upstream_proto_enumTypes[0].Descriptor()
+	return file_github_com_solo_io_gloo_projects_gloo_api_v1_upstream_proto_enumTypes[1].Descriptor()
 }
 
 func (Upstream_ClusterProtocolSelection) Type() protoreflect.EnumType {
-	return &file_github_com_solo_io_gloo_projects_gloo_api_v1_upstream_proto_enumTypes[0]
+	return &file_github_com_solo_io_gloo_projects_gloo_api_v1_upstream_proto_enumTypes[1]
 }
 
 func (x Upstream_ClusterProtocolSelection) Number() protoreflect.EnumNumber {
@@ -211,8 +279,16 @@ type Upstream struct {
 	// If set to true, the proxy will not allow automatic mTLS detection for Istio upstreams.
 	// Defaults to false.
 	DisableIstioAutoMtls *wrapperspb.BoolValue `protobuf:"bytes,33,opt,name=disable_istio_auto_mtls,json=disableIstioAutoMtls,proto3" json:"disable_istio_auto_mtls,omitempty"`
-	unknownFields        protoimpl.UnknownFields
-	sizeCache            protoimpl.SizeCache
+	// Provides the ability to override the globally configured IP family setting for DNS lookups.
+	// - For V4 environments use `V4_ONLY`.
+	// - For V6 environments the preferred option is `V6_ONLY`.
+	// - For environments that support dual stack family, i.e. both V4 and V6:
+	// -   use the option `V4_PREFERRED`. The DNS resolver performs an IPv4 lookup first, and falls back to IPv6 only if no IPv4 addresses are returned. The callback target receives IPv6 addresses only when IPv4 results are unavailable.
+	// -   similarly, use `V6_PREFERRED` for instances where IPv6 is preferred over IPv4.
+	// -   If `DUAL_IP_FAMILY` is specified, the DNS resolver queries both IPv4 and IPv6 records and returns all resolved addresses. In this mode, Happy Eyeballs is enabled for upstream connections. This is particularly applicable in IPv6 environments, such as AWS EKS IPv6 with DNS64 and NAT64, where SNAT to IPv4 addresses is supported.
+	DnsLookupIpFamily DnsIpFamily `protobuf:"varint,40,opt,name=dns_lookup_ip_family,json=dnsLookupIpFamily,proto3,enum=gloo.solo.io.DnsIpFamily" json:"dns_lookup_ip_family,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
 }
 
 func (x *Upstream) Reset() {
@@ -508,6 +584,13 @@ func (x *Upstream) GetDisableIstioAutoMtls() *wrapperspb.BoolValue {
 	return nil
 }
 
+func (x *Upstream) GetDnsLookupIpFamily() DnsIpFamily {
+	if x != nil {
+		return x.DnsLookupIpFamily
+	}
+	return DnsIpFamily_DEFAULT
+}
+
 type isUpstream_UpstreamType interface {
 	isUpstream_UpstreamType()
 }
@@ -769,7 +852,7 @@ var File_github_com_solo_io_gloo_projects_gloo_api_v1_upstream_proto protoreflec
 
 const file_github_com_solo_io_gloo_projects_gloo_api_v1_upstream_proto_rawDesc = "" +
 	"\n" +
-	";github.com/solo-io/gloo/projects/gloo/api/v1/upstream.proto\x12\fgloo.solo.io\x1a\x12extproto/ext.proto\x1a1github.com/solo-io/solo-kit/api/v1/metadata.proto\x1a:github.com/solo-io/gloo/projects/gloo/api/v1/ssl/ssl.proto\x1aRgithub.com/solo-io/gloo/projects/gloo/api/v1/circuit_breaker/circuit_breaker.proto\x1a@github.com/solo-io/gloo/projects/gloo/api/v1/load_balancer.proto\x1a=github.com/solo-io/gloo/projects/gloo/api/v1/connection.proto\x1aWgithub.com/solo-io/gloo/projects/gloo/api/external/envoy/api/v2/core/health_check.proto\x1a/github.com/solo-io/solo-kit/api/v1/status.proto\x1a_github.com/solo-io/gloo/projects/gloo/api/external/envoy/api/v2/cluster/outlier_detection.proto\x1a1github.com/solo-io/solo-kit/api/v1/solo-kit.proto\x1aHgithub.com/solo-io/gloo/projects/gloo/api/v1/options/static/static.proto\x1aDgithub.com/solo-io/gloo/projects/gloo/api/v1/options/pipe/pipe.proto\x1aPgithub.com/solo-io/gloo/projects/gloo/api/v1/options/kubernetes/kubernetes.proto\x1aBgithub.com/solo-io/gloo/projects/gloo/api/v1/options/aws/aws.proto\x1aFgithub.com/solo-io/gloo/projects/gloo/api/v1/options/azure/azure.proto\x1aHgithub.com/solo-io/gloo/projects/gloo/api/v1/options/consul/consul.proto\x1aJgithub.com/solo-io/gloo/projects/gloo/api/v1/options/aws/ec2/aws_ec2.proto\x1a;github.com/solo-io/gloo/projects/gloo/api/v1/failover.proto\x1aMgithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/gcp/gcp.proto\x1aKgithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/ai/ai.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1egoogle/protobuf/wrappers.proto\x1a\x17validate/validate.proto\"\xb4\x15\n" +
+	";github.com/solo-io/gloo/projects/gloo/api/v1/upstream.proto\x12\fgloo.solo.io\x1a\x12extproto/ext.proto\x1a1github.com/solo-io/solo-kit/api/v1/metadata.proto\x1a:github.com/solo-io/gloo/projects/gloo/api/v1/ssl/ssl.proto\x1aRgithub.com/solo-io/gloo/projects/gloo/api/v1/circuit_breaker/circuit_breaker.proto\x1a@github.com/solo-io/gloo/projects/gloo/api/v1/load_balancer.proto\x1a=github.com/solo-io/gloo/projects/gloo/api/v1/connection.proto\x1aWgithub.com/solo-io/gloo/projects/gloo/api/external/envoy/api/v2/core/health_check.proto\x1a/github.com/solo-io/solo-kit/api/v1/status.proto\x1a_github.com/solo-io/gloo/projects/gloo/api/external/envoy/api/v2/cluster/outlier_detection.proto\x1a1github.com/solo-io/solo-kit/api/v1/solo-kit.proto\x1aHgithub.com/solo-io/gloo/projects/gloo/api/v1/options/static/static.proto\x1aDgithub.com/solo-io/gloo/projects/gloo/api/v1/options/pipe/pipe.proto\x1aPgithub.com/solo-io/gloo/projects/gloo/api/v1/options/kubernetes/kubernetes.proto\x1aBgithub.com/solo-io/gloo/projects/gloo/api/v1/options/aws/aws.proto\x1aFgithub.com/solo-io/gloo/projects/gloo/api/v1/options/azure/azure.proto\x1aHgithub.com/solo-io/gloo/projects/gloo/api/v1/options/consul/consul.proto\x1aJgithub.com/solo-io/gloo/projects/gloo/api/v1/options/aws/ec2/aws_ec2.proto\x1a;github.com/solo-io/gloo/projects/gloo/api/v1/failover.proto\x1aMgithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/gcp/gcp.proto\x1aKgithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/ai/ai.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1egoogle/protobuf/wrappers.proto\x1a\x17validate/validate.proto\"\x80\x16\n" +
 	"\bUpstream\x12W\n" +
 	"\x13namespaced_statuses\x18\x17 \x01(\v2 .core.solo.io.NamespacedStatusesB\x04\xb8\xf5\x04\x01R\x12namespacedStatuses\x122\n" +
 	"\bmetadata\x18\x02 \x01(\v2\x16.core.solo.io.MetadataR\bmetadata\x12N\n" +
@@ -806,7 +889,8 @@ const file_github_com_solo_io_gloo_projects_gloo_api_v1_upstream_proto_rawDesc =
 	"\x10dns_refresh_rate\x18\x1e \x01(\v2\x19.google.protobuf.DurationR\x0ednsRefreshRate\x12R\n" +
 	"\x16proxy_protocol_version\x18\x1f \x01(\v2\x1c.google.protobuf.StringValueR\x14proxyProtocolVersion\x12K\n" +
 	"\x11preconnect_policy\x18  \x01(\v2\x1e.gloo.solo.io.PreconnectPolicyR\x10preconnectPolicy\x12Q\n" +
-	"\x17disable_istio_auto_mtls\x18! \x01(\v2\x1a.google.protobuf.BoolValueR\x14disableIstioAutoMtls\"T\n" +
+	"\x17disable_istio_auto_mtls\x18! \x01(\v2\x1a.google.protobuf.BoolValueR\x14disableIstioAutoMtls\x12J\n" +
+	"\x14dns_lookup_ip_family\x18( \x01(\x0e2\x19.gloo.solo.io.DnsIpFamilyR\x11dnsLookupIpFamily\"T\n" +
 	"\x18ClusterProtocolSelection\x12\x1b\n" +
 	"\x17USE_CONFIGURED_PROTOCOL\x10\x00\x12\x1b\n" +
 	"\x17USE_DOWNSTREAM_PROTOCOL\x10\x01:\x13\x82\xf1\x04\x0f\n" +
@@ -822,7 +906,14 @@ const file_github_com_solo_io_gloo_projects_gloo_api_v1_upstream_proto_rawDesc =
 	"\x05value\x18\x02 \x01(\tR\x05value\"\x83\x02\n" +
 	"\x10PreconnectPolicy\x12x\n" +
 	"\x1dper_upstream_preconnect_ratio\x18\x01 \x01(\v2\x1c.google.protobuf.DoubleValueB\x17\xfaB\x14\x12\x12\x19\x00\x00\x00\x00\x00\x00\b@)\x00\x00\x00\x00\x00\x00\xf0?R\x1aperUpstreamPreconnectRatio\x12u\n" +
-	"\x1bpredictive_preconnect_ratio\x18\x02 \x01(\v2\x1c.google.protobuf.DoubleValueB\x17\xfaB\x14\x12\x12\x19\x00\x00\x00\x00\x00\x00\b@)\x00\x00\x00\x00\x00\x00\xf0?R\x19predictivePreconnectRatioB>\xb8\xf5\x04\x01\xc0\xf5\x04\x01\xd0\xf5\x04\x01Z0github.com/solo-io/gloo/projects/gloo/pkg/api/v1b\x06proto3"
+	"\x1bpredictive_preconnect_ratio\x18\x02 \x01(\v2\x1c.google.protobuf.DoubleValueB\x17\xfaB\x14\x12\x12\x19\x00\x00\x00\x00\x00\x00\b@)\x00\x00\x00\x00\x00\x00\xf0?R\x19predictivePreconnectRatio*l\n" +
+	"\vDnsIpFamily\x12\v\n" +
+	"\aDEFAULT\x10\x00\x12\v\n" +
+	"\aV4_ONLY\x10\x01\x12\x10\n" +
+	"\fV4_PREFERRED\x10\x02\x12\v\n" +
+	"\aV6_ONLY\x10\x03\x12\x10\n" +
+	"\fV6_PREFERRED\x10\x04\x12\x12\n" +
+	"\x0eDUAL_IP_FAMILY\x10\x05B>\xb8\xf5\x04\x01\xc0\xf5\x04\x01\xd0\xf5\x04\x01Z0github.com/solo-io/gloo/projects/gloo/pkg/api/v1b\x06proto3"
 
 var (
 	file_github_com_solo_io_gloo_projects_gloo_api_v1_upstream_proto_rawDescOnce sync.Once
@@ -836,82 +927,84 @@ func file_github_com_solo_io_gloo_projects_gloo_api_v1_upstream_proto_rawDescGZI
 	return file_github_com_solo_io_gloo_projects_gloo_api_v1_upstream_proto_rawDescData
 }
 
-var file_github_com_solo_io_gloo_projects_gloo_api_v1_upstream_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_github_com_solo_io_gloo_projects_gloo_api_v1_upstream_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
 var file_github_com_solo_io_gloo_projects_gloo_api_v1_upstream_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
 var file_github_com_solo_io_gloo_projects_gloo_api_v1_upstream_proto_goTypes = []any{
-	(Upstream_ClusterProtocolSelection)(0),       // 0: gloo.solo.io.Upstream.ClusterProtocolSelection
-	(*Upstream)(nil),                             // 1: gloo.solo.io.Upstream
-	(*DiscoveryMetadata)(nil),                    // 2: gloo.solo.io.DiscoveryMetadata
-	(*HeaderValue)(nil),                          // 3: gloo.solo.io.HeaderValue
-	(*PreconnectPolicy)(nil),                     // 4: gloo.solo.io.PreconnectPolicy
-	nil,                                          // 5: gloo.solo.io.DiscoveryMetadata.LabelsEntry
-	(*core.NamespacedStatuses)(nil),              // 6: core.solo.io.NamespacedStatuses
-	(*core.Metadata)(nil),                        // 7: core.solo.io.Metadata
-	(*ssl.UpstreamSslConfig)(nil),                // 8: gloo.solo.io.UpstreamSslConfig
-	(*circuit_breaker.CircuitBreakerConfig)(nil), // 9: gloo.solo.io.CircuitBreakerConfig
-	(*LoadBalancerConfig)(nil),                   // 10: gloo.solo.io.LoadBalancerConfig
-	(*core1.HealthCheck)(nil),                    // 11: solo.io.envoy.api.v2.core.HealthCheck
-	(*cluster.OutlierDetection)(nil),             // 12: solo.io.envoy.api.v2.cluster.OutlierDetection
-	(*kubernetes.UpstreamSpec)(nil),              // 13: kubernetes.options.gloo.solo.io.UpstreamSpec
-	(*static.UpstreamSpec)(nil),                  // 14: static.options.gloo.solo.io.UpstreamSpec
-	(*pipe.UpstreamSpec)(nil),                    // 15: pipe.options.gloo.solo.io.UpstreamSpec
-	(*aws.UpstreamSpec)(nil),                     // 16: aws.options.gloo.solo.io.UpstreamSpec
-	(*azure.UpstreamSpec)(nil),                   // 17: azure.options.gloo.solo.io.UpstreamSpec
-	(*consul.UpstreamSpec)(nil),                  // 18: consul.options.gloo.solo.io.UpstreamSpec
-	(*ec2.UpstreamSpec)(nil),                     // 19: aws_ec2.options.gloo.solo.io.UpstreamSpec
-	(*gcp.UpstreamSpec)(nil),                     // 20: gcp.options.gloo.solo.io.UpstreamSpec
-	(*ai.UpstreamSpec)(nil),                      // 21: ai.options.gloo.solo.io.UpstreamSpec
-	(*Failover)(nil),                             // 22: gloo.solo.io.Failover
-	(*ConnectionConfig)(nil),                     // 23: gloo.solo.io.ConnectionConfig
-	(*wrapperspb.BoolValue)(nil),                 // 24: google.protobuf.BoolValue
-	(*wrapperspb.UInt32Value)(nil),               // 25: google.protobuf.UInt32Value
-	(*wrapperspb.StringValue)(nil),               // 26: google.protobuf.StringValue
-	(*durationpb.Duration)(nil),                  // 27: google.protobuf.Duration
-	(*wrapperspb.DoubleValue)(nil),               // 28: google.protobuf.DoubleValue
+	(DnsIpFamily)(0),                             // 0: gloo.solo.io.DnsIpFamily
+	(Upstream_ClusterProtocolSelection)(0),       // 1: gloo.solo.io.Upstream.ClusterProtocolSelection
+	(*Upstream)(nil),                             // 2: gloo.solo.io.Upstream
+	(*DiscoveryMetadata)(nil),                    // 3: gloo.solo.io.DiscoveryMetadata
+	(*HeaderValue)(nil),                          // 4: gloo.solo.io.HeaderValue
+	(*PreconnectPolicy)(nil),                     // 5: gloo.solo.io.PreconnectPolicy
+	nil,                                          // 6: gloo.solo.io.DiscoveryMetadata.LabelsEntry
+	(*core.NamespacedStatuses)(nil),              // 7: core.solo.io.NamespacedStatuses
+	(*core.Metadata)(nil),                        // 8: core.solo.io.Metadata
+	(*ssl.UpstreamSslConfig)(nil),                // 9: gloo.solo.io.UpstreamSslConfig
+	(*circuit_breaker.CircuitBreakerConfig)(nil), // 10: gloo.solo.io.CircuitBreakerConfig
+	(*LoadBalancerConfig)(nil),                   // 11: gloo.solo.io.LoadBalancerConfig
+	(*core1.HealthCheck)(nil),                    // 12: solo.io.envoy.api.v2.core.HealthCheck
+	(*cluster.OutlierDetection)(nil),             // 13: solo.io.envoy.api.v2.cluster.OutlierDetection
+	(*kubernetes.UpstreamSpec)(nil),              // 14: kubernetes.options.gloo.solo.io.UpstreamSpec
+	(*static.UpstreamSpec)(nil),                  // 15: static.options.gloo.solo.io.UpstreamSpec
+	(*pipe.UpstreamSpec)(nil),                    // 16: pipe.options.gloo.solo.io.UpstreamSpec
+	(*aws.UpstreamSpec)(nil),                     // 17: aws.options.gloo.solo.io.UpstreamSpec
+	(*azure.UpstreamSpec)(nil),                   // 18: azure.options.gloo.solo.io.UpstreamSpec
+	(*consul.UpstreamSpec)(nil),                  // 19: consul.options.gloo.solo.io.UpstreamSpec
+	(*ec2.UpstreamSpec)(nil),                     // 20: aws_ec2.options.gloo.solo.io.UpstreamSpec
+	(*gcp.UpstreamSpec)(nil),                     // 21: gcp.options.gloo.solo.io.UpstreamSpec
+	(*ai.UpstreamSpec)(nil),                      // 22: ai.options.gloo.solo.io.UpstreamSpec
+	(*Failover)(nil),                             // 23: gloo.solo.io.Failover
+	(*ConnectionConfig)(nil),                     // 24: gloo.solo.io.ConnectionConfig
+	(*wrapperspb.BoolValue)(nil),                 // 25: google.protobuf.BoolValue
+	(*wrapperspb.UInt32Value)(nil),               // 26: google.protobuf.UInt32Value
+	(*wrapperspb.StringValue)(nil),               // 27: google.protobuf.StringValue
+	(*durationpb.Duration)(nil),                  // 28: google.protobuf.Duration
+	(*wrapperspb.DoubleValue)(nil),               // 29: google.protobuf.DoubleValue
 }
 var file_github_com_solo_io_gloo_projects_gloo_api_v1_upstream_proto_depIdxs = []int32{
-	6,  // 0: gloo.solo.io.Upstream.namespaced_statuses:type_name -> core.solo.io.NamespacedStatuses
-	7,  // 1: gloo.solo.io.Upstream.metadata:type_name -> core.solo.io.Metadata
-	2,  // 2: gloo.solo.io.Upstream.discovery_metadata:type_name -> gloo.solo.io.DiscoveryMetadata
-	8,  // 3: gloo.solo.io.Upstream.ssl_config:type_name -> gloo.solo.io.UpstreamSslConfig
-	9,  // 4: gloo.solo.io.Upstream.circuit_breakers:type_name -> gloo.solo.io.CircuitBreakerConfig
-	10, // 5: gloo.solo.io.Upstream.load_balancer_config:type_name -> gloo.solo.io.LoadBalancerConfig
-	11, // 6: gloo.solo.io.Upstream.health_checks:type_name -> solo.io.envoy.api.v2.core.HealthCheck
-	12, // 7: gloo.solo.io.Upstream.outlier_detection:type_name -> solo.io.envoy.api.v2.cluster.OutlierDetection
-	13, // 8: gloo.solo.io.Upstream.kube:type_name -> kubernetes.options.gloo.solo.io.UpstreamSpec
-	14, // 9: gloo.solo.io.Upstream.static:type_name -> static.options.gloo.solo.io.UpstreamSpec
-	15, // 10: gloo.solo.io.Upstream.pipe:type_name -> pipe.options.gloo.solo.io.UpstreamSpec
-	16, // 11: gloo.solo.io.Upstream.aws:type_name -> aws.options.gloo.solo.io.UpstreamSpec
-	17, // 12: gloo.solo.io.Upstream.azure:type_name -> azure.options.gloo.solo.io.UpstreamSpec
-	18, // 13: gloo.solo.io.Upstream.consul:type_name -> consul.options.gloo.solo.io.UpstreamSpec
-	19, // 14: gloo.solo.io.Upstream.aws_ec2:type_name -> aws_ec2.options.gloo.solo.io.UpstreamSpec
-	20, // 15: gloo.solo.io.Upstream.gcp:type_name -> gcp.options.gloo.solo.io.UpstreamSpec
-	21, // 16: gloo.solo.io.Upstream.ai:type_name -> ai.options.gloo.solo.io.UpstreamSpec
-	22, // 17: gloo.solo.io.Upstream.failover:type_name -> gloo.solo.io.Failover
-	23, // 18: gloo.solo.io.Upstream.connection_config:type_name -> gloo.solo.io.ConnectionConfig
-	0,  // 19: gloo.solo.io.Upstream.protocol_selection:type_name -> gloo.solo.io.Upstream.ClusterProtocolSelection
-	24, // 20: gloo.solo.io.Upstream.use_http2:type_name -> google.protobuf.BoolValue
-	25, // 21: gloo.solo.io.Upstream.initial_stream_window_size:type_name -> google.protobuf.UInt32Value
-	25, // 22: gloo.solo.io.Upstream.initial_connection_window_size:type_name -> google.protobuf.UInt32Value
-	25, // 23: gloo.solo.io.Upstream.max_concurrent_streams:type_name -> google.protobuf.UInt32Value
-	24, // 24: gloo.solo.io.Upstream.override_stream_error_on_invalid_http_message:type_name -> google.protobuf.BoolValue
-	26, // 25: gloo.solo.io.Upstream.http_proxy_hostname:type_name -> google.protobuf.StringValue
-	8,  // 26: gloo.solo.io.Upstream.http_connect_ssl_config:type_name -> gloo.solo.io.UpstreamSslConfig
-	3,  // 27: gloo.solo.io.Upstream.http_connect_headers:type_name -> gloo.solo.io.HeaderValue
-	24, // 28: gloo.solo.io.Upstream.ignore_health_on_host_removal:type_name -> google.protobuf.BoolValue
-	24, // 29: gloo.solo.io.Upstream.respect_dns_ttl:type_name -> google.protobuf.BoolValue
-	27, // 30: gloo.solo.io.Upstream.dns_refresh_rate:type_name -> google.protobuf.Duration
-	26, // 31: gloo.solo.io.Upstream.proxy_protocol_version:type_name -> google.protobuf.StringValue
-	4,  // 32: gloo.solo.io.Upstream.preconnect_policy:type_name -> gloo.solo.io.PreconnectPolicy
-	24, // 33: gloo.solo.io.Upstream.disable_istio_auto_mtls:type_name -> google.protobuf.BoolValue
-	5,  // 34: gloo.solo.io.DiscoveryMetadata.labels:type_name -> gloo.solo.io.DiscoveryMetadata.LabelsEntry
-	28, // 35: gloo.solo.io.PreconnectPolicy.per_upstream_preconnect_ratio:type_name -> google.protobuf.DoubleValue
-	28, // 36: gloo.solo.io.PreconnectPolicy.predictive_preconnect_ratio:type_name -> google.protobuf.DoubleValue
-	37, // [37:37] is the sub-list for method output_type
-	37, // [37:37] is the sub-list for method input_type
-	37, // [37:37] is the sub-list for extension type_name
-	37, // [37:37] is the sub-list for extension extendee
-	0,  // [0:37] is the sub-list for field type_name
+	7,  // 0: gloo.solo.io.Upstream.namespaced_statuses:type_name -> core.solo.io.NamespacedStatuses
+	8,  // 1: gloo.solo.io.Upstream.metadata:type_name -> core.solo.io.Metadata
+	3,  // 2: gloo.solo.io.Upstream.discovery_metadata:type_name -> gloo.solo.io.DiscoveryMetadata
+	9,  // 3: gloo.solo.io.Upstream.ssl_config:type_name -> gloo.solo.io.UpstreamSslConfig
+	10, // 4: gloo.solo.io.Upstream.circuit_breakers:type_name -> gloo.solo.io.CircuitBreakerConfig
+	11, // 5: gloo.solo.io.Upstream.load_balancer_config:type_name -> gloo.solo.io.LoadBalancerConfig
+	12, // 6: gloo.solo.io.Upstream.health_checks:type_name -> solo.io.envoy.api.v2.core.HealthCheck
+	13, // 7: gloo.solo.io.Upstream.outlier_detection:type_name -> solo.io.envoy.api.v2.cluster.OutlierDetection
+	14, // 8: gloo.solo.io.Upstream.kube:type_name -> kubernetes.options.gloo.solo.io.UpstreamSpec
+	15, // 9: gloo.solo.io.Upstream.static:type_name -> static.options.gloo.solo.io.UpstreamSpec
+	16, // 10: gloo.solo.io.Upstream.pipe:type_name -> pipe.options.gloo.solo.io.UpstreamSpec
+	17, // 11: gloo.solo.io.Upstream.aws:type_name -> aws.options.gloo.solo.io.UpstreamSpec
+	18, // 12: gloo.solo.io.Upstream.azure:type_name -> azure.options.gloo.solo.io.UpstreamSpec
+	19, // 13: gloo.solo.io.Upstream.consul:type_name -> consul.options.gloo.solo.io.UpstreamSpec
+	20, // 14: gloo.solo.io.Upstream.aws_ec2:type_name -> aws_ec2.options.gloo.solo.io.UpstreamSpec
+	21, // 15: gloo.solo.io.Upstream.gcp:type_name -> gcp.options.gloo.solo.io.UpstreamSpec
+	22, // 16: gloo.solo.io.Upstream.ai:type_name -> ai.options.gloo.solo.io.UpstreamSpec
+	23, // 17: gloo.solo.io.Upstream.failover:type_name -> gloo.solo.io.Failover
+	24, // 18: gloo.solo.io.Upstream.connection_config:type_name -> gloo.solo.io.ConnectionConfig
+	1,  // 19: gloo.solo.io.Upstream.protocol_selection:type_name -> gloo.solo.io.Upstream.ClusterProtocolSelection
+	25, // 20: gloo.solo.io.Upstream.use_http2:type_name -> google.protobuf.BoolValue
+	26, // 21: gloo.solo.io.Upstream.initial_stream_window_size:type_name -> google.protobuf.UInt32Value
+	26, // 22: gloo.solo.io.Upstream.initial_connection_window_size:type_name -> google.protobuf.UInt32Value
+	26, // 23: gloo.solo.io.Upstream.max_concurrent_streams:type_name -> google.protobuf.UInt32Value
+	25, // 24: gloo.solo.io.Upstream.override_stream_error_on_invalid_http_message:type_name -> google.protobuf.BoolValue
+	27, // 25: gloo.solo.io.Upstream.http_proxy_hostname:type_name -> google.protobuf.StringValue
+	9,  // 26: gloo.solo.io.Upstream.http_connect_ssl_config:type_name -> gloo.solo.io.UpstreamSslConfig
+	4,  // 27: gloo.solo.io.Upstream.http_connect_headers:type_name -> gloo.solo.io.HeaderValue
+	25, // 28: gloo.solo.io.Upstream.ignore_health_on_host_removal:type_name -> google.protobuf.BoolValue
+	25, // 29: gloo.solo.io.Upstream.respect_dns_ttl:type_name -> google.protobuf.BoolValue
+	28, // 30: gloo.solo.io.Upstream.dns_refresh_rate:type_name -> google.protobuf.Duration
+	27, // 31: gloo.solo.io.Upstream.proxy_protocol_version:type_name -> google.protobuf.StringValue
+	5,  // 32: gloo.solo.io.Upstream.preconnect_policy:type_name -> gloo.solo.io.PreconnectPolicy
+	25, // 33: gloo.solo.io.Upstream.disable_istio_auto_mtls:type_name -> google.protobuf.BoolValue
+	0,  // 34: gloo.solo.io.Upstream.dns_lookup_ip_family:type_name -> gloo.solo.io.DnsIpFamily
+	6,  // 35: gloo.solo.io.DiscoveryMetadata.labels:type_name -> gloo.solo.io.DiscoveryMetadata.LabelsEntry
+	29, // 36: gloo.solo.io.PreconnectPolicy.per_upstream_preconnect_ratio:type_name -> google.protobuf.DoubleValue
+	29, // 37: gloo.solo.io.PreconnectPolicy.predictive_preconnect_ratio:type_name -> google.protobuf.DoubleValue
+	38, // [38:38] is the sub-list for method output_type
+	38, // [38:38] is the sub-list for method input_type
+	38, // [38:38] is the sub-list for extension type_name
+	38, // [38:38] is the sub-list for extension extendee
+	0,  // [0:38] is the sub-list for field type_name
 }
 
 func init() { file_github_com_solo_io_gloo_projects_gloo_api_v1_upstream_proto_init() }
@@ -938,7 +1031,7 @@ func file_github_com_solo_io_gloo_projects_gloo_api_v1_upstream_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_github_com_solo_io_gloo_projects_gloo_api_v1_upstream_proto_rawDesc), len(file_github_com_solo_io_gloo_projects_gloo_api_v1_upstream_proto_rawDesc)),
-			NumEnums:      1,
+			NumEnums:      2,
 			NumMessages:   5,
 			NumExtensions: 0,
 			NumServices:   0,

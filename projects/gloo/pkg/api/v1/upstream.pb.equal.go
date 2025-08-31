@@ -304,6 +304,10 @@ func (m *Upstream) Equal(that interface{}) bool {
 		}
 	}
 
+	if m.GetDnsLookupIpFamily() != target.GetDnsLookupIpFamily() {
+		return false
+	}
+
 	switch m.UpstreamType.(type) {
 
 	case *Upstream_Kube:

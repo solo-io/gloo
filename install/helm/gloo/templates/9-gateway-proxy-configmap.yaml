@@ -58,7 +58,18 @@ data:
         - name: prometheus_listener
           address:
             socket_address:
-              address: 0.0.0.0
+{{- if hasKey .Values.global "globalIpFamily" }}
+{{- if eq "v6" .Values.global.globalIpFamily }}
+              address: "::"
+{{- else if or (eq "dual" .Values.global.globalIpFamily) (eq "dual-v6-pref" .Values.global.globalIpFamily) }}
+              address: "::"
+              ipv4_compat: true
+{{- else }}
+              address: "0.0.0.0"
+{{- end }}
+{{- else }}
+              address: "0.0.0.0"
+{{- end }}
               port_value: 8081
           filter_chains:
             - filters:
@@ -108,7 +119,18 @@ data:
         - name: read_config_listener
           address:
             socket_address:
-              address: 0.0.0.0
+{{- if hasKey .Values.global "globalIpFamily" }}
+{{- if eq "v6" .Values.global.globalIpFamily }}
+              address: "::"
+{{- else if or (eq "dual" .Values.global.globalIpFamily) (eq "dual-v6-pref" .Values.global.globalIpFamily) }}
+              address: "::"
+              ipv4_compat: true
+{{- else }}
+              address: "0.0.0.0"
+{{- end }}
+{{- else }}
+              address: "0.0.0.0"
+{{- end }}
               port_value: 8082
           filter_chains:
             - filters:
@@ -215,7 +237,15 @@ data:
             - endpoint:
                 address:
                   socket_address:
-                    address: 127.0.0.1
+{{- if hasKey .Values.global "globalIpFamily" }}
+{{- if or (eq "v6" .Values.global.globalIpFamily) (eq "dual" .Values.global.globalIpFamily) (eq "dual-v6-pref" .Values.global.globalIpFamily) }}
+                    address: "::1"
+{{- else }}
+                    address: "127.0.0.1"
+{{- end }}
+{{- else }}
+                    address: "127.0.0.1"
+{{- end }}
                     port_value: 8234
 {{- end }}
       - name: rest_xds_cluster
@@ -341,7 +371,15 @@ data:
             - endpoint:
                 address:
                   socket_address:
+{{- if hasKey .Values.global "globalIpFamily" }}
+{{- if or (eq "v6" .Values.global.globalIpFamily) (eq "dual" .Values.global.globalIpFamily) (eq "dual-v6-pref" .Values.global.globalIpFamily) }}
+                    address: "::1"
+{{- else }}
+                    address: "127.0.0.1"
+{{- end }}
+{{- else }}
                     address: {{ $spec.loopBackAddress }}
+{{- end }}
                     port_value: 19000
 {{- end}} {{- /* if or $statsConfig.enabled ($spec.readConfig) */}}
 {{- if $spec.envoyStaticClusters }}
@@ -376,7 +414,18 @@ data:
       access_log_path: /dev/null
       address:
         socket_address:
+{{- if hasKey .Values.global "globalIpFamily" }}
+{{- if eq "v6" .Values.global.globalIpFamily }}
+          address: "::1"
+{{- else if or (eq "dual" .Values.global.globalIpFamily) (eq "dual-v6-pref" .Values.global.globalIpFamily) }}
+          address: "::1"
+          ipv4_compat: true
+{{- else }}
+          address: "127.0.0.1"
+{{- end }}
+{{- else }}
           address: {{ $spec.loopBackAddress }}
+{{- end }}
           port_value: 19000
 {{- else}}{{ toYaml $spec.configMap.data | indent 2}}
 {{- end }} {{/* if (empty $spec.configMap.data) ## allows full custom */}}

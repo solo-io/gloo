@@ -390,7 +390,6 @@
 |settings.circuitBreakers.maxRequests|uint32||Set this field to specify the maximum number of parallel requests that Envoy will make to the upstream cluster. If not specified, the default is 1024.|
 |settings.circuitBreakers.maxRetries|uint32||Set this field to specify the maximum number of parallel retries that Envoy will allow to the upstream cluster. If not specified, the default is 3.|
 |settings.enableRestEds|bool|false|Whether or not to use rest xds for all EDS by default. Defaults to false.|
-|settings.devMode|bool||Whether or not to enable dev mode. Defaults to false. Setting to true at install time will expose the gloo dev admin endpoint on port 10010. Not recommended for production. Warning: this value is deprecated as of 1.17 and will be removed in a future release.|
 |settings.secretOptions.sources[].vault.address|string||Address of the Vault server. This should be a complete URL such as http://solo.io and include port if necessary (vault's default port is 8200).|
 |settings.secretOptions.sources[].vault.rootKey|string||All keys stored in Vault will begin with this Vault this can be used to run multiple instances of Gloo against the same Vault cluster defaults to gloo.|
 |settings.secretOptions.sources[].vault.pathPrefix|string||Optional. The name of a Vault Secrets Engine to which Vault should route traffic. For more info see https://learn.hashicorp.com/tutorials/vault/getting-started-secrets-engines. Defaults to 'secret'.|
@@ -411,6 +410,7 @@
 |settings.secretOptions.sources[].vault.aws.leaseIncrement|uint32||The time increment, in seconds, used in renewing the lease of the Vault token. See: https://developer.hashicorp.com/vault/docs/concepts/lease#lease-durations-and-renewal. Defaults to 0, which causes the default TTL to be used.|
 |settings.secretOptions.sources[].directory.directory|string||Directory to read secrets from.|
 |settings.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
+|settings.devMode|bool||Whether or not to enable dev mode. Defaults to false. Setting to true at install time will expose the gloo dev admin endpoint on port 10010. Not recommended for production. Warning: this value is deprecated as of 1.17 and will be removed in a future release.|
 |gloo.deployment.xdsPort|int|9977|port where gloo serves xDS API to Envoy.|
 |gloo.deployment.restXdsPort|uint32|9976|port where gloo serves REST xDS API to Envoy.|
 |gloo.deployment.validationPort|int|9988|port where gloo serves gRPC Proxy Validation to Gateway.|
@@ -1789,3 +1789,4 @@
 |global.podSecurityStandards.container.enableRestrictedContainerDefaults|bool||Set to true to default all containers to a security policy that minimally conforms to a [restricted container security policy](https://kubernetes.io/docs/concepts/security/pod-security-standards/#restricted). |
 |global.podSecurityStandards.container.defaultSeccompProfileType|string||The seccomp profile type to use for default restricted container securityContexts. Valid values are 'RuntimeDefault' and 'Localhost'. Default is 'RuntimeDefault'. Has no effect if enableRestrictedContainerDefaults is false.|
 |global.securitySettings.floatingUserId|bool||If true, use 'true' as default value for all instances of floatingUserId. In OSS, has the additional effects of rendering charts as if 'discovery.deployment.enablePodSecurityContext=false' and 'gatewayProxies.gatewayProxy.podTemplate.enablePodSecurityContext=false'. In EE templates  has the additional effects of rendering charts as if 'redis.deployment.enablePodSecurityContext=false', and in the ExtAuth deployment's podSecurityContext, behavior will match the local 'floatingUserId' and fsGroup will not be rendered.|
+|global.globalIpFamily|string||Specifies the IP family for managing listeners and upstream DNS resolution. Supported values for single stack include 'v6' or 'v4'. Dual stack supported values include 'dual-v6-pref' or 'dual-v4-pref'.|
