@@ -7343,6 +7343,82 @@ metadata:
 					Expect(labels["the"]).To(Equal("other"))
 				})
 			})
+
+			Describe("manage the ip family", func() {
+				gatewayProxyConfigMapName := "gateway-proxy-envoy-config"
+
+				labels := map[string]string{
+					"gloo":             "gateway-proxy",
+					"app":              "gloo",
+					"gateway-proxy-id": "gateway-proxy",
+				}
+
+				It("can create a gateway proxy configuration when globalIpFamily=v4", func() {
+					prepareMakefileFromValuesFile("values/val_v4_overrides.yaml")
+
+					byt, err := os.ReadFile("fixtures/envoy_config/v4_bootstrap.yaml")
+					Expect(err).ToNot(HaveOccurred())
+					envoyBootstrapYaml := string(byt)
+
+					envoyBootstrapSpec := make(map[string]string)
+					envoyBootstrapSpec["envoy.yaml"] = envoyBootstrapYaml
+
+					cmRb := ResourceBuilder{
+						Namespace: namespace,
+						Name:      gatewayProxyConfigMapName,
+						Labels:    labels,
+						Data:      envoyBootstrapSpec,
+					}
+					envoyBootstrapCm := cmRb.GetConfigMap()
+					testManifest.ExpectConfigMapWithYamlData(envoyBootstrapCm)
+				})
+
+				It("can create a gateway proxy configuration when globalIpFamily=v6", func() {
+					prepareMakefileFromValuesFile("values/val_v6_overrides.yaml")
+
+					byt, err := os.ReadFile("fixtures/envoy_config/v6_bootstrap.yaml")
+					Expect(err).ToNot(HaveOccurred())
+					envoyBootstrapYaml := string(byt)
+
+					envoyBootstrapSpec := make(map[string]string)
+					envoyBootstrapSpec["envoy.yaml"] = envoyBootstrapYaml
+
+					cmRb := ResourceBuilder{
+						Namespace: namespace,
+						Name:      gatewayProxyConfigMapName,
+						Labels:    labels,
+						Data:      envoyBootstrapSpec,
+					}
+					envoyBootstrapCm := cmRb.GetConfigMap()
+					testManifest.ExpectConfigMapWithYamlData(envoyBootstrapCm)
+				})
+
+				It("can create a gateway proxy configuration when globalIpFamily=dual", func() {
+					prepareMakefileFromValuesFile("values/val_dual_stack_overrides.yaml")
+
+					byt, err := os.ReadFile("fixtures/envoy_config/dual_bootstrap.yaml")
+					Expect(err).ToNot(HaveOccurred())
+					envoyBootstrapYaml := string(byt)
+
+					envoyBootstrapSpec := make(map[string]string)
+					envoyBootstrapSpec["envoy.yaml"] = envoyBootstrapYaml
+
+					cmRb := ResourceBuilder{
+						Namespace: namespace,
+						Name:      gatewayProxyConfigMapName,
+						Labels:    labels,
+						Data:      envoyBootstrapSpec,
+					}
+					envoyBootstrapCm := cmRb.GetConfigMap()
+					testManifest.ExpectConfigMapWithYamlData(envoyBootstrapCm)
+				})
+
+				It("should be able to set ip family in settings when globalIpFamily=v6", func() {
+					settings := makeUnstructureFromTemplateFile("fixtures/settings/v6_gateway_settings.yaml", namespace)
+					prepareMakefileFromValuesFile("values/val_v6_overrides.yaml")
+					testManifest.ExpectUnstructured(settings.GetKind(), settings.GetNamespace(), settings.GetName()).To(BeEquivalentTo(settings))
+				})
+			})
 		})
 
 		Context("Reflection", func() {
