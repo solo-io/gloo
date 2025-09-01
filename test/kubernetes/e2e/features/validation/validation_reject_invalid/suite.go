@@ -119,6 +119,8 @@ func (s *testingSuite) TestVirtualServiceWithSecretDeletion() {
 		},
 		core.Status_Accepted,
 		gloo_defaults.GlooReporter,
+		time.Second*15,
+		time.Second*5,
 	)
 
 	// failing to delete a secret that is in use
