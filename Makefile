@@ -1102,6 +1102,9 @@ INSTALL_NAMESPACE ?= gloo-system
 kind-setup:
 	VERSION=${VERSION} CLUSTER_NAME=${CLUSTER_NAME} ./ci/kind/setup-kind.sh
 
+kind-v6-setup:
+	SUPPORTED_IP_FAMILY=v6 VERSION=${VERSION} CLUSTER_NAME=${CLUSTER_NAME} ./ci/kind/setup-kind.sh
+
 kind-load-%-distroless:
 	kind load docker-image $(IMAGE_REGISTRY)/$*:$(VERSION)-distroless --name $(CLUSTER_NAME)
 

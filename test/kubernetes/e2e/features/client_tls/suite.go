@@ -3,6 +3,7 @@ package client_tls
 import (
 	"context"
 
+	"github.com/solo-io/gloo/test/testutils"
 	"github.com/stretchr/testify/suite"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -36,14 +37,24 @@ func NewTestingSuite(ctx context.Context, testInst *e2e.TestInstallation) suite.
 }
 
 func (s *clientTlsTestingSuite) SetupSuite() {
-	err := s.testInstallation.Actions.Kubectl().Apply(s.ctx, testdefaults.NginxPodYaml)
+	var err error
+	if testutils.IsV6Supported() {
+		err = s.testInstallation.Actions.Kubectl().Apply(s.ctx, testdefaults.NginxV6PodYaml)
+	} else {
+		err = s.testInstallation.Actions.Kubectl().Apply(s.ctx, testdefaults.NginxPodYaml)
+	}
 	s.NoError(err, "can apply Nginx setup manifest")
 	err = s.testInstallation.Actions.Kubectl().Apply(s.ctx, testdefaults.CurlPodYaml)
 	s.NoError(err, "can apply Curl setup manifest")
 }
 
 func (s *clientTlsTestingSuite) TearDownSuite() {
-	err := s.testInstallation.Actions.Kubectl().Delete(s.ctx, testdefaults.NginxPodYaml)
+	var err error
+	if testutils.IsV6Supported() {
+		err = s.testInstallation.Actions.Kubectl().Delete(s.ctx, testdefaults.NginxV6PodYaml)
+	} else {
+		err = s.testInstallation.Actions.Kubectl().Delete(s.ctx, testdefaults.NginxPodYaml)
+	}
 	s.NoError(err, "can delete Nginx setup manifest")
 	err = s.testInstallation.Actions.Kubectl().Delete(s.ctx, testdefaults.CurlPodYaml)
 	s.NoError(err, "can delete Curl setup manifest")

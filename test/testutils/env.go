@@ -1,9 +1,10 @@
 package testutils
 
 import (
-	"log"
+	"strings"
 
 	"github.com/solo-io/gloo/pkg/utils/envutils"
+	"github.com/solo-io/go-utils/log"
 )
 
 const (
@@ -93,6 +94,9 @@ const (
 	// This can be used to override the default KubeCtx created.
 	// The default KubeCtx used is "kind-<ClusterName>"
 	KubeCtx = "KUBE_CTX"
+
+	// This supports multiple values such as v4, v6 and dual for the underlying ip family we want to support
+	SupportedIpFamily = "SUPPORTED_IP_FAMILY"
 )
 
 // ShouldTearDown returns true if any assets that were created before a test (for example Gloo being installed)
@@ -147,6 +151,47 @@ func ShouldSkipTempDisabledTests() bool {
 // IsRunningInCloudbuild returns true if tests are running in Cloudbuild
 func IsRunningInCloudbuild() bool {
 	return IsEnvDefined(GcloudBuildId)
+}
+
+// IsIpFamilyV6Only v6 family specific helper returning true if it is
+func IsIpFamilyV6Only() bool {
+	if envutils.IsEnvDefined(SupportedIpFamily) && strings.EqualFold(envutils.GetOrDefault(SupportedIpFamily, "v4", false), "v6") {
+		return true
+	}
+	return false
+}
+
+// IsIpFamilyV4Only v4 family specific helper returning true if it is
+func IsIpFamilyV4Only() bool {
+	if envutils.IsEnvDefined(SupportedIpFamily) && strings.EqualFold(envutils.GetOrDefault(SupportedIpFamily, "v4", false), "v4") {
+		return true
+	}
+	return false
+}
+
+// IsIpFamilyDualStack dual stack family specific helper returning true if it is
+func IsIpFamilyDualStack() bool {
+	if envutils.IsEnvDefined(SupportedIpFamily) && strings.EqualFold(envutils.GetOrDefault(SupportedIpFamily, "v4", false), "dual") {
+		return true
+	}
+	return false
+}
+
+// IsV6Supported if SUPPORTED_IP_FAMILY is either v6 or dual then return true. otherwise false
+func IsV6Supported() bool {
+	if IsIpFamilyV6Only() || IsIpFamilyDualStack() {
+		return true
+	}
+	return false
+}
+
+// ShouldSkipIfV6Unsupported is used to skip tests in environments without v6 support. It returns true when the IP family is neither v6 nor dual-stack, otherwise false.
+func ShouldSkipIfV6Unsupported() bool {
+	if !(IsIpFamilyV6Only() || IsIpFamilyDualStack()) {
+		log.Warnf("%s must be set to 'v6' or 'dual', hence skipping", SupportedIpFamily)
+		return true
+	}
+	return false
 }
 
 // IsEnvTruthy returns true if a given environment variable has a truthy value

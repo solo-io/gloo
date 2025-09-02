@@ -20,15 +20,6 @@ spec:
 {{- toYaml .Values.settings.secretOptions.sources | nindent 6 }}
 {{- end }}
   gloo:
-{{- if and (hasKey .Values.global "globalIpFamily") (or (eq "v6" .Values.global.globalIpFamily) (eq "dual" .Values.global.globalIpFamily) (eq "dual-v6-pref" .Values.global.globalIpFamily)) }}
-{{- if .Values.global.glooMtls.enabled }}
-    xdsBindAddr: "[::1]:9999"
-    restXdsBindAddr: "[::1]:9998"
-{{- else }}
-    xdsBindAddr: "[::]:{{ .Values.gloo.deployment.xdsPort }}"
-    restXdsBindAddr: "[::]:{{ .Values.gloo.deployment.restXdsPort }}"
-{{- end }}
-{{- else }}
 {{- if .Values.global.glooMtls.enabled }}
     xdsBindAddr: "127.0.0.1:9999"
     restXdsBindAddr: "127.0.0.1:9998"
@@ -36,12 +27,7 @@ spec:
     xdsBindAddr: "0.0.0.0:{{ .Values.gloo.deployment.xdsPort }}"
     restXdsBindAddr: "0.0.0.0:{{ .Values.gloo.deployment.restXdsPort }}"
 {{- end }}
-{{- end }}
-{{- if and (hasKey .Values.global "globalIpFamily") (or (eq "v6" .Values.global.globalIpFamily) (eq "dual" .Values.global.globalIpFamily) (eq "dual-v6-pref" .Values.global.globalIpFamily)) }}
-    proxyDebugBindAddr: "[::]:{{ .Values.gloo.deployment.proxyDebugPort }}"
-{{- else }}
     proxyDebugBindAddr: "0.0.0.0:{{ .Values.gloo.deployment.proxyDebugPort }}"
-{{- end }}
     enableRestEds: {{ .Values.settings.enableRestEds | default false }}
 {{- /* .Values.settings.replaceInvalidRoutes for backwards compatibility */}}
 {{- if or (.Values.settings.invalidConfigPolicy) (.Values.settings.replaceInvalidRoutes) }}

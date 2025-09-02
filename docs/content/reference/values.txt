@@ -1047,7 +1047,6 @@
 |gatewayProxies.NAME.gatewaySettings.disableGeneratedGateways|bool||set to true to disable the gateway generation for a gateway proxy|
 |gatewayProxies.NAME.gatewaySettings.disableHttpGateway|bool||Set to true to disable http gateway generation.|
 |gatewayProxies.NAME.gatewaySettings.disableHttpsGateway|bool||Set to true to disable https gateway generation.|
-|gatewayProxies.NAME.gatewaySettings.ipv4Only|bool||set to true if your network allows ipv4 addresses only. Sets the Gateway spec's bindAddress to 0.0.0.0 instead of ::|
 |gatewayProxies.NAME.gatewaySettings.useProxyProto|bool||use proxy protocol|
 |gatewayProxies.NAME.gatewaySettings.httpHybridGateway.NAME|interface||custom yaml to use for hybrid gateway settings for the http gateway|
 |gatewayProxies.NAME.gatewaySettings.httpsHybridGateway.NAME|interface||custom yaml to use for hybrid gateway settings for the https gateway|
@@ -1058,6 +1057,7 @@
 |gatewayProxies.NAME.gatewaySettings.httpGatewayKubeOverride.NAME|interface|||
 |gatewayProxies.NAME.gatewaySettings.httpsGatewayKubeOverride.NAME|interface|||
 |gatewayProxies.NAME.gatewaySettings.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
+|gatewayProxies.NAME.gatewaySettings.ipv4Only|bool||set to true if your network allows ipv4 addresses only. Sets the Gateway spec's bindAddress to 0.0.0.0 instead of ::. Warning: this value is deprecated. Use global.globalIpFamily instead.|
 |gatewayProxies.NAME.extraEnvoyArgs[]|string||Envoy container args, (e.g. https://www.envoyproxy.io/docs/envoy/latest/operations/cli)|
 |gatewayProxies.NAME.extraContainersHelper|string|||
 |gatewayProxies.NAME.extraInitContainersHelper|string|||
@@ -1302,7 +1302,6 @@
 |gatewayProxies.gatewayProxy.gatewaySettings.disableGeneratedGateways|bool||set to true to disable the gateway generation for a gateway proxy|
 |gatewayProxies.gatewayProxy.gatewaySettings.disableHttpGateway|bool||Set to true to disable http gateway generation.|
 |gatewayProxies.gatewayProxy.gatewaySettings.disableHttpsGateway|bool||Set to true to disable https gateway generation.|
-|gatewayProxies.gatewayProxy.gatewaySettings.ipv4Only|bool||set to true if your network allows ipv4 addresses only. Sets the Gateway spec's bindAddress to 0.0.0.0 instead of ::|
 |gatewayProxies.gatewayProxy.gatewaySettings.useProxyProto|bool|false|use proxy protocol|
 |gatewayProxies.gatewayProxy.gatewaySettings.httpHybridGateway.NAME|interface||custom yaml to use for hybrid gateway settings for the http gateway|
 |gatewayProxies.gatewayProxy.gatewaySettings.httpsHybridGateway.NAME|interface||custom yaml to use for hybrid gateway settings for the https gateway|
@@ -1313,6 +1312,7 @@
 |gatewayProxies.gatewayProxy.gatewaySettings.httpGatewayKubeOverride.NAME|interface|||
 |gatewayProxies.gatewayProxy.gatewaySettings.httpsGatewayKubeOverride.NAME|interface|||
 |gatewayProxies.gatewayProxy.gatewaySettings.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
+|gatewayProxies.gatewayProxy.gatewaySettings.ipv4Only|bool||set to true if your network allows ipv4 addresses only. Sets the Gateway spec's bindAddress to 0.0.0.0 instead of ::. Warning: this value is deprecated. Use global.globalIpFamily instead.|
 |gatewayProxies.gatewayProxy.extraEnvoyArgs[]|string||Envoy container args, (e.g. https://www.envoyproxy.io/docs/envoy/latest/operations/cli)|
 |gatewayProxies.gatewayProxy.extraContainersHelper|string|||
 |gatewayProxies.gatewayProxy.extraInitContainersHelper|string|||
@@ -1789,4 +1789,4 @@
 |global.podSecurityStandards.container.enableRestrictedContainerDefaults|bool||Set to true to default all containers to a security policy that minimally conforms to a [restricted container security policy](https://kubernetes.io/docs/concepts/security/pod-security-standards/#restricted). |
 |global.podSecurityStandards.container.defaultSeccompProfileType|string||The seccomp profile type to use for default restricted container securityContexts. Valid values are 'RuntimeDefault' and 'Localhost'. Default is 'RuntimeDefault'. Has no effect if enableRestrictedContainerDefaults is false.|
 |global.securitySettings.floatingUserId|bool||If true, use 'true' as default value for all instances of floatingUserId. In OSS, has the additional effects of rendering charts as if 'discovery.deployment.enablePodSecurityContext=false' and 'gatewayProxies.gatewayProxy.podTemplate.enablePodSecurityContext=false'. In EE templates  has the additional effects of rendering charts as if 'redis.deployment.enablePodSecurityContext=false', and in the ExtAuth deployment's podSecurityContext, behavior will match the local 'floatingUserId' and fsGroup will not be rendered.|
-|global.globalIpFamily|string||Specifies the IP family for managing listeners and upstream DNS resolution. Supported values for single stack include 'v6' or 'v4'. Dual stack supported values include 'dual-v6-pref' or 'dual-v4-pref'.|
+|global.globalIpFamily|string||Specifies the IP family for managing listeners and upstream DNS resolution. Supported values for single stack include 'v6' or 'v4'. Dual stack supported values include 'dual-v6-pref' or 'dual-v4-pref' or 'dual'.|

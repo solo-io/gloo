@@ -25,6 +25,10 @@ inputs:
     required: false
     default: "" # If this is undefined the setup-kind script has its own default value
     description: The version of the gateway-api to use
+  supported-ip-family:
+    required: false
+    default: "v4"
+    description: IP family that KinD will use when bootstrapping. Defaults to v4
 
 runs:
   using: "composite"
@@ -49,4 +53,5 @@ runs:
         CLUSTER_NODE_VERSION: ${{ inputs.kind-node-version }}
         ISTIO_VERSION: ${{ inputs.istio-version }}
         CONFORMANCE_VERSION: ${{ inputs.k8sgateway-api-version }}
+        SUPPORTED_IP_FAMILY: ${{ inputs.supported-ip-family }}
       run: ./ci/kind/setup-kind.sh

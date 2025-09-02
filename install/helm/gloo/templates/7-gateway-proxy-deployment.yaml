@@ -211,7 +211,7 @@ spec:
               command:
                 - /bin/sh
                 - -c
-                - wget --post-data "" -O /dev/null http://[::]:19000/healthcheck/fail;
+                - wget --post-data "" -O /dev/null http://[::1]:19000/healthcheck/fail;
                   sleep {{ $spec.podTemplate.gracefulShutdown.sleepTimeSeconds }}
 {{- else }}
               command:

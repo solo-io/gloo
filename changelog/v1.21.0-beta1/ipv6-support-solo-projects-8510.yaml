@@ -4,7 +4,7 @@ changelog:
     resolvesIssue: false
     description: >-
       This adds the initial support for IPv6.
-      - Added IP family management (`DnsIpFamily`) via `Settings.UpstreamOptions.DnsLookupIpFamily` and `U`pstream.DnsLookupIpFamily`.
+      - Added IP family management (`DnsIpFamily`) via `Settings.UpstreamOptions.DnsLookupIpFamily` and `Upstream.DnsLookupIpFamily`.
       - Upstreams such as static, aws and azure inherit the global setting unless overridden at the Upstream level.
       - In memory upstreams generated for kube services can be managed via an annotation `gloo.solo.io/dns_ip_family`. This can also be managed globally via `UpstreamOptions.GlobalAnnotations`.
   - type: HELM
