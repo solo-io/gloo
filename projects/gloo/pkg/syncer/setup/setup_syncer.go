@@ -751,6 +751,10 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 			for {
 				select {
 				case <-ctx.Done():
+					logger.Infow("Cache warming interrupted by context cancellation",
+						"issue", "8539",
+						"warmDuration", warmTimeoutDuration.String(),
+						"contextError", ctx.Err().Error())
 					return
 				case <-edsEventLoop.Ready():
 					if !edsReady {
