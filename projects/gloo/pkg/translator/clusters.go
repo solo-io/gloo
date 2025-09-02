@@ -59,7 +59,7 @@ func (t *translatorInstance) computeClusters(
 
 	clusterToUpstreamMap := make(map[*envoy_config_cluster_v3.Cluster]*v1.Upstream)
 	for _, upstream := range upstreams {
-		logger.Infow("zfz processing upstream for cluster computation",
+		logger.Infow("processing upstream for cluster computation",
 			"issue", "8539",
 			"upstream_name", upstream.GetMetadata().GetName(),
 			"upstream_namespace", upstream.GetMetadata().GetNamespace(),
@@ -73,7 +73,17 @@ func (t *translatorInstance) computeClusters(
 				"upstream_name", upstream.GetMetadata().GetName(),
 				"endpoint_count", len(eps))
 		}
+
+		logger.Infow("computing cluster",
+			"issue", "8539",
+			"upstream_name", upstream.GetMetadata().GetName(),
+			"eds_enabled", eds)
 		cluster, errs := t.computeCluster(params, upstream, eds)
+		logger.Infow("completed cluster computation",
+			"issue", "8539",
+			"upstream_name", upstream.GetMetadata().GetName(),
+			"cluster_name", cluster.GetName(),
+			"error_count", len(errs))
 		for _, err := range errs {
 			var warning *Warning
 			if errors.As(err, &warning) {
@@ -159,7 +169,7 @@ func (t *translatorInstance) computeCluster(
 		"upstream_namespace", upstream.GetMetadata().GetNamespace(),
 		"eds_enabled", eds)
 
-	out, errs := t.initializeCluster(upstream, eds, &params.Snapshot.Secrets)
+	out, errs := t.initializeCluster(params.Ctx, upstream, eds, &params.Snapshot.Secrets)
 
 	for _, plugin := range t.pluginRegistry.GetUpstreamPlugins() {
 		logger.Infow("Processing upstream with plugin",
@@ -196,34 +206,85 @@ func (t *translatorInstance) computeCluster(
 }
 
 func (t *translatorInstance) initializeCluster(
+	ctx context.Context,
 	upstream *v1.Upstream,
 	eds bool,
 	secrets *v1.SecretList,
 ) (*envoy_config_cluster_v3.Cluster, []error) {
-	// Note: We don't have a logger context here as this is an internal function
-	// Logging is handled at the calling function level
+	logger := contextutils.LoggerFrom(ctx)
+
+	logger.Infow("Starting cluster initialization",
+		"issue", "8539",
+		"upstream_name", upstream.GetMetadata().GetName(),
+		"upstream_namespace", upstream.GetMetadata().GetNamespace(),
+		"eds_enabled", eds,
+		"upstream_type", fmt.Sprintf("%T", upstream.GetUpstreamType()))
 
 	var errorList []error
+
+	logger.Infow("Creating health check configuration",
+		"issue", "8539",
+		"upstream_name", upstream.GetMetadata().GetName(),
+		"health_check_count", len(upstream.GetHealthChecks()))
 	hcConfig, err := createHealthCheckConfig(upstream, secrets, t.shouldEnforceNamespaceMatch)
 	if err != nil {
-		errorList = append(errorList, err)
-	}
-	detectCfg, err := createOutlierDetectionConfig(upstream)
-	if err != nil {
+		logger.Infow("Health check configuration error",
+			"issue", "8539",
+			"upstream_name", upstream.GetMetadata().GetName(),
+			"error", err.Error())
 		errorList = append(errorList, err)
 	}
 
-	preconnect, err := getPreconnectPolicy(upstream.GetPreconnectPolicy())
+	logger.Infow("Creating outlier detection configuration",
+		"issue", "8539",
+		"upstream_name", upstream.GetMetadata().GetName(),
+		"has_outlier_detection", upstream.GetOutlierDetection() != nil)
+	detectCfg, err := createOutlierDetectionConfig(upstream)
 	if err != nil {
+		logger.Infow("Outlier detection configuration error",
+			"issue", "8539",
+			"upstream_name", upstream.GetMetadata().GetName(),
+			"error", err.Error())
 		errorList = append(errorList, err)
 	}
+
+	logger.Infow("Getting preconnect policy",
+		"issue", "8539",
+		"upstream_name", upstream.GetMetadata().GetName(),
+		"has_preconnect_policy", upstream.GetPreconnectPolicy() != nil)
+	preconnect, err := getPreconnectPolicy(upstream.GetPreconnectPolicy())
+	if err != nil {
+		logger.Infow("Preconnect policy error",
+			"issue", "8539",
+			"upstream_name", upstream.GetMetadata().GetName(),
+			"error", err.Error())
+		errorList = append(errorList, err)
+	}
+
+	logger.Infow("Getting DNS refresh rate",
+		"issue", "8539",
+		"upstream_name", upstream.GetMetadata().GetName(),
+		"has_dns_refresh_rate", upstream.GetDnsRefreshRate() != nil)
 	dnsRefreshRate, err := getDnsRefreshRate(upstream)
 	if err != nil {
+		logger.Infow("DNS refresh rate error",
+			"issue", "8539",
+			"upstream_name", upstream.GetMetadata().GetName(),
+			"error", err.Error())
 		errorList = append(errorList, err)
 	}
 
 	circuitBreakers := t.settings.GetGloo().GetCircuitBreakers()
 	clusterName := UpstreamToClusterName(upstream.GetMetadata().Ref())
+
+	logger.Infow("Creating base cluster configuration",
+		"issue", "8539",
+		"upstream_name", upstream.GetMetadata().GetName(),
+		"cluster_name", clusterName,
+		"has_circuit_breakers", upstream.GetCircuitBreakers() != nil || circuitBreakers != nil,
+		"protocol_selection", upstream.GetProtocolSelection().String(),
+		"use_http2", upstream.GetUseHttp2().GetValue())
+
 	out := &envoy_config_cluster_v3.Cluster{
 		Name:             clusterName,
 		Metadata:         new(envoy_config_core_v3.Metadata),
@@ -241,12 +302,22 @@ func (t *translatorInstance) initializeCluster(
 		DnsRefreshRate:            dnsRefreshRate,
 		PreconnectPolicy:          preconnect,
 	}
+
 	// for kube gateway, use new stats name format
 	if envutils.IsEnvTruthy(constants.GlooGatewayEnableK8sGwControllerEnv) {
 		out.AltStatName = UpstreamToClusterStatsName(upstream)
+		logger.Infow("Set alternative stats name for Kube Gateway",
+			"issue", "8539",
+			"upstream_name", upstream.GetMetadata().GetName(),
+			"alt_stat_name", out.AltStatName)
 	}
 
 	if sslConfig := upstream.GetSslConfig(); sslConfig != nil {
+		logger.Infow("Processing SSL configuration",
+			"issue", "8539",
+			"upstream_name", upstream.GetMetadata().GetName(),
+			"has_ssl_config", true)
+
 		applyDefaultsToUpstreamSslConfig(sslConfig, t.settings.GetUpstreamOptions())
 		cfg, err := utils.NewSslConfigTranslator().ResolveUpstreamSslConfig(*secrets, sslConfig)
 		if err != nil {
@@ -254,20 +325,39 @@ func (t *translatorInstance) initializeCluster(
 			// warning instead of error to the report.
 			if t.settings.GetGateway().GetValidation().GetWarnMissingTlsSecret().GetValue() &&
 				errors.Is(err, utils.SslSecretNotFoundError) {
+				logger.Infow("SSL configuration warning - missing TLS secret",
+					"issue", "8539",
+					"upstream_name", upstream.GetMetadata().GetName(),
+					"warning", err.Error())
 				errorList = append(errorList, &Warning{
 					Message: err.Error(),
 				})
 			} else {
+				logger.Infow("SSL configuration error",
+					"issue", "8539",
+					"upstream_name", upstream.GetMetadata().GetName(),
+					"error", err.Error())
 				errorList = append(errorList, err)
 			}
 		} else {
+			logger.Infow("SSL configuration resolved successfully",
+				"issue", "8539",
+				"upstream_name", upstream.GetMetadata().GetName())
+
 			typedConfig, err := utils.MessageToAny(cfg)
 			if err != nil {
 				// TODO: Need to change the upstream to use a direct response action instead of leaving the upstream untouched
 				// Difficult because direct response is not on the upsrtream but on the virtual host
 				// The fallback listener would take much more piping as well
+				logger.Errorw("Failed to convert SSL config to Any - this will panic",
+					"issue", "8539",
+					"upstream_name", upstream.GetMetadata().GetName(),
+					"error", err.Error())
 				panic(err)
 			} else {
+				logger.Infow("Created transport socket with TLS",
+					"issue", "8539",
+					"upstream_name", upstream.GetMetadata().GetName())
 				out.TransportSocket = &envoy_config_core_v3.TransportSocket{
 					Name:       wellknown.TransportSocketTls,
 					ConfigType: &envoy_config_core_v3.TransportSocket_TypedConfig{TypedConfig: typedConfig},
@@ -275,22 +365,47 @@ func (t *translatorInstance) initializeCluster(
 			}
 		}
 	}
+
 	// proxyprotocol may be wiped by some plugins that transform transport sockets
 	// see static and failover at time of writing.
 	if upstream.GetProxyProtocolVersion() != nil {
+		logger.Infow("Processing proxy protocol configuration",
+			"issue", "8539",
+			"upstream_name", upstream.GetMetadata().GetName(),
+			"proxy_protocol_version", upstream.GetProxyProtocolVersion().GetValue())
 
 		tp, err := upstream_proxy_protocol.WrapWithPProtocol(out.GetTransportSocket(), upstream.GetProxyProtocolVersion().GetValue())
 		if err != nil {
+			logger.Infow("Proxy protocol configuration error",
+				"issue", "8539",
+				"upstream_name", upstream.GetMetadata().GetName(),
+				"error", err.Error())
 			errorList = append(errorList, err)
 		} else {
+			logger.Infow("Proxy protocol transport socket created",
+				"issue", "8539",
+				"upstream_name", upstream.GetMetadata().GetName())
 			out.TransportSocket = tp
 		}
 	}
 
 	// set Type = EDS if we have endpoints for the upstream
 	if eds {
+		logger.Infow("Setting EDS on cluster",
+			"issue", "8539",
+			"upstream_name", upstream.GetMetadata().GetName(),
+			"cluster_name", clusterName)
 		xds.SetEdsOnCluster(out, t.settings)
 	}
+
+	logger.Infow("Completed cluster initialization",
+		"issue", "8539",
+		"upstream_name", upstream.GetMetadata().GetName(),
+		"cluster_name", clusterName,
+		"error_count", len(errorList),
+		"has_transport_socket", out.TransportSocket != nil,
+		"cluster_type", out.GetType().String())
+
 	return out, errorList
 }
 
@@ -505,6 +620,10 @@ func getDnsRefreshRate(us *v1.Upstream) (*duration.Duration, error) {
 func validateUpstreamLambdaFunctions(proxy *v1.Proxy, upstreams v1.UpstreamList, upstreamGroups v1.UpstreamGroupList, reports reporter.ResourceReports) {
 	// Create a set of the lambda functions in each upstream
 	upstreamLambdas := make(map[string]map[string]bool)
+	logger := contextutils.LoggerFrom(context.Background())
+	logger.Infow("validating upstream lambda functions",
+		"issue", "8539",
+		"upstream_count", len(upstreams))
 	for _, upstream := range upstreams {
 		lambdaFuncs := upstream.GetAws().GetLambdaFunctions()
 		if len(lambdaFuncs) > 0 {
@@ -522,16 +641,33 @@ func validateUpstreamLambdaFunctions(proxy *v1.Proxy, upstreams v1.UpstreamList,
 		}
 	}
 
+	logger.Infow("completed validating upstream lambda functions, starting GetVirtualHostsForListener",
+		"issue", "8539",
+		"upstream_count", len(upstreams))
+
 	for _, listener := range proxy.GetListeners() {
+		logger.Infow("GetVirtualHostsForListener",
+			"issue", "8539",
+			"listener_name", listener.GetName())
 		virtualHosts := utils.GetVirtualHostsForListener(listener)
 
 		for _, virtualHost := range virtualHosts {
+			logger.Infow("GetVirtualHostsForListener",
+				"issue", "8539",
+				"virtual_host_name", virtualHost.GetName())
 			// Validate all routes to make sure that if they point to a lambda, it exists.
 			for _, route := range virtualHost.GetRoutes() {
+				logger.Infow("validateRouteDestinationForValidLambdas",
+					"issue", "8539",
+					"route_name", route.GetName())
 				validateRouteDestinationForValidLambdas(proxy, route, upstreamGroups, reports, upstreamLambdas)
 			}
 		}
 	}
+
+	logger.Infow("completed GetVirtualHostsForListener, completed validateRouteDestinationForValidLambdas",
+		"issue", "8539",
+		"upstream_count", len(upstreams))
 }
 
 // Validates a route that may have a single or multi upstream destinations to make sure that any lambda upstreams are referencing valid lambdas
