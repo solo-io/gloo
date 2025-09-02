@@ -171,20 +171,57 @@ func (t *translatorInstance) computeCluster(
 
 	out, errs := t.initializeCluster(params.Ctx, upstream, eds, &params.Snapshot.Secrets)
 
-	for _, plugin := range t.pluginRegistry.GetUpstreamPlugins() {
-		logger.Infow("Processing upstream with plugin",
+	for i, plugin := range t.pluginRegistry.GetUpstreamPlugins() {
+		start := time.Now()
+		logger.Infow("Starting plugin processing",
 			"issue", "8539",
 			"upstream_name", upstream.GetMetadata().GetName(),
-			"plugin_name", plugin.Name())
+			"plugin_index", i,
+			"plugin_name", plugin.Name(),
+			"plugin_type", fmt.Sprintf("%T", plugin))
 
-		if err := plugin.ProcessUpstream(params, upstream, out); err != nil {
-			logger.Debug("Error processing upstream", zap.String("upstream", upstream.GetMetadata().Ref().String()), zap.Error(err), zap.String("plugin", plugin.Name()))
-			logger.Infow("Plugin processing error",
+		// Add timeout context for plugin processing
+		pluginCtx, cancel := context.WithTimeout(params.Ctx, 30*time.Second)
+		defer cancel()
+
+		pluginParams := plugins.Params{
+			Ctx:      pluginCtx,
+			Settings: params.Settings,
+			Snapshot: params.Snapshot,
+			Messages: params.Messages,
+		}
+
+		done := make(chan error, 1)
+		go func() {
+			done <- plugin.ProcessUpstream(pluginParams, upstream, out)
+		}()
+
+		select {
+		case err := <-done:
+			duration := time.Since(start)
+			if err != nil {
+				logger.Infow("Plugin processing error",
+					"issue", "8539",
+					"upstream_name", upstream.GetMetadata().GetName(),
+					"plugin_name", plugin.Name(),
+					"duration_ms", duration.Milliseconds(),
+					"error", err.Error())
+				errs = append(errs, err)
+			} else {
+				logger.Infow("Plugin processing completed successfully",
+					"issue", "8539",
+					"upstream_name", upstream.GetMetadata().GetName(),
+					"plugin_name", plugin.Name(),
+					"duration_ms", duration.Milliseconds())
+			}
+		case <-pluginCtx.Done():
+			duration := time.Since(start)
+			logger.Errorw("Plugin processing timed out (HANG DETECTED)",
 				"issue", "8539",
 				"upstream_name", upstream.GetMetadata().GetName(),
 				"plugin_name", plugin.Name(),
-				"error", err.Error())
-			errs = append(errs, err)
+				"duration_seconds", duration.Seconds())
+			errs = append(errs, eris.Errorf("plugin %s timed out after %v", plugin.Name(), duration))
 		}
 	}
 	if err := validateCluster(out); err != nil {
