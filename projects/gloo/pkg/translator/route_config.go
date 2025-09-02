@@ -89,30 +89,68 @@ type httpRouteConfigurationTranslator struct {
 
 func (h *httpRouteConfigurationTranslator) ComputeRouteConfiguration(params plugins.Params) []*envoy_config_route_v3.RouteConfiguration {
 	params.Ctx = contextutils.WithLogger(params.Ctx, "compute_route_config."+h.routeConfigName)
+	logger := contextutils.LoggerFrom(params.Ctx)
+
+	logger.Infow("Starting route configuration computation",
+		"issue", "8539",
+		"route_config_name", h.routeConfigName,
+		"translator_name", h.translatorName,
+		"parent_listener_name", h.parentListener.GetName(),
+		"virtual_host_count", len(h.listener.GetVirtualHosts()))
+
+	virtualHosts := h.computeVirtualHosts(params)
+
 	cfg := &envoy_config_route_v3.RouteConfiguration{
 		Name:                           h.routeConfigName,
-		VirtualHosts:                   h.computeVirtualHosts(params),
+		VirtualHosts:                   virtualHosts,
 		MaxDirectResponseBodySizeBytes: h.parentListener.GetRouteOptions().GetMaxDirectResponseBodySizeBytes(),
 	}
 	if h.translatorName == utils.GatewayApiProxyValue {
 		// Gateway API spec requires that port values in HTTP Host headers be ignored when performing a match
 		// See https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.HTTPRouteSpec - hostnames field
 		cfg.IgnorePortInHostMatching = true
+		logger.Infow("Set ignore port in host matching for Gateway API",
+			"issue", "8539",
+			"route_config_name", h.routeConfigName)
 	}
 
 	if mostSpecificVal := h.parentListener.GetRouteOptions().GetMostSpecificHeaderMutationsWins(); mostSpecificVal != nil {
 		cfg.MostSpecificHeaderMutationsWins = mostSpecificVal.GetValue()
+		logger.Infow("Set most specific header mutations wins",
+			"issue", "8539",
+			"route_config_name", h.routeConfigName,
+			"value", mostSpecificVal.GetValue())
 	}
+
+	logger.Infow("Completed route configuration computation",
+		"issue", "8539",
+		"route_config_name", h.routeConfigName,
+		"virtual_host_count", len(virtualHosts))
 
 	return []*envoy_config_route_v3.RouteConfiguration{cfg}
 }
 
 func (h *httpRouteConfigurationTranslator) computeVirtualHosts(params plugins.Params) []*envoy_config_route_v3.VirtualHost {
+	logger := contextutils.LoggerFrom(params.Ctx)
 	virtualHosts := h.listener.GetVirtualHosts()
+
+	logger.Infow("Computing virtual hosts",
+		"issue", "8539",
+		"route_config_name", h.routeConfigName,
+		"virtual_host_count", len(virtualHosts))
+
 	ValidateVirtualHostDomains(virtualHosts, h.report)
 
 	var envoyVirtualHosts []*envoy_config_route_v3.VirtualHost
 	for i, virtualHost := range virtualHosts {
+		logger.Infow("Processing virtual host",
+			"issue", "8539",
+			"route_config_name", h.routeConfigName,
+			"virtual_host_name", virtualHost.GetName(),
+			"virtual_host_index", i,
+			"domain_count", len(virtualHost.GetDomains()),
+			"route_count", len(virtualHost.GetRoutes()))
+
 		vhostParams := plugins.VirtualHostParams{
 			Params:       params,
 			Listener:     h.parentListener,
@@ -120,8 +158,21 @@ func (h *httpRouteConfigurationTranslator) computeVirtualHosts(params plugins.Pa
 			Proxy:        h.proxy,
 		}
 		vhostReport := h.report.GetVirtualHostReports()[i]
-		envoyVirtualHosts = append(envoyVirtualHosts, h.computeVirtualHost(vhostParams, virtualHost, vhostReport))
+		envoyVHost := h.computeVirtualHost(vhostParams, virtualHost, vhostReport)
+		envoyVirtualHosts = append(envoyVirtualHosts, envoyVHost)
+
+		logger.Infow("Completed virtual host processing",
+			"issue", "8539",
+			"route_config_name", h.routeConfigName,
+			"virtual_host_name", virtualHost.GetName(),
+			"envoy_route_count", len(envoyVHost.GetRoutes()))
 	}
+
+	logger.Infow("Completed virtual hosts computation",
+		"issue", "8539",
+		"route_config_name", h.routeConfigName,
+		"total_virtual_hosts", len(envoyVirtualHosts))
+
 	return envoyVirtualHosts
 }
 
@@ -130,13 +181,31 @@ func (h *httpRouteConfigurationTranslator) computeVirtualHost(
 	virtualHost *v1.VirtualHost,
 	vhostReport *validationapi.VirtualHostReport,
 ) *envoy_config_route_v3.VirtualHost {
+	logger := contextutils.LoggerFrom(params.Ctx)
+
+	logger.Infow("Computing virtual host",
+		"issue", "8539",
+		"virtual_host_name", virtualHost.GetName(),
+		"domains", virtualHost.GetDomains(),
+		"route_count", len(virtualHost.GetRoutes()))
+
 	sanitizedName := utils.SanitizeForEnvoy(params.Ctx, virtualHost.GetName(), "virtual host")
 	if sanitizedName != virtualHost.GetName() {
+		logger.Infow("Sanitized virtual host name",
+			"issue", "8539",
+			"original_name", virtualHost.GetName(),
+			"sanitized_name", sanitizedName)
 		virtualHost = virtualHost.Clone().(*v1.VirtualHost)
 		virtualHost.Name = sanitizedName
 	}
 	var envoyRoutes []*envoy_config_route_v3.Route
 	for i, route := range virtualHost.GetRoutes() {
+		logger.Infow("Processing route in virtual host",
+			"issue", "8539",
+			"virtual_host_name", virtualHost.GetName(),
+			"route_index", i,
+			"route_name", route.GetName(),
+			"matcher_count", len(route.GetMatchers()))
 
 		routeParams := plugins.RouteParams{
 			VirtualHostParams: params,
@@ -146,15 +215,29 @@ func (h *httpRouteConfigurationTranslator) computeVirtualHost(
 		generatedName := fmt.Sprintf("%s-route-%d", virtualHost.GetName(), i)
 		computedRoutes := h.envoyRoutes(routeParams, routeReport, route, generatedName)
 		envoyRoutes = append(envoyRoutes, computedRoutes...)
+
+		logger.Infow("Computed routes for route",
+			"issue", "8539",
+			"virtual_host_name", virtualHost.GetName(),
+			"route_index", i,
+			"generated_envoy_routes", len(computedRoutes))
 	}
 	domains := virtualHost.GetDomains()
 	if len(domains) == 0 || (len(domains) == 1 && domains[0] == "") {
 		domains = []string{"*"}
+		logger.Infow("Set default domain for virtual host",
+			"issue", "8539",
+			"virtual_host_name", virtualHost.GetName(),
+			"default_domain", "*")
 	}
 	var envoyRequireTls envoy_config_route_v3.VirtualHost_TlsRequirementType
 	if h.requireTlsOnVirtualHosts {
 		// TODO (ilackarms): support external-only TLS
 		envoyRequireTls = envoy_config_route_v3.VirtualHost_ALL
+		logger.Infow("Set TLS requirement for virtual host",
+			"issue", "8539",
+			"virtual_host_name", virtualHost.GetName(),
+			"tls_requirement", "ALL")
 	}
 
 	out := &envoy_config_route_v3.VirtualHost{
@@ -164,9 +247,24 @@ func (h *httpRouteConfigurationTranslator) computeVirtualHost(
 		RequireTls: envoyRequireTls,
 	}
 
+	logger.Infow("Processing virtual host plugins",
+		"issue", "8539",
+		"virtual_host_name", virtualHost.GetName(),
+		"plugin_count", len(h.pluginRegistry.GetVirtualHostPlugins()))
+
 	// run the plugins
 	for _, plugin := range h.pluginRegistry.GetVirtualHostPlugins() {
+		logger.Infow("Processing virtual host with plugin",
+			"issue", "8539",
+			"virtual_host_name", virtualHost.GetName(),
+			"plugin_name", plugin.Name())
+
 		if err := plugin.ProcessVirtualHost(params, virtualHost, out); err != nil {
+			logger.Infow("Error processing virtual host with plugin",
+				"issue", "8539",
+				"virtual_host_name", virtualHost.GetName(),
+				"plugin_name", plugin.Name(),
+				"error", err.Error())
 			reportVirtualHostPluginProcessingError(
 				params,
 				virtualHost,
@@ -175,6 +273,13 @@ func (h *httpRouteConfigurationTranslator) computeVirtualHost(
 				err)
 		}
 	}
+
+	logger.Infow("Completed virtual host computation",
+		"issue", "8539",
+		"virtual_host_name", virtualHost.GetName(),
+		"final_domain_count", len(out.GetDomains()),
+		"final_route_count", len(out.GetRoutes()))
+
 	return out
 }
 

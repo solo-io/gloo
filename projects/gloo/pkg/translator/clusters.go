@@ -1,6 +1,7 @@
 package translator
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"strings"
@@ -42,6 +43,14 @@ func (t *translatorInstance) computeClusters(
 	defer span.End()
 	params.Ctx = contextutils.WithLogger(ctx, "compute_clusters")
 
+	logger := contextutils.LoggerFrom(params.Ctx)
+	logger.Infow("Starting cluster computation",
+		"issue", "8539",
+		"proxy_name", proxy.GetMetadata().GetName(),
+		"proxy_namespace", proxy.GetMetadata().GetNamespace(),
+		"upstream_count", len(params.Snapshot.Upstreams),
+		"upstream_group_count", len(params.Snapshot.UpstreamGroups))
+
 	// snapshot contains both real and service-derived upstreams
 	upstreamGroups := params.Snapshot.UpstreamGroups
 	upstreams := params.Snapshot.Upstreams
@@ -50,16 +59,34 @@ func (t *translatorInstance) computeClusters(
 
 	clusterToUpstreamMap := make(map[*envoy_config_cluster_v3.Cluster]*v1.Upstream)
 	for _, upstream := range upstreams {
+		logger.Infow("zfz processing upstream for cluster computation",
+			"issue", "8539",
+			"upstream_name", upstream.GetMetadata().GetName(),
+			"upstream_namespace", upstream.GetMetadata().GetNamespace(),
+			"upstream_type", fmt.Sprintf("%T", upstream.GetUpstreamType()))
+
 		eds := false
 		if eps, ok := upstreamRefKeyToEndpoints[upstream.GetMetadata().Ref().Key()]; ok && len(eps) > 0 {
 			eds = true
+			logger.Infow("EDS enabled for upstream",
+				"issue", "8539",
+				"upstream_name", upstream.GetMetadata().GetName(),
+				"endpoint_count", len(eps))
 		}
 		cluster, errs := t.computeCluster(params, upstream, eds)
 		for _, err := range errs {
 			var warning *Warning
 			if errors.As(err, &warning) {
+				logger.Infow("Warning during cluster computation",
+					"issue", "8539",
+					"upstream_name", upstream.GetMetadata().GetName(),
+					"warning", err.Error())
 				reports.AddWarning(upstream, err.Error())
 			} else {
+				logger.Infow("Error during cluster computation",
+					"issue", "8539",
+					"upstream_name", upstream.GetMetadata().GetName(),
+					"error", err.Error())
 				reports.AddError(upstream, err)
 			}
 		}
@@ -67,6 +94,9 @@ func (t *translatorInstance) computeClusters(
 		clusters = append(clusters, cluster)
 	}
 
+	logger.Infow("Completed cluster computation",
+		"issue", "8539",
+		"total_clusters_created", len(clusters))
 	return clusters, clusterToUpstreamMap
 }
 
@@ -76,6 +106,12 @@ func (t *translatorInstance) TranslateCluster(
 	params plugins.Params,
 	upstream *v1.Upstream,
 ) (*envoy_config_cluster_v3.Cluster, []error) {
+	logger := contextutils.LoggerFrom(params.Ctx)
+	logger.Infow("Starting single cluster translation",
+		"issue", "8539",
+		"upstream_name", upstream.GetMetadata().GetName(),
+		"upstream_namespace", upstream.GetMetadata().GetNamespace())
+
 	t.lock.Lock()
 	defer t.lock.Unlock()
 	for _, p := range t.pluginRegistry.GetUpstreamPlugins() {
@@ -89,8 +125,23 @@ func (t *translatorInstance) TranslateCluster(
 		endpointClusterName, err2 := GetEndpointClusterName(c.GetName(), upstream)
 		if err2 == nil {
 			c.GetEdsClusterConfig().ServiceName = endpointClusterName
+			logger.Infow("Set EDS service name for cluster",
+				"issue", "8539",
+				"cluster_name", c.GetName(),
+				"service_name", endpointClusterName)
+		} else {
+			logger.Infow("Failed to get endpoint cluster name",
+				"issue", "8539",
+				"cluster_name", c.GetName(),
+				"error", err2.Error())
 		}
 	}
+
+	logger.Infow("Completed single cluster translation",
+		"issue", "8539",
+		"upstream_name", upstream.GetMetadata().GetName(),
+		"cluster_name", c.GetName(),
+		"error_count", len(err))
 	return c, err
 }
 
@@ -101,18 +152,46 @@ func (t *translatorInstance) computeCluster(
 ) (*envoy_config_cluster_v3.Cluster, []error) {
 	logger := contextutils.LoggerFrom(params.Ctx)
 	params.Ctx = contextutils.WithLogger(params.Ctx, upstream.GetMetadata().GetName())
+
+	logger.Infow("Computing cluster for upstream",
+		"issue", "8539",
+		"upstream_name", upstream.GetMetadata().GetName(),
+		"upstream_namespace", upstream.GetMetadata().GetNamespace(),
+		"eds_enabled", eds)
+
 	out, errs := t.initializeCluster(upstream, eds, &params.Snapshot.Secrets)
 
 	for _, plugin := range t.pluginRegistry.GetUpstreamPlugins() {
+		logger.Infow("Processing upstream with plugin",
+			"issue", "8539",
+			"upstream_name", upstream.GetMetadata().GetName(),
+			"plugin_name", plugin.Name())
+
 		if err := plugin.ProcessUpstream(params, upstream, out); err != nil {
 			logger.Debug("Error processing upstream", zap.String("upstream", upstream.GetMetadata().Ref().String()), zap.Error(err), zap.String("plugin", plugin.Name()))
+			logger.Infow("Plugin processing error",
+				"issue", "8539",
+				"upstream_name", upstream.GetMetadata().GetName(),
+				"plugin_name", plugin.Name(),
+				"error", err.Error())
 			errs = append(errs, err)
 		}
 	}
 	if err := validateCluster(out); err != nil {
 		logger.Debug("Error validating cluster ", zap.String("upstream", upstream.GetMetadata().Ref().String()), zap.Error(err))
+		logger.Infow("Cluster validation error",
+			"issue", "8539",
+			"upstream_name", upstream.GetMetadata().GetName(),
+			"cluster_name", out.GetName(),
+			"error", err.Error())
 		errs = append(errs, eris.Wrap(err, "cluster was configured improperly by one or more plugins"))
 	}
+
+	logger.Infow("Completed cluster computation",
+		"issue", "8539",
+		"upstream_name", upstream.GetMetadata().GetName(),
+		"cluster_name", out.GetName(),
+		"error_count", len(errs))
 	return out, errs
 }
 
@@ -121,6 +200,9 @@ func (t *translatorInstance) initializeCluster(
 	eds bool,
 	secrets *v1.SecretList,
 ) (*envoy_config_cluster_v3.Cluster, []error) {
+	// Note: We don't have a logger context here as this is an internal function
+	// Logging is handled at the calling function level
+
 	var errorList []error
 	hcConfig, err := createHealthCheckConfig(upstream, secrets, t.shouldEnforceNamespaceMatch)
 	if err != nil {
@@ -141,8 +223,9 @@ func (t *translatorInstance) initializeCluster(
 	}
 
 	circuitBreakers := t.settings.GetGloo().GetCircuitBreakers()
+	clusterName := UpstreamToClusterName(upstream.GetMetadata().Ref())
 	out := &envoy_config_cluster_v3.Cluster{
-		Name:             UpstreamToClusterName(upstream.GetMetadata().Ref()),
+		Name:             clusterName,
 		Metadata:         new(envoy_config_core_v3.Metadata),
 		CircuitBreakers:  getCircuitBreakers(upstream.GetCircuitBreakers(), circuitBreakers),
 		LbSubsetConfig:   createLbConfig(upstream),
@@ -424,6 +507,12 @@ func validateUpstreamLambdaFunctions(proxy *v1.Proxy, upstreams v1.UpstreamList,
 	upstreamLambdas := make(map[string]map[string]bool)
 	for _, upstream := range upstreams {
 		lambdaFuncs := upstream.GetAws().GetLambdaFunctions()
+		if len(lambdaFuncs) > 0 {
+			contextutils.LoggerFrom(context.Background()).Infow("Found lambda functions in upstream",
+				"issue", "8539",
+				"upstream_name", upstream.GetMetadata().GetName(),
+				"lambda_count", len(lambdaFuncs))
+		}
 		for _, lambda := range lambdaFuncs {
 			upstreamRef := UpstreamToClusterName(upstream.GetMetadata().Ref())
 			if upstreamLambdas[upstreamRef] == nil {

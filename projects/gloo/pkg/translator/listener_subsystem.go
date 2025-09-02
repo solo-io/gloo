@@ -2,6 +2,7 @@ package translator
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 
@@ -42,20 +43,44 @@ func (l *ListenerSubsystemTranslatorFactory) GetTranslators(ctx context.Context,
 	ListenerTranslator,
 	RouteConfigurationTranslator,
 ) {
+	logger := contextutils.LoggerFrom(ctx)
+
+	logger.Infow("Getting translators for listener",
+		"issue", "8539",
+		"listener_name", listener.GetName(),
+		"listener_type", fmt.Sprintf("%T", listener.GetListenerType()),
+		"proxy_name", proxy.GetMetadata().GetName())
+
 	switch listener.GetListenerType().(type) {
 	case *v1.Listener_HttpListener:
+		logger.Infow("Using HTTP listener translators",
+			"issue", "8539",
+			"listener_name", listener.GetName())
 		return l.GetHttpListenerTranslators(ctx, proxy, listener, listenerReport)
 
 	case *v1.Listener_TcpListener:
+		logger.Infow("Using TCP listener translators",
+			"issue", "8539",
+			"listener_name", listener.GetName())
 		return l.GetTcpListenerTranslators(ctx, listener, listenerReport)
 
 	case *v1.Listener_HybridListener:
+		logger.Infow("Using Hybrid listener translators",
+			"issue", "8539",
+			"listener_name", listener.GetName())
 		return l.GetHybridListenerTranslators(ctx, proxy, listener, listenerReport)
 
 	case *v1.Listener_AggregateListener:
+		logger.Infow("Using Aggregate listener translators",
+			"issue", "8539",
+			"listener_name", listener.GetName())
 		return l.GetAggregateListenerTranslators(ctx, proxy, listener, listenerReport)
 	default:
 		// This case should never occur
+		logger.Infow("Unknown listener type, returning empty translators",
+			"issue", "8539",
+			"listener_name", listener.GetName(),
+			"listener_type", fmt.Sprintf("%T", listener.GetListenerType()))
 		return &emptyListenerTranslator{}, &emptyRouteConfigurationTranslator{}
 	}
 }

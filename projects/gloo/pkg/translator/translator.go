@@ -114,7 +114,7 @@ func (t *translatorInstance) Translate(
 	logger := contextutils.LoggerFrom(params.Ctx)
 
 	// ADD TRANSLATION START LOGGING
-	logger.Debugw("Starting proxy translation",
+	logger.Infow("Starting proxy translation",
 		"issue", "8539",
 		"proxyName", proxy.GetMetadata().GetName(),
 		"proxyNamespace", proxy.GetMetadata().GetNamespace(),
@@ -129,7 +129,7 @@ func (t *translatorInstance) Translate(
 	//	2. Plugins are long-lived and will live for the lifetime of the process. This means
 	//     that they must be re-initialized on each translation loop to ensure that they are
 	//     reset.
-	logger.Debugw("Initializing translation plugins",
+	logger.Infow("Initializing translation plugins",
 		"issue", "8539",
 		"pluginCount", len(t.pluginRegistry.GetPlugins()))
 
@@ -141,7 +141,7 @@ func (t *translatorInstance) Translate(
 	reports := make(reporter.ResourceReports)
 	proxyReport := validation.MakeReport(proxy)
 
-	logger.Debugw("Starting cluster subsystem translation",
+	logger.Infow("Starting cluster subsystem translation",
 		"issue", "8539",
 		"proxyName", proxy.GetMetadata().GetName())
 
@@ -151,26 +151,26 @@ func (t *translatorInstance) Translate(
 	var endpoints []*envoy_config_endpoint_v3.ClusterLoadAssignment
 	clusters, endpoints = t.translateClusterSubsystemComponents(params, proxy, reports)
 
-	logger.Debugw("Completed cluster subsystem translation",
+	logger.Infow("Completed cluster subsystem translation",
 		"issue", "8539",
 		"proxyName", proxy.GetMetadata().GetName(),
 		"clustersGenerated", len(clusters),
 		"endpointsGenerated", len(endpoints))
 
-	logger.Debugw("Starting listener subsystem translation",
+	logger.Infow("Starting listener subsystem translation",
 		"issue", "8539",
 		"proxyName", proxy.GetMetadata().GetName())
 
 	routeConfigs, listeners := t.translateListenerSubsystemComponents(params, proxy, proxyReport)
 
-	logger.Debugw("Completed listener subsystem translation",
+	logger.Infow("Completed listener subsystem translation",
 		"issue", "8539",
 		"proxyName", proxy.GetMetadata().GetName(),
 		"routeConfigsGenerated", len(routeConfigs),
 		"listenersGenerated", len(listeners))
 
 	// run Resource Generator Plugins
-	logger.Debugw("Running resource generator plugins",
+	logger.Infow("Running resource generator plugins",
 		"issue", "8539",
 		"pluginCount", len(t.pluginRegistry.GetResourceGeneratorPlugins()))
 
@@ -189,7 +189,7 @@ func (t *translatorInstance) Translate(
 		listeners = append(listeners, generatedListeners...)
 	}
 
-	logger.Debugw("Generating final xDS snapshot",
+	logger.Infow("Generating final xDS snapshot",
 		"issue", "8539",
 		"finalClusters", len(clusters),
 		"finalEndpoints", len(endpoints),
@@ -228,13 +228,13 @@ func (t *translatorInstance) Translate(
 	// If we're not validating the full proxy with envoy validate mode, we can
 	// return here.
 	if !t.settings.GetGateway().GetValidation().GetFullEnvoyValidation().GetValue() {
-		logger.Debugw("Skipping full Envoy validation",
+		logger.Infow("Skipping full Envoy validation",
 			"issue", "8539",
 			"proxyName", proxy.GetMetadata().GetName())
 		return xdsSnapshot, reports, proxyReport
 	}
 
-	logger.Debugw("Running full Envoy validation",
+	logger.Infow("Running full Envoy validation",
 		"issue", "8539",
 		"proxyName", proxy.GetMetadata().GetName())
 
@@ -246,7 +246,7 @@ func (t *translatorInstance) Translate(
 		reports.AddError(proxy, err)
 	}
 
-	logger.Debugw("Proxy translation completed successfully",
+	logger.Infow("Proxy translation completed successfully",
 		"issue", "8539",
 		"proxyName", proxy.GetMetadata().GetName(),
 		"hasErrors", reports.ValidateStrict() != nil,
@@ -347,8 +347,21 @@ func (t *translatorInstance) translateListenerSubsystemComponents(params plugins
 
 	logger := contextutils.LoggerFrom(params.Ctx)
 
+	logger.Infow("Starting listener subsystem translation",
+		"issue", "8539",
+		"proxy_name", proxy.GetMetadata().GetName(),
+		"proxy_namespace", proxy.GetMetadata().GetNamespace(),
+		"listener_count", len(proxy.GetListeners()))
+
 	for i, listener := range proxy.GetListeners() {
 		logger.Infof("computing envoy resources for listener: %v", listener.GetName())
+		logger.Infow("Processing listener for translation",
+			"issue", "8539",
+			"listener_name", listener.GetName(),
+			"listener_index", i,
+			"listener_type", fmt.Sprintf("%T", listener.GetListenerType()),
+			"bind_address", listener.GetBindAddress(),
+			"bind_port", listener.GetBindPort())
 
 		listenerReport := proxyReport.GetListenerReports()[i]
 
@@ -358,13 +371,25 @@ func (t *translatorInstance) translateListenerSubsystemComponents(params plugins
 		// Select a ListenerTranslator and RouteConfigurationTranslator, based on the type of listener (ie TCP, HTTP, Hybrid, or Aggregate)
 		listenerTranslator, routeConfigurationTranslator := t.listenerTranslatorFactory.GetTranslators(params.Ctx, proxy, listener, listenerReport)
 
+		logger.Infow("Selected translators for listener",
+			"issue", "8539",
+			"listener_name", listener.GetName(),
+			"listener_translator_type", fmt.Sprintf("%T", listenerTranslator),
+			"route_config_translator_type", fmt.Sprintf("%T", routeConfigurationTranslator))
+
 		// 1. Compute RouteConfiguration
 		// This way we call ProcessVirtualHost / ProcessRoute first
+		logger.Infow("Computing route configuration",
+			"issue", "8539",
+			"listener_name", listener.GetName())
 		envoyRouteConfiguration := routeConfigurationTranslator.ComputeRouteConfiguration(params)
 
 		// 2. Compute Listener
 		// This way we evaluate HttpFilters second, which allows us to avoid appending an HttpFilter
 		// that is not used by any Route / VirtualHost
+		logger.Infow("Computing envoy listener",
+			"issue", "8539",
+			"listener_name", listener.GetName())
 		envoyListener := listenerTranslator.ComputeListener(params)
 
 		if envoyListener != nil {
@@ -372,8 +397,22 @@ func (t *translatorInstance) translateListenerSubsystemComponents(params plugins
 			if len(envoyRouteConfiguration) > 0 {
 				routeConfigs = append(routeConfigs, envoyRouteConfiguration...)
 			}
+			logger.Infow("Successfully computed listener and routes",
+				"issue", "8539",
+				"listener_name", listener.GetName(),
+				"envoy_listener_name", envoyListener.GetName(),
+				"route_config_count", len(envoyRouteConfiguration))
+		} else {
+			logger.Infow("Listener translation returned nil",
+				"issue", "8539",
+				"listener_name", listener.GetName())
 		}
 	}
+
+	logger.Infow("Completed listener subsystem translation",
+		"issue", "8539",
+		"total_listeners_created", len(listeners),
+		"total_route_configs_created", len(routeConfigs))
 
 	return routeConfigs, listeners
 }

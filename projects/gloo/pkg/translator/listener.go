@@ -38,8 +38,21 @@ type listenerTranslatorInstance struct {
 
 func (l *listenerTranslatorInstance) ComputeListener(params plugins.Params) *envoy_config_listener_v3.Listener {
 	params.Ctx = contextutils.WithLogger(params.Ctx, "compute_listener."+l.listener.GetName())
+	logger := contextutils.LoggerFrom(params.Ctx)
+
+	logger.Infow("Starting listener computation",
+		"issue", "8539",
+		"listener_name", l.listener.GetName(),
+		"bind_address", l.listener.GetBindAddress(),
+		"bind_port", l.listener.GetBindPort(),
+		"listener_type", fmt.Sprintf("%T", l.listener.GetListenerType()))
 
 	extFilterChains := l.filterChainTranslator.ComputeFilterChains(params)
+
+	logger.Infow("Computed filter chains",
+		"issue", "8539",
+		"listener_name", l.listener.GetName(),
+		"extended_filter_chain_count", len(extFilterChains))
 
 	// our format for setting up filterchains to be extended has a non-zero chance
 	// of having nil filterchains which makes follow up  logic more complex
@@ -55,6 +68,12 @@ func (l *listenerTranslatorInstance) ComputeListener(params plugins.Params) *env
 		}
 	}
 
+	logger.Infow("Processed filter chains",
+		"issue", "8539",
+		"listener_name", l.listener.GetName(),
+		"valid_filter_chain_count", len(filterChains),
+		"cleaned_extended_chain_count", len(cleanedExtendedChains))
+
 	// This is upstream envoy definition we cannot mutate this struct
 	out := &envoy_config_listener_v3.Listener{
 		Name:         l.listener.GetName(),
@@ -62,12 +81,27 @@ func (l *listenerTranslatorInstance) ComputeListener(params plugins.Params) *env
 		FilterChains: filterChains,
 	}
 
+	logger.Infow("Processing filter chain mutator plugins",
+		"issue", "8539",
+		"listener_name", l.listener.GetName(),
+		"plugin_count", len(l.plugins))
+
 	for _, plug := range l.plugins {
 		filterConverterPlug, ok := plug.(plugins.FilterChainMutatorPlugin)
 		if !ok {
 			continue
 		}
+		logger.Infow("Processing filter chain with plugin",
+			"issue", "8539",
+			"listener_name", l.listener.GetName(),
+			"plugin_name", plug.Name())
+
 		if err := filterConverterPlug.ProcessFilterChain(params, l.listener, cleanedExtendedChains, out); err != nil {
+			logger.Infow("Error processing filter chain with plugin",
+				"issue", "8539",
+				"listener_name", l.listener.GetName(),
+				"plugin_name", plug.Name(),
+				"error", err.Error())
 			validation.AppendListenerError(l.report,
 				validationapi.ListenerReport_Error_ProcessingError,
 				err.Error())
@@ -76,15 +110,36 @@ func (l *listenerTranslatorInstance) ComputeListener(params plugins.Params) *env
 
 	CheckForFilterChainConsistency(out.GetFilterChains(), l.report, out)
 
+	logger.Infow("Processing listener plugins",
+		"issue", "8539",
+		"listener_name", l.listener.GetName(),
+		"plugin_count", len(l.plugins))
+
 	// run the Listener Plugins
 	for _, listenerPlugin := range l.plugins {
+		logger.Infow("Processing listener with plugin",
+			"issue", "8539",
+			"listener_name", l.listener.GetName(),
+			"plugin_name", listenerPlugin.Name())
+
 		// Need to have the deprecated cipher information still available at this point in time
 		if err := listenerPlugin.ProcessListener(params, l.listener, out); err != nil {
+			logger.Infow("Error processing listener with plugin",
+				"issue", "8539",
+				"listener_name", l.listener.GetName(),
+				"plugin_name", listenerPlugin.Name(),
+				"error", err.Error())
 			validation.AppendListenerError(l.report,
 				validationapi.ListenerReport_Error_ProcessingError,
 				err.Error())
 		}
 	}
+
+	logger.Infow("Completed listener computation",
+		"issue", "8539",
+		"listener_name", l.listener.GetName(),
+		"envoy_listener_name", out.GetName(),
+		"final_filter_chain_count", len(out.GetFilterChains()))
 
 	return out
 }

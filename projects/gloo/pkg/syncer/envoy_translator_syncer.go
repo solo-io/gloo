@@ -161,6 +161,13 @@ func (s *translatorSyncer) syncEnvoy(ctx context.Context, snap *v1snap.ApiSnapsh
 			proxyCtx = ctxWithTags
 		}
 
+		logger.Infow("Starting proxy translation",
+			"issue", "8539",
+			"proxy_name", proxy.GetMetadata().GetName(),
+			"proxy_namespace", proxy.GetMetadata().GetNamespace(),
+			"snapshot_cache_key", metaKey,
+			"listener_count", len(proxy.GetListeners()))
+
 		params := plugins.Params{
 			Ctx:      proxyCtx,
 			Settings: s.settings,
@@ -169,6 +176,12 @@ func (s *translatorSyncer) syncEnvoy(ctx context.Context, snap *v1snap.ApiSnapsh
 		}
 
 		xdsSnapshot, reports, _ := s.translator.Translate(params, proxy)
+
+		logger.Infow("Completed proxy translation",
+			"issue", "8539",
+			"proxy_name", proxy.GetMetadata().GetName(),
+			"snapshot_cache_key", metaKey,
+			"has_errors", reports.ValidateStrict() != nil)
 
 		// Messages are aggregated during translation, and need to be added to reports
 		for _, messages := range params.Messages {
