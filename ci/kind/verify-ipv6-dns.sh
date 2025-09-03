@@ -5,13 +5,6 @@
 
 set -e
 
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
-
 # Configuration
 TEST_NAMESPACE="${TEST_NAMESPACE:-ipv6-dns-test}"
 TEST_POD_NAME="ipv6-dns-tester"
@@ -19,19 +12,19 @@ TIMEOUT=30
 
 # Log functions
 log_info() {
-    echo -e "${NC}[INFO]${NC} $1"
+    echo -e "[INFO] $1"
 }
 
 log_success() {
-    echo -e "${NC}[SUCCESS]${NC} $1"
+    echo -e "[SUCCESS] $1"
 }
 
 log_warning() {
-    echo -e "${NC}[WARNING]${NC} $1"
+    echo -e "[WARNING] $1"
 }
 
 log_error() {
-    echo -e "${NC}[ERROR]${NC} $1"
+    echo -e "[ERROR] $1"
 }
 
 # Create test namespace
