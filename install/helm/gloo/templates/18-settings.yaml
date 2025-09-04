@@ -186,12 +186,12 @@ spec:
 
 {{- if .Values.settings.singleNamespace }}
   watchNamespaces:
-  - {{ .Release.Namespace }}
+    - {{ .Release.Namespace }}
 {{- else }}
 {{- with .Values.settings.watchNamespaces }}
   watchNamespaces:
   {{- range . }}
-  - {{ . }}
+    - {{ . }}
   {{- end }}
 {{- end }} {{/* with .Values.settings.watchNamespaces */}}
 {{- end }} {{/* if .Values.settings.singleNamespace */}}
@@ -200,6 +200,31 @@ spec:
   watchNamespaceSelectors:
   {{ toYaml .Values.settings.watchNamespaceSelectors | nindent 4 }}
 {{- end }} {{/* if .Values.settings.watchNamespaceSelectors */}}
+
+{{- if hasKey .Values.global "globalIpFamily" }}
+  upstreamOptions:
+    {{- if eq "v6" .Values.global.globalIpFamily }}
+    dnsLookupIpFamily: V6_ONLY
+    globalAnnotations:
+      gloo.solo.io/dns_ip_family: "v6"
+    {{- else if eq "dual-v6-pref" .Values.global.globalIpFamily }}
+    dnsLookupIpFamily: V6_PREFERRED
+    globalAnnotations:
+      gloo.solo.io/dns_ip_family: "v6_pref"
+    {{- else if eq "dual-v4-pref" .Values.global.globalIpFamily }}
+    dnsLookupIpFamily: V4_PREFERRED
+    globalAnnotations:
+      gloo.solo.io/dns_ip_family: "v4_pref"
+    {{- else if eq "dual" .Values.global.globalIpFamily }}
+    dnsLookupIpFamily: DUAL_IP_FAMILY
+    globalAnnotations:
+      gloo.solo.io/dns_ip_family: "dual"
+    {{- else }}
+    dnsLookupIpFamily: V4_ONLY
+    globalAnnotations:
+      gloo.solo.io/dns_ip_family: "v4"
+    {{- end }}
+{{- end }} {{/* if .Values.global.globalIpFamily */}}
 
 {{- end }} {{/* if .Values.settings.create  */}}
 {{- end }} {{/* define "settings.settingsSpec" */}}

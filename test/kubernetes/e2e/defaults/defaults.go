@@ -25,8 +25,14 @@ var TcpEchoPodYaml []byte
 //go:embed testdata/nginx_pod.yaml
 var NginxPodYaml []byte
 
+//go:embed testdata/nginx_pod-ipv6.yaml
+var NginxV6PodYaml []byte
+
 //go:embed testdata/httpbin.yaml
 var HttpbinYaml []byte
+
+//go:embed testdata/httpbin-ipv6.yaml
+var HttpbinV6Yaml []byte
 
 var (
 	CurlPodExecOpt = kubectl.PodExecOptions{

@@ -206,11 +206,27 @@ spec:
         lifecycle:
           preStop:
             exec:
+{{- if hasKey .Values.global "globalIpFamily" }}
+{{- if or (eq "v6" .Values.global.globalIpFamily) (eq "dual" .Values.global.globalIpFamily) (eq "dual-v6-pref" .Values.global.globalIpFamily) }}
               command:
-              - /bin/sh
-              - -c
-              - wget --post-data "" -O /dev/null {{ $spec.loopBackAddress }}:19000/healthcheck/fail;
-                sleep {{ $spec.podTemplate.gracefulShutdown.sleepTimeSeconds }}
+                - /bin/sh
+                - -c
+                - wget --post-data "" -O /dev/null http://[::1]:19000/healthcheck/fail;
+                  sleep {{ $spec.podTemplate.gracefulShutdown.sleepTimeSeconds }}
+{{- else }}
+              command:
+                - /bin/sh
+                - -c
+                - wget --post-data "" -O /dev/null http://127.0.0.1:19000/healthcheck/fail;
+                  sleep {{ $spec.podTemplate.gracefulShutdown.sleepTimeSeconds }}
+{{- end }}
+{{- else }}
+              command:
+                - /bin/sh
+                - -c
+                - wget --post-data "" -O /dev/null http://{{ $spec.loopBackAddress }}:19000/healthcheck/fail;
+                  sleep {{ $spec.podTemplate.gracefulShutdown.sleepTimeSeconds }}
+{{- end }}
         {{- end}}
         {{- end}}
         name: {{ $name | kebabcase }}
@@ -256,11 +272,27 @@ spec:
 {{ toYaml $spec.podTemplate.customReadinessProbe | indent 10}}
 {{- else }}
           exec:
+{{- if hasKey .Values.global "globalIpFamily" }}
+{{- if or (eq "v6" .Values.global.globalIpFamily) (eq "dual" .Values.global.globalIpFamily) (eq "dual-v6-pref" .Values.global.globalIpFamily) }}
             command:
-            - wget
-            - -O
-            - /dev/null
-            - {{ $spec.loopBackAddress }}:19000/ready
+              - wget
+              - -O
+              - /dev/null
+              - http://[::1]:19000/ready
+{{- else }}
+            command:
+              - wget
+              - -O
+              - /dev/null
+              - http://127.0.0.1:19000/ready
+{{- end }}
+{{- else }}
+            command:
+              - wget
+              - -O
+              - /dev/null
+              - http://{{ $spec.loopBackAddress }}:19000/ready
+{{- end }}
           initialDelaySeconds: 3
           periodSeconds: 10
           failureThreshold: 3
@@ -271,11 +303,27 @@ spec:
 {{ toYaml $spec.podTemplate.customLivenessProbe | indent 10}}
 {{- else }}
           exec:
+{{- if hasKey .Values.global "globalIpFamily" }}
+{{- if or (eq "v6" .Values.global.globalIpFamily) (eq "dual" .Values.global.globalIpFamily) (eq "dual-v6-pref" .Values.global.globalIpFamily) }}
             command:
-            - wget
-            - -O
-            - /dev/null
-            - {{ $spec.loopBackAddress }}:19000/server_info
+              - wget
+              - -O
+              - /dev/null
+              - http://[::1]:19000/server_info
+{{- else }}
+            command:
+              - wget
+              - -O
+              - /dev/null
+              - http://127.0.0.1:19000/server_info
+{{- end }}
+{{- else }}
+            command:
+              - wget
+              - -O
+              - /dev/null
+              - http://{{ $spec.loopBackAddress }}:19000/server_info
+{{- end }}
           initialDelaySeconds: 3
           periodSeconds: 10
           failureThreshold: 3

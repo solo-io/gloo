@@ -93,4 +93,9 @@ func UpdateUpstream(original, desired *v1.Upstream) {
 	if desired.GetPreconnectPolicy() == nil {
 		desired.PreconnectPolicy = original.GetPreconnectPolicy()
 	}
+
+	// make sure discovered has DEFAULT before overriding it
+	if desired.GetDnsLookupIpFamily() == v1.DnsIpFamily_DEFAULT {
+		desired.DnsLookupIpFamily = original.GetDnsLookupIpFamily()
+	}
 }

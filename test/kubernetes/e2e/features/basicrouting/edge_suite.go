@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/onsi/gomega"
+	"github.com/solo-io/gloo/test/testutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
@@ -48,7 +49,12 @@ func NewBasicEdgeRoutingSuite(ctx context.Context, testInst *e2e.TestInstallatio
 }
 
 func (s *edgeBasicRoutingSuite) SetupSuite() {
-	err := s.testInstallation.Actions.Kubectl().Apply(s.ctx, testdefaults.NginxPodYaml)
+	var err error
+	if testutils.IsV6Supported() {
+		err = s.testInstallation.Actions.Kubectl().Apply(s.ctx, testdefaults.NginxV6PodYaml)
+	} else {
+		err = s.testInstallation.Actions.Kubectl().Apply(s.ctx, testdefaults.NginxPodYaml)
+	}
 	s.NoError(err, "can apply Nginx setup manifest")
 	err = s.testInstallation.Actions.Kubectl().Apply(s.ctx, testdefaults.CurlPodYaml)
 	s.NoError(err, "can apply Curl setup manifest")
@@ -63,7 +69,12 @@ func (s *edgeBasicRoutingSuite) SetupSuite() {
 }
 
 func (s *edgeBasicRoutingSuite) TearDownSuite() {
-	err := s.testInstallation.Actions.Kubectl().Delete(s.ctx, testdefaults.NginxPodYaml)
+	var err error
+	if testutils.IsV6Supported() {
+		err = s.testInstallation.Actions.Kubectl().Delete(s.ctx, testdefaults.NginxV6PodYaml)
+	} else {
+		err = s.testInstallation.Actions.Kubectl().Delete(s.ctx, testdefaults.NginxPodYaml)
+	}
 	s.NoError(err, "can delete Nginx setup manifest")
 	err = s.testInstallation.Actions.Kubectl().Delete(s.ctx, testdefaults.CurlPodYaml)
 	s.NoError(err, "can delete Curl setup manifest")

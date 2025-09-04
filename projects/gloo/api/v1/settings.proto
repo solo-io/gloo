@@ -22,6 +22,7 @@ import "github.com/solo-io/gloo/projects/gloo/api/v1/circuit_breaker/circuit_bre
 import "github.com/solo-io/gloo/projects/gloo/api/v1/ssl/ssl.proto";
 import "github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/aws/filter.proto";
 import "github.com/solo-io/gloo/projects/gloo/api/v1/options/consul/query_options.proto";
+import "github.com/solo-io/gloo/projects/gloo/api/v1/upstream.proto";
 
 import "google/protobuf/duration.proto";
 import "google/protobuf/wrappers.proto";
@@ -87,7 +88,6 @@ message Settings {
 
     // How frequently to resync watches, etc
     google.protobuf.Duration refresh_rate = 12;
-
 
     // DEPRECATED: In the past DevMode was used to expose endpoints that behave as an Admin API
     // https://github.com/solo-io/gloo/issues/6494
@@ -432,7 +432,6 @@ message Settings {
 
     ConsulUpstreamDiscoveryConfiguration consulDiscovery = 30;
 
-
     // Provides overrides for the default configuration parameters used to interact with Kubernetes.
     message KubernetesConfiguration {
 
@@ -485,9 +484,8 @@ message Settings {
 
     // Enterprise-only: Settings for the caching server itself
     // This may eventually be able to be set at a per listener level.
-	// At this time is used for plugin translation via the init.Params.
+    // At this time is used for plugin translation via the init.Params.
     caching.options.gloo.solo.io.Settings caching_server = 36;
-
 
     // Metadata contains the object metadata for this resource
     core.solo.io.Metadata metadata = 14;
@@ -532,7 +530,6 @@ message Settings {
         // Options to configure Gloo's integration with [Kubernetes](https://www.kubernetes.io/).
         GrafanaIntegration grafanaIntegration = 1;
 
-
         message MetricLabels {
             // Each (key, value) pair in the map defines a label to be applied. Keys specify the name of the label
             // (e.g. "namespace"). Values specify the jsonpath (https://kubernetes.io/docs/reference/kubectl/jsonpath/)
@@ -556,7 +553,7 @@ message Settings {
 
     // Default configuration to use for upstreams, when not provided by specific upstream
     // When these properties are defined on an upstream, this configuration will be ignored
-    UpstreamOptions upstreamOptions = 32;
+    UpstreamOptions upstream_options = 32;
 
     // Enterprise-only: Settings for the Gloo Edge Enterprise Console (UI)
     ConsoleOptions console_options = 35;
@@ -652,6 +649,15 @@ message UpstreamOptions {
 
     // Annotations to apply to all upstreams
     map<string, string> global_annotations = 2;
+
+    // Provides the ability to configure IP family setting for DNS lookup globally.
+    // - For V4 environments use `V4_ONLY`.
+    // - For V6 environments the preferred option is `V6_ONLY`.
+    // - For environments that support dual stack family, i.e. both V4 and V6:
+    // -   use the option `V4_PREFERRED`. The DNS resolver performs an IPv4 lookup first, and falls back to IPv6 only if no IPv4 addresses are returned. The callback target receives IPv6 addresses only when IPv4 results are unavailable.
+    // -   similarly, use `V6_PREFERRED` for instances where IPv6 is preferred over IPv4.
+    // -   If `DUAL_IP_FAMILY` is specified, the DNS resolver queries both IPv4 and IPv6 records and returns all resolved addresses. In this mode, Happy Eyeballs is enabled for upstream connections. This is particularly applicable in IPv6 environments, such as AWS EKS IPv6 with DNS64 and NAT64, where SNAT to IPv4 addresses is supported.
+    gloo.solo.io.DnsIpFamily dns_lookup_ip_family = 3;
 }
 
 // Settings specific to the gloo (Envoy xDS server) controller

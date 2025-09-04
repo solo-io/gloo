@@ -475,6 +475,8 @@ func EnvoyDumpOnFail(ctx context.Context, kubectlCli *kubectl.Cli, _ io.Writer, 
 					fmt.Printf("error running listeners command: %f\n", err)
 				}
 
+				writeProxyLog(ctx, envoyOutDir, ns, proxy, kubectlCli)
+
 				fmt.Printf("Finished writing Envoy state information to the \"%s\" directory.\n", outDir)
 			}
 		}
@@ -513,6 +515,18 @@ func writeControllerLog(ctx context.Context, outDir string, ns string, podName s
 	err := controllerLogsCmd.Run().Cause()
 	if err != nil {
 		fmt.Printf("error running controller logs for %s in %s command: %v\n", podName, ns, err)
+	}
+}
+
+func writeProxyLog(ctx context.Context, outDir string, ns string, podName string, kubectlCli *kubectl.Cli) {
+	// Get the Gloo Gateway controller logs
+	proxyLogsFile := fileAtPath(filepath.Join(outDir, fmt.Sprintf("%s.proxy.log", podName)))
+	// FIXME cant really assume a single container so probably should search for the specific container but these could also be dynamic.
+	proxyLogsCmd := kubectlCli.WithReceiver(proxyLogsFile).Command(ctx,
+		"-n", ns, "logs", podName, "--tail=1000")
+	err := proxyLogsCmd.Run().Cause()
+	if err != nil {
+		fmt.Printf("error running proxy logs for %s in %s command: %v\n", podName, ns, err)
 	}
 }
 

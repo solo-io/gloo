@@ -11,6 +11,7 @@ func init() {
 	DefaultServiceConverters = []ServiceConverter{
 		&UseHttp2Converter{},
 		&UseSslConverter{},
+		&DnsIpFamilyConverter{},
 		// The General Service Converter is applied last, and is capable of overriding settings applied by prior converters
 		&GeneralServiceConverter{},
 	}
