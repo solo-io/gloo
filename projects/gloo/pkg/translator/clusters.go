@@ -33,6 +33,15 @@ import (
 	_structpb "google.golang.org/protobuf/types/known/structpb"
 )
 
+// logComputeCluster is a helper function that logs cluster computation messages only when COMPUTE_CLUSTER_LOGS is enabled
+func logComputeCluster(logger *zap.SugaredLogger, msg string, keysAndValues ...interface{}) {
+	if envutils.IsEnvTruthy(constants.ComputeClusterLogsEnv) {
+		// Add the issue label to all gated logs
+		keysAndValues = append([]interface{}{"issue", "8539"}, keysAndValues...)
+		logger.Infow(msg, keysAndValues...)
+	}
+}
+
 func (t *translatorInstance) computeClusters(
 	params plugins.Params,
 	reports reporter.ResourceReports,
@@ -44,8 +53,7 @@ func (t *translatorInstance) computeClusters(
 	params.Ctx = contextutils.WithLogger(ctx, "compute_clusters")
 
 	logger := contextutils.LoggerFrom(params.Ctx)
-	logger.Infow("Starting cluster computation",
-		"issue", "8539",
+	logComputeCluster(logger, "Starting cluster computation",
 		"proxy_name", proxy.GetMetadata().GetName(),
 		"proxy_namespace", proxy.GetMetadata().GetNamespace(),
 		"upstream_count", len(params.Snapshot.Upstreams),
@@ -59,8 +67,7 @@ func (t *translatorInstance) computeClusters(
 
 	clusterToUpstreamMap := make(map[*envoy_config_cluster_v3.Cluster]*v1.Upstream)
 	for _, upstream := range upstreams {
-		logger.Infow("processing upstream for cluster computation",
-			"issue", "8539",
+		logComputeCluster(logger, "processing upstream for cluster computation",
 			"upstream_name", upstream.GetMetadata().GetName(),
 			"upstream_namespace", upstream.GetMetadata().GetNamespace(),
 			"upstream_type", fmt.Sprintf("%T", upstream.GetUpstreamType()))
@@ -68,33 +75,28 @@ func (t *translatorInstance) computeClusters(
 		eds := false
 		if eps, ok := upstreamRefKeyToEndpoints[upstream.GetMetadata().Ref().Key()]; ok && len(eps) > 0 {
 			eds = true
-			logger.Infow("EDS enabled for upstream",
-				"issue", "8539",
+			logComputeCluster(logger, "EDS enabled for upstream",
 				"upstream_name", upstream.GetMetadata().GetName(),
 				"endpoint_count", len(eps))
 		}
 
-		logger.Infow("computing cluster",
-			"issue", "8539",
+		logComputeCluster(logger, "computing cluster",
 			"upstream_name", upstream.GetMetadata().GetName(),
 			"eds_enabled", eds)
 		cluster, errs := t.computeCluster(params, upstream, eds)
-		logger.Infow("completed cluster computation",
-			"issue", "8539",
+		logComputeCluster(logger, "completed cluster computation",
 			"upstream_name", upstream.GetMetadata().GetName(),
 			"cluster_name", cluster.GetName(),
 			"error_count", len(errs))
 		for _, err := range errs {
 			var warning *Warning
 			if errors.As(err, &warning) {
-				logger.Infow("Warning during cluster computation",
-					"issue", "8539",
+				logComputeCluster(logger, "Warning during cluster computation",
 					"upstream_name", upstream.GetMetadata().GetName(),
 					"warning", err.Error())
 				reports.AddWarning(upstream, err.Error())
 			} else {
-				logger.Infow("Error during cluster computation",
-					"issue", "8539",
+				logComputeCluster(logger, "Error during cluster computation",
 					"upstream_name", upstream.GetMetadata().GetName(),
 					"error", err.Error())
 				reports.AddError(upstream, err)
@@ -104,8 +106,7 @@ func (t *translatorInstance) computeClusters(
 		clusters = append(clusters, cluster)
 	}
 
-	logger.Infow("Completed cluster computation",
-		"issue", "8539",
+	logComputeCluster(logger, "Completed cluster computation",
 		"total_clusters_created", len(clusters))
 	return clusters, clusterToUpstreamMap
 }
@@ -117,8 +118,7 @@ func (t *translatorInstance) TranslateCluster(
 	upstream *v1.Upstream,
 ) (*envoy_config_cluster_v3.Cluster, []error) {
 	logger := contextutils.LoggerFrom(params.Ctx)
-	logger.Infow("Starting single cluster translation",
-		"issue", "8539",
+	logComputeCluster(logger, "Starting single cluster translation",
 		"upstream_name", upstream.GetMetadata().GetName(),
 		"upstream_namespace", upstream.GetMetadata().GetNamespace())
 
@@ -135,20 +135,17 @@ func (t *translatorInstance) TranslateCluster(
 		endpointClusterName, err2 := GetEndpointClusterName(c.GetName(), upstream)
 		if err2 == nil {
 			c.GetEdsClusterConfig().ServiceName = endpointClusterName
-			logger.Infow("Set EDS service name for cluster",
-				"issue", "8539",
+			logComputeCluster(logger, "Set EDS service name for cluster",
 				"cluster_name", c.GetName(),
 				"service_name", endpointClusterName)
 		} else {
-			logger.Infow("Failed to get endpoint cluster name",
-				"issue", "8539",
+			logComputeCluster(logger, "Failed to get endpoint cluster name",
 				"cluster_name", c.GetName(),
 				"error", err2.Error())
 		}
 	}
 
-	logger.Infow("Completed single cluster translation",
-		"issue", "8539",
+	logComputeCluster(logger, "Completed single cluster translation",
 		"upstream_name", upstream.GetMetadata().GetName(),
 		"cluster_name", c.GetName(),
 		"error_count", len(err))
@@ -163,8 +160,7 @@ func (t *translatorInstance) computeCluster(
 	logger := contextutils.LoggerFrom(params.Ctx)
 	params.Ctx = contextutils.WithLogger(params.Ctx, upstream.GetMetadata().GetName())
 
-	logger.Infow("Computing cluster for upstream",
-		"issue", "8539",
+	logComputeCluster(logger, "Computing cluster for upstream",
 		"upstream_name", upstream.GetMetadata().GetName(),
 		"upstream_namespace", upstream.GetMetadata().GetNamespace(),
 		"eds_enabled", eds)
@@ -173,8 +169,7 @@ func (t *translatorInstance) computeCluster(
 
 	for i, plugin := range t.pluginRegistry.GetUpstreamPlugins() {
 		start := time.Now()
-		logger.Infow("Starting plugin processing",
-			"issue", "8539",
+		logComputeCluster(logger, "Starting plugin processing",
 			"upstream_name", upstream.GetMetadata().GetName(),
 			"plugin_index", i,
 			"plugin_name", plugin.Name(),
@@ -200,16 +195,14 @@ func (t *translatorInstance) computeCluster(
 		case err := <-done:
 			duration := time.Since(start)
 			if err != nil {
-				logger.Infow("Plugin processing error",
-					"issue", "8539",
+				logComputeCluster(logger, "Plugin processing error",
 					"upstream_name", upstream.GetMetadata().GetName(),
 					"plugin_name", plugin.Name(),
 					"duration_ms", duration.Milliseconds(),
 					"error", err.Error())
 				errs = append(errs, err)
 			} else {
-				logger.Infow("Plugin processing completed successfully",
-					"issue", "8539",
+				logComputeCluster(logger, "Plugin processing completed successfully",
 					"upstream_name", upstream.GetMetadata().GetName(),
 					"plugin_name", plugin.Name(),
 					"duration_ms", duration.Milliseconds())
@@ -226,16 +219,14 @@ func (t *translatorInstance) computeCluster(
 	}
 	if err := validateCluster(out); err != nil {
 		logger.Debug("Error validating cluster ", zap.String("upstream", upstream.GetMetadata().Ref().String()), zap.Error(err))
-		logger.Infow("Cluster validation error",
-			"issue", "8539",
+		logComputeCluster(logger, "Cluster validation error",
 			"upstream_name", upstream.GetMetadata().GetName(),
 			"cluster_name", out.GetName(),
 			"error", err.Error())
 		errs = append(errs, eris.Wrap(err, "cluster was configured improperly by one or more plugins"))
 	}
 
-	logger.Infow("Completed cluster computation",
-		"issue", "8539",
+	logComputeCluster(logger, "Completed cluster computation",
 		"upstream_name", upstream.GetMetadata().GetName(),
 		"cluster_name", out.GetName(),
 		"error_count", len(errs))
@@ -250,8 +241,7 @@ func (t *translatorInstance) initializeCluster(
 ) (*envoy_config_cluster_v3.Cluster, []error) {
 	logger := contextutils.LoggerFrom(ctx)
 
-	logger.Infow("Starting cluster initialization",
-		"issue", "8539",
+	logComputeCluster(logger, "Starting cluster initialization",
 		"upstream_name", upstream.GetMetadata().GetName(),
 		"upstream_namespace", upstream.GetMetadata().GetNamespace(),
 		"eds_enabled", eds,
@@ -259,53 +249,45 @@ func (t *translatorInstance) initializeCluster(
 
 	var errorList []error
 
-	logger.Infow("Creating health check configuration",
-		"issue", "8539",
+	logComputeCluster(logger, "Creating health check configuration",
 		"upstream_name", upstream.GetMetadata().GetName(),
 		"health_check_count", len(upstream.GetHealthChecks()))
 	hcConfig, err := createHealthCheckConfig(upstream, secrets, t.shouldEnforceNamespaceMatch)
 	if err != nil {
-		logger.Infow("Health check configuration error",
-			"issue", "8539",
+		logComputeCluster(logger, "Health check configuration error",
 			"upstream_name", upstream.GetMetadata().GetName(),
 			"error", err.Error())
 		errorList = append(errorList, err)
 	}
 
-	logger.Infow("Creating outlier detection configuration",
-		"issue", "8539",
+	logComputeCluster(logger, "Creating outlier detection configuration",
 		"upstream_name", upstream.GetMetadata().GetName(),
 		"has_outlier_detection", upstream.GetOutlierDetection() != nil)
 	detectCfg, err := createOutlierDetectionConfig(upstream)
 	if err != nil {
-		logger.Infow("Outlier detection configuration error",
-			"issue", "8539",
+		logComputeCluster(logger, "Outlier detection configuration error",
 			"upstream_name", upstream.GetMetadata().GetName(),
 			"error", err.Error())
 		errorList = append(errorList, err)
 	}
 
-	logger.Infow("Getting preconnect policy",
-		"issue", "8539",
+	logComputeCluster(logger, "Getting preconnect policy",
 		"upstream_name", upstream.GetMetadata().GetName(),
 		"has_preconnect_policy", upstream.GetPreconnectPolicy() != nil)
 	preconnect, err := getPreconnectPolicy(upstream.GetPreconnectPolicy())
 	if err != nil {
-		logger.Infow("Preconnect policy error",
-			"issue", "8539",
+		logComputeCluster(logger, "Preconnect policy error",
 			"upstream_name", upstream.GetMetadata().GetName(),
 			"error", err.Error())
 		errorList = append(errorList, err)
 	}
 
-	logger.Infow("Getting DNS refresh rate",
-		"issue", "8539",
+	logComputeCluster(logger, "Getting DNS refresh rate",
 		"upstream_name", upstream.GetMetadata().GetName(),
 		"has_dns_refresh_rate", upstream.GetDnsRefreshRate() != nil)
 	dnsRefreshRate, err := getDnsRefreshRate(upstream)
 	if err != nil {
-		logger.Infow("DNS refresh rate error",
-			"issue", "8539",
+		logComputeCluster(logger, "DNS refresh rate error",
 			"upstream_name", upstream.GetMetadata().GetName(),
 			"error", err.Error())
 		errorList = append(errorList, err)
@@ -314,8 +296,7 @@ func (t *translatorInstance) initializeCluster(
 	circuitBreakers := t.settings.GetGloo().GetCircuitBreakers()
 	clusterName := UpstreamToClusterName(upstream.GetMetadata().Ref())
 
-	logger.Infow("Creating base cluster configuration",
-		"issue", "8539",
+	logComputeCluster(logger, "Creating base cluster configuration",
 		"upstream_name", upstream.GetMetadata().GetName(),
 		"cluster_name", clusterName,
 		"has_circuit_breakers", upstream.GetCircuitBreakers() != nil || circuitBreakers != nil,
@@ -343,15 +324,13 @@ func (t *translatorInstance) initializeCluster(
 	// for kube gateway, use new stats name format
 	if envutils.IsEnvTruthy(constants.GlooGatewayEnableK8sGwControllerEnv) {
 		out.AltStatName = UpstreamToClusterStatsName(upstream)
-		logger.Infow("Set alternative stats name for Kube Gateway",
-			"issue", "8539",
+		logComputeCluster(logger, "Set alternative stats name for Kube Gateway",
 			"upstream_name", upstream.GetMetadata().GetName(),
 			"alt_stat_name", out.AltStatName)
 	}
 
 	if sslConfig := upstream.GetSslConfig(); sslConfig != nil {
-		logger.Infow("Processing SSL configuration",
-			"issue", "8539",
+		logComputeCluster(logger, "Processing SSL configuration",
 			"upstream_name", upstream.GetMetadata().GetName(),
 			"has_ssl_config", true)
 
@@ -362,23 +341,20 @@ func (t *translatorInstance) initializeCluster(
 			// warning instead of error to the report.
 			if t.settings.GetGateway().GetValidation().GetWarnMissingTlsSecret().GetValue() &&
 				errors.Is(err, utils.SslSecretNotFoundError) {
-				logger.Infow("SSL configuration warning - missing TLS secret",
-					"issue", "8539",
+				logComputeCluster(logger, "SSL configuration warning - missing TLS secret",
 					"upstream_name", upstream.GetMetadata().GetName(),
 					"warning", err.Error())
 				errorList = append(errorList, &Warning{
 					Message: err.Error(),
 				})
 			} else {
-				logger.Infow("SSL configuration error",
-					"issue", "8539",
+				logComputeCluster(logger, "SSL configuration error",
 					"upstream_name", upstream.GetMetadata().GetName(),
 					"error", err.Error())
 				errorList = append(errorList, err)
 			}
 		} else {
-			logger.Infow("SSL configuration resolved successfully",
-				"issue", "8539",
+			logComputeCluster(logger, "SSL configuration resolved successfully",
 				"upstream_name", upstream.GetMetadata().GetName())
 
 			typedConfig, err := utils.MessageToAny(cfg)
@@ -392,8 +368,7 @@ func (t *translatorInstance) initializeCluster(
 					"error", err.Error())
 				panic(err)
 			} else {
-				logger.Infow("Created transport socket with TLS",
-					"issue", "8539",
+				logComputeCluster(logger, "Created transport socket with TLS",
 					"upstream_name", upstream.GetMetadata().GetName())
 				out.TransportSocket = &envoy_config_core_v3.TransportSocket{
 					Name:       wellknown.TransportSocketTls,
@@ -406,21 +381,18 @@ func (t *translatorInstance) initializeCluster(
 	// proxyprotocol may be wiped by some plugins that transform transport sockets
 	// see static and failover at time of writing.
 	if upstream.GetProxyProtocolVersion() != nil {
-		logger.Infow("Processing proxy protocol configuration",
-			"issue", "8539",
+		logComputeCluster(logger, "Processing proxy protocol configuration",
 			"upstream_name", upstream.GetMetadata().GetName(),
 			"proxy_protocol_version", upstream.GetProxyProtocolVersion().GetValue())
 
 		tp, err := upstream_proxy_protocol.WrapWithPProtocol(out.GetTransportSocket(), upstream.GetProxyProtocolVersion().GetValue())
 		if err != nil {
-			logger.Infow("Proxy protocol configuration error",
-				"issue", "8539",
+			logComputeCluster(logger, "Proxy protocol configuration error",
 				"upstream_name", upstream.GetMetadata().GetName(),
 				"error", err.Error())
 			errorList = append(errorList, err)
 		} else {
-			logger.Infow("Proxy protocol transport socket created",
-				"issue", "8539",
+			logComputeCluster(logger, "Proxy protocol transport socket created",
 				"upstream_name", upstream.GetMetadata().GetName())
 			out.TransportSocket = tp
 		}
@@ -428,15 +400,13 @@ func (t *translatorInstance) initializeCluster(
 
 	// set Type = EDS if we have endpoints for the upstream
 	if eds {
-		logger.Infow("Setting EDS on cluster",
-			"issue", "8539",
+		logComputeCluster(logger, "Setting EDS on cluster",
 			"upstream_name", upstream.GetMetadata().GetName(),
 			"cluster_name", clusterName)
 		xds.SetEdsOnCluster(out, t.settings)
 	}
 
-	logger.Infow("Completed cluster initialization",
-		"issue", "8539",
+	logComputeCluster(logger, "Completed cluster initialization",
 		"upstream_name", upstream.GetMetadata().GetName(),
 		"cluster_name", clusterName,
 		"error_count", len(errorList),
@@ -658,14 +628,12 @@ func validateUpstreamLambdaFunctions(proxy *v1.Proxy, upstreams v1.UpstreamList,
 	// Create a set of the lambda functions in each upstream
 	upstreamLambdas := make(map[string]map[string]bool)
 	logger := contextutils.LoggerFrom(context.Background())
-	logger.Infow("validating upstream lambda functions",
-		"issue", "8539",
+	logComputeCluster(logger, "validating upstream lambda functions",
 		"upstream_count", len(upstreams))
 	for _, upstream := range upstreams {
 		lambdaFuncs := upstream.GetAws().GetLambdaFunctions()
 		if len(lambdaFuncs) > 0 {
-			contextutils.LoggerFrom(context.Background()).Infow("Found lambda functions in upstream",
-				"issue", "8539",
+			logComputeCluster(contextutils.LoggerFrom(context.Background()), "Found lambda functions in upstream",
 				"upstream_name", upstream.GetMetadata().GetName(),
 				"lambda_count", len(lambdaFuncs))
 		}
@@ -678,32 +646,27 @@ func validateUpstreamLambdaFunctions(proxy *v1.Proxy, upstreams v1.UpstreamList,
 		}
 	}
 
-	logger.Infow("completed validating upstream lambda functions, starting GetVirtualHostsForListener",
-		"issue", "8539",
+	logComputeCluster(logger, "completed validating upstream lambda functions, starting GetVirtualHostsForListener",
 		"upstream_count", len(upstreams))
 
 	for _, listener := range proxy.GetListeners() {
-		logger.Infow("GetVirtualHostsForListener",
-			"issue", "8539",
+		logComputeCluster(logger, "GetVirtualHostsForListener",
 			"listener_name", listener.GetName())
 		virtualHosts := utils.GetVirtualHostsForListener(listener)
 
 		for _, virtualHost := range virtualHosts {
-			logger.Infow("GetVirtualHostsForListener",
-				"issue", "8539",
+			logComputeCluster(logger, "GetVirtualHostsForListener",
 				"virtual_host_name", virtualHost.GetName())
 			// Validate all routes to make sure that if they point to a lambda, it exists.
 			for _, route := range virtualHost.GetRoutes() {
-				logger.Infow("validateRouteDestinationForValidLambdas",
-					"issue", "8539",
+				logComputeCluster(logger, "validateRouteDestinationForValidLambdas",
 					"route_name", route.GetName())
 				validateRouteDestinationForValidLambdas(proxy, route, upstreamGroups, reports, upstreamLambdas)
 			}
 		}
 	}
 
-	logger.Infow("completed GetVirtualHostsForListener, completed validateRouteDestinationForValidLambdas",
-		"issue", "8539",
+	logComputeCluster(logger, "completed GetVirtualHostsForListener, completed validateRouteDestinationForValidLambdas",
 		"upstream_count", len(upstreams))
 }
 
