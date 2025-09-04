@@ -12,7 +12,7 @@ Gloo Gateway Enterprise offers `n-3` patching support for bug and critical secur
 
 | Gloo Gateway | Kubernetes | Envoy | Helm | Istio`†`    |
 |------|----------|---------|--------|-------------|
-| 1.20.x | 1.29 - 1.33 | v3 xDS API | >= 3.12 | 1.20 - 1.27 |
+| 1.20.x | 1.29 - 1.34 | v3 xDS API | >= 3.12 | 1.20 - 1.27 |
 | 1.19.x | 1.28 - 1.32 | v3 xDS API | >= 3.12 | 1.18 - 1.25 | 
 | 1.18.x | 1.27 - 1.31 | v3 xDS API | >= 3.12 | 1.18 - 1.23 |
 | 1.17.x | 1.25 - 1.29 | v3 xDS API | >= 3.12 | 1.16 - 1.22 |
