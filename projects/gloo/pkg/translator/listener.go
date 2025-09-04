@@ -6,12 +6,24 @@ import (
 
 	envoy_config_core_v3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	envoy_config_listener_v3 "github.com/envoyproxy/go-control-plane/envoy/config/listener/v3"
+	"github.com/solo-io/gloo/pkg/utils/envutils"
+	"github.com/solo-io/gloo/projects/gloo/constants"
 	validationapi "github.com/solo-io/gloo/projects/gloo/pkg/api/grpc/validation"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils/validation"
 	"github.com/solo-io/go-utils/contextutils"
+	"go.uber.org/zap"
 )
+
+// logComputeListener is a helper function that logs listener messages only when COMPUTE_LISTENER_LOGS is enabled
+func logComputeListener(logger *zap.SugaredLogger, msg string, keysAndValues ...interface{}) {
+	if envutils.IsEnvTruthy(constants.ComputeListenerLogsEnv) {
+		// Add the issue label to all gated logs
+		keysAndValues = append([]interface{}{"issue", "8539"}, keysAndValues...)
+		logger.Infow(msg, keysAndValues...)
+	}
+}
 
 type ListenerTranslator interface {
 	// A single Gloo Listener produces a single Envoy listener
@@ -40,8 +52,7 @@ func (l *listenerTranslatorInstance) ComputeListener(params plugins.Params) *env
 	params.Ctx = contextutils.WithLogger(params.Ctx, "compute_listener."+l.listener.GetName())
 	logger := contextutils.LoggerFrom(params.Ctx)
 
-	logger.Infow("Starting listener computation",
-		"issue", "8539",
+	logComputeListener(logger, "Starting listener computation",
 		"listener_name", l.listener.GetName(),
 		"bind_address", l.listener.GetBindAddress(),
 		"bind_port", l.listener.GetBindPort(),
@@ -49,8 +60,7 @@ func (l *listenerTranslatorInstance) ComputeListener(params plugins.Params) *env
 
 	extFilterChains := l.filterChainTranslator.ComputeFilterChains(params)
 
-	logger.Infow("Computed filter chains",
-		"issue", "8539",
+	logComputeListener(logger, "Computed filter chains",
 		"listener_name", l.listener.GetName(),
 		"extended_filter_chain_count", len(extFilterChains))
 
@@ -68,8 +78,7 @@ func (l *listenerTranslatorInstance) ComputeListener(params plugins.Params) *env
 		}
 	}
 
-	logger.Infow("Processed filter chains",
-		"issue", "8539",
+	logComputeListener(logger, "Processed filter chains",
 		"listener_name", l.listener.GetName(),
 		"valid_filter_chain_count", len(filterChains),
 		"cleaned_extended_chain_count", len(cleanedExtendedChains))
@@ -81,8 +90,7 @@ func (l *listenerTranslatorInstance) ComputeListener(params plugins.Params) *env
 		FilterChains: filterChains,
 	}
 
-	logger.Infow("Processing filter chain mutator plugins",
-		"issue", "8539",
+	logComputeListener(logger, "Processing filter chain mutator plugins",
 		"listener_name", l.listener.GetName(),
 		"plugin_count", len(l.plugins))
 
@@ -91,14 +99,12 @@ func (l *listenerTranslatorInstance) ComputeListener(params plugins.Params) *env
 		if !ok {
 			continue
 		}
-		logger.Infow("Processing filter chain with plugin",
-			"issue", "8539",
+		logComputeListener(logger, "Processing filter chain with plugin",
 			"listener_name", l.listener.GetName(),
 			"plugin_name", plug.Name())
 
 		if err := filterConverterPlug.ProcessFilterChain(params, l.listener, cleanedExtendedChains, out); err != nil {
-			logger.Infow("Error processing filter chain with plugin",
-				"issue", "8539",
+			logComputeListener(logger, "Error processing filter chain with plugin",
 				"listener_name", l.listener.GetName(),
 				"plugin_name", plug.Name(),
 				"error", err.Error())
@@ -110,22 +116,19 @@ func (l *listenerTranslatorInstance) ComputeListener(params plugins.Params) *env
 
 	CheckForFilterChainConsistency(out.GetFilterChains(), l.report, out)
 
-	logger.Infow("Processing listener plugins",
-		"issue", "8539",
+	logComputeListener(logger, "Processing listener plugins",
 		"listener_name", l.listener.GetName(),
 		"plugin_count", len(l.plugins))
 
 	// run the Listener Plugins
 	for _, listenerPlugin := range l.plugins {
-		logger.Infow("Processing listener with plugin",
-			"issue", "8539",
+		logComputeListener(logger, "Processing listener with plugin",
 			"listener_name", l.listener.GetName(),
 			"plugin_name", listenerPlugin.Name())
 
 		// Need to have the deprecated cipher information still available at this point in time
 		if err := listenerPlugin.ProcessListener(params, l.listener, out); err != nil {
-			logger.Infow("Error processing listener with plugin",
-				"issue", "8539",
+			logComputeListener(logger, "Error processing listener with plugin",
 				"listener_name", l.listener.GetName(),
 				"plugin_name", listenerPlugin.Name(),
 				"error", err.Error())
@@ -135,8 +138,7 @@ func (l *listenerTranslatorInstance) ComputeListener(params plugins.Params) *env
 		}
 	}
 
-	logger.Infow("Completed listener computation",
-		"issue", "8539",
+	logComputeListener(logger, "Completed listener computation",
 		"listener_name", l.listener.GetName(),
 		"envoy_listener_name", out.GetName(),
 		"final_filter_chain_count", len(out.GetFilterChains()))

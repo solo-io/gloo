@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/solo-io/gloo/pkg/utils/envutils"
+	"github.com/solo-io/gloo/projects/gloo/constants"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 
 	validationapi "github.com/solo-io/gloo/projects/gloo/pkg/api/grpc/validation"
@@ -11,7 +13,17 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/ssl"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	"github.com/solo-io/go-utils/contextutils"
+	"go.uber.org/zap"
 )
+
+// logComputeListenerSubsystem is a helper function that logs listener subsystem messages only when COMPUTE_LISTENER_SUBSYSTEM_LOGS is enabled
+func logComputeListenerSubsystem(logger *zap.SugaredLogger, msg string, keysAndValues ...interface{}) {
+	if envutils.IsEnvTruthy(constants.ComputeListenerSubsystemLogsEnv) {
+		// Add the issue label to all gated logs
+		keysAndValues = append([]interface{}{"issue", "8539"}, keysAndValues...)
+		logger.Infow(msg, keysAndValues...)
+	}
+}
 
 // The Listener subsystem handles downstream request processing.
 // https://www.envoyproxy.io/docs/envoy/latest/intro/life_of_a_request.html?#high-level-architecture
@@ -45,40 +57,33 @@ func (l *ListenerSubsystemTranslatorFactory) GetTranslators(ctx context.Context,
 ) {
 	logger := contextutils.LoggerFrom(ctx)
 
-	logger.Infow("Getting translators for listener",
-		"issue", "8539",
+	logComputeListenerSubsystem(logger, "Getting translators for listener",
 		"listener_name", listener.GetName(),
-		"listener_type", fmt.Sprintf("%T", listener.GetListenerType()),
-		"proxy_name", proxy.GetMetadata().GetName())
+		"listener_type", fmt.Sprintf("%T", listener.GetListenerType()))
 
 	switch listener.GetListenerType().(type) {
 	case *v1.Listener_HttpListener:
-		logger.Infow("Using HTTP listener translators",
-			"issue", "8539",
+		logComputeListenerSubsystem(logger, "Using HTTP listener translators",
 			"listener_name", listener.GetName())
 		return l.GetHttpListenerTranslators(ctx, proxy, listener, listenerReport)
 
 	case *v1.Listener_TcpListener:
-		logger.Infow("Using TCP listener translators",
-			"issue", "8539",
+		logComputeListenerSubsystem(logger, "Using TCP listener translators",
 			"listener_name", listener.GetName())
 		return l.GetTcpListenerTranslators(ctx, listener, listenerReport)
 
 	case *v1.Listener_HybridListener:
-		logger.Infow("Using Hybrid listener translators",
-			"issue", "8539",
+		logComputeListenerSubsystem(logger, "Using Hybrid listener translators",
 			"listener_name", listener.GetName())
 		return l.GetHybridListenerTranslators(ctx, proxy, listener, listenerReport)
 
 	case *v1.Listener_AggregateListener:
-		logger.Infow("Using Aggregate listener translators",
-			"issue", "8539",
+		logComputeListenerSubsystem(logger, "Using Aggregate listener translators",
 			"listener_name", listener.GetName())
 		return l.GetAggregateListenerTranslators(ctx, proxy, listener, listenerReport)
 	default:
 		// This case should never occur
-		logger.Infow("Unknown listener type, returning empty translators",
-			"issue", "8539",
+		logComputeListenerSubsystem(logger, "Unknown listener type, returning empty translators",
 			"listener_name", listener.GetName(),
 			"listener_type", fmt.Sprintf("%T", listener.GetListenerType()))
 		return &emptyListenerTranslator{}, &emptyRouteConfigurationTranslator{}

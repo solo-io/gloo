@@ -1021,9 +1021,9 @@ func ValidateRoutePath(s string) error {
 	return nil
 }
 
-// logComputeRouteConfig is a helper function that logs route configuration messages only when COMPUTE_CLUSTER_LOGS is enabled
+// logComputeRouteConfig is a helper function that logs route configuration messages only when COMPUTE_ROUTE_CONFIG_LOGS is enabled
 func logComputeRouteConfig(logger *zap.SugaredLogger, msg string, keysAndValues ...interface{}) {
-	if envutils.IsEnvTruthy(constants.ComputeClusterLogsEnv) {
+	if envutils.IsEnvTruthy(constants.ComputeRouteConfigLogsEnv) {
 		// Add the issue label to all gated logs
 		keysAndValues = append([]interface{}{"issue", "8539"}, keysAndValues...)
 		logger.Infow(msg, keysAndValues...)

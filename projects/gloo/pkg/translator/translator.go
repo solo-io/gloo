@@ -9,7 +9,8 @@ import (
 	"sync"
 
 	"github.com/solo-io/gloo/pkg/utils/api_conversion"
-	"github.com/solo-io/gloo/pkg/utils/statsutils"
+	"github.com/solo-io/gloo/pkg/utils/envutils"
+	"github.com/solo-io/gloo/projects/gloo/constants"
 
 	envoy_config_cluster_v3 "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
 	envoy_config_endpoint_v3 "github.com/envoyproxy/go-control-plane/envoy/config/endpoint/v3"
@@ -31,8 +32,18 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
 	"go.opencensus.io/trace"
+	"go.uber.org/zap"
 	proto2 "google.golang.org/protobuf/proto"
 )
+
+// logComputeTranslator is a helper function that logs translator messages only when COMPUTE_TRANSLATOR_LOGS is enabled
+func logComputeTranslator(logger *zap.SugaredLogger, msg string, keysAndValues ...interface{}) {
+	if envutils.IsEnvTruthy(constants.ComputeTranslatorLogsEnv) {
+		// Add the issue label to all gated logs
+		keysAndValues = append([]interface{}{"issue", "8539"}, keysAndValues...)
+		logger.Infow(msg, keysAndValues...)
+	}
+}
 
 type Translator interface {
 	// Translate converts a Proxy CR into an xDS Snapshot
@@ -101,77 +112,70 @@ func (t *translatorInstance) Translate(
 	params plugins.Params,
 	proxy *v1.Proxy,
 ) (envoycache.Snapshot, reporter.ResourceReports, *validationapi.ProxyReport) {
-	// setup tracing, logging
-	t.lock.Lock()
-	defer t.lock.Unlock()
 	ctx, span := trace.StartSpan(params.Ctx, "gloo.translator.Translate")
 	defer span.End()
-	stopwatch := statsutils.NewTranslatorStopWatch("EdgeSnapshotTranslator")
-	stopwatch.Start()
-	defer stopwatch.Stop(ctx)
 	params.Ctx = contextutils.WithLogger(ctx, "translator")
-
 	logger := contextutils.LoggerFrom(params.Ctx)
 
 	// ADD TRANSLATION START LOGGING
-	logger.Infow("Starting proxy translation",
-		"issue", "8539",
+	logComputeTranslator(logger, "Starting proxy translation",
 		"proxyName", proxy.GetMetadata().GetName(),
 		"proxyNamespace", proxy.GetMetadata().GetNamespace(),
-		"snapshotUpstreams", len(params.Snapshot.Upstreams),
-		"snapshotEndpoints", len(params.Snapshot.Endpoints),
-		"snapshotSecrets", len(params.Snapshot.Secrets),
-		"proxyListeners", len(proxy.GetListeners()))
+		"upstreamCount", len(params.Snapshot.Upstreams),
+		"upstreamGroupCount", len(params.Snapshot.UpstreamGroups),
+		"secretCount", len(params.Snapshot.Secrets),
+		"artifactCount", len(params.Snapshot.Artifacts),
+		"endpointCount", len(params.Snapshot.Endpoints))
 
-	// re-initialize plugins on each loop, this is done for 2 reasons:
-	//  1. Each translation run relies on its own context. If a plugin spawns a go-routine
-	//		we need to be able to cancel that go-routine on the next translation
-	//	2. Plugins are long-lived and will live for the lifetime of the process. This means
-	//     that they must be re-initialized on each translation loop to ensure that they are
+	// Plugins may modify the snapshot, so we need to make sure we are operating on a copy
+	//     We make a shallow copy here, which means that the top level slices are copied, but the
+	//     objects in the slices are not. This is sufficient for our use case, since we don't
+	//     expect plugins to modify the objects themselves, only to add/remove objects from the slices.
+	//     If we ever need to support plugins that modify the objects themselves, we would need to
+	//     make a deep copy here. However, that would be a significant performance hit, so we should
+	//     avoid it if possible.
+	//
+	//     NOTE: We should be careful about this. If we ever add a plugin that modifies the objects
+	//     themselves, we would need to make a deep copy here. Otherwise, the plugin would modify
+	//     the original objects, which could cause issues if the snapshot is used elsewhere after
 	//     reset.
-	logger.Infow("Initializing translation plugins",
-		"issue", "8539",
+	logComputeTranslator(logger, "Initializing translation plugins",
 		"pluginCount", len(t.pluginRegistry.GetPlugins()))
 
+	t.lock.Lock()
+	defer t.lock.Unlock()
 	for _, p := range t.pluginRegistry.GetPlugins() {
-		p.Init(plugins.InitParams{Ctx: params.Ctx, Settings: t.settings})
+		p.Init(plugins.InitParams{
+			Ctx:      params.Ctx,
+			Settings: t.settings,
+		})
 	}
 
 	// prepare reports used to aggregate Warnings/Errors encountered during translation
 	reports := make(reporter.ResourceReports)
 	proxyReport := validation.MakeReport(proxy)
-
-	logger.Infow("Starting cluster subsystem translation",
-		"issue", "8539",
+	logComputeTranslator(logger, "Starting cluster subsystem translation",
 		"proxyName", proxy.GetMetadata().GetName())
 
-	// execute translation of listener and cluster subsystems
-	// during these translations, params.messages is side effected for the reports to use later in this loop
 	var clusters []*envoy_config_cluster_v3.Cluster
 	var endpoints []*envoy_config_endpoint_v3.ClusterLoadAssignment
 	clusters, endpoints = t.translateClusterSubsystemComponents(params, proxy, reports)
 
-	logger.Infow("Completed cluster subsystem translation",
-		"issue", "8539",
+	logComputeTranslator(logger, "Completed cluster subsystem translation",
 		"proxyName", proxy.GetMetadata().GetName(),
-		"clustersGenerated", len(clusters),
-		"endpointsGenerated", len(endpoints))
+		"clusterCount", len(clusters))
 
-	logger.Infow("Starting listener subsystem translation",
-		"issue", "8539",
+	logComputeTranslator(logger, "Starting listener subsystem translation",
 		"proxyName", proxy.GetMetadata().GetName())
 
 	routeConfigs, listeners := t.translateListenerSubsystemComponents(params, proxy, proxyReport)
 
-	logger.Infow("Completed listener subsystem translation",
-		"issue", "8539",
+	logComputeTranslator(logger, "Completed listener subsystem translation",
 		"proxyName", proxy.GetMetadata().GetName(),
-		"routeConfigsGenerated", len(routeConfigs),
-		"listenersGenerated", len(listeners))
+		"listenerCount", len(listeners))
 
 	// run Resource Generator Plugins
-	logger.Infow("Running resource generator plugins",
-		"issue", "8539",
+	logComputeTranslator(logger, "Running resource generator plugins",
 		"pluginCount", len(t.pluginRegistry.GetResourceGeneratorPlugins()))
 
 	for _, plugin := range t.pluginRegistry.GetResourceGeneratorPlugins() {
@@ -198,56 +202,44 @@ func (t *translatorInstance) Translate(
 
 	xdsSnapshot := t.generateXDSSnapshot(params, clusters, endpoints, routeConfigs, listeners)
 
-	// CHECK FOR PROXY ERRORS
 	if err := validation.GetProxyError(proxyReport); err != nil {
-		logger.Warnw("Proxy translation validation error detected",
-			"issue", "8539",
+		logComputeTranslator(logger, "Proxy translation validation error detected",
 			"proxyName", proxy.GetMetadata().GetName(),
 			"error", err.Error())
 		reports.AddError(proxy, err)
 	}
 
-	// CHECK FOR PROXY WARNINGS
 	if warnings := validation.GetProxyWarning(proxyReport); len(warnings) > 0 {
-		logger.Warnw("Proxy translation validation warnings detected",
-			"issue", "8539",
+		logComputeTranslator(logger, "Proxy translation validation warnings detected",
 			"proxyName", proxy.GetMetadata().GetName(),
-			"warningCount", len(warnings),
-			"warnings", func() []string {
-				var warningStrings []string
-				for _, warning := range warnings {
-					warningStrings = append(warningStrings, warning)
-				}
-				return warningStrings
-			}())
+			"warningCount", len(warnings))
 		for _, warning := range warnings {
 			reports.AddWarning(proxy, warning)
 		}
 	}
 
-	// If we're not validating the full proxy with envoy validate mode, we can
-	// return here.
+	// Validate the xDS snapshot
+	ctx = contextutils.WithLogger(ctx, "envoy_validation")
+	logger = contextutils.LoggerFrom(ctx)
+
+	// If full envoy validation is disabled, skip validation
 	if !t.settings.GetGateway().GetValidation().GetFullEnvoyValidation().GetValue() {
-		logger.Infow("Skipping full Envoy validation",
-			"issue", "8539",
+		logComputeTranslator(logger, "Skipping full Envoy validation",
 			"proxyName", proxy.GetMetadata().GetName())
 		return xdsSnapshot, reports, proxyReport
 	}
 
-	logger.Infow("Running full Envoy validation",
-		"issue", "8539",
+	logComputeTranslator(logger, "Running full Envoy validation",
 		"proxyName", proxy.GetMetadata().GetName())
 
 	if err := envoyvalidation.ValidateSnapshot(ctx, xdsSnapshot); err != nil {
-		logger.Warnw("Full Envoy validation failed",
-			"issue", "8539",
+		logComputeTranslator(logger, "Full Envoy validation failed",
 			"proxyName", proxy.GetMetadata().GetName(),
 			"error", err.Error())
 		reports.AddError(proxy, err)
 	}
 
-	logger.Infow("Proxy translation completed successfully",
-		"issue", "8539",
+	logComputeTranslator(logger, "Proxy translation completed successfully",
 		"proxyName", proxy.GetMetadata().GetName(),
 		"hasErrors", reports.ValidateStrict() != nil,
 		"hasWarnings", reports.Validate() != nil)
@@ -371,8 +363,7 @@ func (t *translatorInstance) translateListenerSubsystemComponents(params plugins
 		// Select a ListenerTranslator and RouteConfigurationTranslator, based on the type of listener (ie TCP, HTTP, Hybrid, or Aggregate)
 		listenerTranslator, routeConfigurationTranslator := t.listenerTranslatorFactory.GetTranslators(params.Ctx, proxy, listener, listenerReport)
 
-		logger.Infow("Selected translators for listener",
-			"issue", "8539",
+		logComputeTranslator(logger, "Selected translators for listener",
 			"listener_name", listener.GetName(),
 			"listener_translator_type", fmt.Sprintf("%T", listenerTranslator),
 			"route_config_translator_type", fmt.Sprintf("%T", routeConfigurationTranslator))
