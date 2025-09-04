@@ -370,7 +370,7 @@ func (t *translatorInstance) translateListenerSubsystemComponents(params plugins
 
 		// 1. Compute RouteConfiguration
 		// This way we call ProcessVirtualHost / ProcessRoute first
-		logger.Infow("Computing route configuration",
+		logComputeTranslator(logger, "Computing route configuration",
 			"issue", "8539",
 			"listener_name", listener.GetName())
 		envoyRouteConfiguration := routeConfigurationTranslator.ComputeRouteConfiguration(params)
@@ -378,7 +378,7 @@ func (t *translatorInstance) translateListenerSubsystemComponents(params plugins
 		// 2. Compute Listener
 		// This way we evaluate HttpFilters second, which allows us to avoid appending an HttpFilter
 		// that is not used by any Route / VirtualHost
-		logger.Infow("Computing envoy listener",
+		logComputeTranslator(logger, "Computing envoy listener",
 			"issue", "8539",
 			"listener_name", listener.GetName())
 		envoyListener := listenerTranslator.ComputeListener(params)
@@ -388,13 +388,13 @@ func (t *translatorInstance) translateListenerSubsystemComponents(params plugins
 			if len(envoyRouteConfiguration) > 0 {
 				routeConfigs = append(routeConfigs, envoyRouteConfiguration...)
 			}
-			logger.Infow("Successfully computed listener and routes",
+			logComputeTranslator(logger, "Successfully computed listener and routes",
 				"issue", "8539",
 				"listener_name", listener.GetName(),
 				"envoy_listener_name", envoyListener.GetName(),
 				"route_config_count", len(envoyRouteConfiguration))
 		} else {
-			logger.Infow("Listener translation returned nil",
+			logComputeTranslator(logger, "Listener translation returned nil",
 				"issue", "8539",
 				"listener_name", listener.GetName())
 		}
