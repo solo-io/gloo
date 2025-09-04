@@ -747,6 +747,92 @@ var _ = Describe("Plugin", func() {
 				validateExtractionMatch(expectedOutput, output)
 			})
 		})
+
+		Context("AutoWebsocketPassthrough", func() {
+
+			var (
+				inputTransformationStages *transformation.TransformationStages
+				expectedOutput            *envoytransformation.RouteTransformations
+			)
+
+			type transformationPlugin interface {
+				plugins.Plugin
+				ConvertTransformation(
+					ctx context.Context,
+					t *transformation.Transformations,
+					stagedTransformations *transformation.TransformationStages,
+				) (*envoytransformation.RouteTransformations, error)
+			}
+
+			BeforeEach(func() {
+				inputTransformationStages = &transformation.TransformationStages{
+					Regular: &transformation.RequestResponseTransformations{
+						RequestTransforms: []*transformation.RequestMatch{{
+							RequestTransformation: &transformation.Transformation{
+								TransformationType: &transformation.Transformation_HeaderBodyTransform{
+									HeaderBodyTransform: &transformation.HeaderBodyTransform{},
+								},
+							},
+						}},
+					},
+				}
+
+				expectedOutput = &envoytransformation.RouteTransformations{
+					Transformations: []*envoytransformation.RouteTransformations_RouteTransformation{{
+						Match: &envoytransformation.RouteTransformations_RouteTransformation_RequestMatch_{
+							RequestMatch: &envoytransformation.RouteTransformations_RouteTransformation_RequestMatch{
+								RequestTransformation: &envoytransformation.Transformation{
+									TransformationType: &envoytransformation.Transformation_HeaderBodyTransform{
+										HeaderBodyTransform: &envoytransformation.HeaderBodyTransform{},
+									},
+								},
+							},
+						},
+					}},
+				}
+			})
+
+			It("can enable settings-object-level setting", func() {
+				// override plugin created in BeforeEach
+				p = NewPlugin()
+				// initialize with settings-object-level setting enabled
+				p.Init(plugins.InitParams{
+					Ctx: ctx,
+					Settings: &v1.Settings{
+						Gloo: &v1.GlooOptions{
+							RemoveUnusedFilters:                          &wrapperspb.BoolValue{Value: false},
+							EnableAutoWebsocketTransformationPassthrough: &wrapperspb.BoolValue{Value: true},
+						},
+					},
+				})
+
+				stagedHttpFilters, err := p.(plugins.HttpFilterPlugin).HttpFilters(plugins.Params{}, &v1.HttpListener{})
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(stagedHttpFilters).To(HaveLen(1))
+				Expect(stagedHttpFilters[0].Filter.Name).To(Equal("io.solo.transformation"))
+				// pretty print the typed config of the filter
+				typedConfig := stagedHttpFilters[0].Filter.GetTypedConfig()
+				expectedFilter := plugins.MustNewStagedFilter(
+					FilterName,
+					&envoytransformation.FilterTransformations{
+						AutoWebsocketPassthrough: true,
+					},
+					plugins.AfterStage(plugins.AuthZStage),
+				)
+
+				Expect(typedConfig).To(skMatchers.MatchProto(expectedFilter.Filter.GetTypedConfig()))
+
+				output, err := p.(transformationPlugin).ConvertTransformation(
+					ctx,
+					&transformation.Transformations{},
+					inputTransformationStages,
+				)
+
+				Expect(err).NotTo(HaveOccurred())
+				Expect(output).To(Equal(expectedOutput))
+			})
+		})
 	})
 
 	Context("deprecated transformations", func() {
