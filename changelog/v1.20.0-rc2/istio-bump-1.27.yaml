@@ -1,0 +1,9 @@
+changelog:
+- type: DEPENDENCY_BUMP
+  dependencyOwner: istio
+  dependencyRepo: istio
+  dependencyTag: v1.27.0
+  description: >-
+    Bump Istio to 1.27.0 to move support matrix forward
+  issueLink: https://github.com/solo-io/gloo/issues/10984
+  resolvesIssue: true

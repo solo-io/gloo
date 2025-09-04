@@ -964,7 +964,7 @@ func TestEndpoints(t *testing.T) {
 			endpointSlices := krttest.GetMockCollection[*discoveryv1.EndpointSlice](mock)
 
 			// Initialize the EndpointSlicesByService index
-			endpointSlicesByService := krt.NewIndex(endpointSlices, func(es *discoveryv1.EndpointSlice) []types.NamespacedName {
+			endpointSlicesByService := krt.NewIndex(endpointSlices, "TestEndpointSlicesByService", func(es *discoveryv1.EndpointSlice) []types.NamespacedName {
 				svcName, ok := es.Labels[discoveryv1.LabelServiceName]
 				if !ok {
 					return nil
