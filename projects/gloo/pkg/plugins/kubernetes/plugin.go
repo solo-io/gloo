@@ -14,6 +14,8 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"knative.dev/pkg/network"
 
+	"github.com/solo-io/gloo/pkg/utils/envutils"
+	"github.com/solo-io/gloo/projects/gloo/constants"
 	"github.com/solo-io/go-utils/contextutils"
 	corecache "github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/cache"
 
@@ -25,6 +27,15 @@ import (
 const (
 	ExtensionName = "kubernetes"
 )
+
+// logKubernetesPlugin is a helper function that logs kubernetes plugin messages only when COMPUTE_CLUSTER_LOGS is enabled
+func logKubernetesPlugin(logger *zap.SugaredLogger, msg string, keysAndValues ...interface{}) {
+	if envutils.IsEnvTruthy(constants.ComputeClusterLogsEnv) {
+		// Add the issue label to all gated logs
+		keysAndValues = append([]interface{}{"issue", "8539"}, keysAndValues...)
+		logger.Infow(msg, keysAndValues...)
+	}
+}
 
 type plugin struct {
 	UpstreamConverter
@@ -66,8 +77,7 @@ func (p *plugin) Resolve(u *v1.Upstream) (*url.URL, error) {
 	)
 
 	// Use background context since we don't have access to params.Ctx here
-	contextutils.LoggerFrom(context.Background()).Infow("Resolving Kubernetes upstream URL",
-		"issue", "8539",
+	logKubernetesPlugin(contextutils.LoggerFrom(context.Background()), "Resolving Kubernetes upstream URL",
 		"upstream_name", u.GetMetadata().GetName(),
 		"service_name", kubeSpec.Kube.GetServiceName(),
 		"service_namespace", kubeSpec.Kube.GetServiceNamespace(),
@@ -86,15 +96,13 @@ func (p *plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *cl
 	kube, ok := in.GetUpstreamType().(*v1.Upstream_Kube)
 	if !ok {
 		// don't process any non-kube upstreams.
-		logger.Infow("Skipping non-kubernetes upstream",
-			"issue", "8539",
+		logKubernetesPlugin(logger, "Skipping non-kubernetes upstream",
 			"upstream_name", in.GetMetadata().GetName(),
 			"upstream_type", fmt.Sprintf("%T", in.GetUpstreamType()))
 		return nil
 	}
 
-	logger.Infow("Processing Kubernetes upstream",
-		"issue", "8539",
+	logKubernetesPlugin(logger, "Processing Kubernetes upstream",
 		"upstream_name", in.GetMetadata().GetName(),
 		"upstream_namespace", in.GetMetadata().GetNamespace(),
 		"service_name", kube.Kube.GetServiceName(),
@@ -109,8 +117,7 @@ func (p *plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *cl
 	// instead we will use the krt collection to fetch the service.
 	// in a future PR plugins will have access to krt context, so they can use fetch.
 	if p.svcCollection != nil {
-		logger.Infow("Using KRT collection for service lookup",
-			"issue", "8539",
+		logKubernetesPlugin(logger, "Using KRT collection for service lookup",
 			"service_name", kube.Kube.GetServiceName(),
 			"service_namespace", kube.Kube.GetServiceNamespace())
 
@@ -119,23 +126,20 @@ func (p *plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *cl
 			Name:      kube.Kube.GetServiceName(),
 			Namespace: kube.Kube.GetServiceNamespace(),
 		}.ResourceName())) != nil {
-			logger.Infow("Service found in KRT collection",
-				"issue", "8539",
+			logKubernetesPlugin(logger, "Service found in KRT collection",
 				"service_name", kube.Kube.GetServiceName(),
 				"service_namespace", kube.Kube.GetServiceNamespace())
 			return nil
 		}
 
 	} else {
-		logger.Infow("Using KubeCore cache for service lookup",
-			"issue", "8539",
+		logKubernetesPlugin(logger, "Using KubeCore cache for service lookup",
 			"service_name", kube.Kube.GetServiceName(),
 			"service_namespace", kube.Kube.GetServiceNamespace())
 
 		lister := p.kubeCoreCache.NamespacedServiceLister(kube.Kube.GetServiceNamespace())
 		if lister == nil {
-			logger.Infow("Invalid service namespace for upstream",
-				"issue", "8539",
+			logKubernetesPlugin(logger, "Invalid service namespace for upstream",
 				"upstream_ref", upstreamRef.String(),
 				"service_name", kube.Kube.GetServiceName(),
 				"service_namespace", kube.Kube.GetServiceNamespace())
@@ -148,22 +152,19 @@ func (p *plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *cl
 
 		svcs, err := lister.List(labels.NewSelector())
 		if err != nil {
-			logger.Infow("Error listing services from cache",
-				"issue", "8539",
+			logKubernetesPlugin(logger, "Error listing services from cache",
 				"service_namespace", kube.Kube.GetServiceNamespace(),
 				"error", err.Error())
 			return err
 		}
 
-		logger.Infow("Searching for service in cache",
-			"issue", "8539",
+		logKubernetesPlugin(logger, "Searching for service in cache",
 			"service_name", kube.Kube.GetServiceName(),
 			"services_found", len(svcs))
 
 		for _, s := range svcs {
 			if s.Name == kube.Kube.GetServiceName() {
-				logger.Infow("Service found in cache",
-					"issue", "8539",
+				logKubernetesPlugin(logger, "Service found in cache",
 					"service_name", kube.Kube.GetServiceName(),
 					"service_namespace", kube.Kube.GetServiceNamespace())
 				return nil
@@ -171,9 +172,9 @@ func (p *plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *cl
 		}
 	}
 
+	// Keep this Debug log ungated as it existed before issue:8539
 	logger.Debug("service does not exist", zap.String("upstream", upstreamRef.String()), zap.String("service", kube.Kube.GetServiceName()), zap.String("namespace", kube.Kube.GetServiceNamespace()))
-	logger.Infow("Service not found, returning error",
-		"issue", "8539",
+	logKubernetesPlugin(logger, "Service not found, returning error",
 		"upstream_ref", upstreamRef.String(),
 		"service_name", kube.Kube.GetServiceName(),
 		"service_namespace", kube.Kube.GetServiceNamespace())
