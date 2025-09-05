@@ -1,0 +1,13 @@
+changelog:
+  - type: NEW_FEATURE
+    issueLink: https://github.com/solo-io/solo-projects/issues/8530
+    resolvesIssue: false
+    description: >-
+      Updated transformation.proto to add auto_websocket_passthrough option.
+      Added gloo setting enableAutoWebsocketTransformationPassthrough to control the behavior (default false)
+  - type: DEPENDENCY_BUMP
+    description: >-
+      bump envoy-gloo to 1.35.2-patch1
+    dependencyOwner: solo-io
+    dependencyRepo: envoy-gloo
+    dependencyTag: v1.35.2-patch1

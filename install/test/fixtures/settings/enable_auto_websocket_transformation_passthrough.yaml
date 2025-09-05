@@ -14,13 +14,13 @@ spec:
     enableGatewayController: true
     isolateVirtualHostsBySslConfig: false
     validation:
-      fullEnvoyValidation: true
+      fullEnvoyValidation: false
       alwaysAccept: true
       allowWarnings: true
-      warnMissingTlsSecret: false
+      warnMissingTlsSecret: true
       serverEnabled: true
-      disableTransformationValidation: true
-      warnRouteShortCircuiting: true
+      disableTransformationValidation: false
+      warnRouteShortCircuiting: false
       proxyValidationServerAddr: gloo:9988
       validationServerGrpcMaxSizeBytes: 104857600
   gloo:
@@ -31,11 +31,11 @@ spec:
     proxyDebugBindAddr: 0.0.0.0:9966
     disableKubernetesDestinations: false
     disableProxyGarbageCollection: false
-    enableAutoWebsocketTransformationPassthrough: false
+    enableAutoWebsocketTransformationPassthrough: true
     invalidConfigPolicy:
-      replaceInvalidRoutes: false
       invalidRouteResponseBody: Gloo Gateway has invalid configuration. Administrators should run `glooctl check` to find and fix config errors.
       invalidRouteResponseCode: 404
+      replaceInvalidRoutes: false
     istioOptions:
       appendXForwardedHost: true
       enableAutoMtls: false
