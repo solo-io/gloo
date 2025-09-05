@@ -4287,6 +4287,17 @@ spec:
 						testManifest.ExpectUnstructured(settings.GetKind(), settings.GetNamespace(), settings.GetName()).To(BeEquivalentTo(settings))
 					})
 
+					It("correctly sets the `enableAutoWebsocketTransformationPassthrough` field in the settings", func() {
+						settings := makeUnstructureFromTemplateFile("fixtures/settings/enable_auto_websocket_transformation_passthrough.yaml", namespace)
+
+						prepareMakefile(namespace, glootestutils.HelmValues{
+							ValuesArgs: []string{
+								"settings.enableAutoWebsocketTransformationPassthrough=true",
+							},
+						})
+						testManifest.ExpectUnstructured(settings.GetKind(), settings.GetNamespace(), settings.GetName()).To(BeEquivalentTo(settings))
+					})
+
 					It("correctly sets the `regexMaxProgramSize` field to the default of 1024 in the settings", func() {
 						settings := makeUnstructureFromTemplateFile("fixtures/settings/set_regex_max_program_size_default.yaml", namespace)
 						prepareMakefile(namespace, glootestutils.HelmValues{
@@ -4380,6 +4391,7 @@ spec:
     enableRestEds: false
     disableKubernetesDestinations: false
     disableProxyGarbageCollection: false
+    enableAutoWebsocketTransformationPassthrough: false 
     invalidConfigPolicy:
       invalidRouteResponseBody: Gloo Gateway has invalid configuration. Administrators should run ` + "`glooctl check`" + ` to find and fix config errors.
       invalidRouteResponseCode: 404

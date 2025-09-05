@@ -747,6 +747,40 @@ var _ = Describe("Plugin", func() {
 				validateExtractionMatch(expectedOutput, output)
 			})
 		})
+
+		Context("AutoWebsocketPassthrough", func() {
+			It("can enable settings-object-level setting", func() {
+				// override plugin created in BeforeEach
+				p = NewPlugin()
+				// initialize with settings-object-level setting enabled
+				p.Init(plugins.InitParams{
+					Ctx: ctx,
+					Settings: &v1.Settings{
+						Gloo: &v1.GlooOptions{
+							RemoveUnusedFilters:                          &wrapperspb.BoolValue{Value: false},
+							EnableAutoWebsocketTransformationPassthrough: &wrapperspb.BoolValue{Value: true},
+						},
+					},
+				})
+
+				stagedHttpFilters, err := p.(plugins.HttpFilterPlugin).HttpFilters(plugins.Params{}, &v1.HttpListener{})
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(stagedHttpFilters).To(HaveLen(1))
+				Expect(stagedHttpFilters[0].Filter.Name).To(Equal("io.solo.transformation"))
+				// pretty print the typed config of the filter
+				typedConfig := stagedHttpFilters[0].Filter.GetTypedConfig()
+				expectedFilter := plugins.MustNewStagedFilter(
+					FilterName,
+					&envoytransformation.FilterTransformations{
+						AutoWebsocketPassthrough: true,
+					},
+					plugins.AfterStage(plugins.AuthZStage),
+				)
+
+				Expect(typedConfig).To(skMatchers.MatchProto(expectedFilter.Filter.GetTypedConfig()))
+			})
+		})
 	})
 
 	Context("deprecated transformations", func() {
