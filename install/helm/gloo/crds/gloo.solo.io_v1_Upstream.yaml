@@ -85,6 +85,25 @@ spec:
                                 type: string
                             type: object
                         type: object
+                      customHost:
+                        properties:
+                          host:
+                            type: string
+                          hostname:
+                            nullable: true
+                            type: string
+                          pathOverride:
+                            properties:
+                              basePath:
+                                type: string
+                              fullPath:
+                                type: string
+                            type: object
+                          port:
+                            maximum: 4294967295
+                            minimum: 0
+                            type: integer
+                        type: object
                       deploymentName:
                         type: string
                       endpoint:
@@ -152,6 +171,25 @@ spec:
                               namespace:
                                 type: string
                             type: object
+                        type: object
+                      customHost:
+                        properties:
+                          host:
+                            type: string
+                          hostname:
+                            nullable: true
+                            type: string
+                          pathOverride:
+                            properties:
+                              basePath:
+                                type: string
+                              fullPath:
+                                type: string
+                            type: object
+                          port:
+                            maximum: 4294967295
+                            minimum: 0
+                            type: integer
                         type: object
                       model:
                         type: string
@@ -260,6 +298,25 @@ spec:
                                                 type: string
                                             type: object
                                         type: object
+                                      customHost:
+                                        properties:
+                                          host:
+                                            type: string
+                                          hostname:
+                                            nullable: true
+                                            type: string
+                                          pathOverride:
+                                            properties:
+                                              basePath:
+                                                type: string
+                                              fullPath:
+                                                type: string
+                                            type: object
+                                          port:
+                                            maximum: 4294967295
+                                            minimum: 0
+                                            type: integer
+                                        type: object
                                       deploymentName:
                                         type: string
                                       endpoint:
@@ -327,6 +384,25 @@ spec:
                                               namespace:
                                                 type: string
                                             type: object
+                                        type: object
+                                      customHost:
+                                        properties:
+                                          host:
+                                            type: string
+                                          hostname:
+                                            nullable: true
+                                            type: string
+                                          pathOverride:
+                                            properties:
+                                              basePath:
+                                                type: string
+                                              fullPath:
+                                                type: string
+                                            type: object
+                                          port:
+                                            maximum: 4294967295
+                                            minimum: 0
+                                            type: integer
                                         type: object
                                       model:
                                         type: string
@@ -425,6 +501,25 @@ spec:
                                                 type: string
                                             type: object
                                         type: object
+                                      customHost:
+                                        properties:
+                                          host:
+                                            type: string
+                                          hostname:
+                                            nullable: true
+                                            type: string
+                                          pathOverride:
+                                            properties:
+                                              basePath:
+                                                type: string
+                                              fullPath:
+                                                type: string
+                                            type: object
+                                          port:
+                                            maximum: 4294967295
+                                            minimum: 0
+                                            type: integer
+                                        type: object
                                       jsonSchema:
                                         type: string
                                         x-kubernetes-int-or-string: true
@@ -500,6 +595,25 @@ spec:
                               namespace:
                                 type: string
                             type: object
+                        type: object
+                      customHost:
+                        properties:
+                          host:
+                            type: string
+                          hostname:
+                            nullable: true
+                            type: string
+                          pathOverride:
+                            properties:
+                              basePath:
+                                type: string
+                              fullPath:
+                                type: string
+                            type: object
+                          port:
+                            maximum: 4294967295
+                            minimum: 0
+                            type: integer
                         type: object
                       jsonSchema:
                         type: string

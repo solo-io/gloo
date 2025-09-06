@@ -120,8 +120,7 @@ message UpstreamSpec {
     // This token is automatically sent in the `Authorization` header of the
     // request and prefixed with `Bearer`.
     SingleAuthToken auth_token = 1;
-    // Optional: Send requests to a custom host and port, such as to proxy the request,
-    // or to use a different backend that is API-compliant with the upstream version.
+    // Optional: Send requests to a custom host and port or configure custom path override or hostname
     CustomHost custom_host = 2;
     // Optional: Override the model name, such as `gpt-4o-mini`.
     // If unset, the model name is taken from the request.
@@ -154,6 +153,8 @@ message UpstreamSpec {
     // The version of the Azure OpenAI API to use.
     // For more information, see the [Azure OpenAI API version reference](https://learn.microsoft.com/en-us/azure/ai-services/openai/reference#api-specs).
     string api_version = 4;
+    // Optional: Send requests to a custom host and port or configure custom path override or hostname
+    CustomHost custom_host = 5;
   }
 
   // Settings for the [Gemini](https://ai.google.dev/gemini-api/docs) LLM provider.
@@ -178,6 +179,8 @@ message UpstreamSpec {
     // The version of the Gemini API to use.
     // For more information, see the [Gemini API version docs](https://ai.google.dev/gemini-api/docs/api-versions).
     string api_version = 3;
+    // Optional: Send requests to a custom host and port or configure custom path override or hostname
+    CustomHost custom_host = 4;
   }
 
   // Settings for the [Vertex AI](https://cloud.google.com/vertex-ai/docs) LLM provider.
@@ -222,6 +225,9 @@ message UpstreamSpec {
 
     // Optional: Specify the API json schema the model uses, default to GEMINI if not set
     ApiJsonSchema json_schema = 8;
+
+    // Optional: Send requests to a custom host and port or configure custom path override or hostname
+    CustomHost custom_host = 9;
   }
 
   // Settings for the [Mistral AI](https://docs.mistral.ai/getting-started/quickstart/) LLM provider.
@@ -233,8 +239,7 @@ message UpstreamSpec {
     // This token is automatically sent in the `Authorization` header of the
     // request and prefixed with `Bearer`.
     SingleAuthToken auth_token = 1;
-    // Optional: Send requests to a custom host and port, such as to proxy the request,
-    // or to use a different backend that is API-compliant with the upstream version.
+    // Optional: Send requests to a custom host and port or configure custom path override or hostname
     CustomHost custom_host = 2;
     // Optional: Override the model name.
     // If unset, the model name is taken from the request.
@@ -250,8 +255,7 @@ message UpstreamSpec {
     // The authorization token that the AI gateway uses to access the Anthropic API.
     // This token is automatically sent in the `x-api-key` header of the request.
     SingleAuthToken auth_token = 1;
-    // Optional: Send requests to a custom host and port, such as to proxy the request,
-    // or to use a different backend that is API-compliant with the upstream version.
+    // Optional: Send requests to a custom host and port or configure custom path override or hostname
     CustomHost custom_host = 2;
     // Optional: The version string used to override the `anthropic-version` header to pass to the Anthropic API.
     // Note: This does not control the api version (eg `/v1`) in the url.
@@ -270,8 +274,7 @@ message UpstreamSpec {
   message Bedrock {
     // The authorization config used to access authenticated AWS Bedrock services.
     AwsCredentialProvider credential_provider = 1;
-    // Optional: Send requests to a custom host and port, such as to proxy the request,
-    // or to use a different backend that is API-compliant with the upstream version.
+    // Optional: Send requests to a custom host and port or configure custom path override or hostname
     // Note: For AWS Bedrock, if custom_host is set, host_rewrite will be used to override the Host header before signing the request
     CustomHost custom_host = 2;
     // Required: model string.
