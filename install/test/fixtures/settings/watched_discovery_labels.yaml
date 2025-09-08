@@ -34,6 +34,7 @@ spec:
     proxyDebugBindAddr: 0.0.0.0:9966
     disableKubernetesDestinations: false
     disableProxyGarbageCollection: false
+    enableAutoWebsocketTransformationPassthrough: false
     invalidConfigPolicy:
       replaceInvalidRoutes: false
       invalidRouteResponseBody: Gloo Gateway has invalid configuration. Administrators should run `glooctl check` to find and fix config errors.

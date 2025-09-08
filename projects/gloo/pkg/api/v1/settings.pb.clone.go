@@ -528,6 +528,12 @@ func (m *GlooOptions) Clone() proto.Message {
 		target.IstioOptions = proto.Clone(m.GetIstioOptions()).(*GlooOptions_IstioOptions)
 	}
 
+	if h, ok := interface{}(m.GetEnableAutoWebsocketTransformationPassthrough()).(clone.Cloner); ok {
+		target.EnableAutoWebsocketTransformationPassthrough = h.Clone().(*google_golang_org_protobuf_types_known_wrapperspb.BoolValue)
+	} else {
+		target.EnableAutoWebsocketTransformationPassthrough = proto.Clone(m.GetEnableAutoWebsocketTransformationPassthrough()).(*google_golang_org_protobuf_types_known_wrapperspb.BoolValue)
+	}
+
 	return target
 }
 

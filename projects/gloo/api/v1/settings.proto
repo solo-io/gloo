@@ -601,6 +601,8 @@ message Settings {
     // Refer to the [Kubernetes selector docs](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#label-selectors)
     // for additional detail on selector semantics.
     repeated LabelSelector watch_namespace_selectors = 40;
+
+
 }
 
 // A label selector requirement is a selector that contains values, a key, and an operator that
@@ -835,6 +837,10 @@ message GlooOptions {
     }
 
     IstioOptions istio_options = 18;
+
+    // When enabled, request/response body transformation will be bypassed automatically for websocket request.
+    // Buffering of the body will also be disabled in the mode but header transformation will still be applied.
+    google.protobuf.BoolValue enable_auto_websocket_transformation_passthrough = 19;
 }
 
 
