@@ -48,8 +48,22 @@ function create_kind_cluster_or_skip() {
     # see https://github.com/kubernetes-sigs/kind/issues/1736
     # and https://github.com/moby/moby/issues/41651
     # instead of forwarding queries to whatever /etc/resolv.conf has, CoreDNS will always forward external DNS queries directly to Google Public DNS (8.8.8.8 and 8.8.4.4) but wrapped in NAT64 IPv6 addresses (64:ff9b::/96).
-    new_core_file=$(kubectl get cm -n kube-system coredns -o jsonpath='{.data.Corefile}' | sed -E 's,forward . /etc/resolv.conf( ?\{)?,forward . [64:ff9b::8.8.8.8]:53 [64:ff9b::8.8.4.4]:53\1,' | sed -z 's/\n/\\n/g')
-    kubectl patch configmap/coredns -n kube-system --type merge -p '{"data":{"Corefile": "'"$new_core_file"'"}}'
+    # new_core_file=$(kubectl get cm -n kube-system coredns -o jsonpath='{.data.Corefile}' | sed -E 's,forward . /etc/resolv.conf( ?\{)?,forward . [64:ff9b::8.8.8.8]:53 [64:ff9b::8.8.4.4]:53\1,' | sed -z 's/\n/\\n/g')
+    # kubectl patch configmap/coredns -n kube-system --type merge -p '{"data":{"Corefile": "'"$new_core_file"'"}}'
+
+    original_coredns=$(kubectl get -oyaml -n=kube-system configmap/coredns)
+    echo $original_coredns
+    fixed_coredns=$(
+      printf '%s' "${original_coredns}" | sed \
+        -e 's/^.*kubernetes cluster\.local/& internal/' \
+        -e '/^.*upstream$/d' \
+        -e '/^.*fallthrough.*$/d' \
+        -e '/forward \. \/etc\/resolv\.conf {/,/}/d' \
+        -e '/^.*loop$/d' \
+        -e '/^\s*errors$/a\    log'
+    )
+    echo "about to patch coredns"
+    printf '%s' "${fixed_coredns}" | kubectl apply -f -
   elif [[ "$ip_family" = "dual" ]]; then
     echo "creating dual stack based cluster ${CLUSTER_NAME}"
     kind create cluster \
@@ -80,7 +94,7 @@ function create_kind_cluster_or_skip() {
       --set ipam.mode=kubernetes \
       --set routingMode=native \
       --set autoDirectNodeRoutes=true \
-      --set ipv6NativeRoutingCIDR=fd00:10:244::/48 \
+      --set ipv6NativeRoutingCIDR=fd00:10:1::/56 \
       --set enableIPv6Masquerade=true
   elif [[ "$ip_family" = "dual" ]]; then
     # Check https://github.com/kubernetes-sigs/kind/blob/main/pkg/apis/config/v1alpha4/default.go#L59C57-L59C60 for the default subnets
