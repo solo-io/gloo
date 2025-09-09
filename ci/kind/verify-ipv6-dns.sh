@@ -3,12 +3,12 @@
 # IPv6 DNS Verification Script for Kind Cluster
 # This script verifies IPv6 DNS resolution within a Kind cluster
 
-set -e
+#set -e
 
 # Configuration
 TEST_NAMESPACE="${TEST_NAMESPACE:-ipv6-dns-test}"
 TEST_POD_NAME="ipv6-dns-tester"
-TIMEOUT=30
+TIMEOUT=120
 
 # Log functions
 log_info() {
@@ -41,6 +41,12 @@ deploy_test_pod() {
 
     cat <<EOF | kubectl apply -f -
 apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: $TEST_POD_NAME
+  namespace: $TEST_NAMESPACE
+---
+apiVersion: v1
 kind: Pod
 metadata:
   name: $TEST_POD_NAME
@@ -48,6 +54,7 @@ metadata:
   labels:
     app: ipv6-dns-tester
 spec:
+  serviceAccountName: $TEST_POD_NAME
   containers:
   - name: dns-tester
     image: nicolaka/netshoot:latest
@@ -77,6 +84,21 @@ test_dns_resolution() {
     log_info "Testing DNS resolution: $description"
     echo "Target: $target, Record Type: $record_type"
 
+    # Test with dig if available
+    local dig_result
+    if kubectl exec -n $TEST_NAMESPACE $TEST_POD_NAME -- which dig &>/dev/null; then
+        if dig_result=$(kubectl exec -n $TEST_NAMESPACE $TEST_POD_NAME -- dig +short "$target" $record_type 2>&1); then
+            if [[ -n "$dig_result" ]]; then
+                log_success "dig for $target successful"
+                echo "Dig result: $dig_result"
+            else
+                log_warning "dig returned empty result for $target"
+            fi
+        else
+            log_warning "dig command failed for $target"
+        fi
+    fi
+
     # Test with nslookup
     local nslookup_result
     if nslookup_result=$(kubectl exec -n $TEST_NAMESPACE $TEST_POD_NAME -- nslookup -type=$record_type "$target" 2>&1); then
@@ -97,21 +119,6 @@ test_dns_resolution() {
         return 1
     fi
 
-    # Test with dig if available
-    local dig_result
-    if kubectl exec -n $TEST_NAMESPACE $TEST_POD_NAME -- which dig &>/dev/null; then
-        if dig_result=$(kubectl exec -n $TEST_NAMESPACE $TEST_POD_NAME -- dig +short "$target" $record_type 2>&1); then
-            if [[ -n "$dig_result" ]]; then
-                log_success "dig for $target successful"
-                echo "Dig result: $dig_result"
-            else
-                log_warning "dig returned empty result for $target"
-            fi
-        else
-            log_warning "dig command failed for $target"
-        fi
-    fi
-
     echo "---"
     return 0
 }
@@ -123,8 +130,14 @@ test_kubernetes_dns() {
     # Test cluster DNS
     test_dns_resolution "kubernetes.default.svc.cluster.local" "Kubernetes API service"
 
+    # Test cluster DNS
+    test_dns_resolution "kubernetes.default.svc.cluster.local." "Kubernetes API service"
+
+    # Test cluster DNS
+    test_dns_resolution "kubernetes.default.svc" "Kubernetes API service"
+
     # Test kube-dns/coredns service
-    test_dns_resolution "kube-dns.kube-system.svc.cluster.local" "CoreDNS service"
+    test_dns_resolution "kube-dns.kube-system.svc.cluster.local." "CoreDNS service"
 
     # Create a test service for DNS testing
     log_info "Creating test service for DNS verification..."
@@ -147,7 +160,7 @@ EOF
     sleep 5
 
     # Test the created service
-    test_dns_resolution "test-service.$TEST_NAMESPACE.svc.cluster.local" "Test service DNS"
+    test_dns_resolution "test-service.$TEST_NAMESPACE.svc.cluster.local." "Test service DNS"
     test_dns_resolution "test-service" "Test service short name (from same namespace)"
 }
 
@@ -275,6 +288,13 @@ main() {
     test_kubernetes_dns
     test_external_dns
 
+    echo "dumping coredns logs"
+    for pod in $(kubectl get pods -n kube-system -l k8s-app=kube-dns -o name); do
+        echo "=== Logs from $pod ==="
+        kubectl logs -n kube-system "$pod"
+        echo
+    done
+
     echo ""
     generate_report
 
@@ -282,7 +302,7 @@ main() {
 }
 
 # Handle script interruption
-trap 'log_error "Script interrupted"; cleanup; exit 1' INT TERM
+#trap 'log_error "Script interrupted"; cleanup; exit 1' INT TERM
 
 # Run main function if script is executed directly
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then

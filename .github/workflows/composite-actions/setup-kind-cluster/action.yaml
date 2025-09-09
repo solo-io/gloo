@@ -55,6 +55,6 @@ runs:
         CONFORMANCE_VERSION: ${{ inputs.k8sgateway-api-version }}
         SUPPORTED_IP_FAMILY: ${{ inputs.supported-ip-family }}
       run: ./ci/kind/setup-kind.sh
-#    - name: test coredns
-#      shell: bash
-#      run: ./ci/kind/verify-ipv6-dns.sh
+    - name: test coredns
+      shell: bash
+      run: ./ci/kind/verify-ipv6-dns.sh
