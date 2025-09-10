@@ -44,15 +44,11 @@ function create_kind_cluster_or_skip() {
       --image "kindest/node:$CLUSTER_NODE_VERSION" \
       --config="$SCRIPT_DIR/cluster-ipv6.yaml"
 
-    # this is a hack to bypass lack of a docker ipv6 dns resolver.
-    # see https://github.com/kubernetes-sigs/kind/issues/1736
-    # and https://github.com/moby/moby/issues/41651
-    # instead of forwarding queries to whatever /etc/resolv.conf has, CoreDNS will always forward external DNS queries directly to Google Public DNS (8.8.8.8 and 8.8.4.4) but wrapped in NAT64 IPv6 addresses (64:ff9b::/96).
-    # new_core_file=$(kubectl get cm -n kube-system coredns -o jsonpath='{.data.Corefile}' | sed -E 's,forward . /etc/resolv.conf( ?\{)?,forward . [64:ff9b::8.8.8.8]:53 [64:ff9b::8.8.4.4]:53\1,' | sed -z 's/\n/\\n/g')
-    # kubectl patch configmap/coredns -n kube-system --type merge -p '{"data":{"Corefile": "'"$new_core_file"'"}}'
-
+    # this is a hack to bypass lack of a docker ipv6 dns resolver & v6 support in environments like github runners.
+    # hence dns resolving is kept internally within kind.
+    # in other words instead of performing a fallthrough and forwarding using /etc/resolv.conf, CoreDNS will always try to answer with NXDOMAIN.
+    # see https://github.com/kubernetes-sigs/kind/issues/1736 and https://github.com/moby/moby/issues/41651
     original_coredns=$(kubectl get -oyaml -n=kube-system configmap/coredns)
-    echo $original_coredns
     fixed_coredns=$(
       printf '%s' "${original_coredns}" | sed \
         -e 's/^.*kubernetes cluster\.local/& cx.internal.cloudapp.net internal.cloudapp.net cloudapp.net/' \
@@ -60,9 +56,9 @@ function create_kind_cluster_or_skip() {
         -e '/^.*fallthrough.*$/d' \
         -e '/forward \. \/etc\/resolv\.conf {/,/}/d' \
         -e '/^.*loop$/d' \
-        -e '/^\s*errors$/a\       log'
+        -e '/^\s*errors$/a\      log'
     )
-    echo "about to patch coredns"
+    echo "patching coredns"
     printf '%s' "${fixed_coredns}" | kubectl apply -f -
   elif [[ "$ip_family" = "dual" ]]; then
     echo "creating dual stack based cluster ${CLUSTER_NAME}"
