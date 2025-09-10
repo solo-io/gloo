@@ -55,12 +55,12 @@ function create_kind_cluster_or_skip() {
     echo $original_coredns
     fixed_coredns=$(
       printf '%s' "${original_coredns}" | sed \
-        -e 's/^.*kubernetes cluster\.local/& internal/' \
+        -e 's/^.*kubernetes cluster\.local/& cx.internal.cloudapp.net internal.cloudapp.net cloudapp.net/' \
         -e '/^.*upstream$/d' \
         -e '/^.*fallthrough.*$/d' \
         -e '/forward \. \/etc\/resolv\.conf {/,/}/d' \
         -e '/^.*loop$/d' \
-        -e '/^\s*errors$/a\    log'
+        -e '/^\s*errors$/a\       log'
     )
     echo "about to patch coredns"
     printf '%s' "${fixed_coredns}" | kubectl apply -f -
