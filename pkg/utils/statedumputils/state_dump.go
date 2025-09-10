@@ -70,7 +70,7 @@ func CISystemDumpOnFail(_ context.Context, _ *kubectl.Cli, _ io.Writer, outDir s
 // - kubernetes cluster state
 // - logs from all pods in the given namespaces
 // - yaml representations of all solo.io CRs in the given namespaces
-func KubeDumpOnFail(ctx context.Context, _ *kubectl.Cli, _ io.Writer, outDir string,
+func KubeDumpOnFail(ctx context.Context, kubectlCli *kubectl.Cli, _ io.Writer, outDir string,
 	namespaces []string) func() {
 	return func() {
 		setupOutDir(outDir)
@@ -78,6 +78,8 @@ func KubeDumpOnFail(ctx context.Context, _ *kubectl.Cli, _ io.Writer, outDir str
 		recordKubeState(fileAtPath(filepath.Join(outDir, "kube-state.log")))
 
 		recordKubeDump(ctx, outDir, namespaces...)
+
+		dumpCoreDnsLog(ctx, outDir, kubectlCli)
 
 		fmt.Printf("Finished writing Kubernetes state information to the \"%s\" directory.\n", outDir)
 	}
@@ -539,5 +541,18 @@ func writeMetricsLog(ctx context.Context, outDir string, ns string, podName stri
 	err := metricsCmd.WithStdout(metricsFile).WithStderr(metricsFile).Run().Cause()
 	if err != nil {
 		fmt.Printf("error running metrics command: %f\n", err)
+	}
+}
+
+func dumpCoreDnsLog(ctx context.Context, outDir string, kubectlCli *kubectl.Cli) {
+	coreDnsPodNames, err := kubectlCli.GetPodsInNsWithLabel(ctx, "kube-system", "k8s-app=kube-dns")
+	for _, podName := range coreDnsPodNames {
+		coreDnsLogsFile := fileAtPath(filepath.Join(outDir, fmt.Sprintf("%s.coredns.log", podName)))
+		coreDnsLogsCmd := kubectlCli.WithReceiver(coreDnsLogsFile).Command(ctx,
+			"-n", "kube-dns", "logs", podName, "--tail=1000")
+		err = coreDnsLogsCmd.Run().Cause()
+		if err != nil {
+			fmt.Printf("error dumping core DNS logs for %s in %s command: %v\n", podName, "kube-dns", err)
+		}
 	}
 }
