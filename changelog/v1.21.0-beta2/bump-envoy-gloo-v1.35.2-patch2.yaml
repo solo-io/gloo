@@ -1,0 +1,9 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    issueLink: https://github.com/solo-io/solo-projects/issues/8562
+    dependencyOwner: solo-io
+    dependencyRepo: envoy-gloo
+    dependencyTag: v1.35.2-patch2
+    resolvesIssue: false
+    description: >-
+      bump envoy-gloo to bring in OpenAI Responses API passthrough changes
