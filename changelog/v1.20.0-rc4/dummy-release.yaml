@@ -1,0 +1,11 @@
+changelog:
+  - type: NON_USER_FACING
+    resolvesIssue: false
+    description: >-
+      dummy release to workaround sum.golang.org caching the wrong checksum for v1.20.0-rc3.
+      The initial release build failed because of the bitnami docker image no longer exists. Fixed
+      that removed the tag and re-release but sum.golang.org already cache the checksum of the old
+      failed release tag.
+
+      skipCI-kube-tests:true
+      skipCI-docs-build:true
