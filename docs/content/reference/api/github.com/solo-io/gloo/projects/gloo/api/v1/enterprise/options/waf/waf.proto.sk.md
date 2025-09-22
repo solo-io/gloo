@@ -25,7 +25,7 @@ weight: 5
 
 
 ---
-### Settings
+### Settings {#settings-5}
 
 
 
@@ -56,7 +56,7 @@ weight: 5
 
 
 ---
-### RuleSetFromConfigMap
+### RuleSetFromConfigMap {#rulesetfromconfigmap}
 
 
 
@@ -75,7 +75,7 @@ weight: 5
 
 
 ---
-### CoreRuleSet
+### CoreRuleSet {#coreruleset}
 
 
 

@@ -23,7 +23,7 @@ weight: 5
 
 
 ---
-### Ingress
+### Ingress {#ingress}
 
  
 A simple wrapper for a Kubernetes Ingress Object.

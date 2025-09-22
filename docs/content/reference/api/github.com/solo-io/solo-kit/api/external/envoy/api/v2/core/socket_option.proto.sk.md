@@ -24,7 +24,7 @@ weight: 5
 
 
 ---
-### SocketOption
+### SocketOption {#socketoption-1}
 
  
 Generic socket option message. This would be used to set socket options that
@@ -54,7 +54,7 @@ might not exist in upstream kernels or precompiled Envoy binaries.
 
 
 ---
-### SocketState
+### SocketState {#socketstate-1}
 
 
 

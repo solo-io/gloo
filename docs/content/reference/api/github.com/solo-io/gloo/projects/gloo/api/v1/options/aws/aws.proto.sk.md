@@ -26,7 +26,7 @@ weight: 5
 
 
 ---
-### UpstreamSpec
+### UpstreamSpec {#upstreamspec-2}
 
  
 Upstream Spec for AWS Lambda Upstreams
@@ -58,7 +58,7 @@ in a particular region
 
 
 ---
-### LambdaFunctionSpec
+### LambdaFunctionSpec {#lambdafunctionspec}
 
  
 Each Lambda Function Spec contains data necessary for Gloo to invoke Lambda functions:
@@ -82,7 +82,7 @@ Each Lambda Function Spec contains data necessary for Gloo to invoke Lambda func
 
 
 ---
-### DestinationSpec
+### DestinationSpec {#destinationspec-1}
 
  
 Each Lambda Function Spec contains data necessary for Gloo to invoke Lambda functions
@@ -113,7 +113,7 @@ Each Lambda Function Spec contains data necessary for Gloo to invoke Lambda func
 
 
 ---
-### InvocationStyle
+### InvocationStyle {#invocationstyle}
 
 
 

@@ -29,7 +29,7 @@ weight: 5
 
 
 ---
-### Failover
+### Failover {#failover}
 
  
 Failover configuration for an upstream.
@@ -60,7 +60,7 @@ the list, first being `0` through `n-1`.
 
 
 ---
-### PrioritizedLocality
+### PrioritizedLocality {#prioritizedlocality}
 
 
 
@@ -77,7 +77,7 @@ the list, first being `0` through `n-1`.
 
 
 ---
-### Policy
+### Policy {#policy-1}
 
 
 
@@ -94,7 +94,7 @@ the list, first being `0` through `n-1`.
 
 
 ---
-### LocalityLbEndpoints
+### LocalityLbEndpoints {#localitylbendpoints}
 
  
 A group of endpoints belonging to a Locality.
@@ -119,7 +119,7 @@ balancing weights or different priorities.
 
 
 ---
-### LbEndpoint
+### LbEndpoint {#lbendpoint}
 
  
 An Endpoint that Envoy can route traffic to.
@@ -147,7 +147,7 @@ An Endpoint that Envoy can route traffic to.
 
 
 ---
-### HealthCheckConfig
+### HealthCheckConfig {#healthcheckconfig-1}
 
  
 The optional health check configuration.
@@ -171,7 +171,7 @@ The optional health check configuration.
 
 
 ---
-### Locality
+### Locality {#locality-1}
 
  
 Identifies location of where either Envoy runs or where upstream hosts run.

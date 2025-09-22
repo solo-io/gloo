@@ -25,7 +25,7 @@ weight: 5
 
 
 ---
-### Percent
+### Percent {#percent-1}
 
  
 Identifies a percentage, in the range [0.0, 100.0].
@@ -43,7 +43,7 @@ Identifies a percentage, in the range [0.0, 100.0].
 
 
 ---
-### FractionalPercent
+### FractionalPercent {#fractionalpercent-1}
 
  
 A fractional percentage is used in cases in which for performance reasons performing floating
@@ -68,7 +68,7 @@ both a numerator and denominator that together determine the final fractional va
 
 
 ---
-### DenominatorType
+### DenominatorType {#denominatortype-1}
 
  
 Fraction percentages support several fixed denominator values.

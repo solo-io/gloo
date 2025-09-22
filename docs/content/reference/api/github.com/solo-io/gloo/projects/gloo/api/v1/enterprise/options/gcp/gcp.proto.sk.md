@@ -23,7 +23,7 @@ weight: 5
 
 
 ---
-### UpstreamSpec
+### UpstreamSpec {#upstreamspec-1}
 
  
 Enterprise-only: Configuration to enable GCP authentication for upstreams.

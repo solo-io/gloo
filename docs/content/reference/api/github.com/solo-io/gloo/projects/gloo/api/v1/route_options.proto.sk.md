@@ -24,7 +24,7 @@ weight: 5
 
 
 ---
-### RouteOptions
+### RouteOptions {#routeoptions}
 
  
 Optional, feature-specific configuration that lives on routes.
@@ -123,7 +123,7 @@ to be usable by Gloo. (plugins currently need to be compiled into Gloo)
 
 
 ---
-### MaxStreamDuration
+### MaxStreamDuration {#maxstreamduration}
 
  
 This is a 1:1 translation to the [Envoy API described here](https://www.envoyproxy.io/docs/envoy/latest/api-v3/config/route/v3/route_components.proto#envoy-v3-api-msg-config-route-v3-routeaction-maxstreamduration)

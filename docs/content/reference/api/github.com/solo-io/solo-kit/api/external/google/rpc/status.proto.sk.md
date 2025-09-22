@@ -39,7 +39,7 @@ limitations under the License.
 
 
 ---
-### Status
+### Status {#status-3}
 
  
 The `Status` type defines a logical error model that is suitable for different

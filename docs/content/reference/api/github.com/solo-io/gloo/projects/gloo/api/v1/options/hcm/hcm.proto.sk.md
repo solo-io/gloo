@@ -32,7 +32,7 @@ weight: 5
 
 
 ---
-### HttpConnectionManagerSettings
+### HttpConnectionManagerSettings {#httpconnectionmanagersettings}
 
  
 Contains various settings for Envoy's http connection manager.
@@ -133,7 +133,7 @@ v3 documents https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/filte
 
 
 ---
-### SetCurrentClientCertDetails
+### SetCurrentClientCertDetails {#setcurrentclientcertdetails}
 
 
 
@@ -158,7 +158,7 @@ v3 documents https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/filte
 
 
 ---
-### UuidRequestIdConfigSettings
+### UuidRequestIdConfigSettings {#uuidrequestidconfigsettings}
 
  
 Contains setup for Envoy's UuidRequestIdConfig
@@ -178,7 +178,7 @@ Contains setup for Envoy's UuidRequestIdConfig
 
 
 ---
-### CidrRange
+### CidrRange {#cidrrange-2}
 
  
 Subnet mask for CIDR ranges
@@ -198,7 +198,7 @@ Subnet mask for CIDR ranges
 
 
 ---
-### InternalAddressConfig
+### InternalAddressConfig {#internaladdressconfig}
 
  
 Manages Envoy's internal address configuration
@@ -218,7 +218,7 @@ Manages Envoy's internal address configuration
 
 
 ---
-### ForwardClientCertDetails
+### ForwardClientCertDetails {#forwardclientcertdetails}
 
 
 
@@ -234,7 +234,7 @@ Manages Envoy's internal address configuration
 
 
 ---
-### ServerHeaderTransformation
+### ServerHeaderTransformation {#serverheadertransformation}
 
 
 
@@ -248,7 +248,7 @@ Manages Envoy's internal address configuration
 
 
 ---
-### HeadersWithUnderscoreAction
+### HeadersWithUnderscoreAction {#headerswithunderscoreaction}
 
  
 Action to take when Envoy receives client request with header names containing underscore characters. Underscore character 
@@ -265,7 +265,7 @@ is allowed in header names by the RFC-7230 and this behavior is implemented as a
 
 
 ---
-### PathWithEscapedSlashesAction
+### PathWithEscapedSlashesAction {#pathwithescapedslashesaction}
 
  
 Determines the action for request that contain %2F, %2f, %5C or %5c sequences in the URI path.
@@ -283,7 +283,7 @@ This operation occurs before URL normalization and the merge slashes transformat
 
 
 ---
-### CodecType
+### CodecType {#codectype}
 
 
 

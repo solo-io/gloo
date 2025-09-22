@@ -60,7 +60,7 @@ require (
 	// Ref: https://github.com/solo-io/gloo/pull/9463/files#r1594409655 && https://solo-io-corp.slack.com/archives/C03MFATU265/p1716913420716729?thread_ts=1716476992.938679&cid=C03MFATU265
 	// as to why it is now based off `gloo-main` and not `gloo-repo-branch`
 	github.com/solo-io/solo-apis v0.0.0-20250616141238-dd7b8dbf6a9b
-	github.com/solo-io/solo-kit v0.39.3
+	github.com/solo-io/solo-kit v0.39.4-0.20250922212729-5e29372a034a
 	github.com/spf13/afero v1.14.0
 	github.com/spf13/cobra v1.9.1
 	github.com/spf13/pflag v1.0.7

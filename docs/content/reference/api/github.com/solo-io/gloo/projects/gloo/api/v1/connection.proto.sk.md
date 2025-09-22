@@ -24,7 +24,7 @@ weight: 5
 
 
 ---
-### ConnectionConfig
+### ConnectionConfig {#connectionconfig}
 
  
 Fine tune the settings for connections to an upstream
@@ -52,7 +52,7 @@ Fine tune the settings for connections to an upstream
 
 
 ---
-### TcpKeepAlive
+### TcpKeepAlive {#tcpkeepalive-1}
 
  
 If set then set SO_KEEPALIVE on the socket to enable TCP Keepalives.

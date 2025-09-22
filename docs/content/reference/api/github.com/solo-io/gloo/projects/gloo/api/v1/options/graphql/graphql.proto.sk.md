@@ -24,7 +24,7 @@ weight: 5
 
 
 ---
-### ServiceSpec
+### ServiceSpec {#servicespec}
 
  
 DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
@@ -40,7 +40,7 @@ DEPRECATED: This message is deprecated and has been removed from use as of gloo 
 
 
 ---
-### Endpoint
+### Endpoint {#endpoint-1}
 
 
 

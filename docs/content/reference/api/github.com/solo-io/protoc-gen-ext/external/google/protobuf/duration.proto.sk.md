@@ -55,7 +55,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 ---
-### Duration
+### Duration {#duration}
 
  
 A Duration represents a signed, fixed-length span of time represented

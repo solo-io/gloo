@@ -25,7 +25,7 @@ weight: 5
 
 
 ---
-### CorsPolicy
+### CorsPolicy {#corspolicy-2}
 
  
 CorsPolicy defines Cross-Origin Resource Sharing for a virtual service.
@@ -57,7 +57,7 @@ CorsPolicy defines Cross-Origin Resource Sharing for a virtual service.
 
 
 ---
-### CorsPolicyMergeSettings
+### CorsPolicyMergeSettings {#corspolicymergesettings}
 
  
 Settings to determine how to merge CORS settings when present on both the VirtualHost and Route.
@@ -77,7 +77,7 @@ For example, you might not want CORS settings on each route to override the virt
 
 
 ---
-### MergeStrategy
+### MergeStrategy {#mergestrategy}
 
 
 

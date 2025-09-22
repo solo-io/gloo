@@ -29,7 +29,7 @@ weight: 5
 
 
 ---
-### Pipe
+### Pipe {#pipe-1}
 
 
 
@@ -48,7 +48,7 @@ weight: 5
 
 
 ---
-### SocketAddress
+### SocketAddress {#socketaddress-1}
 
  
 [#next-free-field: 7]
@@ -76,7 +76,7 @@ weight: 5
 
 
 ---
-### Protocol
+### Protocol {#protocol-1}
 
 
 
@@ -89,7 +89,7 @@ weight: 5
 
 
 ---
-### TcpKeepalive
+### TcpKeepalive {#tcpkeepalive-2}
 
 
 
@@ -110,7 +110,7 @@ weight: 5
 
 
 ---
-### BindConfig
+### BindConfig {#bindconfig-1}
 
 
 
@@ -131,7 +131,7 @@ weight: 5
 
 
 ---
-### Address
+### Address {#address-1}
 
  
 Addresses specify either a logical or physical address and port, which are
@@ -153,7 +153,7 @@ management servers.
 
 
 ---
-### CidrRange
+### CidrRange {#cidrrange-3}
 
  
 CidrRange specifies an IP Address and a prefix length to construct

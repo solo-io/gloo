@@ -24,7 +24,7 @@ weight: 5
 
 
 ---
-### TokenBucket
+### TokenBucket {#tokenbucket}
 
  
 Configures the token bucket, used for rate limiting.
@@ -47,7 +47,7 @@ Ref. https://www.envoyproxy.io/docs/envoy/latest/configuration/listeners/network
 
 
 ---
-### Settings
+### Settings {#settings-6}
 
  
 The Local Rate Limit settings define the default local rate limit token bucket to apply as well as other configurations

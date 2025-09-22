@@ -34,7 +34,7 @@ weight: 5
 
 
 ---
-### ObjectRef
+### ObjectRef {#objectref}
 
  
 Resource reference for an object
@@ -54,7 +54,7 @@ Resource reference for an object
 
 
 ---
-### ObjectRefList
+### ObjectRefList {#objectreflist}
 
  
 Object providing a list of object refs.
@@ -73,7 +73,7 @@ Used to store lists of refs inside a map.
 
 
 ---
-### ClusterObjectRef
+### ClusterObjectRef {#clusterobjectref}
 
  
 Resource reference for a cross-cluster-scoped object
@@ -95,7 +95,7 @@ Resource reference for a cross-cluster-scoped object
 
 
 ---
-### TypedObjectRef
+### TypedObjectRef {#typedobjectref}
 
  
 Resource reference for a typed object
@@ -119,7 +119,7 @@ Resource reference for a typed object
 
 
 ---
-### TypedClusterObjectRef
+### TypedClusterObjectRef {#typedclusterobjectref}
 
  
 Resource reference for a typed, cross-cluster-scoped object
@@ -145,7 +145,7 @@ Resource reference for a typed, cross-cluster-scoped object
 
 
 ---
-### Status
+### Status {#status-1}
 
  
 A generic status
@@ -171,7 +171,7 @@ A generic status
 
 
 ---
-### State
+### State {#state}
 
  
 The State of a reconciled object
@@ -188,7 +188,7 @@ The State of a reconciled object
 
 
 ---
-### ObjectSelector
+### ObjectSelector {#objectselector}
 
  
 Select K8s Objects by namespace, labels, or both.
@@ -210,7 +210,7 @@ Select K8s Objects by namespace, labels, or both.
 
 
 ---
-### Expression
+### Expression {#expression-3}
 
 
 
@@ -231,7 +231,7 @@ Select K8s Objects by namespace, labels, or both.
 
 
 ---
-### Operator
+### Operator {#operator-3}
 
  
 Object Selector expression operator, while the set-based syntax differs from Kubernetes (kubernetes: `key: !mylabel`, gloo: `key: mylabel, operator: "!"` | kubernetes: `key: mylabel`, gloo: `key: mylabel, operator: exists`), the functionality remains the same.
@@ -252,7 +252,7 @@ Object Selector expression operator, while the set-based syntax differs from Kub
 
 
 ---
-### PolicyTargetReference
+### PolicyTargetReference {#policytargetreference}
 
  
 PolicyTargetReference identifies Gateway API objects to directly apply policy to.
@@ -281,7 +281,7 @@ See the following for more information:
 
 
 ---
-### PolicyTargetReferenceWithSectionName
+### PolicyTargetReferenceWithSectionName {#policytargetreferencewithsectionname}
 
  
 PolicyTargetReferenceWithSectionName identifies Gateway API objects, and optionally a specific section of those objects, to directly apply policy to.

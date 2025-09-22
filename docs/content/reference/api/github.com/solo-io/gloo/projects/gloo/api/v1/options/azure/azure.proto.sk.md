@@ -26,7 +26,7 @@ weight: 5
 
 
 ---
-### UpstreamSpec
+### UpstreamSpec {#upstreamspec-4}
 
  
 Upstream Spec for Azure Functions Upstreams
@@ -50,7 +50,7 @@ within a particular Function App
 
 
 ---
-### FunctionSpec
+### FunctionSpec {#functionspec}
 
  
 Function Spec for Functions on Azure Functions Upstreams
@@ -71,7 +71,7 @@ The Function Spec contains data necessary for Gloo to invoke Azure functions
 
 
 ---
-### AuthLevel
+### AuthLevel {#authlevel}
 
 
 
@@ -85,7 +85,7 @@ The Function Spec contains data necessary for Gloo to invoke Azure functions
 
 
 ---
-### DestinationSpec
+### DestinationSpec {#destinationspec-2}
 
 
 

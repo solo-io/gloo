@@ -25,7 +25,7 @@ weight: 5
 
 
 ---
-### ServiceSpec
+### ServiceSpec {#servicespec-1}
 
  
 Service spec describing GRPC upstreams. This will usually be filled
@@ -49,7 +49,7 @@ Deprecated: prefer using GrpcJsonTranscoder
 
 
 ---
-### GrpcService
+### GrpcService {#grpcservice-7}
 
  
 Describes a grpc service
@@ -71,7 +71,7 @@ Describes a grpc service
 
 
 ---
-### DestinationSpec
+### DestinationSpec {#destinationspec-3}
 
  
 This is only for upstream with Grpc service spec.

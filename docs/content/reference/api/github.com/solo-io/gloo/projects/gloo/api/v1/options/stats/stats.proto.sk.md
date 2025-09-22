@@ -24,7 +24,7 @@ weight: 5
 
 
 ---
-### Stats
+### Stats {#stats}
 
  
 This plugin provides additional configuration options to expose statistics.
@@ -42,7 +42,7 @@ This plugin provides additional configuration options to expose statistics.
 
 
 ---
-### VirtualCluster
+### VirtualCluster {#virtualcluster-2}
 
  
 Virtual clusters allow you to expose statistics for virtual host traffic that matches certain criteria.

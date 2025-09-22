@@ -56,7 +56,7 @@ limitations under the License.
 
 
 ---
-### Span
+### Span {#span}
 
  
 A span represents a single operation within a trace. Spans can be
@@ -108,7 +108,7 @@ TODO(bdrutu): Add an example.
 
 
 ---
-### Attributes
+### Attributes {#attributes}
 
  
 A set of attributes, each with a key and a value.
@@ -128,7 +128,7 @@ A set of attributes, each with a key and a value.
 
 
 ---
-### TimeEvent
+### TimeEvent {#timeevent}
 
  
 A time-stamped annotation or message event in the Span.
@@ -150,7 +150,7 @@ A time-stamped annotation or message event in the Span.
 
 
 ---
-### Annotation
+### Annotation {#annotation-1}
 
  
 A text annotation with a set of attributes.
@@ -170,7 +170,7 @@ A text annotation with a set of attributes.
 
 
 ---
-### MessageEvent
+### MessageEvent {#messageevent}
 
  
 An event describing a message sent/received between Spans.
@@ -194,7 +194,7 @@ An event describing a message sent/received between Spans.
 
 
 ---
-### Type
+### Type {#type-14}
 
  
 Indicates whether the message was sent or received.
@@ -209,7 +209,7 @@ Indicates whether the message was sent or received.
 
 
 ---
-### TimeEvents
+### TimeEvents {#timeevents}
 
  
 A collection of `TimeEvent`s. A `TimeEvent` is a time-stamped annotation
@@ -233,7 +233,7 @@ details of a message sent/received between Spans.
 
 
 ---
-### Link
+### Link {#link}
 
  
 A pointer from the current span to another span in the same trace or in a
@@ -260,7 +260,7 @@ traces or when the handler receives a request from a different project.
 
 
 ---
-### Type
+### Type {#type-15}
 
  
 The relationship of the current span relative to the linked span: child,
@@ -276,7 +276,7 @@ parent, or unspecified.
 
 
 ---
-### Links
+### Links {#links}
 
  
 A collection of links, which are references from this span to a span
@@ -297,7 +297,7 @@ in the same or different trace.
 
 
 ---
-### SpanKind
+### SpanKind {#spankind}
 
  
 Type of span. Can be used to specify additional relationships between spans
@@ -313,7 +313,7 @@ in addition to a parent/child relationship.
 
 
 ---
-### Status
+### Status {#status-4}
 
  
 The `Status` type defines a logical error model that is suitable for different
@@ -337,7 +337,7 @@ which is used by [gRPC](https://github.com/grpc).
 
 
 ---
-### AttributeValue
+### AttributeValue {#attributevalue}
 
  
 The value of an Attribute.
@@ -359,7 +359,7 @@ The value of an Attribute.
 
 
 ---
-### StackTrace
+### StackTrace {#stacktrace}
 
  
 The call stack which originated this span.
@@ -379,7 +379,7 @@ The call stack which originated this span.
 
 
 ---
-### StackFrame
+### StackFrame {#stackframe}
 
  
 A single stack frame in a stack trace.
@@ -409,7 +409,7 @@ A single stack frame in a stack trace.
 
 
 ---
-### StackFrames
+### StackFrames {#stackframes}
 
  
 A collection of stack frames, which can be truncated.
@@ -429,7 +429,7 @@ A collection of stack frames, which can be truncated.
 
 
 ---
-### Module
+### Module {#module}
 
  
 A description of a binary module.
@@ -449,7 +449,7 @@ A description of a binary module.
 
 
 ---
-### TruncatableString
+### TruncatableString {#truncatablestring}
 
  
 A string that might be shortened to a specified length.

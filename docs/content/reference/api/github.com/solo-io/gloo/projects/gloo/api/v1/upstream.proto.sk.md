@@ -27,7 +27,7 @@ weight: 5
 
 
 ---
-### Upstream
+### Upstream {#upstream}
 
  
 Upstreams represent destination for routing HTTP requests. Upstreams can be compared to
@@ -114,7 +114,7 @@ Each upstream type is handled by a corresponding Gloo plugin. (plugins currently
 
 
 ---
-### ClusterProtocolSelection
+### ClusterProtocolSelection {#clusterprotocolselection}
 
 
 
@@ -127,7 +127,7 @@ Each upstream type is handled by a corresponding Gloo plugin. (plugins currently
 
 
 ---
-### DiscoveryMetadata
+### DiscoveryMetadata {#discoverymetadata}
 
  
 created by discovery services
@@ -145,7 +145,7 @@ created by discovery services
 
 
 ---
-### HeaderValue
+### HeaderValue {#headervalue-3}
 
  
 Header name/value pair.
@@ -165,7 +165,7 @@ Header name/value pair.
 
 
 ---
-### PreconnectPolicy
+### PreconnectPolicy {#preconnectpolicy}
 
 
 

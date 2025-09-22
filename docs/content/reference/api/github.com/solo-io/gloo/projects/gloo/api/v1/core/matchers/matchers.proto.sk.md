@@ -26,7 +26,7 @@ weight: 5
 
 
 ---
-### Matcher
+### Matcher {#matcher-4}
 
  
 Parameters for matching routes to requests received by a Gloo-managed proxy
@@ -58,7 +58,7 @@ Parameters for matching routes to requests received by a Gloo-managed proxy
 
 
 ---
-### ConnectMatcher
+### ConnectMatcher {#connectmatcher-2}
 
 
 
@@ -73,7 +73,7 @@ Parameters for matching routes to requests received by a Gloo-managed proxy
 
 
 ---
-### HeaderMatcher
+### HeaderMatcher {#headermatcher-2}
 
  
 Internally, Gloo always uses the HTTP/2 *:authority* header to represent the HTTP/1 *Host* header.
@@ -98,7 +98,7 @@ Thus, if attempting to match on *Host*, match on *:authority* instead.
 
 
 ---
-### QueryParameterMatcher
+### QueryParameterMatcher {#queryparametermatcher-2}
 
  
 Query parameter matching treats the query string of a request's :path header

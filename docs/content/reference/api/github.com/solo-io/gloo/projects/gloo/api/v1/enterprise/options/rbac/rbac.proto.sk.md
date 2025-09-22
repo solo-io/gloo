@@ -29,7 +29,7 @@ weight: 5
 
 
 ---
-### Settings
+### Settings {#settings-4}
 
  
 Global RBAC settings
@@ -47,7 +47,7 @@ Global RBAC settings
 
 
 ---
-### ExtensionSettings
+### ExtensionSettings {#extensionsettings}
 
  
 RBAC settings for Virtual Hosts and Routes
@@ -67,7 +67,7 @@ RBAC settings for Virtual Hosts and Routes
 
 
 ---
-### Policy
+### Policy {#policy}
 
 
 
@@ -88,7 +88,7 @@ RBAC settings for Virtual Hosts and Routes
 
 
 ---
-### Principal
+### Principal {#principal}
 
  
 An RBAC principal - the identity entity (usually a user or a service account).
@@ -106,7 +106,7 @@ An RBAC principal - the identity entity (usually a user or a service account).
 
 
 ---
-### JWTPrincipal
+### JWTPrincipal {#jwtprincipal}
 
  
 A JWT principal. To use this, JWT option MUST be enabled.
@@ -128,7 +128,7 @@ A JWT principal. To use this, JWT option MUST be enabled.
 
 
 ---
-### ClaimMatcher
+### ClaimMatcher {#claimmatcher}
 
  
 Used to specify how claims should be matched to the value.
@@ -143,7 +143,7 @@ Used to specify how claims should be matched to the value.
 
 
 ---
-### Permissions
+### Permissions {#permissions}
 
  
 What permissions should be granted. An empty field means allow-all.

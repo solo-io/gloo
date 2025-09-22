@@ -94,7 +94,7 @@ without any other information (e.g. without reading its imports).
 
 
 ---
-### FileDescriptorSet
+### FileDescriptorSet {#filedescriptorset}
 
  
 The protocol compiler can output a FileDescriptorSet containing the .proto
@@ -113,7 +113,7 @@ files it parses.
 
 
 ---
-### FileDescriptorProto
+### FileDescriptorProto {#filedescriptorproto}
 
  
 Describes a complete .proto file.
@@ -153,7 +153,7 @@ Describes a complete .proto file.
 
 
 ---
-### DescriptorProto
+### DescriptorProto {#descriptorproto}
 
  
 Describes a message type.
@@ -189,7 +189,7 @@ Describes a message type.
 
 
 ---
-### ExtensionRange
+### ExtensionRange {#extensionrange}
 
 
 
@@ -210,7 +210,7 @@ Describes a message type.
 
 
 ---
-### ReservedRange
+### ReservedRange {#reservedrange}
 
  
 Range of reserved tag numbers. Reserved tag numbers may not be used by
@@ -232,7 +232,7 @@ not overlap.
 
 
 ---
-### ExtensionRangeOptions
+### ExtensionRangeOptions {#extensionrangeoptions}
 
 
 
@@ -249,7 +249,7 @@ not overlap.
 
 
 ---
-### FieldDescriptorProto
+### FieldDescriptorProto {#fielddescriptorproto}
 
  
 Describes a field within a message.
@@ -287,7 +287,7 @@ Describes a field within a message.
 
 
 ---
-### Type
+### Type {#type-12}
 
 
 
@@ -316,7 +316,7 @@ Describes a field within a message.
 
 
 ---
-### Label
+### Label {#label}
 
 
 
@@ -330,7 +330,7 @@ Describes a field within a message.
 
 
 ---
-### OneofDescriptorProto
+### OneofDescriptorProto {#oneofdescriptorproto}
 
  
 Describes a oneof.
@@ -350,7 +350,7 @@ Describes a oneof.
 
 
 ---
-### EnumDescriptorProto
+### EnumDescriptorProto {#enumdescriptorproto}
 
  
 Describes an enum type.
@@ -376,7 +376,7 @@ Describes an enum type.
 
 
 ---
-### EnumReservedRange
+### EnumReservedRange {#enumreservedrange}
 
  
 Range of reserved numeric values. Reserved values may not be used by
@@ -401,7 +401,7 @@ domain.
 
 
 ---
-### EnumValueDescriptorProto
+### EnumValueDescriptorProto {#enumvaluedescriptorproto}
 
  
 Describes a value within an enum.
@@ -423,7 +423,7 @@ Describes a value within an enum.
 
 
 ---
-### ServiceDescriptorProto
+### ServiceDescriptorProto {#servicedescriptorproto}
 
  
 Describes a service.
@@ -445,7 +445,7 @@ Describes a service.
 
 
 ---
-### MethodDescriptorProto
+### MethodDescriptorProto {#methoddescriptorproto}
 
  
 Describes a method of a service.
@@ -473,7 +473,7 @@ Describes a method of a service.
 
 
 ---
-### FileOptions
+### FileOptions {#fileoptions}
 
 
 
@@ -530,7 +530,7 @@ Describes a method of a service.
 
 
 ---
-### OptimizeMode
+### OptimizeMode {#optimizemode}
 
  
 Generated classes can be optimized for speed or code size.
@@ -545,7 +545,7 @@ Generated classes can be optimized for speed or code size.
 
 
 ---
-### MessageOptions
+### MessageOptions {#messageoptions}
 
 
 
@@ -570,7 +570,7 @@ Generated classes can be optimized for speed or code size.
 
 
 ---
-### FieldOptions
+### FieldOptions {#fieldoptions}
 
 
 
@@ -599,7 +599,7 @@ Generated classes can be optimized for speed or code size.
 
 
 ---
-### CType
+### CType {#ctype}
 
 
 
@@ -613,7 +613,7 @@ Generated classes can be optimized for speed or code size.
 
 
 ---
-### JSType
+### JSType {#jstype}
 
 
 
@@ -627,7 +627,7 @@ Generated classes can be optimized for speed or code size.
 
 
 ---
-### OneofOptions
+### OneofOptions {#oneofoptions}
 
 
 
@@ -644,7 +644,7 @@ Generated classes can be optimized for speed or code size.
 
 
 ---
-### EnumOptions
+### EnumOptions {#enumoptions}
 
 
 
@@ -665,7 +665,7 @@ Generated classes can be optimized for speed or code size.
 
 
 ---
-### EnumValueOptions
+### EnumValueOptions {#enumvalueoptions}
 
 
 
@@ -684,7 +684,7 @@ Generated classes can be optimized for speed or code size.
 
 
 ---
-### ServiceOptions
+### ServiceOptions {#serviceoptions}
 
 
 
@@ -703,7 +703,7 @@ Generated classes can be optimized for speed or code size.
 
 
 ---
-### MethodOptions
+### MethodOptions {#methodoptions}
 
 
 
@@ -724,7 +724,7 @@ Generated classes can be optimized for speed or code size.
 
 
 ---
-### IdempotencyLevel
+### IdempotencyLevel {#idempotencylevel}
 
  
 Is this method side-effect-free (or safe in HTTP parlance), or idempotent,
@@ -741,7 +741,7 @@ methods, and PUT verb for idempotent methods instead of the default POST.
 
 
 ---
-### UninterpretedOption
+### UninterpretedOption {#uninterpretedoption}
 
  
 A message representing a option the parser does not recognize. This only
@@ -776,7 +776,7 @@ in them.
 
 
 ---
-### NamePart
+### NamePart {#namepart}
 
  
 The name of the uninterpreted option.  Each string represents a segment in
@@ -800,7 +800,7 @@ E.g.,{ ["foo", false], ["bar.baz", true], ["qux", false] } represents
 
 
 ---
-### SourceCodeInfo
+### SourceCodeInfo {#sourcecodeinfo}
 
  
 Encapsulates information about the original source file from which a
@@ -819,7 +819,7 @@ FileDescriptorProto was generated.
 
 
 ---
-### Location
+### Location {#location}
 
 
 
@@ -844,7 +844,7 @@ FileDescriptorProto was generated.
 
 
 ---
-### GeneratedCodeInfo
+### GeneratedCodeInfo {#generatedcodeinfo}
 
  
 Describes the relationship between generated code and its original source
@@ -864,7 +864,7 @@ source file, but may contain references to different source .proto files.
 
 
 ---
-### Annotation
+### Annotation {#annotation}
 
 
 

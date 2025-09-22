@@ -23,7 +23,7 @@ weight: 5
 
 
 ---
-### ServiceSpec
+### ServiceSpec {#servicespec-3}
 
  
 Describes APIs and application-level information for services

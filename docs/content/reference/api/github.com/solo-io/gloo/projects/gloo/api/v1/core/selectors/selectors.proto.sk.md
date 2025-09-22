@@ -25,7 +25,7 @@ weight: 5
 
 
 ---
-### Selector
+### Selector {#selector}
 
 
 
@@ -46,7 +46,7 @@ weight: 5
 
 
 ---
-### Expression
+### Expression {#expression-2}
 
 
 
@@ -67,7 +67,7 @@ weight: 5
 
 
 ---
-### Operator
+### Operator {#operator-2}
 
  
 Selector expression operator, while the set-based syntax differs from Kubernetes (kubernetes: `key: !mylabel`, gloo: `key: mylabel, operator: "!"` | kubernetes: `key: mylabel`, gloo: `key: mylabel, operator: exists`), the functionality remains the same.

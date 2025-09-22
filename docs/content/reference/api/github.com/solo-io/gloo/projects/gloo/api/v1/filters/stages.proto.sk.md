@@ -25,7 +25,7 @@ weight: 5
 
 
 ---
-### FilterStage
+### FilterStage {#filterstage}
 
  
 FilterStage allows configuration of where in a filter chain a given HTTP filter is inserted,
@@ -46,7 +46,7 @@ relative to one of the pre-defined stages.
 
 
 ---
-### Stage
+### Stage {#stage}
 
  
 List of filter stages which can be selected for a HTTP filter.
@@ -67,7 +67,7 @@ List of filter stages which can be selected for a HTTP filter.
 
 
 ---
-### Predicate
+### Predicate {#predicate-1}
 
  
 Desired placement of the HTTP filter relative to the stage. The default is `During`.

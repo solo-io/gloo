@@ -23,7 +23,7 @@ weight: 5
 
 
 ---
-### ConnectionLimit
+### ConnectionLimit {#connectionlimit}
 
  
 These options provide the ability to limit the active connections in envoy.

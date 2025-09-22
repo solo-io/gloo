@@ -109,7 +109,7 @@ weight: 5
 
 
 ---
-### AuthConfig
+### AuthConfig {#authconfig}
 
  
 This is the user-facing auth configuration. When processed by Gloo, certain configuration types (i.a. oauth, opa)
@@ -137,7 +137,7 @@ format that will be included in the extauth snapshot.
 
 
 ---
-### Config
+### Config {#config-2}
 
 
 
@@ -178,7 +178,7 @@ format that will be included in the extauth snapshot.
 
 
 ---
-### ExtAuthExtension
+### ExtAuthExtension {#extauthextension}
 
  
 Auth configurations defined on virtual hosts, routes, and weighted destinations will be unmarshalled to this message.
@@ -200,7 +200,7 @@ Auth configurations defined on virtual hosts, routes, and weighted destinations 
 
 
 ---
-### Settings
+### Settings {#settings-1}
 
  
 Global external auth settings
@@ -238,7 +238,7 @@ Global external auth settings
 
 
 ---
-### ApiVersion
+### ApiVersion {#apiversion}
 
  
 Describes the transport protocol version to use when connecting to the ext auth server.
@@ -251,7 +251,7 @@ Describes the transport protocol version to use when connecting to the ext auth 
 
 
 ---
-### GrpcService
+### GrpcService {#grpcservice-2}
 
 
 
@@ -268,7 +268,7 @@ Describes the transport protocol version to use when connecting to the ext auth 
 
 
 ---
-### HttpService
+### HttpService {#httpservice}
 
 
 
@@ -289,7 +289,7 @@ Describes the transport protocol version to use when connecting to the ext auth 
 
 
 ---
-### Request
+### Request {#request-2}
 
 
 
@@ -310,7 +310,7 @@ Describes the transport protocol version to use when connecting to the ext auth 
 
 
 ---
-### Response
+### Response {#response-1}
 
 
 
@@ -331,7 +331,7 @@ Describes the transport protocol version to use when connecting to the ext auth 
 
 
 ---
-### BufferSettings
+### BufferSettings {#buffersettings}
 
  
 Configuration for buffering the request data.
@@ -353,7 +353,7 @@ Configuration for buffering the request data.
 
 
 ---
-### CustomAuth
+### CustomAuth {#customauth}
 
  
 Gloo is not expected to configure the ext auth server in this case.
@@ -374,7 +374,7 @@ This is used with custom auth servers.
 
 
 ---
-### AuthPlugin
+### AuthPlugin {#authplugin}
 
  
 **Deprecated**: The pluginAuth config type is deprecated and will be removed in a future release. Use passThroughAuth instead.
@@ -398,7 +398,7 @@ This is used with custom auth servers.
 
 
 ---
-### BasicAuth
+### BasicAuth {#basicauth}
 
  
 This is the legacy/simple basic auth config. It supports the APR and SHA-1 hashing algorithms.
@@ -426,7 +426,7 @@ use a different type of auth config or configure a different header, such as `X-
 
 
 ---
-### Apr
+### Apr {#apr-1}
 
  
 If 'apr' is defined, 'encryption' and 'user_source' must not be defined or the config will fail validation
@@ -444,7 +444,7 @@ If 'apr' is defined, 'encryption' and 'user_source' must not be defined or the c
 
 
 ---
-### SaltedHashedPassword
+### SaltedHashedPassword {#saltedhashedpassword}
 
  
 Message to store the salt and salted hashed password for a user
@@ -464,7 +464,7 @@ Message to store the salt and salted hashed password for a user
 
 
 ---
-### EncryptionType
+### EncryptionType {#encryptiontype-1}
 
  
 The encryption/hashing algorithm to use to store the password
@@ -484,7 +484,7 @@ The encryption/hashing algorithm to use to store the password
 
 
 ---
-### Sha1
+### Sha1 {#sha1-1}
 
  
 Sha1 encryption type (https://datatracker.ietf.org/doc/html/rfc3174)
@@ -501,7 +501,7 @@ Sha1 is considered insecure and is not recommended for production use
 
 
 ---
-### Apr
+### Apr {#apr-2}
 
  
 Apache specific iterated MD5 hashing: (https://httpd.apache.org/docs/2.4/misc/password_encryptions.html)
@@ -517,7 +517,7 @@ Apache specific iterated MD5 hashing: (https://httpd.apache.org/docs/2.4/misc/pa
 
 
 ---
-### User
+### User {#user-1}
 
  
 Message to store user data. We need the salt and salted hashed password for each user
@@ -537,7 +537,7 @@ Message to store user data. We need the salt and salted hashed password for each
 
 
 ---
-### UserList
+### UserList {#userlist-1}
 
  
 Map of valid usernames to stored credentials
@@ -555,7 +555,7 @@ Map of valid usernames to stored credentials
 
 
 ---
-### HmacAuth
+### HmacAuth {#hmacauth}
 
  
 HMAC is a message authentication technique that can use multiple algorithms for finding credentials and generating signed messages.
@@ -576,7 +576,7 @@ It conforms to https://www.ietf.org/rfc/rfc2104.txt
 
 
 ---
-### SecretRefList
+### SecretRefList {#secretreflist}
 
 
 
@@ -593,7 +593,7 @@ It conforms to https://www.ietf.org/rfc/rfc2104.txt
 
 
 ---
-### HmacParametersInHeaders
+### HmacParametersInHeaders {#hmacparametersinheaders}
 
  
 Extract the HMAC parameters from the HTTP headers and use SHA-1 hashing
@@ -609,7 +609,7 @@ Extract the HMAC parameters from the HTTP headers and use SHA-1 hashing
 
 
 ---
-### OAuth
+### OAuth {#oauth}
 
  
 Deprecated: Prefer OAuth2
@@ -639,7 +639,7 @@ Deprecated: Prefer OAuth2
 
 
 ---
-### OAuth2
+### OAuth2 {#oauth2}
 
 
 
@@ -660,7 +660,7 @@ Deprecated: Prefer OAuth2
 
 
 ---
-### RedisOptions
+### RedisOptions {#redisoptions}
 
 
 
@@ -685,7 +685,7 @@ Deprecated: Prefer OAuth2
 
 
 ---
-### SocketType
+### SocketType {#sockettype}
 
  
 redis socket types
@@ -699,7 +699,7 @@ redis socket types
 
 
 ---
-### UserSession
+### UserSession {#usersession}
 
 
 
@@ -724,7 +724,7 @@ redis socket types
 
 
 ---
-### InternalSession
+### InternalSession {#internalsession}
 
 
 
@@ -745,7 +745,7 @@ redis socket types
 
 
 ---
-### RedisSession
+### RedisSession {#redissession}
 
 
 
@@ -774,7 +774,7 @@ redis socket types
 
 
 ---
-### CookieOptions
+### CookieOptions {#cookieoptions}
 
 
 
@@ -801,7 +801,7 @@ redis socket types
 
 
 ---
-### SameSite
+### SameSite {#samesite}
 
  
 The SameSite options. The default value is LaxMode.
@@ -817,7 +817,7 @@ The SameSite options. The default value is LaxMode.
 
 
 ---
-### CipherConfig
+### CipherConfig {#cipherconfig-1}
 
  
 the cipher config is used to encrypt session cookie values.  This is currently only available for OIDC.
@@ -835,7 +835,7 @@ the cipher config is used to encrypt session cookie values.  This is currently o
 
 
 ---
-### HeaderConfiguration
+### HeaderConfiguration {#headerconfiguration}
 
 
 
@@ -856,7 +856,7 @@ the cipher config is used to encrypt session cookie values.  This is currently o
 
 
 ---
-### DiscoveryOverride
+### DiscoveryOverride {#discoveryoverride}
 
  
 OIDC configuration is discovered at <issuerUrl>/.well-known/openid-configuration
@@ -896,7 +896,7 @@ https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata
 
 
 ---
-### JwksOnDemandCacheRefreshPolicy
+### JwksOnDemandCacheRefreshPolicy {#jwksondemandcacherefreshpolicy}
 
  
 The json web key set (JWKS) (https://datatracker.ietf.org/doc/html/rfc7517) is discovered at an interval
@@ -925,7 +925,7 @@ not yet in the local cache.
 
 
 ---
-### AutoMapFromMetadata
+### AutoMapFromMetadata {#automapfrommetadata}
 
 
 
@@ -942,7 +942,7 @@ not yet in the local cache.
 
 
 ---
-### EndSessionProperties
+### EndSessionProperties {#endsessionproperties}
 
 
 
@@ -959,7 +959,7 @@ not yet in the local cache.
 
 
 ---
-### MethodType
+### MethodType {#methodtype}
 
  
 The Method used to make the request.
@@ -973,7 +973,7 @@ The Method used to make the request.
 
 
 ---
-### ClaimToHeader
+### ClaimToHeader {#claimtoheader-2}
 
  
 Map a single claim from an OAuth2 or OIDC token to a header in the request to the upstream destination.
@@ -995,7 +995,7 @@ Map a single claim from an OAuth2 or OIDC token to a header in the request to th
 
 
 ---
-### Azure
+### Azure {#azure-1}
 
  
 For apps in Microsoft Azure, configure Microsoft Entra ID as the OpenID Connect (OIDC) provider.
@@ -1020,7 +1020,7 @@ This way, you can enable distributed claims and caching for when users are membe
 
 
 ---
-### OidcAuthorizationCode
+### OidcAuthorizationCode {#oidcauthorizationcode}
 
 
 
@@ -1089,7 +1089,7 @@ This way, you can enable distributed claims and caching for when users are membe
 
 
 ---
-### AccessToken
+### AccessToken {#accesstoken-1}
 
  
 Optional: Map a single claim from an OAuth2 access token to a header in the request to the upstream destination.
@@ -1110,7 +1110,7 @@ and configure the `clearRouteCache` or `recalculateRoutingDestination` options.
 
 
 ---
-### IdentityToken
+### IdentityToken {#identitytoken-1}
 
  
 Optional: Map a single claim from an OIDC identity token to a header in the request to the upstream destination.
@@ -1128,7 +1128,7 @@ Optional: Map a single claim from an OIDC identity token to a header in the requ
 
 
 ---
-### ClientAuthentication
+### ClientAuthentication {#clientauthentication}
 
  
 Configuration specific to the client authentication type used to exchange the access code for the access and id tokens.
@@ -1148,7 +1148,7 @@ Configuration specific to the client authentication type used to exchange the ac
 
 
 ---
-### ClientSecret
+### ClientSecret {#clientsecret}
 
  
 Client Secret Authentication requires a client secret (unless it is disabled)
@@ -1168,7 +1168,7 @@ Client Secret Authentication requires a client secret (unless it is disabled)
 
 
 ---
-### PrivateKeyJwt
+### PrivateKeyJwt {#privatekeyjwt}
 
  
 Private Key JWT Authentication requires a signing key for the JWT and an duration for the JWT to be valid.
@@ -1188,7 +1188,7 @@ Private Key JWT Authentication requires a signing key for the JWT and an duratio
 
 
 ---
-### Default
+### Default {#default-2}
 
  
 No-op, represents default OIDC behavior
@@ -1204,7 +1204,7 @@ No-op, represents default OIDC behavior
 
 
 ---
-### FrontChannelLogout
+### FrontChannelLogout {#frontchannellogout-1}
 
  
 For the moment this is just path, but we may want to configure things like iss/sid validation
@@ -1222,7 +1222,7 @@ For the moment this is just path, but we may want to configure things like iss/s
 
 
 ---
-### PlainOAuth2
+### PlainOAuth2 {#plainoauth2}
 
 
 
@@ -1265,7 +1265,7 @@ For the moment this is just path, but we may want to configure things like iss/s
 
 
 ---
-### JwtValidation
+### JwtValidation {#jwtvalidation-1}
 
  
 Defines how JSON Web Token (JWT) access tokens are validated.
@@ -1304,7 +1304,7 @@ If the JWT has been successfully validated, its set of claims will be added to t
 
 
 ---
-### RemoteJwks
+### RemoteJwks {#remotejwks-2}
 
  
 Specifies how to fetch JWKS from remote and how to cache it.
@@ -1324,7 +1324,7 @@ Specifies how to fetch JWKS from remote and how to cache it.
 
 
 ---
-### LocalJwks
+### LocalJwks {#localjwks-1}
 
  
 Represents a locally available JWKS.
@@ -1342,7 +1342,7 @@ Represents a locally available JWKS.
 
 
 ---
-### IntrospectionValidation
+### IntrospectionValidation {#introspectionvalidation-1}
 
  
 Defines how (opaque) access tokens, received from the oauth authorization endpoint, are validated
@@ -1373,7 +1373,7 @@ These values will be encoded in a basic auth header in order to authenticate the
 
 
 ---
-### AccessTokenValidation
+### AccessTokenValidation {#accesstokenvalidation}
 
 
 
@@ -1408,7 +1408,7 @@ These values will be encoded in a basic auth header in order to authenticate the
 
 
 ---
-### Default
+### Default {#default-3}
 
  
 No-op, represents default OIDC distributed claims behavior
@@ -1424,7 +1424,7 @@ No-op, represents default OIDC distributed claims behavior
 
 
 ---
-### ScopeList
+### ScopeList {#scopelist-1}
 
 
 
@@ -1441,7 +1441,7 @@ No-op, represents default OIDC distributed claims behavior
 
 
 ---
-### OauthSecret
+### OauthSecret {#oauthsecret}
 
 
 
@@ -1458,7 +1458,7 @@ No-op, represents default OIDC distributed claims behavior
 
 
 ---
-### ApiKeyAuth
+### ApiKeyAuth {#apikeyauth}
 
  
 Defines how API keys are validated.
@@ -1493,7 +1493,7 @@ added to the `AuthorizationRequest` state under the "api_key_value" key name.
 
 
 ---
-### SecretKey
+### SecretKey {#secretkey}
 
  
 DEPRECATED: use generalized MetadataEntry
@@ -1513,7 +1513,7 @@ DEPRECATED: use generalized MetadataEntry
 
 
 ---
-### MetadataEntry
+### MetadataEntry {#metadataentry}
 
  
 For the K8s secret backend, this data is stored as key-value data in the secret itself.
@@ -1534,7 +1534,7 @@ For the Aerospike backend, this data is stored as bins on the key's record
 
 
 ---
-### K8sSecretApiKeyStorage
+### K8sSecretApiKeyStorage {#k8ssecretapikeystorage}
 
 
 
@@ -1553,7 +1553,7 @@ For the Aerospike backend, this data is stored as bins on the key's record
 
 
 ---
-### AerospikeApiKeyStorage
+### AerospikeApiKeyStorage {#aerospikeapikeystorage}
 
  
 <b>Deprecated</b>: Support for Aerospike is deprecated and will be removed in a future release.
@@ -1604,7 +1604,7 @@ Use of this feature is not recommended.
 
 
 ---
-### readModeSc
+### readModeSc {#readmodesc}
 
 
 
@@ -1627,7 +1627,7 @@ Use of this feature is not recommended.
 
 
 ---
-### readModeAp
+### readModeAp {#readmodeap}
 
 
 
@@ -1646,7 +1646,7 @@ Use of this feature is not recommended.
 
 
 ---
-### tlsCurveID
+### tlsCurveID {#tlscurveid}
 
 
 
@@ -1669,7 +1669,7 @@ Use of this feature is not recommended.
 
 
 ---
-### ServerDefaultApiKeyStorage
+### ServerDefaultApiKeyStorage {#serverdefaultapikeystorage}
 
  
 When no storage backend is specified, the default storage backend defined in the extauth server is used.
@@ -1685,7 +1685,7 @@ When no storage backend is specified, the default storage backend defined in the
 
 
 ---
-### ApiKey
+### ApiKey {#apikey}
 
 
 
@@ -1708,7 +1708,7 @@ When no storage backend is specified, the default storage backend defined in the
 
 
 ---
-### ApiKeySecret
+### ApiKeySecret {#apikeysecret}
 
  
 DEPRECATED: use ApiKey
@@ -1730,7 +1730,7 @@ DEPRECATED: use ApiKey
 
 
 ---
-### OpaAuth
+### OpaAuth {#opaauth}
 
  
 Enforce Open Policy Agent (OPA) policies through an OPA engine
@@ -1757,7 +1757,7 @@ by using the OpaServerAuth setting instead.
 
 
 ---
-### OpaAuthOptions
+### OpaAuthOptions {#opaauthoptions}
 
 
 
@@ -1776,7 +1776,7 @@ by using the OpaServerAuth setting instead.
 
 
 ---
-### OpaServerAuth
+### OpaServerAuth {#opaserverauth}
 
  
 Enforce Open Policy Agent (OPA) policies through an OPA sidecar 
@@ -1804,7 +1804,7 @@ For smaller operations or quick tests, you might use the OpaAuth setting instead
 
 
 ---
-### Ldap
+### Ldap {#ldap}
 
  
 Authenticates and authorizes requests by querying an LDAP server. Gloo makes the following assumptions:
@@ -1840,7 +1840,7 @@ Authenticates and authorizes requests by querying an LDAP server. Gloo makes the
 
 
 ---
-### ConnectionPool
+### ConnectionPool {#connectionpool}
 
  
 Configuration properties for pooling connections to the LDAP server. If the pool is exhausted when a connection
@@ -1861,7 +1861,7 @@ is requested (meaning that all the pooled connections are in use), the connectio
 
 
 ---
-### LdapServiceAccount
+### LdapServiceAccount {#ldapserviceaccount}
 
 
 
@@ -1880,7 +1880,7 @@ is requested (meaning that all the pooled connections are in use), the connectio
 
 
 ---
-### PassThroughAuth
+### PassThroughAuth {#passthroughauth}
 
  
 Authorizes requests by querying a custom extauth server.
@@ -1904,7 +1904,7 @@ Authorizes requests by querying a custom extauth server.
 
 
 ---
-### BackoffStrategy
+### BackoffStrategy {#backoffstrategy-1}
 
  
 Configuration defining an exponential back off strategy.
@@ -1924,7 +1924,7 @@ Configuration defining an exponential back off strategy.
 
 
 ---
-### RetryPolicy
+### RetryPolicy {#retrypolicy-3}
 
  
 The message specifies the retry policy of the external gRPC service when unable to initially connect.
@@ -1944,7 +1944,7 @@ The message specifies the retry policy of the external gRPC service when unable 
 
 
 ---
-### PassThroughGrpc
+### PassThroughGrpc {#passthroughgrpc}
 
  
 Authorizes requests by querying a custom extauth grpc server
@@ -1972,7 +1972,7 @@ https://github.com/envoyproxy/envoy/blob/ae1ed1fa74f096dabe8dd5b19fc70333621b030
 
 
 ---
-### PassThroughHttp
+### PassThroughHttp {#passthroughhttp}
 
  
 Authorizes requests by making a POST HTTP/1 request to a custom HTTP auth server
@@ -2000,7 +2000,7 @@ else the request is unauthorized.
 
 
 ---
-### Request
+### Request {#request-3}
 
  
 The passthrough http request can be configured to pass through the incoming request body,
@@ -2039,7 +2039,7 @@ JSON marshalling.
 
 
 ---
-### Response
+### Response {#response-2}
 
 
 
@@ -2062,7 +2062,7 @@ JSON marshalling.
 
 
 ---
-### PassThroughGrpcTLSConfig
+### PassThroughGrpcTLSConfig {#passthroughgrpctlsconfig}
 
  
 TLS configuration for the extauth gRPC passthrough connection
@@ -2082,7 +2082,7 @@ TLS configuration for the extauth gRPC passthrough connection
 
 
 ---
-### PassThroughHttpTLSConfig
+### PassThroughHttpTLSConfig {#passthroughhttptlsconfig}
 
  
 TLS configuration for the extauth HTTP passthrough connection
@@ -2102,7 +2102,7 @@ TLS configuration for the extauth HTTP passthrough connection
 
 
 ---
-### SslParameters
+### SslParameters {#sslparameters}
 
 
 
@@ -2121,7 +2121,7 @@ TLS configuration for the extauth HTTP passthrough connection
 
 
 ---
-### ProtocolVersion
+### ProtocolVersion {#protocolversion}
 
 
 
@@ -2136,7 +2136,7 @@ TLS configuration for the extauth HTTP passthrough connection
 
 
 ---
-### PortalAuth
+### PortalAuth {#portalauth}
 
  
 PortalAuth is used to authorize requests for credentials generated by the portal web server.

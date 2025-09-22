@@ -30,7 +30,7 @@ weight: 5
 
 
 ---
-### VirtualService
+### VirtualService {#virtualservice}
 
  
 The **VirtualService** is the root routing object for the Gloo Gateway.
@@ -145,7 +145,7 @@ constraints:
 
 
 ---
-### VirtualHost
+### VirtualHost {#virtualhost-1}
 
  
 Virtual Hosts serve an ordered list of routes for a set of domains.
@@ -176,7 +176,7 @@ _Gateway_ Virtual Hosts can delegate their routes to `RouteTables`.
 
 
 ---
-### Route
+### Route {#route-1}
 
  
 A route specifies how to match a request and what action to take when the request is matched.
@@ -220,7 +220,7 @@ top-level `RouteTable` resources.
 
 
 ---
-### DelegateOptionsRefs
+### DelegateOptionsRefs {#delegateoptionsrefs}
 
 
 
@@ -237,7 +237,7 @@ top-level `RouteTable` resources.
 
 
 ---
-### DelegateAction
+### DelegateAction {#delegateaction}
 
  
 DelegateActions are used to delegate routing decisions to Route Tables.
@@ -261,7 +261,7 @@ DelegateActions are used to delegate routing decisions to Route Tables.
 
 
 ---
-### RouteTableSelector
+### RouteTableSelector {#routetableselector}
 
  
 Select route tables for delegation by namespace, labels, or both.
@@ -283,7 +283,7 @@ Select route tables for delegation by namespace, labels, or both.
 
 
 ---
-### Expression
+### Expression {#expression-1}
 
 
 
@@ -304,7 +304,7 @@ Select route tables for delegation by namespace, labels, or both.
 
 
 ---
-### Operator
+### Operator {#operator-1}
 
  
 Route Table Selector expression operator, while the set-based syntax differs from Kubernetes (kubernetes: `key: !mylabel`, gloo: `key: mylabel, operator: "!"` | kubernetes: `key: mylabel`, gloo: `key: mylabel, operator: exists`), the functionality remains the same.

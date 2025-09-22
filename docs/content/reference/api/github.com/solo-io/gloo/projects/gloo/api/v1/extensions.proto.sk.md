@@ -24,7 +24,7 @@ weight: 5
 
 
 ---
-### Extensions
+### Extensions {#extensions}
 
 
 
@@ -41,7 +41,7 @@ weight: 5
 
 
 ---
-### Extension
+### Extension {#extension-1}
 
 
 
