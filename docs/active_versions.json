@@ -1,12 +1,11 @@
 {
-  "latest": "v1.19.x",
+  "latest": "v1.20.x",
   "versions": [
     "main",
-    "v1.19.x"
+    "v1.20.x"
   ],
   "oldVersions": [
+    "v1.19.x",
     "v1.18.x",
-    "v1.17.x",
-    "v1.16.x"
   ]
 }

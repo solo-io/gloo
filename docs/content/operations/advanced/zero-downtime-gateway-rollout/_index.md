@@ -187,6 +187,24 @@ service.beta.kubernetes.io/aws-load-balancer-healthcheck-port: "traffic-port" # 
 service.beta.kubernetes.io/aws-load-balancer-healthcheck-timeout: "2" # 2s is the minimum and is recommended to detect failure quickly
 ```
 
+## Extauth server lifecycle
+
+When you run the extauth server as a sidecar to the gateway proxy and you remove the gateway proxy, the extauth container terminates before the gateway proxy container. This can result in the gateway proxy returning 403 HTTP responses during the time when the extauth server is terminated, but the gateway proxy is still available. 
+
+To work around this issue, you can increase the `HEALTH_FAIL_TIMEOUT` setting on your extauth server by using the `global.extensions.extAuth.deployment.customEnv[]` Helm setting as shown in the following example. 
+
+```yaml
+global: 
+  extensions: 
+    extAuth: 
+      deployment: 
+        customEnv: 
+          - name: HEALTH_FAIL_TIMEOUT
+            value: "45"
+```
+
+During the shutdown of the gateway proxy, the health check to the extauth server sidecar container starts failing. The `HEALTH_FAIL_TIMEOUT` environment variable keeps the process alive for the defined timeout in seconds so that requests continue to be handled correctly until the gateway proxy and the extauth server sidecar shut down. 
+
 ## Demo
 
 The demo is based on the `VirtualService` and `Upstream` described above in this article. Update your Helm configuration to enable the Envoy health checks and the extra annotations for an ALBC.
