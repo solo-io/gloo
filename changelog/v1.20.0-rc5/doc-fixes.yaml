@@ -1,0 +1,7 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >-
+      bump solo-kit dependency to generate API docs with a fix for duplicate anchors
+
+      skipCI-kube-tests:true
+      skipCI-docs-build:true
