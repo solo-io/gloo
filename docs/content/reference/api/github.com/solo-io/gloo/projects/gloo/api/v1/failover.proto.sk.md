@@ -13,11 +13,11 @@ weight: 5
 
 - [Failover](#failover)
 - [PrioritizedLocality](#prioritizedlocality)
-- [Policy](#policy)
+- [Policy](#policy-1)
 - [LocalityLbEndpoints](#localitylbendpoints)
 - [LbEndpoint](#lbendpoint)
-- [HealthCheckConfig](#healthcheckconfig)
-- [Locality](#locality)
+- [HealthCheckConfig](#healthcheckconfig-1)
+- [Locality](#locality-1)
   
 
 

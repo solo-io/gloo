@@ -14,7 +14,7 @@ weight: 5
 - [AccessLoggingService](#accessloggingservice)
 - [AccessLog](#accesslog)
 - [FileSink](#filesink)
-- [GrpcService](#grpcservice)
+- [GrpcService](#grpcservice-6)
 - [OpenTelemetryGrpcCollector](#opentelemetrygrpccollector)
 - [OpenTelemetryService](#opentelemetryservice)
 - [AccessLogFilter](#accesslogfilter)

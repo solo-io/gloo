@@ -11,9 +11,9 @@ weight: 5
 **Types:**
 
 
-- [UpstreamSpec](#upstreamspec)
-- [Host](#host)
-- [HealthCheckConfig](#healthcheckconfig)
+- [UpstreamSpec](#upstreamspec-8)
+- [Host](#host-1)
+- [HealthCheckConfig](#healthcheckconfig-2)
   
 
 

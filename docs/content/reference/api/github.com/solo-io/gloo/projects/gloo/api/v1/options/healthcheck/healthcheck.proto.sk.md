@@ -11,7 +11,7 @@ weight: 5
 **Types:**
 
 
-- [HealthCheck](#healthcheck)
+- [HealthCheck](#healthcheck-2)
   
 
 

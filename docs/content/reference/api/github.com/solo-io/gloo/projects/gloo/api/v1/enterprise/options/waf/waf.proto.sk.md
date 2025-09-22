@@ -11,7 +11,7 @@ weight: 5
 **Types:**
 
 
-- [Settings](#settings)
+- [Settings](#settings-5)
 - [RuleSetFromConfigMap](#rulesetfromconfigmap)
 - [CoreRuleSet](#coreruleset)
   

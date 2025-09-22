@@ -12,7 +12,7 @@ weight: 5
 
 
 - [Stats](#stats)
-- [VirtualCluster](#virtualcluster)
+- [VirtualCluster](#virtualcluster-2)
   
 
 

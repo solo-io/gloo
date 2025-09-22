@@ -12,7 +12,7 @@ weight: 5
 
 
 - [SubsetSpec](#subsetspec)
-- [Selector](#selector)
+- [Selector](#selector-1)
 - [Subset](#subset)
   
 

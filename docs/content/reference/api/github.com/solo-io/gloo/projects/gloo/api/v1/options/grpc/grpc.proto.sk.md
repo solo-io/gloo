@@ -11,9 +11,9 @@ weight: 5
 **Types:**
 
 
-- [ServiceSpec](#servicespec)
-- [GrpcService](#grpcservice)
-- [DestinationSpec](#destinationspec)
+- [ServiceSpec](#servicespec-1)
+- [GrpcService](#grpcservice-7)
+- [DestinationSpec](#destinationspec-3)
   
 
 

@@ -12,8 +12,8 @@ weight: 5
 
 
 - [IngressRateLimit](#ingressratelimit)
-- [Settings](#settings)
-- [GrpcService](#grpcservice)
+- [Settings](#settings-3)
+- [GrpcService](#grpcservice-4)
 - [ServiceSettings](#servicesettings)
 - [RateLimitConfigRefs](#ratelimitconfigrefs)
 - [RateLimitConfigRef](#ratelimitconfigref)

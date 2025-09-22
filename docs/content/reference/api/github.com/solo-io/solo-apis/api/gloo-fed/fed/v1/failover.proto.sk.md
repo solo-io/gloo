@@ -15,8 +15,8 @@ weight: 5
 - [FailoverEndpoints](#failoverendpoints)
 - [LocalityLbTargets](#localitylbtargets)
 - [FailoverSchemeStatus](#failoverschemestatus)
-- [Status](#status)
-- [State](#state)
+- [Status](#status-2)
+- [State](#state-2)
   
 
 

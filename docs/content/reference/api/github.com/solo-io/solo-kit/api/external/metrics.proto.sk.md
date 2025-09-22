@@ -30,7 +30,7 @@ limitations under the License.
 - [Gauge](#gauge)
 - [Counter](#counter)
 - [Quantile](#quantile)
-- [Summary](#summary)
+- [Summary](#summary-1)
 - [Untyped](#untyped)
 - [Histogram](#histogram)
 - [Bucket](#bucket)

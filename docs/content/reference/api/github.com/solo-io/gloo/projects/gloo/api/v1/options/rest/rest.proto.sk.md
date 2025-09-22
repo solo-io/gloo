@@ -11,9 +11,9 @@ weight: 5
 **Types:**
 
 
-- [ServiceSpec](#servicespec)
+- [ServiceSpec](#servicespec-2)
 - [SwaggerInfo](#swaggerinfo)
-- [DestinationSpec](#destinationspec)
+- [DestinationSpec](#destinationspec-4)
   
 
 

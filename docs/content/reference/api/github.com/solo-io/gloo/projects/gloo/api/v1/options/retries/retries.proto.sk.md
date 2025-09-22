@@ -11,11 +11,11 @@ weight: 5
 **Types:**
 
 
-- [RetryBackOff](#retrybackoff)
+- [RetryBackOff](#retrybackoff-2)
 - [ResetHeader](#resetheader)
 - [HeaderFormat](#headerformat)
 - [RateLimitedRetryBackOff](#ratelimitedretrybackoff)
-- [RetryPolicy](#retrypolicy)
+- [RetryPolicy](#retrypolicy-4)
 - [PreviousPriorities](#previouspriorities)
   
 

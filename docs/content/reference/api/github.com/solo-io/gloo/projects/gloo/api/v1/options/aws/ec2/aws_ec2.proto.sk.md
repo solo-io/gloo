@@ -11,7 +11,7 @@ weight: 5
 **Types:**
 
 
-- [UpstreamSpec](#upstreamspec)
+- [UpstreamSpec](#upstreamspec-3)
 - [TagFilter](#tagfilter)
 - [KvPair](#kvpair)
   

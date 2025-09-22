@@ -13,8 +13,8 @@ weight: 5
 
 - [TcpProxySettings](#tcpproxysettings)
 - [TunnelingConfig](#tunnelingconfig)
-- [HeaderValueOption](#headervalueoption)
-- [HeaderValue](#headervalue)
+- [HeaderValueOption](#headervalueoption-2)
+- [HeaderValue](#headervalue-2)
   
 
 

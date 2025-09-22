@@ -12,8 +12,8 @@ weight: 5
 
 
 - [RouteActionHashConfig](#routeactionhashconfig)
-- [Cookie](#cookie)
-- [HashPolicy](#hashpolicy)
+- [Cookie](#cookie-3)
+- [HashPolicy](#hashpolicy-2)
   
 
 

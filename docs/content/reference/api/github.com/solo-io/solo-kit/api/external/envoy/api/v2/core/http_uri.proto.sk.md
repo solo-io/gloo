@@ -11,7 +11,7 @@ weight: 5
 **Types:**
 
 
-- [HttpUri](#httpuri)
+- [HttpUri](#httpuri-1)
   
 
 

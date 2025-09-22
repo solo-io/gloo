@@ -11,9 +11,9 @@ weight: 5
 **Types:**
 
 
-- [Settings](#settings)
-- [RouteSettings](#routesettings)
-- [GrpcService](#grpcservice)
+- [Settings](#settings-2)
+- [RouteSettings](#routesettings-1)
+- [GrpcService](#grpcservice-3)
 - [Overrides](#overrides)
 - [HeaderForwardingRules](#headerforwardingrules)
   

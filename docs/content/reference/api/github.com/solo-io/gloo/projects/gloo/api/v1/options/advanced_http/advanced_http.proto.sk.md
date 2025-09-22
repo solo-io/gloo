@@ -11,11 +11,11 @@ weight: 5
 **Types:**
 
 
-- [ResponseAssertions](#responseassertions)
-- [ResponseMatcher](#responsematcher)
-- [ResponseMatch](#responsematch)
-- [JsonKey](#jsonkey)
-- [PathSegment](#pathsegment)
+- [ResponseAssertions](#responseassertions-1)
+- [ResponseMatcher](#responsematcher-2)
+- [ResponseMatch](#responsematch-2)
+- [JsonKey](#jsonkey-1)
+- [PathSegment](#pathsegment-3)
   
 
  
@@ -23,7 +23,7 @@ weight: 5
 **Enums:**
 
 
-	- [HealthCheckResult](#healthcheckresult)
+	- [HealthCheckResult](#healthcheckresult-1)
 
 
 

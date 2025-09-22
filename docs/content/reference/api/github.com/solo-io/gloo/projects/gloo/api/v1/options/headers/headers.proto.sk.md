@@ -13,8 +13,8 @@ weight: 5
 
 - [HeaderManipulation](#headermanipulation)
 - [EarlyHeaderManipulation](#earlyheadermanipulation)
-- [HeaderValueOption](#headervalueoption)
-- [HeaderValue](#headervalue)
+- [HeaderValueOption](#headervalueoption-1)
+- [HeaderValue](#headervalue-1)
   
 
 

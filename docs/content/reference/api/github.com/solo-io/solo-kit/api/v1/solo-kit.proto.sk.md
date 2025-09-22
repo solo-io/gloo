@@ -11,7 +11,7 @@ weight: 5
 **Types:**
 
 
-- [Resource](#resource)
+- [Resource](#resource-2)
   
 
 

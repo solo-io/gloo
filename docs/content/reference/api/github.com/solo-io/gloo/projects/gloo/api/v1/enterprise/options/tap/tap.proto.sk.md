@@ -13,8 +13,8 @@ weight: 5
 
 - [Tap](#tap)
 - [Sink](#sink)
-- [GrpcService](#grpcservice)
-- [HttpService](#httpservice)
+- [GrpcService](#grpcservice-5)
+- [HttpService](#httpservice-1)
   
 
 

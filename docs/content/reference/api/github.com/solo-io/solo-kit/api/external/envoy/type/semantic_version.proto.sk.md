@@ -11,7 +11,7 @@ weight: 5
 **Types:**
 
 
-- [SemanticVersion](#semanticversion)
+- [SemanticVersion](#semanticversion-1)
   
 
 

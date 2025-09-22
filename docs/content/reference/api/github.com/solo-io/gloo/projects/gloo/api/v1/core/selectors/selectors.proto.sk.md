@@ -12,8 +12,8 @@ weight: 5
 
 
 - [Selector](#selector)
-- [Expression](#expression)
-- [Operator](#operator)
+- [Expression](#expression-2)
+- [Operator](#operator-2)
   
 
 

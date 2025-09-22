@@ -12,8 +12,8 @@ weight: 5
 
 
 - [NamespacedStatuses](#namespacedstatuses)
-- [Status](#status)
-- [State](#state)
+- [Status](#status-5)
+- [State](#state-4)
   
 
 

@@ -57,7 +57,7 @@ without any other information (e.g. without reading its imports).
 - [ReservedRange](#reservedrange)
 - [ExtensionRangeOptions](#extensionrangeoptions)
 - [FieldDescriptorProto](#fielddescriptorproto)
-- [Type](#type)
+- [Type](#type-12)
 - [Label](#label)
 - [OneofDescriptorProto](#oneofdescriptorproto)
 - [EnumDescriptorProto](#enumdescriptorproto)

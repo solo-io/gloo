@@ -14,8 +14,8 @@ weight: 5
 - [TemplateMetadata](#templatemetadata)
 - [PlacementStatus](#placementstatus)
 - [Namespace](#namespace)
-- [Cluster](#cluster)
-- [State](#state)
+- [Cluster](#cluster-1)
+- [State](#state-1)
   
 
 

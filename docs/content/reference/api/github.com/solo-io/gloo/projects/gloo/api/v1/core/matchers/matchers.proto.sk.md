@@ -11,10 +11,10 @@ weight: 5
 **Types:**
 
 
-- [Matcher](#matcher)
-- [ConnectMatcher](#connectmatcher)
-- [HeaderMatcher](#headermatcher)
-- [QueryParameterMatcher](#queryparametermatcher)
+- [Matcher](#matcher-4)
+- [ConnectMatcher](#connectmatcher-2)
+- [HeaderMatcher](#headermatcher-2)
+- [QueryParameterMatcher](#queryparametermatcher-2)
   
 
 

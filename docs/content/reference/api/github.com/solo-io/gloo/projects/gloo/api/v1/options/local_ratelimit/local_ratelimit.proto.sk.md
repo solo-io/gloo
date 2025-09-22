@@ -12,7 +12,7 @@ weight: 5
 
 
 - [TokenBucket](#tokenbucket)
-- [Settings](#settings)
+- [Settings](#settings-6)
   
 
 

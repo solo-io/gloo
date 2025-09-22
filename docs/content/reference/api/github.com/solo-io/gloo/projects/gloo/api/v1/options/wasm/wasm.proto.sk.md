@@ -14,9 +14,9 @@ weight: 5
 - [PluginSource](#pluginsource)
 - [WasmFilter](#wasmfilter)
 - [VmType](#vmtype)
-- [FilterStage](#filterstage)
-- [Stage](#stage)
-- [Predicate](#predicate)
+- [FilterStage](#filterstage-1)
+- [Stage](#stage-1)
+- [Predicate](#predicate-2)
   
 
 

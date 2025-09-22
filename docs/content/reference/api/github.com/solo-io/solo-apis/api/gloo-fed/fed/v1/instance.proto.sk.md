@@ -12,15 +12,15 @@ weight: 5
 
 
 - [GlooInstanceSpec](#glooinstancespec)
-- [ControlPlane](#controlplane)
-- [Proxy](#proxy)
+- [ControlPlane](#controlplane-1)
+- [Proxy](#proxy-1)
 - [IngressEndpoint](#ingressendpoint)
 - [Port](#port)
 - [WorkloadController](#workloadcontroller)
 - [Admin](#admin)
 - [Check](#check)
 - [Summary](#summary)
-- [ResourceReport](#resourcereport)
+- [ResourceReport](#resourcereport-1)
 - [GlooInstanceStatus](#glooinstancestatus)
   
 

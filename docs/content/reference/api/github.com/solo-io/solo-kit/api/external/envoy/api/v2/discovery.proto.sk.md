@@ -15,7 +15,7 @@ weight: 5
 - [DiscoveryResponse](#discoveryresponse)
 - [DeltaDiscoveryRequest](#deltadiscoveryrequest)
 - [DeltaDiscoveryResponse](#deltadiscoveryresponse)
-- [Resource](#resource)
+- [Resource](#resource-1)
   
 
 

@@ -11,10 +11,10 @@ weight: 5
 **Types:**
 
 
-- [UpstreamSpec](#upstreamspec)
+- [UpstreamSpec](#upstreamspec-4)
 - [FunctionSpec](#functionspec)
 - [AuthLevel](#authlevel)
-- [DestinationSpec](#destinationspec)
+- [DestinationSpec](#destinationspec-2)
   
 
 

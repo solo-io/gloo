@@ -14,7 +14,7 @@ weight: 5
 - [HttpConnectionManagerSettings](#httpconnectionmanagersettings)
 - [SetCurrentClientCertDetails](#setcurrentclientcertdetails)
 - [UuidRequestIdConfigSettings](#uuidrequestidconfigsettings)
-- [CidrRange](#cidrrange)
+- [CidrRange](#cidrrange-2)
 - [InternalAddressConfig](#internaladdressconfig)
 - [ForwardClientCertDetails](#forwardclientcertdetails)
 - [ServerHeaderTransformation](#serverheadertransformation)

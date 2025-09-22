@@ -11,11 +11,11 @@ weight: 5
 **Types:**
 
 
-- [FilterConfig](#filterconfig)
+- [FilterConfig](#filterconfig-1)
 - [DnsCacheCircuitBreakers](#dnscachecircuitbreakers)
 - [DnsCacheConfig](#dnscacheconfig)
 - [RefreshRate](#refreshrate)
-- [PerRouteConfig](#perrouteconfig)
+- [PerRouteConfig](#perrouteconfig-1)
 - [DnsResolverOptions](#dnsresolveroptions)
 - [CaresDnsResolverConfig](#caresdnsresolverconfig)
 - [AppleDnsResolverConfig](#applednsresolverconfig)

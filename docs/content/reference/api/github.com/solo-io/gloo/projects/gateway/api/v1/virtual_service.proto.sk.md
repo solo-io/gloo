@@ -12,13 +12,13 @@ weight: 5
 
 
 - [VirtualService](#virtualservice) **Top-Level Resource**
-- [VirtualHost](#virtualhost)
-- [Route](#route)
+- [VirtualHost](#virtualhost-1)
+- [Route](#route-1)
 - [DelegateOptionsRefs](#delegateoptionsrefs)
 - [DelegateAction](#delegateaction)
 - [RouteTableSelector](#routetableselector)
-- [Expression](#expression)
-- [Operator](#operator)
+- [Expression](#expression-1)
+- [Operator](#operator-1)
   
 
 

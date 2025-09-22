@@ -11,7 +11,7 @@ weight: 5
 **Types:**
 
 
-- [Settings](#settings) **Top-Level Resource**
+- [Settings](#settings-7) **Top-Level Resource**
 - [SecretOptions](#secretoptions)
 - [Source](#source)
 - [KubernetesCrds](#kubernetescrds)

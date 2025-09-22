@@ -11,9 +11,9 @@ weight: 5
 **Types:**
 
 
-- [Percent](#percent)
-- [FractionalPercent](#fractionalpercent)
-- [DenominatorType](#denominatortype)
+- [Percent](#percent-1)
+- [FractionalPercent](#fractionalpercent-1)
+- [DenominatorType](#denominatortype-1)
   
 
 

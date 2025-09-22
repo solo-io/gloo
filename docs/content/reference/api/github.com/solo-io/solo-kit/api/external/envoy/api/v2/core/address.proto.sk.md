@@ -11,13 +11,13 @@ weight: 5
 **Types:**
 
 
-- [Pipe](#pipe)
-- [SocketAddress](#socketaddress)
-- [Protocol](#protocol)
-- [TcpKeepalive](#tcpkeepalive)
-- [BindConfig](#bindconfig)
-- [Address](#address)
-- [CidrRange](#cidrrange)
+- [Pipe](#pipe-1)
+- [SocketAddress](#socketaddress-1)
+- [Protocol](#protocol-1)
+- [TcpKeepalive](#tcpkeepalive-2)
+- [BindConfig](#bindconfig-1)
+- [Address](#address-1)
+- [CidrRange](#cidrrange-3)
   
 
 

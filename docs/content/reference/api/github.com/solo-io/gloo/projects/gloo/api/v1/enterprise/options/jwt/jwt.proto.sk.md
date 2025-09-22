@@ -17,13 +17,13 @@ weight: 5
 - [VhostExtension](#vhostextension)
 - [ValidationPolicy](#validationpolicy)
 - [RouteExtension](#routeextension)
-- [Provider](#provider)
+- [Provider](#provider-1)
 - [Jwks](#jwks)
-- [RemoteJwks](#remotejwks)
-- [LocalJwks](#localjwks)
+- [RemoteJwks](#remotejwks-3)
+- [LocalJwks](#localjwks-2)
 - [TokenSource](#tokensource)
 - [HeaderSource](#headersource)
-- [ClaimToHeader](#claimtoheader)
+- [ClaimToHeader](#claimtoheader-3)
   
 
 

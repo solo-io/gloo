@@ -11,9 +11,9 @@ weight: 5
 **Types:**
 
 
-- [UpstreamSpec](#upstreamspec)
+- [UpstreamSpec](#upstreamspec-2)
 - [LambdaFunctionSpec](#lambdafunctionspec)
-- [DestinationSpec](#destinationspec)
+- [DestinationSpec](#destinationspec-1)
 - [InvocationStyle](#invocationstyle)
   
 

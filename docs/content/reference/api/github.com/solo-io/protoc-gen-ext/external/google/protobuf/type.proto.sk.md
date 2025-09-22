@@ -43,11 +43,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 **Types:**
 
 
-- [Type](#type)
+- [Type](#type-13)
 - [Field](#field)
-- [Kind](#kind)
+- [Kind](#kind-1)
 - [Cardinality](#cardinality)
-- [Enum](#enum)
+- [Enum](#enum-1)
 - [EnumValue](#enumvalue)
 - [Option](#option)
   

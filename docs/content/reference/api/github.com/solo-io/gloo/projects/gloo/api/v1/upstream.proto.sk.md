@@ -14,7 +14,7 @@ weight: 5
 - [Upstream](#upstream) **Top-Level Resource**
 - [ClusterProtocolSelection](#clusterprotocolselection)
 - [DiscoveryMetadata](#discoverymetadata)
-- [HeaderValue](#headervalue)
+- [HeaderValue](#headervalue-3)
 - [PreconnectPolicy](#preconnectpolicy)
   
 

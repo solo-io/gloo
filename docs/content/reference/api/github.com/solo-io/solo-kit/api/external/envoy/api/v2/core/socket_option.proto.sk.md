@@ -11,8 +11,8 @@ weight: 5
 **Types:**
 
 
-- [SocketOption](#socketoption)
-- [SocketState](#socketstate)
+- [SocketOption](#socketoption-1)
+- [SocketState](#socketstate-1)
   
 
 

@@ -11,22 +11,22 @@ weight: 5
 **Types:**
 
 
-- [Locality](#locality)
-- [BuildVersion](#buildversion)
-- [Extension](#extension)
-- [Node](#node)
-- [Metadata](#metadata)
-- [RuntimeUInt32](#runtimeuint32)
-- [RuntimeFeatureFlag](#runtimefeatureflag)
-- [HeaderValue](#headervalue)
-- [HeaderValueOption](#headervalueoption)
-- [HeaderMap](#headermap)
-- [DataSource](#datasource)
-- [RemoteDataSource](#remotedatasource)
-- [AsyncDataSource](#asyncdatasource)
-- [TransportSocket](#transportsocket)
-- [RuntimeFractionalPercent](#runtimefractionalpercent)
-- [ControlPlane](#controlplane)
+- [Locality](#locality-2)
+- [BuildVersion](#buildversion-1)
+- [Extension](#extension-2)
+- [Node](#node-1)
+- [Metadata](#metadata-3)
+- [RuntimeUInt32](#runtimeuint32-1)
+- [RuntimeFeatureFlag](#runtimefeatureflag-1)
+- [HeaderValue](#headervalue-4)
+- [HeaderValueOption](#headervalueoption-3)
+- [HeaderMap](#headermap-1)
+- [DataSource](#datasource-1)
+- [RemoteDataSource](#remotedatasource-1)
+- [AsyncDataSource](#asyncdatasource-1)
+- [TransportSocket](#transportsocket-1)
+- [RuntimeFractionalPercent](#runtimefractionalpercent-1)
+- [ControlPlane](#controlplane-2)
   
 
  
@@ -34,9 +34,9 @@ weight: 5
 **Enums:**
 
 
-	- [RoutingPriority](#routingpriority)
-	- [RequestMethod](#requestmethod)
-	- [TrafficDirection](#trafficdirection)
+	- [RoutingPriority](#routingpriority-1)
+	- [RequestMethod](#requestmethod-1)
+	- [TrafficDirection](#trafficdirection-1)
 
 
 

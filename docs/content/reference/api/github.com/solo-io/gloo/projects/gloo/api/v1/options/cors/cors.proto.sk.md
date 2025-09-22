@@ -11,7 +11,7 @@ weight: 5
 **Types:**
 
 
-- [CorsPolicy](#corspolicy)
+- [CorsPolicy](#corspolicy-2)
 - [CorsPolicyMergeSettings](#corspolicymergesettings)
 - [MergeStrategy](#mergestrategy)
   

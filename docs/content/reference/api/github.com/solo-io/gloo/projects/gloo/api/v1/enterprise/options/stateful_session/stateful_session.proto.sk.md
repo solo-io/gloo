@@ -13,7 +13,7 @@ weight: 5
 
 - [StatefulSession](#statefulsession)
 - [CookieBasedSessionState](#cookiebasedsessionstate)
-- [Cookie](#cookie)
+- [Cookie](#cookie-2)
 - [HeaderBasedSessionState](#headerbasedsessionstate)
   
 
