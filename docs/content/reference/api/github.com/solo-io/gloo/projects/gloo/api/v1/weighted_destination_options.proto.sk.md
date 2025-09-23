@@ -23,7 +23,7 @@ weight: 5
 
 
 ---
-### WeightedDestinationOptions
+### WeightedDestinationOptions {#weighteddestinationoptions}
 
  
 Optional, feature-specific configuration that is applied when a specific weighted destination

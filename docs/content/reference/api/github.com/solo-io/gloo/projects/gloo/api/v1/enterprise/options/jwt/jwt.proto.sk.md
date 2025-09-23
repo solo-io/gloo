@@ -17,13 +17,13 @@ weight: 5
 - [VhostExtension](#vhostextension)
 - [ValidationPolicy](#validationpolicy)
 - [RouteExtension](#routeextension)
-- [Provider](#provider)
+- [Provider](#provider-1)
 - [Jwks](#jwks)
-- [RemoteJwks](#remotejwks)
-- [LocalJwks](#localjwks)
+- [RemoteJwks](#remotejwks-3)
+- [LocalJwks](#localjwks-2)
 - [TokenSource](#tokensource)
 - [HeaderSource](#headersource)
-- [ClaimToHeader](#claimtoheader)
+- [ClaimToHeader](#claimtoheader-3)
   
 
 
@@ -35,7 +35,7 @@ weight: 5
 
 
 ---
-### JwtStagedVhostExtension
+### JwtStagedVhostExtension {#jwtstagedvhostextension}
 
 
 
@@ -54,7 +54,7 @@ weight: 5
 
 
 ---
-### JwtStagedRouteProvidersExtension
+### JwtStagedRouteProvidersExtension {#jwtstagedrouteprovidersextension}
 
 
 
@@ -73,7 +73,7 @@ weight: 5
 
 
 ---
-### JwtStagedRouteExtension
+### JwtStagedRouteExtension {#jwtstagedrouteextension}
 
 
 
@@ -92,7 +92,7 @@ weight: 5
 
 
 ---
-### VhostExtension
+### VhostExtension {#vhostextension}
 
 
 
@@ -113,7 +113,7 @@ weight: 5
 
 
 ---
-### ValidationPolicy
+### ValidationPolicy {#validationpolicy}
 
 
 
@@ -127,7 +127,7 @@ weight: 5
 
 
 ---
-### RouteExtension
+### RouteExtension {#routeextension}
 
 
 
@@ -144,7 +144,7 @@ weight: 5
 
 
 ---
-### Provider
+### Provider {#provider-1}
 
 
 
@@ -175,7 +175,7 @@ weight: 5
 
 
 ---
-### Jwks
+### Jwks {#jwks}
 
 
 
@@ -194,7 +194,7 @@ weight: 5
 
 
 ---
-### RemoteJwks
+### RemoteJwks {#remotejwks-3}
 
 
 
@@ -217,7 +217,7 @@ weight: 5
 
 
 ---
-### LocalJwks
+### LocalJwks {#localjwks-2}
 
 
 
@@ -234,7 +234,7 @@ weight: 5
 
 
 ---
-### TokenSource
+### TokenSource {#tokensource}
 
  
 Describes the location of a JWT token
@@ -254,7 +254,7 @@ Describes the location of a JWT token
 
 
 ---
-### HeaderSource
+### HeaderSource {#headersource}
 
  
 Describes how to retrieve a JWT from a header
@@ -274,7 +274,7 @@ Describes how to retrieve a JWT from a header
 
 
 ---
-### ClaimToHeader
+### ClaimToHeader {#claimtoheader-3}
 
  
 Allows copying verified claims to headers sent upstream

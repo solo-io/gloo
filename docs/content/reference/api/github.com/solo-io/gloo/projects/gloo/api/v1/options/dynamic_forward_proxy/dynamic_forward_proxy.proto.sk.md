@@ -11,11 +11,11 @@ weight: 5
 **Types:**
 
 
-- [FilterConfig](#filterconfig)
+- [FilterConfig](#filterconfig-1)
 - [DnsCacheCircuitBreakers](#dnscachecircuitbreakers)
 - [DnsCacheConfig](#dnscacheconfig)
 - [RefreshRate](#refreshrate)
-- [PerRouteConfig](#perrouteconfig)
+- [PerRouteConfig](#perrouteconfig-1)
 - [DnsResolverOptions](#dnsresolveroptions)
 - [CaresDnsResolverConfig](#caresdnsresolverconfig)
 - [AppleDnsResolverConfig](#applednsresolverconfig)
@@ -37,7 +37,7 @@ weight: 5
 
 
 ---
-### FilterConfig
+### FilterConfig {#filterconfig-1}
 
  
 Configuration for the dynamic forward proxy HTTP filter. See the :ref:`architecture overview
@@ -63,7 +63,7 @@ Configuration for the dynamic forward proxy HTTP filter. See the :ref:`architect
 
 
 ---
-### DnsCacheCircuitBreakers
+### DnsCacheCircuitBreakers {#dnscachecircuitbreakers}
 
  
 Configuration of circuit breakers for resolver.
@@ -81,7 +81,7 @@ Configuration of circuit breakers for resolver.
 
 
 ---
-### DnsCacheConfig
+### DnsCacheConfig {#dnscacheconfig}
 
  
 Configuration for the dynamic forward proxy DNS cache. See the :ref:`architecture overview
@@ -119,7 +119,7 @@ Configuration for the dynamic forward proxy DNS cache. See the :ref:`architectur
 
 
 ---
-### RefreshRate
+### RefreshRate {#refreshrate}
 
 
 
@@ -138,7 +138,7 @@ Configuration for the dynamic forward proxy DNS cache. See the :ref:`architectur
 
 
 ---
-### PerRouteConfig
+### PerRouteConfig {#perrouteconfig-1}
 
  
 Per route Configuration for the dynamic forward proxy HTTP filter.
@@ -158,7 +158,7 @@ Per route Configuration for the dynamic forward proxy HTTP filter.
 
 
 ---
-### DnsResolverOptions
+### DnsResolverOptions {#dnsresolveroptions}
 
  
 Configuration of DNS resolver option flags which control the behavior of the DNS resolver.
@@ -178,7 +178,7 @@ Configuration of DNS resolver option flags which control the behavior of the DNS
 
 
 ---
-### CaresDnsResolverConfig
+### CaresDnsResolverConfig {#caresdnsresolverconfig}
 
  
 Configuration for c-ares DNS resolver.
@@ -198,7 +198,7 @@ Configuration for c-ares DNS resolver.
 
 
 ---
-### AppleDnsResolverConfig
+### AppleDnsResolverConfig {#applednsresolverconfig}
 
  
 Configuration for apple DNS resolver.
@@ -213,7 +213,7 @@ Configuration for apple DNS resolver.
 
 
   
-### DnsLookupFamily
+### DnsLookupFamily {#dnslookupfamily}
 
 Description: When V4_ONLY is selected, the DNS resolver will only perform a lookup for
 addresses in the IPv4 family. If V6_ONLY is selected, the DNS resolver will

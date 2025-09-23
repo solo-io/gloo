@@ -11,7 +11,7 @@ weight: 5
 **Types:**
 
 
-- [UpstreamSpec](#upstreamspec)
+- [UpstreamSpec](#upstreamspec-6)
   
 
 
@@ -23,7 +23,7 @@ weight: 5
 
 
 ---
-### UpstreamSpec
+### UpstreamSpec {#upstreamspec-6}
 
  
 Kubernetes Upstreams represent a set of one or more addressable pods for a Kubernetes Service

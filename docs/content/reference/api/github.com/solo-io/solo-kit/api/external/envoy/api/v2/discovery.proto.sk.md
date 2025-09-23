@@ -15,7 +15,7 @@ weight: 5
 - [DiscoveryResponse](#discoveryresponse)
 - [DeltaDiscoveryRequest](#deltadiscoveryrequest)
 - [DeltaDiscoveryResponse](#deltadiscoveryresponse)
-- [Resource](#resource)
+- [Resource](#resource-1)
   
 
 
@@ -27,7 +27,7 @@ weight: 5
 
 
 ---
-### DiscoveryRequest
+### DiscoveryRequest {#discoveryrequest}
 
  
 A DiscoveryRequest requests a set of versioned resources of the same type for
@@ -56,7 +56,7 @@ a given Envoy node on some API.
 
 
 ---
-### DiscoveryResponse
+### DiscoveryResponse {#discoveryresponse}
 
 
 
@@ -83,7 +83,7 @@ a given Envoy node on some API.
 
 
 ---
-### DeltaDiscoveryRequest
+### DeltaDiscoveryRequest {#deltadiscoveryrequest}
 
  
 DeltaDiscoveryRequest and DeltaDiscoveryResponse are used in a new gRPC
@@ -144,7 +144,7 @@ initial_resource_versions.
 
 
 ---
-### DeltaDiscoveryResponse
+### DeltaDiscoveryResponse {#deltadiscoveryresponse}
 
 
 
@@ -169,7 +169,7 @@ initial_resource_versions.
 
 
 ---
-### Resource
+### Resource {#resource-1}
 
 
 

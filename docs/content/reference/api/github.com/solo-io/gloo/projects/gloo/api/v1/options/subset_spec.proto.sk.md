@@ -12,7 +12,7 @@ weight: 5
 
 
 - [SubsetSpec](#subsetspec)
-- [Selector](#selector)
+- [Selector](#selector-1)
 - [Subset](#subset)
   
 
@@ -32,7 +32,7 @@ weight: 5
 
 
 ---
-### SubsetSpec
+### SubsetSpec {#subsetspec}
 
  
 See envoy docs for details:
@@ -55,7 +55,7 @@ https://www.envoyproxy.io/docs/envoy/latest/api-v3/config/cluster/v3/cluster.pro
 
 
 ---
-### Selector
+### Selector {#selector-1}
 
 
 
@@ -74,7 +74,7 @@ https://www.envoyproxy.io/docs/envoy/latest/api-v3/config/cluster/v3/cluster.pro
 
 
 ---
-### Subset
+### Subset {#subset}
 
 
 
@@ -90,7 +90,7 @@ https://www.envoyproxy.io/docs/envoy/latest/api-v3/config/cluster/v3/cluster.pro
 
 
   
-### FallbackPolicy
+### FallbackPolicy {#fallbackpolicy}
 
 Description: 
 

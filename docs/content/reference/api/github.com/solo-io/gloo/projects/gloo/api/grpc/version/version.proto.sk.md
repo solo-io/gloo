@@ -16,7 +16,7 @@ weight: 5
 - [Container](#container)
 - [ClientVersion](#clientversion)
 - [KubernetesClusterVersion](#kubernetesclusterversion)
-- [Version](#version)
+- [Version](#version-1)
   
 
  
@@ -35,7 +35,7 @@ weight: 5
 
 
 ---
-### ServerVersion
+### ServerVersion {#serverversion}
 
 
 
@@ -56,7 +56,7 @@ weight: 5
 
 
 ---
-### Kubernetes
+### Kubernetes {#kubernetes}
 
 
 
@@ -75,7 +75,7 @@ weight: 5
 
 
 ---
-### Container
+### Container {#container}
 
 
 
@@ -98,7 +98,7 @@ weight: 5
 
 
 ---
-### ClientVersion
+### ClientVersion {#clientversion}
 
 
 
@@ -115,7 +115,7 @@ weight: 5
 
 
 ---
-### KubernetesClusterVersion
+### KubernetesClusterVersion {#kubernetesclusterversion}
 
 
 
@@ -140,7 +140,7 @@ weight: 5
 
 
 ---
-### Version
+### Version {#version-1}
 
 
 
@@ -160,7 +160,7 @@ weight: 5
 
 
   
-### GlooType
+### GlooType {#glootype}
 
 Description: type of gloo server instance
 

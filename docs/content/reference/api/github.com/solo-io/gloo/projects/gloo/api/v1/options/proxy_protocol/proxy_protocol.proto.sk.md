@@ -25,7 +25,7 @@ weight: 5
 
 
 ---
-### ProxyProtocol
+### ProxyProtocol {#proxyprotocol}
 
 
 
@@ -44,7 +44,7 @@ weight: 5
 
 
 ---
-### KeyValuePair
+### KeyValuePair {#keyvaluepair}
 
 
 
@@ -63,7 +63,7 @@ weight: 5
 
 
 ---
-### Rule
+### Rule {#rule}
 
  
 A Rule defines what metadata to apply when a header is present or missing.

@@ -1,0 +1,10 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >-
+      Bump changelog to v1.19.0 GA release
+
+      skipCI-kube-tests:true
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: solo-kit
+    dependencyTag: v0.39.4

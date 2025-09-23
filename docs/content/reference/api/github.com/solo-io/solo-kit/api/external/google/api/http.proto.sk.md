@@ -41,7 +41,7 @@ limitations under the License.
 
 
 ---
-### Http
+### Http {#http}
 
  
 Defines the HTTP configuration for an API service. It contains a list of
@@ -63,7 +63,7 @@ to one or more HTTP REST API methods.
 
 
 ---
-### HttpRule
+### HttpRule {#httprule}
 
  
 `HttpRule` defines the mapping of an RPC method to one or more HTTP
@@ -313,7 +313,7 @@ repeated fields or map fields.
 
 
 ---
-### CustomHttpPattern
+### CustomHttpPattern {#customhttppattern}
 
  
 A custom pattern is used for defining custom HTTP verb.
