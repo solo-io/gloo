@@ -1,0 +1,7 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >-
+      Docs for 1.20. 
+
+      skipCI-kube-tests:true
+      skipCI-docs-build:true
