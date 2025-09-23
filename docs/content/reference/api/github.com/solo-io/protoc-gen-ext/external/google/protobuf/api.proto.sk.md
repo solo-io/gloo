@@ -57,7 +57,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 ---
-### Api
+### Api {#api}
 
  
 Api is a light-weight descriptor for an API Interface.
@@ -95,7 +95,7 @@ detailed terminology.
 
 
 ---
-### Method
+### Method {#method}
 
  
 Method represents a method of an API interface.
@@ -125,7 +125,7 @@ Method represents a method of an API interface.
 
 
 ---
-### Mixin
+### Mixin {#mixin}
 
  
 Declares an API Interface to be included in this interface. The including

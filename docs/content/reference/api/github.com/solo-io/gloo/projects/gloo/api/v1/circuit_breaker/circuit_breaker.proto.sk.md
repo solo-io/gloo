@@ -23,7 +23,7 @@ weight: 5
 
 
 ---
-### CircuitBreakerConfig
+### CircuitBreakerConfig {#circuitbreakerconfig}
 
  
 CircuitBreakerConfig contains the options for customizing circuit breaking behavior.

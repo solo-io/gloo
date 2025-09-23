@@ -23,7 +23,7 @@ weight: 5
 
 
 ---
-### DestinationSpec
+### DestinationSpec {#destinationspec}
 
  
 Configuration for Destinations that are tied to the UpstreamSpec or ServiceSpec on that destination

@@ -30,7 +30,7 @@ weight: 5
 
 
 ---
-### LoadBalancerConfig
+### LoadBalancerConfig {#loadbalancerconfig}
 
  
 LoadBalancerConfig is the settings for the load balancer used to send requests to the Upstream endpoints.
@@ -66,7 +66,7 @@ LoadBalancerConfig is the settings for the load balancer used to send requests t
 
 
 ---
-### RoundRobin
+### RoundRobin {#roundrobin}
 
 
 
@@ -83,7 +83,7 @@ LoadBalancerConfig is the settings for the load balancer used to send requests t
 
 
 ---
-### LeastRequest
+### LeastRequest {#leastrequest}
 
 
 
@@ -102,7 +102,7 @@ LoadBalancerConfig is the settings for the load balancer used to send requests t
 
 
 ---
-### Random
+### Random {#random}
 
 
 
@@ -117,7 +117,7 @@ LoadBalancerConfig is the settings for the load balancer used to send requests t
 
 
 ---
-### RingHashConfig
+### RingHashConfig {#ringhashconfig}
 
  
 Customizes the parameters used in the hashing algorithm to refine performance or resource usage.
@@ -137,7 +137,7 @@ Customizes the parameters used in the hashing algorithm to refine performance or
 
 
 ---
-### RingHash
+### RingHash {#ringhash}
 
 
 
@@ -154,7 +154,7 @@ Customizes the parameters used in the hashing algorithm to refine performance or
 
 
 ---
-### Maglev
+### Maglev {#maglev}
 
 
 
@@ -169,7 +169,7 @@ Customizes the parameters used in the hashing algorithm to refine performance or
 
 
 ---
-### SlowStartConfig
+### SlowStartConfig {#slowstartconfig}
 
 
 

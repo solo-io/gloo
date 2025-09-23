@@ -13,8 +13,8 @@ weight: 5
 
 - [HeaderManipulation](#headermanipulation)
 - [EarlyHeaderManipulation](#earlyheadermanipulation)
-- [HeaderValueOption](#headervalueoption)
-- [HeaderValue](#headervalue)
+- [HeaderValueOption](#headervalueoption-1)
+- [HeaderValue](#headervalue-1)
   
 
 
@@ -26,7 +26,7 @@ weight: 5
 
 
 ---
-### HeaderManipulation
+### HeaderManipulation {#headermanipulation}
 
  
 This plugin provides configuration options to append and remove headers from
@@ -52,7 +52,7 @@ HeaderManipulation can be specified on routes, virtual hosts, or weighted destin
 
 
 ---
-### EarlyHeaderManipulation
+### EarlyHeaderManipulation {#earlyheadermanipulation}
 
  
 EarlyHeaderManipulation can be specified on Gateways to manipulate headers before significant processing
@@ -76,7 +76,7 @@ Note: The adding of headers happens before the removal of headers.
 
 
 ---
-### HeaderValueOption
+### HeaderValueOption {#headervalueoption-1}
 
  
 Header name/value pair plus option to control append behavior.
@@ -96,7 +96,7 @@ Header name/value pair plus option to control append behavior.
 
 
 ---
-### HeaderValue
+### HeaderValue {#headervalue-1}
 
  
 Header name/value pair.

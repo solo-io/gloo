@@ -23,7 +23,7 @@ weight: 5
 
 
 ---
-### VirtualHostOptions
+### VirtualHostOptions {#virtualhostoptions}
 
  
 Optional, feature-specific configuration that lives on virtual hosts.

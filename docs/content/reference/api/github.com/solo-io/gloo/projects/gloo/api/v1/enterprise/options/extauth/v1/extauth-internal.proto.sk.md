@@ -13,7 +13,7 @@ weight: 5
 
 - [ExtAuthConfig](#extauthconfig)
 - [Azure](#azure)
-- [ClaimToHeader](#claimtoheader)
+- [ClaimToHeader](#claimtoheader-1)
 - [BasicAuthInternal](#basicauthinternal)
 - [EncryptionType](#encryptiontype)
 - [Sha1](#sha1)
@@ -31,11 +31,11 @@ weight: 5
 - [FrontChannelLogout](#frontchannellogout)
 - [AccessTokenValidationConfig](#accesstokenvalidationconfig)
 - [JwtValidation](#jwtvalidation)
-- [RemoteJwks](#remotejwks)
+- [RemoteJwks](#remotejwks-1)
 - [LocalJwks](#localjwks)
 - [IntrospectionValidation](#introspectionvalidation)
 - [ScopeList](#scopelist)
-- [Default](#default)
+- [Default](#default-1)
 - [PlainOAuth2Config](#plainoauth2config)
 - [OAuth2Config](#oauth2config)
 - [ApiKeyAuthConfig](#apikeyauthconfig)
@@ -49,7 +49,7 @@ weight: 5
 - [InMemorySecretList](#inmemorysecretlist)
 - [PassthroughAuthInternalConfig](#passthroughauthinternalconfig)
 - [PassthroughAuthTlsConfigData](#passthroughauthtlsconfigdata)
-- [Config](#config)
+- [Config](#config-1)
 - [ApiKeyCreateRequest](#apikeycreaterequest)
 - [ApiKeyCreateResponse](#apikeycreateresponse)
 - [ApiKeyReadRequest](#apikeyreadrequest)
@@ -69,7 +69,7 @@ weight: 5
 
 
 ---
-### ExtAuthConfig
+### ExtAuthConfig {#extauthconfig}
 
  
 
@@ -95,7 +95,7 @@ rules about breaking changes still apply to ensure we do not get errors during u
 
 
 ---
-### Azure
+### Azure {#azure}
 
  
 For apps in Microsoft Azure, configure Microsoft Entra ID as the OpenID Connect (OIDC) provider.
@@ -120,7 +120,7 @@ This way, you can enable distributed claims and caching for when users are membe
 
 
 ---
-### ClaimToHeader
+### ClaimToHeader {#claimtoheader-1}
 
  
 Map a single claim from an OAuth2 or OIDC token to a header in the request to the upstream destination.
@@ -142,7 +142,7 @@ Map a single claim from an OAuth2 or OIDC token to a header in the request to th
 
 
 ---
-### BasicAuthInternal
+### BasicAuthInternal {#basicauthinternal}
 
  
 Message to store Basic Auth Configuration.
@@ -166,7 +166,7 @@ If only the legacy "apr" field is defined, the existing public BasicAuth configu
 
 
 ---
-### EncryptionType
+### EncryptionType {#encryptiontype}
 
  
 Selection of hashing algorithms to use for password hashing.
@@ -186,7 +186,7 @@ Selection of hashing algorithms to use for password hashing.
 
 
 ---
-### Sha1
+### Sha1 {#sha1}
 
 
 
@@ -201,7 +201,7 @@ Selection of hashing algorithms to use for password hashing.
 
 
 ---
-### Apr
+### Apr {#apr}
 
 
 
@@ -216,7 +216,7 @@ Selection of hashing algorithms to use for password hashing.
 
 
 ---
-### User
+### User {#user}
 
  
 To authenticate a user we need the salt and hashed password. The username is expected to be the key in a map of Users.
@@ -236,7 +236,7 @@ To authenticate a user we need the salt and hashed password. The username is exp
 
 
 ---
-### UserList
+### UserList {#userlist}
 
  
 Map of valid usernames to stored credentials
@@ -254,7 +254,7 @@ Map of valid usernames to stored credentials
 
 
 ---
-### OAuthConfig
+### OAuthConfig {#oauthconfig}
 
  
 Deprecated, prefer OAuth2Config
@@ -284,7 +284,7 @@ Deprecated, prefer OAuth2Config
 
 
 ---
-### UserSessionConfig
+### UserSessionConfig {#usersessionconfig}
 
 
 
@@ -309,7 +309,7 @@ Deprecated, prefer OAuth2Config
 
 
 ---
-### CipherConfig
+### CipherConfig {#cipherconfig}
 
 
 
@@ -326,7 +326,7 @@ Deprecated, prefer OAuth2Config
 
 
 ---
-### OidcAuthorizationCodeConfig
+### OidcAuthorizationCodeConfig {#oidcauthorizationcodeconfig}
 
 
 
@@ -395,7 +395,7 @@ Deprecated, prefer OAuth2Config
 
 
 ---
-### PkJwtClientAuthenticationConfig
+### PkJwtClientAuthenticationConfig {#pkjwtclientauthenticationconfig}
 
  
 Fields for private key JWT Client Authentication.
@@ -415,7 +415,7 @@ Fields for private key JWT Client Authentication.
 
 
 ---
-### AccessToken
+### AccessToken {#accesstoken}
 
  
 Optional: Map a single claim from an OAuth2 access token to a header in the request to the upstream destination.
@@ -433,7 +433,7 @@ Optional: Map a single claim from an OAuth2 access token to a header in the requ
 
 
 ---
-### IdentityToken
+### IdentityToken {#identitytoken}
 
  
 Optional: Map a single claim from an OIDC identity token to a header in the request to the upstream destination.
@@ -451,7 +451,7 @@ Optional: Map a single claim from an OIDC identity token to a header in the requ
 
 
 ---
-### Default
+### Default {#default}
 
  
 No-op, represents default OIDC behavior
@@ -467,7 +467,7 @@ No-op, represents default OIDC behavior
 
 
 ---
-### FrontChannelLogout
+### FrontChannelLogout {#frontchannellogout}
 
  
 For the moment this is just path, but we may want to configure things like iss/sid validation
@@ -485,7 +485,7 @@ For the moment this is just path, but we may want to configure things like iss/s
 
 
 ---
-### AccessTokenValidationConfig
+### AccessTokenValidationConfig {#accesstokenvalidationconfig}
 
 
 
@@ -520,7 +520,7 @@ For the moment this is just path, but we may want to configure things like iss/s
 
 
 ---
-### JwtValidation
+### JwtValidation {#jwtvalidation}
 
  
 Defines how JSON Web Token (JWT) access tokens are validated.
@@ -559,7 +559,7 @@ If the JWT has been successfully validated, its set of claims will be added to t
 
 
 ---
-### RemoteJwks
+### RemoteJwks {#remotejwks-1}
 
  
 Specifies how to fetch JWKS from remote and how to cache it.
@@ -579,7 +579,7 @@ Specifies how to fetch JWKS from remote and how to cache it.
 
 
 ---
-### LocalJwks
+### LocalJwks {#localjwks}
 
  
 Represents a locally available JWKS.
@@ -597,7 +597,7 @@ Represents a locally available JWKS.
 
 
 ---
-### IntrospectionValidation
+### IntrospectionValidation {#introspectionvalidation}
 
  
 Defines how (opaque) access tokens, received from the oauth authorization endpoint, are validated
@@ -626,7 +626,7 @@ These values will be encoded in a basic auth header in order to authenticate the
 
 
 ---
-### ScopeList
+### ScopeList {#scopelist}
 
 
 
@@ -643,7 +643,7 @@ These values will be encoded in a basic auth header in order to authenticate the
 
 
 ---
-### Default
+### Default {#default-1}
 
  
 No-op, represents default OIDC behavior
@@ -659,7 +659,7 @@ No-op, represents default OIDC behavior
 
 
 ---
-### PlainOAuth2Config
+### PlainOAuth2Config {#plainoauth2config}
 
 
 
@@ -702,7 +702,7 @@ No-op, represents default OIDC behavior
 
 
 ---
-### OAuth2Config
+### OAuth2Config {#oauth2config}
 
 
 
@@ -723,7 +723,7 @@ No-op, represents default OIDC behavior
 
 
 ---
-### ApiKeyAuthConfig
+### ApiKeyAuthConfig {#apikeyauthconfig}
 
  
 **NOTE: This configuration is not user-facing and will be auto generated**
@@ -753,7 +753,7 @@ No-op, represents default OIDC behavior
 
 
 ---
-### KeyMetadata
+### KeyMetadata {#keymetadata}
 
 
 
@@ -772,7 +772,7 @@ No-op, represents default OIDC behavior
 
 
 ---
-### OpaAuthConfig
+### OpaAuthConfig {#opaauthconfig}
 
 
 
@@ -793,7 +793,7 @@ No-op, represents default OIDC behavior
 
 
 ---
-### OpaServerAuthConfig
+### OpaServerAuthConfig {#opaserverauthconfig}
 
  
 Configure the Gloo external auth server to use your own Open Policy Agent (OPA) server.
@@ -818,7 +818,7 @@ This way, you can use extra capabilities such as bundling or caching.
 
 
 ---
-### LdapConfig
+### LdapConfig {#ldapconfig}
 
 
 
@@ -849,7 +849,7 @@ This way, you can use extra capabilities such as bundling or caching.
 
 
 ---
-### LdapServiceAccountConfig
+### LdapServiceAccountConfig {#ldapserviceaccountconfig}
 
 
 
@@ -870,7 +870,7 @@ This way, you can use extra capabilities such as bundling or caching.
 
 
 ---
-### HmacAuthConfig
+### HmacAuthConfig {#hmacauthconfig}
 
 
 
@@ -889,7 +889,7 @@ This way, you can use extra capabilities such as bundling or caching.
 
 
 ---
-### PortalAuthConfig
+### PortalAuthConfig {#portalauthconfig}
 
  
 This API is only supported for Gloo Gateway Portal.
@@ -915,7 +915,7 @@ This API is only supported for Gloo Gateway Portal.
 
 
 ---
-### InMemorySecretList
+### InMemorySecretList {#inmemorysecretlist}
 
 
 
@@ -932,7 +932,7 @@ This API is only supported for Gloo Gateway Portal.
 
 
 ---
-### PassthroughAuthInternalConfig
+### PassthroughAuthInternalConfig {#passthroughauthinternalconfig}
 
 
 
@@ -951,7 +951,7 @@ This API is only supported for Gloo Gateway Portal.
 
 
 ---
-### PassthroughAuthTlsConfigData
+### PassthroughAuthTlsConfigData {#passthroughauthtlsconfigdata}
 
  
 PassthroughAuthTlsConfigData defines the internal structure used to configure
@@ -985,7 +985,7 @@ and advanced configuration support.
 
 
 ---
-### Config
+### Config {#config-1}
 
 
 
@@ -1032,7 +1032,7 @@ and advanced configuration support.
 
 
 ---
-### ApiKeyCreateRequest
+### ApiKeyCreateRequest {#apikeycreaterequest}
 
 
 
@@ -1051,7 +1051,7 @@ and advanced configuration support.
 
 
 ---
-### ApiKeyCreateResponse
+### ApiKeyCreateResponse {#apikeycreateresponse}
 
 
 
@@ -1068,7 +1068,7 @@ and advanced configuration support.
 
 
 ---
-### ApiKeyReadRequest
+### ApiKeyReadRequest {#apikeyreadrequest}
 
 
 
@@ -1087,7 +1087,7 @@ and advanced configuration support.
 
 
 ---
-### ApiKeyReadResponse
+### ApiKeyReadResponse {#apikeyreadresponse}
 
 
 
@@ -1104,7 +1104,7 @@ and advanced configuration support.
 
 
 ---
-### ApiKeyUpdateRequest
+### ApiKeyUpdateRequest {#apikeyupdaterequest}
 
 
 
@@ -1125,7 +1125,7 @@ and advanced configuration support.
 
 
 ---
-### ApiKeyUpdateResponse
+### ApiKeyUpdateResponse {#apikeyupdateresponse}
 
 
 
@@ -1142,7 +1142,7 @@ and advanced configuration support.
 
 
 ---
-### ApiKeyDeleteRequest
+### ApiKeyDeleteRequest {#apikeydeleterequest}
 
 
 
@@ -1161,7 +1161,7 @@ and advanced configuration support.
 
 
 ---
-### ApiKeyDeleteResponse
+### ApiKeyDeleteResponse {#apikeydeleteresponse}
 
 
 

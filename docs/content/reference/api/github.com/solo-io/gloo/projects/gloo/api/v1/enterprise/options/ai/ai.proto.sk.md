@@ -12,7 +12,7 @@ weight: 5
 
 
 - [SingleAuthToken](#singleauthtoken)
-- [Passthrough](#passthrough)
+- [Passthrough](#passthrough-1)
 - [UpstreamSpec](#upstreamspec)
 - [PathOverride](#pathoverride)
 - [CustomHost](#customhost)
@@ -31,31 +31,31 @@ weight: 5
 - [Priority](#priority)
 - [RouteSettings](#routesettings)
 - [RouteType](#routetype)
-- [FieldDefault](#fielddefault)
+- [FieldDefault](#fielddefault-1)
 - [Postgres](#postgres)
 - [Embedding](#embedding)
-- [OpenAI](#openai)
-- [AzureOpenAI](#azureopenai)
+- [OpenAI](#openai-1)
+- [AzureOpenAI](#azureopenai-1)
 - [SemanticCache](#semanticcache)
 - [Redis](#redis)
 - [Weaviate](#weaviate)
 - [DataStore](#datastore)
-- [Mode](#mode)
+- [Mode](#mode-1)
 - [RAG](#rag)
-- [DataStore](#datastore)
+- [DataStore](#datastore-1)
 - [AIPromptEnrichment](#aipromptenrichment)
-- [Message](#message)
+- [Message](#message-1)
 - [AIPromptGuard](#aipromptguard)
 - [Regex](#regex)
 - [RegexMatch](#regexmatch)
 - [BuiltIn](#builtin)
-- [Action](#action)
+- [Action](#action-3)
 - [Webhook](#webhook)
 - [HeaderMatch](#headermatch)
 - [MatchType](#matchtype)
 - [Moderation](#moderation)
-- [OpenAI](#openai)
-- [Request](#request)
+- [OpenAI](#openai-2)
+- [Request](#request-1)
 - [CustomResponse](#customresponse)
 - [Response](#response)
   
@@ -76,7 +76,7 @@ weight: 5
 
 
 ---
-### SingleAuthToken
+### SingleAuthToken {#singleauthtoken}
 
  
 The authorization token that the AI gateway uses to access the LLM provider API.
@@ -102,7 +102,7 @@ The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://
 
 
 ---
-### Passthrough
+### Passthrough {#passthrough-1}
 
  
 Configuration for passthrough of the existing token.
@@ -123,7 +123,7 @@ The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://
 
 
 ---
-### UpstreamSpec
+### UpstreamSpec {#upstreamspec}
 
  
 When you deploy the Gloo AI Gateway, you can use the `spec.ai` section of the Upstream resource
@@ -169,7 +169,7 @@ The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://
 
 
 ---
-### PathOverride
+### PathOverride {#pathoverride}
 
  
 Override the path used to send requests to the LLM provider. For example, you might need to go through a proxy
@@ -190,7 +190,7 @@ and, as such, have a different path than the default for the LLM provider.
 
 
 ---
-### CustomHost
+### CustomHost {#customhost}
 
  
 Send requests to a custom host and port, such as to proxy the request and customize the chat completion path,
@@ -218,7 +218,7 @@ The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://
 
 
 ---
-### OpenAI
+### OpenAI {#openai}
 
  
 Settings for the [OpenAI](https://platform.openai.com/docs/overview) LLM provider.
@@ -243,7 +243,7 @@ The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://
 
 
 ---
-### AzureOpenAI
+### AzureOpenAI {#azureopenai}
 
  
 Settings for the [Azure OpenAI](https://learn.microsoft.com/en-us/azure/ai-services/openai/) LLM provider.
@@ -274,7 +274,7 @@ The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://
 
 
 ---
-### Gemini
+### Gemini {#gemini}
 
  
 Settings for the [Gemini](https://ai.google.dev/gemini-api/docs) LLM provider.
@@ -303,7 +303,7 @@ The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://
 
 
 ---
-### VertexAI
+### VertexAI {#vertexai}
 
  
 Settings for the [Vertex AI](https://cloud.google.com/vertex-ai/docs) LLM provider.
@@ -342,7 +342,7 @@ The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://
 
 
 ---
-### Publisher
+### Publisher {#publisher}
 
  
 The type of publisher model to use. Currently, only Google is supported.
@@ -358,7 +358,7 @@ The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://
 
 
 ---
-### Mistral
+### Mistral {#mistral}
 
  
 Settings for the [Mistral AI](https://docs.mistral.ai/getting-started/quickstart/) LLM provider.
@@ -383,7 +383,7 @@ The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://
 
 
 ---
-### Anthropic
+### Anthropic {#anthropic}
 
  
 Settings for the [Anthropic](https://docs.anthropic.com/en/release-notes/api) LLM provider.
@@ -410,7 +410,7 @@ The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://
 
 
 ---
-### Bedrock
+### Bedrock {#bedrock}
 
  
 Settings for the Bedrock LLM provider
@@ -437,7 +437,7 @@ The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://
 
 
 ---
-### AwsCredentialProvider
+### AwsCredentialProvider {#awscredentialprovider}
 
  
 AwsCredentialProvider provider for signing the request.
@@ -460,7 +460,7 @@ The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://
 
 
 ---
-### AWSInline
+### AWSInline {#awsinline}
 
  
 Configuration to use an inline AWS credential. This is an equivalent to setting the well-known
@@ -486,7 +486,7 @@ The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://
 
 
 ---
-### MultiPool
+### MultiPool {#multipool}
 
  
 Configure backends for multiple hosts or models from the same provider in one Upstream resource.
@@ -537,7 +537,7 @@ multi:
 
 
 ---
-### Backend
+### Backend {#backend}
 
  
 An entry represeting an LLM provider backend that the AI Gateway routes requests to.
@@ -570,7 +570,7 @@ The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://
 
 
 ---
-### Priority
+### Priority {#priority}
 
  
 The order of `pool` entries within this section defines the priority of the backend endpoints.
@@ -591,7 +591,7 @@ The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://
 
 
 ---
-### RouteSettings
+### RouteSettings {#routesettings}
 
  
 When you deploy the Gloo AI Gateway, you can use the `spec.options.ai` section
@@ -629,7 +629,7 @@ The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://
 
 
 ---
-### RouteType
+### RouteType {#routetype}
 
  
 The type of route to the LLM provider API.
@@ -646,7 +646,7 @@ The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://
 
 
 ---
-### FieldDefault
+### FieldDefault {#fielddefault-1}
 
  
 Provide defaults to merge with user input fields.
@@ -690,7 +690,7 @@ defaults:
 
 
 ---
-### Postgres
+### Postgres {#postgres}
 
  
 Configuration settings for a Postgres datastore.
@@ -713,7 +713,7 @@ The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://
 
 
 ---
-### Embedding
+### Embedding {#embedding}
 
  
 Configuration of the API used to generate the embedding.
@@ -736,7 +736,7 @@ The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://
 
 
 ---
-### OpenAI
+### OpenAI {#openai-1}
 
  
 Embedding settings for the OpenAI provider.
@@ -757,7 +757,7 @@ The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://
 
 
 ---
-### AzureOpenAI
+### AzureOpenAI {#azureopenai-1}
 
  
 Embedding settings for the Azure OpenAI provider.
@@ -784,7 +784,7 @@ The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://
 
 
 ---
-### SemanticCache
+### SemanticCache {#semanticcache}
 
  
 Cache previous model responses to provide faster responses to similar requests in the future.
@@ -831,7 +831,7 @@ semanticCache:
 
 
 ---
-### Redis
+### Redis {#redis}
 
  
 Settings for a Redis database.
@@ -854,7 +854,7 @@ The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://
 
 
 ---
-### Weaviate
+### Weaviate {#weaviate}
 
  
 Settings for a Weaviate database.
@@ -881,7 +881,7 @@ The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://
 
 
 ---
-### DataStore
+### DataStore {#datastore}
 
  
 Data store from which to cache the request and response pairs.
@@ -904,7 +904,7 @@ The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://
 
 
 ---
-### Mode
+### Mode {#mode-1}
 
  
 The caching mode to use for the request and response lifecycle.
@@ -921,7 +921,7 @@ The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://
 
 
 ---
-### RAG
+### RAG {#rag}
 
  
 [Retrieval augmented generation (RAG)](https://research.ibm.com/blog/retrieval-augmented-generation-RAG)
@@ -975,7 +975,7 @@ check out the [Retrieval augmented generation (RAG) tutorial](https://docs.solo.
 
 
 ---
-### DataStore
+### DataStore {#datastore-1}
 
  
 {{% notice note %}}
@@ -995,7 +995,7 @@ The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://
 
 
 ---
-### AIPromptEnrichment
+### AIPromptEnrichment {#aipromptenrichment}
 
  
 Enrich requests sent to the LLM provider by appending and prepending system prompts.
@@ -1050,7 +1050,7 @@ spec:
 
 
 ---
-### Message
+### Message {#message-1}
 
  
 An entry for a message to prepend or append to each prompt.
@@ -1073,7 +1073,7 @@ The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://
 
 
 ---
-### AIPromptGuard
+### AIPromptGuard {#aipromptguard}
 
  
 Set up prompt guards to block unwanted requests to the LLM provider and mask sensitive data.
@@ -1117,7 +1117,7 @@ promptGuard:
 
 
 ---
-### Regex
+### Regex {#regex}
 
  
 Regular expression (regex) matching for prompt guards and data masking.
@@ -1142,7 +1142,7 @@ The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://
 
 
 ---
-### RegexMatch
+### RegexMatch {#regexmatch}
 
  
 Regular expression (regex) matching for prompt guards and data masking.
@@ -1165,7 +1165,7 @@ The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://
 
 
 ---
-### BuiltIn
+### BuiltIn {#builtin}
 
  
 Built-in regex patterns for specific types of strings in prompts.
@@ -1186,7 +1186,7 @@ The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://
 
 
 ---
-### Action
+### Action {#action-3}
 
  
 The action to take if a regex pattern is matched in a request or response.
@@ -1204,7 +1204,7 @@ The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://
 
 
 ---
-### Webhook
+### Webhook {#webhook}
 
  
 Configure a webhook to forward requests or responses to for prompt guarding.
@@ -1229,7 +1229,7 @@ The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://
 
 
 ---
-### HeaderMatch
+### HeaderMatch {#headermatch}
 
  
 Describes how to match a given string in HTTP headers. Match is case-sensitive.
@@ -1252,7 +1252,7 @@ The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://
 
 
 ---
-### MatchType
+### MatchType {#matchtype}
 
  
 The header string match type.
@@ -1272,7 +1272,7 @@ The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://
 
 
 ---
-### Moderation
+### Moderation {#moderation}
 
  
 Pass prompt data through an external moderation model endpoint,
@@ -1300,7 +1300,7 @@ The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://
 
 
 ---
-### OpenAI
+### OpenAI {#openai-2}
 
  
 Configure an OpenAI moderation endpoint.
@@ -1323,7 +1323,7 @@ The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://
 
 
 ---
-### Request
+### Request {#request-1}
 
  
 Prompt guards to apply to requests sent by the client.
@@ -1350,7 +1350,7 @@ The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://
 
 
 ---
-### CustomResponse
+### CustomResponse {#customresponse}
 
  
 A custom response to return to the client if request content
@@ -1374,7 +1374,7 @@ The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://
 
 
 ---
-### Response
+### Response {#response}
 
  
 Prompt guards to apply to responses returned by the LLM provider.
@@ -1396,7 +1396,7 @@ The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://
 
 
   
-### ApiJsonSchema
+### ApiJsonSchema {#apijsonschema}
 
 Description: {{% notice note %}}
 The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/main/ai/). It is not supported with the Gloo Edge API.

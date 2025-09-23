@@ -27,7 +27,7 @@ weight: 5
 
 
 ---
-### KubernetesClusterSpec
+### KubernetesClusterSpec {#kubernetesclusterspec}
 
  
 Representation of a Kubernetes cluster that has been registered.
@@ -49,7 +49,7 @@ Representation of a Kubernetes cluster that has been registered.
 
 
 ---
-### ProviderInfo
+### ProviderInfo {#providerinfo}
 
  
 Metadata for clusters provisioned from cloud providers.
@@ -67,7 +67,7 @@ Metadata for clusters provisioned from cloud providers.
 
 
 ---
-### Eks
+### Eks {#eks}
 
  
 AWS metadata associated with an EKS provisioned cluster.
@@ -91,7 +91,7 @@ AWS metadata associated with an EKS provisioned cluster.
 
 
 ---
-### KubernetesClusterStatus
+### KubernetesClusterStatus {#kubernetesclusterstatus}
 
 
 
@@ -112,7 +112,7 @@ AWS metadata associated with an EKS provisioned cluster.
 
 
 ---
-### PolicyRule
+### PolicyRule {#policyrule}
 
  
 Copy pasted from the official kubernetes definition:
