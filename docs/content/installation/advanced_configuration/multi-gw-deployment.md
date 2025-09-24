@@ -72,7 +72,7 @@ If you want additional `Gateways` for a single proxy, create your own `Gateway` 
 As shown in the following example, you can declare as many Envoy proxies as you want under the `gloo.gatewayProxies` property in the Helm configuration file.
 
 {% notice note %}}
-There are implicit merge behaviors when using this API that can be confusing. For more details please refer to [`gloo.gatewayProxies` Merge Behaviors]({{<ref "#custom-envoy-proxy-merge-behaviors">}})
+There are implicit merge behaviors when using this API that can be confusing. For more details please refer to [Custom Envoy Proxy Merge Behaviors]({{<ref "#custom-envoy-proxy-merge-behaviors">}})
 {{% /notice %}}
 
 ```yaml
