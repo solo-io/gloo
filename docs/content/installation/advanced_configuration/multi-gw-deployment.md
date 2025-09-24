@@ -71,8 +71,8 @@ If you want additional `Gateways` for a single proxy, create your own `Gateway` 
 
 As shown in the following example, you can declare as many Envoy proxies as you want under the `gloo.gatewayProxies` property in the Helm configuration file.
 
-{% notice note %}}
-There are implicit merge behaviors when using this API that can be confusing. For more details please refer to [Custom Envoy Proxy Merge Behaviors]({{<ref "#custom-envoy-proxy-merge-behaviors">}})
+{{% notice note %}}
+There are implicit merge behaviors when using this API that can be confusing. For more information, see [Custom Envoy proxy merge behaviors](#custom-envoy-proxy-merge-behaviors).
 {{% /notice %}}
 
 ```yaml
@@ -209,9 +209,9 @@ $ glooctl get proxy
 +-----------+-----------+---------------+----------+
 ```
 
-## Custom Envoy Proxy Merge Behaviors
+## Custom Envoy proxy merge behaviors
 
-Declaring custom Envoy proxies can be configured with the following Helm configuration:
+Consider the following example where you configure a custom gateway proxy alongside the default one: 
 
 ```yaml
 gloo:
@@ -233,17 +233,23 @@ gloo:
               # Note: delayedCloseTimeout and drainTimeout intentionally omitted
 ```
 
-The applied configuration of these deployed proxies is as follows:
+This configuration sets up the gateway proxies as follows: 
 
-1. gatewayProxy inherits the default values defined in the Helm chart, and then customizes then with values under `gatewayProxies.gatewayProxy`
+* `gatewayProxy`: The `gatewayProxy` proxy is created with the default values that are defined in the Helm chart and is customized with the values that are defined in `gatewayProxy.gatewaySettings`. 
 
-2. customGatewayProxy inherits the default values defined in the Helm chart, then merges the custom values under `gatewayProxies.gatewayProxy` and then finally applies the values specific to itself, under `gatewayProxies.customGatewayProxy`.
+* `customGatewayProxy`: The `customGatewayProxy` proxy inherits the default values that are defined in the Helm chart. Then, it applies the custom values of the `gatewayProxy` proxy, and finally applies the values specific to itself that are configured in `customGatewayProxy.gatewaySettings`.
 
-The inheritance of values from the `gatewayProxy` cannot be customized per proxy, and thus, the `customGatewayProxy` in our example will have, values for `delayedCloseTimeout` and `drainTimeout`, even though they weren't specified. Given this behavior in the API, how can I safely configure multiple Envoy proxies? We explain the two options below.
+The inheritance of values from the `gatewayProxy` to the `customGatewayProxy` cannot be customized for each proxy. Because of that, the `customGatewayProxy` in this example has values for `delayedCloseTimeout` and `drainTimeout`, even though they were not configured on the `customGatewayProxy`. 
 
-### Option 1: You want your proxy configuration to be coupled to the default gatewayProxy
+To safely configure multiple Envoy proxies, you can choose between the following options:  
+* [Option 1: Define global proxy configuration in the default `gatewayProxy`](#option1)
+* [Option 2: Decouple your proxy configurations](#option2)
 
-There is value in having a set of defaults that all proxies inherit from. If you want to follow this pattern, you neeed to be sure that your customGatewayProxy defines values it does not want to inherit. In our example, the Helm configuration would look like:
+### Option 1: Define global proxy configuration in the default `gatewayProxy` {#option1}
+
+Use the default `gatewayProxy` to configure settings that you want all custom gateway proxies to inherit. The custom gateway proxy can however overwrite these settings. 
+
+To apply this option, update your configuration as follows: 
 
 ```yaml
 gloo:
@@ -267,9 +273,9 @@ gloo:
               drainTimeout: 1s     
 ```
 
-### Option 2: You want your proxy configuration to be decoupled from the default gatewayProxy
+### Option 2: Decouple your proxy configurations {#option2}
 
-There are situations where inheriting behaviors from the `gatewayProxy` implicitly causes unintended challenges, and there is value in having each Envoy proxy own its entire configuration. To achieve this, you must disable the `gatewayProxy` value, and only define custom proxies. Each of these are entirely decoupled, and will allow you to change one, without affecting the others.
+There are situations where inheriting behaviors from the `gatewayProxy` implicitly causes unintended challenges, and there is value in having each Envoy proxy own its entire configuration. To achieve this, you must disable the `gatewayProxy` value, and only define custom proxies. The custom proxies are completely decoupled. This way, you customize them with the values you need without affecting the others.
 
 ```yaml
 gloo:
