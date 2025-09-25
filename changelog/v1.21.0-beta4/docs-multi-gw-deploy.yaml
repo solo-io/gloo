@@ -1,3 +1,0 @@
-changelog:
-- type: NON_USER_FACING
-  description: Update multi-gw-deployment docs to include custom Envoy proxy merge behaviors
