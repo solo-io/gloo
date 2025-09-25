@@ -211,7 +211,7 @@ $ glooctl get proxy
 
 ## Custom Envoy proxy merge behaviors
 
-Consider the following example where you configure a custom gateway proxy alongside the default one: 
+By default, custom gateway proxies inherit the values of the default `gatewayProxy`. For example, take the following Helm configuration:
 
 ```yaml
 gloo:
