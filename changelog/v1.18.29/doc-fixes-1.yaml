@@ -1,6 +1,6 @@
 changelog:
   - type: NON_USER_FACING
     description: >-
-      link fixes.
+      link fixes
       skipCI-kube-tests:true
       skipCI-docs-build:true
