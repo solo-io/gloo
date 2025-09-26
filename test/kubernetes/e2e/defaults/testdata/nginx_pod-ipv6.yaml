@@ -1,0 +1,97 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: nginx
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx
+  namespace: nginx
+spec:
+  selector:
+    app.kubernetes.io/name: nginx
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: http-web-svc
+      name: http
+    - protocol: TCP
+      port: 8443
+      targetPort: https-web-svc
+      name: https
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-conf
+  namespace: nginx
+data:
+  nginx.conf: |
+    user nginx;
+    worker_processes  1;
+    events {
+      worker_connections  10240;
+    }
+    http {
+      server {
+          listen              [::]:80;
+          listen              [::]:443 ssl;
+          server_name         localhost nginx nginx.nginx nginx.nginx.svc nginx.nginx.svc.cluster.local;
+          ssl_certificate     /etc/nginx/tls/tls.crt;
+          ssl_certificate_key /etc/nginx/tls/tls.key;
+          location / {
+            root   /usr/share/nginx/html;
+            index  index.html index.htm;
+        }
+      }
+    }
+---
+apiVersion: v1
+kind: Secret
+type: kubernetes.io/tls
+metadata:
+  name: nginx-tls
+  namespace: nginx
+data:
+  tls.crt: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURFakNDQWZxZ0F3SUJBZ0lVQVU0UytibjdaUm42ZEhja3JqRUJZOWZUVzJrd0RRWUpLb1pJaHZjTkFRRUwKQlFBd0ZERVNNQkFHQTFVRUF3d0piRzlqWVd4b2IzTjBNQjRYRFRJMU1EZ3dOekUwTWpBeE4xb1hEVEkyTURndwpOekUwTWpBeE4xb3dGREVTTUJBR0ExVUVBd3dKYkc5allXeG9iM04wTUlJQklqQU5CZ2txaGtpRzl3MEJBUUVGCkFBT0NBUThBTUlJQkNnS0NBUUVBc1NFOTF2U0pZdWcvcWs1V3ZuN2JDcUhheWN1UU1WZnRzN1Z1dFQ0OWRLV24KOXFVZGxsL2JrWjVUNkllenlnNUdxSUxSK1YvNnhFRWl4WlJHWHlnMi85RUd4UHdycVVnM2pxZ25DUTdaTVp5VwphdWltak9OMG85NWtpNWZOaVJUMkprdmIyVW5BQW53aXdTQ1A0QnQ5cTFjenIxNnE3cVdyNURrQVdOb1czTmVxClRXYURQZEMzOEFOUWw0YnVGMGRzMkhOYVk0Ty9FeWxhSW9JSmZtNC9ucVBGdmlpUUJ5S1cxMlB5Z3duaVZIdnUKNk1JMVQxV3hDYWI1ckt1dEZYZ2ZxRFA5dHBra1plV1B5c3lSV2ZxOFR4aTdhZXNwZSs2Vk5RTTNtSzBMMmo4ZgpkZ0NkZWs2VUFQdFRQb3Q1bjNCR0FvTTVZcVRFRWFVK2xEZjVPMEpMbVFJREFRQUJvMXd3V2pCWUJnTlZIUkVFClVUQlBnZ2xzYjJOaGJHaHZjM1NDQlc1bmFXNTRnZ3R1WjJsdWVDNXVaMmx1ZUlJUGJtZHBibmd1Ym1kcGJuZ3UKYzNaamdoMXVaMmx1ZUM1dVoybHVlQzV6ZG1NdVkyeDFjM1JsY2k1c2IyTmhiREFOQmdrcWhraUc5dzBCQVFzRgpBQU9DQVFFQUNaa05sclJmMnlvbEJJK1R6VjBvcEE1Z00wRkJyUmhYUEswMXNPa1laaFVUMnZLQjBYK3ViWVM1ClRJSE51NUdnQWJ4eTFsMDV2Zjk3LzFKUkxQSHJDcUdJOUhtYllFTFBkLzhGNmlGOUJNTVJaVXZ1ZHZnOGt2by8KaHRwR3hrVlJxcUJxa29nZlhLak1DbFRuY0p4M0VCYzB4TWxqOVRieHFjS0JITEdBcG1XVDNvcmtYN0krRkZ5ZQpMV0dVbUpJRUhGeHgwSDRrYTZwVE5jS1JVZkN6QUh1a0lkMStMNEdsMk81blA3dzlXME1sZTNjSWJzRE44bTdyCmRYb3dPUDdXWHpGUCtiRUlWcjJJekcvcjBiQkRzRUJ1dUdRZ2ZiZHo5TXY0NUdGUXBRTlREK1lyK3h1N2xmamUKOFltczdNUkpIZVVabnpnS3hodnVqRUJacVdmS2RRPT0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=
+  tls.key: LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JSUV2UUlCQURBTkJna3Foa2lHOXcwQkFRRUZBQVNDQktjd2dnU2pBZ0VBQW9JQkFRQ3hJVDNXOUlsaTZEK3EKVGxhK2Z0c0tvZHJKeTVBeFYrMnp0VzYxUGoxMHBhZjJwUjJXWDl1Um5sUG9oN1BLRGthb2d0SDVYL3JFUVNMRgpsRVpmS0RiLzBRYkUvQ3VwU0RlT3FDY0pEdGt4bkpacTZLYU00M1NqM21TTGw4MkpGUFltUzl2WlNjQUNmQ0xCCklJL2dHMzJyVnpPdlhxcnVwYXZrT1FCWTJoYmMxNnBOWm9NOTBMZndBMUNYaHU0WFIyelljMXBqZzc4VEtWb2kKZ2dsK2JqK2VvOFcrS0pBSElwYlhZL0tEQ2VKVWUrN293alZQVmJFSnB2bXNxNjBWZUIrb00vMjJtU1JsNVkvSwp6SkZaK3J4UEdMdHA2eWw3N3BVMUF6ZVlyUXZhUHg5MkFKMTZUcFFBKzFNK2kzbWZjRVlDZ3psaXBNUVJwVDZVCk4vazdRa3VaQWdNQkFBRUNnZ0VBZFFkbGVEUXc0V3haUkFobVA0NUk0b2wxcUlZYVNyK3hpVjZDT3JWWW5VMGwKNEV2UGRKNzR6d2t3bngycHFBSXVwUDlxQTcxcVRXaEx0UWIyUjhDbU5mYkE1ajFHQzU1dk5vM2EzSjAyMnhSKwpQVHhoYmd5SjhBcnJtMTg4cVNsMFNIRXVYQzNoOHNKWnBBZ0RoeW9pcWFYL3ZBcHNIU2pRblFVY09aZytLc0lvCjltNEhIczRzQUxBWGxlYS9TaWlIKzNReGF3aGRNZ1l5enhEVGZEbUpuUVM1MkE5eG1BaklFdGdRQlJRa2x1N1MKM1ZVTkM0clUxSU1ZVFo5dmlXcVlJd0U4Y2Q0aXNJNkQ3SHJZYTVwaEtTYmhMNmxVKy9oMHIwMW52VWhFdXp0SgpyREhCOVpjK2FHbU4zc2UxS0ZHSTZXWkgyOE85bnhrMlErY2htQ3l0RVFLQmdRRGozMlF3NEpsNHk4U1ZzUjFlCkYzSWVMVDVwS0JKYnkyeUVDaytCZ290dDl2VnMrTlFJdTRKYUNVZ3JZampBOHBKNGRMYmNXUDF4RmFibHhyRy8KRGRFc0cxVkt0a2FwdUJrUzl3bG5BZ21GNWRmSzdjOUZFc1VDL2N6WURwdmFpbUZQd2VzenN5QWkrVHQrZkdlRQpGYk8xZDVMbkt1dGE4NStGMEZ4VjhCdW51d0tCZ1FERy9tcGtRdThsNUNmaU1WMmk2Y1VTU3dhRHBjSVRvOXFhCi9RRFVZelBJT2tSaDZ4Y0lDeDhFMnBnbmljc3ZSUlpjaUhvL1FKcHEyekZubG5oVG51d0ZVeWlJMXloaGVoSkYKMld2M1k2SEZhMCtXZ2xaZlRvWnZ6dEJEUFVGYWlQcUVEYkZqbGZ3Rm5tUzR4NWdUYmg5UXZuK09NL2RvOVdaOApONVowcjREeXV3S0JnRHp0ZHdtR2xDSnpRVTNRL0l3eThxVlU3WklLVDlaUmJ1TmpLbHp6ZmJwYVJNYnRSU3hNCmpvN3FXbXlYSjV1WGdFaEsxTFhYNlhQNkdSVG82byt0N3hhKy9EQXN5bm9JcWxPaXo5WEYrcXZkaDdSUG41TFYKY08zYTFKR1VYbUd4akZGYUJUeGVrYUlvUjVzTFFsWlR3eWdySDVGRnJZWTFDNXNvMmZkMGFzQ1BBb0dBVDJVSwp4ZDMrMUx0blBsUTc2OWdoak43cVJuUklMdFhkVHFGTFIzSWRJdkk4Zm1UeDEzKzRiSk5heWN1c2lidWk1R0IvCmhlVWN0eTJsVkpNd2h3eU5Wc0tMRmEzaXFxR3QwTGlpM3gyZFdjc3JBZjRXd0Fmd2s0T01qSWRRSC9NdklLamwKOGJuUng5d2VpNnIyL2ltZHpQVjBweVFNdm8vS3lCelZwdEN2UGlrQ2dZRUF0NFJ1SG5BY0pQN2dnRFcyeDVYVApjOTdhWVVIcGoreHdwOWsyWmhjMUVtTGVoWlVxakk4c3RTYlYvZmtkSGN2RTFpSCtRVjJ3emkxRjBXRm9ZK0JMCmgvY0ZNd3d5bTV6U1FmbStza2I3N0R3RG93MStxbW5iaWdsYkJuelpTVjhBSFRXTUFBcm8vRWRacmJRZVh5NnIKTnJVMmJ0RElHNU54Y1B6VXZISDhnZnM9Ci0tLS0tRU5EIFBSSVZBVEUgS0VZLS0tLS0K
+  ca.crt: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURFakNDQWZxZ0F3SUJBZ0lVQVU0UytibjdaUm42ZEhja3JqRUJZOWZUVzJrd0RRWUpLb1pJaHZjTkFRRUwKQlFBd0ZERVNNQkFHQTFVRUF3d0piRzlqWVd4b2IzTjBNQjRYRFRJMU1EZ3dOekUwTWpBeE4xb1hEVEkyTURndwpOekUwTWpBeE4xb3dGREVTTUJBR0ExVUVBd3dKYkc5allXeG9iM04wTUlJQklqQU5CZ2txaGtpRzl3MEJBUUVGCkFBT0NBUThBTUlJQkNnS0NBUUVBc1NFOTF2U0pZdWcvcWs1V3ZuN2JDcUhheWN1UU1WZnRzN1Z1dFQ0OWRLV24KOXFVZGxsL2JrWjVUNkllenlnNUdxSUxSK1YvNnhFRWl4WlJHWHlnMi85RUd4UHdycVVnM2pxZ25DUTdaTVp5VwphdWltak9OMG85NWtpNWZOaVJUMkprdmIyVW5BQW53aXdTQ1A0QnQ5cTFjenIxNnE3cVdyNURrQVdOb1czTmVxClRXYURQZEMzOEFOUWw0YnVGMGRzMkhOYVk0Ty9FeWxhSW9JSmZtNC9ucVBGdmlpUUJ5S1cxMlB5Z3duaVZIdnUKNk1JMVQxV3hDYWI1ckt1dEZYZ2ZxRFA5dHBra1plV1B5c3lSV2ZxOFR4aTdhZXNwZSs2Vk5RTTNtSzBMMmo4ZgpkZ0NkZWs2VUFQdFRQb3Q1bjNCR0FvTTVZcVRFRWFVK2xEZjVPMEpMbVFJREFRQUJvMXd3V2pCWUJnTlZIUkVFClVUQlBnZ2xzYjJOaGJHaHZjM1NDQlc1bmFXNTRnZ3R1WjJsdWVDNXVaMmx1ZUlJUGJtZHBibmd1Ym1kcGJuZ3UKYzNaamdoMXVaMmx1ZUM1dVoybHVlQzV6ZG1NdVkyeDFjM1JsY2k1c2IyTmhiREFOQmdrcWhraUc5dzBCQVFzRgpBQU9DQVFFQUNaa05sclJmMnlvbEJJK1R6VjBvcEE1Z00wRkJyUmhYUEswMXNPa1laaFVUMnZLQjBYK3ViWVM1ClRJSE51NUdnQWJ4eTFsMDV2Zjk3LzFKUkxQSHJDcUdJOUhtYllFTFBkLzhGNmlGOUJNTVJaVXZ1ZHZnOGt2by8KaHRwR3hrVlJxcUJxa29nZlhLak1DbFRuY0p4M0VCYzB4TWxqOVRieHFjS0JITEdBcG1XVDNvcmtYN0krRkZ5ZQpMV0dVbUpJRUhGeHgwSDRrYTZwVE5jS1JVZkN6QUh1a0lkMStMNEdsMk81blA3dzlXME1sZTNjSWJzRE44bTdyCmRYb3dPUDdXWHpGUCtiRUlWcjJJekcvcjBiQkRzRUJ1dUdRZ2ZiZHo5TXY0NUdGUXBRTlREK1lyK3h1N2xmamUKOFltczdNUkpIZVVabnpnS3hodnVqRUJacVdmS2RRPT0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx
+  namespace: nginx
+  labels:
+    app.kubernetes.io/name: nginx
+spec:
+  containers:
+    - name: nginx
+      image: nginx:stable
+      ports:
+        - containerPort: 80
+          name: http-web-svc
+        - containerPort: 443
+          name: https-web-svc
+      resources:
+        requests:
+          cpu: "100m"
+        limits:
+          cpu: "200m"
+      volumeMounts:
+        - name: nginx-conf
+          mountPath: /etc/nginx/nginx.conf
+          subPath: nginx.conf
+          readOnly: true
+        - name: nginx-tls
+          mountPath: /etc/nginx/tls/
+          readOnly: true
+  volumes:
+    - name: nginx-conf
+      configMap:
+        name: nginx-conf
+    - name: nginx-tls
+      secret:
+        secretName: nginx-tls

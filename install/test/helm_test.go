@@ -2864,7 +2864,7 @@ spec:
 							// This annotation was introduced to resolve https://github.com/solo-io/gloo/issues/8392
 							// It triggers a new rollout of the gateway proxy if the config map it uses changes
 							// As of PR 8733, changing the values of the deployment spec doesn't change the gateway-proxy config map, so it is safe to hardcode the checksum in the tests
-							"checksum/gateway-proxy-envoy-config": "27068cd033014d38f6c77522484e957ab25fa1be34a900a1f5241b8f7d62f525",
+							"checksum/gateway-proxy-envoy-config": "b0391d6dd33960f0c8e1978325d707b816a99adac93f9125ad3d72f14d687313",
 						}
 						deploy.Spec.Template.Spec.Volumes = []corev1.Volume{{
 							Name: "envoy-config",
@@ -3302,7 +3302,7 @@ spec:
 							ProbeHandler: corev1.ProbeHandler{
 								Exec: &corev1.ExecAction{
 									Command: []string{
-										"wget", "-O", "/dev/null", "127.0.0.1:19000/ready",
+										"wget", "-O", "/dev/null", "http://127.0.0.1:19000/ready",
 									},
 								},
 							},
@@ -3314,7 +3314,7 @@ spec:
 							ProbeHandler: corev1.ProbeHandler{
 								Exec: &corev1.ExecAction{
 									Command: []string{
-										"wget", "-O", "/dev/null", "127.0.0.1:19000/server_info",
+										"wget", "-O", "/dev/null", "http://127.0.0.1:19000/server_info",
 									},
 								},
 							},
@@ -3408,7 +3408,7 @@ spec:
 									Command: []string{
 										"/bin/sh",
 										"-c",
-										"wget --post-data \"\" -O /dev/null 127.0.0.1:19000/healthcheck/fail; sleep 25",
+										"wget --post-data \"\" -O /dev/null http://127.0.0.1:19000/healthcheck/fail; sleep 25",
 									},
 								},
 							},
@@ -3431,7 +3431,7 @@ spec:
 									Command: []string{
 										"/bin/sh",
 										"-c",
-										"wget --post-data \"\" -O /dev/null 127.0.0.1:19000/healthcheck/fail; sleep 45",
+										"wget --post-data \"\" -O /dev/null http://127.0.0.1:19000/healthcheck/fail; sleep 45",
 									},
 								},
 							},
@@ -3686,7 +3686,7 @@ spec:
 						})
 						// Since changing the value of gatewayProxies.gatewayProxy.readConfig changes the gateway-proxy-envoy-config configmap, we need to update the checksum on the deployment as well.
 						// This also doubles as a check to validate that changes in the configmap change the checksum annotation on the deployment which will trigger a rollout.
-						gatewayProxyDeployment.Spec.Template.Annotations["checksum/gateway-proxy-envoy-config"] = "3e431b3dbb3fa7e31cedf9594474ad19e6ecc0e5a7bba59b99cf044d51546eaa"
+						gatewayProxyDeployment.Spec.Template.Annotations["checksum/gateway-proxy-envoy-config"] = "3b88ebbdf5aa952026a2444f17d0a1154f98182f3dcb9667ae7eb76145a81b47"
 
 						testManifest.ExpectDeploymentAppsV1(gatewayProxyDeployment)
 					})
@@ -7353,6 +7353,82 @@ metadata:
 					Expect(labels["app"]).To(Equal("gloo"))
 					Expect(labels["this"]).To(Equal("that"))
 					Expect(labels["the"]).To(Equal("other"))
+				})
+			})
+
+			Describe("manage the ip family", func() {
+				gatewayProxyConfigMapName := "gateway-proxy-envoy-config"
+
+				labels := map[string]string{
+					"gloo":             "gateway-proxy",
+					"app":              "gloo",
+					"gateway-proxy-id": "gateway-proxy",
+				}
+
+				It("can create a gateway proxy configuration when globalIpFamily=v4", func() {
+					prepareMakefileFromValuesFile("values/val_v4_overrides.yaml")
+
+					byt, err := os.ReadFile("fixtures/envoy_config/v4_bootstrap.yaml")
+					Expect(err).ToNot(HaveOccurred())
+					envoyBootstrapYaml := string(byt)
+
+					envoyBootstrapSpec := make(map[string]string)
+					envoyBootstrapSpec["envoy.yaml"] = envoyBootstrapYaml
+
+					cmRb := ResourceBuilder{
+						Namespace: namespace,
+						Name:      gatewayProxyConfigMapName,
+						Labels:    labels,
+						Data:      envoyBootstrapSpec,
+					}
+					envoyBootstrapCm := cmRb.GetConfigMap()
+					testManifest.ExpectConfigMapWithYamlData(envoyBootstrapCm)
+				})
+
+				It("can create a gateway proxy configuration when globalIpFamily=v6", func() {
+					prepareMakefileFromValuesFile("values/val_v6_overrides.yaml")
+
+					byt, err := os.ReadFile("fixtures/envoy_config/v6_bootstrap.yaml")
+					Expect(err).ToNot(HaveOccurred())
+					envoyBootstrapYaml := string(byt)
+
+					envoyBootstrapSpec := make(map[string]string)
+					envoyBootstrapSpec["envoy.yaml"] = envoyBootstrapYaml
+
+					cmRb := ResourceBuilder{
+						Namespace: namespace,
+						Name:      gatewayProxyConfigMapName,
+						Labels:    labels,
+						Data:      envoyBootstrapSpec,
+					}
+					envoyBootstrapCm := cmRb.GetConfigMap()
+					testManifest.ExpectConfigMapWithYamlData(envoyBootstrapCm)
+				})
+
+				It("can create a gateway proxy configuration when globalIpFamily=dual", func() {
+					prepareMakefileFromValuesFile("values/val_dual_stack_overrides.yaml")
+
+					byt, err := os.ReadFile("fixtures/envoy_config/dual_bootstrap.yaml")
+					Expect(err).ToNot(HaveOccurred())
+					envoyBootstrapYaml := string(byt)
+
+					envoyBootstrapSpec := make(map[string]string)
+					envoyBootstrapSpec["envoy.yaml"] = envoyBootstrapYaml
+
+					cmRb := ResourceBuilder{
+						Namespace: namespace,
+						Name:      gatewayProxyConfigMapName,
+						Labels:    labels,
+						Data:      envoyBootstrapSpec,
+					}
+					envoyBootstrapCm := cmRb.GetConfigMap()
+					testManifest.ExpectConfigMapWithYamlData(envoyBootstrapCm)
+				})
+
+				It("should be able to set ip family in settings when globalIpFamily=v6", func() {
+					settings := makeUnstructureFromTemplateFile("fixtures/settings/v6_gateway_settings.yaml", namespace)
+					prepareMakefileFromValuesFile("values/val_v6_overrides.yaml")
+					testManifest.ExpectUnstructured(settings.GetKind(), settings.GetNamespace(), settings.GetName()).To(BeEquivalentTo(settings))
 				})
 			})
 		})

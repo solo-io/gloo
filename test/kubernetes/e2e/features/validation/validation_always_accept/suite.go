@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/solo-io/gloo/pkg/utils/kubeutils"
 	"github.com/solo-io/gloo/pkg/utils/requestutils/curl"
@@ -179,6 +180,8 @@ func (s *testingSuite) TestVirtualServiceWithSecretDeletion() {
 		},
 		core.Status_Accepted,
 		gloo_defaults.GlooReporter,
+		time.Second*15,
+		time.Second*5,
 	)
 
 	// can delete a secret that is in use without error

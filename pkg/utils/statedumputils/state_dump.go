@@ -70,7 +70,7 @@ func CISystemDumpOnFail(_ context.Context, _ *kubectl.Cli, _ io.Writer, outDir s
 // - kubernetes cluster state
 // - logs from all pods in the given namespaces
 // - yaml representations of all solo.io CRs in the given namespaces
-func KubeDumpOnFail(ctx context.Context, _ *kubectl.Cli, _ io.Writer, outDir string,
+func KubeDumpOnFail(ctx context.Context, kubectlCli *kubectl.Cli, _ io.Writer, outDir string,
 	namespaces []string) func() {
 	return func() {
 		setupOutDir(outDir)
@@ -78,6 +78,8 @@ func KubeDumpOnFail(ctx context.Context, _ *kubectl.Cli, _ io.Writer, outDir str
 		recordKubeState(fileAtPath(filepath.Join(outDir, "kube-state.log")))
 
 		recordKubeDump(ctx, outDir, namespaces...)
+
+		dumpCoreDnsLog(ctx, outDir, kubectlCli)
 
 		fmt.Printf("Finished writing Kubernetes state information to the \"%s\" directory.\n", outDir)
 	}
@@ -475,6 +477,8 @@ func EnvoyDumpOnFail(ctx context.Context, kubectlCli *kubectl.Cli, _ io.Writer, 
 					fmt.Printf("error running listeners command: %f\n", err)
 				}
 
+				writeProxyLog(ctx, envoyOutDir, ns, proxy, kubectlCli)
+
 				fmt.Printf("Finished writing Envoy state information to the \"%s\" directory.\n", outDir)
 			}
 		}
@@ -516,6 +520,18 @@ func writeControllerLog(ctx context.Context, outDir string, ns string, podName s
 	}
 }
 
+func writeProxyLog(ctx context.Context, outDir string, ns string, podName string, kubectlCli *kubectl.Cli) {
+	// Get the Gloo Gateway controller logs
+	proxyLogsFile := fileAtPath(filepath.Join(outDir, fmt.Sprintf("%s.proxy.log", podName)))
+	// FIXME cant really assume a single container so probably should search for the specific container but these could also be dynamic.
+	proxyLogsCmd := kubectlCli.WithReceiver(proxyLogsFile).Command(ctx,
+		"-n", ns, "logs", podName, "--tail=1000")
+	err := proxyLogsCmd.Run().Cause()
+	if err != nil {
+		fmt.Printf("error running proxy logs for %s in %s command: %v\n", podName, ns, err)
+	}
+}
+
 func writeMetricsLog(ctx context.Context, outDir string, ns string, podName string, kubectlCli *kubectl.Cli) {
 	// Using an ephemeral debug pod fetch the metrics from the Gloo Gateway controller
 	metricsFile := fileAtPath(filepath.Join(outDir, fmt.Sprintf("%s.metrics.log", podName)))
@@ -525,5 +541,18 @@ func writeMetricsLog(ctx context.Context, outDir string, ns string, podName stri
 	err := metricsCmd.WithStdout(metricsFile).WithStderr(metricsFile).Run().Cause()
 	if err != nil {
 		fmt.Printf("error running metrics command: %f\n", err)
+	}
+}
+
+func dumpCoreDnsLog(ctx context.Context, outDir string, kubectlCli *kubectl.Cli) {
+	coreDnsPodNames, err := kubectlCli.GetPodsInNsWithLabel(ctx, "kube-system", "k8s-app=kube-dns")
+	for _, podName := range coreDnsPodNames {
+		coreDnsLogsFile := fileAtPath(filepath.Join(outDir, fmt.Sprintf("%s.coredns.log", podName)))
+		coreDnsLogsCmd := kubectlCli.WithReceiver(coreDnsLogsFile).Command(ctx,
+			"-n", "kube-dns", "logs", podName, "--tail=1000")
+		err = coreDnsLogsCmd.Run().Cause()
+		if err != nil {
+			fmt.Printf("error dumping core DNS logs for %s in %s command: %v\n", podName, "kube-dns", err)
+		}
 	}
 }

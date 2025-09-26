@@ -18,6 +18,13 @@ weight: 5
 - [PreconnectPolicy](#preconnectpolicy)
   
 
+ 
+
+**Enums:**
+
+
+	- [DnsIpFamily](#dnsipfamily)
+
 
 
 **Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/upstream.proto](https://github.com/solo-io/gloo/blob/main/projects/gloo/api/v1/upstream.proto)**
@@ -70,6 +77,7 @@ Each upstream type is handled by a corresponding Gloo plugin. (plugins currently
 "proxyProtocolVersion": .google.protobuf.StringValue
 "preconnectPolicy": .gloo.solo.io.PreconnectPolicy
 "disableIstioAutoMtls": .google.protobuf.BoolValue
+"dnsLookupIpFamily": .gloo.solo.io.DnsIpFamily
 
 ```
 
@@ -109,6 +117,7 @@ Each upstream type is handled by a corresponding Gloo plugin. (plugins currently
 | `proxyProtocolVersion` | [.google.protobuf.StringValue](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/string-value) | Proxy Protocol Version to add when communicating with the upstream. If unset will not wrap the transport socket. These are of the format "V1" or "V2". |
 | `preconnectPolicy` | [.gloo.solo.io.PreconnectPolicy](../upstream.proto.sk/#preconnectpolicy) | Preconnect policy for the cluster Aligns as closely as possible with https://www.envoyproxy.io/docs/envoy/latest/api-v3/config/cluster/v3/cluster.proto#envoy-v3-api-msg-config-cluster-v3-cluster-preconnectpolicy This is not recommended for use unless you are sure you need it. In most cases preconnect hurts more than it helps. |
 | `disableIstioAutoMtls` | [.google.protobuf.BoolValue](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/bool-value) | If set to true, the proxy will not allow automatic mTLS detection for Istio upstreams. Defaults to false. |
+| `dnsLookupIpFamily` | [.gloo.solo.io.DnsIpFamily](../upstream.proto.sk/#dnsipfamily) | Provides the ability to override the globally configured IP family setting for DNS lookups. - For V4 environments use `V4_ONLY`. - For V6 environments the preferred option is `V6_ONLY`. - For environments that support dual stack family, i.e. both V4 and V6: - use the option `V4_PREFERRED`. The DNS resolver performs an IPv4 lookup first, and falls back to IPv6 only if no IPv4 addresses are returned. The callback target receives IPv6 addresses only when IPv4 results are unavailable. - similarly, use `V6_PREFERRED` for instances where IPv6 is preferred over IPv4. - If `DUAL_IP_FAMILY` is specified, the DNS resolver queries both IPv4 and IPv6 records and returns all resolved addresses. In this mode, Happy Eyeballs is enabled for upstream connections. This is particularly applicable in IPv6 environments, such as AWS EKS IPv6 with DNS64 and NAT64, where SNAT to IPv4 addresses is supported. |
 
 
 
@@ -182,6 +191,19 @@ Header name/value pair.
 
 
 
+  
+### DnsIpFamily
+
+Description: For managing IP families for DNS lookups
+
+| Name | Description |
+| ----- | ----------- | 
+| DEFAULT | Defers to IPv4 as the default mode. |
+| V4_ONLY | This defaults to IPv4 only family when performing DNS address lookup. |
+| V4_PREFERRED | If V4_PREFERRED is specified, the DNS resolver will first perform a lookup for addresses in the IPv4 family and fallback to a lookup for addresses in the IPv6 family. |
+| V6_ONLY | Forces DNS lookup to IPv6 only addresses. |
+| V6_PREFERRED | If V6_PREFERRED is specified, the DNS resolver will first perform a lookup for addresses in the IPv6 family and fallback to a lookup for addresses in the IPv4 family. |
+| DUAL_IP_FAMILY | This will manage both V4 and V6 address families. When this option is used Happy Eyeballs will be enabled for upstream connections. Refer to https://www.envoyproxy.io/docs/envoy/latest/intro/arch_overview/upstream/connection_pooling#arch-overview-happy-eyeballs |
 
 
 <!-- Start of HubSpot Embed Code -->

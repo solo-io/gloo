@@ -14,7 +14,7 @@ import (
 
 var _ = Describe("Uds", func() {
 
-	It("should preseve ssl config when updating upstreams", func() {
+	It("should preserve ssl config when updating upstreams", func() {
 		desired := &gloov1.Upstream{
 			UpstreamType: &gloov1.Upstream_Kube{
 				Kube: &gloov1kube.UpstreamSpec{

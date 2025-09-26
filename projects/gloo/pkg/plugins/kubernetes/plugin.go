@@ -6,6 +6,7 @@ import (
 
 	clusterv3 "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
 	errors "github.com/rotisserie/eris"
+	plugin_utils "github.com/solo-io/gloo/projects/gloo/pkg/plugins/utils"
 	"go.uber.org/zap"
 	"istio.io/istio/pkg/kube/krt"
 	corev1 "k8s.io/api/core/v1"
@@ -74,6 +75,8 @@ func (p *plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *cl
 
 	// configure the cluster to use EDS:ADS and call it a day. huh?
 	xds.SetEdsOnCluster(out, p.settings)
+	// manage the dns lookup family
+	plugin_utils.GetPreferredIpFamily(out, p.settings.GetUpstreamOptions(), in.GetDnsLookupIpFamily(), false)
 	upstreamRef := in.GetMetadata().Ref()
 
 	// if we are in ggv2 / krt mode, we won't have the kubeCoreCache set.
