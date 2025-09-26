@@ -78,7 +78,7 @@ var (
 	failedResourceReports          = "failed gloo validation resource reports"
 	failedExtensionResourceReports = "failed extension resource reports"
 	WrappedUnmarshalErr            = func(err error) error {
-		return errors.Wrapf(err, unmarshalErrMsg)
+		return errors.Wrap(err, unmarshalErrMsg)
 	}
 
 	proxyFailedGlooValidation = func(err error, proxy *gloov1.Proxy) error {
@@ -347,7 +347,7 @@ func (v *validator) validateProxiesAndExtensions(ctx context.Context, snapshot *
 		// The returned value indicates whether to stop processing this proxy, but this is the end of the loop
 		err = v.getErrorsFromGlooValidation(glooReports)
 		if err != nil {
-			err = errors.Wrapf(err, failedResourceReports)
+			err = errors.Wrap(err, failedResourceReports)
 			errs = multierror.Append(errs, err)
 		}
 	} // End of proxy validation loop
@@ -360,7 +360,7 @@ func (v *validator) validateProxiesAndExtensions(ctx context.Context, snapshot *
 		err = v.getErrorsFromResourceReports(extensionReports)
 
 		if err != nil {
-			err = errors.Wrapf(err, failedExtensionResourceReports)
+			err = errors.Wrap(err, failedExtensionResourceReports)
 			errs = multierror.Append(errs, err)
 		}
 	}
@@ -396,7 +396,7 @@ func (v *validator) translateGlooEdgeProxies(
 		err := v.getErrorsFromResourceReports(reports)
 
 		if err != nil {
-			err = errors.Wrapf(err, couldNotRenderProxy)
+			err = errors.Wrap(err, couldNotRenderProxy)
 			errs = multierror.Append(errs, err)
 
 			if !collectAllErrors {

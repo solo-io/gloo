@@ -80,6 +80,7 @@ func (s *testingSuite) TestUnwatchedNamespaceValidation() {
 }
 
 func (s *testingSuite) TestWatchedNamespaceValidation() {
+	const testUrl = "postman-echo.com/get"
 	s.applyFile(unlabeledRandomNamespaceManifest)
 	s.applyFile(randomUpstreamManifest)
 
@@ -95,7 +96,7 @@ func (s *testingSuite) TestWatchedNamespaceValidation() {
 	}, time.Minute*2, time.Second*10)
 
 	// The upstream defined in the random namespace should be translated and referenced
-	s.TestInstallation.Assertions.CurlEventuallyRespondsWithStatus(s.Ctx, "/get", http.StatusOK)
+	s.TestInstallation.Assertions.CurlEventuallyRespondsWithStatus(s.Ctx, testUrl, http.StatusOK)
 
 	// Trying to unwatch the namespace that has an upstream referenced in another namespace leads to an error
 	_, errOut, err := s.TestInstallation.Actions.Kubectl().Execute(s.Ctx, "label", "ns", "random", "label-")
@@ -119,7 +120,7 @@ func (s *testingSuite) TestWatchedNamespaceValidation() {
 	s.unwatchNamespace("label")
 
 	// The upstream defined in the random namespace should be translated and referenced
-	s.TestInstallation.Assertions.CurlEventuallyRespondsWithStatus(s.Ctx, "/get", http.StatusNotFound)
+	s.TestInstallation.Assertions.CurlEventuallyRespondsWithStatus(s.Ctx, testUrl, http.StatusNotFound)
 
 	// Optimists invent airplanes; pessimists invent parachutes
 	s.addInconsequentialLabelToSecondNamespace()

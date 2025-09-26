@@ -1,0 +1,8 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    description: Bump Go version to 1.24.1
+    dependencyOwner: golang
+    dependencyRepo: go
+    dependencyTag: v1.24.1
+    issueLink: https://github.com/solo-io/solo-projects/issues/8101
+    resolvesIssue: false

@@ -1,0 +1,8 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: golang
+    dependencyRepo: go
+    dependencyTag: v1.24.4
+    description: Update go to version v1.24.4.
+    issueLink: https://github.com/solo-io/solo-projects/issues/8392
+    resolvesIssue: false
