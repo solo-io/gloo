@@ -1,6 +1,6 @@
 changelog:
   - type: NON_USER_FACING
     description: >-
-      Weekly version bumps.
+      Weekly link fixes.
       skipCI-kube-tests:true
       skipCI-docs-build:true
