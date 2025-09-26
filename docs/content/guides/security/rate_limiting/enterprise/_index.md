@@ -61,7 +61,7 @@ can select the regions to replicate to in the DynamoDB AWS console UI.
 
 ### Redis-backed rate limit server {#redis}
 
-You can use a clustered Redis instance as the backing storage database for the Gloo Gateway rate limit server. Redis is an open source, in-memory database with features such as data persistence, server-side scripting and Redis Functions, extensibility, and sharding for horizontal scalability, clustering for high availability. For more information, see [the Redis docs](https://redis.io/docs/getting-started/).
+You can use a clustered Redis instance as the backing storage database for the Gloo Gateway rate limit server. Redis is an open source, in-memory database with features such as data persistence, server-side scripting and Redis Functions, extensibility, and sharding for horizontal scalability, clustering for high availability. For more information, see [the Redis docs](https://redis.io/docs/latest/operate/rc/rc-quickstart/).
 
 1. Install a clustered Redis instance in your cluster. The following example uses a Helm chart and Redis version 6. You can use the following versions of Redis with Gloo Gateway.
    * Redis 6
