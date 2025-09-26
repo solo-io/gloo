@@ -1,0 +1,6 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/solo-projects/issues/8456
+    resolvesIssue: false
+    description: >-
+      Fixed pr workflow to run TestK8sGateway/ServerTls test and disable the pq-tls for now (see comment in test)

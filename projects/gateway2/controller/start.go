@@ -76,7 +76,7 @@ type StartConfig struct {
 	UniqueClients krt.Collection[krtcollections.UniqlyConnectedClient]
 
 	InitialSettings *glookubev1.Settings
-	Settings        krt.Singleton[glookubev1.Settings]
+	Settings        krt.Singleton[*glookubev1.Settings]
 
 	GlooMtlsEnabled bool
 

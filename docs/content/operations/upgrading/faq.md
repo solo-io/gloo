@@ -127,6 +127,12 @@ The following lists consist of the changes that were initially introduced with t
 
 ### New features
 
+#### Set circuit breakers for dynamic forward proxies
+
+When using a dynamic forward proxy, Envoy sets a limit of 1024 connections for dynamically discovered upstreams. Starting in Gloo Gateway Enterprise version 1.18.13, you can override this setting by setting custom circuit breakers for your dynamic forward proxy. 
+
+For more information, see [Set circuit breakers for dynamically discovered upstreams]({{% versioned_link_path fromRoot="/guides/traffic_management/listener_configuration/http_connection_manager/dfp/#dfp-circuit-breakers" %}}). 
+
 #### Watch namespace based on label 
 
 Previously, the namespaces that you wanted Gloo Gateway to watch for resources needed to be provided as a static list via the `watchNamespaces` setting in the Settings resource and had to be updated manually every time a namespace was added or deleted. Starting in 1.18.0, you can now define the namespaces that you want to watch by using the `WatchNamespaceSelectors` option on the Settings CR. This way, Gloo Gateway automatically includes new namespaces that have the required selectors. 
@@ -155,7 +161,7 @@ For more information, see [Specify namespaces to watch for Kuberenetes services 
 
 #### ARM images
 
-In Gloo Gateway Enterprise, ARM images are now supported for Gloo Gateway components. An image that is tagged with -arm is compatible with ARM64 architectures. Note that ARM images are currently not published for VMs.
+In Gloo Gateway Enterprise, ARM images are now supported for Gloo Gateway components. Note that ARM images are currently not published for VMs.
 
 #### Kubernetes 1.30 and 1.31 support 
 

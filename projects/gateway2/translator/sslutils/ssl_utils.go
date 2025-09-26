@@ -22,6 +22,7 @@ const (
 	GatewaySslOptionsPrefix = wellknown.GatewayAnnotationPrefix + "/ssl"
 
 	GatewaySslCipherSuites         = GatewaySslOptionsPrefix + "/cipher-suites"
+	GatewaySslEcdhCurves           = GatewaySslOptionsPrefix + "/ecdh-curves"
 	GatewaySslMinimumTlsVersion    = GatewaySslOptionsPrefix + "/minimum-tls-version"
 	GatewaySslMaximumTlsVersion    = GatewaySslOptionsPrefix + "/maximum-tls-version"
 	GatewaySslOneWayTls            = GatewaySslOptionsPrefix + "/one-way-tls"
@@ -31,7 +32,7 @@ const (
 var (
 	InvalidTlsSecretError = func(secret *corev1.Secret, err error) error {
 		errorString := fmt.Sprintf("%v.%v is not a valid TLS secret", secret.Namespace, secret.Name)
-		return eris.Wrapf(err, errorString)
+		return eris.Wrap(err, errorString)
 	}
 
 	NoCertificateFoundError = eris.New("no certificate information found")
@@ -90,6 +91,15 @@ func ApplyCipherSuites(ctx context.Context, in string, out *ssl.SslConfig) error
 	return nil
 }
 
+func ApplyEcdhCurves(ctx context.Context, in string, out *ssl.SslConfig) error {
+	if out.GetParameters() == nil {
+		out.Parameters = &ssl.SslParameters{}
+	}
+	ecdhCurves := strings.Split(in, ",")
+	out.GetParameters().EcdhCurves = ecdhCurves
+	return nil
+}
+
 func ApplyMinimumTlsVersion(ctx context.Context, in string, out *ssl.SslConfig) error {
 	if out.GetParameters() == nil {
 		out.Parameters = &ssl.SslParameters{}
@@ -145,6 +155,7 @@ func ApplyVerifySubjectAltName(ctx context.Context, in string, out *ssl.SslConfi
 
 var SslExtensionOptionFuncs = map[string]SslExtensionOptionFunc{
 	GatewaySslCipherSuites:         ApplyCipherSuites,
+	GatewaySslEcdhCurves:           ApplyEcdhCurves,
 	GatewaySslMinimumTlsVersion:    ApplyMinimumTlsVersion,
 	GatewaySslMaximumTlsVersion:    ApplyMaximumTlsVersion,
 	GatewaySslOneWayTls:            ApplyOneWayTls,

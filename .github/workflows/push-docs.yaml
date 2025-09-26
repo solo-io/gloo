@@ -20,6 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       dispatch_lts: ${{ steps.dispatch-receiver.outputs.dispatch_lts }}
+      dispatch_tag: ${{ steps.dispatch-receiver.outputs.dispatch_tag }}
     steps:
       - name: The glooe-release-created event is received when a relase is cut in solo-projects repo
         id: dispatch-receiver
@@ -55,14 +56,17 @@ jobs:
         minor=""
         directory=""
         if [[ "${{ steps.lts-version.outputs.lts }}" == "main" ]]; then
-          minor="1.20"
+          minor="1.21"
+          directory="main"
+        elif [[ "${{ steps.lts-version.outputs.lts }}" == "v1.21.x" ]]; then
+          minor="1.21"
           directory="main"
         elif [[ "${{ steps.lts-version.outputs.lts }}" == "v1.20.x" ]]; then
           minor="1.20"
-          directory="main"
+          directory="latest"
         elif [[ "${{ steps.lts-version.outputs.lts }}" == "v1.19.x" ]]; then
           minor="1.19"
-          directory="latest"
+          directory="1.19.x"
         elif [[ "${{ steps.lts-version.outputs.lts }}" == "v1.18.x" ]]; then
           minor="1.18"
           directory="1.18.x"
@@ -112,9 +116,9 @@ jobs:
 
         # Determine file pattern based on NEW_VERSION
         if [[ "$NEW_VERSION" == "${{ needs.receiver.outputs.dispatch_tag }}" ]]; then
-          FILE_PATTERN="gloo_oss_*.md"
+          FILE_PATTERN="gloo_patch*.md"
         else
-          FILE_PATTERN="gloo_patch_*.md"
+          FILE_PATTERN="gloo_oss*.md"
         fi
 
         # Run sed replacement on matching files
@@ -228,8 +232,8 @@ jobs:
       env:
         # channel: #doctopus-tests - https://solo-io-corp.slack.com/archives/C04DYBSJK0R
         SLACK_CHANNEL_ID: C04DYBSJK0R
-        JOB_URL: https://github.com/solo-io/gloo-cli/actions/runs/${GITHUB_RUN_ID}
-        MESSAGE: "❌ *Failure:* Automated copy of reference docs for ${VERSION} failed. <${JOB_URL}|Review the workflow failure>"
+        JOB_URL: https://github.com/solo-io/gloo/actions/runs/${GITHUB_RUN_ID}
+        MESSAGE: "❌ *Failure*: Automated copy of reference docs in the gloo repo failed. <${JOB_URL}|Review the workflow failure>"
       with:
         method: chat.postMessage
         token: ${{ secrets.SLACK_BOT_TOKEN }}

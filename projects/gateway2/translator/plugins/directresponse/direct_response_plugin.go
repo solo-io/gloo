@@ -2,6 +2,7 @@ package directresponse
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -49,7 +50,7 @@ func (p *plugin) ApplyRoutePlugin(
 			Message: errMsg,
 		})
 		outputRoute.Action = ErrorResponseAction()
-		return fmt.Errorf(errMsg)
+		return errors.New(errMsg)
 	}
 
 	// verify the DR reference is valid and get the DR object from the cluster.
@@ -78,7 +79,7 @@ func (p *plugin) ApplyRoutePlugin(
 			Message: errMsg,
 		})
 		outputRoute.Action = ErrorResponseAction()
-		return fmt.Errorf(errMsg)
+		return errors.New(errMsg)
 	}
 
 	outputRoute.Action = &v1.Route_DirectResponseAction{

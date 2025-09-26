@@ -1,0 +1,100 @@
+changelog:
+
+- type: NON_USER_FACING
+  description: >
+    To support the Istio dependency being bumped,
+    add a workaround that prevents sending xDS for Kubernetes Gateways until
+    their per-client clusters are ready.
+
+    This works around the fact that the latest krt behavior is now async; we
+    previously relied on events to have a specific order but because they're
+    processed in parallel there is no guarantee clusters are ready before we
+    process the xds snapshot for the unique connected client on the first
+    iteration.
+
+    In the future we seek to add guarantees to the krt framework upstream to
+    avoid the need to be careful with situations like these.
+- type: DEPENDENCY_BUMP
+  dependencyOwner: github.com/envoyproxy
+  dependencyRepo: go-control-plane/contrib
+  dependencyTag: v1.32.5-0.20250207140015-90270e3c85fd
+- type: DEPENDENCY_BUMP
+  dependencyOwner: github.com/envoyproxy
+  dependencyRepo: go-control-plane/envoy
+  dependencyTag: v1.32.5-0.20250211152746-ef139ef8ea6b
+- type: DEPENDENCY_BUMP
+  dependencyOwner: golang.org
+  dependencyRepo: x/crypto
+  dependencyTag: v0.32.0
+- type: DEPENDENCY_BUMP
+  dependencyOwner: golang.org
+  dependencyRepo: x/tools
+  dependencyTag: v0.29.0
+- type: DEPENDENCY_BUMP
+  dependencyOwner: google.golang.org
+  dependencyRepo: grpc
+  dependencyTag: v1.70.0
+- type: DEPENDENCY_BUMP
+  dependencyOwner: google.golang.org
+  dependencyRepo: protobuf
+  dependencyTag: v1.36.5
+- type: DEPENDENCY_BUMP
+  dependencyOwner: github.com/fsnotify
+  dependencyRepo: fsnotify
+  dependencyTag: v1.8.0
+- type: DEPENDENCY_BUMP
+  dependencyOwner: k8s.io
+  dependencyRepo: api
+  dependencyTag: v0.32.1
+- type: DEPENDENCY_BUMP
+  dependencyOwner: k8s.io
+  dependencyRepo: apiextensions-apiserver
+  dependencyTag: v0.32.1
+- type: DEPENDENCY_BUMP
+  dependencyOwner: k8s.io
+  dependencyRepo: apimachinery
+  dependencyTag: v0.32.1
+- type: DEPENDENCY_BUMP
+  dependencyOwner: k8s.io
+  dependencyRepo: apiserver
+  dependencyTag: v0.32.1
+- type: DEPENDENCY_BUMP
+  dependencyOwner: k8s.io
+  dependencyRepo: cli-runtime
+  dependencyTag: v0.32.1
+- type: DEPENDENCY_BUMP
+  dependencyOwner: k8s.io
+  dependencyRepo: client-go
+  dependencyTag: v0.32.1
+- type: DEPENDENCY_BUMP
+  dependencyOwner: sigs.k8s.io
+  dependencyRepo: code-generator
+  dependencyTag: v0.32.1
+- type: DEPENDENCY_BUMP
+  dependencyOwner: sigs.k8s.io
+  dependencyRepo: component-base
+  dependencyTag: v0.32.1
+- type: DEPENDENCY_BUMP
+  dependencyOwner: sigs.k8s.io
+  dependencyRepo: component-helpers
+  dependencyTag: v0.32.1
+- type: DEPENDENCY_BUMP
+  dependencyOwner: sigs.k8s.io
+  dependencyRepo: kubectl
+  dependencyTag: v0.32.1
+- type: DEPENDENCY_BUMP
+  dependencyOwner: sigs.k8s.io
+  dependencyRepo: metrics
+  dependencyTag: v0.32.1
+- type: DEPENDENCY_BUMP
+  dependencyOwner: sigs.k8s.io
+  dependencyRepo: controller-runtime
+  dependencyTag: v0.20.1
+- type: DEPENDENCY_BUMP
+  dependencyOwner: onsi
+  dependencyRepo: ginkgo/v2
+  dependencyTag: v2.22.1
+- type: DEPENDENCY_BUMP
+  dependencyOwner: onsi
+  dependencyRepo: gomega
+  dependencyTag: v1.36.2

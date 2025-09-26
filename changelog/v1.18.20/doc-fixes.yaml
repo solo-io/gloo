@@ -1,0 +1,6 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >-
+      Removes arm image tagging.
+      skipCI-kube-tests:true
+      skipCI-docs-build:true
