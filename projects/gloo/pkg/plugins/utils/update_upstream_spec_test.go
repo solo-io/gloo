@@ -33,6 +33,7 @@ var _ = Describe("UpdateUpstream", func() {
 			OverrideStreamErrorOnInvalidHttpMessage: &wrappers.BoolValue{Value: true},
 			RespectDnsTtl:                           &wrappers.BoolValue{Value: true},
 			DnsRefreshRate:                          &durationpb.Duration{Seconds: 10},
+			DnsLookupIpFamily:                       gloov1.DnsIpFamily_V6_ONLY,
 		}
 		utils.UpdateUpstream(original, desired)
 		Expect(desired.SslConfig).To(Equal(original.SslConfig))
@@ -48,6 +49,7 @@ var _ = Describe("UpdateUpstream", func() {
 		Expect(desired.OverrideStreamErrorOnInvalidHttpMessage).To(Equal(original.OverrideStreamErrorOnInvalidHttpMessage))
 		Expect(desired.RespectDnsTtl).To(Equal(original.RespectDnsTtl))
 		Expect(desired.DnsRefreshRate).To(Equal(original.DnsRefreshRate))
+		Expect(desired.DnsLookupIpFamily).To(Equal(original.DnsLookupIpFamily))
 	})
 
 	It("should update config when one is desired", func() {
@@ -68,6 +70,7 @@ var _ = Describe("UpdateUpstream", func() {
 		desiredHttpProxyHeaders := []*gloov1.HeaderValue{{Key: "k", Value: "v"}}
 		desiredRespectDnsTtl := &wrappers.BoolValue{Value: true}
 		desiredDnsRefreshRate := &durationpb.Duration{Seconds: 10}
+		desiredDnsLookupIpFamily := gloov1.DnsIpFamily_V6_ONLY
 
 		desired := &gloov1.Upstream{
 			SslConfig:            desiredSslConfig,
@@ -83,6 +86,7 @@ var _ = Describe("UpdateUpstream", func() {
 			HttpConnectHeaders:   desiredHttpProxyHeaders,
 			RespectDnsTtl:        desiredRespectDnsTtl,
 			DnsRefreshRate:       desiredDnsRefreshRate,
+			DnsLookupIpFamily:    desiredDnsLookupIpFamily,
 		}
 		original := &gloov1.Upstream{
 			SslConfig:            &ssl.UpstreamSslConfig{Sni: "testsni"},
@@ -98,6 +102,7 @@ var _ = Describe("UpdateUpstream", func() {
 			HttpConnectHeaders:   desiredHttpProxyHeaders,
 			RespectDnsTtl:        &wrappers.BoolValue{Value: false},
 			DnsRefreshRate:       &durationpb.Duration{Seconds: 1},
+			DnsLookupIpFamily:    gloov1.DnsIpFamily_V4_ONLY,
 		}
 
 		utils.UpdateUpstream(original, desired)
@@ -114,13 +119,14 @@ var _ = Describe("UpdateUpstream", func() {
 		Expect(desired.HttpConnectHeaders).To(Equal(desiredHttpProxyHeaders))
 		Expect(desired.RespectDnsTtl).To(Equal(desiredRespectDnsTtl))
 		Expect(desired.DnsRefreshRate).To(Equal(desiredDnsRefreshRate))
+		Expect(desired.DnsLookupIpFamily).To(Equal(desiredDnsLookupIpFamily))
 	})
 
 	It("will fail if the upstream proto has a new top level field", func() {
 		// This test is important as it checks whether the upstream struct/proto have a new top level field.
 		// This should happen very rarely, and should be used as an indication that the `UpdateUpstream` function
 		// most likely needs to change.
-		assertions.ExpectNumFields(gloov1.Upstream{}, 29)
+		assertions.ExpectNumFields(gloov1.Upstream{}, 30)
 	})
 
 })

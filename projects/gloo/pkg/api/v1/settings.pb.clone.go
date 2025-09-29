@@ -427,6 +427,8 @@ func (m *UpstreamOptions) Clone() proto.Message {
 		}
 	}
 
+	target.DnsLookupIpFamily = m.GetDnsLookupIpFamily()
+
 	return target
 }
 

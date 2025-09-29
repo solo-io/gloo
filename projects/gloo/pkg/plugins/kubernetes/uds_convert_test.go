@@ -203,8 +203,8 @@ var _ = Describe("UdsConvert", func() {
 					// between the two possible configuration sources:
 					// - At service-level, we'll define: use_http2
 					// - At the global scope, we'll define: max_concurrent_streams
-					// - And at both we also populate GlooSslTlsKeyAnnotation, and initial_stream_window_size
-					// All four unique settings are expected to be configured, while those appearing twice are
+					// - And at both we also populate GlooSslTlsKeyAnnotation, initial_stream_window_size, and ip family
+					// All five unique settings are expected to be configured, while those appearing twice are
 					// expected to get their value from service-level configuration which takes precedence.
 
 					svc := &corev1.Service{
@@ -215,6 +215,7 @@ var _ = Describe("UdsConvert", func() {
 					svc.Annotations[serviceconverter.GlooH2Annotation] = "true"
 					svc.Annotations[serviceconverter.GlooAnnotationPrefix] = `{"use_http2": false, "initial_stream_window_size": 2048}`
 					svc.Annotations[serviceconverter.GlooSslTlsKeyAnnotation] = "ServiceTLSKey"
+					svc.Annotations[serviceconverter.GlooDnsIpFamilyAnnotation] = "v6"
 
 					// Global-level upstream configuration values applied in Gloo Settings.UpstreamOptions
 					ctx := settingsutil.WithSettings(
@@ -222,8 +223,9 @@ var _ = Describe("UdsConvert", func() {
 						&v1.Settings{
 							UpstreamOptions: &v1.UpstreamOptions{
 								GlobalAnnotations: map[string]string{
-									serviceconverter.GlooAnnotationPrefix:    "{\"initial_stream_window_size\": 1024, \"max_concurrent_streams\": 64}",
-									serviceconverter.GlooSslTlsKeyAnnotation: "GlobalTLSKey",
+									serviceconverter.GlooAnnotationPrefix:      "{\"initial_stream_window_size\": 1024, \"max_concurrent_streams\": 64}",
+									serviceconverter.GlooSslTlsKeyAnnotation:   "GlobalTLSKey",
+									serviceconverter.GlooDnsIpFamilyAnnotation: "v4",
 								},
 							},
 						})
@@ -236,6 +238,7 @@ var _ = Describe("UdsConvert", func() {
 					Expect(up.GetInitialStreamWindowSize().GetValue()).To(Equal(uint32(2048)))
 					Expect(up.GetMaxConcurrentStreams().GetValue()).To(Equal(uint32(64)))
 					Expect(up.GetSslConfig().GetSslFiles().GetTlsKey()).To(BeEquivalentTo("ServiceTLSKey"))
+					Expect(up.GetDnsLookupIpFamily()).To(Equal(v1.DnsIpFamily_V6_ONLY))
 				})
 			})
 
@@ -671,6 +674,46 @@ var _ = Describe("UdsConvert", func() {
 				}),
 			)
 		})
+	})
+
+	Context("ip family upstream", func() {
+		It("should ignore ip family when upstream is created without annotation", func() {
+			svc := &corev1.Service{
+				Spec: corev1.ServiceSpec{},
+			}
+			svc.Name = "test"
+			svc.Namespace = "test-ns"
+
+			port := corev1.ServicePort{
+				Port: 123,
+			}
+			up := uc.CreateUpstream(context.TODO(), svc, port)
+			Expect(up.GetDnsLookupIpFamily()).To(Equal(v1.DnsIpFamily_DEFAULT))
+		})
+
+		DescribeTable("should create upstream with dns_ip_family annotation", func(actual string, expected v1.DnsIpFamily) {
+			svc := &corev1.Service{
+				Spec: corev1.ServiceSpec{},
+			}
+			svc.Name = "test"
+			svc.Namespace = "test-ns"
+			svc.Annotations = make(map[string]string)
+			svc.Annotations[serviceconverter.GlooDnsIpFamilyAnnotation] = actual
+
+			port := corev1.ServicePort{
+				Port: 123,
+				Name: "test-port",
+			}
+			up := uc.CreateUpstream(context.TODO(), svc, port)
+			Expect(up.GetDnsLookupIpFamily()).To(Equal(expected))
+		},
+			Entry("handle ipv4", "v4", v1.DnsIpFamily_V4_ONLY),
+			Entry("handle ipv6", "v6", v1.DnsIpFamily_V6_ONLY),
+			Entry("handle preferred ipv4", "v4_pref", v1.DnsIpFamily_V4_PREFERRED),
+			Entry("handle preferred ipv6", "v6_pref", v1.DnsIpFamily_V6_PREFERRED),
+			Entry("handle happy eyeballs", "dual", v1.DnsIpFamily_DUAL_IP_FAMILY),
+			Entry("handle unknown family", "foo", v1.DnsIpFamily_DEFAULT),
+		)
 	})
 })
 

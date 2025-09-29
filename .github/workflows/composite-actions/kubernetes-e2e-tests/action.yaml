@@ -21,6 +21,10 @@ inputs:
   matrix-label:
     required: true
     description: The version of the matrix being used - used to name artifacts to prevent filename collisions
+  supported-ip-family:
+    required: false
+    default: "v4"
+    description: IP family that KinD will use when bootstrapping. Defaults to v4
 
 runs:
   using: "composite"
@@ -34,6 +38,7 @@ runs:
       CLUSTER_NAME: ${{ inputs.cluster-name }}
       TEST_PKG: ./test/kubernetes/e2e/tests
       ISTIO_VERSION: ${{ inputs.istio-version }}
+      SUPPORTED_IP_FAMILY: ${{ inputs.supported-ip-family }}
     shell: bash
     run: make go-test
   - name: Summarize tests

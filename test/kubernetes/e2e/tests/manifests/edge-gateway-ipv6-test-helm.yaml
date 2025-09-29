@@ -1,0 +1,26 @@
+global:
+  # set the global ip family to IPv6
+  globalIpFamily: v6
+
+gateway:
+  validation:
+    # added to preserve behavior tested by this suite.
+    warnMissingTlsSecret: false
+
+settings:
+  kubeResourceOverride:
+    spec:
+      observabilityOptions:
+        configStatusMetricLabels:
+          Gateway.v1.gateway.solo.io:
+            labelToPath:
+              name: '{.metadata.name}'
+              namespace: '{.metadata.namespace}'
+          Upstream.v1.gloo.solo.io:
+            labelToPath:
+              name: '{.metadata.name}'
+              namespace: '{.metadata.namespace}'
+          VirtualService.v1.gateway.solo.io:
+            labelToPath:
+              name: '{.metadata.name}'
+              namespace: '{.metadata.namespace}'

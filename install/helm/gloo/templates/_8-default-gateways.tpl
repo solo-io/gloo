@@ -12,10 +12,10 @@ metadata:
   labels:
 {{ include "gloo.labels" . | indent 4}}
 spec:
-  {{- if $gatewaySettings.ipv4Only }}
-  bindAddress: "0.0.0.0"
-  {{- else }}
+  {{- if or (not $gatewaySettings.ipv4Only) (and (hasKey .Values.global "globalIpFamily") (or (eq "v6" .Values.global.globalIpFamily) (eq "dual" .Values.global.globalIpFamily) (eq "dual-v6-pref" .Values.global.globalIpFamily))) }}
   bindAddress: "::"
+  {{- else }}
+  bindAddress: "0.0.0.0"
   {{- end }}
   bindPort: {{ $spec.podTemplate.httpPort }}
 {{- if $gatewaySettings.httpHybridGateway }}
@@ -68,10 +68,10 @@ metadata:
   labels:
 {{ include "gloo.labels" . | indent 4}}
 spec:
-  {{- if $gatewaySettings.ipv4Only }}
-  bindAddress: "0.0.0.0"
-  {{- else }}
+  {{- if or (not $gatewaySettings.ipv4Only) (and (hasKey .Values.global "globalIpFamily") (or (eq "v6" .Values.global.globalIpFamily) (eq "dual" .Values.global.globalIpFamily) (eq "dual-v6-pref" .Values.global.globalIpFamily))) }}
   bindAddress: "::"
+  {{- else }}
+  bindAddress: "0.0.0.0"
   {{- end }}
   bindPort: {{ $spec.podTemplate.httpsPort }}
 {{- if $gatewaySettings.httpsHybridGateway }}
@@ -123,11 +123,11 @@ metadata:
   labels:
 {{ include "gloo.labels" . | indent 4}}
 spec:
-{{- if $gatewaySettings.ipv4Only }}
-  bindAddress: "0.0.0.0"
-{{- else }}
+  {{- if or (not $gatewaySettings.ipv4Only) (and (hasKey .Values.global "globalIpFamily") (or (eq "v6" .Values.global.globalIpFamily) (eq "dual" .Values.global.globalIpFamily) (eq "dual-v6-pref" .Values.global.globalIpFamily))) }}
   bindAddress: "::"
-{{- end }}
+  {{- else }}
+  bindAddress: "0.0.0.0"
+  {{- end }}
   bindPort: {{ $spec.failover.port }}
   tcpGateway:
     tcpHosts:
