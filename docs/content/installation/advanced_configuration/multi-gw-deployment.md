@@ -71,6 +71,10 @@ If you want additional `Gateways` for a single proxy, create your own `Gateway` 
 
 As shown in the following example, you can declare as many Envoy proxies as you want under the `gloo.gatewayProxies` property in the Helm configuration file.
 
+{{% notice note %}}
+There are implicit merge behaviors when using this API that can be confusing. For more information, see [Custom Envoy proxy merge behaviors](#custom-envoy-proxy-merge-behaviors).
+{{% /notice %}}
+
 ```yaml
 gloo:
   gatewayProxies:
@@ -203,4 +207,88 @@ $ glooctl get proxy
 | corp-gw   | :::8080   | 1             | Accepted |
 | public-gw | :::8443   | 1             | Accepted |
 +-----------+-----------+---------------+----------+
+```
+
+## Custom Envoy proxy merge behaviors
+
+By default, custom gateway proxies inherit the values of the default `gatewayProxy`. For example, take the following Helm configuration:
+
+```yaml
+gloo:
+  gatewayProxies:
+    gatewayProxy:
+      gatewaySettings:
+        customHttpsGateway:
+          options:
+            httpConnectionManagerSettings:
+              maxConnectionDuration: 120s
+              delayedCloseTimeout: 30s
+              drainTimeout: 60s
+    customGatewayProxy:
+      gatewaySettings:
+        customHttpsGateway:
+          options:
+            httpConnectionManagerSettings:
+              maxConnectionDuration: 220s
+              # Note: delayedCloseTimeout and drainTimeout intentionally omitted
+```
+
+This configuration sets up the gateway proxies as follows: 
+
+* `gatewayProxy`: The `gatewayProxy` proxy is created with the default values that are defined in the Helm chart and is customized with the values that are defined in `gatewayProxy.gatewaySettings`. 
+
+* `customGatewayProxy`: The `customGatewayProxy` proxy inherits the default values that are defined in the Helm chart. Then, it applies the custom values of the `gatewayProxy` proxy, and finally applies the values specific to itself that are configured in `customGatewayProxy.gatewaySettings`.
+
+The inheritance of values from the `gatewayProxy` to the `customGatewayProxy` cannot be customized for each proxy. Because of that, the `customGatewayProxy` in this example has values for `delayedCloseTimeout` and `drainTimeout`, even though they were not configured on the `customGatewayProxy`. 
+
+To safely configure multiple Envoy proxies, you can choose between the following options:  
+* [Option 1: Define global proxy configuration in the default `gatewayProxy`](#option1)
+* [Option 2: Decouple your proxy configurations](#option2)
+
+### Option 1: Define global proxy configuration in the default `gatewayProxy` {#option1}
+
+Use the default `gatewayProxy` to configure settings that you want all custom gateway proxies to inherit. The custom gateway proxy can however overwrite these settings. 
+
+To apply this option, update your configuration as follows: 
+
+```yaml
+gloo:
+  gatewayProxies:
+    gatewayProxy:
+      gatewaySettings:
+        customHttpsGateway:
+          options:
+            httpConnectionManagerSettings:
+              maxConnectionDuration: 120s
+              delayedCloseTimeout: 30s
+              drainTimeout: 60s
+    customGatewayProxy:
+      gatewaySettings:
+        customHttpsGateway:
+          options:
+            httpConnectionManagerSettings:
+              # Explicitly set these values, to avoid inheriting from gatewayProxy
+              maxConnectionDuration: 220s
+              delayedCloseTimeout: 5s 
+              drainTimeout: 1s     
+```
+
+### Option 2: Decouple your proxy configurations {#option2}
+
+There are situations where inheriting behaviors from the `gatewayProxy` implicitly causes unintended challenges, and there is value in having each Envoy proxy own its entire configuration. To achieve this, you must disable the `gatewayProxy` value, and only define custom proxies. The custom proxies are completely decoupled. This way, you customize them with the values you need without affecting the others.
+
+```yaml
+gloo:
+  gatewayProxies:
+    # disable the default gatewayProxy
+    gatewayProxy:
+      disabled: true 
+    customGatewayProxy:
+      gatewaySettings:
+        customHttpsGateway:
+          options:
+            httpConnectionManagerSettings:
+              maxConnectionDuration: 220s
+              # Note: delayedCloseTimeout and drainTimeout intentionally omitted
+              # and they will not be configured on the customGatewayProxy
 ```
