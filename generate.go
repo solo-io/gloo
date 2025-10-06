@@ -106,10 +106,47 @@ func main() {
 		log.Fatalf("failed to remove external api docs: %v", err)
 	}
 
+	err = fixExtauthCrossReferences()
+	if err != nil {
+		log.Fatalf("failed to fix extauth cross-references: %v", err)
+	}
+
 	log.Printf("finished generating code for gloo")
 }
 
 func removeExternalApiDocs() error {
 	const externalApiDocsPath = "docs/content/reference/api/github.com/solo-io/gloo/projects/gloo/api/external"
 	return os.RemoveAll(externalApiDocsPath)
+}
+
+// fixExtauthCrossReferences fixes incorrect cross-references in the generated documentation
+// where extauth-internal.proto.sk is referenced instead of extauth.proto.sk
+func fixExtauthCrossReferences() error {
+	const extauthDocPath = "docs/content/reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth.proto.sk.md"
+	const extauthInternalDocPath = "docs/content/reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth-internal.proto.sk.md"
+
+	// Change extauth-internal.proto.sk/#config to extauth.proto.sk/#config
+	content, err := os.ReadFile(extauthDocPath)
+	if err != nil {
+		return err
+	}
+	content = []byte(strings.ReplaceAll(string(content), "extauth-internal.proto.sk/#config", "extauth.proto.sk/#config"))
+	err = os.WriteFile(extauthDocPath, content, 0644)
+	if err != nil {
+		return err
+	}
+
+	// Change extauth-internal.proto.sk/#config to extauth-internal.proto.sk/#config-1
+	content, err = os.ReadFile(extauthInternalDocPath)
+	if err != nil {
+		return err
+	}
+	content = []byte(strings.ReplaceAll(string(content), "extauth-internal.proto.sk/#config", "extauth-internal.proto.sk/#config-1"))
+	err = os.WriteFile(extauthInternalDocPath, content, 0644)
+	if err != nil {
+		return err
+	}
+
+	log.Printf("fixed extauth cross-references in %s", extauthDocPath)
+	return nil
 }
