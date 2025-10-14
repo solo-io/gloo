@@ -98,7 +98,7 @@ require (
 	github.com/golang/mock v1.7.0-rc.1
 	github.com/google/go-cmp v0.7.0
 	github.com/google/uuid v1.6.0
-	github.com/kgateway-dev/kgateway/v2 v2.1.0-rc.2
+	github.com/kgateway-dev/kgateway/v2 v2.1.0
 	github.com/mccutchen/go-httpbin/v2 v2.15.0
 	github.com/prometheus/client_model v0.6.2
 	github.com/prometheus/common v0.66.1
@@ -112,9 +112,9 @@ require (
 	golang.org/x/mod v0.28.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20250811230008-5f3141c8851a
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250826171959-ef028d996bc1
-	istio.io/api v1.27.2-0.20251010085937-bc3692c751f3
-	istio.io/client-go v1.27.2-0.20251010090538-d3877427e89c
-	istio.io/istio v0.0.0-20251010115937-9e5b7fbff90e
+	istio.io/api v1.26.0-alpha.0.0.20251002142010-859b66f07fad
+	istio.io/client-go v1.26.0-alpha.0.0.20251002142408-752760d8f171
+	istio.io/istio v0.0.0-20251009125038-5ab6df7e5282
 	k8s.io/utils v0.0.0-20250820121507-0af2bda4dd1d
 	sigs.k8s.io/controller-tools v0.19.0
 	sigs.k8s.io/structured-merge-diff/v4 v4.7.0
@@ -138,7 +138,7 @@ require (
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
 	golang.org/x/telemetry v0.0.0-20250908211612-aef8a434d053 // indirect
 	k8s.io/apiserver v0.34.1 // indirect
-	k8s.io/cli-runtime v0.33.3 // indirect
+	k8s.io/cli-runtime v0.34.1 // indirect
 	k8s.io/klog/v2 v2.130.1 // indirect
 	oras.land/oras-go/v2 v2.6.0 // indirect
 	sigs.k8s.io/gateway-api-inference-extension v1.0.1 // indirect
@@ -219,7 +219,6 @@ require (
 	github.com/google/gnostic-models v0.7.0 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/google/pprof v0.0.0-20250607225305-033d6d78b36a // indirect
-	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
 	github.com/goph/emperror v0.17.1 // indirect
 	github.com/gorilla/websocket v1.5.4-0.20250319132907-e064f32e3674 // indirect
 	github.com/gosuri/uitable v0.0.4 // indirect
@@ -249,7 +248,7 @@ require (
 	github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 // indirect
 	github.com/jmespath/go-jmespath v0.4.1-0.20220621161143-b0104c826a24 // indirect
 	github.com/jmoiron/sqlx v1.4.0 // indirect
-	github.com/jonboulle/clockwork v0.4.0 // indirect
+	github.com/jonboulle/clockwork v0.5.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/k0kubun/pp v3.0.1+incompatible // indirect
@@ -347,15 +346,15 @@ require (
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1
-	k8s.io/component-helpers v0.33.3 // indirect
+	k8s.io/component-helpers v0.34.1 // indirect
 	k8s.io/gengo v0.0.0-20230829151522-9cce18d56c01 // indirect
 	k8s.io/gengo/v2 v2.0.0-20250829030910-f1dc67e67210 // indirect
 	k8s.io/kube-openapi v0.0.0-20250814151709-d7b6acb124c3 // indirect
-	k8s.io/metrics v0.33.3 // indirect
+	k8s.io/metrics v0.34.1 // indirect
 	sigs.k8s.io/json v0.0.0-20250730193827-2d320260d730 // indirect
-	sigs.k8s.io/kustomize/api v0.19.0 // indirect
-	sigs.k8s.io/kustomize/kustomize/v5 v5.6.0 // indirect
-	sigs.k8s.io/kustomize/kyaml v0.19.0 // indirect
+	sigs.k8s.io/kustomize/api v0.20.1 // indirect
+	sigs.k8s.io/kustomize/kustomize/v5 v5.7.1 // indirect
+	sigs.k8s.io/kustomize/kyaml v0.20.1 // indirect
 	sigs.k8s.io/mcs-api v0.2.0 // indirect
 	sigs.k8s.io/randfill v1.0.0 // indirect
 )
@@ -390,48 +389,25 @@ replace (
 	// Required for proper serialization of CRDs
 	github.com/renstrom/dedent => github.com/lithammer/dedent v1.0.0
 
-	// Pin Kube libraries to v0.33.1
+	// Pin Kube libraries to v0.34.1
 	// These should be upgraded collectively
-	k8s.io/api => k8s.io/api v0.33.1
-	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.33.1
-	k8s.io/apimachinery => k8s.io/apimachinery v0.33.1
-	k8s.io/apiserver => k8s.io/apiserver v0.33.1
-	k8s.io/cli-runtime => k8s.io/cli-runtime v0.33.1
-	k8s.io/client-go => k8s.io/client-go v0.33.1
-	k8s.io/code-generator => k8s.io/code-generator v0.33.1
-	k8s.io/component-base => k8s.io/component-base v0.33.1
-	k8s.io/component-helpers => k8s.io/component-helpers v0.33.1
-	// version of kube-openapi used by client-go v0.33.1
-	k8s.io/kube-openapi => k8s.io/kube-openapi v0.0.0-20250318190949-c8a335a9a2ff
-	k8s.io/kubectl => k8s.io/kubectl v0.33.3
-	k8s.io/metrics => k8s.io/metrics v0.33.1
+	k8s.io/api => k8s.io/api v0.34.1
+	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.34.1
+	k8s.io/apimachinery => k8s.io/apimachinery v0.34.1
+	k8s.io/apiserver => k8s.io/apiserver v0.34.1
+	k8s.io/cli-runtime => k8s.io/cli-runtime v0.34.1
+	k8s.io/client-go => k8s.io/client-go v0.34.1
+	k8s.io/code-generator => k8s.io/code-generator v0.34.1
+	k8s.io/component-base => k8s.io/component-base v0.34.1
+	k8s.io/component-helpers => k8s.io/component-helpers v0.34.1
+	// version of kube-openapi used by client-go v0.34.1
+	k8s.io/kube-openapi => k8s.io/kube-openapi v0.0.0-20250814151709-d7b6acb124c3
+	k8s.io/kubectl => k8s.io/kubectl v0.34.1
+	k8s.io/metrics => k8s.io/metrics v0.34.1
 	k8s.io/utils => k8s.io/utils v0.0.0-20250604170112-4c0f3b243397
 
-	sigs.k8s.io/gateway-api-inference-extension => sigs.k8s.io/gateway-api-inference-extension v0.5.1
-)
-
-exclude (
-	// Exclude pre-go-mod kubernetes tags, because they are older
-	// than v0.x releases but are picked when updating dependencies.
-	k8s.io/client-go v1.4.0
-	k8s.io/client-go v1.5.0
-	k8s.io/client-go v1.5.1
-	k8s.io/client-go v1.5.2
-	k8s.io/client-go v2.0.0-alpha.1+incompatible
-	k8s.io/client-go v2.0.0+incompatible
-	k8s.io/client-go v3.0.0-beta.0+incompatible
-	k8s.io/client-go v3.0.0+incompatible
-	k8s.io/client-go v4.0.0-beta.0+incompatible
-	k8s.io/client-go v4.0.0+incompatible
-	k8s.io/client-go v5.0.0+incompatible
-	k8s.io/client-go v5.0.1+incompatible
-	k8s.io/client-go v6.0.0+incompatible
-	k8s.io/client-go v7.0.0+incompatible
-	k8s.io/client-go v8.0.0+incompatible
-	k8s.io/client-go v9.0.0-invalid+incompatible
-	k8s.io/client-go v9.0.0+incompatible
-	k8s.io/client-go v10.0.0+incompatible
-	k8s.io/client-go v11.0.0+incompatible
-	k8s.io/client-go v11.0.1-0.20190409021438-1a26190bd76a+incompatible
-	k8s.io/client-go v12.0.0+incompatible
+	// Needed because GIE 1.x branch doesn't support k8s 1.34. See https://github.com/kubernetes-sigs/gateway-api-inference-extension/pull/1537
+	// for the main branch PR that allows us to bump to the new gateway-api version, which uses 1.34 dependencies. Without
+	// this pin, running the generate-all Makefile target will fail.
+	sigs.k8s.io/gateway-api-inference-extension => sigs.k8s.io/gateway-api-inference-extension v0.0.0-20250909153158-bd4bf2230914
 )

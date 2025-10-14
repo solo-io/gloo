@@ -44,7 +44,6 @@ import (
 	v1beta20 "k8s.io/client-go/kubernetes/typed/flowcontrol/v1beta2"
 	v1beta3 "k8s.io/client-go/kubernetes/typed/flowcontrol/v1beta3"
 	v111 "k8s.io/client-go/kubernetes/typed/networking/v1"
-	v1alpha13 "k8s.io/client-go/kubernetes/typed/networking/v1alpha1"
 	v1beta110 "k8s.io/client-go/kubernetes/typed/networking/v1beta1"
 	v112 "k8s.io/client-go/kubernetes/typed/node/v1"
 	v1alpha14 "k8s.io/client-go/kubernetes/typed/node/v1alpha1"
@@ -64,6 +63,7 @@ import (
 	v1alpha17 "k8s.io/client-go/kubernetes/typed/storage/v1alpha1"
 	v1beta116 "k8s.io/client-go/kubernetes/typed/storage/v1beta1"
 	v1alpha18 "k8s.io/client-go/kubernetes/typed/storagemigration/v1alpha1"
+	v1alpha13 "knative.dev/networking/pkg/client/clientset/versioned/typed/networking/v1alpha1"
 )
 
 // MockInterface is a mock of Interface interface.
