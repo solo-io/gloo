@@ -1,0 +1,6 @@
+changelog:
+- type: FIX
+  issueLink: https://github.com/solo-io/solo-projects/issues/8609
+  resolvesIssue: false
+  description: Fixes a crash caused by missing rbac during upgrades from 1.19
+
