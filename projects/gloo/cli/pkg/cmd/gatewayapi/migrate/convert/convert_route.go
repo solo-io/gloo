@@ -639,6 +639,8 @@ func (g *GatewayAPIOutput) convertRouteOptions(
 	if options.GetLbHash() != nil && len(options.GetLbHash().GetHashPolicies()) > 0 {
 		g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "hashPolicy is not supported")
 
+		//TODO(nick) this needs to go on a backend config policy for the upstream
+
 		//gtpSpec.TrafficPolicySpec.HashPolicies = []*kgateway.HashPolicy{}
 		//for _, policy := range options.GetLbHash().GetHashPolicies() {
 		//	hashPolicy := &kgateway.HashPolicy{

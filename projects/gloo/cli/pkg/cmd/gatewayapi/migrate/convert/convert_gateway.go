@@ -1724,7 +1724,8 @@ func (g *GatewayAPIOutput) generateGatewayExtensionForExtAuth(extauth *v1.Settin
 		g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extAuth settings requestBody is not supported")
 	}
 	if extauth.GetRequestTimeout() != nil {
-		g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extAuth settings requestTimeout is not supported")
+		// Moved to GatewayExtension.spec.extAuth.grpcService.requestTimeout
+		g.AddErrorFromWrapper(ERROR_TYPE_UPDATE_OBJECT, wrapper, "extAuth settings requestTimeout needs to be set on the GatewayExtension.spec.extAuth.grpcService.requestTimeout")
 	}
 	if extauth.GetStatPrefix() != "" {
 		g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "extAuth settings statPrefix is not supported")
