@@ -158,16 +158,16 @@ func (g *GatewayAPIOutput) convertJWTStagedExtAuth(auth *jwt.VhostExtension, wra
 
 func (g *GatewayAPIOutput) convertCORS(policy *cors.CorsPolicy, wrapper snapshot.Wrapper) *kgateway.CorsPolicy {
 	filter := &gwv1.HTTPCORSFilter{
-		AllowOrigins:     []gwv1.AbsoluteURI{},                         // existing
-		AllowCredentials: gwv1.TrueField(policy.GetAllowCredentials()), // existing
-		AllowMethods:     []gwv1.HTTPMethodWithWildcard{},              // existing
-		AllowHeaders:     []gwv1.HTTPHeaderName{},                      // existing
-		ExposeHeaders:    []gwv1.HTTPHeaderName{},                      // existing
-		MaxAge:           0,                                            // existing
+		AllowOrigins:     []gwv1.CORSOrigin{},                  // existing
+		AllowCredentials: ptr.To(policy.GetAllowCredentials()), // existing
+		AllowMethods:     []gwv1.HTTPMethodWithWildcard{},      // existing
+		AllowHeaders:     []gwv1.HTTPHeaderName{},              // existing
+		ExposeHeaders:    []gwv1.HTTPHeaderName{},              // existing
+		MaxAge:           0,                                    // existing
 	}
 	if policy.GetAllowOrigin() != nil {
 		for _, origin := range policy.GetAllowOrigin() {
-			filter.AllowOrigins = append(filter.AllowOrigins, gwv1.AbsoluteURI(origin))
+			filter.AllowOrigins = append(filter.AllowOrigins, gwv1.CORSOrigin(origin))
 		}
 	}
 	if policy.GetAllowMethods() != nil {
@@ -410,7 +410,7 @@ func (g *GatewayAPIOutput) convertRouteOptions(
 			aip.Defaults = append(aip.Defaults, kgateway.FieldDefault{
 				Field:    d.GetField(),
 				Value:    d.GetValue().String(),
-				Override: ptr.To(d.GetOverride()),
+				Override: d.GetOverride(),
 			})
 		}
 		if options.GetAi().GetPromptEnrichment() != nil {
@@ -534,9 +534,11 @@ func (g *GatewayAPIOutput) convertRouteOptions(
 					Namespace: ptr.To(gwv1.Namespace(wrapper.GetNamespace())),
 				},
 				// RateLimitConfig for the policy, not sure how it works for rate limit basic
-				RateLimitConfigRef: gloogateway.RateLimitConfigRef{
-					Name:      gwv1.ObjectName(rlc.GetName()),
-					Namespace: ptr.To(gwv1.Namespace(rlc.GetNamespace())),
+				RateLimitConfigRefs: []gloogateway.RateLimitConfigRef{
+					{
+						Name:      gwv1.ObjectName(rlc.GetName()),
+						Namespace: ptr.To(gwv1.Namespace(rlc.GetNamespace())),
+					},
 				},
 			},
 		}
@@ -1068,7 +1070,7 @@ func (g *GatewayAPIOutput) convertPromptGuardResponse(options *gloov1.RouteOptio
 				Port: gwv1.PortNumber(options.GetAi().GetPromptGuard().GetResponse().GetWebhook().GetPort()),
 				//InsecureSkipVerify: nil,
 			},
-			ForwardHeaders: []gwv1.HTTPHeaderMatch{},
+			ForwardHeaderMatches: []gwv1.HTTPHeaderMatch{},
 		}
 		for _, h := range options.GetAi().GetPromptGuard().GetResponse().GetWebhook().GetForwardHeaders() {
 			match := gwv1.HTTPHeaderMatch{
@@ -1091,7 +1093,7 @@ func (g *GatewayAPIOutput) convertPromptGuardResponse(options *gloov1.RouteOptio
 				g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "ai headerMatch 'suffix' is not supported")
 				match.Type = ptr.To(gwv1.HeaderMatchExact)
 			}
-			webhook.ForwardHeaders = append(webhook.ForwardHeaders, match)
+			webhook.ForwardHeaderMatches = append(webhook.ForwardHeaderMatches, match)
 		}
 		response.Webhook = webhook
 	}
@@ -1133,7 +1135,7 @@ func (g *GatewayAPIOutput) convertPromptGuardRequest(options *gloov1.RouteOption
 	request := &kgateway.PromptguardRequest{
 		CustomResponse: &kgateway.CustomResponse{
 			Message:    ptr.To(options.GetAi().GetPromptGuard().GetRequest().GetCustomResponse().GetMessage()),
-			StatusCode: ptr.To(options.GetAi().GetPromptGuard().GetRequest().GetCustomResponse().GetStatusCode()),
+			StatusCode: ptr.To(int32(options.GetAi().GetPromptGuard().GetRequest().GetCustomResponse().GetStatusCode())),
 		},
 	}
 	if options.GetAi().GetPromptGuard().GetRequest().GetModeration() != nil && options.GetAi().GetPromptGuard().GetRequest().GetModeration().GetOpenai() != nil {
@@ -1168,7 +1170,7 @@ func (g *GatewayAPIOutput) convertPromptGuardRequest(options *gloov1.RouteOption
 				Port: gwv1.PortNumber(options.GetAi().GetPromptGuard().GetRequest().GetWebhook().GetPort()),
 				//InsecureSkipVerify: nil,
 			},
-			ForwardHeaders: []gwv1.HTTPHeaderMatch{},
+			ForwardHeaderMatches: []gwv1.HTTPHeaderMatch{},
 		}
 		for _, h := range options.GetAi().GetPromptGuard().GetRequest().GetWebhook().GetForwardHeaders() {
 			match := gwv1.HTTPHeaderMatch{
@@ -1191,7 +1193,7 @@ func (g *GatewayAPIOutput) convertPromptGuardRequest(options *gloov1.RouteOption
 				g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "ai headerMatch 'suffix' is not supported")
 				match.Type = ptr.To(gwv1.HeaderMatchExact)
 			}
-			webhook.ForwardHeaders = append(webhook.ForwardHeaders, match)
+			webhook.ForwardHeaderMatches = append(webhook.ForwardHeaderMatches, match)
 		}
 		request.Webhook = webhook
 	}
@@ -1199,7 +1201,7 @@ func (g *GatewayAPIOutput) convertPromptGuardRequest(options *gloov1.RouteOption
 	if options.GetAi().GetPromptGuard().GetRequest().GetCustomResponse() != nil {
 		request.CustomResponse = &kgateway.CustomResponse{
 			Message:    ptr.To(options.GetAi().GetPromptGuard().GetRequest().GetCustomResponse().GetMessage()),
-			StatusCode: ptr.To(options.GetAi().GetPromptGuard().GetRequest().GetCustomResponse().GetStatusCode()),
+			StatusCode: ptr.To(int32(options.GetAi().GetPromptGuard().GetRequest().GetCustomResponse().GetStatusCode())),
 		}
 	}
 	if options.GetAi().GetPromptGuard().GetRequest().GetRegex() != nil {
@@ -1513,7 +1515,7 @@ func convertDirectResponse(action *gloov1.DirectResponseAction) *kgateway.Direct
 		},
 		ObjectMeta: metav1.ObjectMeta{},
 		Spec: kgateway.DirectResponseSpec{
-			StatusCode: action.GetStatus(),
+			StatusCode: int32(action.GetStatus()),
 			Body:       ptr.To(action.GetBody()),
 		},
 	}

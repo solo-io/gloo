@@ -476,9 +476,11 @@ func (g *GatewayAPIOutput) convertVHOOptionsToTrafficPolicySpec(vho *gloov1.Virt
 						Namespace: ptr.To(gwv1.Namespace(wrapper.GetNamespace())),
 					},
 					// RateLimitConfig for the policy, not sure how it works for rate limit basic
-					RateLimitConfigRef: gloogateway.RateLimitConfigRef{
-						Name:      gwv1.ObjectName(rlc.GetName()),
-						Namespace: ptr.To(gwv1.Namespace(rlc.GetNamespace())),
+					RateLimitConfigRefs: []gloogateway.RateLimitConfigRef{
+						{
+							Name:      gwv1.ObjectName(rlc.GetName()),
+							Namespace: ptr.To(gwv1.Namespace(rlc.GetNamespace())),
+						},
 					},
 				},
 			}
@@ -540,7 +542,7 @@ func (g *GatewayAPIOutput) convertVHOOptionsToTrafficPolicySpec(vho *gloov1.Virt
 					},
 					// RateLimitConfig for the policy, not sure how it works for rate limit basic
 					// TODO(nick) grab the global rate limit config ref
-					RateLimitConfigRef: gloogateway.RateLimitConfigRef{},
+					RateLimitConfigRefs: []gloogateway.RateLimitConfigRef{},
 				},
 			}
 		}
@@ -611,11 +613,13 @@ func (g *GatewayAPIOutput) convertVHOOptionsToTrafficPolicySpec(vho *gloov1.Virt
 	return spec
 }
 
-func (g *GatewayAPIOutput) generateTLSConfiguration(vs *snapshot.VirtualServiceWrapper) *gwv1.GatewayTLSConfig {
-	tlsConfig := &gwv1.GatewayTLSConfig{
+func (g *GatewayAPIOutput) generateTLSConfiguration(vs *snapshot.VirtualServiceWrapper) *gwv1.ListenerTLSConfig {
+	tlsConfig := &gwv1.ListenerTLSConfig{
 		Mode: ptr.To(gwv1.TLSModeTerminate),
-		//FrontendValidation: nil, // TODO(nick) do we need to set this?
-		//Options:            nil, // TODO(nick) do we need to set this?
+		// FrontendValidation: nil, // TODO(nick) do we need to set this?
+		// Options:            nil, // TODO(nick) do we need to set this?
+		// CertificateRefs: nil,
+
 	}
 	if vs.Spec.GetSslConfig().GetSecretRef() != nil {
 		tlsConfig.CertificateRefs = []gwv1.SecretObjectReference{
@@ -866,7 +870,7 @@ func (g *GatewayAPIOutput) convertAccessLogFitler(filter *als.AccessLogFilter, w
 	if filter.GetDurationFilter() != nil {
 		filterType.DurationFilter = &kgateway.DurationFilter{
 			Op:    kgateway.Op(filter.GetDurationFilter().GetComparison().GetOp()),
-			Value: filter.GetDurationFilter().GetComparison().GetValue().GetDefaultValue(),
+			Value: int32(filter.GetDurationFilter().GetComparison().GetValue().GetDefaultValue()),
 		}
 	}
 	if filter.GetHeaderFilter() != nil && filter.GetHeaderFilter().GetHeader() != nil {
@@ -950,7 +954,7 @@ func (g *GatewayAPIOutput) convertAccessLogFitler(filter *als.AccessLogFilter, w
 	if filter.GetStatusCodeFilter() != nil {
 		filterType.StatusCodeFilter = &kgateway.StatusCodeFilter{
 			Op:    kgateway.Op(filter.GetStatusCodeFilter().GetComparison().GetOp()),
-			Value: filter.GetStatusCodeFilter().GetComparison().GetValue().GetDefaultValue(),
+			Value: int32(filter.GetStatusCodeFilter().GetComparison().GetValue().GetDefaultValue()),
 		}
 	}
 
@@ -1042,12 +1046,12 @@ func (g *GatewayAPIOutput) convertHTTPListenerOptions(options *gloov1.HttpListen
 			rl := &kgateway.RateLimit{
 				Local: &kgateway.LocalRateLimitPolicy{
 					TokenBucket: &kgateway.TokenBucket{
-						MaxTokens: options.GetHttpLocalRatelimit().GetDefaultLimit().GetMaxTokens(),
+						MaxTokens: int32(options.GetHttpLocalRatelimit().GetDefaultLimit().GetMaxTokens()),
 					},
 				},
 			}
 			if options.GetHttpLocalRatelimit().GetDefaultLimit().GetTokensPerFill() != nil {
-				rl.Local.TokenBucket.TokensPerFill = ptr.To(options.GetHttpLocalRatelimit().GetDefaultLimit().GetTokensPerFill().GetValue())
+				rl.Local.TokenBucket.TokensPerFill = ptr.To(int32(options.GetHttpLocalRatelimit().GetDefaultLimit().GetTokensPerFill().GetValue()))
 			}
 			if options.GetHttpLocalRatelimit().GetDefaultLimit().GetFillInterval() != nil {
 				rl.Local.TokenBucket.FillInterval = metav1.Duration{Duration: options.GetHttpLocalRatelimit().GetDefaultLimit().GetFillInterval().AsDuration()}
@@ -1194,7 +1198,7 @@ func (g *GatewayAPIOutput) convertHTTPListenerOptions(options *gloov1.HttpListen
 				g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "httpConnectionManager.via is not supported")
 			}
 			if options.GetHttpConnectionManagerSettings().GetXffNumTrustedHops() != nil {
-				hlp.XffNumTrustedHops = ptr.To(options.GetHttpConnectionManagerSettings().GetXffNumTrustedHops().GetValue())
+				hlp.XffNumTrustedHops = ptr.To(int32(options.GetHttpConnectionManagerSettings().GetXffNumTrustedHops().GetValue()))
 			}
 			if options.GetHttpConnectionManagerSettings().GetUseRemoteAddress() != nil && options.GetHttpConnectionManagerSettings().GetUseRemoteAddress().GetValue() {
 				hlp.UseRemoteAddress = ptr.To(options.GetHttpConnectionManagerSettings().GetUseRemoteAddress().GetValue())
@@ -1339,13 +1343,13 @@ func (g *GatewayAPIOutput) convertHTTPListenerOptionsTracing(tracing *tracing.Li
 	}
 	if tracing.GetTracePercentages() != nil {
 		if tracing.GetTracePercentages().GetClientSamplePercentage() != nil {
-			kgatewayTracing.ClientSampling = ptr.To(uint32(tracing.GetTracePercentages().GetClientSamplePercentage().GetValue()))
+			kgatewayTracing.ClientSampling = ptr.To(int32(tracing.GetTracePercentages().GetClientSamplePercentage().GetValue()))
 		}
 		if tracing.GetTracePercentages().GetOverallSamplePercentage() != nil {
-			kgatewayTracing.OverallSampling = ptr.To(uint32(tracing.GetTracePercentages().GetOverallSamplePercentage().GetValue()))
+			kgatewayTracing.OverallSampling = ptr.To(int32(tracing.GetTracePercentages().GetOverallSamplePercentage().GetValue()))
 		}
 		if tracing.GetTracePercentages().GetRandomSamplePercentage() != nil {
-			kgatewayTracing.RandomSampling = ptr.To(uint32(tracing.GetTracePercentages().GetRandomSamplePercentage().GetValue()))
+			kgatewayTracing.RandomSampling = ptr.To(int32(tracing.GetTracePercentages().GetRandomSamplePercentage().GetValue()))
 		}
 	}
 	if tracing.GetDatadogConfig() != nil {
@@ -1480,7 +1484,7 @@ func (g *GatewayAPIOutput) convertCSRF(policy *v4.CsrfPolicy) *kgateway.CSRFPoli
 			// Default to HUNDRED if denominator is not set
 			percentage = float64(filterEnabled.GetDefaultValue().GetNumerator())
 		}
-		csrf.PercentageEnabled = ptr.To(uint32(percentage))
+		csrf.PercentageEnabled = ptr.To(int32(percentage))
 	}
 	if policy.GetAdditionalOrigins() != nil {
 		// Convert the additional origins from Gloo Edge format to kgateway format
@@ -1516,7 +1520,7 @@ func (g *GatewayAPIOutput) convertCSRF(policy *v4.CsrfPolicy) *kgateway.CSRFPoli
 			percentage = float64(shadowEnabled.GetDefaultValue().GetNumerator())
 		}
 
-		csrf.PercentageShadowed = ptr.To(uint32(percentage))
+		csrf.PercentageShadowed = ptr.To(int32(percentage))
 	}
 	return csrf
 }

@@ -159,15 +159,16 @@ func (g *GatewayAPIOutput) convertUpstreamPolicy(upstream *snapshot.UpstreamWrap
 
 	if upstream.Spec.GetSslConfig() != nil {
 		tls := kgateway.TLS{
-			SecretRef:            nil, // existing
-			TLSFiles:             nil, // existing
-			InsecureSkipVerify:   nil,
-			Sni:                  ptr.To(upstream.Spec.GetSslConfig().GetSni()), // existing
-			VerifySubjectAltName: nil,                                           // existing
-			Parameters:           nil,                                           // existing
-			AlpnProtocols:        nil,                                           // existing
-			AllowRenegotiation:   nil,                                           // existing
-			SimpleTLS:            nil,                                           // existing
+			SecretRef:               nil,                                           // existing
+			Files:                   nil,                                           // existing
+			InsecureSkipVerify:      nil,                                           // existing
+			Sni:                     ptr.To(upstream.Spec.GetSslConfig().GetSni()), // existing
+			VerifySubjectAltNames:   nil,                                           // existing
+			Parameters:              nil,                                           // existing
+			AlpnProtocols:           nil,                                           // existing
+			AllowRenegotiation:      nil,                                           // existing
+			SimpleTLS:               nil,                                           // existing
+			WellKnownCACertificates: nil,                                           // TODO (nick) need to implement
 		}
 		if upstream.Spec.GetSslConfig().GetSecretRef() != nil {
 			if upstream.Spec.GetSslConfig().GetSecretRef().GetNamespace() != upstream.GetNamespace() {
@@ -178,7 +179,7 @@ func (g *GatewayAPIOutput) convertUpstreamPolicy(upstream *snapshot.UpstreamWrap
 			}
 		}
 		if upstream.Spec.GetSslConfig().GetSslFiles() != nil {
-			tls.TLSFiles = &kgateway.TLSFiles{
+			tls.Files = &kgateway.TLSFiles{
 				TLSCertificate: ptr.To(upstream.Spec.GetSslConfig().GetSslFiles().GetTlsCert()),
 				TLSKey:         ptr.To(upstream.Spec.GetSslConfig().GetSslFiles().GetTlsKey()),
 				RootCA:         ptr.To(upstream.Spec.GetSslConfig().GetSslFiles().GetRootCa()),
@@ -198,11 +199,11 @@ func (g *GatewayAPIOutput) convertUpstreamPolicy(upstream *snapshot.UpstreamWrap
 			tls.AllowRenegotiation = ptr.To(upstream.Spec.GetSslConfig().GetAllowRenegotiation().GetValue())
 		}
 		if upstream.Spec.GetSslConfig().GetParameters() != nil {
-			params := &kgateway.Parameters{
-				TLSMinVersion: nil, // existing
-				TLSMaxVersion: nil, // existing
-				CipherSuites:  nil, // existing
-				EcdhCurves:    nil, // existing
+			params := &kgateway.TLSParameters{
+				MinVersion:   nil, // existing
+				MaxVersion:   nil, // existing
+				CipherSuites: nil, // existing
+				EcdhCurves:   nil, // existing
 			}
 			if len(upstream.Spec.GetSslConfig().GetParameters().GetEcdhCurves()) > 0 {
 				params.EcdhCurves = upstream.Spec.GetSslConfig().GetParameters().GetEcdhCurves()
@@ -212,27 +213,27 @@ func (g *GatewayAPIOutput) convertUpstreamPolicy(upstream *snapshot.UpstreamWrap
 			}
 			switch upstream.Spec.GetSslConfig().GetParameters().GetMaximumProtocolVersion() {
 			case ssl.SslParameters_TLS_AUTO:
-				params.TLSMaxVersion = ptr.To(kgateway.TLSVersionAUTO)
+				params.MaxVersion = ptr.To(kgateway.TLSVersionAUTO)
 			case ssl.SslParameters_TLSv1_0:
-				params.TLSMaxVersion = ptr.To(kgateway.TLSVersion1_0)
+				params.MaxVersion = ptr.To(kgateway.TLSVersion1_0)
 			case ssl.SslParameters_TLSv1_1:
-				params.TLSMaxVersion = ptr.To(kgateway.TLSVersion1_1)
+				params.MaxVersion = ptr.To(kgateway.TLSVersion1_1)
 			case ssl.SslParameters_TLSv1_2:
-				params.TLSMaxVersion = ptr.To(kgateway.TLSVersion1_2)
+				params.MaxVersion = ptr.To(kgateway.TLSVersion1_2)
 			case ssl.SslParameters_TLSv1_3:
-				params.TLSMaxVersion = ptr.To(kgateway.TLSVersion1_3)
+				params.MaxVersion = ptr.To(kgateway.TLSVersion1_3)
 			}
 			switch upstream.Spec.GetSslConfig().GetParameters().GetMinimumProtocolVersion() {
 			case ssl.SslParameters_TLS_AUTO:
-				params.TLSMinVersion = ptr.To(kgateway.TLSVersionAUTO)
+				params.MinVersion = ptr.To(kgateway.TLSVersionAUTO)
 			case ssl.SslParameters_TLSv1_0:
-				params.TLSMinVersion = ptr.To(kgateway.TLSVersion1_0)
+				params.MinVersion = ptr.To(kgateway.TLSVersion1_0)
 			case ssl.SslParameters_TLSv1_1:
-				params.TLSMinVersion = ptr.To(kgateway.TLSVersion1_1)
+				params.MinVersion = ptr.To(kgateway.TLSVersion1_1)
 			case ssl.SslParameters_TLSv1_2:
-				params.TLSMinVersion = ptr.To(kgateway.TLSVersion1_2)
+				params.MinVersion = ptr.To(kgateway.TLSVersion1_2)
 			case ssl.SslParameters_TLSv1_3:
-				params.TLSMinVersion = ptr.To(kgateway.TLSVersion1_3)
+				params.MinVersion = ptr.To(kgateway.TLSVersion1_3)
 			}
 			tls.Parameters = params
 		}
@@ -243,7 +244,7 @@ func (g *GatewayAPIOutput) convertUpstreamPolicy(upstream *snapshot.UpstreamWrap
 			tls.SimpleTLS = ptr.To(upstream.Spec.GetSslConfig().GetOneWayTls().GetValue())
 		}
 		if upstream.Spec.GetSslConfig().GetVerifySubjectAltName() != nil {
-			tls.VerifySubjectAltName = upstream.Spec.GetSslConfig().GetVerifySubjectAltName()
+			tls.VerifySubjectAltNames = upstream.Spec.GetSslConfig().GetVerifySubjectAltName()
 		}
 
 		backendConfig.Spec.TLS = &tls
@@ -255,14 +256,14 @@ func (g *GatewayAPIOutput) convertUpstreamPolicy(upstream *snapshot.UpstreamWrap
 	}
 	if upstream.Spec.GetConnectionConfig() != nil {
 		if upstream.Spec.GetConnectionConfig().GetPerConnectionBufferLimitBytes() != nil {
-			backendConfig.Spec.PerConnectionBufferLimitBytes = ptr.To(int(upstream.Spec.GetConnectionConfig().GetPerConnectionBufferLimitBytes().GetValue()))
+			backendConfig.Spec.PerConnectionBufferLimitBytes = ptr.To(int32(upstream.Spec.GetConnectionConfig().GetPerConnectionBufferLimitBytes().GetValue()))
 		}
 		if upstream.Spec.GetConnectionConfig().GetConnectTimeout() != nil {
 			backendConfig.Spec.ConnectTimeout = ptr.To(metav1.Duration{Duration: upstream.Spec.GetConnectionConfig().GetConnectTimeout().AsDuration()})
 		}
 		if upstream.Spec.GetConnectionConfig().GetTcpKeepalive() != nil {
 			keepAlive := &kgateway.TCPKeepalive{
-				KeepAliveProbes:   ptr.To(int(upstream.Spec.GetConnectionConfig().GetTcpKeepalive().GetKeepaliveProbes())),
+				KeepAliveProbes:   ptr.To(int32(upstream.Spec.GetConnectionConfig().GetTcpKeepalive().GetKeepaliveProbes())),
 				KeepAliveTime:     nil, // existing
 				KeepAliveInterval: nil, // existing
 			}
@@ -291,13 +292,13 @@ func (g *GatewayAPIOutput) convertUpstreamPolicy(upstream *snapshot.UpstreamWrap
 				options.MaxStreamDuration = ptr.To(metav1.Duration{Duration: upstream.Spec.GetConnectionConfig().GetCommonHttpProtocolOptions().GetMaxStreamDuration().AsDuration()})
 			}
 			if upstream.Spec.GetConnectionConfig().GetCommonHttpProtocolOptions().GetMaxHeadersCount() > 0 {
-				options.MaxHeadersCount = ptr.To(int(upstream.Spec.GetConnectionConfig().GetCommonHttpProtocolOptions().GetMaxHeadersCount()))
+				options.MaxHeadersCount = ptr.To(int32(upstream.Spec.GetConnectionConfig().GetCommonHttpProtocolOptions().GetMaxHeadersCount()))
 			}
 			if upstream.Spec.GetConnectionConfig().GetCommonHttpProtocolOptions().GetHeadersWithUnderscoresAction() > 0 {
 				g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, upstream, "commonHTTPProtocolOptions.headersWithUndercoresAction is not supported")
 			}
 			if upstream.Spec.GetConnectionConfig().GetMaxRequestsPerConnection() > 0 {
-				options.MaxRequestsPerConnection = ptr.To(int(upstream.Spec.GetConnectionConfig().GetMaxRequestsPerConnection()))
+				options.MaxRequestsPerConnection = ptr.To(int32(upstream.Spec.GetConnectionConfig().GetMaxRequestsPerConnection()))
 			}
 			backendConfig.Spec.CommonHttpProtocolOptions = options
 			configExists = true
@@ -346,10 +347,10 @@ func (g *GatewayAPIOutput) convertUpstreamPolicy(upstream *snapshot.UpstreamWrap
 					healthCheck.Interval = ptr.To(metav1.Duration{Duration: hc.GetInterval().AsDuration()})
 				}
 				if hc.GetUnhealthyThreshold() != nil {
-					healthCheck.UnhealthyThreshold = ptr.To(hc.GetUnhealthyThreshold().GetValue())
+					healthCheck.UnhealthyThreshold = ptr.To(int32(hc.GetUnhealthyThreshold().GetValue()))
 				}
 				if hc.GetHealthyThreshold() != nil {
-					healthCheck.HealthyThreshold = ptr.To(hc.GetHealthyThreshold().GetValue())
+					healthCheck.HealthyThreshold = ptr.To(int32(hc.GetHealthyThreshold().GetValue()))
 				}
 				if hc.GetHttpHealthCheck() != nil {
 					http := &kgateway.HealthCheckHttp{
