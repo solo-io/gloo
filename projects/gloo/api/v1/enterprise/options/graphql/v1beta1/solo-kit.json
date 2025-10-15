@@ -3,5 +3,12 @@
   "version": "v1beta1",
   "gen_kube_types": false,
   "gen_kube_validation_schemas": true,
-  "resource_groups": {}
+  "resource_groups": {
+    "enterprise.gloo.solo.io": [
+      {
+        "name": "GraphQLApi",
+        "package": "graphql.gloo.solo.io"
+      }
+    ]
+  }
 }

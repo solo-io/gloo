@@ -24,9 +24,9 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
 type FieldNode struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -61,9 +61,16 @@ func (*FieldNode) Descriptor() ([]byte, []int) {
 	return file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_stitching_proto_rawDescGZIP(), []int{0}
 }
 
-// DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
+func (x *FieldNode) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
 type FieldNodeMap struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
+	Nodes         map[string]*FieldNodes `protobuf:"bytes,1,rep,name=nodes,proto3" json:"nodes,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -98,9 +105,16 @@ func (*FieldNodeMap) Descriptor() ([]byte, []int) {
 	return file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_stitching_proto_rawDescGZIP(), []int{1}
 }
 
-// DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
+func (x *FieldNodeMap) GetNodes() map[string]*FieldNodes {
+	if x != nil {
+		return x.Nodes
+	}
+	return nil
+}
+
 type FieldNodes struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
+	FieldNodes    []*FieldNode           `protobuf:"bytes,1,rep,name=field_nodes,json=fieldNodes,proto3" json:"field_nodes,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -135,9 +149,17 @@ func (*FieldNodes) Descriptor() ([]byte, []int) {
 	return file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_stitching_proto_rawDescGZIP(), []int{2}
 }
 
-// DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
+func (x *FieldNodes) GetFieldNodes() []*FieldNode {
+	if x != nil {
+		return x.FieldNodes
+	}
+	return nil
+}
+
 type ResolverConfig struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
+	SelectionSet  string                 `protobuf:"bytes,1,opt,name=selection_set,json=selectionSet,proto3" json:"selection_set,omitempty"`
+	FieldName     string                 `protobuf:"bytes,2,opt,name=field_name,json=fieldName,proto3" json:"field_name,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -172,9 +194,23 @@ func (*ResolverConfig) Descriptor() ([]byte, []int) {
 	return file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_stitching_proto_rawDescGZIP(), []int{3}
 }
 
-// DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
+func (x *ResolverConfig) GetSelectionSet() string {
+	if x != nil {
+		return x.SelectionSet
+	}
+	return ""
+}
+
+func (x *ResolverConfig) GetFieldName() string {
+	if x != nil {
+		return x.FieldName
+	}
+	return ""
+}
+
 type Schemas struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
+	Schemas       []string               `protobuf:"bytes,1,rep,name=schemas,proto3" json:"schemas,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -209,11 +245,21 @@ func (*Schemas) Descriptor() ([]byte, []int) {
 	return file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_stitching_proto_rawDescGZIP(), []int{4}
 }
 
-// DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
+func (x *Schemas) GetSchemas() []string {
+	if x != nil {
+		return x.Schemas
+	}
+	return nil
+}
+
 type ArgPath struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Setter Path
+	SetterPath []string `protobuf:"bytes,1,rep,name=setter_path,json=setterPath,proto3" json:"setter_path,omitempty"`
+	// Extraction path
+	ExtractionPath []string `protobuf:"bytes,2,rep,name=extraction_path,json=extractionPath,proto3" json:"extraction_path,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *ArgPath) Reset() {
@@ -246,9 +292,24 @@ func (*ArgPath) Descriptor() ([]byte, []int) {
 	return file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_stitching_proto_rawDescGZIP(), []int{5}
 }
 
-// DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
+func (x *ArgPath) GetSetterPath() []string {
+	if x != nil {
+		return x.SetterPath
+	}
+	return nil
+}
+
+func (x *ArgPath) GetExtractionPath() []string {
+	if x != nil {
+		return x.ExtractionPath
+	}
+	return nil
+}
+
 type ResolverInfo struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
+	FieldName     string                 `protobuf:"bytes,1,opt,name=field_name,json=fieldName,proto3" json:"field_name,omitempty"`
+	Args          []*ArgPath             `protobuf:"bytes,2,rep,name=args,proto3" json:"args,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -283,11 +344,34 @@ func (*ResolverInfo) Descriptor() ([]byte, []int) {
 	return file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_stitching_proto_rawDescGZIP(), []int{6}
 }
 
-// DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
+func (x *ResolverInfo) GetFieldName() string {
+	if x != nil {
+		return x.FieldName
+	}
+	return ""
+}
+
+func (x *ResolverInfo) GetArgs() []*ArgPath {
+	if x != nil {
+		return x.Args
+	}
+	return nil
+}
+
 type MergedTypeConfig struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state    protoimpl.MessageState `protogen:"open.v1"`
+	TypeName string                 `protobuf:"bytes,1,opt,name=type_name,json=typeName,proto3" json:"type_name,omitempty"`
+	// map of subschema name to selection set string
+	// e.g. name_subschema: '{ id }'
+	SelectionSets map[string]string `protobuf:"bytes,2,rep,name=selection_sets,json=selectionSets,proto3" json:"selection_sets,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	// field name -> scema name
+	UniqueFieldsToSubschemaName     map[string]string   `protobuf:"bytes,3,rep,name=unique_fields_to_subschema_name,json=uniqueFieldsToSubschemaName,proto3" json:"unique_fields_to_subschema_name,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	NonUniqueFieldsToSubschemaNames map[string]*Schemas `protobuf:"bytes,4,rep,name=non_unique_fields_to_subschema_names,json=nonUniqueFieldsToSubschemaNames,proto3" json:"non_unique_fields_to_subschema_names,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	// schema -> subschemas
+	DeclarativeTargetSubschemas map[string]*Schemas      `protobuf:"bytes,5,rep,name=declarative_target_subschemas,json=declarativeTargetSubschemas,proto3" json:"declarative_target_subschemas,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	SubschemaNameToResolverInfo map[string]*ResolverInfo `protobuf:"bytes,6,rep,name=subschema_name_to_resolver_info,json=subschemaNameToResolverInfo,proto3" json:"subschema_name_to_resolver_info,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	unknownFields               protoimpl.UnknownFields
+	sizeCache                   protoimpl.SizeCache
 }
 
 func (x *MergedTypeConfig) Reset() {
@@ -320,11 +404,57 @@ func (*MergedTypeConfig) Descriptor() ([]byte, []int) {
 	return file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_stitching_proto_rawDescGZIP(), []int{7}
 }
 
-// DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
+func (x *MergedTypeConfig) GetTypeName() string {
+	if x != nil {
+		return x.TypeName
+	}
+	return ""
+}
+
+func (x *MergedTypeConfig) GetSelectionSets() map[string]string {
+	if x != nil {
+		return x.SelectionSets
+	}
+	return nil
+}
+
+func (x *MergedTypeConfig) GetUniqueFieldsToSubschemaName() map[string]string {
+	if x != nil {
+		return x.UniqueFieldsToSubschemaName
+	}
+	return nil
+}
+
+func (x *MergedTypeConfig) GetNonUniqueFieldsToSubschemaNames() map[string]*Schemas {
+	if x != nil {
+		return x.NonUniqueFieldsToSubschemaNames
+	}
+	return nil
+}
+
+func (x *MergedTypeConfig) GetDeclarativeTargetSubschemas() map[string]*Schemas {
+	if x != nil {
+		return x.DeclarativeTargetSubschemas
+	}
+	return nil
+}
+
+func (x *MergedTypeConfig) GetSubschemaNameToResolverInfo() map[string]*ResolverInfo {
+	if x != nil {
+		return x.SubschemaNameToResolverInfo
+	}
+	return nil
+}
+
+// Data plane stitching info extension message
 type StitchingInfo struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                          protoimpl.MessageState                    `protogen:"open.v1"`
+	FieldNodesByType               map[string]*FieldNodes                    `protobuf:"bytes,1,rep,name=field_nodes_by_type,json=fieldNodesByType,proto3" json:"field_nodes_by_type,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	FieldNodesByField              map[string]*FieldNodeMap                  `protobuf:"bytes,2,rep,name=field_nodes_by_field,json=fieldNodesByField,proto3" json:"field_nodes_by_field,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	MergedTypes                    map[string]*MergedTypeConfig              `protobuf:"bytes,3,rep,name=merged_types,json=mergedTypes,proto3" json:"merged_types,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	SubschemaNameToSubschemaConfig map[string]*StitchingInfo_SubschemaConfig `protobuf:"bytes,4,rep,name=subschema_name_to_subschema_config,json=subschemaNameToSubschemaConfig,proto3" json:"subschema_name_to_subschema_config,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	unknownFields                  protoimpl.UnknownFields
+	sizeCache                      protoimpl.SizeCache
 }
 
 func (x *StitchingInfo) Reset() {
@@ -357,9 +487,40 @@ func (*StitchingInfo) Descriptor() ([]byte, []int) {
 	return file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_stitching_proto_rawDescGZIP(), []int{8}
 }
 
-// DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
+func (x *StitchingInfo) GetFieldNodesByType() map[string]*FieldNodes {
+	if x != nil {
+		return x.FieldNodesByType
+	}
+	return nil
+}
+
+func (x *StitchingInfo) GetFieldNodesByField() map[string]*FieldNodeMap {
+	if x != nil {
+		return x.FieldNodesByField
+	}
+	return nil
+}
+
+func (x *StitchingInfo) GetMergedTypes() map[string]*MergedTypeConfig {
+	if x != nil {
+		return x.MergedTypes
+	}
+	return nil
+}
+
+func (x *StitchingInfo) GetSubschemaNameToSubschemaConfig() map[string]*StitchingInfo_SubschemaConfig {
+	if x != nil {
+		return x.SubschemaNameToSubschemaConfig
+	}
+	return nil
+}
+
+// Config for the stitching resolver
 type StitchingResolver struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Each query field comes from a specific subschema,
+	// this is the name of the subschema that the query field comes from.
+	SubschemaName string `protobuf:"bytes,1,opt,name=subschema_name,json=subschemaName,proto3" json:"subschema_name,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -394,16 +555,23 @@ func (*StitchingResolver) Descriptor() ([]byte, []int) {
 	return file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_stitching_proto_rawDescGZIP(), []int{9}
 }
 
-// DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
+func (x *StitchingResolver) GetSubschemaName() string {
+	if x != nil {
+		return x.SubschemaName
+	}
+	return ""
+}
+
 type StitchingInfo_SubschemaConfig struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	ExecutableSchema *ExecutableSchema      `protobuf:"bytes,1,opt,name=executable_schema,json=executableSchema,proto3" json:"executable_schema,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *StitchingInfo_SubschemaConfig) Reset() {
 	*x = StitchingInfo_SubschemaConfig{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_stitching_proto_msgTypes[10]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_stitching_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -415,7 +583,7 @@ func (x *StitchingInfo_SubschemaConfig) String() string {
 func (*StitchingInfo_SubschemaConfig) ProtoMessage() {}
 
 func (x *StitchingInfo_SubschemaConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_stitching_proto_msgTypes[10]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_stitching_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -431,25 +599,88 @@ func (*StitchingInfo_SubschemaConfig) Descriptor() ([]byte, []int) {
 	return file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_stitching_proto_rawDescGZIP(), []int{8, 0}
 }
 
+func (x *StitchingInfo_SubschemaConfig) GetExecutableSchema() *ExecutableSchema {
+	if x != nil {
+		return x.ExecutableSchema
+	}
+	return nil
+}
+
 var File_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_stitching_proto protoreflect.FileDescriptor
 
 const file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_stitching_proto_rawDesc = "" +
 	"\n" +
-	"[github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/graphql/stitching.proto\x12\"envoy.config.resolver.stitching.v2\x1a\x19google/protobuf/any.proto\x1a\x17validate/validate.proto\x1aYgithub.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/graphql/graphql.proto\"\x17\n" +
-	"\tFieldNodeJ\x04\b\x01\x10\x02R\x04name\"\x1b\n" +
-	"\fFieldNodeMapJ\x04\b\x01\x10\x02R\x05nodes\"\x1f\n" +
+	"[github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/graphql/stitching.proto\x12\"envoy.config.resolver.stitching.v2\x1a\x19google/protobuf/any.proto\x1a\x17validate/validate.proto\x1aYgithub.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/graphql/graphql.proto\"\x1f\n" +
+	"\tFieldNode\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\"\xcb\x01\n" +
+	"\fFieldNodeMap\x12Q\n" +
+	"\x05nodes\x18\x01 \x03(\v2;.envoy.config.resolver.stitching.v2.FieldNodeMap.NodesEntryR\x05nodes\x1ah\n" +
 	"\n" +
-	"FieldNodesJ\x04\b\x01\x10\x02R\vfield_nodes\"7\n" +
-	"\x0eResolverConfigJ\x04\b\x01\x10\x02J\x04\b\x02\x10\x03R\rselection_setR\n" +
-	"field_name\"\x18\n" +
-	"\aSchemasJ\x04\b\x01\x10\x02R\aschemas\"3\n" +
-	"\aArgPathJ\x04\b\x01\x10\x02J\x04\b\x02\x10\x03R\vsetter_pathR\x0fextraction_path\",\n" +
-	"\fResolverInfoJ\x04\b\x01\x10\x02J\x04\b\x02\x10\x03R\n" +
-	"field_nameR\x04args\"\xd8\x01\n" +
-	"\x10MergedTypeConfigJ\x04\b\x01\x10\x02J\x04\b\x02\x10\x03J\x04\b\x03\x10\x04J\x04\b\x04\x10\x05J\x04\b\x05\x10\x06J\x04\b\x06\x10\aR\ttype_nameR\x0eselection_setsR\x1funique_fields_to_subschema_nameR$non_unique_fields_to_subschema_namesR\x1ddeclarative_target_subschemasR\x1fsubschema_name_to_resolver_info\"\xb0\x01\n" +
-	"\rStitchingInfo\x1a*\n" +
-	"\x0fSubschemaConfigJ\x04\b\x01\x10\x02R\x11executable_schemaJ\x04\b\x01\x10\x02J\x04\b\x02\x10\x03J\x04\b\x03\x10\x04J\x04\b\x04\x10\x05R\x13field_nodes_by_typeR\x14field_nodes_by_fieldR\fmerged_typesR\"subschema_name_to_subschema_config\")\n" +
-	"\x11StitchingResolverJ\x04\b\x01\x10\x02R\x0esubschema_nameB\xad\x01\n" +
+	"NodesEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12D\n" +
+	"\x05value\x18\x02 \x01(\v2..envoy.config.resolver.stitching.v2.FieldNodesR\x05value:\x028\x01\"\\\n" +
+	"\n" +
+	"FieldNodes\x12N\n" +
+	"\vfield_nodes\x18\x01 \x03(\v2-.envoy.config.resolver.stitching.v2.FieldNodeR\n" +
+	"fieldNodes\"T\n" +
+	"\x0eResolverConfig\x12#\n" +
+	"\rselection_set\x18\x01 \x01(\tR\fselectionSet\x12\x1d\n" +
+	"\n" +
+	"field_name\x18\x02 \x01(\tR\tfieldName\"#\n" +
+	"\aSchemas\x12\x18\n" +
+	"\aschemas\x18\x01 \x03(\tR\aschemas\"S\n" +
+	"\aArgPath\x12\x1f\n" +
+	"\vsetter_path\x18\x01 \x03(\tR\n" +
+	"setterPath\x12'\n" +
+	"\x0fextraction_path\x18\x02 \x03(\tR\x0eextractionPath\"n\n" +
+	"\fResolverInfo\x12\x1d\n" +
+	"\n" +
+	"field_name\x18\x01 \x01(\tR\tfieldName\x12?\n" +
+	"\x04args\x18\x02 \x03(\v2+.envoy.config.resolver.stitching.v2.ArgPathR\x04args\"\xb5\n" +
+	"\n" +
+	"\x10MergedTypeConfig\x12\x1b\n" +
+	"\ttype_name\x18\x01 \x01(\tR\btypeName\x12n\n" +
+	"\x0eselection_sets\x18\x02 \x03(\v2G.envoy.config.resolver.stitching.v2.MergedTypeConfig.SelectionSetsEntryR\rselectionSets\x12\x9b\x01\n" +
+	"\x1funique_fields_to_subschema_name\x18\x03 \x03(\v2U.envoy.config.resolver.stitching.v2.MergedTypeConfig.UniqueFieldsToSubschemaNameEntryR\x1buniqueFieldsToSubschemaName\x12\xa8\x01\n" +
+	"$non_unique_fields_to_subschema_names\x18\x04 \x03(\v2Y.envoy.config.resolver.stitching.v2.MergedTypeConfig.NonUniqueFieldsToSubschemaNamesEntryR\x1fnonUniqueFieldsToSubschemaNames\x12\x99\x01\n" +
+	"\x1ddeclarative_target_subschemas\x18\x05 \x03(\v2U.envoy.config.resolver.stitching.v2.MergedTypeConfig.DeclarativeTargetSubschemasEntryR\x1bdeclarativeTargetSubschemas\x12\x9b\x01\n" +
+	"\x1fsubschema_name_to_resolver_info\x18\x06 \x03(\v2U.envoy.config.resolver.stitching.v2.MergedTypeConfig.SubschemaNameToResolverInfoEntryR\x1bsubschemaNameToResolverInfo\x1a@\n" +
+	"\x12SelectionSetsEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1aN\n" +
+	" UniqueFieldsToSubschemaNameEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a\x7f\n" +
+	"$NonUniqueFieldsToSubschemaNamesEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12A\n" +
+	"\x05value\x18\x02 \x01(\v2+.envoy.config.resolver.stitching.v2.SchemasR\x05value:\x028\x01\x1a{\n" +
+	" DeclarativeTargetSubschemasEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12A\n" +
+	"\x05value\x18\x02 \x01(\v2+.envoy.config.resolver.stitching.v2.SchemasR\x05value:\x028\x01\x1a\x80\x01\n" +
+	" SubschemaNameToResolverInfoEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12F\n" +
+	"\x05value\x18\x02 \x01(\v20.envoy.config.resolver.stitching.v2.ResolverInfoR\x05value:\x028\x01\"\xfe\b\n" +
+	"\rStitchingInfo\x12v\n" +
+	"\x13field_nodes_by_type\x18\x01 \x03(\v2G.envoy.config.resolver.stitching.v2.StitchingInfo.FieldNodesByTypeEntryR\x10fieldNodesByType\x12y\n" +
+	"\x14field_nodes_by_field\x18\x02 \x03(\v2H.envoy.config.resolver.stitching.v2.StitchingInfo.FieldNodesByFieldEntryR\x11fieldNodesByField\x12e\n" +
+	"\fmerged_types\x18\x03 \x03(\v2B.envoy.config.resolver.stitching.v2.StitchingInfo.MergedTypesEntryR\vmergedTypes\x12\xa1\x01\n" +
+	"\"subschema_name_to_subschema_config\x18\x04 \x03(\v2U.envoy.config.resolver.stitching.v2.StitchingInfo.SubschemaNameToSubschemaConfigEntryR\x1esubschemaNameToSubschemaConfig\x1au\n" +
+	"\x0fSubschemaConfig\x12b\n" +
+	"\x11executable_schema\x18\x01 \x01(\v25.envoy.config.filter.http.graphql.v2.ExecutableSchemaR\x10executableSchema\x1as\n" +
+	"\x15FieldNodesByTypeEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12D\n" +
+	"\x05value\x18\x02 \x01(\v2..envoy.config.resolver.stitching.v2.FieldNodesR\x05value:\x028\x01\x1av\n" +
+	"\x16FieldNodesByFieldEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12F\n" +
+	"\x05value\x18\x02 \x01(\v20.envoy.config.resolver.stitching.v2.FieldNodeMapR\x05value:\x028\x01\x1at\n" +
+	"\x10MergedTypesEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12J\n" +
+	"\x05value\x18\x02 \x01(\v24.envoy.config.resolver.stitching.v2.MergedTypeConfigR\x05value:\x028\x01\x1a\x94\x01\n" +
+	"#SubschemaNameToSubschemaConfigEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12W\n" +
+	"\x05value\x18\x02 \x01(\v2A.envoy.config.resolver.stitching.v2.StitchingInfo.SubschemaConfigR\x05value:\x028\x01\":\n" +
+	"\x11StitchingResolver\x12%\n" +
+	"\x0esubschema_name\x18\x01 \x01(\tR\rsubschemaNameB\xad\x01\n" +
 	"1io.envoyproxy.envoy.config.filter.http.graphql.v2B\x15GraphQLStitchingProtoP\x01Z_github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/filters/http/graphql/v2b\x06proto3"
 
 var (
@@ -464,7 +695,7 @@ func file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_gr
 	return file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_stitching_proto_rawDescData
 }
 
-var file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_stitching_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
+var file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_stitching_proto_msgTypes = make([]protoimpl.MessageInfo, 21)
 var file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_stitching_proto_goTypes = []any{
 	(*FieldNode)(nil),                     // 0: envoy.config.resolver.stitching.v2.FieldNode
 	(*FieldNodeMap)(nil),                  // 1: envoy.config.resolver.stitching.v2.FieldNodeMap
@@ -476,14 +707,46 @@ var file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_gra
 	(*MergedTypeConfig)(nil),              // 7: envoy.config.resolver.stitching.v2.MergedTypeConfig
 	(*StitchingInfo)(nil),                 // 8: envoy.config.resolver.stitching.v2.StitchingInfo
 	(*StitchingResolver)(nil),             // 9: envoy.config.resolver.stitching.v2.StitchingResolver
-	(*StitchingInfo_SubschemaConfig)(nil), // 10: envoy.config.resolver.stitching.v2.StitchingInfo.SubschemaConfig
+	nil,                                   // 10: envoy.config.resolver.stitching.v2.FieldNodeMap.NodesEntry
+	nil,                                   // 11: envoy.config.resolver.stitching.v2.MergedTypeConfig.SelectionSetsEntry
+	nil,                                   // 12: envoy.config.resolver.stitching.v2.MergedTypeConfig.UniqueFieldsToSubschemaNameEntry
+	nil,                                   // 13: envoy.config.resolver.stitching.v2.MergedTypeConfig.NonUniqueFieldsToSubschemaNamesEntry
+	nil,                                   // 14: envoy.config.resolver.stitching.v2.MergedTypeConfig.DeclarativeTargetSubschemasEntry
+	nil,                                   // 15: envoy.config.resolver.stitching.v2.MergedTypeConfig.SubschemaNameToResolverInfoEntry
+	(*StitchingInfo_SubschemaConfig)(nil), // 16: envoy.config.resolver.stitching.v2.StitchingInfo.SubschemaConfig
+	nil,                                   // 17: envoy.config.resolver.stitching.v2.StitchingInfo.FieldNodesByTypeEntry
+	nil,                                   // 18: envoy.config.resolver.stitching.v2.StitchingInfo.FieldNodesByFieldEntry
+	nil,                                   // 19: envoy.config.resolver.stitching.v2.StitchingInfo.MergedTypesEntry
+	nil,                                   // 20: envoy.config.resolver.stitching.v2.StitchingInfo.SubschemaNameToSubschemaConfigEntry
+	(*ExecutableSchema)(nil),              // 21: envoy.config.filter.http.graphql.v2.ExecutableSchema
 }
 var file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_stitching_proto_depIdxs = []int32{
-	0, // [0:0] is the sub-list for method output_type
-	0, // [0:0] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	10, // 0: envoy.config.resolver.stitching.v2.FieldNodeMap.nodes:type_name -> envoy.config.resolver.stitching.v2.FieldNodeMap.NodesEntry
+	0,  // 1: envoy.config.resolver.stitching.v2.FieldNodes.field_nodes:type_name -> envoy.config.resolver.stitching.v2.FieldNode
+	5,  // 2: envoy.config.resolver.stitching.v2.ResolverInfo.args:type_name -> envoy.config.resolver.stitching.v2.ArgPath
+	11, // 3: envoy.config.resolver.stitching.v2.MergedTypeConfig.selection_sets:type_name -> envoy.config.resolver.stitching.v2.MergedTypeConfig.SelectionSetsEntry
+	12, // 4: envoy.config.resolver.stitching.v2.MergedTypeConfig.unique_fields_to_subschema_name:type_name -> envoy.config.resolver.stitching.v2.MergedTypeConfig.UniqueFieldsToSubschemaNameEntry
+	13, // 5: envoy.config.resolver.stitching.v2.MergedTypeConfig.non_unique_fields_to_subschema_names:type_name -> envoy.config.resolver.stitching.v2.MergedTypeConfig.NonUniqueFieldsToSubschemaNamesEntry
+	14, // 6: envoy.config.resolver.stitching.v2.MergedTypeConfig.declarative_target_subschemas:type_name -> envoy.config.resolver.stitching.v2.MergedTypeConfig.DeclarativeTargetSubschemasEntry
+	15, // 7: envoy.config.resolver.stitching.v2.MergedTypeConfig.subschema_name_to_resolver_info:type_name -> envoy.config.resolver.stitching.v2.MergedTypeConfig.SubschemaNameToResolverInfoEntry
+	17, // 8: envoy.config.resolver.stitching.v2.StitchingInfo.field_nodes_by_type:type_name -> envoy.config.resolver.stitching.v2.StitchingInfo.FieldNodesByTypeEntry
+	18, // 9: envoy.config.resolver.stitching.v2.StitchingInfo.field_nodes_by_field:type_name -> envoy.config.resolver.stitching.v2.StitchingInfo.FieldNodesByFieldEntry
+	19, // 10: envoy.config.resolver.stitching.v2.StitchingInfo.merged_types:type_name -> envoy.config.resolver.stitching.v2.StitchingInfo.MergedTypesEntry
+	20, // 11: envoy.config.resolver.stitching.v2.StitchingInfo.subschema_name_to_subschema_config:type_name -> envoy.config.resolver.stitching.v2.StitchingInfo.SubschemaNameToSubschemaConfigEntry
+	2,  // 12: envoy.config.resolver.stitching.v2.FieldNodeMap.NodesEntry.value:type_name -> envoy.config.resolver.stitching.v2.FieldNodes
+	4,  // 13: envoy.config.resolver.stitching.v2.MergedTypeConfig.NonUniqueFieldsToSubschemaNamesEntry.value:type_name -> envoy.config.resolver.stitching.v2.Schemas
+	4,  // 14: envoy.config.resolver.stitching.v2.MergedTypeConfig.DeclarativeTargetSubschemasEntry.value:type_name -> envoy.config.resolver.stitching.v2.Schemas
+	6,  // 15: envoy.config.resolver.stitching.v2.MergedTypeConfig.SubschemaNameToResolverInfoEntry.value:type_name -> envoy.config.resolver.stitching.v2.ResolverInfo
+	21, // 16: envoy.config.resolver.stitching.v2.StitchingInfo.SubschemaConfig.executable_schema:type_name -> envoy.config.filter.http.graphql.v2.ExecutableSchema
+	2,  // 17: envoy.config.resolver.stitching.v2.StitchingInfo.FieldNodesByTypeEntry.value:type_name -> envoy.config.resolver.stitching.v2.FieldNodes
+	1,  // 18: envoy.config.resolver.stitching.v2.StitchingInfo.FieldNodesByFieldEntry.value:type_name -> envoy.config.resolver.stitching.v2.FieldNodeMap
+	7,  // 19: envoy.config.resolver.stitching.v2.StitchingInfo.MergedTypesEntry.value:type_name -> envoy.config.resolver.stitching.v2.MergedTypeConfig
+	16, // 20: envoy.config.resolver.stitching.v2.StitchingInfo.SubschemaNameToSubschemaConfigEntry.value:type_name -> envoy.config.resolver.stitching.v2.StitchingInfo.SubschemaConfig
+	21, // [21:21] is the sub-list for method output_type
+	21, // [21:21] is the sub-list for method input_type
+	21, // [21:21] is the sub-list for extension type_name
+	21, // [21:21] is the sub-list for extension extendee
+	0,  // [0:21] is the sub-list for field type_name
 }
 
 func init() {
@@ -500,7 +763,7 @@ func file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_gr
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_stitching_proto_rawDesc), len(file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_stitching_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   11,
+			NumMessages:   21,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

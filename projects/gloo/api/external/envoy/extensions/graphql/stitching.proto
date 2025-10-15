@@ -18,69 +18,68 @@ import "github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/grap
 // -------------- Stitching Data plane API ----------
 // this is the proto that the stitching data plane will consume
 
-// DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
 message FieldNode {
-  reserved 1;
-  reserved "name";
+  string name = 1;
 }
 
-// DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
 message FieldNodeMap {
-  reserved 1;
-  reserved "nodes";
+  map<string,FieldNodes> nodes = 1;
 }
 
-// DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
 message FieldNodes {
-  reserved 1;
-  reserved "field_nodes";
+  repeated FieldNode field_nodes = 1;
 }
 
-// DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
 message ResolverConfig {
-  reserved 1, 2;
-  reserved "selection_set", "field_name";
+  string selection_set = 1;
+  string field_name = 2;
 }
 
-// DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
 message Schemas {
-  reserved 1;
-  reserved "schemas";
+  repeated string schemas = 1;
 }
 
-// DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
 message ArgPath {
-  reserved 1, 2;
-  reserved "setter_path", "extraction_path";
+  // Setter Path
+  repeated string setter_path = 1;
+  // Extraction path
+  repeated string extraction_path = 2;
 }
 
-// DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
 message ResolverInfo {
-  reserved 1, 2;
-  reserved "field_name", "args";
+  string field_name = 1;
+  repeated ArgPath args = 2;
 }
 
-// DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
 message MergedTypeConfig {
-  reserved 1, 2, 3, 4, 5, 6;
-  reserved "type_name", "selection_sets", "unique_fields_to_subschema_name", "non_unique_fields_to_subschema_names", "declarative_target_subschemas", "subschema_name_to_resolver_info";
+  string type_name = 1;
+  // map of subschema name to selection set string
+  // e.g. name_subschema: '{ id }'
+  map<string, string> selection_sets = 2;
+  // field name -> scema name
+  map<string, string> unique_fields_to_subschema_name = 3;
+  map<string, Schemas> non_unique_fields_to_subschema_names = 4;
+  // schema -> subschemas
+  map<string, Schemas> declarative_target_subschemas = 5;
+  map<string, ResolverInfo> subschema_name_to_resolver_info = 6;
 }
 
-// DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
+// Data plane stitching info extension message
 message StitchingInfo {
-  // DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
   message SubschemaConfig {
-    reserved 1;
-    reserved "executable_schema";
+    envoy.config.filter.http.graphql.v2.ExecutableSchema executable_schema = 1;
   }
 
-  reserved 1, 2, 3, 4;
-  reserved "field_nodes_by_type", "field_nodes_by_field", "merged_types", "subschema_name_to_subschema_config";
+  map<string, FieldNodes> field_nodes_by_type = 1;
+  map<string, FieldNodeMap> field_nodes_by_field = 2;
+  map<string, MergedTypeConfig> merged_types = 3;
+  map<string, SubschemaConfig> subschema_name_to_subschema_config = 4;
 }
 
-// DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
+// Config for the stitching resolver
 message StitchingResolver {
-  reserved 1;
-  reserved "subschema_name";
+  // Each query field comes from a specific subschema,
+  // this is the name of the subschema that the query field comes from.
+  string subschema_name = 1;
 }
 
