@@ -29,7 +29,7 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// Deprecated: The GraphQL feature of Gloo Gateway will be removed in a future release.
+// DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent breaking upgrades and to prevent future use of these names and fields
 // Defines a configuration for generating outgoing requests for a resolver.
 type RequestTemplate struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -114,7 +114,7 @@ func (x *RequestTemplate) GetBody() *structpb.Value {
 	return nil
 }
 
-// Deprecated: The GraphQL feature of Gloo Gateway will be removed in a future release.
+// DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent breaking upgrades and to prevent future use of these names and fields
 type ResponseTemplate struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Sets the "root" of the upstream response to be turned into a graphql type by the graphql server.
@@ -200,7 +200,7 @@ func (x *ResponseTemplate) GetSetters() map[string]string {
 	return nil
 }
 
-// Deprecated: The GraphQL feature of Gloo Gateway will be removed in a future release.
+// DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent breaking upgrades and to prevent future use of these names and fields
 // Defines a configuration for generating outgoing requests for a resolver.
 type GrpcRequestTemplate struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -277,7 +277,7 @@ func (x *GrpcRequestTemplate) GetRequestMetadata() map[string]string {
 	return nil
 }
 
-// Deprecated: The GraphQL feature of Gloo Gateway will be removed in a future release.
+// DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent breaking upgrades and to prevent future use of these names and fields
 // control-plane API
 type RESTResolver struct {
 	state       protoimpl.MessageState `protogen:"open.v1"`
@@ -360,7 +360,7 @@ func (x *RESTResolver) GetTimeout() *durationpb.Duration {
 	return nil
 }
 
-// Deprecated: The GraphQL feature of Gloo Gateway will be removed in a future release.
+// DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent breaking upgrades and to prevent future use of these names and fields
 // Defines a configuration for serializing and deserializing requests for a gRPC resolver.
 // Is a Schema Extension
 type GrpcDescriptorRegistry struct {
@@ -544,7 +544,7 @@ func (x *GrpcResolver) GetTimeout() *durationpb.Duration {
 	return nil
 }
 
-// Deprecated: The GraphQL feature of Gloo Gateway will be removed in a future release.
+// DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent breaking upgrades and to prevent future use of these names and fields
 type StitchedSchema struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// List of GraphQLApis that compose this stitched GraphQL schema.
@@ -590,7 +590,7 @@ func (x *StitchedSchema) GetSubschemas() []*StitchedSchema_SubschemaConfig {
 	return nil
 }
 
-// Deprecated: The GraphQL feature of Gloo Gateway will be removed in a future release.
+// DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent breaking upgrades and to prevent future use of these names and fields
 type MockResolver struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Types that are valid to be assigned to Response:
@@ -692,7 +692,7 @@ func (*MockResolver_AsyncResponse_) isMockResolver_Response() {}
 
 func (*MockResolver_ErrorResponse) isMockResolver_Response() {}
 
-// Deprecated: The GraphQL feature of Gloo Gateway will be removed in a future release.
+// DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent breaking upgrades and to prevent future use of these names and fields
 // Define a named resolver which can be then matched to a field using the `resolve` directive.
 // if a field does not have resolver, the default resolver will be used.
 // the default resolver takes the field with the same name from the parent, and uses that value
@@ -965,7 +965,7 @@ func (*GraphQLApi_ExecutableSchema) isGraphQLApi_Schema() {}
 
 func (*GraphQLApi_StitchedSchema) isGraphQLApi_Schema() {}
 
-// Deprecated: The GraphQL feature of Gloo Gateway will be removed in a future release.
+// DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent breaking upgrades and to prevent future use of these names and fields
 // This message specifies Persisted Query Cache configuration.
 type PersistedQueryCacheConfig struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -1012,7 +1012,7 @@ func (x *PersistedQueryCacheConfig) GetCacheSize() uint32 {
 	return 0
 }
 
-// Deprecated: The GraphQL feature of Gloo Gateway will be removed in a future release.
+// DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent breaking upgrades and to prevent future use of these names and fields
 type ExecutableSchema struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// The following directives are supported:
@@ -1095,7 +1095,7 @@ func (x *ExecutableSchema) GetGrpcDescriptorRegistry() *GrpcDescriptorRegistry {
 	return nil
 }
 
-// Deprecated: The GraphQL feature of Gloo Gateway will be removed in a future release.
+// DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent breaking upgrades and to prevent future use of these names and fields
 type Executor struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Types that are valid to be assigned to Executor:
