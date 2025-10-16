@@ -23,6 +23,7 @@ var (
 	CommonCRDCategory     = "gloo-gateway"
 
 	enterpriseCRDs = []string{
+		"graphqlapis.graphql.gloo.solo.io",
 		"authconfigs.enterprise.gloo.solo.io",
 		"ratelimitconfigs.ratelimit.solo.io",
 	}

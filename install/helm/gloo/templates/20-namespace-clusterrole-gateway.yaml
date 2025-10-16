@@ -116,6 +116,17 @@ rules:
   - watch
   - patch # needed for status updates for skv1
   - update # needed for status updates for skv2
+- apiGroups:
+  - graphql.gloo.solo.io
+  resources:
+  - graphqlapis
+  - graphqlapis/status
+  verbs:
+  - get
+  - list
+  - watch
+  - patch # needed for status updates for skv1
+  - update # needed for status updates for skv2
 ---
 kind: {{ include "gloo.roleKind" . }}
 apiVersion: rbac.authorization.k8s.io/v1
@@ -188,6 +199,29 @@ rules:
   - list
   - watch
   - patch # needed for status updates
-
+---
+kind: {{ include "gloo.roleKind" . }}
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: gloo-graphqlapi-mutator{{ include "gloo.rbacNameSuffix" . }}
+  {{- if .Values.global.glooRbac.namespaced }}
+  namespace: {{ .Release.Namespace }}
+  {{- end }}
+  labels:
+{{ include "gloo.labels" . | indent 4}}
+    gloo: rbac
+rules:
+- apiGroups:
+  - graphql.gloo.solo.io
+  resources:
+  - graphqlapis
+  - graphqlapis/status
+  verbs:
+  - get
+  - list
+  - watch
+  - update
+  - patch
+  - create
 {{- end -}}
 {{- end -}}

@@ -10,5 +10,5 @@ spec:
         routeAction:
           single:
             upstream:
-              name: postman-echo
+              name: http-echo-upstream
               namespace: random
