@@ -86,6 +86,11 @@ func (i *Instance) parseObjects(item unstructured.Unstructured, fileName string)
 		return err
 	}
 
+	if item.GetObjectKind().GroupVersionKind().Kind == "Settings" {
+		delete(item.Object["spec"].(map[string]interface{}), "consoleOptions")
+		delete(item.Object["spec"].(map[string]interface{}), "graphqlOptions")
+	}
+
 	if err := runtime.DefaultUnstructuredConverter.FromUnstructured(item.Object, obj); err != nil {
 		return fmt.Errorf("error converting unstructured to typed: %v", err)
 	}

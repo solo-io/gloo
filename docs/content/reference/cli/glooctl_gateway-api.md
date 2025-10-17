@@ -32,5 +32,5 @@ Gateway API specific commands
 ### SEE ALSO
 
 * [glooctl](../glooctl)	 - CLI for Gloo
-* [glooctl gateway-api convert](../glooctl_gateway-api_convert)	 - Convert Gloo Edge APIs to Gateway API
+* [glooctl gateway-api migrate](../glooctl_gateway-api_migrate)	 - Migrate Gloo Edge APIs to Gateway API
 

@@ -452,11 +452,11 @@ func (g *GatewayAPIOutput) convertVHOOptionsToTrafficPolicySpec(vho *gloov1.Virt
 				}
 				for _, action := range rl.GetActions() {
 					rateLimitAction := g.convertRateLimitAction(action)
-					rateLimit.Actions = append(rateLimit.Actions, rateLimitAction)
+					rateLimit.Actions = append(rateLimit.GetActions(), rateLimitAction)
 				}
 				for _, action := range rl.GetSetActions() {
 					rateLimitAction := g.convertRateLimitAction(action)
-					rateLimit.SetActions = append(rateLimit.SetActions, rateLimitAction)
+					rateLimit.SetActions = append(rateLimit.GetSetActions(), rateLimitAction)
 				}
 				if rl.GetLimit() != nil {
 					g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "rateLimit action limit is not supported")
@@ -517,11 +517,11 @@ func (g *GatewayAPIOutput) convertVHOOptionsToTrafficPolicySpec(vho *gloov1.Virt
 				}
 				for _, action := range rl.GetActions() {
 					rateLimitAction := g.convertRateLimitAction(action)
-					rateLimit.Actions = append(rateLimit.Actions, rateLimitAction)
+					rateLimit.Actions = append(rateLimit.GetActions(), rateLimitAction)
 				}
 				for _, action := range rl.GetSetActions() {
 					rateLimitAction := g.convertRateLimitAction(action)
-					rateLimit.SetActions = append(rateLimit.SetActions, rateLimitAction)
+					rateLimit.SetActions = append(rateLimit.GetSetActions(), rateLimitAction)
 				}
 				if rl.GetLimit() != nil {
 					g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "rateLimit action limit is not supported")

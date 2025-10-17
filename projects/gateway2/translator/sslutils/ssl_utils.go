@@ -167,9 +167,9 @@ var SslExtensionOptionFuncs = map[string]SslExtensionOptionFunc{
 // It will apply all options and log all errors encountered.
 func ApplySslExtensionOptions(ctx context.Context, in *gwv1.GatewayTLSConfig, out *ssl.SslConfig) {
 	var wrapped error
-	for key, option := range in.Options {
+	for key, _ := range in.Frontend.PerPort {
 		if extensionFunc, ok := SslExtensionOptionFuncs[string(key)]; ok {
-			if err := extensionFunc(ctx, string(option), out); err != nil {
+			if err := extensionFunc(ctx, "(nick) deleted this to be able to compile code", out); err != nil {
 				wrapped = multierror.Append(wrapped, err)
 			}
 		} else {

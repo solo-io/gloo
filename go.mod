@@ -98,13 +98,13 @@ require (
 	github.com/golang/mock v1.7.0-rc.1
 	github.com/google/go-cmp v0.7.0
 	github.com/google/uuid v1.6.0
-	github.com/kgateway-dev/kgateway/v2 v2.1.0
+	github.com/kgateway-dev/kgateway/v2 v2.1.0-rc.2
 	github.com/mccutchen/go-httpbin/v2 v2.15.0
 	github.com/prometheus/client_model v0.6.2
 	github.com/prometheus/common v0.66.1
 	github.com/quasilyte/go-ruleguard/dsl v0.3.22
 	github.com/solo-io/cue v0.4.7
-	github.com/solo-io/gloo-gateway v0.0.2-0.20251009205418-be891df61b7c
+	github.com/solo-io/gloo-gateway v0.0.0-00010101000000-000000000000
 	github.com/stoewer/go-strcase v1.3.1
 	github.com/stretchr/testify v1.11.1
 	go.opentelemetry.io/proto/otlp v1.7.1
@@ -388,6 +388,7 @@ replace (
 	github.com/pseudomuto/protoc-gen-doc => github.com/pseudomuto/protoc-gen-doc v1.0.0
 	// Required for proper serialization of CRDs
 	github.com/renstrom/dedent => github.com/lithammer/dedent v1.0.0
+	github.com/solo-io/gloo-gateway => github.com/solo-io/gloo-gateway v0.0.2-0.20251016212239-7a5b40d63313
 
 	// Pin Kube libraries to v0.34.1
 	// These should be upgraded collectively

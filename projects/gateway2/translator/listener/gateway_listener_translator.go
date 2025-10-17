@@ -10,7 +10,6 @@ import (
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"google.golang.org/protobuf/types/known/wrapperspb"
-	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
 	gwv1a2 "sigs.k8s.io/gateway-api/apis/v1alpha2"
@@ -160,9 +159,9 @@ func (ml *MergedListeners) appendHttpsListener(
 	mfc := httpsFilterChain{
 		gatewayListenerName: string(listener.Name),
 		sniDomain:           listener.Hostname,
-		tls:                 listener.TLS,
-		routesWithHosts:     routesWithHosts,
-		queries:             ml.Queries,
+		//tls:                 listener.TLS,
+		routesWithHosts: routesWithHosts,
+		queries:         ml.Queries,
 	}
 
 	// Perform the port transformation away from privileged ports only once to use
@@ -384,8 +383,8 @@ func (ml *MergedListeners) AppendTlsListener(
 	}
 
 	fc := tcpFilterChain{
-		parents:   []tcpFilterChainParent{parent},
-		tls:       listener.TLS,
+		parents: []tcpFilterChainParent{parent},
+		//tls:       listener.TLS,
 		sniDomain: listener.Hostname,
 	}
 	listenerName := generateListenerName(listener)
@@ -856,45 +855,45 @@ func translateSslConfig(
 	}
 
 	// TODO support passthrough mode
-	if tls.Mode == nil {
-		return nil, nil
-	}
-
-	var secretRef *core.ResourceRef
-	if *tls.Mode == gwv1.TLSModeTerminate {
-		for _, certRef := range tls.CertificateRefs {
-			// validate via query
-			secret, err := queries.GetSecretForRef(ctx, query.FromGkNs{
-				Gk: metav1.GroupKind{
-					Group: gwv1.GroupName,
-					Kind:  wellknown.GatewayKind,
-				},
-				Ns: parentNamespace,
-			}, certRef)
-			if err != nil {
-				return nil, err
-			}
-			// The resulting sslconfig will still have to go through a real translation where we run through this again.
-			// This means that while its nice to still fail early here we dont need to scrub the actual contents of the secret.
-			if _, err := sslutils.ValidateTlsSecret(secret.(*corev1.Secret)); err != nil {
-				return nil, err
-			}
-
-			// TODO verify secret ref / grant using query
-			secretNamespace := parentNamespace
-			if certRef.Namespace != nil {
-				secretNamespace = string(*certRef.Namespace)
-			}
-			secretRef = &core.ResourceRef{
-				Name:      string(certRef.Name),
-				Namespace: secretNamespace,
-			}
-			break // TODO support multiple certs
-		}
-		if secretRef == nil {
-			return nil, nil
-		}
-	}
+	//if tls.Mode == nil {
+	//	return nil, nil
+	//}
+	//
+	//var secretRef *core.ResourceRef
+	//if *tls.Mode == gwv1.TLSModeTerminate {
+	//	for _, certRef := range tls.CertificateRefs {
+	//		// validate via query
+	//		secret, err := queries.GetSecretForRef(ctx, query.FromGkNs{
+	//			Gk: metav1.GroupKind{
+	//				Group: gwv1.GroupName,
+	//				Kind:  wellknown.GatewayKind,
+	//			},
+	//			Ns: parentNamespace,
+	//		}, certRef)
+	//		if err != nil {
+	//			return nil, err
+	//		}
+	//		// The resulting sslconfig will still have to go through a real translation where we run through this again.
+	//		// This means that while its nice to still fail early here we dont need to scrub the actual contents of the secret.
+	//		if _, err := sslutils.ValidateTlsSecret(secret.(*corev1.Secret)); err != nil {
+	//			return nil, err
+	//		}
+	//
+	//		// TODO verify secret ref / grant using query
+	//		secretNamespace := parentNamespace
+	//		if certRef.Namespace != nil {
+	//			secretNamespace = string(*certRef.Namespace)
+	//		}
+	//		secretRef = &core.ResourceRef{
+	//			Name:      string(certRef.Name),
+	//			Namespace: secretNamespace,
+	//		}
+	//		break // TODO support multiple certs
+	//	}
+	//	if secretRef == nil {
+	//		return nil, nil
+	//	}
+	//}
 
 	var sniDomains []string
 	if sniDomain != nil {
@@ -911,9 +910,9 @@ func translateSslConfig(
 		TransportSocketConnectTimeout: nil,
 		OcspStaplePolicy:              0,
 	}
-	if secretRef != nil {
-		cfg.SslSecrets = &ssl.SslConfig_SecretRef{SecretRef: secretRef}
-	}
+	//if secretRef != nil {
+	//	cfg.SslSecrets = &ssl.SslConfig_SecretRef{SecretRef: secretRef}
+	//}
 
 	// Apply known SSL Extension options
 	sslutils.ApplySslExtensionOptions(ctx, tls, cfg)

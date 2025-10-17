@@ -509,16 +509,16 @@ func (g *GatewayAPIOutput) convertRouteOptions(
 			}
 			for _, action := range rl.GetActions() {
 				rateLimitAction := g.convertRateLimitAction(action)
-				rateLimit.Actions = append(rateLimit.Actions, rateLimitAction)
+				rateLimit.Actions = append(rateLimit.GetActions(), rateLimitAction)
 			}
 			for _, action := range rl.GetSetActions() {
 				rateLimitAction := g.convertRateLimitAction(action)
-				rateLimit.SetActions = append(rateLimit.SetActions, rateLimitAction)
+				rateLimit.SetActions = append(rateLimit.GetSetActions(), rateLimitAction)
 			}
 			if rl.GetLimit() != nil {
 				g.AddErrorFromWrapper(ERROR_TYPE_NOT_SUPPORTED, wrapper, "rateLimit action limit is not supported")
 			}
-			raw.Raw.RateLimits = append(raw.Raw.RateLimits, rateLimit)
+			raw.Raw.RateLimits = append(raw.Raw.GetRateLimits(), rateLimit)
 		}
 		rlc.Spec = glooratelimit.RateLimitConfigSpec{
 			ConfigType: raw,
@@ -794,35 +794,35 @@ func (g *GatewayAPIOutput) convertRateLimitAction(action *v1alpha2.Action) *gloo
 				//})
 			}
 			if header.GetExactMatch() != "" {
-				hvm.Headers = append(hvm.Headers, &glooratelimit.Action_HeaderValueMatch_HeaderMatcher{
+				hvm.Headers = append(hvm.GetHeaders(), &glooratelimit.Action_HeaderValueMatch_HeaderMatcher{
 					Name:                 header.GetName(),
 					HeaderMatchSpecifier: &glooratelimit.Action_HeaderValueMatch_HeaderMatcher_ExactMatch{ExactMatch: header.GetExactMatch()},
 					InvertMatch:          header.GetInvertMatch(),
 				})
 			}
 			if header.GetRegexMatch() != "" {
-				hvm.Headers = append(hvm.Headers, &glooratelimit.Action_HeaderValueMatch_HeaderMatcher{
+				hvm.Headers = append(hvm.GetHeaders(), &glooratelimit.Action_HeaderValueMatch_HeaderMatcher{
 					Name:                 header.GetName(),
 					HeaderMatchSpecifier: &glooratelimit.Action_HeaderValueMatch_HeaderMatcher_RegexMatch{RegexMatch: header.GetRegexMatch()},
 					InvertMatch:          header.GetInvertMatch(),
 				})
 			}
 			if header.GetPresentMatch() == true {
-				hvm.Headers = append(hvm.Headers, &glooratelimit.Action_HeaderValueMatch_HeaderMatcher{
+				hvm.Headers = append(hvm.GetHeaders(), &glooratelimit.Action_HeaderValueMatch_HeaderMatcher{
 					Name:                 header.GetName(),
 					HeaderMatchSpecifier: &glooratelimit.Action_HeaderValueMatch_HeaderMatcher_PresentMatch{PresentMatch: header.GetPresentMatch()},
 					InvertMatch:          header.GetInvertMatch(),
 				})
 			}
 			if header.GetPrefixMatch() != "" {
-				hvm.Headers = append(hvm.Headers, &glooratelimit.Action_HeaderValueMatch_HeaderMatcher{
+				hvm.Headers = append(hvm.GetHeaders(), &glooratelimit.Action_HeaderValueMatch_HeaderMatcher{
 					Name:                 header.GetName(),
 					HeaderMatchSpecifier: &glooratelimit.Action_HeaderValueMatch_HeaderMatcher_PrefixMatch{PrefixMatch: header.GetPrefixMatch()},
 					InvertMatch:          header.GetInvertMatch(),
 				})
 			}
 			if header.GetSuffixMatch() != "" {
-				hvm.Headers = append(hvm.Headers, &glooratelimit.Action_HeaderValueMatch_HeaderMatcher{
+				hvm.Headers = append(hvm.GetHeaders(), &glooratelimit.Action_HeaderValueMatch_HeaderMatcher{
 					Name:                 header.GetName(),
 					HeaderMatchSpecifier: &glooratelimit.Action_HeaderValueMatch_HeaderMatcher_SuffixMatch{SuffixMatch: header.GetSuffixMatch()},
 					InvertMatch:          header.GetInvertMatch(),
