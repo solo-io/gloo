@@ -1,0 +1,5 @@
+changelog:
+- type: FIX
+  issueLink: https://github.com/solo-io/solo-projects/issues/8613
+  resolvesIssue: false
+  description: Fixes a bug where the the default gatewayProxy when disabled would create invalid helm templates for custom proxies.
