@@ -2513,8 +2513,10 @@ spec:
 								"gatewayProxies.gatewayProxy.gatewaySettings.customHttpsGateway.virtualServiceSelector.gateway=default",
 								"gatewayProxies.firstGatewayProxy.disabled=false",
 								"gatewayProxies.firstGatewayProxy.gatewaySettings.customHttpsGateway.virtualServiceSelector.gateway=first",
+								"gatewayProxies.firstGatewayProxy.kubeResourceOverride.spec.strategy.type=RollingUpdate",
 								"gatewayProxies.secondGatewayProxy.disabled=false",
 								"gatewayProxies.secondGatewayProxy.gatewaySettings.customHttpsGateway.virtualServiceSelector.gateway=second",
+								"gatewayProxies.secondGatewayProxy.kubeResourceOverride.spec.strategy.type=Recreate",
 							},
 						})
 					})
@@ -2562,6 +2564,11 @@ spec:
 							"first-gateway-proxy-ssl":  BeEquivalentTo(firstGwSsl),
 							"second-gateway-proxy-ssl": BeEquivalentTo(secondGwSsl),
 						})
+
+						deployment := getDeployment(testManifest, namespace, "first-gateway-proxy")
+						Expect(deployment.Spec.Strategy.Type).To(Equal(appsv1.RollingUpdateDeploymentStrategyType))
+						deployment = getDeployment(testManifest, namespace, "second-gateway-proxy")
+						Expect(deployment.Spec.Strategy.Type).To(Equal(appsv1.RecreateDeploymentStrategyType))
 					})
 				})
 
@@ -4355,6 +4362,7 @@ spec:
     enableRestEds: false
     disableKubernetesDestinations: false
     disableProxyGarbageCollection: false
+    enableAutoWebsocketTransformationPassthrough: false
     invalidConfigPolicy:
       invalidRouteResponseBody: Gloo Gateway has invalid configuration. Administrators should run ` + "`glooctl check`" + ` to find and fix config errors.
       invalidRouteResponseCode: 404
