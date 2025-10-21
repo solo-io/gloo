@@ -1,6 +1,0 @@
-changelog:
-  - type: NON_USER_FACING
-    resolvesIssue: false
-    description: >-
-      switch from bitnami/kubectl to rancher/kubectl when building docker image
-
