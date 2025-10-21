@@ -121,7 +121,7 @@ GLOO_DISTROLESS_BASE_IMAGE ?= $(IMAGE_REGISTRY)/distroless-base:$(VERSION)
 # GLOO_DISTROLESS_BASE_IMAGE + utility binaries (sh, wget, sleep, nc, echo, ls, cat, vi)
 GLOO_DISTROLESS_BASE_WITH_UTILS_IMAGE ?= $(IMAGE_REGISTRY)/distroless-base-with-utils:$(VERSION)
 # BASE_IMAGE used in non distroless variants
-ALPINE_BASE_IMAGE ?= alpine:3.21.3
+ALPINE_BASE_IMAGE ?= alpine:3.21.5
 
 #----------------------------------------------------------------------------------
 # Macros

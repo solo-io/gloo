@@ -7,3 +7,7 @@ changelog:
     resolvesIssue: false
     description: >-
       see https://github.com/solo-io/envoy-gloo/releases/tag/v1.33.12-patch1 for details.
+  - type: FIX
+    issueLink: https://github.com/solo-io/solo-projects/issues/8620
+    resolvesIssue: false
+    description: Bump the alpine base container image to 3.21.5
