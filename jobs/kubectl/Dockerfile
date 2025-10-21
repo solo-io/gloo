@@ -1,11 +1,11 @@
 ARG BASE_IMAGE
 
-FROM bitnami/kubectl:1.33.3 as kubectl
+FROM rancher/kubectl:v1.34.1 as kubectl
 
 FROM $BASE_IMAGE
 
 RUN apk upgrade --update-cache
 
-COPY --from=kubectl /opt/bitnami/kubectl/bin/kubectl /usr/local/bin/
+COPY --from=kubectl /bin/kubectl /usr/local/bin/
 
 USER 10101
