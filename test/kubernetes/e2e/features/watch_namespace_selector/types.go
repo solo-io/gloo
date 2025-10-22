@@ -56,7 +56,10 @@ var (
 			SimpleTestCase: base.SimpleTestCase{},
 		},
 		"TestWatchedNamespaceValidation": {
-			SimpleTestCase: base.SimpleTestCase{},
+			SimpleTestCase: base.SimpleTestCase{
+				Manifests: []string{e2edefaults.HttpEchoPodManifest},
+				Resources: []client.Object{e2edefaults.HttpEchoPod},
+			},
 		},
 	}
 )
