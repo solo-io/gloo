@@ -4362,7 +4362,6 @@ spec:
     enableRestEds: false
     disableKubernetesDestinations: false
     disableProxyGarbageCollection: false
-    enableAutoWebsocketTransformationPassthrough: false
     invalidConfigPolicy:
       invalidRouteResponseBody: Gloo Gateway has invalid configuration. Administrators should run ` + "`glooctl check`" + ` to find and fix config errors.
       invalidRouteResponseCode: 404
