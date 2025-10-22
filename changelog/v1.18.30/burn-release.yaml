@@ -1,0 +1,6 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >-
+      Need to burn a release because v1.18.29 release didn't trigger any action somehow.
+      skipCI-kube-tests:true
+      skipCI-docs-build:true
