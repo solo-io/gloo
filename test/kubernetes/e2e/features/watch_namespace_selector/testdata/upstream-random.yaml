@@ -1,11 +1,10 @@
 apiVersion: gloo.solo.io/v1
 kind: Upstream
 metadata:
-  name: postman-echo
+  name: http-echo-upstream
   namespace: random
 spec:
-  static:
-    hosts:
-    - addr: postman-echo.com
-      port: 443
-
+  kube:
+    serviceName: http-echo
+    serviceNamespace: http-echo
+    servicePort: 3000
