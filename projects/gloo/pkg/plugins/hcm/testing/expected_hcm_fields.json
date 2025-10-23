@@ -56,5 +56,6 @@
     "AccessLogOptions",
     "AddProxyProtocolConnectionState",
     "Http1SafeMaxConnectionDuration",
-    "AppendLocalOverload"
+    "AppendLocalOverload",
+    "StreamFlushTimeout"
 ]
