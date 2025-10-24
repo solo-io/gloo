@@ -17,7 +17,7 @@ Gloo Gateway is a feature-rich, Envoy-powered, Kubernetes-native ingress control
 
 ## Next Generation API Gateway
 
-Although the idea of the [API Gateway](https://www.solo.io/solutions/api-gateway/) has been around for a bit, [the role of the API Gateway is going through an identity crisis](https://www.solo.io/blog/api-gateway-identity-crisis/) as we adopt more automated, self-service, platforms like Kubernetes, Cloud Foundry, and public-cloud. Your existing API Management solutions weren't built for highly dynamic environments like Kubernetes and require a lot of additional infrastructure to keep up, be highly-available, and production ready. Additionally, a lot of organizations have deployed these pieces of infrastructure in a highly centralized way that plays to the assumptions of the solution and not the desires of the the organization.
+Although the idea of the API Gateway has been around for a bit, the role of the API Gateway is going through an identity crisis as we adopt more automated, self-service, platforms like Kubernetes, Cloud Foundry, and public-cloud. Your existing API Management solutions weren't built for highly dynamic environments like Kubernetes and require a lot of additional infrastructure to keep up, be highly-available, and production ready. Additionally, a lot of organizations have deployed these pieces of infrastructure in a highly centralized way that plays to the assumptions of the solution and not the desires of the the organization.
 
 When we say Gloo Gateway is a "next-generation" gateway, we mean that it was purpose-built for a highly dynamic, ephemeral environment like Kubernetes (or other workload orchestration platforms) and is built with the assumption of decentralized ownership. Gloo Gateway can provide powerful API Gateway functionality for both existing, on-premises investments (like VM deployments or physical hardware), as well as Kubernetes, and even including forward-leaning compute options like Function as a Service. Legacy API Management vendors would have to completely re-write their solutions to play nicely in this new cloud-native world.
 
@@ -28,9 +28,6 @@ When we say Gloo Gateway is a "next-generation" gateway, we mean that it was pur
 * [**Getting Started**]({{% versioned_link_path fromRoot="/getting_started/" %}})
 * [**Installation**]({{% versioned_link_path fromRoot="/installation" %}})
 * [**Developers**]({{% versioned_link_path fromRoot="/guides/dev/" %}})
-* [**Website**](https://www.solo.io/products/gloo)
-* [**Slack**](https://slack.solo.io)
-* [**Twitter**](https://twitter.com/soloio_inc)
 
 ## Blogs & Demos
 
@@ -41,7 +38,6 @@ When we say Gloo Gateway is a "next-generation" gateway, we mean that it was pur
 
 * Join us on our Slack channel: [https://slack.solo.io/](https://slack.solo.io/)
 * Follow us on Twitter: [https://twitter.com/soloio_inc](https://twitter.com/soloio_inc)
-* Learn more at an upcoming webinar: [Events Calendar](https://www.solo.io/events-webinars)
 
 ---
 
