@@ -1,6 +1,6 @@
 changelog:
   - type: DEPENDENCY_BUMP
-    issueLink: https://github.com/solo-io/gloo/issues/1024
+    issueLink: https://github.com/solo-io/envoy-gloo-ee/issues/1024
     dependencyOwner: solo-io
     dependencyRepo: envoy-gloo
     dependencyTag: v1.36.3-patch1
