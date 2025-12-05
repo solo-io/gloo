@@ -164,10 +164,10 @@ spec:
 {{- $ctx := (list $ $name $spec)}}
 {{- if not $spec.disabled }}
 ---
-{{- include "gloo.util.merge" (list $ctx $serviceYamlOverride "gatewayProxy.serviceSpec") -}}
+{{ include "gloo.util.merge" (list $ctx $serviceYamlOverride "gatewayProxy.serviceSpec") -}}
 {{- if and $spec.readConfig $spec.readConfigMulticluster }}
 ---
-{{- include "gloo.util.merge" (list $ctx $configDumpServiceYamlOverride "gatewayProxy.configDumpServiceSpec") -}}
+{{ include "gloo.util.merge" (list $ctx $configDumpServiceYamlOverride "gatewayProxy.configDumpServiceSpec") -}}
 {{- end }} {{/* if and ($spec.readConfig $spec.readConfigMulticluster) */}}
 {{- $statsConfig := coalesce $spec.stats $global.glooStats }}
 {{- if and $statsConfig.enabled $statsConfig.serviceMonitorEnabled }}

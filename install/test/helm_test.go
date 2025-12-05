@@ -2093,6 +2093,45 @@ apiVersion: autoscaling/v1
 						testManifest.ExpectUnstructured("HorizontalPodAutoscaler", namespace, defaults.GatewayProxyName+"-hpa").To(BeEquivalentTo(hpa))
 					})
 
+					It("can create multiple gwp autoscaling/v1 hpa with custom k8 specs", func() {
+						prepareMakefile(namespace, glootestutils.HelmValues{
+							ValuesArgs: []string{
+								"gatewayProxies.gatewayProxy.horizontalPodAutoscaler.apiVersion=autoscaling/v1",
+								"gatewayProxies.gatewayProxy.horizontalPodAutoscaler.minReplicas=1",
+								"gatewayProxies.gatewayProxy.horizontalPodAutoscaler.maxReplicas=2",
+								"gatewayProxies.gatewayProxy.horizontalPodAutoscaler.targetCPUUtilizationPercentage=75",
+								"gatewayProxies.gatewayProxyTwo.horizontalPodAutoscaler.apiVersion=autoscaling/v1",
+								"gatewayProxies.gatewayProxyTwo.horizontalPodAutoscaler.minReplicas=1",
+								"gatewayProxies.gatewayProxyTwo.horizontalPodAutoscaler.maxReplicas=2",
+								"gatewayProxies.gatewayProxyTwo.horizontalPodAutoscaler.targetCPUUtilizationPercentage=75",
+							},
+						})
+
+						hpa := `
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  labels:
+    gateway-proxy-id: %s
+    gloo: gateway-proxy
+    app: gloo
+  name: %s-hpa
+  namespace: gloo-system
+spec:
+  maxReplicas: 2
+  minReplicas: 1
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: %s
+  targetCPUUtilizationPercentage: 75
+`
+
+						testManifest.ExpectUnstructured("HorizontalPodAutoscaler", namespace, defaults.GatewayProxyName+"-hpa").To(BeEquivalentTo(makeUnstructured(fmt.Sprintf(hpa, defaults.GatewayProxyName, defaults.GatewayProxyName, defaults.GatewayProxyName))))
+						testManifest.ExpectUnstructured("HorizontalPodAutoscaler", namespace, defaults.GatewayProxyName+"-two-hpa").To(BeEquivalentTo(makeUnstructured(fmt.Sprintf(hpa, defaults.GatewayProxyName+"-two", defaults.GatewayProxyName+"-two", defaults.GatewayProxyName+"-two"))))
+
+					})
+
 					It("can create gwp autoscaling/v2beta2 hpa", func() {
 						prepareMakefileFromValuesFile("values/val_gwp_hpa_v2beta2.yaml")
 
@@ -2260,6 +2299,36 @@ spec:
   selector:
     matchLabels:
       gateway-proxy-id: %s
+`
+
+						testManifest.ExpectUnstructured("PodDisruptionBudget", namespace, defaults.GatewayProxyName+"-pdb").To(BeEquivalentTo(makeUnstructured(fmt.Sprintf(pdbFormat, defaults.GatewayProxyName, defaults.GatewayProxyName))))
+						testManifest.ExpectUnstructured("PodDisruptionBudget", namespace, defaults.GatewayProxyName+"-two-pdb").To(BeEquivalentTo(makeUnstructured(fmt.Sprintf(pdbFormat, defaults.GatewayProxyName+"-two", defaults.GatewayProxyName+"-two"))))
+					})
+
+					It("can create gwp pdb for multiple gateways with custom k8 specs", func() {
+						prepareMakefile(namespace, glootestutils.HelmValues{
+							ValuesArgs: []string{
+								"gatewayProxies.gatewayProxy.podDisruptionBudget.maxUnavailable='2'",
+								"gatewayProxies.gatewayProxy.podDisruptionBudget.kubeResourceOverride.spec.unhealthyPodEvictionPolicy=AlwaysAllow",
+								"gatewayProxies.gatewayProxyTwo.podDisruptionBudget.maxUnavailable='2'",
+								"gatewayProxies.gatewayProxyTwo.podDisruptionBudget.kubeResourceOverride.spec.unhealthyPodEvictionPolicy=AlwaysAllow",
+							},
+						})
+
+						pdbFormat := `
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: %s-pdb
+  namespace: gloo-system
+  labels:
+    app: gloo
+spec:
+  maxUnavailable: '2'
+  selector:
+    matchLabels:
+      gateway-proxy-id: %s
+  unhealthyPodEvictionPolicy: AlwaysAllow
 `
 
 						testManifest.ExpectUnstructured("PodDisruptionBudget", namespace, defaults.GatewayProxyName+"-pdb").To(BeEquivalentTo(makeUnstructured(fmt.Sprintf(pdbFormat, defaults.GatewayProxyName, defaults.GatewayProxyName))))
@@ -2768,6 +2837,33 @@ spec:
 								"gatewayProxies.gatewayProxy.failover.enabled=true",
 								"gatewayProxies.gatewayProxy.failover.port=15444",
 								"gatewayProxies.gatewayProxy.failover.nodePort=32000",
+							},
+						})
+						testManifest.ExpectService(gatewayProxyService)
+					})
+
+					It("render service per gateway for multiple gateways", func() {
+						var gatewayProxyServiceTwo *corev1.Service
+						svcLabels := map[string]string{
+							"app":  "gloo",
+							"gloo": "gateway-proxy-two",
+						}
+						rb := ResourceBuilder{
+							Namespace: namespace,
+							Name:      "gateway-proxy",
+							Args:      nil,
+							Labels:    svcLabels,
+						}
+						gatewayProxyService.ObjectMeta.Name = "gateway-proxy"
+						gatewayProxyService.Spec.Type = corev1.ServiceTypeLoadBalancer
+						gatewayProxyServiceTwo = rb.GetService()
+						gatewayProxyServiceTwo.ObjectMeta.Name = "gateway-proxy-two"
+						gatewayProxyServiceTwo.Spec.Type = corev1.ServiceTypeLoadBalancer
+						prepareMakefile(namespace, glootestutils.HelmValues{
+							ValuesArgs: []string{
+								"gatewayProxies.gatewayProxy.service.kubeResourceOverride.spec.type=LoadBalancer",
+								"gatewayProxies.gatewayProxyTwo.service.name=gateway-proxy-two",
+								"gatewayProxies.gatewayProxyTwo.service.kubeResourceOverride.spec.type=LoadBalancer",
 							},
 						})
 						testManifest.ExpectService(gatewayProxyService)
@@ -5924,12 +6020,13 @@ metadata:
 								"gatewayProxies.gatewayProxyInternal.service.type=ClusterIP",
 								"gatewayProxies.gatewayProxyInternal.podTemplate.httpPort=8081",
 								"gatewayProxies.gatewayProxyInternal.podTemplate.image.tag=dev",
+								"gatewayProxies.gatewayProxyInternal.configMap.kubeResourceOverride.data.dummy=random",
 							},
 						})
 						cmName := "gateway-proxy-internal-envoy-config"
-						// cm exists for for second declaration of gateway proxy
+						// cm exists for second declaration of gateway proxy
 						testManifest.Expect("ConfigMap", namespace, cmName).NotTo(BeNil())
-						testManifest.Expect("ConfigMap", namespace, "gateway-proxy-envoy-config").NotTo(BeNil())
+						testManifest.Expect("ConfigMap", namespace, gatewayProxyConfigMapName).NotTo(BeNil())
 					})
 				})
 			})
