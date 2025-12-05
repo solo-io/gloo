@@ -1,0 +1,7 @@
+changelog:
+  - type: HELM
+    issueLink: https://github.com/solo-io/solo-projects/issues/8674
+    resolvesIssue: false
+    description: >-
+      kubeResourceOverride fails to apply to proxy resources (PDB, HPA, ConfigMap, Service) when multiple gateways are rendered, breaking overrides. 
+      This fixes the Helm rendering issues.
