@@ -138,6 +138,7 @@ Used to specify how claims should be matched to the value.
 | `EXACT_STRING` | The JWT claim value is a string that exactly matches the value. |
 | `BOOLEAN` | The JWT claim value is a boolean that matches the value. |
 | `LIST_CONTAINS` | The JWT claim value is a list that contains a string that exactly matches the value. |
+| `GLOB_MATCH` | The JWT claim value is a glob pattern that matches the value. |
 
 
 
