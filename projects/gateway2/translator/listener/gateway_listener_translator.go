@@ -569,7 +569,7 @@ func (ml *MergedListener) TranslateListener(
 // will use a Gloo AggregatedListener with one TCP filter chain.
 type tcpFilterChain struct {
 	parents   []tcpFilterChainParent
-	tls       *gwv1.GatewayTLSConfig
+	tls       *gwv1.ListenerTLSConfig
 	sniDomain *gwv1.Hostname
 }
 
@@ -732,7 +732,7 @@ func (httpFilterChain *httpFilterChain) translateHttpFilterChain(
 type httpsFilterChain struct {
 	gatewayListenerName string
 	sniDomain           *gwv1.Hostname
-	tls                 *gwv1.GatewayTLSConfig
+	tls                 *gwv1.ListenerTLSConfig
 	routesWithHosts     []*query.RouteInfo
 	queries             query.GatewayQueries
 }
@@ -848,7 +848,7 @@ func translateSslConfig(
 	ctx context.Context,
 	parentNamespace string,
 	sniDomain *gwv1.Hostname,
-	tls *gwv1.GatewayTLSConfig,
+	tls *gwv1.ListenerTLSConfig,
 	queries query.GatewayQueries,
 ) (*ssl.SslConfig, error) {
 	if tls == nil {
