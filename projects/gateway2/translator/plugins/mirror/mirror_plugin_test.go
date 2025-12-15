@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/golang/mock/gomock"
+	"go.uber.org/mock/gomock"
 	"github.com/onsi/gomega"
 	"github.com/solo-io/gloo/projects/gateway2/query/mocks"
 	"github.com/solo-io/gloo/projects/gateway2/translator/plugins"

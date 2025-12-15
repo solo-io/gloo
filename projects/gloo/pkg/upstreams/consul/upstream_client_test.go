@@ -9,7 +9,7 @@ import (
 
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 
-	"github.com/golang/mock/gomock"
+	"go.uber.org/mock/gomock"
 	consulapi "github.com/hashicorp/consul/api"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"

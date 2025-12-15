@@ -15,7 +15,7 @@ import (
 	"github.com/onsi/gomega/types"
 	"github.com/solo-io/gloo/test/gomega/matchers"
 
-	"github.com/golang/mock/gomock"
+	"go.uber.org/mock/gomock"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/grpc/validation"
 	"github.com/solo-io/gloo/projects/gloo/pkg/bootstrap"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/registry"

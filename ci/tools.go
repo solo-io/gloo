@@ -21,7 +21,7 @@ import (
 	_ "github.com/ahmetb/gen-crd-api-reference-docs"
 	_ "github.com/cratonica/2goarray"
 	_ "github.com/envoyproxy/protoc-gen-validate"
-	_ "github.com/golang/mock/mockgen"
+	_ "go.uber.org/mock/mockgen"
 	_ "github.com/saiskee/gettercheck"
 	_ "github.com/solo-io/protoc-gen-ext"
 	_ "github.com/solo-io/protoc-gen-openapi"

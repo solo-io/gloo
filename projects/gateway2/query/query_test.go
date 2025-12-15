@@ -25,7 +25,7 @@ import (
 	"github.com/solo-io/gloo/projects/gateway2/wellknown"
 )
 
-//go:generate go run github.com/golang/mock/mockgen -destination mocks/mock_queries.go -package mocks github.com/solo-io/gloo/projects/gateway2/query GatewayQueries
+//go:generate go run go.uber.org/mock/mockgen -destination mocks/mock_queries.go -package mocks github.com/solo-io/gloo/projects/gateway2/query GatewayQueries
 
 var _ = Describe("Query", func() {
 	var (

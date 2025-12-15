@@ -7,7 +7,7 @@ package mock_kubernetes
 import (
 	reflect "reflect"
 
-	gomock "github.com/golang/mock/gomock"
+	gomock "go.uber.org/mock/gomock"
 	discovery "k8s.io/client-go/discovery"
 	v1 "k8s.io/client-go/kubernetes/typed/admissionregistration/v1"
 	v1alpha1 "k8s.io/client-go/kubernetes/typed/admissionregistration/v1alpha1"
@@ -44,7 +44,8 @@ import (
 	v1beta20 "k8s.io/client-go/kubernetes/typed/flowcontrol/v1beta2"
 	v1beta3 "k8s.io/client-go/kubernetes/typed/flowcontrol/v1beta3"
 	v111 "k8s.io/client-go/kubernetes/typed/networking/v1"
-	v1alpha13 "k8s.io/client-go/kubernetes/typed/networking/v1alpha1"
+
+	// v1alpha13 "k8s.io/client-go/kubernetes/typed/networking/v1alpha1"
 	v1beta110 "k8s.io/client-go/kubernetes/typed/networking/v1beta1"
 	v112 "k8s.io/client-go/kubernetes/typed/node/v1"
 	v1alpha14 "k8s.io/client-go/kubernetes/typed/node/v1alpha1"
@@ -594,18 +595,18 @@ func (mr *MockInterfaceMockRecorder) NetworkingV1() *gomock.Call {
 }
 
 // NetworkingV1alpha1 mocks base method.
-func (m *MockInterface) NetworkingV1alpha1() v1alpha13.NetworkingV1alpha1Interface {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "NetworkingV1alpha1")
-	ret0, _ := ret[0].(v1alpha13.NetworkingV1alpha1Interface)
-	return ret0
-}
+// func (m *MockInterface) NetworkingV1alpha1() v1alpha13.NetworkingV1alpha1Interface {
+// 	m.ctrl.T.Helper()
+// 	ret := m.ctrl.Call(m, "NetworkingV1alpha1")
+// 	ret0, _ := ret[0].(v1alpha13.NetworkingV1alpha1Interface)
+// 	return ret0
+// }
 
-// NetworkingV1alpha1 indicates an expected call of NetworkingV1alpha1.
-func (mr *MockInterfaceMockRecorder) NetworkingV1alpha1() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NetworkingV1alpha1", reflect.TypeOf((*MockInterface)(nil).NetworkingV1alpha1))
-}
+// // NetworkingV1alpha1 indicates an expected call of NetworkingV1alpha1.
+// func (mr *MockInterfaceMockRecorder) NetworkingV1alpha1() *gomock.Call {
+// 	mr.mock.ctrl.T.Helper()
+// 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NetworkingV1alpha1", reflect.TypeOf((*MockInterface)(nil).NetworkingV1alpha1))
+// }
 
 // NetworkingV1beta1 mocks base method.
 func (m *MockInterface) NetworkingV1beta1() v1beta110.NetworkingV1beta1Interface {

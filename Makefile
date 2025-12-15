@@ -182,7 +182,7 @@ install-go-tools: mod-download ## Download and install Go dependencies
 	go install github.com/golang/protobuf/protoc-gen-go
 	go install golang.org/x/tools/cmd/goimports
 	go install github.com/cratonica/2goarray
-	go install github.com/golang/mock/mockgen
+	go install go.uber.org/mock/mockgen
 	go install github.com/saiskee/gettercheck
 	go install github.com/onsi/ginkgo/v2/ginkgo@$(GINKGO_VERSION)
 	# This version must stay in sync with the version used in CI: .github/workflows/static-analysis.yaml

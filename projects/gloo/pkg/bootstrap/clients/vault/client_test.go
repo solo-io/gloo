@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/avast/retry-go"
-	"github.com/golang/mock/gomock"
+	"go.uber.org/mock/gomock"
 	vaultapi "github.com/hashicorp/vault/api"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
