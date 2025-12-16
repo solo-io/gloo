@@ -110,9 +110,9 @@ require (
 	golang.org/x/mod v0.29.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20251020155222-88f65dc88635
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20251020155222-88f65dc88635
-	istio.io/api v1.28.0-alpha.0.0.20251126150010-62ed4ff08e1b
-	istio.io/client-go v1.28.0-alpha.0.0.20251126150310-56900da3b60f
-	istio.io/istio v0.0.0-20251201142120-783e855f1e67
+	istio.io/api v1.28.0-alpha.0.0.20251210001900-ce7b5802387c
+	istio.io/client-go v1.28.0-alpha.0.0.20251210002059-b67694478a4b
+	istio.io/istio v0.0.0-20251215222123-9eb419397d40
 	k8s.io/utils v0.0.0-20250820121507-0af2bda4dd1d
 	sigs.k8s.io/controller-tools v0.19.0
 	sigs.k8s.io/structured-merge-diff/v6 v6.3.0
@@ -134,7 +134,8 @@ require (
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
 	golang.org/x/telemetry v0.0.0-20251008203120-078029d740a8 // indirect
 	oras.land/oras-go/v2 v2.6.0 // indirect
-	sigs.k8s.io/gateway-api-inference-extension v1.1.0 // indirect
+	sigs.k8s.io/gateway-api-inference-extension v1.0.1 // indirect
+	sigs.k8s.io/structured-merge-diff/v4 v4.7.0 // indirect
 )
 
 require (
