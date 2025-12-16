@@ -84,20 +84,11 @@ run:
 
 # output configuration options
 output:
-  # Use default format
-  # Default:
-  #   formats:
-  #     - format: colored-line-number
-  #       path: stdout
-
-  # Print lines of code with issue.
-  print-issued-lines: true
-
-  # Print linter name in the end of issue text.
-  print-linter-name: true
-
-  # Sort results by: filepath, line and column.
-  sort-results: true
+  formats:
+    text:
+      path: stdout
+      print-linter-name: true
+      print-issued-lines: true
 
 # Formatters configuration (v2)
 formatters:
