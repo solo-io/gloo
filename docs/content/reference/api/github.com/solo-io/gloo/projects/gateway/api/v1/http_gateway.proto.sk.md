@@ -26,7 +26,7 @@ weight: 5
 
 
 ---
-### HttpGateway
+### HttpGateway {#httpgateway}
 
 
 
@@ -51,7 +51,7 @@ weight: 5
 
 
 ---
-### VirtualServiceSelectorExpressions
+### VirtualServiceSelectorExpressions {#virtualserviceselectorexpressions}
 
  
 Expressions to define which virtual services to select
@@ -74,7 +74,7 @@ expressions:
 
 
 ---
-### Expression
+### Expression {#expression}
 
 
 
@@ -95,7 +95,7 @@ expressions:
 
 
 ---
-### Operator
+### Operator {#operator}
 
  
 Virtual Service Selector expression operator, while the set-based syntax differs from Kubernetes (kubernetes: `key: !mylabel`, gloo: `key: mylabel, operator: "!"` | kubernetes: `key: mylabel`, gloo: `key: mylabel, operator: exists`), the functionality remains the same.

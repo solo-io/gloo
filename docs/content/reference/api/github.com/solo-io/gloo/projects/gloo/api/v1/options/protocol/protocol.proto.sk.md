@@ -26,7 +26,7 @@ weight: 5
 
 
 ---
-### HttpProtocolOptions
+### HttpProtocolOptions {#httpprotocoloptions}
 
 
 
@@ -49,7 +49,7 @@ weight: 5
 
 
 ---
-### HeadersWithUnderscoresAction
+### HeadersWithUnderscoresAction {#headerswithunderscoresaction}
 
  
 Action to take when Envoy receives client request with header names containing underscore
@@ -68,7 +68,7 @@ characters.
 
 
 ---
-### Http1ProtocolOptions
+### Http1ProtocolOptions {#http1protocoloptions}
 
 
 
@@ -91,7 +91,7 @@ characters.
 
 
 ---
-### Http2ProtocolOptions
+### Http2ProtocolOptions {#http2protocoloptions}
 
 
 

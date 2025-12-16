@@ -11,7 +11,7 @@ weight: 5
 **Types:**
 
 
-- [UpstreamSpec](#upstreamspec)
+- [UpstreamSpec](#upstreamspec-7)
   
 
 
@@ -23,7 +23,7 @@ weight: 5
 
 
 ---
-### UpstreamSpec
+### UpstreamSpec {#upstreamspec-7}
 
  
 Pipe upstreams are used to route request to services listening at a Unix Domain Socket.

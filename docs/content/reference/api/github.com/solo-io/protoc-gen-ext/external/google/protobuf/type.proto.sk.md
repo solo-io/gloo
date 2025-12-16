@@ -43,11 +43,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 **Types:**
 
 
-- [Type](#type)
+- [Type](#type-13)
 - [Field](#field)
-- [Kind](#kind)
+- [Kind](#kind-1)
 - [Cardinality](#cardinality)
-- [Enum](#enum)
+- [Enum](#enum-1)
 - [EnumValue](#enumvalue)
 - [Option](#option)
   
@@ -68,7 +68,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 ---
-### Type
+### Type {#type-13}
 
  
 A protocol buffer message type.
@@ -96,7 +96,7 @@ A protocol buffer message type.
 
 
 ---
-### Field
+### Field {#field}
 
  
 A single field of a message type.
@@ -132,7 +132,7 @@ A single field of a message type.
 
 
 ---
-### Kind
+### Kind {#kind-1}
 
  
 Basic field types.
@@ -163,7 +163,7 @@ Basic field types.
 
 
 ---
-### Cardinality
+### Cardinality {#cardinality}
 
  
 Whether a field is optional, required, or repeated.
@@ -179,7 +179,7 @@ Whether a field is optional, required, or repeated.
 
 
 ---
-### Enum
+### Enum {#enum-1}
 
  
 Enum type definition.
@@ -205,7 +205,7 @@ Enum type definition.
 
 
 ---
-### EnumValue
+### EnumValue {#enumvalue}
 
  
 Enum value definition.
@@ -227,7 +227,7 @@ Enum value definition.
 
 
 ---
-### Option
+### Option {#option}
 
  
 A protocol buffer option, which can be attached to a message, field,
@@ -247,7 +247,7 @@ enumeration, etc.
 
 
   
-### Syntax
+### Syntax {#syntax}
 
 Description: The syntax in which a protocol buffer element is defined.
 

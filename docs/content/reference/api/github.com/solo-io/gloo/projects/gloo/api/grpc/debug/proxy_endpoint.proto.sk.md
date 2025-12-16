@@ -24,7 +24,7 @@ weight: 5
 
 
 ---
-### ProxyEndpointRequest
+### ProxyEndpointRequest {#proxyendpointrequest}
 
 
 
@@ -47,7 +47,7 @@ weight: 5
 
 
 ---
-### ProxyEndpointResponse
+### ProxyEndpointResponse {#proxyendpointresponse}
 
 
 

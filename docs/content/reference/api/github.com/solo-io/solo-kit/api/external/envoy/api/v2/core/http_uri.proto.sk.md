@@ -11,7 +11,7 @@ weight: 5
 **Types:**
 
 
-- [HttpUri](#httpuri)
+- [HttpUri](#httpuri-1)
   
 
 
@@ -23,7 +23,7 @@ weight: 5
 
 
 ---
-### HttpUri
+### HttpUri {#httpuri-1}
 
  
 Envoy external URI descriptor

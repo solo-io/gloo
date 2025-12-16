@@ -11,7 +11,7 @@ weight: 5
 **Types:**
 
 
-- [SemanticVersion](#semanticversion)
+- [SemanticVersion](#semanticversion-1)
   
 
 
@@ -23,7 +23,7 @@ weight: 5
 
 
 ---
-### SemanticVersion
+### SemanticVersion {#semanticversion-1}
 
  
 Envoy uses SemVer (https://semver.org/). Major/minor versions indicate

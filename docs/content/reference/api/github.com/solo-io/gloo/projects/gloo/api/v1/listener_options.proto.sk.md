@@ -25,7 +25,7 @@ weight: 5
 
 
 ---
-### ListenerOptions
+### ListenerOptions {#listeneroptions}
 
  
 Optional, feature-specific configuration that lives on gateways.
@@ -60,7 +60,7 @@ to be usable by Gloo. (plugins currently need to be compiled into Gloo)
 
 
 ---
-### ConnectionBalanceConfig
+### ConnectionBalanceConfig {#connectionbalanceconfig}
 
  
 Configuration for listener connection balancing.
@@ -78,7 +78,7 @@ Configuration for listener connection balancing.
 
 
 ---
-### ExactBalance
+### ExactBalance {#exactbalance}
 
  
 A connection balancer implementation that does exact balancing. This means that a lock is

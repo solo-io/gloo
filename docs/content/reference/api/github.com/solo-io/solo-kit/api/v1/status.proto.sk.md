@@ -12,8 +12,8 @@ weight: 5
 
 
 - [NamespacedStatuses](#namespacedstatuses)
-- [Status](#status)
-- [State](#state)
+- [Status](#status-5)
+- [State](#state-4)
   
 
 
@@ -25,7 +25,7 @@ weight: 5
 
 
 ---
-### NamespacedStatuses
+### NamespacedStatuses {#namespacedstatuses}
 
  
 *
@@ -45,7 +45,7 @@ NamespacedStatuses are meant to be read-only by users
 
 
 ---
-### Status
+### Status {#status-5}
 
  
 *
@@ -75,7 +75,7 @@ Statuses are meant to be read-only by users
 
 
 ---
-### State
+### State {#state-4}
 
 
 

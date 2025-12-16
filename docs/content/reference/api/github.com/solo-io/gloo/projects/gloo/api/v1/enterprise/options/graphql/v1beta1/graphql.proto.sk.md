@@ -11,27 +11,27 @@ weight: 5
 **Types:**
 
 
-- [RequestTemplate](#requesttemplate)
-- [ResponseTemplate](#responsetemplate)
-- [GrpcRequestTemplate](#grpcrequesttemplate)
-- [RESTResolver](#restresolver)
-- [GrpcDescriptorRegistry](#grpcdescriptorregistry)
+- [RequestTemplate](#requesttemplate-1)
+- [ResponseTemplate](#responsetemplate-1)
+- [GrpcRequestTemplate](#grpcrequesttemplate-1)
+- [RESTResolver](#restresolver-1)
+- [GrpcDescriptorRegistry](#grpcdescriptorregistry-1)
 - [ProtoRefs](#protorefs)
-- [GrpcResolver](#grpcresolver)
+- [GrpcResolver](#grpcresolver-1)
 - [StitchedSchema](#stitchedschema)
-- [SubschemaConfig](#subschemaconfig)
+- [SubschemaConfig](#subschemaconfig-1)
 - [TypeMergeConfig](#typemergeconfig)
 - [MockResolver](#mockresolver)
-- [AsyncResponse](#asyncresponse)
-- [Resolution](#resolution)
+- [AsyncResponse](#asyncresponse-1)
+- [Resolution](#resolution-1)
 - [GraphQLApi](#graphqlapi)
 - [GraphQLApiOptions](#graphqlapioptions)
-- [PersistedQueryCacheConfig](#persistedquerycacheconfig)
-- [ExecutableSchema](#executableschema)
-- [Executor](#executor)
-- [Local](#local)
+- [PersistedQueryCacheConfig](#persistedquerycacheconfig-1)
+- [ExecutableSchema](#executableschema-1)
+- [Executor](#executor-1)
+- [Local](#local-1)
 - [LocalExecutorOptions](#localexecutoroptions)
-- [Remote](#remote)
+- [Remote](#remote-1)
   
 
 
@@ -43,7 +43,7 @@ weight: 5
 
 
 ---
-### RequestTemplate
+### RequestTemplate {#requesttemplate-1}
 
  
 DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
@@ -59,7 +59,7 @@ DEPRECATED: This message is deprecated and has been removed from use as of gloo 
 
 
 ---
-### ResponseTemplate
+### ResponseTemplate {#responsetemplate-1}
 
  
 DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
@@ -75,7 +75,7 @@ DEPRECATED: This message is deprecated and has been removed from use as of gloo 
 
 
 ---
-### GrpcRequestTemplate
+### GrpcRequestTemplate {#grpcrequesttemplate-1}
 
  
 DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
@@ -91,7 +91,7 @@ DEPRECATED: This message is deprecated and has been removed from use as of gloo 
 
 
 ---
-### RESTResolver
+### RESTResolver {#restresolver-1}
 
  
 DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
@@ -107,7 +107,7 @@ DEPRECATED: This message is deprecated and has been removed from use as of gloo 
 
 
 ---
-### GrpcDescriptorRegistry
+### GrpcDescriptorRegistry {#grpcdescriptorregistry-1}
 
  
 DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
@@ -123,7 +123,7 @@ DEPRECATED: This message is deprecated and has been removed from use as of gloo 
 
 
 ---
-### ProtoRefs
+### ProtoRefs {#protorefs}
 
  
 DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
@@ -139,7 +139,7 @@ DEPRECATED: This message is deprecated and has been removed from use as of gloo 
 
 
 ---
-### GrpcResolver
+### GrpcResolver {#grpcresolver-1}
 
  
 DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
@@ -155,7 +155,7 @@ DEPRECATED: This message is deprecated and has been removed from use as of gloo 
 
 
 ---
-### StitchedSchema
+### StitchedSchema {#stitchedschema}
 
  
 DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
@@ -171,7 +171,7 @@ DEPRECATED: This message is deprecated and has been removed from use as of gloo 
 
 
 ---
-### SubschemaConfig
+### SubschemaConfig {#subschemaconfig-1}
 
  
 DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
@@ -187,7 +187,7 @@ DEPRECATED: This message is deprecated and has been removed from use as of gloo 
 
 
 ---
-### TypeMergeConfig
+### TypeMergeConfig {#typemergeconfig}
 
  
 DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
@@ -203,7 +203,7 @@ DEPRECATED: This message is deprecated and has been removed from use as of gloo 
 
 
 ---
-### MockResolver
+### MockResolver {#mockresolver}
 
  
 DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
@@ -219,7 +219,7 @@ DEPRECATED: This message is deprecated and has been removed from use as of gloo 
 
 
 ---
-### AsyncResponse
+### AsyncResponse {#asyncresponse-1}
 
  
 DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
@@ -235,7 +235,7 @@ DEPRECATED: This message is deprecated and has been removed from use as of gloo 
 
 
 ---
-### Resolution
+### Resolution {#resolution-1}
 
  
 DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
@@ -251,7 +251,7 @@ DEPRECATED: This message is deprecated and has been removed from use as of gloo 
 
 
 ---
-### GraphQLApi
+### GraphQLApi {#graphqlapi}
 
  
 DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
@@ -267,7 +267,7 @@ DEPRECATED: This message is deprecated and has been removed from use as of gloo 
 
 
 ---
-### GraphQLApiOptions
+### GraphQLApiOptions {#graphqlapioptions}
 
  
 DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
@@ -283,7 +283,7 @@ DEPRECATED: This message is deprecated and has been removed from use as of gloo 
 
 
 ---
-### PersistedQueryCacheConfig
+### PersistedQueryCacheConfig {#persistedquerycacheconfig-1}
 
  
 DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
@@ -299,7 +299,7 @@ DEPRECATED: This message is deprecated and has been removed from use as of gloo 
 
 
 ---
-### ExecutableSchema
+### ExecutableSchema {#executableschema-1}
 
  
 DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
@@ -315,7 +315,7 @@ DEPRECATED: This message is deprecated and has been removed from use as of gloo 
 
 
 ---
-### Executor
+### Executor {#executor-1}
 
  
 DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
@@ -331,7 +331,7 @@ DEPRECATED: This message is deprecated and has been removed from use as of gloo 
 
 
 ---
-### Local
+### Local {#local-1}
 
  
 DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
@@ -347,7 +347,7 @@ DEPRECATED: This message is deprecated and has been removed from use as of gloo 
 
 
 ---
-### LocalExecutorOptions
+### LocalExecutorOptions {#localexecutoroptions}
 
  
 DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
@@ -363,7 +363,7 @@ DEPRECATED: This message is deprecated and has been removed from use as of gloo 
 
 
 ---
-### Remote
+### Remote {#remote-1}
 
  
 DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields

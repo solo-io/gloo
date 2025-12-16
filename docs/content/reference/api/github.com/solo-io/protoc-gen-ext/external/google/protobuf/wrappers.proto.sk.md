@@ -72,7 +72,7 @@ individual entries of a map or fields of a oneof can already detect presence.
 
 
 ---
-### DoubleValue
+### DoubleValue {#doublevalue}
 
  
 Wrapper message for `double`.
@@ -92,7 +92,7 @@ The JSON representation for `DoubleValue` is JSON number.
 
 
 ---
-### FloatValue
+### FloatValue {#floatvalue}
 
  
 Wrapper message for `float`.
@@ -112,7 +112,7 @@ The JSON representation for `FloatValue` is JSON number.
 
 
 ---
-### Int64Value
+### Int64Value {#int64value}
 
  
 Wrapper message for `int64`.
@@ -132,7 +132,7 @@ The JSON representation for `Int64Value` is JSON string.
 
 
 ---
-### UInt64Value
+### UInt64Value {#uint64value}
 
  
 Wrapper message for `uint64`.
@@ -152,7 +152,7 @@ The JSON representation for `UInt64Value` is JSON string.
 
 
 ---
-### Int32Value
+### Int32Value {#int32value}
 
  
 Wrapper message for `int32`.
@@ -172,7 +172,7 @@ The JSON representation for `Int32Value` is JSON number.
 
 
 ---
-### UInt32Value
+### UInt32Value {#uint32value}
 
  
 Wrapper message for `uint32`.
@@ -192,7 +192,7 @@ The JSON representation for `UInt32Value` is JSON number.
 
 
 ---
-### BoolValue
+### BoolValue {#boolvalue}
 
  
 Wrapper message for `bool`.
@@ -212,7 +212,7 @@ The JSON representation for `BoolValue` is JSON `true` and `false`.
 
 
 ---
-### StringValue
+### StringValue {#stringvalue}
 
  
 Wrapper message for `string`.
@@ -232,7 +232,7 @@ The JSON representation for `StringValue` is JSON string.
 
 
 ---
-### BytesValue
+### BytesValue {#bytesvalue}
 
  
 Wrapper message for `bytes`.

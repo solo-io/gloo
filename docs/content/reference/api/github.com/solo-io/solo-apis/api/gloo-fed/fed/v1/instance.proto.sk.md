@@ -12,15 +12,15 @@ weight: 5
 
 
 - [GlooInstanceSpec](#glooinstancespec)
-- [ControlPlane](#controlplane)
-- [Proxy](#proxy)
+- [ControlPlane](#controlplane-1)
+- [Proxy](#proxy-1)
 - [IngressEndpoint](#ingressendpoint)
 - [Port](#port)
 - [WorkloadController](#workloadcontroller)
 - [Admin](#admin)
 - [Check](#check)
 - [Summary](#summary)
-- [ResourceReport](#resourcereport)
+- [ResourceReport](#resourcereport-1)
 - [GlooInstanceStatus](#glooinstancestatus)
   
 
@@ -33,7 +33,7 @@ weight: 5
 
 
 ---
-### GlooInstanceSpec
+### GlooInstanceSpec {#glooinstancespec}
 
 
 
@@ -62,7 +62,7 @@ weight: 5
 
 
 ---
-### ControlPlane
+### ControlPlane {#controlplane-1}
 
 
 
@@ -83,7 +83,7 @@ weight: 5
 
 
 ---
-### Proxy
+### Proxy {#proxy-1}
 
 
 
@@ -120,7 +120,7 @@ weight: 5
 
 
 ---
-### IngressEndpoint
+### IngressEndpoint {#ingressendpoint}
 
 
 
@@ -141,7 +141,7 @@ weight: 5
 
 
 ---
-### Port
+### Port {#port}
 
 
 
@@ -160,7 +160,7 @@ weight: 5
 
 
 ---
-### WorkloadController
+### WorkloadController {#workloadcontroller}
 
 
 
@@ -174,7 +174,7 @@ weight: 5
 
 
 ---
-### Admin
+### Admin {#admin}
 
 
 
@@ -193,7 +193,7 @@ weight: 5
 
 
 ---
-### Check
+### Check {#check}
 
  
 Check describes the status of the objects powering the GlooInstance.
@@ -235,7 +235,7 @@ Check describes the status of the objects powering the GlooInstance.
 
 
 ---
-### Summary
+### Summary {#summary}
 
  
 Summary provides aggregate information for a given resource type.
@@ -257,7 +257,7 @@ Summary provides aggregate information for a given resource type.
 
 
 ---
-### ResourceReport
+### ResourceReport {#resourcereport-1}
 
  
 A ResourceReport references an object and provides a status message.
@@ -277,7 +277,7 @@ A ResourceReport references an object and provides a status message.
 
 
 ---
-### GlooInstanceStatus
+### GlooInstanceStatus {#glooinstancestatus}
 
 
 
