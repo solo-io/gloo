@@ -85,7 +85,8 @@ make -s build-cli-local
 # alternatives like running a series of `kubectl apply -f <url>` commands. This
 # approach is largely necessary since upstream hasn't adopted a helm chart for
 # the CRDs yet, or won't be for the foreseeable future.
-kubectl apply --kustomize "https://github.com/kubernetes-sigs/gateway-api/config/crd/$CONFORMANCE_CHANNEL?ref=$CONFORMANCE_VERSION"
+# HACK: Use SSA to avoid the issue with the CRD annotations being too long.
+kubectl apply --kustomize --server-side "https://github.com/kubernetes-sigs/gateway-api/config/crd/$CONFORMANCE_CHANNEL?ref=$CONFORMANCE_VERSION"
 
 # 6. Conformance test setup
 if [[ $CONFORMANCE == "true" ]]; then
