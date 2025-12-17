@@ -39,12 +39,12 @@ Name|Version|License
 [kelseyhightower/envconfig](https://github.com/kelseyhightower/envconfig)|v1.4.0|MIT License
 [go-httpbin/v2](https://github.com/mccutchen/go-httpbin)|v2.15.0|MIT License
 [olekukonko/tablewriter](https://github.com/olekukonko/tablewriter)|v0.0.5|MIT License
-[ginkgo/v2](https://github.com/onsi/ginkgo)|v2.26.0|MIT License
+[ginkgo/v2](https://github.com/onsi/ginkgo)|v2.27.2|MIT License
 [onsi/gomega](https://github.com/onsi/gomega)|v1.38.2|MIT License
 [pkg/browser](https://github.com/pkg/browser)|v0.0.0-20180916011732-0a3d74bf9ce4|BSD 2-clause "Simplified" License
 [pkg/errors](https://github.com/pkg/errors)|v0.9.1|BSD 2-clause "Simplified" License
 [prometheus/client_model](https://github.com/prometheus/client_model)|v0.6.2|Apache License 2.0
-[prometheus/common](https://github.com/prometheus/common)|v0.67.1|Apache License 2.0
+[prometheus/common](https://github.com/prometheus/common)|v0.67.2|Apache License 2.0
 [go-ruleguard/dsl](https://github.com/quasilyte/go-ruleguard)|v0.3.22|BSD 3-clause "New" or "Revised" License
 [rodaine/table](https://github.com/rodaine/table)|v1.3.0|MIT License
 [rotisserie/eris](https://github.com/rotisserie/eris)|v0.5.4|MIT License
@@ -65,7 +65,7 @@ Name|Version|License
 [x/crypto](https://golang.org/x/crypto)|v0.43.0|BSD 3-clause "New" or "Revised" License
 [x/exp](https://golang.org/x/exp)|v0.0.0-20251017212417-90e834f514db|BSD 3-clause "New" or "Revised" License
 [x/mod](https://golang.org/x/mod)|v0.29.0|BSD 3-clause "New" or "Revised" License
-[x/sync](https://golang.org/x/sync)|v0.17.0|BSD 3-clause "New" or "Revised" License
+[x/sync](https://golang.org/x/sync)|v0.18.0|BSD 3-clause "New" or "Revised" License
 [x/tools](https://golang.org/x/tools)|v0.38.0|BSD 3-clause "New" or "Revised" License
 [googleapis/api](https://google.golang.org/genproto/googleapis/api)|v0.0.0-20251020155222-88f65dc88635|Apache License 2.0
 [googleapis/rpc](https://google.golang.org/genproto/googleapis/rpc)|v0.0.0-20251020155222-88f65dc88635|Apache License 2.0
@@ -74,9 +74,9 @@ Name|Version|License
 [AlecAivazis/survey.v1](https://gopkg.in/AlecAivazis/survey.v1)|v1.8.7|MIT License
 [gopkg.in/yaml.v3](https://gopkg.in/yaml.v3)|v3.0.1|MIT License
 [helm/v3](https://helm.sh/helm/v3)|v3.18.6|Apache License 2.0
-[istio.io/api](https://istio.io/api)|v1.28.0-alpha.0.0.20251126150010-62ed4ff08e1b|Apache License 2.0
-[istio.io/client-go](https://istio.io/client-go)|v1.28.0-alpha.0.0.20251126150310-56900da3b60f|Apache License 2.0
-[istio.io/istio](https://istio.io/istio)|v0.0.0-20251201142120-783e855f1e67|Apache License 2.0
+[istio.io/api](https://istio.io/api)|v1.28.0-alpha.0.0.20251210001900-ce7b5802387c|Apache License 2.0
+[istio.io/client-go](https://istio.io/client-go)|v1.28.0-alpha.0.0.20251210002059-b67694478a4b|Apache License 2.0
+[istio.io/istio](https://istio.io/istio)|v0.0.0-20251215222123-9eb419397d40|Apache License 2.0
 [k8s.io/api](https://k8s.io/api)|v0.34.2|Apache License 2.0
 [k8s.io/apiextensions-apiserver](https://k8s.io/apiextensions-apiserver)|v0.34.2|Apache License 2.0
 [k8s.io/apimachinery](https://k8s.io/apimachinery)|v0.34.2|Apache License 2.0
