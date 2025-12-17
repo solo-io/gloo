@@ -1,6 +1,7 @@
 package loadbalancer_test
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/golang/protobuf/ptypes/empty"
@@ -118,8 +119,7 @@ var _ = Describe("Plugin", func() {
 			// sample user config
 			sampleInputYaml := `apiVersion: gloo.solo.io/v1
 kind: Upstream
-metadata:
-  creationTimestamp: null
+metadata: {}
 spec:
   loadBalancerConfig:
     leastRequest:
@@ -207,8 +207,7 @@ status: {}
 		// sample user config
 		sampleInputYaml := `apiVersion: gloo.solo.io/v1
 kind: Upstream
-metadata:
-  creationTimestamp: null
+metadata: {}
 spec:
   loadBalancerConfig:
     roundRobin:
@@ -218,6 +217,8 @@ spec:
         slowStartWindow: 3600s
 status: {}
 `
+		fmt.Println("yamlForm", yamlForm)
+		fmt.Println("sampleInputYaml", sampleInputYaml)
 		Expect(yamlForm).To(Equal(sampleInputYaml))
 
 		err = plugin.ProcessUpstream(params, upstream, out)
@@ -263,8 +264,7 @@ status: {}
 		// sample user config
 		sampleInputYaml := `apiVersion: gloo.solo.io/v1
 kind: Upstream
-metadata:
-  creationTimestamp: null
+metadata: {}
 spec:
   loadBalancerConfig:
     ringHash:
@@ -310,8 +310,7 @@ status: {}
 		// sample user config
 		sampleInputYaml := `apiVersion: gloo.solo.io/v1
 kind: Upstream
-metadata:
-  creationTimestamp: null
+metadata: {}
 spec:
   loadBalancerConfig:
     maglev: {}
@@ -475,8 +474,7 @@ status: {}
 			// sample user config
 			sampleInputYaml := `apiVersion: gateway.solo.io/v1
 kind: VirtualService
-metadata:
-  creationTimestamp: null
+metadata: {}
 spec:
   virtualHost:
     routes:
