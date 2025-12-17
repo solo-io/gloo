@@ -182,7 +182,7 @@ func routeOptionToSourceRef(opt *solokubev1.RouteOption) *gloov1.SourceMetadata_
 			Name:      opt.GetName(),
 			Namespace: opt.GetNamespace(),
 		},
-		ResourceKind:       opt.GetObjectKind().GroupVersionKind().Kind,
+		ResourceKind:       routeOptionGK.Kind,
 		ObservedGeneration: opt.GetGeneration(),
 	}
 }
