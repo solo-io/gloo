@@ -1,7 +1,6 @@
 package loadbalancer_test
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/golang/protobuf/ptypes/empty"
@@ -217,8 +216,6 @@ spec:
         slowStartWindow: 3600s
 status: {}
 `
-		fmt.Println("yamlForm", yamlForm)
-		fmt.Println("sampleInputYaml", sampleInputYaml)
 		Expect(yamlForm).To(Equal(sampleInputYaml))
 
 		err = plugin.ProcessUpstream(params, upstream, out)
