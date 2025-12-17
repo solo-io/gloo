@@ -77,7 +77,6 @@ var _ = Describe("ExtauthApiKey", func() {
 		Expect(err).NotTo(HaveOccurred())
 		fmt.Print(out)
 		Expect(out).To(ContainSubstring(`metadata:
-  creationTimestamp: null
   labels:
     k1: v1
     k2: v2
