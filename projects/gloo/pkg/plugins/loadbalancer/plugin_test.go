@@ -118,8 +118,7 @@ var _ = Describe("Plugin", func() {
 			// sample user config
 			sampleInputYaml := `apiVersion: gloo.solo.io/v1
 kind: Upstream
-metadata:
-  creationTimestamp: null
+metadata: {}
 spec:
   loadBalancerConfig:
     leastRequest:
@@ -207,8 +206,7 @@ status: {}
 		// sample user config
 		sampleInputYaml := `apiVersion: gloo.solo.io/v1
 kind: Upstream
-metadata:
-  creationTimestamp: null
+metadata: {}
 spec:
   loadBalancerConfig:
     roundRobin:
@@ -263,8 +261,7 @@ status: {}
 		// sample user config
 		sampleInputYaml := `apiVersion: gloo.solo.io/v1
 kind: Upstream
-metadata:
-  creationTimestamp: null
+metadata: {}
 spec:
   loadBalancerConfig:
     ringHash:
@@ -310,8 +307,7 @@ status: {}
 		// sample user config
 		sampleInputYaml := `apiVersion: gloo.solo.io/v1
 kind: Upstream
-metadata:
-  creationTimestamp: null
+metadata: {}
 spec:
   loadBalancerConfig:
     maglev: {}
@@ -475,8 +471,7 @@ status: {}
 			// sample user config
 			sampleInputYaml := `apiVersion: gateway.solo.io/v1
 kind: VirtualService
-metadata:
-  creationTimestamp: null
+metadata: {}
 spec:
   virtualHost:
     routes:

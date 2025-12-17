@@ -162,10 +162,10 @@ var SslExtensionOptionFuncs = map[string]SslExtensionOptionFunc{
 	GatewaySslVerifySubjectAltName: ApplyVerifySubjectAltName,
 }
 
-// ApplySslExtensionOptions applies the GatewayTLSConfig options to the SslConfig
+// ApplySslExtensionOptions applies the ListenerTLSConfig options to the SslConfig
 // This function will never exit early, even if an error is encountered.
 // It will apply all options and log all errors encountered.
-func ApplySslExtensionOptions(ctx context.Context, in *gwv1.GatewayTLSConfig, out *ssl.SslConfig) {
+func ApplySslExtensionOptions(ctx context.Context, in *gwv1.ListenerTLSConfig, out *ssl.SslConfig) {
 	var wrapped error
 	for key, option := range in.Options {
 		if extensionFunc, ok := SslExtensionOptionFuncs[string(key)]; ok {

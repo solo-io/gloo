@@ -419,7 +419,7 @@ func (s *ProxySyncer) Init(ctx context.Context, dbg *krt.DebugHandler) error {
 	kubeGateways := SetupCollectionDynamic[gwv1.Gateway](
 		ctx,
 		s.istioClient,
-		istiogvr.KubernetesGateway_v1,
+		istiogvr.KubernetesGateway,
 		krt.WithName("KubeGateways"), withDebug,
 	)
 

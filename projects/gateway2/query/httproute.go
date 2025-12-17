@@ -14,10 +14,12 @@ import (
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
 	gwv1a2 "sigs.k8s.io/gateway-api/apis/v1alpha2"
 	gwxv1a1 "sigs.k8s.io/gateway-api/apisx/v1alpha1"
 
+	"github.com/solo-io/gloo/pkg/schemes"
 	"github.com/solo-io/gloo/projects/gateway2/translator/backendref"
 	translator_types "github.com/solo-io/gloo/projects/gateway2/translator/types"
 	"github.com/solo-io/gloo/projects/gateway2/utils"
@@ -53,7 +55,19 @@ type RouteInfo struct {
 
 // GetKind returns the kind of the route.
 func (r RouteInfo) GetKind() string {
-	return r.Object.GetObjectKind().GroupVersionKind().Kind
+	if r.Object == nil {
+		return ""
+	}
+
+	if gvk := r.Object.GetObjectKind().GroupVersionKind(); gvk.Kind != "" {
+		return gvk.Kind
+	}
+
+	gvk, err := apiutil.GVKForObject(r.Object, schemes.GatewayScheme())
+	if err != nil {
+		return ""
+	}
+	return gvk.Kind
 }
 
 // GetName returns the name of the route.
@@ -531,7 +545,15 @@ func getListeners(resource client.Object) ([]gwv1.Listener, error) {
 
 func (r *gatewayQueries) processRoute(ctx context.Context, resource client.Object, route client.Object, ret *RoutesForGwResult) error {
 	refs := getParentRefsForResource(resource, route)
+	// Get route kind using apiutil to ensure GVK is populated
 	routeKind := route.GetObjectKind().GroupVersionKind().Kind
+	if routeKind == "" {
+		if gvk, err := apiutil.GVKForObject(route, r.scheme); err == nil {
+			routeKind = gvk.Kind
+		} else {
+			return fmt.Errorf("failed to get route kind: %w", err)
+		}
+	}
 
 	listeners, err := getListeners(resource)
 	if err != nil {
@@ -649,6 +671,7 @@ func namespacedName(o Namespaced) types.NamespacedName {
 //
 //   - HTTPRouteList
 //   - TCPRouteList
+//   - TLSRouteList
 func getRouteItems(list client.ObjectList) ([]client.Object, error) {
 	switch routes := list.(type) {
 	case *gwv1.HTTPRouteList:

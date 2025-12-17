@@ -29,7 +29,7 @@ weight: 5
 
 
 ---
-### Gateway
+### Gateway {#gateway}
 
  
 A Gateway describes a single Listener (bind address:port)
@@ -70,7 +70,7 @@ and the routing configuration to upstreams that are reachable via a specific por
 
 
 ---
-### TcpGateway
+### TcpGateway {#tcpgateway}
 
 
 
@@ -89,7 +89,7 @@ and the routing configuration to upstreams that are reachable via a specific por
 
 
 ---
-### HybridGateway
+### HybridGateway {#hybridgateway}
 
 
 
@@ -110,7 +110,7 @@ and the routing configuration to upstreams that are reachable via a specific por
 
 
 ---
-### DelegatedHttpGateway
+### DelegatedHttpGateway {#delegatedhttpgateway}
 
 
 
@@ -135,7 +135,7 @@ and the routing configuration to upstreams that are reachable via a specific por
 
 
 ---
-### DelegatedTcpGateway
+### DelegatedTcpGateway {#delegatedtcpgateway}
 
 
 
@@ -154,7 +154,7 @@ and the routing configuration to upstreams that are reachable via a specific por
 
 
 ---
-### MatchedGateway
+### MatchedGateway {#matchedgateway}
 
 
 
@@ -175,7 +175,7 @@ and the routing configuration to upstreams that are reachable via a specific por
 
 
 ---
-### Matcher
+### Matcher {#matcher}
 
 
 

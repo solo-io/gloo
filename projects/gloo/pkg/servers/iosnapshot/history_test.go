@@ -163,11 +163,9 @@ var _ = Describe("History", func() {
 			clientObjects := []client.Object{
 				&corev1.Secret{
 					ObjectMeta: metav1.ObjectMeta{
-						Name:      "kube-secret",
-						Namespace: "secret",
-						ManagedFields: []metav1.ManagedFieldsEntry{{
-							Manager: "manager",
-						}},
+						Name:          "kube-secret",
+						Namespace:     "secret",
+						ManagedFields: testManagedFields("v1"),
 					},
 					Data: map[string][]byte{
 						"key": []byte("sensitive-data"),
@@ -175,11 +173,9 @@ var _ = Describe("History", func() {
 				},
 				&corev1.ConfigMap{
 					ObjectMeta: metav1.ObjectMeta{
-						Name:      "kube-configmap",
-						Namespace: "configmap",
-						ManagedFields: []metav1.ManagedFieldsEntry{{
-							Manager: "manager",
-						}},
+						Name:          "kube-configmap",
+						Namespace:     "configmap",
+						ManagedFields: testManagedFields("v1"),
 					},
 					Data: map[string]string{
 						"key": "value",
@@ -187,182 +183,142 @@ var _ = Describe("History", func() {
 				},
 				&apiv1.Gateway{
 					ObjectMeta: metav1.ObjectMeta{
-						Name:      "kube-gw",
-						Namespace: "a",
-						ManagedFields: []metav1.ManagedFieldsEntry{{
-							Manager: "manager",
-						}},
+						Name:          "kube-gw",
+						Namespace:     "a",
+						ManagedFields: testManagedFields("gateway.networking.k8s.io/v1"),
 					},
 				},
 				&apiv1.GatewayClass{
 					ObjectMeta: metav1.ObjectMeta{
-						Name:      "kube-gw-class",
-						Namespace: "c",
-						ManagedFields: []metav1.ManagedFieldsEntry{{
-							Manager: "manager",
-						}},
+						Name:          "kube-gw-class",
+						Namespace:     "c",
+						ManagedFields: testManagedFields("gateway.networking.k8s.io/v1"),
 					},
 				},
 				&apiv1.HTTPRoute{
 					ObjectMeta: metav1.ObjectMeta{
-						Name:      "kube-http-route",
-						Namespace: "b",
-						ManagedFields: []metav1.ManagedFieldsEntry{{
-							Manager: "manager",
-						}},
+						Name:          "kube-http-route",
+						Namespace:     "b",
+						ManagedFields: testManagedFields("gateway.networking.k8s.io/v1"),
 					},
 				},
 				&apiv1beta1.ReferenceGrant{
 					ObjectMeta: metav1.ObjectMeta{
-						Name:      "kube-ref-grant",
-						Namespace: "d",
-						ManagedFields: []metav1.ManagedFieldsEntry{{
-							Manager: "manager",
-						}},
+						Name:          "kube-ref-grant",
+						Namespace:     "d",
+						ManagedFields: testManagedFields("gateway.networking.k8s.io/v1beta1"),
 					},
 				},
 				&v1alpha1.GatewayParameters{
 					ObjectMeta: metav1.ObjectMeta{
-						Name:      "kube-gwp",
-						Namespace: "e",
-						ManagedFields: []metav1.ManagedFieldsEntry{{
-							Manager: "manager",
-						}},
+						Name:          "kube-gwp",
+						Namespace:     "e",
+						ManagedFields: testManagedFields("gateway.gloo.solo.io/v1alpha1"),
 					},
 				},
 				&gatewaykubev1.ListenerOption{
 					ObjectMeta: metav1.ObjectMeta{
-						Name:      "kube-lo",
-						Namespace: "f",
-						ManagedFields: []metav1.ManagedFieldsEntry{{
-							Manager: "manager",
-						}},
+						Name:          "kube-lo",
+						Namespace:     "f",
+						ManagedFields: testManagedFields("gateway.solo.io/v1"),
 					},
 				},
 				&gatewaykubev1.HttpListenerOption{
 					ObjectMeta: metav1.ObjectMeta{
-						Name:      "kube-hlo",
-						Namespace: "g",
-						ManagedFields: []metav1.ManagedFieldsEntry{{
-							Manager: "manager",
-						}},
+						Name:          "kube-hlo",
+						Namespace:     "g",
+						ManagedFields: testManagedFields("gateway.solo.io/v1"),
 					},
 				},
 				&gatewaykubev1.VirtualHostOption{
 					ObjectMeta: metav1.ObjectMeta{
-						Name:      "kube-vho",
-						Namespace: "i",
-						ManagedFields: []metav1.ManagedFieldsEntry{{
-							Manager: "manager",
-						}},
+						Name:          "kube-vho",
+						Namespace:     "i",
+						ManagedFields: testManagedFields("gateway.solo.io/v1"),
 					},
 				},
 				&gatewaykubev1.RouteOption{
 					ObjectMeta: metav1.ObjectMeta{
-						Name:      "kube-rto",
-						Namespace: "h",
-						ManagedFields: []metav1.ManagedFieldsEntry{{
-							Manager: "manager",
-						}},
+						Name:          "kube-rto",
+						Namespace:     "h",
+						ManagedFields: testManagedFields("gateway.solo.io/v1"),
 					},
 				},
 				&extauthkubev1.AuthConfig{
 					ObjectMeta: metav1.ObjectMeta{
-						Name:      "kube-ac",
-						Namespace: "j",
-						ManagedFields: []metav1.ManagedFieldsEntry{{
-							Manager: "manager",
-						}},
+						Name:          "kube-ac",
+						Namespace:     "j",
+						ManagedFields: testManagedFields("enterprise.gloo.solo.io/v1"),
 					},
 				},
 				&rlv1alpha1.RateLimitConfig{
 					ObjectMeta: metav1.ObjectMeta{
-						Name:      "kube-rlc",
-						Namespace: "k",
-						ManagedFields: []metav1.ManagedFieldsEntry{{
-							Manager: "manager",
-						}},
+						Name:          "kube-rlc",
+						Namespace:     "k",
+						ManagedFields: testManagedFields("ratelimit.solo.io/v1alpha1"),
 					},
 				},
 				&gloov1.Settings{
 					ObjectMeta: metav1.ObjectMeta{
-						Name:      "kube-settings",
-						Namespace: "settings",
-						ManagedFields: []metav1.ManagedFieldsEntry{{
-							Manager: "manager",
-						}},
+						Name:          "kube-settings",
+						Namespace:     "settings",
+						ManagedFields: testManagedFields("gloo.solo.io/v1"),
 					},
 				},
 				&gloov1.Upstream{
 					ObjectMeta: metav1.ObjectMeta{
-						Name:      "kube-upstream",
-						Namespace: "upstream",
-						ManagedFields: []metav1.ManagedFieldsEntry{{
-							Manager: "manager",
-						}},
+						Name:          "kube-upstream",
+						Namespace:     "upstream",
+						ManagedFields: testManagedFields("gloo.solo.io/v1"),
 					},
 				},
 				&gloov1.UpstreamGroup{
 					ObjectMeta: metav1.ObjectMeta{
-						Name:      "kube-upstreamgroup",
-						Namespace: "upstreamgroup",
-						ManagedFields: []metav1.ManagedFieldsEntry{{
-							Manager: "manager",
-						}},
+						Name:          "kube-upstreamgroup",
+						Namespace:     "upstreamgroup",
+						ManagedFields: testManagedFields("gloo.solo.io/v1"),
 					},
 				},
 				&gloov1.Proxy{
 					ObjectMeta: metav1.ObjectMeta{
-						Name:      "kube-proxy",
-						Namespace: "proxy",
-						ManagedFields: []metav1.ManagedFieldsEntry{{
-							Manager: "manager",
-						}},
+						Name:          "kube-proxy",
+						Namespace:     "proxy",
+						ManagedFields: testManagedFields("gloo.solo.io/v1"),
 					},
 				},
 				&gatewaykubev1.Gateway{
 					ObjectMeta: metav1.ObjectMeta{
-						Name:      "kube-edgegateway",
-						Namespace: "edgegateway",
-						ManagedFields: []metav1.ManagedFieldsEntry{{
-							Manager: "manager",
-						}},
+						Name:          "kube-edgegateway",
+						Namespace:     "edgegateway",
+						ManagedFields: testManagedFields("gateway.solo.io/v1"),
 					},
 				},
 				&gatewaykubev1.MatchableHttpGateway{
 					ObjectMeta: metav1.ObjectMeta{
-						Name:      "kube-httpgateway",
-						Namespace: "httpgateway",
-						ManagedFields: []metav1.ManagedFieldsEntry{{
-							Manager: "manager",
-						}},
+						Name:          "kube-httpgateway",
+						Namespace:     "httpgateway",
+						ManagedFields: testManagedFields("gateway.solo.io/v1"),
 					},
 				},
 				&gatewaykubev1.MatchableTcpGateway{
 					ObjectMeta: metav1.ObjectMeta{
-						Name:      "kube-tcpgateway",
-						Namespace: "tcpgateway",
-						ManagedFields: []metav1.ManagedFieldsEntry{{
-							Manager: "manager",
-						}},
+						Name:          "kube-tcpgateway",
+						Namespace:     "tcpgateway",
+						ManagedFields: testManagedFields("gateway.solo.io/v1"),
 					},
 				},
 				&gatewaykubev1.VirtualService{
 					ObjectMeta: metav1.ObjectMeta{
-						Name:      "kube-virtualservice",
-						Namespace: "virtualservice",
-						ManagedFields: []metav1.ManagedFieldsEntry{{
-							Manager: "manager",
-						}},
+						Name:          "kube-virtualservice",
+						Namespace:     "virtualservice",
+						ManagedFields: testManagedFields("gateway.solo.io/v1"),
 					},
 				},
 				&gatewaykubev1.RouteTable{
 					ObjectMeta: metav1.ObjectMeta{
-						Name:      "kube-routetable",
-						Namespace: "routetable",
-						ManagedFields: []metav1.ManagedFieldsEntry{{
-							Manager: "manager",
-						}},
+						Name:          "kube-routetable",
+						Namespace:     "routetable",
+						ManagedFields: testManagedFields("gateway.solo.io/v1"),
 					},
 				},
 			}
@@ -837,4 +793,18 @@ func simpleObjectMatcher(gvk schema.GroupVersionKind, namespacedName types.Names
 			"ObjectMeta": matchers.HaveNilManagedFields(),
 		})),
 	)
+}
+
+func testManagedFields(apiVersion string) []metav1.ManagedFieldsEntry {
+	return []metav1.ManagedFieldsEntry{
+		{
+			Manager:    "manager",
+			Operation:  "Update",
+			APIVersion: apiVersion,
+			FieldsType: "FieldsV1",
+			FieldsV1: &metav1.FieldsV1{
+				Raw: []byte(`{"f:metadata":{"f:name":{}}}`),
+			},
+		},
+	}
 }

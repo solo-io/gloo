@@ -59,7 +59,6 @@ var _ = Describe("ExtauthOauth", func() {
 		Expect(out).To(ContainSubstring(`data:
   client-secret: MTIz
 metadata:
-  creationTimestamp: null
   name: oauth
   namespace: gloo-system
 type: extauth.solo.io/oauth

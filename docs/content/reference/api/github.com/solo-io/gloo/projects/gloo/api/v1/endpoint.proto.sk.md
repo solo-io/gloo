@@ -24,7 +24,7 @@ weight: 5
 
 
 ---
-### Endpoint
+### Endpoint {#endpoint}
 
  
 Endpoints represent dynamically discovered address/ports where an upstream service is listening
@@ -52,7 +52,7 @@ Endpoints represent dynamically discovered address/ports where an upstream servi
 
 
 ---
-### HealthCheckConfig
+### HealthCheckConfig {#healthcheckconfig}
 
 
 

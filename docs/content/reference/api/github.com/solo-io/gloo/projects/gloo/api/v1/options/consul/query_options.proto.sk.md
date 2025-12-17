@@ -30,7 +30,7 @@ weight: 5
 
 
 ---
-### QueryOptions
+### QueryOptions {#queryoptions}
 
  
 somewhat mirrors client query options struct in consul catalog api
@@ -48,7 +48,7 @@ only has options that we know we want configurable at both upstream and settings
 
 
   
-### ConsulConsistencyModes
+### ConsulConsistencyModes {#consulconsistencymodes}
 
 Description: These are the same consistency modes offered by Consul. For more information please review https://www.consul.io/api-docs/features/consistency.
 and https://pkg.go.dev/github.com/hashicorp/consul/api#QueryOptions.

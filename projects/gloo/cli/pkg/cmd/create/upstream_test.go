@@ -252,7 +252,6 @@ var _ = Describe("Upstream", func() {
 			Expect(out).To(ContainSubstring(`apiVersion: gloo.solo.io/v1
 kind: Upstream
 metadata:
-  creationTimestamp: null
   name: kube-upstream
   namespace: gloo-system
 spec:

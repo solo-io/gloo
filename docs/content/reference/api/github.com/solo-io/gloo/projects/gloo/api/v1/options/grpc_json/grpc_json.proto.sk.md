@@ -25,7 +25,7 @@ weight: 5
 
 
 ---
-### GrpcJsonTranscoder
+### GrpcJsonTranscoder {#grpcjsontranscoder}
 
  
 [#next-free-field: 10]
@@ -61,7 +61,7 @@ weight: 5
 
 
 ---
-### PrintOptions
+### PrintOptions {#printoptions}
 
 
 
@@ -84,7 +84,7 @@ weight: 5
 
 
 ---
-### DescriptorConfigMap
+### DescriptorConfigMap {#descriptorconfigmap}
 
  
 Allows the user to store the binary content of a [proto descriptor set](https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/grpc_json_transcoder_filter#config-grpc-json-generate-proto-descriptor-set) in a ConfigMap.

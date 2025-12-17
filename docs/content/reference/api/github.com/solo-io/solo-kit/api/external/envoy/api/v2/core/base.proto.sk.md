@@ -11,22 +11,22 @@ weight: 5
 **Types:**
 
 
-- [Locality](#locality)
-- [BuildVersion](#buildversion)
-- [Extension](#extension)
-- [Node](#node)
-- [Metadata](#metadata)
-- [RuntimeUInt32](#runtimeuint32)
-- [RuntimeFeatureFlag](#runtimefeatureflag)
-- [HeaderValue](#headervalue)
-- [HeaderValueOption](#headervalueoption)
-- [HeaderMap](#headermap)
-- [DataSource](#datasource)
-- [RemoteDataSource](#remotedatasource)
-- [AsyncDataSource](#asyncdatasource)
-- [TransportSocket](#transportsocket)
-- [RuntimeFractionalPercent](#runtimefractionalpercent)
-- [ControlPlane](#controlplane)
+- [Locality](#locality-2)
+- [BuildVersion](#buildversion-1)
+- [Extension](#extension-2)
+- [Node](#node-1)
+- [Metadata](#metadata-3)
+- [RuntimeUInt32](#runtimeuint32-1)
+- [RuntimeFeatureFlag](#runtimefeatureflag-1)
+- [HeaderValue](#headervalue-4)
+- [HeaderValueOption](#headervalueoption-3)
+- [HeaderMap](#headermap-1)
+- [DataSource](#datasource-1)
+- [RemoteDataSource](#remotedatasource-1)
+- [AsyncDataSource](#asyncdatasource-1)
+- [TransportSocket](#transportsocket-1)
+- [RuntimeFractionalPercent](#runtimefractionalpercent-1)
+- [ControlPlane](#controlplane-2)
   
 
  
@@ -34,9 +34,9 @@ weight: 5
 **Enums:**
 
 
-	- [RoutingPriority](#routingpriority)
-	- [RequestMethod](#requestmethod)
-	- [TrafficDirection](#trafficdirection)
+	- [RoutingPriority](#routingpriority-1)
+	- [RequestMethod](#requestmethod-1)
+	- [TrafficDirection](#trafficdirection-1)
 
 
 
@@ -47,7 +47,7 @@ weight: 5
 
 
 ---
-### Locality
+### Locality {#locality-2}
 
  
 Identifies location of where either Envoy runs or where upstream hosts run.
@@ -69,7 +69,7 @@ Identifies location of where either Envoy runs or where upstream hosts run.
 
 
 ---
-### BuildVersion
+### BuildVersion {#buildversion-1}
 
  
 BuildVersion combines SemVer version of extension with free-form build information
@@ -90,7 +90,7 @@ BuildVersion combines SemVer version of extension with free-form build informati
 
 
 ---
-### Extension
+### Extension {#extension-2}
 
  
 Version and identification for an Envoy extension.
@@ -117,7 +117,7 @@ Version and identification for an Envoy extension.
 
 
 ---
-### Node
+### Node {#node-1}
 
  
 Identifies a specific Envoy instance. The node identifier is presented to the
@@ -158,7 +158,7 @@ configuration for serving.
 
 
 ---
-### Metadata
+### Metadata {#metadata-3}
 
  
 Metadata provides additional inputs to filters based on matched listeners,
@@ -196,7 +196,7 @@ this purpose:
 
 
 ---
-### RuntimeUInt32
+### RuntimeUInt32 {#runtimeuint32-1}
 
  
 Runtime derived uint32 with a default when not specified.
@@ -216,7 +216,7 @@ Runtime derived uint32 with a default when not specified.
 
 
 ---
-### RuntimeFeatureFlag
+### RuntimeFeatureFlag {#runtimefeatureflag-1}
 
  
 Runtime derived bool with a default when not specified.
@@ -236,7 +236,7 @@ Runtime derived bool with a default when not specified.
 
 
 ---
-### HeaderValue
+### HeaderValue {#headervalue-4}
 
  
 Header name/value pair.
@@ -256,7 +256,7 @@ Header name/value pair.
 
 
 ---
-### HeaderValueOption
+### HeaderValueOption {#headervalueoption-3}
 
  
 Header name/value pair plus option to control append behavior.
@@ -278,7 +278,7 @@ Header name/value pair plus option to control append behavior.
 
 
 ---
-### HeaderMap
+### HeaderMap {#headermap-1}
 
  
 Wrapper for a set of headers.
@@ -296,7 +296,7 @@ Wrapper for a set of headers.
 
 
 ---
-### DataSource
+### DataSource {#datasource-1}
 
  
 Data source consisting of either a file or an inline value.
@@ -318,7 +318,7 @@ Data source consisting of either a file or an inline value.
 
 
 ---
-### RemoteDataSource
+### RemoteDataSource {#remotedatasource-1}
 
  
 The message specifies how to fetch data from remote and how to verify it.
@@ -338,7 +338,7 @@ The message specifies how to fetch data from remote and how to verify it.
 
 
 ---
-### AsyncDataSource
+### AsyncDataSource {#asyncdatasource-1}
 
  
 Async data source which support async data fetch.
@@ -358,7 +358,7 @@ Async data source which support async data fetch.
 
 
 ---
-### TransportSocket
+### TransportSocket {#transportsocket-1}
 
  
 Configuration for transport socket in `listeners (config_listeners)` and
@@ -383,7 +383,7 @@ chosen based on the platform and existence of tls_context.
 
 
 ---
-### RuntimeFractionalPercent
+### RuntimeFractionalPercent {#runtimefractionalpercent-1}
 
  
 Runtime derived FractionalPercent with defaults for when the numerator or denominator is not
@@ -404,7 +404,7 @@ specified via a runtime key.
 
 
 ---
-### ControlPlane
+### ControlPlane {#controlplane-2}
 
  
 Identifies a specific ControlPlane instance that Envoy is connected to.
@@ -421,7 +421,7 @@ Identifies a specific ControlPlane instance that Envoy is connected to.
 
 
   
-### RoutingPriority
+### RoutingPriority {#routingpriority-1}
 
 Description: Envoy supports `upstream priority routing
 (arch_overview_http_routing_priority)` both at the route and the virtual
@@ -436,7 +436,7 @@ over a single upstream connection.
 | DEFAULT |  |
 | HIGH |  |
   
-### RequestMethod
+### RequestMethod {#requestmethod-1}
 
 Description: HTTP request method.
 
@@ -453,7 +453,7 @@ Description: HTTP request method.
 | TRACE |  |
 | PATCH |  |
   
-### TrafficDirection
+### TrafficDirection {#trafficdirection-1}
 
 Description: Identifies the direction of the traffic relative to the local Envoy.
 

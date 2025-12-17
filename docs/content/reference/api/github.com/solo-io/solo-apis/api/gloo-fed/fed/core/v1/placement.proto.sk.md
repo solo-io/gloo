@@ -14,8 +14,8 @@ weight: 5
 - [TemplateMetadata](#templatemetadata)
 - [PlacementStatus](#placementstatus)
 - [Namespace](#namespace)
-- [Cluster](#cluster)
-- [State](#state)
+- [Cluster](#cluster-1)
+- [State](#state-1)
   
 
 
@@ -27,7 +27,7 @@ weight: 5
 
 
 ---
-### TemplateMetadata
+### TemplateMetadata {#templatemetadata}
 
  
 Object Metadata to be written with the resource into the remote cluster
@@ -49,7 +49,7 @@ Object Metadata to be written with the resource into the remote cluster
 
 
 ---
-### PlacementStatus
+### PlacementStatus {#placementstatus}
 
 
 
@@ -74,7 +74,7 @@ Object Metadata to be written with the resource into the remote cluster
 
 
 ---
-### Namespace
+### Namespace {#namespace}
 
 
 
@@ -93,7 +93,7 @@ Object Metadata to be written with the resource into the remote cluster
 
 
 ---
-### Cluster
+### Cluster {#cluster-1}
 
 
 
@@ -110,7 +110,7 @@ Object Metadata to be written with the resource into the remote cluster
 
 
 ---
-### State
+### State {#state-1}
 
 
 

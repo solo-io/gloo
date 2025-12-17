@@ -85,6 +85,8 @@ var DockerDownload = func(tmpdir string, params GetBinaryParams) (string, error)
 	// use bash to run a docker container and extract the binary file from the running container
 	bash := fmt.Sprintf(`
 set -ex
+# Set Docker API version to 1.41 for compatibility with older Docker daemons
+export DOCKER_API_VERSION=1.41
 CID=$(docker run -d  %s /bin/sh -c exit)
 
 # just print the image sha for reproducibility
@@ -107,6 +109,8 @@ docker rm -f $CID
 	cmd.Dir = tmpdir
 	cmd.Stdout = ginkgo.GinkgoWriter
 	cmd.Stderr = ginkgo.GinkgoWriter
+	// Set DOCKER_API_VERSION environment variable for compatibility
+	cmd.Env = append(os.Environ(), "DOCKER_API_VERSION=1.41")
 	if err := cmd.Run(); err != nil {
 		return "", err
 	}

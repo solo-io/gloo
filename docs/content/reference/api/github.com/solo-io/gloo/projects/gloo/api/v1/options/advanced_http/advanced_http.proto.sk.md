@@ -11,11 +11,11 @@ weight: 5
 **Types:**
 
 
-- [ResponseAssertions](#responseassertions)
-- [ResponseMatcher](#responsematcher)
-- [ResponseMatch](#responsematch)
-- [JsonKey](#jsonkey)
-- [PathSegment](#pathsegment)
+- [ResponseAssertions](#responseassertions-1)
+- [ResponseMatcher](#responsematcher-2)
+- [ResponseMatch](#responsematch-2)
+- [JsonKey](#jsonkey-1)
+- [PathSegment](#pathsegment-3)
   
 
  
@@ -23,7 +23,7 @@ weight: 5
 **Enums:**
 
 
-	- [HealthCheckResult](#healthcheckresult)
+	- [HealthCheckResult](#healthcheckresult-1)
 
 
 
@@ -34,7 +34,7 @@ weight: 5
 
 
 ---
-### ResponseAssertions
+### ResponseAssertions {#responseassertions-1}
 
 
 
@@ -53,7 +53,7 @@ weight: 5
 
 
 ---
-### ResponseMatcher
+### ResponseMatcher {#responsematcher-2}
 
  
 Defines a transformation template.
@@ -73,7 +73,7 @@ Defines a transformation template.
 
 
 ---
-### ResponseMatch
+### ResponseMatch {#responsematch-2}
 
  
 ResponseMatches can be used to extract information from the request/response.
@@ -99,7 +99,7 @@ ResponseMatches can be used to extract information from the request/response.
 
 
 ---
-### JsonKey
+### JsonKey {#jsonkey-1}
 
 
 
@@ -116,7 +116,7 @@ ResponseMatches can be used to extract information from the request/response.
 
 
 ---
-### PathSegment
+### PathSegment {#pathsegment-3}
 
  
 Specifies the segment in a path to retrieve value.
@@ -133,7 +133,7 @@ Specifies the segment in a path to retrieve value.
 
 
   
-### HealthCheckResult
+### HealthCheckResult {#healthcheckresult-1}
 
 Description: 
 

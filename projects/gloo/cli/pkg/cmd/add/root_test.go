@@ -30,7 +30,6 @@ var _ = Describe("Root", func() {
 		Expect(out).To(ContainSubstring(`apiVersion: gateway.solo.io/v1
 kind: VirtualService
 metadata:
-  creationTimestamp: null
   name: test
   namespace: gloo-system
 spec:

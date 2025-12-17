@@ -11,7 +11,7 @@ weight: 5
 **Types:**
 
 
-- [HealthCheck](#healthcheck)
+- [HealthCheck](#healthcheck-2)
   
 
 
@@ -23,7 +23,7 @@ weight: 5
 
 
 ---
-### HealthCheck
+### HealthCheck {#healthcheck-2}
 
  
 Add this config to a Listener/Gateway to Enable Envoy Health Checks on that port

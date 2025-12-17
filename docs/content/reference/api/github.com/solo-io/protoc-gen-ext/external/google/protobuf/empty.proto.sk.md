@@ -55,7 +55,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 ---
-### Empty
+### Empty {#empty}
 
  
 A generic empty message that you can re-use to avoid defining duplicated

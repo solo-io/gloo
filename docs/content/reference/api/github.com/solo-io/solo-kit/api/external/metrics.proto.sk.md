@@ -30,7 +30,7 @@ limitations under the License.
 - [Gauge](#gauge)
 - [Counter](#counter)
 - [Quantile](#quantile)
-- [Summary](#summary)
+- [Summary](#summary-1)
 - [Untyped](#untyped)
 - [Histogram](#histogram)
 - [Bucket](#bucket)
@@ -54,7 +54,7 @@ limitations under the License.
 
 
 ---
-### LabelPair
+### LabelPair {#labelpair}
 
 
 
@@ -73,7 +73,7 @@ limitations under the License.
 
 
 ---
-### Gauge
+### Gauge {#gauge}
 
 
 
@@ -90,7 +90,7 @@ limitations under the License.
 
 
 ---
-### Counter
+### Counter {#counter}
 
 
 
@@ -107,7 +107,7 @@ limitations under the License.
 
 
 ---
-### Quantile
+### Quantile {#quantile}
 
 
 
@@ -126,7 +126,7 @@ limitations under the License.
 
 
 ---
-### Summary
+### Summary {#summary-1}
 
 
 
@@ -147,7 +147,7 @@ limitations under the License.
 
 
 ---
-### Untyped
+### Untyped {#untyped}
 
 
 
@@ -164,7 +164,7 @@ limitations under the License.
 
 
 ---
-### Histogram
+### Histogram {#histogram}
 
 
 
@@ -185,7 +185,7 @@ limitations under the License.
 
 
 ---
-### Bucket
+### Bucket {#bucket}
 
 
 
@@ -204,7 +204,7 @@ limitations under the License.
 
 
 ---
-### Metric
+### Metric {#metric}
 
 
 
@@ -233,7 +233,7 @@ limitations under the License.
 
 
 ---
-### MetricFamily
+### MetricFamily {#metricfamily}
 
 
 
@@ -255,7 +255,7 @@ limitations under the License.
 
 
   
-### MetricType
+### MetricType {#metrictype}
 
 Description: 
 

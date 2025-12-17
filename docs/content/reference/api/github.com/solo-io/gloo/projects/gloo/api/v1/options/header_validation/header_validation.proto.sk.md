@@ -23,7 +23,7 @@ weight: 5
 
 
 ---
-### HeaderValidationSettings
+### HeaderValidationSettings {#headervalidationsettings}
 
 
 

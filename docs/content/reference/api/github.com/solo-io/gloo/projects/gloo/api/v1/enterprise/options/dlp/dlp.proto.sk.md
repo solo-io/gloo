@@ -15,8 +15,8 @@ weight: 5
 - [EnableFor](#enablefor)
 - [DlpRule](#dlprule)
 - [Config](#config)
-- [EnableFor](#enablefor)
-- [Action](#action)
+- [EnableFor](#enablefor-1)
+- [Action](#action-4)
 - [ActionType](#actiontype)
 - [CustomAction](#customaction)
 - [KeyValueAction](#keyvalueaction)
@@ -31,7 +31,7 @@ weight: 5
 
 
 ---
-### FilterConfig
+### FilterConfig {#filterconfig}
 
  
 Listener level config for dlp filter
@@ -51,7 +51,7 @@ Listener level config for dlp filter
 
 
 ---
-### EnableFor
+### EnableFor {#enablefor}
 
 
 
@@ -65,7 +65,7 @@ Listener level config for dlp filter
 
 
 ---
-### DlpRule
+### DlpRule {#dlprule}
 
  
 Rule which applies a given set of actions to a matching route.
@@ -86,7 +86,7 @@ The route matching functions exactly the same as the envoy routes in the virtual
 
 
 ---
-### Config
+### Config {#config}
 
  
 Route/Vhost level config for dlp filter
@@ -109,7 +109,7 @@ listener level config.
 
 
 ---
-### EnableFor
+### EnableFor {#enablefor-1}
 
 
 
@@ -123,7 +123,7 @@ listener level config.
 
 
 ---
-### Action
+### Action {#action-4}
 
  
 A single action meant to mask sensitive data.
@@ -170,7 +170,7 @@ percent: 60
 
 
 ---
-### ActionType
+### ActionType {#actiontype}
 
  
 The following pre-made action types map to subgroup 1 of the listed regex patterns:
@@ -230,7 +230,7 @@ ALL_CREDIT_CARDS_COMBINED:
 
 
 ---
-### CustomAction
+### CustomAction {#customaction}
 
  
 A user defined custom action to carry out on the response body.
@@ -276,7 +276,7 @@ If the mask_char, and percent were left to default, the result would be:
 
 
 ---
-### KeyValueAction
+### KeyValueAction {#keyvalueaction}
 
 
 

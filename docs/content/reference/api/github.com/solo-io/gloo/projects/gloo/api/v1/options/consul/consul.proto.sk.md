@@ -11,7 +11,7 @@ weight: 5
 **Types:**
 
 
-- [UpstreamSpec](#upstreamspec)
+- [UpstreamSpec](#upstreamspec-5)
   
 
 
@@ -23,7 +23,7 @@ weight: 5
 
 
 ---
-### UpstreamSpec
+### UpstreamSpec {#upstreamspec-5}
 
  
 Upstream Spec for Consul Upstreams

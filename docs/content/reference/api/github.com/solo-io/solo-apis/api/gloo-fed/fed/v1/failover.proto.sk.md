@@ -15,8 +15,8 @@ weight: 5
 - [FailoverEndpoints](#failoverendpoints)
 - [LocalityLbTargets](#localitylbtargets)
 - [FailoverSchemeStatus](#failoverschemestatus)
-- [Status](#status)
-- [State](#state)
+- [Status](#status-2)
+- [State](#state-2)
   
 
 
@@ -28,7 +28,7 @@ weight: 5
 
 
 ---
-### FailoverSchemeSpec
+### FailoverSchemeSpec {#failoverschemespec}
 
  
 FailoverSpec is the core portion of the API for enabling failover between Gloo Upstreams in gloo-fed.
@@ -81,7 +81,7 @@ namespace: two
 
 
 ---
-### FailoverEndpoints
+### FailoverEndpoints {#failoverendpoints}
 
 
 
@@ -98,7 +98,7 @@ namespace: two
 
 
 ---
-### LocalityLbTargets
+### LocalityLbTargets {#localitylbtargets}
 
 
 
@@ -119,7 +119,7 @@ namespace: two
 
 
 ---
-### FailoverSchemeStatus
+### FailoverSchemeStatus {#failoverschemestatus}
 
 
 
@@ -144,7 +144,7 @@ namespace: two
 
 
 ---
-### Status
+### Status {#status-2}
 
 
 
@@ -167,7 +167,7 @@ namespace: two
 
 
 ---
-### State
+### State {#state-2}
 
  
 The State of a reconciled object

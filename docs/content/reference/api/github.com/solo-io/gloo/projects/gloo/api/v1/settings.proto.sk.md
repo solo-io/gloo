@@ -11,7 +11,7 @@ weight: 5
 **Types:**
 
 
-- [Settings](#settings) **Top-Level Resource**
+- [Settings](#settings-7) **Top-Level Resource**
 - [SecretOptions](#secretoptions)
 - [Source](#source)
 - [KubernetesCrds](#kubernetescrds)
@@ -59,7 +59,7 @@ weight: 5
 
 
 ---
-### Settings
+### Settings {#settings-7}
 
  
 Represents global settings for all the Gloo components.
@@ -147,7 +147,7 @@ Represents global settings for all the Gloo components.
 
 
 ---
-### SecretOptions
+### SecretOptions {#secretoptions}
 
 
 
@@ -164,7 +164,7 @@ Represents global settings for all the Gloo components.
 
 
 ---
-### Source
+### Source {#source}
 
 
 
@@ -185,7 +185,7 @@ Represents global settings for all the Gloo components.
 
 
 ---
-### KubernetesCrds
+### KubernetesCrds {#kubernetescrds}
 
  
 Use Kubernetes CRDs as storage.
@@ -201,7 +201,7 @@ Use Kubernetes CRDs as storage.
 
 
 ---
-### KubernetesSecrets
+### KubernetesSecrets {#kubernetessecrets}
 
  
 Use Kubernetes as storage for secret data.
@@ -217,7 +217,7 @@ Use Kubernetes as storage for secret data.
 
 
 ---
-### VaultSecrets
+### VaultSecrets {#vaultsecrets}
 
  
 Use [HashiCorp Vault](https://www.vaultproject.io/) as storage for secret data.
@@ -259,7 +259,7 @@ Use [HashiCorp Vault](https://www.vaultproject.io/) as storage for secret data.
 
 
 ---
-### VaultAwsAuth
+### VaultAwsAuth {#vaultawsauth}
 
  
 Configure Vault client to authenticate to server via AWS auth (IAM only).
@@ -292,7 +292,7 @@ For more info see https://developer.hashicorp.com/vault/docs/auth/aws
 
 
 ---
-### VaultTlsConfig
+### VaultTlsConfig {#vaulttlsconfig}
 
  
 Settings to configure TLS-enabled Vault as a secret store
@@ -320,7 +320,7 @@ Settings to configure TLS-enabled Vault as a secret store
 
 
 ---
-### ConsulKv
+### ConsulKv {#consulkv}
 
  
 Use [HashiCorp Consul Key-Value](https://www.consul.io/api/kv.html/) as storage for config data.
@@ -340,7 +340,7 @@ Configuration options for connecting to Consul can be configured in the Settings
 
 
 ---
-### KubernetesConfigmaps
+### KubernetesConfigmaps {#kubernetesconfigmaps}
 
  
 Use Kubernetes ConfigMaps as storage.
@@ -356,7 +356,7 @@ Use Kubernetes ConfigMaps as storage.
 
 
 ---
-### Directory
+### Directory {#directory}
 
  
 As an alternative to Kubernetes CRDs, Gloo is able to store resources in a local file system.
@@ -375,7 +375,7 @@ This option determines the root of the directory tree used to this end.
 
 
 ---
-### KnativeOptions
+### KnativeOptions {#knativeoptions}
 
 
 
@@ -396,7 +396,7 @@ This option determines the root of the directory tree used to this end.
 
 
 ---
-### DiscoveryOptions
+### DiscoveryOptions {#discoveryoptions}
 
 
 
@@ -417,7 +417,7 @@ This option determines the root of the directory tree used to this end.
 
 
 ---
-### UdsOptions
+### UdsOptions {#udsoptions}
 
 
 
@@ -436,7 +436,7 @@ This option determines the root of the directory tree used to this end.
 
 
 ---
-### FdsOptions
+### FdsOptions {#fdsoptions}
 
 
 
@@ -451,7 +451,7 @@ This option determines the root of the directory tree used to this end.
 
 
 ---
-### FdsMode
+### FdsMode {#fdsmode}
 
  
 Possible modes for running the function discovery service (FDS). FDS polls services in-cluster for Swagger
@@ -468,7 +468,7 @@ FdsMode specifies what policy FDS will use when determining which services to po
 
 
 ---
-### ConsulConfiguration
+### ConsulConfiguration {#consulconfiguration}
 
  
 Provides overrides for the default configuration parameters used to connect to Consul.
@@ -518,7 +518,7 @@ need to be set on the Gloo container.
 
 
 ---
-### ServiceDiscoveryOptions
+### ServiceDiscoveryOptions {#servicediscoveryoptions}
 
  
 service discovery options for Consul
@@ -536,7 +536,7 @@ service discovery options for Consul
 
 
 ---
-### ConsulUpstreamDiscoveryConfiguration
+### ConsulUpstreamDiscoveryConfiguration {#consulupstreamdiscoveryconfiguration}
 
  
 Settings related to gloo's behavior when discovering consul services and creating
@@ -569,7 +569,7 @@ upstreams to connect to those services and their instances.
 
 
 ---
-### KubernetesConfiguration
+### KubernetesConfiguration {#kubernetesconfiguration}
 
  
 Provides overrides for the default configuration parameters used to interact with Kubernetes.
@@ -587,7 +587,7 @@ Provides overrides for the default configuration parameters used to interact wit
 
 
 ---
-### RateLimits
+### RateLimits {#ratelimits}
 
 
 
@@ -606,7 +606,7 @@ Provides overrides for the default configuration parameters used to interact wit
 
 
 ---
-### ObservabilityOptions
+### ObservabilityOptions {#observabilityoptions}
 
 
 
@@ -625,7 +625,7 @@ Provides overrides for the default configuration parameters used to interact wit
 
 
 ---
-### GrafanaIntegration
+### GrafanaIntegration {#grafanaintegration}
 
  
 Provides settings related to the observability pod's interactions with grafana
@@ -647,7 +647,7 @@ Provides settings related to the observability pod's interactions with grafana
 
 
 ---
-### MetricLabels
+### MetricLabels {#metriclabels}
 
 
 
@@ -664,7 +664,7 @@ Provides settings related to the observability pod's interactions with grafana
 
 
 ---
-### LabelSelector
+### LabelSelector {#labelselector}
 
  
 A label selector requirement is a selector that contains values, a key, and an operator that
@@ -687,7 +687,7 @@ Ref: https://github.com/kubernetes/apimachinery/blob/f7615f37d717297aca511014784
 
 
 ---
-### LabelSelectorRequirement
+### LabelSelectorRequirement {#labelselectorrequirement}
 
  
 A label selector requirement is a selector that contains values, a key, and an operator that
@@ -712,7 +712,7 @@ Ref: https://github.com/kubernetes/apimachinery/blob/f7615f37d717297aca511014784
 
 
 ---
-### UpstreamOptions
+### UpstreamOptions {#upstreamoptions}
 
  
 Default configuration to use for upstreams, when not provided by a specific upstream
@@ -733,7 +733,7 @@ When these properties are defined on a specific upstream, this configuration wil
 
 
 ---
-### GlooOptions
+### GlooOptions {#gloooptions}
 
  
 Settings specific to the gloo (Envoy xDS server) controller
@@ -787,7 +787,7 @@ Settings specific to the gloo (Envoy xDS server) controller
 
 
 ---
-### AWSOptions
+### AWSOptions {#awsoptions}
 
 
 
@@ -812,7 +812,7 @@ Settings specific to the gloo (Envoy xDS server) controller
 
 
 ---
-### InvalidConfigPolicy
+### InvalidConfigPolicy {#invalidconfigpolicy}
 
  
 Policy for how Gloo should handle invalid config
@@ -835,7 +835,7 @@ Policy for how Gloo should handle invalid config
 
 
 ---
-### IstioOptions
+### IstioOptions {#istiooptions}
 
 
 
@@ -856,7 +856,7 @@ Policy for how Gloo should handle invalid config
 
 
 ---
-### VirtualServiceOptions
+### VirtualServiceOptions {#virtualserviceoptions}
 
  
 Default configuration to use for VirtualServices, when not provided by a specific virtual service
@@ -875,7 +875,7 @@ When these properties are defined on a specific VirtualService, this configurati
 
 
 ---
-### GatewayOptions
+### GatewayOptions {#gatewayoptions}
 
  
 Settings specific to the Gateway controller
@@ -911,7 +911,7 @@ Settings specific to the Gateway controller
 
 
 ---
-### ValidationOptions
+### ValidationOptions {#validationoptions}
 
  
 options for configuring admission control / validation
@@ -951,7 +951,7 @@ options for configuring admission control / validation
 
 
 ---
-### ConsoleOptions
+### ConsoleOptions {#consoleoptions}
 
  
 DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
@@ -967,7 +967,7 @@ DEPRECATED: This message is deprecated and has been removed from use as of gloo 
 
 
 ---
-### GraphqlOptions
+### GraphqlOptions {#graphqloptions}
 
  
 DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields
@@ -983,7 +983,7 @@ DEPRECATED: This message is deprecated and has been removed from use as of gloo 
 
 
 ---
-### SchemaChangeValidationOptions
+### SchemaChangeValidationOptions {#schemachangevalidationoptions}
 
  
 DEPRECATED: This message is deprecated and has been removed from use as of gloo 1.20. Message is being kept to prevent future use of these names and fields

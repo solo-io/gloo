@@ -67,7 +67,6 @@ var _ = Describe("EncryptionKey", func() {
 		Expect(out).To(ContainSubstring(`data:
   key: ` + encryptionKeyBase64 + `
 metadata:
-  creationTimestamp: null
   name: ` + secretName + `
   namespace: gloo-system
 type: gloo.solo.io.EncryptionKeySecret

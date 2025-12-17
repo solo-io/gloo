@@ -183,6 +183,10 @@
 |kubeGateway.gatewayParameters.glooGateway.aiExtension.env[].valueFrom.secretKeyRef.name|string|||
 |kubeGateway.gatewayParameters.glooGateway.aiExtension.env[].valueFrom.secretKeyRef.key|string|||
 |kubeGateway.gatewayParameters.glooGateway.aiExtension.env[].valueFrom.secretKeyRef.optional|bool|||
+|kubeGateway.gatewayParameters.glooGateway.aiExtension.env[].valueFrom.fileKeyRef.volumeName|string|||
+|kubeGateway.gatewayParameters.glooGateway.aiExtension.env[].valueFrom.fileKeyRef.path|string|||
+|kubeGateway.gatewayParameters.glooGateway.aiExtension.env[].valueFrom.fileKeyRef.key|string|||
+|kubeGateway.gatewayParameters.glooGateway.aiExtension.env[].valueFrom.fileKeyRef.optional|bool|||
 |kubeGateway.gatewayParameters.glooGateway.aiExtension.ports[].name|string|||
 |kubeGateway.gatewayParameters.glooGateway.aiExtension.ports[].hostPort|int32|||
 |kubeGateway.gatewayParameters.glooGateway.aiExtension.ports[].containerPort|int32|||
@@ -295,6 +299,10 @@
 |settings.integrations.knative.proxy.customEnv[].valueFrom.secretKeyRef.name|string|||
 |settings.integrations.knative.proxy.customEnv[].valueFrom.secretKeyRef.key|string|||
 |settings.integrations.knative.proxy.customEnv[].valueFrom.secretKeyRef.optional|bool|||
+|settings.integrations.knative.proxy.customEnv[].valueFrom.fileKeyRef.volumeName|string|||
+|settings.integrations.knative.proxy.customEnv[].valueFrom.fileKeyRef.path|string|||
+|settings.integrations.knative.proxy.customEnv[].valueFrom.fileKeyRef.key|string|||
+|settings.integrations.knative.proxy.customEnv[].valueFrom.fileKeyRef.optional|bool|||
 |settings.integrations.knative.proxy.restartPolicy|string||restart policy to use when the pod exits|
 |settings.integrations.knative.proxy.priorityClassName|string||name of a defined priority class|
 |settings.integrations.knative.proxy.nodeName|string||name of node to run on|
@@ -473,6 +481,10 @@
 |gloo.deployment.customEnv[].valueFrom.secretKeyRef.name|string|||
 |gloo.deployment.customEnv[].valueFrom.secretKeyRef.key|string|||
 |gloo.deployment.customEnv[].valueFrom.secretKeyRef.optional|bool|||
+|gloo.deployment.customEnv[].valueFrom.fileKeyRef.volumeName|string|||
+|gloo.deployment.customEnv[].valueFrom.fileKeyRef.path|string|||
+|gloo.deployment.customEnv[].valueFrom.fileKeyRef.key|string|||
+|gloo.deployment.customEnv[].valueFrom.fileKeyRef.optional|bool|||
 |gloo.deployment.restartPolicy|string||restart policy to use when the pod exits|
 |gloo.deployment.priorityClassName|string||name of a defined priority class|
 |gloo.deployment.nodeName|string||name of node to run on|
@@ -602,6 +614,10 @@
 |discovery.deployment.customEnv[].valueFrom.secretKeyRef.name|string|||
 |discovery.deployment.customEnv[].valueFrom.secretKeyRef.key|string|||
 |discovery.deployment.customEnv[].valueFrom.secretKeyRef.optional|bool|||
+|discovery.deployment.customEnv[].valueFrom.fileKeyRef.volumeName|string|||
+|discovery.deployment.customEnv[].valueFrom.fileKeyRef.path|string|||
+|discovery.deployment.customEnv[].valueFrom.fileKeyRef.key|string|||
+|discovery.deployment.customEnv[].valueFrom.fileKeyRef.optional|bool|||
 |discovery.deployment.restartPolicy|string||restart policy to use when the pod exits|
 |discovery.deployment.priorityClassName|string||name of a defined priority class|
 |discovery.deployment.nodeName|string||name of node to run on|
@@ -874,6 +890,10 @@
 |gatewayProxies.NAME.kind.deployment.customEnv[].valueFrom.secretKeyRef.name|string|||
 |gatewayProxies.NAME.kind.deployment.customEnv[].valueFrom.secretKeyRef.key|string|||
 |gatewayProxies.NAME.kind.deployment.customEnv[].valueFrom.secretKeyRef.optional|bool|||
+|gatewayProxies.NAME.kind.deployment.customEnv[].valueFrom.fileKeyRef.volumeName|string|||
+|gatewayProxies.NAME.kind.deployment.customEnv[].valueFrom.fileKeyRef.path|string|||
+|gatewayProxies.NAME.kind.deployment.customEnv[].valueFrom.fileKeyRef.key|string|||
+|gatewayProxies.NAME.kind.deployment.customEnv[].valueFrom.fileKeyRef.optional|bool|||
 |gatewayProxies.NAME.kind.deployment.restartPolicy|string||restart policy to use when the pod exits|
 |gatewayProxies.NAME.kind.deployment.priorityClassName|string||name of a defined priority class|
 |gatewayProxies.NAME.kind.deployment.nodeName|string||name of node to run on|
@@ -1129,6 +1149,10 @@
 |gatewayProxies.gatewayProxy.kind.deployment.customEnv[].valueFrom.secretKeyRef.name|string|||
 |gatewayProxies.gatewayProxy.kind.deployment.customEnv[].valueFrom.secretKeyRef.key|string|||
 |gatewayProxies.gatewayProxy.kind.deployment.customEnv[].valueFrom.secretKeyRef.optional|bool|||
+|gatewayProxies.gatewayProxy.kind.deployment.customEnv[].valueFrom.fileKeyRef.volumeName|string|||
+|gatewayProxies.gatewayProxy.kind.deployment.customEnv[].valueFrom.fileKeyRef.path|string|||
+|gatewayProxies.gatewayProxy.kind.deployment.customEnv[].valueFrom.fileKeyRef.key|string|||
+|gatewayProxies.gatewayProxy.kind.deployment.customEnv[].valueFrom.fileKeyRef.optional|bool|||
 |gatewayProxies.gatewayProxy.kind.deployment.restartPolicy|string||restart policy to use when the pod exits|
 |gatewayProxies.gatewayProxy.kind.deployment.priorityClassName|string||name of a defined priority class|
 |gatewayProxies.gatewayProxy.kind.deployment.nodeName|string||name of node to run on|
@@ -1429,6 +1453,10 @@
 |ingress.deployment.customEnv[].valueFrom.secretKeyRef.name|string|||
 |ingress.deployment.customEnv[].valueFrom.secretKeyRef.key|string|||
 |ingress.deployment.customEnv[].valueFrom.secretKeyRef.optional|bool|||
+|ingress.deployment.customEnv[].valueFrom.fileKeyRef.volumeName|string|||
+|ingress.deployment.customEnv[].valueFrom.fileKeyRef.path|string|||
+|ingress.deployment.customEnv[].valueFrom.fileKeyRef.key|string|||
+|ingress.deployment.customEnv[].valueFrom.fileKeyRef.optional|bool|||
 |ingress.deployment.restartPolicy|string||restart policy to use when the pod exits|
 |ingress.deployment.priorityClassName|string||name of a defined priority class|
 |ingress.deployment.nodeName|string||name of node to run on|
@@ -1510,6 +1538,10 @@
 |ingressProxy.deployment.customEnv[].valueFrom.secretKeyRef.name|string|||
 |ingressProxy.deployment.customEnv[].valueFrom.secretKeyRef.key|string|||
 |ingressProxy.deployment.customEnv[].valueFrom.secretKeyRef.optional|bool|||
+|ingressProxy.deployment.customEnv[].valueFrom.fileKeyRef.volumeName|string|||
+|ingressProxy.deployment.customEnv[].valueFrom.fileKeyRef.path|string|||
+|ingressProxy.deployment.customEnv[].valueFrom.fileKeyRef.key|string|||
+|ingressProxy.deployment.customEnv[].valueFrom.fileKeyRef.optional|bool|||
 |ingressProxy.deployment.restartPolicy|string||restart policy to use when the pod exits|
 |ingressProxy.deployment.priorityClassName|string||name of a defined priority class|
 |ingressProxy.deployment.nodeName|string||name of node to run on|
@@ -1609,6 +1641,10 @@
 |accessLogger.customEnv[].valueFrom.secretKeyRef.name|string|||
 |accessLogger.customEnv[].valueFrom.secretKeyRef.key|string|||
 |accessLogger.customEnv[].valueFrom.secretKeyRef.optional|bool|||
+|accessLogger.customEnv[].valueFrom.fileKeyRef.volumeName|string|||
+|accessLogger.customEnv[].valueFrom.fileKeyRef.path|string|||
+|accessLogger.customEnv[].valueFrom.fileKeyRef.key|string|||
+|accessLogger.customEnv[].valueFrom.fileKeyRef.optional|bool|||
 |accessLogger.restartPolicy|string||restart policy to use when the pod exits|
 |accessLogger.priorityClassName|string||name of a defined priority class|
 |accessLogger.nodeName|string||name of node to run on|
