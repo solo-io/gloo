@@ -91,7 +91,6 @@ var _ = Describe("VirtualService", func() {
 			Expect(out).To(ContainSubstring(`apiVersion: gateway.solo.io/v1
 kind: VirtualService
 metadata:
-  creationTimestamp: null
   name: vs
   namespace: gloo-system
 spec:

@@ -134,7 +134,6 @@ var _ = Describe("UpstreamGroup", func() {
 			Expect(out).To(ContainSubstring(`apiVersion: gloo.solo.io/v1
 kind: UpstreamGroup
 metadata:
-  creationTimestamp: null
   name: test
   namespace: gloo-system
 spec:
