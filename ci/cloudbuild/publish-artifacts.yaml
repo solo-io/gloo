@@ -76,6 +76,7 @@ steps:
   env:
   - 'MULTIARCH=true'
   - 'MULTIARCH_PUSH=true'
+  - 'DOCKER_API_VERSION=1.41'
   secretEnv:
   - 'GITHUB_TOKEN'
   waitFor:
