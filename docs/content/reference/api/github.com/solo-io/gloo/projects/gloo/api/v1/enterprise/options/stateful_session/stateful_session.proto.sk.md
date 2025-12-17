@@ -13,7 +13,7 @@ weight: 5
 
 - [StatefulSession](#statefulsession)
 - [CookieBasedSessionState](#cookiebasedsessionstate)
-- [Cookie](#cookie)
+- [Cookie](#cookie-2)
 - [HeaderBasedSessionState](#headerbasedsessionstate)
   
 
@@ -26,7 +26,7 @@ weight: 5
 
 
 ---
-### StatefulSession
+### StatefulSession {#statefulsession}
 
  
 This configures the Envoy [Stateful Session](https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/stateful_session_filter) filter for a listener
@@ -48,7 +48,7 @@ This configures the Envoy [Stateful Session](https://www.envoyproxy.io/docs/envo
 
 
 ---
-### CookieBasedSessionState
+### CookieBasedSessionState {#cookiebasedsessionstate}
 
  
 Configuration for the [cookie-based session state](https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/http/stateful_session/cookie/v3/cookie.proto#envoy-v3-api-msg-extensions-http-stateful-session-cookie-v3-cookiebasedsessionstate) filter
@@ -66,7 +66,7 @@ Configuration for the [cookie-based session state](https://www.envoyproxy.io/doc
 
 
 ---
-### Cookie
+### Cookie {#cookie-2}
 
 
 
@@ -87,7 +87,7 @@ Configuration for the [cookie-based session state](https://www.envoyproxy.io/doc
 
 
 ---
-### HeaderBasedSessionState
+### HeaderBasedSessionState {#headerbasedsessionstate}
 
  
 Configuration for the [header-based session state](https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/http/stateful_session/header/v3/header.proto#extension-envoy-http-stateful-session-header) filter

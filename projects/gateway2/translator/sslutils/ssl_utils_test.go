@@ -20,7 +20,7 @@ func TestApplySslExtensionOptions(t *testing.T) {
 	testCases := []struct {
 		name   string
 		out    *ssl.SslConfig
-		in     *gwv1.GatewayTLSConfig
+		in     *gwv1.ListenerTLSConfig
 		errors []string
 	}{
 		{
@@ -28,7 +28,7 @@ func TestApplySslExtensionOptions(t *testing.T) {
 			out: &ssl.SslConfig{
 				OneWayTls: wrapperspb.Bool(true),
 			},
-			in: &gwv1.GatewayTLSConfig{
+			in: &gwv1.ListenerTLSConfig{
 				Options: map[gwv1.AnnotationKey]gwv1.AnnotationValue{
 					GatewaySslOneWayTls: "true",
 				},
@@ -39,7 +39,7 @@ func TestApplySslExtensionOptions(t *testing.T) {
 			out: &ssl.SslConfig{
 				OneWayTls: wrapperspb.Bool(true),
 			},
-			in: &gwv1.GatewayTLSConfig{
+			in: &gwv1.ListenerTLSConfig{
 				Options: map[gwv1.AnnotationKey]gwv1.AnnotationValue{
 					GatewaySslOneWayTls: "True",
 				},
@@ -50,7 +50,7 @@ func TestApplySslExtensionOptions(t *testing.T) {
 			out: &ssl.SslConfig{
 				OneWayTls: wrapperspb.Bool(false),
 			},
-			in: &gwv1.GatewayTLSConfig{
+			in: &gwv1.ListenerTLSConfig{
 				Options: map[gwv1.AnnotationKey]gwv1.AnnotationValue{
 					GatewaySslOneWayTls: "false",
 				},
@@ -61,7 +61,7 @@ func TestApplySslExtensionOptions(t *testing.T) {
 			out: &ssl.SslConfig{
 				OneWayTls: wrapperspb.Bool(false),
 			},
-			in: &gwv1.GatewayTLSConfig{
+			in: &gwv1.ListenerTLSConfig{
 				Options: map[gwv1.AnnotationKey]gwv1.AnnotationValue{
 					GatewaySslOneWayTls: "False",
 				},
@@ -70,7 +70,7 @@ func TestApplySslExtensionOptions(t *testing.T) {
 		{
 			name: "invalid_one_way_tls",
 			out:  &ssl.SslConfig{},
-			in: &gwv1.GatewayTLSConfig{
+			in: &gwv1.ListenerTLSConfig{
 				Options: map[gwv1.AnnotationKey]gwv1.AnnotationValue{
 					GatewaySslOneWayTls: "Foo",
 				},
@@ -84,7 +84,7 @@ func TestApplySslExtensionOptions(t *testing.T) {
 					CipherSuites: []string{"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256", "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384"},
 				},
 			},
-			in: &gwv1.GatewayTLSConfig{
+			in: &gwv1.ListenerTLSConfig{
 				Options: map[gwv1.AnnotationKey]gwv1.AnnotationValue{
 					GatewaySslCipherSuites: "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384",
 				},
@@ -97,7 +97,7 @@ func TestApplySslExtensionOptions(t *testing.T) {
 					EcdhCurves: []string{"X25519MLKEM768", "X25519", "P-256"},
 				},
 			},
-			in: &gwv1.GatewayTLSConfig{
+			in: &gwv1.ListenerTLSConfig{
 				Options: map[gwv1.AnnotationKey]gwv1.AnnotationValue{
 					GatewaySslEcdhCurves: "X25519MLKEM768,X25519,P-256",
 				},
@@ -108,7 +108,7 @@ func TestApplySslExtensionOptions(t *testing.T) {
 			out: &ssl.SslConfig{
 				VerifySubjectAltName: []string{"foo", "bar"},
 			},
-			in: &gwv1.GatewayTLSConfig{
+			in: &gwv1.ListenerTLSConfig{
 				Options: map[gwv1.AnnotationKey]gwv1.AnnotationValue{
 					GatewaySslVerifySubjectAltName: "foo,bar",
 				},
@@ -121,7 +121,7 @@ func TestApplySslExtensionOptions(t *testing.T) {
 					MaximumProtocolVersion: ssl.SslParameters_TLSv1_2,
 				},
 			},
-			in: &gwv1.GatewayTLSConfig{
+			in: &gwv1.ListenerTLSConfig{
 				Options: map[gwv1.AnnotationKey]gwv1.AnnotationValue{
 					GatewaySslMaximumTlsVersion: "TLSv1_2",
 				},
@@ -134,7 +134,7 @@ func TestApplySslExtensionOptions(t *testing.T) {
 					MinimumProtocolVersion: ssl.SslParameters_TLSv1_3,
 				},
 			},
-			in: &gwv1.GatewayTLSConfig{
+			in: &gwv1.ListenerTLSConfig{
 				Options: map[gwv1.AnnotationKey]gwv1.AnnotationValue{
 					GatewaySslMinimumTlsVersion: "TLSv1_3",
 				},
@@ -145,7 +145,7 @@ func TestApplySslExtensionOptions(t *testing.T) {
 			out: &ssl.SslConfig{
 				Parameters: &ssl.SslParameters{},
 			},
-			in: &gwv1.GatewayTLSConfig{
+			in: &gwv1.ListenerTLSConfig{
 				Options: map[gwv1.AnnotationKey]gwv1.AnnotationValue{
 					GatewaySslMinimumTlsVersion: "TLSv1.3",
 					GatewaySslMaximumTlsVersion: "TLSv1.2",
@@ -162,7 +162,7 @@ func TestApplySslExtensionOptions(t *testing.T) {
 				VerifySubjectAltName: []string{"foo", "bar"},
 				Parameters:           &ssl.SslParameters{},
 			},
-			in: &gwv1.GatewayTLSConfig{
+			in: &gwv1.ListenerTLSConfig{
 				Options: map[gwv1.AnnotationKey]gwv1.AnnotationValue{
 					GatewaySslMinimumTlsVersion:    "TLSv1_3",
 					GatewaySslMaximumTlsVersion:    "TLSv1_2",
@@ -185,7 +185,7 @@ func TestApplySslExtensionOptions(t *testing.T) {
 					EcdhCurves:             []string{"X25519MLKEM768", "X25519", "P-256"},
 				},
 			},
-			in: &gwv1.GatewayTLSConfig{
+			in: &gwv1.ListenerTLSConfig{
 				Options: map[gwv1.AnnotationKey]gwv1.AnnotationValue{
 					GatewaySslMaximumTlsVersion:    "TLSv1_3",
 					GatewaySslMinimumTlsVersion:    "TLSv1_2",
@@ -199,7 +199,7 @@ func TestApplySslExtensionOptions(t *testing.T) {
 		{
 			name: "misspelled_option",
 			out:  &ssl.SslConfig{},
-			in: &gwv1.GatewayTLSConfig{
+			in: &gwv1.ListenerTLSConfig{
 				Options: map[gwv1.AnnotationKey]gwv1.AnnotationValue{
 					GatewaySslMinimumTlsVersion + "s": "TLSv1_3",
 				},

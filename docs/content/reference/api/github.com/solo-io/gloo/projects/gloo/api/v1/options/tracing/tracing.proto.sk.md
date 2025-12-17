@@ -30,7 +30,7 @@ weight: 5
 
 
 ---
-### ListenerTracingSettings
+### ListenerTracingSettings {#listenertracingsettings}
 
  
 Contains settings for configuring Envoy's tracing capabilities at the listener level.
@@ -70,7 +70,7 @@ See [here](https://docs.solo.io/gloo-edge/latest/guides/observability/tracing/) 
 
 
 ---
-### RouteTracingSettings
+### RouteTracingSettings {#routetracingsettings}
 
  
 Contains settings for configuring Envoy's tracing capabilities at the route level.
@@ -95,7 +95,7 @@ See [here](https://docs.solo.io/gloo-edge/latest/guides/observability/tracing/) 
 
 
 ---
-### TracePercentages
+### TracePercentages {#tracepercentages}
 
  
 Requests can produce traces by random sampling or when the `x-client-trace-id` header is provided.
@@ -118,7 +118,7 @@ TracePercentages defines the limits for random, forced, and overall tracing perc
 
 
 ---
-### TracingTagEnvironmentVariable
+### TracingTagEnvironmentVariable {#tracingtagenvironmentvariable}
 
  
 Requests can produce traces with custom tags.
@@ -141,7 +141,7 @@ TracingTagEnvironmentVariable defines an environment variable which gets added a
 
 
 ---
-### TracingTagLiteral
+### TracingTagLiteral {#tracingtagliteral}
 
  
 Requests can produce traces with custom tags.
@@ -162,7 +162,7 @@ TracingTagLiteral defines a literal which gets added as custom tag.
 
 
 ---
-### TracingTagMetadata
+### TracingTagMetadata {#tracingtagmetadata}
 
  
 Requests can produce traces with custom tags.
@@ -187,7 +187,7 @@ TracingTagMetadata defines a dynamic metadata tag which gets added as custom tag
 
 
 ---
-### MetadataValue
+### MetadataValue {#metadatavalue}
 
 
 
@@ -208,7 +208,7 @@ TracingTagMetadata defines a dynamic metadata tag which gets added as custom tag
 
 
 ---
-### Kind
+### Kind {#kind}
 
 
 

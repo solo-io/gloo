@@ -29,7 +29,7 @@ weight: 5
 
 
 ---
-### Secret
+### Secret {#secret}
 
  
 Certain features such as the AWS Lambda option require the use of secrets for authentication, configuration of SSL Certificates, and other data that should not be stored in plaintext configuration.
@@ -74,7 +74,7 @@ Gloo's secret backend can be configured in Gloo's bootstrap options
 
 
 ---
-### AwsSecret
+### AwsSecret {#awssecret}
 
  
 There are two ways of providing AWS secrets:
@@ -142,7 +142,7 @@ metadata:
 
 
 ---
-### AzureSecret
+### AzureSecret {#azuresecret}
 
 
 
@@ -159,7 +159,7 @@ metadata:
 
 
 ---
-### TlsSecret
+### TlsSecret {#tlssecret}
 
 
 
@@ -182,7 +182,7 @@ metadata:
 
 
 ---
-### HeaderSecret
+### HeaderSecret {#headersecret}
 
 
 
@@ -199,7 +199,7 @@ metadata:
 
 
 ---
-### AccountCredentialsSecret
+### AccountCredentialsSecret {#accountcredentialssecret}
 
  
 Secret to represent any kind of a username/secretname and password/secret combination
@@ -220,7 +220,7 @@ Used by LDAP auth to store service account credentials and by HMAC auth to keep 
 
 
 ---
-### EncryptionKeySecret
+### EncryptionKeySecret {#encryptionkeysecret}
 
  
 Secret used for key encryption.

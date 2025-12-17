@@ -12,8 +12,8 @@ weight: 5
 
 
 - [IngressRateLimit](#ingressratelimit)
-- [Settings](#settings)
-- [GrpcService](#grpcservice)
+- [Settings](#settings-3)
+- [GrpcService](#grpcservice-4)
 - [ServiceSettings](#servicesettings)
 - [RateLimitConfigRefs](#ratelimitconfigrefs)
 - [RateLimitConfigRef](#ratelimitconfigref)
@@ -30,7 +30,7 @@ weight: 5
 
 
 ---
-### IngressRateLimit
+### IngressRateLimit {#ingressratelimit}
 
  
 Basic rate-limiting API
@@ -50,7 +50,7 @@ Basic rate-limiting API
 
 
 ---
-### Settings
+### Settings {#settings-3}
 
 
 
@@ -77,7 +77,7 @@ Basic rate-limiting API
 
 
 ---
-### GrpcService
+### GrpcService {#grpcservice-4}
 
 
 
@@ -94,7 +94,7 @@ Basic rate-limiting API
 
 
 ---
-### ServiceSettings
+### ServiceSettings {#servicesettings}
 
  
 API based on Envoy's rate-limit service API. (reference here: https://github.com/lyft/ratelimit#configuration)
@@ -129,7 +129,7 @@ descriptors:
 
 
 ---
-### RateLimitConfigRefs
+### RateLimitConfigRefs {#ratelimitconfigrefs}
 
  
 A list of references to `RateLimitConfig` resources.
@@ -148,7 +148,7 @@ Each resource represents a rate limit policy that will be independently enforced
 
 
 ---
-### RateLimitConfigRef
+### RateLimitConfigRef {#ratelimitconfigref}
 
  
 A reference to a `RateLimitConfig` resource.
@@ -168,7 +168,7 @@ A reference to a `RateLimitConfig` resource.
 
 
 ---
-### RateLimitVhostExtension
+### RateLimitVhostExtension {#ratelimitvhostextension}
 
  
 Use this field if you want to inline the Envoy rate limits for this VirtualHost.
@@ -191,7 +191,7 @@ running a custom rate limit server you need to configure it yourself.
 
 
 ---
-### RateLimitRouteExtension
+### RateLimitRouteExtension {#ratelimitrouteextension}
 
  
 Use this field if you want to inline the Envoy rate limits for this Route.

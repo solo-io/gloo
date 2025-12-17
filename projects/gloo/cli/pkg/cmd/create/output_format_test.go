@@ -17,7 +17,6 @@ var _ = Describe("Upstream", func() {
 		kubeYamlOutput := `apiVersion: gloo.solo.io/v1
 kind: Upstream
 metadata:
-  creationTimestamp: null
   name: jsonplaceholder-80
   namespace: gloo-system
 spec:

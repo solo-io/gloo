@@ -102,7 +102,6 @@ var _ = Describe("ListenerOptions Plugin", func() {
 					Name:      "policy",
 					Namespace: "default",
 				},
-				ResourceKind: sologatewayv1.ListenerOptionGVK.Kind,
 			}
 
 			statusCtx = plugins.StatusContext{

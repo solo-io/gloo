@@ -11,9 +11,9 @@ weight: 5
 **Types:**
 
 
-- [ServiceSpec](#servicespec)
+- [ServiceSpec](#servicespec-2)
 - [SwaggerInfo](#swaggerinfo)
-- [DestinationSpec](#destinationspec)
+- [DestinationSpec](#destinationspec-4)
   
 
 
@@ -25,7 +25,7 @@ weight: 5
 
 
 ---
-### ServiceSpec
+### ServiceSpec {#servicespec-2}
 
 
 
@@ -44,7 +44,7 @@ weight: 5
 
 
 ---
-### SwaggerInfo
+### SwaggerInfo {#swaggerinfo}
 
 
 
@@ -63,7 +63,7 @@ weight: 5
 
 
 ---
-### DestinationSpec
+### DestinationSpec {#destinationspec-4}
 
  
 This is only for upstream with REST service spec

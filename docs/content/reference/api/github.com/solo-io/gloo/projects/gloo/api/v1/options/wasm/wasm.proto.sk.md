@@ -14,9 +14,9 @@ weight: 5
 - [PluginSource](#pluginsource)
 - [WasmFilter](#wasmfilter)
 - [VmType](#vmtype)
-- [FilterStage](#filterstage)
-- [Stage](#stage)
-- [Predicate](#predicate)
+- [FilterStage](#filterstage-1)
+- [Stage](#stage-1)
+- [Predicate](#predicate-2)
   
 
 
@@ -28,7 +28,7 @@ weight: 5
 
 
 ---
-### PluginSource
+### PluginSource {#pluginsource}
 
  
 Options config for WASM filters
@@ -46,7 +46,7 @@ Options config for WASM filters
 
 
 ---
-### WasmFilter
+### WasmFilter {#wasmfilter}
 
  
 This message defines a single Envoy WASM filter to be placed into the filter chain
@@ -78,7 +78,7 @@ This message defines a single Envoy WASM filter to be placed into the filter cha
 
 
 ---
-### VmType
+### VmType {#vmtype}
 
  
 represents the different types of WASM VMs available with which envoy can run
@@ -93,7 +93,7 @@ the WASM filter module
 
 
 ---
-### FilterStage
+### FilterStage {#filterstage-1}
 
 
 
@@ -112,7 +112,7 @@ the WASM filter module
 
 
 ---
-### Stage
+### Stage {#stage-1}
 
  
 list of filter stages which can be selected for a WASM filter
@@ -133,7 +133,7 @@ list of filter stages which can be selected for a WASM filter
 
 
 ---
-### Predicate
+### Predicate {#predicate-2}
 
  
 During is the 0th member so that it is the default, even though

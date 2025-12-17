@@ -23,7 +23,7 @@ weight: 5
 
 
 ---
-### ResourceRef
+### ResourceRef {#resourceref}
 
  
 A way to reference resources across namespaces

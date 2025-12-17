@@ -12,8 +12,8 @@ weight: 5
 
 
 - [RouteActionHashConfig](#routeactionhashconfig)
-- [Cookie](#cookie)
-- [HashPolicy](#hashpolicy)
+- [Cookie](#cookie-3)
+- [HashPolicy](#hashpolicy-2)
   
 
 
@@ -25,7 +25,7 @@ weight: 5
 
 
 ---
-### RouteActionHashConfig
+### RouteActionHashConfig {#routeactionhashconfig}
 
  
 Specifies the route’s hashing policy if the upstream cluster uses a hashing load balancer.
@@ -44,7 +44,7 @@ https://www.envoyproxy.io/docs/envoy/latest/api-v3/config/route/v3/route.proto#e
 
 
 ---
-### Cookie
+### Cookie {#cookie-3}
 
  
 Envoy supports two types of cookie affinity:
@@ -70,7 +70,7 @@ additional notes https://www.envoyproxy.io/docs/envoy/latest/api-v3/config/route
 
 
 ---
-### HashPolicy
+### HashPolicy {#hashpolicy-2}
 
  
 Specifies an element of Envoy's hashing policy for hashing load balancers

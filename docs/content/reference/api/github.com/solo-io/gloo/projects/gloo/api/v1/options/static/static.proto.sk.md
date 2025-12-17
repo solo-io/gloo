@@ -11,9 +11,9 @@ weight: 5
 **Types:**
 
 
-- [UpstreamSpec](#upstreamspec)
-- [Host](#host)
-- [HealthCheckConfig](#healthcheckconfig)
+- [UpstreamSpec](#upstreamspec-8)
+- [Host](#host-1)
+- [HealthCheckConfig](#healthcheckconfig-2)
   
 
 
@@ -25,7 +25,7 @@ weight: 5
 
 
 ---
-### UpstreamSpec
+### UpstreamSpec {#upstreamspec-8}
 
  
 Static upstreams are used to route request to services listening at fixed IP/Host & Port pairs.
@@ -52,7 +52,7 @@ Unlike upstreams created by service discovery, Static Upstreams must be created 
 
 
 ---
-### Host
+### Host {#host-1}
 
  
 Represents a single instance of an upstream
@@ -80,7 +80,7 @@ Represents a single instance of an upstream
 
 
 ---
-### HealthCheckConfig
+### HealthCheckConfig {#healthcheckconfig-2}
 
 
 

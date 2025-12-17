@@ -11,7 +11,7 @@ weight: 5
 **Types:**
 
 
-- [Metadata](#metadata)
+- [Metadata](#metadata-4)
 - [OwnerReference](#ownerreference)
   
 
@@ -24,7 +24,7 @@ weight: 5
 
 
 ---
-### Metadata
+### Metadata {#metadata-4}
 
  
 *
@@ -57,7 +57,7 @@ Metadata contains general properties of resources for purposes of versioning, an
 
 
 ---
-### OwnerReference
+### OwnerReference {#ownerreference}
 
  
 proto message representing kubernertes owner reference

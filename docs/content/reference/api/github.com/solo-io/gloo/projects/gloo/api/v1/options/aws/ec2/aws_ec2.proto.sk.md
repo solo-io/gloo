@@ -11,7 +11,7 @@ weight: 5
 **Types:**
 
 
-- [UpstreamSpec](#upstreamspec)
+- [UpstreamSpec](#upstreamspec-3)
 - [TagFilter](#tagfilter)
 - [KvPair](#kvpair)
   
@@ -25,7 +25,7 @@ weight: 5
 
 
 ---
-### UpstreamSpec
+### UpstreamSpec {#upstreamspec-3}
 
  
 Upstream Spec for AWS Lambda Upstreams
@@ -55,7 +55,7 @@ in a particular region
 
 
 ---
-### TagFilter
+### TagFilter {#tagfilter}
 
 
 
@@ -74,7 +74,7 @@ in a particular region
 
 
 ---
-### KvPair
+### KvPair {#kvpair}
 
 
 

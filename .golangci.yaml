@@ -5,9 +5,11 @@
 # * https://github.com/golangci/golangci-lint/blob/master/.golangci.reference.yml
 # * https://golangci-lint.run/usage/configuration/
 #
+version: "2"
+
 linters:
-  # Disable all linters.
-  disable-all: true
+  # Disable all linters by default.
+  default: none
   # Enable specific linters
   # https://golangci-lint.run/usage/linters/#enabled-by-default
   enable:
@@ -17,45 +19,43 @@ linters:
     # See: https://github.com/solo-io/gloo-mesh-enterprise/blob/main/.golangci.yaml for a reference
     - bodyclose
     - ginkgolinter
-    - goimports
     - nakedret
     - predeclared
     - usestdlibvars
     - importas
-
-# Settings dedicated to specific linters.
-linters-settings:
-  importas:
-    alias:
-      - pkg: k8s.io/api/apps/v1
-        alias: appsv1
-      - pkg: k8s.io/api/core/v1
-        alias: corev1
-      - pkg: k8s.io/apimachinery/pkg/apis/meta/v1
-        alias: metav1
-      - pkg: k8s.io/api/batch/v1
-        alias: batchv1
-      - pkg: github.com/solo-io/gloo/test/kubernetes/testutils/clients
-        alias: kubetestclients
-  nakedret:
-    # The team consensus is that naked returns hinder the readability of the code.
-    # However, named return values can still be useful as documentation for certain scenarios.
-    # By setting this to 0 in lieu of the default 30, we will effectively allow named return
-    # values as long as they are included in the return statement(s) e.g.
-    # func foo() (a, b int) {
-    #     a = 1
-    #     b = 2
-    #     c := 3
-    #     d := 4
-    #     // These are allowed
-    #     return a, b
-    #     return c, d
-    #     return d, c
-    #     // This is NOT allowed
-    #     return
-    #     // This is allowed but really, really bad. DO NOT do this.
-    #     return b, a
-    max-func-lines: 0
+  # Settings dedicated to specific linters.
+  settings:
+    importas:
+      alias:
+        - pkg: k8s.io/api/apps/v1
+          alias: appsv1
+        - pkg: k8s.io/api/core/v1
+          alias: corev1
+        - pkg: k8s.io/apimachinery/pkg/apis/meta/v1
+          alias: metav1
+        - pkg: k8s.io/api/batch/v1
+          alias: batchv1
+        - pkg: github.com/solo-io/gloo/test/kubernetes/testutils/clients
+          alias: kubetestclients
+    nakedret:
+      # The team consensus is that naked returns hinder the readability of the code.
+      # However, named return values can still be useful as documentation for certain scenarios.
+      # By setting this to 0 in lieu of the default 30, we will effectively allow named return
+      # values as long as they are included in the return statement(s) e.g.
+      # func foo() (a, b int) {
+      #     a = 1
+      #     b = 2
+      #     c := 3
+      #     d := 4
+      #     // These are allowed
+      #     return a, b
+      #     return c, d
+      #     return d, c
+      #     // This is NOT allowed
+      #     return
+      #     // This is allowed but really, really bad. DO NOT do this.
+      #     return b, a
+      max-func-lines: 0
 
 issues:
   # Maximum count of issues with the same text.
@@ -84,17 +84,13 @@ run:
 
 # output configuration options
 output:
-  # Use default format
-  # Default:
-  #   formats:
-  #     - format: colored-line-number
-  #       path: stdout
+  formats:
+    text:
+      path: stdout
+      print-linter-name: true
+      print-issued-lines: true
 
-  # Print lines of code with issue.
-  print-issued-lines: true
-
-  # Print linter name in the end of issue text.
-  print-linter-name: true
-
-  # Sort results by: filepath, line and column.
-  sort-results: true
+# Formatters configuration (v2)
+formatters:
+  enable:
+    - goimports

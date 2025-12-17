@@ -13,8 +13,8 @@ weight: 5
 
 - [TcpProxySettings](#tcpproxysettings)
 - [TunnelingConfig](#tunnelingconfig)
-- [HeaderValueOption](#headervalueoption)
-- [HeaderValue](#headervalue)
+- [HeaderValueOption](#headervalueoption-2)
+- [HeaderValue](#headervalue-2)
   
 
 
@@ -26,7 +26,7 @@ weight: 5
 
 
 ---
-### TcpProxySettings
+### TcpProxySettings {#tcpproxysettings}
 
  
 Contains various settings for Envoy's tcp proxy filter.
@@ -51,7 +51,7 @@ See here for more information: https://www.envoyproxy.io/docs/envoy/v1.10.0/api-
 
 
 ---
-### TunnelingConfig
+### TunnelingConfig {#tunnelingconfig}
 
  
 Configuration for tunneling TCP over other transports or application layers.
@@ -71,7 +71,7 @@ Configuration for tunneling TCP over other transports or application layers.
 
 
 ---
-### HeaderValueOption
+### HeaderValueOption {#headervalueoption-2}
 
  
 Header name/value pair plus option to control append behavior.
@@ -91,7 +91,7 @@ Header name/value pair plus option to control append behavior.
 
 
 ---
-### HeaderValue
+### HeaderValue {#headervalue-2}
 
  
 Header name/value pair.

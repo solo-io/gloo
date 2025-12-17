@@ -26,7 +26,7 @@ weight: 5
 
 
 ---
-### VirtualHostOption
+### VirtualHostOption {#virtualhostoption}
 
  
 The **VirtualHostOption** holds `options` configuration for a VirtualHost.
@@ -146,7 +146,7 @@ Notice how the order of VirtualHostOption delegations matters, and that the Virt
 
 
 ---
-### RouteOption
+### RouteOption {#routeoption}
 
  
 The **RouteOption** holds `options` configuration for a Route.
@@ -268,7 +268,7 @@ Notice how the order of RouteOption delegations matters, and that the Route-leve
 
 
 ---
-### ListenerOption
+### ListenerOption {#listeneroption}
 
 
 
@@ -291,7 +291,7 @@ Notice how the order of RouteOption delegations matters, and that the Route-leve
 
 
 ---
-### HttpListenerOption
+### HttpListenerOption {#httplisteneroption}
 
 
 

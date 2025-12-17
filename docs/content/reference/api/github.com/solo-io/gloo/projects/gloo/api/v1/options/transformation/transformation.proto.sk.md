@@ -11,25 +11,25 @@ weight: 5
 **Types:**
 
 
-- [ResponseMatch](#responsematch)
-- [RequestMatch](#requestmatch)
-- [Transformations](#transformations)
+- [ResponseMatch](#responsematch-3)
+- [RequestMatch](#requestmatch-1)
+- [Transformations](#transformations-1)
 - [RequestResponseTransformations](#requestresponsetransformations)
 - [TransformationStages](#transformationstages)
-- [Transformation](#transformation)
-- [Extraction](#extraction)
-- [Mode](#mode)
-- [TransformationTemplate](#transformationtemplate)
-- [HeaderToAppend](#headertoappend)
-- [DynamicMetadataValue](#dynamicmetadatavalue)
-- [SpanTransformer](#spantransformer)
-- [RequestBodyParse](#requestbodyparse)
-- [InjaTemplate](#injatemplate)
-- [Passthrough](#passthrough)
-- [MergeExtractorsToBody](#mergeextractorstobody)
-- [MergeJsonKeys](#mergejsonkeys)
-- [OverridableTemplate](#overridabletemplate)
-- [HeaderBodyTransform](#headerbodytransform)
+- [Transformation](#transformation-2)
+- [Extraction](#extraction-2)
+- [Mode](#mode-2)
+- [TransformationTemplate](#transformationtemplate-1)
+- [HeaderToAppend](#headertoappend-1)
+- [DynamicMetadataValue](#dynamicmetadatavalue-1)
+- [SpanTransformer](#spantransformer-1)
+- [RequestBodyParse](#requestbodyparse-1)
+- [InjaTemplate](#injatemplate-1)
+- [Passthrough](#passthrough-2)
+- [MergeExtractorsToBody](#mergeextractorstobody-1)
+- [MergeJsonKeys](#mergejsonkeys-1)
+- [OverridableTemplate](#overridabletemplate-1)
+- [HeaderBodyTransform](#headerbodytransform-1)
   
 
 
@@ -41,7 +41,7 @@ weight: 5
 
 
 ---
-### ResponseMatch
+### ResponseMatch {#responsematch-3}
 
 
 
@@ -62,7 +62,7 @@ weight: 5
 
 
 ---
-### RequestMatch
+### RequestMatch {#requestmatch-1}
 
 
 
@@ -85,7 +85,7 @@ weight: 5
 
 
 ---
-### Transformations
+### Transformations {#transformations-1}
 
 
 
@@ -106,7 +106,7 @@ weight: 5
 
 
 ---
-### RequestResponseTransformations
+### RequestResponseTransformations {#requestresponsetransformations}
 
 
 
@@ -125,7 +125,7 @@ weight: 5
 
 
 ---
-### TransformationStages
+### TransformationStages {#transformationstages}
 
 
 
@@ -152,7 +152,7 @@ weight: 5
 
 
 ---
-### Transformation
+### Transformation {#transformation-2}
 
  
 User-facing API for transformation.
@@ -176,7 +176,7 @@ User-facing API for transformation.
 
 
 ---
-### Extraction
+### Extraction {#extraction-2}
 
  
 Extractions can be used to extract information from the request/response.
@@ -205,7 +205,7 @@ The extracted information can then be referenced in template fields.
 
 
 ---
-### Mode
+### Mode {#mode-2}
 
  
 The mode of operation for the extraction.
@@ -220,7 +220,7 @@ The mode of operation for the extraction.
 
 
 ---
-### TransformationTemplate
+### TransformationTemplate {#transformationtemplate-1}
 
  
 Defines a transformation template.
@@ -264,7 +264,7 @@ Defines a transformation template.
 
 
 ---
-### HeaderToAppend
+### HeaderToAppend {#headertoappend-1}
 
  
 Defines a header-template pair to be used in `headers_to_append`
@@ -284,7 +284,7 @@ Defines a header-template pair to be used in `headers_to_append`
 
 
 ---
-### DynamicMetadataValue
+### DynamicMetadataValue {#dynamicmetadatavalue-1}
 
  
 Defines an [Envoy Dynamic
@@ -310,7 +310,7 @@ entry.
 
 
 ---
-### SpanTransformer
+### SpanTransformer {#spantransformer-1}
 
  
 Definitions for span transformations for tracing purposes.
@@ -328,7 +328,7 @@ Definitions for span transformations for tracing purposes.
 
 
 ---
-### RequestBodyParse
+### RequestBodyParse {#requestbodyparse-1}
 
  
 Determines how the body will be parsed.
@@ -342,7 +342,7 @@ Determines how the body will be parsed.
 
 
 ---
-### InjaTemplate
+### InjaTemplate {#injatemplate-1}
 
  
 Defines an [Inja template](https://github.com/pantor/inja) that will be
@@ -379,7 +379,7 @@ substring extends to the end of the input string.
 
 
 ---
-### Passthrough
+### Passthrough {#passthrough-2}
 
 
 
@@ -394,7 +394,7 @@ substring extends to the end of the input string.
 
 
 ---
-### MergeExtractorsToBody
+### MergeExtractorsToBody {#mergeextractorstobody-1}
 
 
 
@@ -409,7 +409,7 @@ substring extends to the end of the input string.
 
 
 ---
-### MergeJsonKeys
+### MergeJsonKeys {#mergejsonkeys-1}
 
 
 
@@ -426,7 +426,7 @@ substring extends to the end of the input string.
 
 
 ---
-### OverridableTemplate
+### OverridableTemplate {#overridabletemplate-1}
 
 
 
@@ -445,7 +445,7 @@ substring extends to the end of the input string.
 
 
 ---
-### HeaderBodyTransform
+### HeaderBodyTransform {#headerbodytransform-1}
 
 
 

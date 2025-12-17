@@ -13,8 +13,8 @@ weight: 5
 
 - [Tap](#tap)
 - [Sink](#sink)
-- [GrpcService](#grpcservice)
-- [HttpService](#httpservice)
+- [GrpcService](#grpcservice-5)
+- [HttpService](#httpservice-1)
   
 
 
@@ -26,7 +26,7 @@ weight: 5
 
 
 ---
-### Tap
+### Tap {#tap}
 
  
 Tap filter: a filter that copies the contents of HTTP requests and responses
@@ -55,7 +55,7 @@ HTTP or GRPC.
 
 
 ---
-### Sink
+### Sink {#sink}
 
 
 
@@ -74,7 +74,7 @@ HTTP or GRPC.
 
 
 ---
-### GrpcService
+### GrpcService {#grpcservice-5}
 
  
 A tap sink over a GRPC service
@@ -92,7 +92,7 @@ A tap sink over a GRPC service
 
 
 ---
-### HttpService
+### HttpService {#httpservice-1}
 
  
 A tap sink over a HTTP service

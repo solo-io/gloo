@@ -23,7 +23,7 @@ weight: 5
 
 
 ---
-### KubeService
+### KubeService {#kubeservice}
 
  
 A simple wrapper for a Kubernetes Service Object.

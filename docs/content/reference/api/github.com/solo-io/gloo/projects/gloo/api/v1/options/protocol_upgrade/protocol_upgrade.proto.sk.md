@@ -24,7 +24,7 @@ weight: 5
 
 
 ---
-### ProtocolUpgradeConfig
+### ProtocolUpgradeConfig {#protocolupgradeconfig}
 
 
 
@@ -43,7 +43,7 @@ weight: 5
 
 
 ---
-### ProtocolUpgradeSpec
+### ProtocolUpgradeSpec {#protocolupgradespec}
 
 
 

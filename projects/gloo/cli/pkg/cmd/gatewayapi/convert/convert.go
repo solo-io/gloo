@@ -200,8 +200,8 @@ func (o *GatewayAPIOutput) convertVirtualServiceListener(vs *snapshot.VirtualSer
 	return nil
 }
 
-func (o *GatewayAPIOutput) generateTLSConfiguration(vs *snapshot.VirtualServiceWrapper) *gwv1.GatewayTLSConfig {
-	tlsConfig := &gwv1.GatewayTLSConfig{
+func (o *GatewayAPIOutput) generateTLSConfiguration(vs *snapshot.VirtualServiceWrapper) *gwv1.ListenerTLSConfig {
+	tlsConfig := &gwv1.ListenerTLSConfig{
 		Mode: ptr.To(gwv1.TLSModeTerminate),
 		//FrontendValidation: nil, // TODO do we need to set this?
 		//Options:            nil, // TODO do we need to set this?
