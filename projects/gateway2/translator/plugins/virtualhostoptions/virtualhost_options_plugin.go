@@ -141,7 +141,7 @@ func (p *plugin) ApplyListenerPlugin(
 			v.Options = merged.Spec.GetOptions()
 			vhostutils.AppendSourceToVirtualHost(v, opt)
 		}
-		listenerutils.AppendSourceToListener(outListener, opt)
+		listenerutils.AppendSourceToListener(outListener, opt, sologatewayv1.VirtualHostOptionGVK.Kind)
 
 		// track that we used this VirtualHostOption in our status cache
 		// we do this so we can persist status later for all attached VirtualHostOptions
