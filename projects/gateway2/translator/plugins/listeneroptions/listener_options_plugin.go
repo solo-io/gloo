@@ -98,7 +98,7 @@ func (p *plugin) ApplyListenerPlugin(
 		outListener.Options = optionUsed.Spec.GetOptions()
 	}
 
-	listenerutils.AppendSourceToListener(outListener, optionUsed)
+	listenerutils.AppendSourceToListener(outListener, optionUsed, sologatewayv1.ListenerOptionGVK.Kind)
 
 	nn := client.ObjectKeyFromObject(optionUsed)
 	p.legacyStatusCache[nn] = newLegacyStatus()
