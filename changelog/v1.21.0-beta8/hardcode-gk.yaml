@@ -1,0 +1,7 @@
+changelog:
+- type: NON_USER_FACING
+  issueLink: https://github.com/solo-io/solo-projects/issues/8681
+  resolvesIssue: false
+  description: >-
+    No longer rely on the GVK of the source object to determine the resource kind of the source in AppendSourceToVirtualHost and AppendSourceToListener,
+    just use the known GVKs. This is because a change in controller-runtime caused the GVK of the source object to be empty.
