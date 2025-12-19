@@ -1,0 +1,6 @@
+changelog:
+- type: NEW_FEATURE
+  description: >
+    Updating RBAC proto to enable support for glob claim types
+  issueLink: https://github.com/solo-io/solo-projects/issues/8612
+  resolvesIssue: false
