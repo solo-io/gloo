@@ -49,6 +49,8 @@ steps:
   args:
   - 'publish-docker'
   dir: *dir
+  env:
+  - 'DOCKER_API_VERSION=1.41'
   secretEnv:
   - 'GITHUB_TOKEN'
   waitFor:
@@ -88,6 +90,7 @@ steps:
   env:
   - 'ORIGINAL_IMAGE_REGISTRY=quay.io/solo-io'
   - 'IMAGE_REGISTRY=gcr.io/gloo-edge'
+  - 'DOCKER_API_VERSION=1.41'
   secretEnv:
   - 'GITHUB_TOKEN'
   waitFor:
