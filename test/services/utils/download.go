@@ -51,6 +51,8 @@ func dockerDownload(tmpdir string, params GetBinaryParams) (string, error) {
 	// use bash to run a docker container and extract the binary file from the running container
 	bash := fmt.Sprintf(`
 set -ex
+# Set Docker API version to 1.41 for compatibility with older Docker daemons
+export DOCKER_API_VERSION=1.41
 CID=$(docker run -d  %s /bin/sh -c exit)
 
 # just print the image sha for repoducibility
