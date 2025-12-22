@@ -61,6 +61,8 @@ message JWTPrincipal {
         BOOLEAN = 1;
         // The JWT claim value is a list that contains a string that exactly matches the value.
         LIST_CONTAINS = 2;
+        // The JWT claim value is a glob pattern that matches the value.
+        GLOB_MATCH = 3;
     }
     // The matcher to use when evaluating this principal. By default, exact string comparison (EXACT_STRING) is used.
     ClaimMatcher matcher = 3;
