@@ -76,6 +76,7 @@ steps:
   env:
   - 'MULTIARCH=true'
   - 'MULTIARCH_PUSH=true'
+  - 'DOCKER_API_VERSION=1.41'
   secretEnv:
   - 'GITHUB_TOKEN'
   waitFor:
@@ -118,6 +119,7 @@ steps:
   - 'MULTIARCH=true'
   - 'MULTIARCH_PUSH=true'
   - 'IMAGE_REGISTRY=gcr.io/gloo-edge'
+  - 'DOCKER_API_VERSION=1.41'
   secretEnv:
   - 'GITHUB_TOKEN'
   waitFor:
