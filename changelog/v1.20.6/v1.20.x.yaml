@@ -1,0 +1,8 @@
+changelog:
+  - type: NON_USER_FACING
+    resolvesIssue: false
+    description: >-
+      dummy release to workaround sum.golang.org caching the wrong checksum for v1.20.5.
+
+      skipCI-kube-tests:true
+      skipCI-docs-build:true
