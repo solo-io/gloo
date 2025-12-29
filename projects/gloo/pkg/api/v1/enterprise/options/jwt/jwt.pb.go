@@ -759,8 +759,13 @@ type ClaimToHeader struct {
 	// Claim name. for example, "sub"
 	Claim string `protobuf:"bytes,1,opt,name=claim,proto3" json:"claim,omitempty"`
 	// The header the claim will be copied to. for example, "x-sub".
+	// If this header exists in the request, it is removed before the claim is added,
+	// regardless of whether the claim exists or not. If the "append" field is set to true,
+	// the existing header is not removed, and the claim is appended to it.
 	Header string `protobuf:"bytes,2,opt,name=header,proto3" json:"header,omitempty"`
 	// If the header exists, append to it (true), or overwrite it (false).
+	// WARNING: Do not set this field to true if the gateway is public-facing, because this explicitly trusts
+	// the header in the incoming request.
 	Append        bool `protobuf:"varint,4,opt,name=append,proto3" json:"append,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
