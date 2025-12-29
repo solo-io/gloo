@@ -289,8 +289,8 @@ Allows copying verified claims to headers sent upstream
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
 | `claim` | `string` | Claim name. for example, "sub". |
-| `header` | `string` | The header the claim will be copied to. for example, "x-sub". If this header exists in the request, it is removed before the claim is added, regardless of whether the claim exists or not. If the "append" field is set to true, the existing header is not removed, and the claim is appended to it. |
-| `append` | `bool` | If the header exists, append to it (true), or overwrite it (false). WARNING: Do not set this field to true if the gateway is public-facing, because this explicitly trusts the header in the incoming request. |
+| `header` | `string` | The header the claim will be copied to. for example, "x-sub". |
+| `append` | `bool` | If the header exists, append to it (true), or overwrite it (false). |
 
 
 
