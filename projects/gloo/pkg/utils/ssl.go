@@ -104,6 +104,14 @@ func (s *sslConfigTranslator) ResolveDownstreamSslConfig(secrets v1.SecretList, 
 	var requireClientCert *wrappers.BoolValue
 	if common.GetValidationContextType() != nil {
 		requireClientCert = &wrappers.BoolValue{Value: !dc.GetOneWayTls().GetValue()}
+		// When oneWayTls is true, remove the ValidationContext to prevent Envoy from
+		// requesting a client certificate during the TLS handshake. The presence of
+		// a ValidationContext causes Envoy to request client certificates even when
+		// RequireClientCertificate is false (which only controls whether the cert is
+		// required, not whether it's requested).
+		if dc.GetOneWayTls().GetValue() {
+			common.ValidationContextType = nil
+		}
 	}
 
 	// default alpn for downstreams.
