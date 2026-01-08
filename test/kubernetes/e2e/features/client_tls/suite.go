@@ -3,6 +3,7 @@ package client_tls
 import (
 	"context"
 
+	"github.com/onsi/gomega"
 	"github.com/stretchr/testify/suite"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -112,6 +113,71 @@ func (s *clientTlsTestingSuite) TestRouteSecureRequestToAnnotatedService() {
 	// and then perform more smoke tests for the annotated service case.
 }
 
+func (s *clientTlsTestingSuite) TestOneWayTlsDoesNotRequestClientCertificate() {
+	ns := s.testInstallation.Metadata.InstallNamespace
+	nginxNs := "nginx" // The nginx-tls secret and upstream are in the nginx namespace
+
+	// Create a VirtualService with oneWayTls: true and a TLS secret containing ca.crt
+	// This test verifies that Envoy does not request a client certificate during the TLS handshake
+	// even when ca.crt is present in the secret, when oneWayTls is set to true.
+	vs := vSOnewayDownstreamTlsObject(ns)
+	s.T().Cleanup(func() {
+		err := s.testInstallation.Actions.Kubectl().Delete(s.ctx, VSOnewayDownstreamTlsYaml, "-n", ns)
+		s.NoError(err, "can delete vs oneway downstream tls manifest file")
+		s.testInstallation.AssertionsT(s.T()).EventuallyObjectsNotExist(s.ctx, vs)
+
+		err = s.testInstallation.Actions.Kubectl().Delete(s.ctx, NginxUpstreamsYaml)
+		s.NoError(err, "can delete upstream manifest file")
+	})
+
+	// Wait for the nginx-tls secret to exist and be available to Gloo before applying the VS
+	// The secret is created in SetupSuite, but we need to ensure Gloo has picked it up
+	secret := nginxTlsSecret(nginxNs)
+	s.eventuallySecretInSnapshot(secret.ObjectMeta)
+
+	// Apply the upstream that the VirtualService references
+	// The VirtualService references the "nginx" upstream in the nginx namespace
+	err := s.testInstallation.Actions.Kubectl().Apply(s.ctx, NginxUpstreamsYaml)
+	s.NoError(err, "can apply upstream manifest file")
+
+	err = s.testInstallation.Actions.Kubectl().Apply(s.ctx, VSOnewayDownstreamTlsYaml, "-n", ns)
+	s.NoError(err, "can apply vs oneway downstream tls manifest file")
+
+	// Use curl with verbose output to connect and verify that no certificate request is made
+	// When oneWayTls is true, Envoy should NOT request a client certificate during the TLS handshake.
+	// We check the verbose TLS handshake output to explicitly verify that "Certificate Request (13)" is absent.
+	// We use Eventually to retry until the connection succeeds and we can verify the certificate request is not present.
+	s.testInstallation.AssertionsT(s.T()).Gomega.Eventually(func(g gomega.Gomega) {
+		curlResp, err := s.testInstallation.Actions.Kubectl().CurlFromPod(
+			s.ctx,
+			testdefaults.CurlPodExecOpt,
+			curl.WithHost(kubeutils.ServiceFQDN(metav1.ObjectMeta{
+				Name:      defaults.GatewayProxyName,
+				Namespace: ns,
+			})),
+			curl.WithHostHeader("oneway-downstream.example.com"),
+			curl.WithPort(443),
+			curl.WithScheme("https"),
+			curl.WithSni("oneway-downstream.example.com"),
+			curl.IgnoreServerCert(),
+			curl.VerboseOutput(),
+			curl.WithPath("/"),
+		)
+		g.Expect(err).NotTo(gomega.HaveOccurred(), "curl should succeed without client certificate when oneWayTls is true")
+
+		// Verify HTTP 200 response
+		output := curlResp.StdOut + curlResp.StdErr
+		g.Expect(output).To(gomega.ContainSubstring("200"), "should receive HTTP 200 response")
+
+		// Verify that "Certificate Request (13)" is NOT present in the TLS handshake output
+		// This explicitly confirms that no certificate request was made during the TLS handshake
+		g.Expect(output).NotTo(gomega.ContainSubstring("Certificate Request (13)"),
+			"TLS handshake should not contain Certificate Request (13) when oneWayTls is true")
+		g.Expect(output).NotTo(gomega.ContainSubstring("Certificate Request"),
+			"TLS handshake should not contain Certificate Request when oneWayTls is true")
+	}).WithContext(s.ctx).Should(gomega.Succeed())
+}
+
 func (s *clientTlsTestingSuite) assertEventualResponseForPath(path string, matcher *matchers.HttpResponse) {
 	s.testInstallation.AssertionsT(s.T()).AssertEventualCurlResponse(
 		s.ctx,
@@ -123,4 +189,15 @@ func (s *clientTlsTestingSuite) assertEventualResponseForPath(path string, match
 			curl.WithPath(path),
 		},
 		matcher)
+}
+
+func (s *clientTlsTestingSuite) eventuallySecretInSnapshot(meta metav1.ObjectMeta) {
+	s.testInstallation.AssertionsT(s.T()).AssertGlooAdminApi(
+		s.ctx,
+		metav1.ObjectMeta{
+			Name:      kubeutils.GlooDeploymentName,
+			Namespace: s.testInstallation.Metadata.InstallNamespace,
+		},
+		s.testInstallation.AssertionsT(s.T()).InputSnapshotContainsElement(coreSecretGVK, meta),
+	)
 }
