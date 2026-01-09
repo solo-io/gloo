@@ -1,0 +1,8 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/solo-projects/issues/8612
+    description: >-
+      Docs for regex RBAC support in Gloo Enterprise
+
+      skipCI-kube-tests:true
+      skipCI-docs-build:true
