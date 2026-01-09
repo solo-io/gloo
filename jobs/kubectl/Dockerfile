@@ -1,6 +1,6 @@
 ARG BASE_IMAGE
 
-FROM rancher/kubectl:v1.34.1 as kubectl
+FROM rancher/kubectl:v1.34.3 as kubectl
 
 FROM $BASE_IMAGE
 
