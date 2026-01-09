@@ -233,6 +233,15 @@ Header: 1
 			Expect(cfg.RequireClientCertificate.GetValue()).To(BeFalse())
 		})
 
+		It("should remove validation context if oneWayTls enabled for downstream config", func() {
+			downstreamCfg.OneWayTls = &wrappers.BoolValue{Value: true}
+			cfg, err := configTranslator.ResolveDownstreamSslConfig(secrets, downstreamCfg)
+			Expect(err).NotTo(HaveOccurred())
+			// When oneWayTls is true, ValidationContext should be removed to prevent Envoy
+			// from requesting client certificates during the TLS handshake
+			Expect(cfg.CommonTlsContext.GetValidationContext()).To(BeNil(), "Validation context should be removed to prevent client certificate requests")
+		})
+
 		It("should remove client certificates but keep validation context if oneWayTls enabled for upstream config", func() {
 			upstreamCfg.OneWayTls = &wrappers.BoolValue{Value: true}
 			cfg, err := configTranslator.ResolveUpstreamSslConfig(secrets, upstreamCfg)
