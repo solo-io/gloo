@@ -1,9 +1,0 @@
-changelog:
-- type: DEPENDENCY_BUMP
-  dependencyOwner: rancher
-  dependencyRepo: kubectl
-  dependencyTag: v1.34.3
-  description: >-
-    Bump kubectl distroless image to 1.34.3 to fix CVE-2025-58183 and CVE-2025-61729
-  issueLink: https://github.com/solo-io/gloo/issues/11088
-  resolvesIssue: false
