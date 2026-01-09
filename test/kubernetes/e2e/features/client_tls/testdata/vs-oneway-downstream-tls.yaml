@@ -1,0 +1,24 @@
+apiVersion: gateway.solo.io/v1
+kind: VirtualService
+metadata:
+  name: vs-oneway-downstream-tls
+spec:
+  sslConfig:
+    oneWayTls: true
+    secretRef:
+      name: nginx-tls
+      namespace: nginx
+  virtualHost:
+    domains:
+      - oneway-downstream.example.com
+    routes:
+      - matchers:
+          - exact: /
+        routeAction:
+          single:
+            upstream:
+              name: nginx
+              namespace: nginx
+        options:
+          prefixRewrite: /
+

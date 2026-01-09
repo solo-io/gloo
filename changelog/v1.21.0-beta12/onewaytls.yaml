@@ -1,0 +1,5 @@
+changelog:
+- type: FIX
+  issueLink: https://github.com/solo-io/solo-projects/issues/8654
+  resolvesIssue: false
+  description: When oneWayTls is set to true, the ValidationContext is removed to prevent Envoy from requesting a client certificate during the TLS handshake.
