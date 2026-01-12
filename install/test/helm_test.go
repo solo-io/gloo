@@ -177,7 +177,7 @@ var _ = Describe("Helm Test", func() {
 				})
 			})
 
-			It("should disableDigests if specified", func() {
+			It("should disableDigest if specified", func() {
 				shaTest := "sha256:1234123412341234123412341234213412341234123412341234123412341234"
 				prepareMakefile(namespace, glootestutils.HelmValues{
 					ValuesArgs: []string{

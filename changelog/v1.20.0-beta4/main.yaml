@@ -1,0 +1,6 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/gloo/issues/10690
+    resolvesIssue: false
+    description: >-
+      "fix parameter global.image.disableDigest and not global.image.disableDigests (plural)"
