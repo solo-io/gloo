@@ -1,0 +1,6 @@
+changelog:
+- type: BREAKING_CHANGE
+  issueLink: https://github.com/solo-io/solo-projects/issues/8658
+  resolvesIssue: false
+  description: Mark XSLT transformation as deprecated.
+
