@@ -604,6 +604,7 @@ type Transformation_HeaderBodyTransform struct {
 }
 
 type Transformation_XsltTransformation struct {
+	// Deprecated: The XSLT Transformation feature of Gloo Gateway will be removed in a future release.
 	// (Enterprise Only): Xslt Transformation
 	XsltTransformation *xslt.XsltTransformation `protobuf:"bytes,3,opt,name=xslt_transformation,json=xsltTransformation,proto3,oneof"`
 }
