@@ -96,6 +96,7 @@ message Transformation {
         // 'headers', containing the headers, and 'body', containing the original
         // body.
         HeaderBodyTransform header_body_transform = 2;
+        // Deprecated: The XSLT Transformation feature of Gloo Gateway will be removed in a future release.
         // (Enterprise Only): Xslt Transformation
         envoy.config.transformer.xslt.v2.XsltTransformation xslt_transformation = 3;
 
@@ -357,11 +358,11 @@ message MergeJsonKeys {
     // If set to true, the template will be set even if the rendered value is empty.
     bool override_empty = 2;
   }
-  /* 
+  /*
     Map of key name -> template to render into the JSON body.
     Specified keys which don't exist in the JSON body will be set,
     keys which do exist will be overriden.
-    
+
     For example, given the following JSON body:
     {
       "key1": "value1"
