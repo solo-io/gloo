@@ -22,21 +22,21 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// Deprecated: The XSLT Transformation feature of Gloo Gateway will be removed in a future release.
+// Deprecated: The XSLT Transformation feature of Gloo Gateway was deprecated in v1.21.0 will be removed in a future release.
 // Defines an XSLT Transformation.
 type XsltTransformation struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// Deprecated: The XSLT Transformation feature of Gloo Gateway will be removed in a future release.
+	// Deprecated: The XSLT Transformation feature of Gloo Gateway was deprecated in v1.21.0 will be removed in a future release.
 	// XSLT transformation template which you want to transform requests/responses with.
 	// Invalid XSLT transformation templates will result will result in a NACK during envoy configuration-time and the configuration will not be loaded.
 	Xslt string `protobuf:"bytes,1,opt,name=xslt,proto3" json:"xslt,omitempty"`
-	// Deprecated: The XSLT Transformation feature of Gloo Gateway will be removed in a future release.
+	// Deprecated: The XSLT Transformation feature of Gloo Gateway was deprecated in v1.21.0 will be removed in a future release.
 	// Changes the content-type header of the HTTP request/response to what is set here.
 	// This is useful in situations where an XSLT transformation is used to transform XML to JSON and the content-type
 	// should be changed from `application/xml` to `application/json`.
 	// If left empty, the content-type header remains unmodified by default.
 	SetContentType string `protobuf:"bytes,2,opt,name=set_content_type,json=setContentType,proto3" json:"set_content_type,omitempty"`
-	// Deprecated: The XSLT Transformation feature of Gloo Gateway will be removed in a future release.
+	// Deprecated: The XSLT Transformation feature of Gloo Gateway was deprecated in v1.21.0 will be removed in a future release.
 	// This should be set to true if the content being transformed is not XML.
 	// For example, if the content being transformed is from JSON to XML, this should be set to true.
 	// XSLT transformations can only take valid XML as input to be transformed. If the body is not a valid XML

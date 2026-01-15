@@ -4,17 +4,21 @@ weight: 10
 description: Transforming the request body from SOAP/XML to a JSON.
 ---
 
+{{% notice warning %}}
+This feature is deprecated in Gloo Gateway v1.21.0 and will be removed in a future release
+{{% /notice %}}
+
 {{% notice note %}}
-This feature requires a Gloo Gateway Enterprise license. 
+This feature requires a Gloo Gateway Enterprise license.
 {{% /notice %}}
 
 ## Introduction
 
-SOAP remains prevalent today for enterprise web services across a number of industries, 
-including financial services and healthcare. However, SOAP uses XML, a message format over 2 decades old. 
+SOAP remains prevalent today for enterprise web services across a number of industries,
+including financial services and healthcare. However, SOAP uses XML, a message format over 2 decades old.
 Modern services have adopted newer message formats, one of which is JSON. Modernizing a legacy SOAP service to use
 JSON can often mean rewriting the service entirely. This guide shows you a way of allowing for clients and services'
-message formats to differ by performing the translation within Gloo Gateway. We leverage 
+message formats to differ by performing the translation within Gloo Gateway. We leverage
 powerful XSLT transformations to allow for an XML-based SOAP service to communicate with a JSON client.
 
 # Setup
@@ -78,7 +82,7 @@ spec:
     app: world-cities-soap-service
 EOF
 {{< /highlight >}}
-    
+
 Once you create the service, Gloo Gateway discovery should have created an upstream, which you can confirm by running
 ```shell
 glooctl get us --name default-world-cities-soap-service-8080
@@ -140,7 +144,7 @@ curl $(glooctl proxy url) -H "SOAPAction:findCity" -H "content-type:application/
       </Query>
       \
    </Body>
-</Envelope>' 
+</Envelope>'
 ```
 
 The service should return back the results as XML:
@@ -365,7 +369,7 @@ which transforms our JSON to the XML which the world cities service understands.
 XML data. However, our input to the transformation is JSON, so by specifying this flag, we signal to our XSLT transformation
 filter that we are supplying non-xml (JSON) data as the input.
 
-`setContentType`: Since we are transforming the content type of the data from `application/json` to `text/xml`, we 
+`setContentType`: Since we are transforming the content type of the data from `application/json` to `text/xml`, we
 can set the new content-type header here.
 
 #### Response transformation
@@ -403,11 +407,11 @@ responseTransformation:
 {{< /highlight >}}
 
 Once again, we can see the important line highlighted. The `xml-to-json` function translates the XML
-response from the server to the JSON that we see on the client side. We transform the content-type header from the 
+response from the server to the JSON that we see on the client side. We transform the content-type header from the
 server to `application/json` using the `setContentType` field.
 
 ## Summary
 
-In this guide, we installed Gloo Gateway Enterprise and created a SOAP service which uses XML as it's message format. 
+In this guide, we installed Gloo Gateway Enterprise and created a SOAP service which uses XML as it's message format.
 We were then able to modernize the service using XSLT transformations to convert JSON -> XML and XML -> JSON. This allowed
 us to query our SOAP service with a JSON query, and to receive a JSON response in return, without ever changing the service.
