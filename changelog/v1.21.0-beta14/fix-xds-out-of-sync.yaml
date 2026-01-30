@@ -1,0 +1,6 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/solo-projects/issues/8668
+    resolvesIssue: false
+    description: >-
+      fixed snapshot out of sync with envoy when upstream points to invalid service
