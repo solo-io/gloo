@@ -1,0 +1,7 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/gloo/issues/11119
+    resolvesIssue: false
+    # The last commit's description is shown here, if you have not commit yet, this may not be what you want
+    description: >-
+      updated alpine image version and go version for security fixes
