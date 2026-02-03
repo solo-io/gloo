@@ -1,4 +1,4 @@
-FROM alpine:3.21.5
+FROM alpine
 
 COPY proxycontroller-linux-amd64 /usr/local/bin/proxycontroller
 

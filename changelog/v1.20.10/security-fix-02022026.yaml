@@ -1,0 +1,16 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/gloo/issues/11119
+    resolvesIssue: false
+    description: >-
+      updated alpine image version and go version for security fixes
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: golang
+    dependencyRepo: go
+    dependencyTag: v1.25.6
+    description: >-
+      Bump go to 1.25.6 to fix CVEs
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: cloud-builders
+    dependencyTag: v0.14.1
