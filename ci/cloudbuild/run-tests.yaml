@@ -1,6 +1,6 @@
 steps:
 
-- name: 'gcr.io/$PROJECT_ID/prepare-go-workspace:0.14.0'
+- name: 'gcr.io/$PROJECT_ID/prepare-go-workspace:0.14.1'
   id: 'prepare-workspace'
   args:
   - '--repo-name'
