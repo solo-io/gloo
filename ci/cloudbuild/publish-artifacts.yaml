@@ -66,6 +66,7 @@ steps:
   dir: *dir
   env:
   - 'GOARCH=arm64'
+  - 'DOCKER_API_VERSION=1.41'
 
 # Run make targets to push docker images to quay.io
 - name: 'gcr.io/$PROJECT_ID/go-mod-make:0.14.1'
