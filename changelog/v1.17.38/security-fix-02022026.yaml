@@ -1,6 +1,6 @@
 changelog:
   - type: FIX
-    issueLink: https://github.com/solo-io/gloo/issues/11119
+    issueLink: https://github.com/solo-io/gloo/issues/11122
     resolvesIssue: false
     description: >-
       updated alpine image version and go version for security fixes
