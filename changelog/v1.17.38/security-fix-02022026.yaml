@@ -7,10 +7,10 @@ changelog:
   - type: DEPENDENCY_BUMP
     dependencyOwner: golang
     dependencyRepo: go
-    dependencyTag: v1.25.6
+    dependencyTag: v1.25.7
     description: >-
-      Bump go to 1.25.6 to fix CVEs
+      Bump go to 1.25.7 to fix CVEs
   - type: DEPENDENCY_BUMP
     dependencyOwner: solo-io
     dependencyRepo: cloud-builders
-    dependencyTag: v0.14.1
+    dependencyTag: v0.14.2
