@@ -156,6 +156,10 @@ message VirtualHostOptions {
     // override certain HttpListenerOptions settings, and can be overridden by RouteOptions settings.
     extproc.options.gloo.solo.io.RouteSettings ext_proc = 30;
 
+    // Enterprise-only: Late External Processing filter settings for the virtual host. This can be used to
+    // override certain HttpListenerOptions settings, and can be overridden by RouteOptions settings.
+    extproc.options.gloo.solo.io.RouteSettings ext_proc_late = 31;
+
     // Settings for determining merge strategy for CORS settings when present at both Route and VirtualHost levels.
     cors.options.gloo.solo.io.CorsPolicyMergeSettings cors_policy_merge_settings = 20;
 }

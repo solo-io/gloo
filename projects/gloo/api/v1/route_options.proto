@@ -248,6 +248,10 @@ message RouteOptions {
     // override certain HttpListenerOptions or VirtualHostOptions settings.
     extproc.options.gloo.solo.io.RouteSettings ext_proc = 30;
 
+    // Enterprise-only: Late External Processing filter settings for the route. This can be used to
+    // override certain HttpListenerOptions or VirtualHostOptions settings.
+    extproc.options.gloo.solo.io.RouteSettings ext_proc_late = 33;
+
     // Enterprise-only: Settings to configure ai settings for a route.
     // These settings will only apply if the backend is an `ai` Upstream.
     ai.options.gloo.solo.io.RouteSettings ai = 31;
