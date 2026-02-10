@@ -133,8 +133,10 @@ type Settings struct {
 	// It works in a way similar to `metadata_context_namespaces` but allows envoy and external processing server to share the protobuf message definition
 	// in order to do a safe parsing.
 	TypedMetadataContextNamespaces []string `protobuf:"bytes,17,rep,name=typed_metadata_context_namespaces,json=typedMetadataContextNamespaces,proto3" json:"typed_metadata_context_namespaces,omitempty"`
-	unknownFields                  protoimpl.UnknownFields
-	sizeCache                      protoimpl.SizeCache
+	// Set to true to disable the External Processing filter globally. This can be enabled on a per listener, vhost or route level
+	Disabled      *wrapperspb.BoolValue `protobuf:"bytes,18,opt,name=disabled,proto3" json:"disabled,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *Settings) Reset() {
@@ -282,6 +284,13 @@ func (x *Settings) GetMetadataContextNamespaces() []string {
 func (x *Settings) GetTypedMetadataContextNamespaces() []string {
 	if x != nil {
 		return x.TypedMetadataContextNamespaces
+	}
+	return nil
+}
+
+func (x *Settings) GetDisabled() *wrapperspb.BoolValue {
+	if x != nil {
+		return x.Disabled
 	}
 	return nil
 }
@@ -638,7 +647,7 @@ var File_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extproc
 
 const file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extproc_extproc_proto_rawDesc = "" +
 	"\n" +
-	"Ugithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/extproc/extproc.proto\x12\x1cextproc.options.gloo.solo.io\x1a\x12extproto/ext.proto\x1a\x17validate/validate.proto\x1a,github.com/solo-io/solo-kit/api/v1/ref.proto\x1aAgithub.com/solo-io/gloo/projects/gloo/api/v1/filters/stages.proto\x1amgithub.com/solo-io/gloo/projects/gloo/api/external/envoy/config/common/mutation_rules/v3/mutation_rules.proto\x1aRgithub.com/solo-io/gloo/projects/gloo/api/external/envoy/config/core/v3/base.proto\x1argithub.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/filters/http/ext_proc/v3/processing_mode.proto\x1aUgithub.com/solo-io/gloo/projects/gloo/api/external/envoy/type/matcher/v3/string.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1egoogle/protobuf/wrappers.proto\"\x90\n" +
+	"Ugithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/extproc/extproc.proto\x12\x1cextproc.options.gloo.solo.io\x1a\x12extproto/ext.proto\x1a\x17validate/validate.proto\x1a,github.com/solo-io/solo-kit/api/v1/ref.proto\x1aAgithub.com/solo-io/gloo/projects/gloo/api/v1/filters/stages.proto\x1amgithub.com/solo-io/gloo/projects/gloo/api/external/envoy/config/common/mutation_rules/v3/mutation_rules.proto\x1aRgithub.com/solo-io/gloo/projects/gloo/api/external/envoy/config/core/v3/base.proto\x1argithub.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/filters/http/ext_proc/v3/processing_mode.proto\x1aUgithub.com/solo-io/gloo/projects/gloo/api/external/envoy/type/matcher/v3/string.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1egoogle/protobuf/wrappers.proto\"\xc8\n" +
 	"\n" +
 	"\bSettings\x12L\n" +
 	"\fgrpc_service\x18\x01 \x01(\v2).extproc.options.gloo.solo.io.GrpcServiceR\vgrpcService\x12D\n" +
@@ -662,7 +671,8 @@ const file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extpr
 	"\x0ffilter_metadata\x18\x0e \x01(\v2\x17.google.protobuf.StructR\x0efilterMetadata\x12J\n" +
 	"\x13allow_mode_override\x18\x0f \x01(\v2\x1a.google.protobuf.BoolValueR\x11allowModeOverride\x12>\n" +
 	"\x1bmetadata_context_namespaces\x18\x10 \x03(\tR\x19metadataContextNamespaces\x12I\n" +
-	"!typed_metadata_context_namespaces\x18\x11 \x03(\tR\x1etypedMetadataContextNamespaces\"\x9e\x01\n" +
+	"!typed_metadata_context_namespaces\x18\x11 \x03(\tR\x1etypedMetadataContextNamespaces\x126\n" +
+	"\bdisabled\x18\x12 \x01(\v2\x1a.google.protobuf.BoolValueR\bdisabled\"\x9e\x01\n" +
 	"\rRouteSettings\x128\n" +
 	"\bdisabled\x18\x01 \x01(\v2\x1a.google.protobuf.BoolValueH\x00R\bdisabled\x12G\n" +
 	"\toverrides\x18\x02 \x01(\v2'.extproc.options.gloo.solo.io.OverridesH\x00R\toverridesB\n" +
@@ -732,23 +742,24 @@ var file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extproc
 	4,  // 10: extproc.options.gloo.solo.io.Settings.forward_rules:type_name -> extproc.options.gloo.solo.io.HeaderForwardingRules
 	11, // 11: extproc.options.gloo.solo.io.Settings.filter_metadata:type_name -> google.protobuf.Struct
 	6,  // 12: extproc.options.gloo.solo.io.Settings.allow_mode_override:type_name -> google.protobuf.BoolValue
-	6,  // 13: extproc.options.gloo.solo.io.RouteSettings.disabled:type_name -> google.protobuf.BoolValue
-	3,  // 14: extproc.options.gloo.solo.io.RouteSettings.overrides:type_name -> extproc.options.gloo.solo.io.Overrides
-	12, // 15: extproc.options.gloo.solo.io.GrpcService.ext_proc_server_ref:type_name -> core.solo.io.ResourceRef
-	9,  // 16: extproc.options.gloo.solo.io.GrpcService.authority:type_name -> google.protobuf.StringValue
-	13, // 17: extproc.options.gloo.solo.io.GrpcService.retry_policy:type_name -> solo.io.envoy.config.core.v3.RetryPolicy
-	8,  // 18: extproc.options.gloo.solo.io.GrpcService.timeout:type_name -> google.protobuf.Duration
-	14, // 19: extproc.options.gloo.solo.io.GrpcService.initial_metadata:type_name -> solo.io.envoy.config.core.v3.HeaderValue
-	7,  // 20: extproc.options.gloo.solo.io.Overrides.processing_mode:type_name -> solo.io.envoy.extensions.filters.http.ext_proc.v3.ProcessingMode
-	6,  // 21: extproc.options.gloo.solo.io.Overrides.async_mode:type_name -> google.protobuf.BoolValue
-	2,  // 22: extproc.options.gloo.solo.io.Overrides.grpc_service:type_name -> extproc.options.gloo.solo.io.GrpcService
-	15, // 23: extproc.options.gloo.solo.io.HeaderForwardingRules.allowed_headers:type_name -> solo.io.envoy.type.matcher.v3.ListStringMatcher
-	15, // 24: extproc.options.gloo.solo.io.HeaderForwardingRules.disallowed_headers:type_name -> solo.io.envoy.type.matcher.v3.ListStringMatcher
-	25, // [25:25] is the sub-list for method output_type
-	25, // [25:25] is the sub-list for method input_type
-	25, // [25:25] is the sub-list for extension type_name
-	25, // [25:25] is the sub-list for extension extendee
-	0,  // [0:25] is the sub-list for field type_name
+	6,  // 13: extproc.options.gloo.solo.io.Settings.disabled:type_name -> google.protobuf.BoolValue
+	6,  // 14: extproc.options.gloo.solo.io.RouteSettings.disabled:type_name -> google.protobuf.BoolValue
+	3,  // 15: extproc.options.gloo.solo.io.RouteSettings.overrides:type_name -> extproc.options.gloo.solo.io.Overrides
+	12, // 16: extproc.options.gloo.solo.io.GrpcService.ext_proc_server_ref:type_name -> core.solo.io.ResourceRef
+	9,  // 17: extproc.options.gloo.solo.io.GrpcService.authority:type_name -> google.protobuf.StringValue
+	13, // 18: extproc.options.gloo.solo.io.GrpcService.retry_policy:type_name -> solo.io.envoy.config.core.v3.RetryPolicy
+	8,  // 19: extproc.options.gloo.solo.io.GrpcService.timeout:type_name -> google.protobuf.Duration
+	14, // 20: extproc.options.gloo.solo.io.GrpcService.initial_metadata:type_name -> solo.io.envoy.config.core.v3.HeaderValue
+	7,  // 21: extproc.options.gloo.solo.io.Overrides.processing_mode:type_name -> solo.io.envoy.extensions.filters.http.ext_proc.v3.ProcessingMode
+	6,  // 22: extproc.options.gloo.solo.io.Overrides.async_mode:type_name -> google.protobuf.BoolValue
+	2,  // 23: extproc.options.gloo.solo.io.Overrides.grpc_service:type_name -> extproc.options.gloo.solo.io.GrpcService
+	15, // 24: extproc.options.gloo.solo.io.HeaderForwardingRules.allowed_headers:type_name -> solo.io.envoy.type.matcher.v3.ListStringMatcher
+	15, // 25: extproc.options.gloo.solo.io.HeaderForwardingRules.disallowed_headers:type_name -> solo.io.envoy.type.matcher.v3.ListStringMatcher
+	26, // [26:26] is the sub-list for method output_type
+	26, // [26:26] is the sub-list for method input_type
+	26, // [26:26] is the sub-list for extension type_name
+	26, // [26:26] is the sub-list for extension extendee
+	0,  // [0:26] is the sub-list for field type_name
 }
 
 func init() {

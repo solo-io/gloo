@@ -143,6 +143,8 @@ message Settings {
   // in order to do a safe parsing.
   repeated string typed_metadata_context_namespaces = 17;
 
+  // Set to true to disable the External Processing filter globally. This can be enabled on a per listener, vhost or route level
+  google.protobuf.BoolValue disabled = 18;
 }
 
 // External processor settings that can be configured on a virtual host or route.

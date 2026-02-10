@@ -199,6 +199,9 @@ spec:
                   disableClearRouteCache:
                     nullable: true
                     type: boolean
+                  disabled:
+                    nullable: true
+                    type: boolean
                   failureModeAllow:
                     nullable: true
                     type: boolean
@@ -412,6 +415,9 @@ spec:
                     nullable: true
                     type: boolean
                   disableClearRouteCache:
+                    nullable: true
+                    type: boolean
+                  disabled:
                     nullable: true
                     type: boolean
                   failureModeAllow:

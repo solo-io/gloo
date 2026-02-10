@@ -220,6 +220,16 @@ func (m *Settings) Equal(that interface{}) bool {
 
 	}
 
+	if h, ok := interface{}(m.GetDisabled()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetDisabled()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetDisabled(), target.GetDisabled()) {
+			return false
+		}
+	}
+
 	return true
 }
 
