@@ -2,5 +2,5 @@ changelog:
 - type: NEW_FEATURE
   issueLink: https://github.com/solo-io/gloo-gateway/issues/1495
   resolvesIssue: false
-  description: Add a new config `LateExtProc` that runs as the final filter before a request leaves envoy and the first filter when the response enters envoy.
+  description: Add a new config `ExtProcLate` that runs as the final filter before a request leaves envoy and the first filter when the response enters envoy.
 
