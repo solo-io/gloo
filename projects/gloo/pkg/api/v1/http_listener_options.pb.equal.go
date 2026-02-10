@@ -335,5 +335,44 @@ func (m *HttpListenerOptions) Equal(that interface{}) bool {
 		}
 	}
 
+	switch m.ExtProcLateConfig.(type) {
+
+	case *HttpListenerOptions_DisableExtProcLate:
+		if _, ok := target.ExtProcLateConfig.(*HttpListenerOptions_DisableExtProcLate); !ok {
+			return false
+		}
+
+		if h, ok := interface{}(m.GetDisableExtProcLate()).(equality.Equalizer); ok {
+			if !h.Equal(target.GetDisableExtProcLate()) {
+				return false
+			}
+		} else {
+			if !proto.Equal(m.GetDisableExtProcLate(), target.GetDisableExtProcLate()) {
+				return false
+			}
+		}
+
+	case *HttpListenerOptions_ExtProcLate:
+		if _, ok := target.ExtProcLateConfig.(*HttpListenerOptions_ExtProcLate); !ok {
+			return false
+		}
+
+		if h, ok := interface{}(m.GetExtProcLate()).(equality.Equalizer); ok {
+			if !h.Equal(target.GetExtProcLate()) {
+				return false
+			}
+		} else {
+			if !proto.Equal(m.GetExtProcLate(), target.GetExtProcLate()) {
+				return false
+			}
+		}
+
+	default:
+		// m is nil but target is not nil
+		if m.ExtProcLateConfig != target.ExtProcLateConfig {
+			return false
+		}
+	}
+
 	return true
 }

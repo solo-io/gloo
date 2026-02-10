@@ -257,5 +257,33 @@ func (m *HttpListenerOptions) Clone() proto.Message {
 
 	}
 
+	switch m.ExtProcLateConfig.(type) {
+
+	case *HttpListenerOptions_DisableExtProcLate:
+
+		if h, ok := interface{}(m.GetDisableExtProcLate()).(clone.Cloner); ok {
+			target.ExtProcLateConfig = &HttpListenerOptions_DisableExtProcLate{
+				DisableExtProcLate: h.Clone().(*google_golang_org_protobuf_types_known_wrapperspb.BoolValue),
+			}
+		} else {
+			target.ExtProcLateConfig = &HttpListenerOptions_DisableExtProcLate{
+				DisableExtProcLate: proto.Clone(m.GetDisableExtProcLate()).(*google_golang_org_protobuf_types_known_wrapperspb.BoolValue),
+			}
+		}
+
+	case *HttpListenerOptions_ExtProcLate:
+
+		if h, ok := interface{}(m.GetExtProcLate()).(clone.Cloner); ok {
+			target.ExtProcLateConfig = &HttpListenerOptions_ExtProcLate{
+				ExtProcLate: h.Clone().(*github_com_solo_io_gloo_projects_gloo_pkg_api_v1_enterprise_options_extproc.Settings),
+			}
+		} else {
+			target.ExtProcLateConfig = &HttpListenerOptions_ExtProcLate{
+				ExtProcLate: proto.Clone(m.GetExtProcLate()).(*github_com_solo_io_gloo_projects_gloo_pkg_api_v1_enterprise_options_extproc.Settings),
+			}
+		}
+
+	}
+
 	return target
 }

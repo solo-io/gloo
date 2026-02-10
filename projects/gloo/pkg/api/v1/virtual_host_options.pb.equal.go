@@ -216,6 +216,16 @@ func (m *VirtualHostOptions) Equal(that interface{}) bool {
 		}
 	}
 
+	if h, ok := interface{}(m.GetExtProcLate()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetExtProcLate()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetExtProcLate(), target.GetExtProcLate()) {
+			return false
+		}
+	}
+
 	if h, ok := interface{}(m.GetCorsPolicyMergeSettings()).(equality.Equalizer); ok {
 		if !h.Equal(target.GetCorsPolicyMergeSettings()) {
 			return false

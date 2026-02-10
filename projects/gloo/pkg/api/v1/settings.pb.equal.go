@@ -300,6 +300,16 @@ func (m *Settings) Equal(that interface{}) bool {
 		}
 	}
 
+	if h, ok := interface{}(m.GetExtProcLate()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetExtProcLate()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetExtProcLate(), target.GetExtProcLate()) {
+			return false
+		}
+	}
+
 	if len(m.GetWatchNamespaceSelectors()) != len(target.GetWatchNamespaceSelectors()) {
 		return false
 	}

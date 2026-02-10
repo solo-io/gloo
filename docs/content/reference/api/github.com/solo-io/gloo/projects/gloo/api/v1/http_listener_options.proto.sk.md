@@ -41,6 +41,8 @@ Optional, feature-specific configuration that lives on http listeners
 "caching": .caching.options.gloo.solo.io.Settings
 "disableExtProc": .google.protobuf.BoolValue
 "extProc": .extproc.options.gloo.solo.io.Settings
+"disableExtProcLate": .google.protobuf.BoolValue
+"extProcLate": .extproc.options.gloo.solo.io.Settings
 "gzip": .solo.io.envoy.config.filter.http.gzip.v2.Gzip
 "proxyLatency": .envoy.config.filter.http.proxylatency.v2.ProxyLatency
 "buffer": .solo.io.envoy.extensions.filters.http.buffer.v3.Buffer
@@ -73,6 +75,8 @@ Optional, feature-specific configuration that lives on http listeners
 | `caching` | [.caching.options.gloo.solo.io.Settings](../enterprise/options/caching/caching.proto.sk/#settings) | Enterprise-only: Settings for the cache server itself Deprecated: The caching filter is deprecated and planned to be removed in Gloo Gateway version 1.21. |
 | `disableExtProc` | [.google.protobuf.BoolValue](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/bool-value) | Enterprise-only: Set to true to disable the External Processing filter for this listener. This can be overridden by child VirtualHostOptions or RouteOptions. Only one of `disableExtProc` or `extProc` can be set. |
 | `extProc` | [.extproc.options.gloo.solo.io.Settings](../enterprise/options/extproc/extproc.proto.sk/#settings) | Enterprise-only: External Processing filter settings for the listener. This can be used to override the defaults from the global settings (via shallow merge). Some of the settings on the listener can be overridden by child VirtualHostOptions or RouteOptions. Only one of `extProc` or `disableExtProc` can be set. |
+| `disableExtProcLate` | [.google.protobuf.BoolValue](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/bool-value) | Enterprise-only: Set to true to disable the Late External Processing filter for this listener. This can be overridden by child VirtualHostOptions or RouteOptions. Only one of `disableExtProcLate` or `extProcLate` can be set. |
+| `extProcLate` | [.extproc.options.gloo.solo.io.Settings](../enterprise/options/extproc/extproc.proto.sk/#settings) | Enterprise-only: Late External Processing filter settings for the listener. This can be used to override the defaults from the global settings (via shallow merge). Some of the settings on the listener can be overridden by child VirtualHostOptions or RouteOptions. Only one of `extProcLate` or `disableExtProcLate` can be set. |
 | `gzip` | .solo.io.envoy.config.filter.http.gzip.v2.Gzip | Gzip is an HTTP option which enables Gloo to compress data returned from an upstream service upon client request. Compression is useful in situations where large payloads need to be transmitted without compromising the response time. Example: ``` gzip: contentType: - "application/json" compressionLevel: BEST ```. |
 | `proxyLatency` | .envoy.config.filter.http.proxylatency.v2.ProxyLatency | Enterprise-only: Proxy latency. |
 | `buffer` | .solo.io.envoy.extensions.filters.http.buffer.v3.Buffer | Buffer can be used to set the maximum request size that the filter will buffer before the connection manager will stop buffering and return a 413 response. |

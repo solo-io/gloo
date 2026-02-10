@@ -82,6 +82,11 @@ type HttpListenerOptions struct {
 	//	*HttpListenerOptions_DisableExtProc
 	//	*HttpListenerOptions_ExtProc
 	ExtProcConfig isHttpListenerOptions_ExtProcConfig `protobuf_oneof:"ext_proc_config"`
+	// Types that are valid to be assigned to ExtProcLateConfig:
+	//
+	//	*HttpListenerOptions_DisableExtProcLate
+	//	*HttpListenerOptions_ExtProcLate
+	ExtProcLateConfig isHttpListenerOptions_ExtProcLateConfig `protobuf_oneof:"ext_proc_late_config"`
 	// Gzip is an HTTP option which enables Gloo to compress
 	// data returned from an upstream service upon client request.
 	// Compression is useful in situations where large payloads need to be transmitted without compromising the response time.
@@ -271,6 +276,31 @@ func (x *HttpListenerOptions) GetExtProc() *extproc.Settings {
 	return nil
 }
 
+func (x *HttpListenerOptions) GetExtProcLateConfig() isHttpListenerOptions_ExtProcLateConfig {
+	if x != nil {
+		return x.ExtProcLateConfig
+	}
+	return nil
+}
+
+func (x *HttpListenerOptions) GetDisableExtProcLate() *wrapperspb.BoolValue {
+	if x != nil {
+		if x, ok := x.ExtProcLateConfig.(*HttpListenerOptions_DisableExtProcLate); ok {
+			return x.DisableExtProcLate
+		}
+	}
+	return nil
+}
+
+func (x *HttpListenerOptions) GetExtProcLate() *extproc.Settings {
+	if x != nil {
+		if x, ok := x.ExtProcLateConfig.(*HttpListenerOptions_ExtProcLate); ok {
+			return x.ExtProcLate
+		}
+	}
+	return nil
+}
+
 func (x *HttpListenerOptions) GetGzip() *v2.Gzip {
 	if x != nil {
 		return x.Gzip
@@ -397,11 +427,32 @@ func (*HttpListenerOptions_DisableExtProc) isHttpListenerOptions_ExtProcConfig()
 
 func (*HttpListenerOptions_ExtProc) isHttpListenerOptions_ExtProcConfig() {}
 
+type isHttpListenerOptions_ExtProcLateConfig interface {
+	isHttpListenerOptions_ExtProcLateConfig()
+}
+
+type HttpListenerOptions_DisableExtProcLate struct {
+	// Enterprise-only: Set to true to disable the Late External Processing filter for this listener.
+	// This can be overridden by child VirtualHostOptions or RouteOptions.
+	DisableExtProcLate *wrapperspb.BoolValue `protobuf:"bytes,37,opt,name=disable_ext_proc_late,json=disableExtProcLate,proto3,oneof"`
+}
+
+type HttpListenerOptions_ExtProcLate struct {
+	// Enterprise-only: Late External Processing filter settings for the listener. This can be used to
+	// override the defaults from the global settings (via shallow merge). Some of the settings
+	// on the listener can be overridden by child VirtualHostOptions or RouteOptions.
+	ExtProcLate *extproc.Settings `protobuf:"bytes,38,opt,name=ext_proc_late,json=extProcLate,proto3,oneof"`
+}
+
+func (*HttpListenerOptions_DisableExtProcLate) isHttpListenerOptions_ExtProcLateConfig() {}
+
+func (*HttpListenerOptions_ExtProcLate) isHttpListenerOptions_ExtProcLateConfig() {}
+
 var File_github_com_solo_io_gloo_projects_gloo_api_v1_http_listener_options_proto protoreflect.FileDescriptor
 
 const file_github_com_solo_io_gloo_projects_gloo_api_v1_http_listener_options_proto_rawDesc = "" +
 	"\n" +
-	"Hgithub.com/solo-io/gloo/projects/gloo/api/v1/http_listener_options.proto\x12\fgloo.solo.io\x1a\x12extproto/ext.proto\x1aLgithub.com/solo-io/gloo/projects/gloo/api/v1/options/grpc_web/grpc_web.proto\x1aBgithub.com/solo-io/gloo/projects/gloo/api/v1/options/hcm/hcm.proto\x1aRgithub.com/solo-io/gloo/projects/gloo/api/v1/options/healthcheck/healthcheck.proto\x1a=github.com/solo-io/gloo/projects/gloo/api/v1/extensions.proto\x1aMgithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/waf/waf.proto\x1aMgithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/dlp/dlp.proto\x1aDgithub.com/solo-io/gloo/projects/gloo/api/v1/options/wasm/wasm.proto\x1aXgithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth.proto\x1aYgithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/ratelimit/ratelimit.proto\x1aUgithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/caching/caching.proto\x1aUgithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/extproc/extproc.proto\x1a^github.com/solo-io/gloo/projects/gloo/api/external/envoy/config/filter/http/gzip/v2/gzip.proto\x1acgithub.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/proxylatency/proxylatency.proto\x1aggithub.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/filters/http/buffer/v3/buffer.proto\x1acgithub.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/filters/http/csrf/v3/csrf.proto\x1aNgithub.com/solo-io/gloo/projects/gloo/api/v1/options/grpc_json/grpc_json.proto\x1afgithub.com/solo-io/gloo/projects/gloo/api/v1/options/dynamic_forward_proxy/dynamic_forward_proxy.proto\x1a\\github.com/solo-io/gloo/projects/gloo/api/v1/options/connection_limit/connection_limit.proto\x1aZgithub.com/solo-io/gloo/projects/gloo/api/v1/options/local_ratelimit/local_ratelimit.proto\x1aHgithub.com/solo-io/gloo/projects/gloo/api/v1/options/router/router.proto\x1aMgithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/tap/tap.proto\x1aggithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/stateful_session/stateful_session.proto\x1a^github.com/solo-io/gloo/projects/gloo/api/v1/options/header_validation/header_validation.proto\x1a\x1egoogle/protobuf/wrappers.proto\"\xa3\x11\n" +
+	"Hgithub.com/solo-io/gloo/projects/gloo/api/v1/http_listener_options.proto\x12\fgloo.solo.io\x1a\x12extproto/ext.proto\x1aLgithub.com/solo-io/gloo/projects/gloo/api/v1/options/grpc_web/grpc_web.proto\x1aBgithub.com/solo-io/gloo/projects/gloo/api/v1/options/hcm/hcm.proto\x1aRgithub.com/solo-io/gloo/projects/gloo/api/v1/options/healthcheck/healthcheck.proto\x1a=github.com/solo-io/gloo/projects/gloo/api/v1/extensions.proto\x1aMgithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/waf/waf.proto\x1aMgithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/dlp/dlp.proto\x1aDgithub.com/solo-io/gloo/projects/gloo/api/v1/options/wasm/wasm.proto\x1aXgithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth.proto\x1aYgithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/ratelimit/ratelimit.proto\x1aUgithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/caching/caching.proto\x1aUgithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/extproc/extproc.proto\x1a^github.com/solo-io/gloo/projects/gloo/api/external/envoy/config/filter/http/gzip/v2/gzip.proto\x1acgithub.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/proxylatency/proxylatency.proto\x1aggithub.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/filters/http/buffer/v3/buffer.proto\x1acgithub.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/filters/http/csrf/v3/csrf.proto\x1aNgithub.com/solo-io/gloo/projects/gloo/api/v1/options/grpc_json/grpc_json.proto\x1afgithub.com/solo-io/gloo/projects/gloo/api/v1/options/dynamic_forward_proxy/dynamic_forward_proxy.proto\x1a\\github.com/solo-io/gloo/projects/gloo/api/v1/options/connection_limit/connection_limit.proto\x1aZgithub.com/solo-io/gloo/projects/gloo/api/v1/options/local_ratelimit/local_ratelimit.proto\x1aHgithub.com/solo-io/gloo/projects/gloo/api/v1/options/router/router.proto\x1aMgithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/tap/tap.proto\x1aggithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/stateful_session/stateful_session.proto\x1a^github.com/solo-io/gloo/projects/gloo/api/v1/options/header_validation/header_validation.proto\x1a\x1egoogle/protobuf/wrappers.proto\"\xda\x12\n" +
 	"\x13HttpListenerOptions\x12A\n" +
 	"\bgrpc_web\x18\x01 \x01(\v2&.grpc_web.options.gloo.solo.io.GrpcWebR\agrpcWeb\x12\x80\x01\n" +
 	" http_connection_manager_settings\x18\x02 \x01(\v27.hcm.options.gloo.solo.io.HttpConnectionManagerSettingsR\x1dhttpConnectionManagerSettings\x12P\n" +
@@ -417,7 +468,9 @@ const file_github_com_solo_io_gloo_projects_gloo_api_v1_http_listener_options_pr
 	"\x10ratelimit_server\x18\v \x01(\v2(.ratelimit.options.gloo.solo.io.SettingsR\x0fratelimitServer\x12D\n" +
 	"\acaching\x18\x11 \x01(\v2&.caching.options.gloo.solo.io.SettingsB\x02\x18\x01R\acaching\x12F\n" +
 	"\x10disable_ext_proc\x18\x1e \x01(\v2\x1a.google.protobuf.BoolValueH\x00R\x0edisableExtProc\x12C\n" +
-	"\bext_proc\x18\x1f \x01(\v2&.extproc.options.gloo.solo.io.SettingsH\x00R\aextProc\x12B\n" +
+	"\bext_proc\x18\x1f \x01(\v2&.extproc.options.gloo.solo.io.SettingsH\x00R\aextProc\x12O\n" +
+	"\x15disable_ext_proc_late\x18% \x01(\v2\x1a.google.protobuf.BoolValueH\x01R\x12disableExtProcLate\x12L\n" +
+	"\rext_proc_late\x18& \x01(\v2&.extproc.options.gloo.solo.io.SettingsH\x01R\vextProcLate\x12B\n" +
 	"\x04gzip\x18\b \x01(\v2..solo.io.envoy.config.filter.http.gzip.v2.GzipR\x04gzip\x12[\n" +
 	"\rproxy_latency\x18\t \x01(\v26.envoy.config.filter.http.proxylatency.v2.ProxyLatencyR\fproxyLatency\x12O\n" +
 	"\x06buffer\x18\f \x01(\v27.solo.io.envoy.extensions.filters.http.buffer.v3.BufferR\x06buffer\x12M\n" +
@@ -433,7 +486,8 @@ const file_github_com_solo_io_gloo_projects_gloo_api_v1_http_listener_options_pr
 	"\x03tap\x18\" \x01(\v2\x1d.tap.options.gloo.solo.io.TapR\x03tap\x12a\n" +
 	"\x10stateful_session\x18# \x01(\v26.stateful_session.options.gloo.solo.io.StatefulSessionR\x0fstatefulSession\x12~\n" +
 	"\x1aheader_validation_settings\x18$ \x01(\v2@.header_validation.options.gloo.solo.io.HeaderValidationSettingsR\x18headerValidationSettingsB\x11\n" +
-	"\x0fext_proc_configB>\xb8\xf5\x04\x01\xc0\xf5\x04\x01\xd0\xf5\x04\x01Z0github.com/solo-io/gloo/projects/gloo/pkg/api/v1b\x06proto3"
+	"\x0fext_proc_configB\x16\n" +
+	"\x14ext_proc_late_configB>\xb8\xf5\x04\x01\xc0\xf5\x04\x01\xd0\xf5\x04\x01Z0github.com/solo-io/gloo/projects/gloo/pkg/api/v1b\x06proto3"
 
 var (
 	file_github_com_solo_io_gloo_projects_gloo_api_v1_http_listener_options_proto_rawDescOnce sync.Once
@@ -489,26 +543,28 @@ var file_github_com_solo_io_gloo_projects_gloo_api_v1_http_listener_options_prot
 	10, // 9: gloo.solo.io.HttpListenerOptions.caching:type_name -> caching.options.gloo.solo.io.Settings
 	11, // 10: gloo.solo.io.HttpListenerOptions.disable_ext_proc:type_name -> google.protobuf.BoolValue
 	12, // 11: gloo.solo.io.HttpListenerOptions.ext_proc:type_name -> extproc.options.gloo.solo.io.Settings
-	13, // 12: gloo.solo.io.HttpListenerOptions.gzip:type_name -> solo.io.envoy.config.filter.http.gzip.v2.Gzip
-	14, // 13: gloo.solo.io.HttpListenerOptions.proxy_latency:type_name -> envoy.config.filter.http.proxylatency.v2.ProxyLatency
-	15, // 14: gloo.solo.io.HttpListenerOptions.buffer:type_name -> solo.io.envoy.extensions.filters.http.buffer.v3.Buffer
-	16, // 15: gloo.solo.io.HttpListenerOptions.csrf:type_name -> solo.io.envoy.extensions.filters.http.csrf.v3.CsrfPolicy
-	17, // 16: gloo.solo.io.HttpListenerOptions.grpc_json_transcoder:type_name -> grpc_json.options.gloo.solo.io.GrpcJsonTranscoder
-	11, // 17: gloo.solo.io.HttpListenerOptions.sanitize_cluster_header:type_name -> google.protobuf.BoolValue
-	11, // 18: gloo.solo.io.HttpListenerOptions.leftmost_xff_address:type_name -> google.protobuf.BoolValue
-	18, // 19: gloo.solo.io.HttpListenerOptions.dynamic_forward_proxy:type_name -> dfp.options.gloo.solo.io.FilterConfig
-	19, // 20: gloo.solo.io.HttpListenerOptions.connection_limit:type_name -> connection_limit.options.gloo.solo.io.ConnectionLimit
-	20, // 21: gloo.solo.io.HttpListenerOptions.network_local_ratelimit:type_name -> local_ratelimit.options.gloo.solo.io.TokenBucket
-	21, // 22: gloo.solo.io.HttpListenerOptions.http_local_ratelimit:type_name -> local_ratelimit.options.gloo.solo.io.Settings
-	22, // 23: gloo.solo.io.HttpListenerOptions.router:type_name -> gloo.solo.io.Router
-	23, // 24: gloo.solo.io.HttpListenerOptions.tap:type_name -> tap.options.gloo.solo.io.Tap
-	24, // 25: gloo.solo.io.HttpListenerOptions.stateful_session:type_name -> stateful_session.options.gloo.solo.io.StatefulSession
-	25, // 26: gloo.solo.io.HttpListenerOptions.header_validation_settings:type_name -> header_validation.options.gloo.solo.io.HeaderValidationSettings
-	27, // [27:27] is the sub-list for method output_type
-	27, // [27:27] is the sub-list for method input_type
-	27, // [27:27] is the sub-list for extension type_name
-	27, // [27:27] is the sub-list for extension extendee
-	0,  // [0:27] is the sub-list for field type_name
+	11, // 12: gloo.solo.io.HttpListenerOptions.disable_ext_proc_late:type_name -> google.protobuf.BoolValue
+	12, // 13: gloo.solo.io.HttpListenerOptions.ext_proc_late:type_name -> extproc.options.gloo.solo.io.Settings
+	13, // 14: gloo.solo.io.HttpListenerOptions.gzip:type_name -> solo.io.envoy.config.filter.http.gzip.v2.Gzip
+	14, // 15: gloo.solo.io.HttpListenerOptions.proxy_latency:type_name -> envoy.config.filter.http.proxylatency.v2.ProxyLatency
+	15, // 16: gloo.solo.io.HttpListenerOptions.buffer:type_name -> solo.io.envoy.extensions.filters.http.buffer.v3.Buffer
+	16, // 17: gloo.solo.io.HttpListenerOptions.csrf:type_name -> solo.io.envoy.extensions.filters.http.csrf.v3.CsrfPolicy
+	17, // 18: gloo.solo.io.HttpListenerOptions.grpc_json_transcoder:type_name -> grpc_json.options.gloo.solo.io.GrpcJsonTranscoder
+	11, // 19: gloo.solo.io.HttpListenerOptions.sanitize_cluster_header:type_name -> google.protobuf.BoolValue
+	11, // 20: gloo.solo.io.HttpListenerOptions.leftmost_xff_address:type_name -> google.protobuf.BoolValue
+	18, // 21: gloo.solo.io.HttpListenerOptions.dynamic_forward_proxy:type_name -> dfp.options.gloo.solo.io.FilterConfig
+	19, // 22: gloo.solo.io.HttpListenerOptions.connection_limit:type_name -> connection_limit.options.gloo.solo.io.ConnectionLimit
+	20, // 23: gloo.solo.io.HttpListenerOptions.network_local_ratelimit:type_name -> local_ratelimit.options.gloo.solo.io.TokenBucket
+	21, // 24: gloo.solo.io.HttpListenerOptions.http_local_ratelimit:type_name -> local_ratelimit.options.gloo.solo.io.Settings
+	22, // 25: gloo.solo.io.HttpListenerOptions.router:type_name -> gloo.solo.io.Router
+	23, // 26: gloo.solo.io.HttpListenerOptions.tap:type_name -> tap.options.gloo.solo.io.Tap
+	24, // 27: gloo.solo.io.HttpListenerOptions.stateful_session:type_name -> stateful_session.options.gloo.solo.io.StatefulSession
+	25, // 28: gloo.solo.io.HttpListenerOptions.header_validation_settings:type_name -> header_validation.options.gloo.solo.io.HeaderValidationSettings
+	29, // [29:29] is the sub-list for method output_type
+	29, // [29:29] is the sub-list for method input_type
+	29, // [29:29] is the sub-list for extension type_name
+	29, // [29:29] is the sub-list for extension extendee
+	0,  // [0:29] is the sub-list for field type_name
 }
 
 func init() { file_github_com_solo_io_gloo_projects_gloo_api_v1_http_listener_options_proto_init() }
@@ -520,6 +576,8 @@ func file_github_com_solo_io_gloo_projects_gloo_api_v1_http_listener_options_pro
 	file_github_com_solo_io_gloo_projects_gloo_api_v1_http_listener_options_proto_msgTypes[0].OneofWrappers = []any{
 		(*HttpListenerOptions_DisableExtProc)(nil),
 		(*HttpListenerOptions_ExtProc)(nil),
+		(*HttpListenerOptions_DisableExtProcLate)(nil),
+		(*HttpListenerOptions_ExtProcLate)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{

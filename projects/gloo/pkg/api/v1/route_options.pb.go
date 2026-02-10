@@ -172,6 +172,9 @@ type RouteOptions struct {
 	// Enterprise-only: External Processing filter settings for the route. This can be used to
 	// override certain HttpListenerOptions or VirtualHostOptions settings.
 	ExtProc *extproc.RouteSettings `protobuf:"bytes,30,opt,name=ext_proc,json=extProc,proto3" json:"ext_proc,omitempty"`
+	// Enterprise-only: Late External Processing filter settings for the route. This can be used to
+	// override certain HttpListenerOptions or VirtualHostOptions settings.
+	ExtProcLate *extproc.RouteSettings `protobuf:"bytes,33,opt,name=ext_proc_late,json=extProcLate,proto3" json:"ext_proc_late,omitempty"`
 	// Enterprise-only: Settings to configure ai settings for a route.
 	// These settings will only apply if the backend is an `ai` Upstream.
 	Ai            *ai.RouteSettings `protobuf:"bytes,31,opt,name=ai,proto3" json:"ai,omitempty"`
@@ -545,6 +548,13 @@ func (x *RouteOptions) GetExtProc() *extproc.RouteSettings {
 	return nil
 }
 
+func (x *RouteOptions) GetExtProcLate() *extproc.RouteSettings {
+	if x != nil {
+		return x.ExtProcLate
+	}
+	return nil
+}
+
 func (x *RouteOptions) GetAi() *ai.RouteSettings {
 	if x != nil {
 		return x.Ai
@@ -782,7 +792,7 @@ var File_github_com_solo_io_gloo_projects_gloo_api_v1_route_options_proto protor
 
 const file_github_com_solo_io_gloo_projects_gloo_api_v1_route_options_proto_rawDesc = "" +
 	"\n" +
-	"@github.com/solo-io/gloo/projects/gloo/api/v1/route_options.proto\x12\fgloo.solo.io\x1a\x12extproto/ext.proto\x1aXgithub.com/solo-io/gloo/projects/gloo/api/v1/options/transformation/transformation.proto\x1aOgithub.com/solo-io/gloo/projects/gloo/api/v1/options/faultinjection/fault.proto\x1aJgithub.com/solo-io/gloo/projects/gloo/api/v1/options/retries/retries.proto\x1a=github.com/solo-io/gloo/projects/gloo/api/v1/extensions.proto\x1aJgithub.com/solo-io/gloo/projects/gloo/api/v1/options/tracing/tracing.proto\x1aNgithub.com/solo-io/gloo/projects/gloo/api/v1/options/shadowing/shadowing.proto\x1aJgithub.com/solo-io/gloo/projects/gloo/api/v1/options/headers/headers.proto\x1aTgithub.com/solo-io/gloo/projects/gloo/api/external/envoy/type/matcher/v3/regex.proto\x1aDgithub.com/solo-io/gloo/projects/gloo/api/v1/options/cors/cors.proto\x1aHgithub.com/solo-io/gloo/projects/gloo/api/v1/options/lbhash/lbhash.proto\x1a\\github.com/solo-io/gloo/projects/gloo/api/v1/options/protocol_upgrade/protocol_upgrade.proto\x1aYgithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/ratelimit/ratelimit.proto\x1aMgithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/waf/waf.proto\x1aMgithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/jwt/jwt.proto\x1aOgithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/rbac/rbac.proto\x1aXgithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth.proto\x1aMgithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/dlp/dlp.proto\x1aggithub.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/filters/http/buffer/v3/buffer.proto\x1acgithub.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/filters/http/csrf/v3/csrf.proto\x1aUgithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/extproc/extproc.proto\x1aKgithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/ai/ai.proto\x1a\x1egoogle/protobuf/wrappers.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1cgoogle/protobuf/struct.proto\"\xb8\x1d\n" +
+	"@github.com/solo-io/gloo/projects/gloo/api/v1/route_options.proto\x12\fgloo.solo.io\x1a\x12extproto/ext.proto\x1aXgithub.com/solo-io/gloo/projects/gloo/api/v1/options/transformation/transformation.proto\x1aOgithub.com/solo-io/gloo/projects/gloo/api/v1/options/faultinjection/fault.proto\x1aJgithub.com/solo-io/gloo/projects/gloo/api/v1/options/retries/retries.proto\x1a=github.com/solo-io/gloo/projects/gloo/api/v1/extensions.proto\x1aJgithub.com/solo-io/gloo/projects/gloo/api/v1/options/tracing/tracing.proto\x1aNgithub.com/solo-io/gloo/projects/gloo/api/v1/options/shadowing/shadowing.proto\x1aJgithub.com/solo-io/gloo/projects/gloo/api/v1/options/headers/headers.proto\x1aTgithub.com/solo-io/gloo/projects/gloo/api/external/envoy/type/matcher/v3/regex.proto\x1aDgithub.com/solo-io/gloo/projects/gloo/api/v1/options/cors/cors.proto\x1aHgithub.com/solo-io/gloo/projects/gloo/api/v1/options/lbhash/lbhash.proto\x1a\\github.com/solo-io/gloo/projects/gloo/api/v1/options/protocol_upgrade/protocol_upgrade.proto\x1aYgithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/ratelimit/ratelimit.proto\x1aMgithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/waf/waf.proto\x1aMgithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/jwt/jwt.proto\x1aOgithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/rbac/rbac.proto\x1aXgithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth.proto\x1aMgithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/dlp/dlp.proto\x1aggithub.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/filters/http/buffer/v3/buffer.proto\x1acgithub.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/filters/http/csrf/v3/csrf.proto\x1aUgithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/extproc/extproc.proto\x1aKgithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/ai/ai.proto\x1a\x1egoogle/protobuf/wrappers.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1cgoogle/protobuf/struct.proto\"\x89\x1e\n" +
 	"\fRouteOptions\x12b\n" +
 	"\x0ftransformations\x18\x01 \x01(\v24.transformation.options.gloo.solo.io.TransformationsB\x02\x18\x01R\x0ftransformations\x12?\n" +
 	"\x06faults\x18\x02 \x01(\v2'.fault.options.gloo.solo.io.RouteFaultsR\x06faults\x12C\n" +
@@ -826,7 +836,8 @@ const file_github_com_solo_io_gloo_projects_gloo_api_v1_route_options_proto_rawD
 	"\rregex_rewrite\x18\x1b \x01(\v26.solo.io.envoy.type.matcher.v3.RegexMatchAndSubstituteR\fregexRewrite\x12\\\n" +
 	"\x13max_stream_duration\x18\x1c \x01(\v2,.gloo.solo.io.RouteOptions.MaxStreamDurationR\x11maxStreamDuration\x12<\n" +
 	"\fidle_timeout\x18\x1d \x01(\v2\x19.google.protobuf.DurationR\vidleTimeout\x12F\n" +
-	"\bext_proc\x18\x1e \x01(\v2+.extproc.options.gloo.solo.io.RouteSettingsR\aextProc\x126\n" +
+	"\bext_proc\x18\x1e \x01(\v2+.extproc.options.gloo.solo.io.RouteSettingsR\aextProc\x12O\n" +
+	"\rext_proc_late\x18! \x01(\v2+.extproc.options.gloo.solo.io.RouteSettingsR\vextProcLate\x126\n" +
 	"\x02ai\x18\x1f \x01(\v2&.ai.options.gloo.solo.io.RouteSettingsR\x02ai\x1aY\n" +
 	"\x12EnvoyMetadataEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12-\n" +
@@ -929,16 +940,17 @@ var file_github_com_solo_io_gloo_projects_gloo_api_v1_route_options_proto_depIdx
 	2,  // 35: gloo.solo.io.RouteOptions.max_stream_duration:type_name -> gloo.solo.io.RouteOptions.MaxStreamDuration
 	6,  // 36: gloo.solo.io.RouteOptions.idle_timeout:type_name -> google.protobuf.Duration
 	30, // 37: gloo.solo.io.RouteOptions.ext_proc:type_name -> extproc.options.gloo.solo.io.RouteSettings
-	31, // 38: gloo.solo.io.RouteOptions.ai:type_name -> ai.options.gloo.solo.io.RouteSettings
-	32, // 39: gloo.solo.io.RouteOptions.EnvoyMetadataEntry.value:type_name -> google.protobuf.Struct
-	6,  // 40: gloo.solo.io.RouteOptions.MaxStreamDuration.max_stream_duration:type_name -> google.protobuf.Duration
-	6,  // 41: gloo.solo.io.RouteOptions.MaxStreamDuration.grpc_timeout_header_max:type_name -> google.protobuf.Duration
-	6,  // 42: gloo.solo.io.RouteOptions.MaxStreamDuration.grpc_timeout_header_offset:type_name -> google.protobuf.Duration
-	43, // [43:43] is the sub-list for method output_type
-	43, // [43:43] is the sub-list for method input_type
-	43, // [43:43] is the sub-list for extension type_name
-	43, // [43:43] is the sub-list for extension extendee
-	0,  // [0:43] is the sub-list for field type_name
+	30, // 38: gloo.solo.io.RouteOptions.ext_proc_late:type_name -> extproc.options.gloo.solo.io.RouteSettings
+	31, // 39: gloo.solo.io.RouteOptions.ai:type_name -> ai.options.gloo.solo.io.RouteSettings
+	32, // 40: gloo.solo.io.RouteOptions.EnvoyMetadataEntry.value:type_name -> google.protobuf.Struct
+	6,  // 41: gloo.solo.io.RouteOptions.MaxStreamDuration.max_stream_duration:type_name -> google.protobuf.Duration
+	6,  // 42: gloo.solo.io.RouteOptions.MaxStreamDuration.grpc_timeout_header_max:type_name -> google.protobuf.Duration
+	6,  // 43: gloo.solo.io.RouteOptions.MaxStreamDuration.grpc_timeout_header_offset:type_name -> google.protobuf.Duration
+	44, // [44:44] is the sub-list for method output_type
+	44, // [44:44] is the sub-list for method input_type
+	44, // [44:44] is the sub-list for extension type_name
+	44, // [44:44] is the sub-list for extension extendee
+	0,  // [0:44] is the sub-list for field type_name
 }
 
 func init() { file_github_com_solo_io_gloo_projects_gloo_api_v1_route_options_proto_init() }
