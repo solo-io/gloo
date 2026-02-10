@@ -14,12 +14,22 @@ import (
 // definition for the proto in the form of a *pany.Any, errors if nil or if the proto type doesnt exist or if there is
 // a marshalling error
 func MessageToAny(msg proto.Message) (*pany.Any, error) {
+	return MessageToAnyWithName(msg, "")
+}
+
+// MessageToAnyWithName takes any given proto message msg and returns the marshalled bytes of the proto, and a url to the type
+// definition for the proto in the form of a *pany.Any, errors if nil or if the proto type doesnt exist or if there is
+// a marshalling error. If not name is specified, it is inferred from the proto message
+func MessageToAnyWithName(msg proto.Message, name string) (*pany.Any, error) {
 	if msg == nil {
 		return nil, errors.New("MessageToAny: message cannot be nil")
 	}
-	name, err := protoToMessageName(msg)
-	if err != nil {
-		return nil, err
+	var err error
+	if name == "" {
+		name, err = protoToMessageName(msg)
+		if err != nil {
+			return nil, err
+		}
 	}
 	// Marshalls the message into bytes using the proto library, or gogoproto if proto errors
 	buf, err := protoToMessageBytes(msg)
