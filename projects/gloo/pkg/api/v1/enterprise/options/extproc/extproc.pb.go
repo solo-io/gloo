@@ -134,6 +134,7 @@ type Settings struct {
 	// in order to do a safe parsing.
 	TypedMetadataContextNamespaces []string `protobuf:"bytes,17,rep,name=typed_metadata_context_namespaces,json=typedMetadataContextNamespaces,proto3" json:"typed_metadata_context_namespaces,omitempty"`
 	// Set to true to disable the External Processing filter globally. This can be enabled on a per listener, vhost or route level
+	// Defaults to false. If nil, it inherits the value from the global settings.
 	Disabled      *wrapperspb.BoolValue `protobuf:"bytes,18,opt,name=disabled,proto3" json:"disabled,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -368,13 +369,15 @@ type isRouteSettings_Override interface {
 
 type RouteSettings_Disabled struct {
 	// Set to true to disable the External Processing filter for this virtual host or route.
-	// Setting this value to false is not supported.
+	// Set to false to enable the External Processing filter for this virtual host or route if disabled via the global settings.
+	// Do not set this (nil) to inherit from the global settings
 	Disabled *wrapperspb.BoolValue `protobuf:"bytes,1,opt,name=disabled,proto3,oneof"`
 }
 
 type RouteSettings_Overrides struct {
 	// Override specific configuration for this virtual host or route.
 	// If a route specifies overrides, it will override the disabled flag of its parent virtual host.
+	// If an override is specified, External Processing is enabled, regardless of the global or httpListener settings.
 	Overrides *Overrides `protobuf:"bytes,2,opt,name=overrides,proto3,oneof"`
 }
 

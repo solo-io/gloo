@@ -78,7 +78,7 @@ Users should take care to understand the risks of using this extension before pr
 | `allowModeOverride` | [.google.protobuf.BoolValue](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/bool-value) | If `allow_mode_override` is set to true, the filter config [processing_mode](https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/filters/http/ext_proc/v3/ext_proc.proto#envoy-v3-api-field-extensions-filters-http-ext-proc-v3-externalprocessor-processing-mode) can be overridden by the response message from the external processing server [mode_override](https://www.envoyproxy.io/docs/envoy/latest/api-v3/service/ext_proc/v3/external_processor.proto#envoy-v3-api-field-service-ext-proc-v3-processingresponse-mode-override). If not set, `mode_override` API in the response message will be ignored. |
 | `metadataContextNamespaces` | `[]string` | Specifies a list of metadata namespaces whose values, if present, will be passed to the ext_proc service as an opaque *protobuf::Struct*. |
 | `typedMetadataContextNamespaces` | `[]string` | Specifies a list of metadata namespaces whose values, if present, will be passed to the ext_proc service. typed_filter_metadata is passed as an `protobuf::Any`. It works in a way similar to `metadata_context_namespaces` but allows envoy and external processing server to share the protobuf message definition in order to do a safe parsing. |
-| `disabled` | [.google.protobuf.BoolValue](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/bool-value) | Set to true to disable the External Processing filter globally. This can be enabled on a per listener, vhost or route level. |
+| `disabled` | [.google.protobuf.BoolValue](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/bool-value) | Set to true to disable the External Processing filter globally. This can be enabled on a per listener, vhost or route level Defaults to false. If nil, it inherits the value from the global settings. |
 
 
 
@@ -97,8 +97,8 @@ External processor settings that can be configured on a virtual host or route.
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `disabled` | [.google.protobuf.BoolValue](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/bool-value) | Set to true to disable the External Processing filter for this virtual host or route. Setting this value to false is not supported. Only one of `disabled` or `overrides` can be set. |
-| `overrides` | [.extproc.options.gloo.solo.io.Overrides](../extproc.proto.sk/#overrides) | Override specific configuration for this virtual host or route. If a route specifies overrides, it will override the disabled flag of its parent virtual host. Only one of `overrides` or `disabled` can be set. |
+| `disabled` | [.google.protobuf.BoolValue](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/bool-value) | Set to true to disable the External Processing filter for this virtual host or route. Set to false to enable the External Processing filter for this virtual host or route if disabled via the global settings. Do not set this (nil) to inherit from the global settings. Only one of `disabled` or `overrides` can be set. |
+| `overrides` | [.extproc.options.gloo.solo.io.Overrides](../extproc.proto.sk/#overrides) | Override specific configuration for this virtual host or route. If a route specifies overrides, it will override the disabled flag of its parent virtual host. If an override is specified, External Processing is enabled, regardless of the global or httpListener settings. Only one of `overrides` or `disabled` can be set. |
 
 
 

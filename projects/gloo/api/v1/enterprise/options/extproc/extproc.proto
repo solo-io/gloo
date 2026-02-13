@@ -144,6 +144,7 @@ message Settings {
   repeated string typed_metadata_context_namespaces = 17;
 
   // Set to true to disable the External Processing filter globally. This can be enabled on a per listener, vhost or route level
+  // Defaults to false. If nil, it inherits the value from the global settings.
   google.protobuf.BoolValue disabled = 18;
 }
 
@@ -151,11 +152,13 @@ message Settings {
 message RouteSettings {
   oneof override {
     // Set to true to disable the External Processing filter for this virtual host or route.
-    // Setting this value to false is not supported.
+    // Set to false to enable the External Processing filter for this virtual host or route if disabled via the global settings.
+    // Do not set this (nil) to inherit from the global settings
     google.protobuf.BoolValue disabled = 1;
 
     // Override specific configuration for this virtual host or route.
     // If a route specifies overrides, it will override the disabled flag of its parent virtual host.
+    // If an override is specified, External Processing is enabled, regardless of the global or httpListener settings.
     Overrides overrides = 2;
   }
 }
