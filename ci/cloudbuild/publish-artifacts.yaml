@@ -66,6 +66,7 @@ steps:
   dir: *dir
   env:
   - 'GOARCH=arm64'
+  - 'DOCKER_API_VERSION=1.41'
 
 # Run make targets to push docker images to quay.io
 - name: 'gcr.io/$PROJECT_ID/go-mod-make:0.14.2'
@@ -76,6 +77,7 @@ steps:
   env:
   - 'MULTIARCH=true'
   - 'MULTIARCH_PUSH=true'
+  - 'DOCKER_API_VERSION=1.41'
   secretEnv:
   - 'GITHUB_TOKEN'
   waitFor:
@@ -118,6 +120,7 @@ steps:
   - 'MULTIARCH=true'
   - 'MULTIARCH_PUSH=true'
   - 'IMAGE_REGISTRY=gcr.io/gloo-edge'
+  - 'DOCKER_API_VERSION=1.41'
   secretEnv:
   - 'GITHUB_TOKEN'
   waitFor:
