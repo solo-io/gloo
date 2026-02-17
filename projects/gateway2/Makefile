@@ -35,4 +35,4 @@ export GOBIN:=$(DEPSGOBIN)
 
 install-go-tools:
 	mkdir -p $(DEPSGOBIN)
-	test -s $(ENVTEST) || go install sigs.k8s.io/controller-runtime/tools/setup-envtest
+	test -s $(ENVTEST) || go install sigs.k8s.io/controller-runtime/tools/setup-envtest@e4c1c38bcbdb
