@@ -142,10 +142,6 @@ message Settings {
   // It works in a way similar to `metadata_context_namespaces` but allows envoy and external processing server to share the protobuf message definition
   // in order to do a safe parsing.
   repeated string typed_metadata_context_namespaces = 17;
-
-  // Set to true to disable the External Processing filter globally. This can be enabled on a per listener, vhost or route level
-  // Defaults to false. If nil, it inherits the value from the global settings.
-  google.protobuf.BoolValue disabled = 18;
 }
 
 // External processor settings that can be configured on a virtual host or route.
