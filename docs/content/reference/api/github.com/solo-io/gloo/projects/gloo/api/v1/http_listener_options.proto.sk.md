@@ -39,6 +39,8 @@ Optional, feature-specific configuration that lives on http listeners
 "extauth": .enterprise.gloo.solo.io.Settings
 "ratelimitServer": .ratelimit.options.gloo.solo.io.Settings
 "caching": .caching.options.gloo.solo.io.Settings
+"disableExtProcEarly": .google.protobuf.BoolValue
+"extProcEarly": .extproc.options.gloo.solo.io.Settings
 "disableExtProc": .google.protobuf.BoolValue
 "extProc": .extproc.options.gloo.solo.io.Settings
 "disableExtProcLate": .google.protobuf.BoolValue
@@ -73,6 +75,8 @@ Optional, feature-specific configuration that lives on http listeners
 | `extauth` | [.enterprise.gloo.solo.io.Settings](../enterprise/options/extauth/v1/extauth.proto.sk/#settings) | Enterprise-only: External auth related settings. |
 | `ratelimitServer` | [.ratelimit.options.gloo.solo.io.Settings](../enterprise/options/ratelimit/ratelimit.proto.sk/#settings) | Enterprise-only: Settings for the rate limiting server itself. |
 | `caching` | [.caching.options.gloo.solo.io.Settings](../enterprise/options/caching/caching.proto.sk/#settings) | Enterprise-only: Settings for the cache server itself Deprecated: The caching filter is deprecated and planned to be removed in Gloo Gateway version 1.21. |
+| `disableExtProcEarly` | [.google.protobuf.BoolValue](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/bool-value) | Enterprise-only: Set to true to disable the Early External Processing filter for this listener. This can be overridden by child VirtualHostOptions or RouteOptions. Only one of `disableExtProcEarly` or `extProcEarly` can be set. |
+| `extProcEarly` | [.extproc.options.gloo.solo.io.Settings](../enterprise/options/extproc/extproc.proto.sk/#settings) | Enterprise-only: Early External Processing filter settings for the listener. This can be used to override the defaults from the global settings (via shallow merge). Some of the settings on the listener can be overridden by child VirtualHostOptions or RouteOptions. Only one of `extProcEarly` or `disableExtProcEarly` can be set. |
 | `disableExtProc` | [.google.protobuf.BoolValue](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/bool-value) | Enterprise-only: Set to true to disable the External Processing filter for this listener. This can be overridden by child VirtualHostOptions or RouteOptions. Only one of `disableExtProc` or `extProc` can be set. |
 | `extProc` | [.extproc.options.gloo.solo.io.Settings](../enterprise/options/extproc/extproc.proto.sk/#settings) | Enterprise-only: External Processing filter settings for the listener. This can be used to override the defaults from the global settings (via shallow merge). Some of the settings on the listener can be overridden by child VirtualHostOptions or RouteOptions. Only one of `extProc` or `disableExtProc` can be set. |
 | `disableExtProcLate` | [.google.protobuf.BoolValue](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/bool-value) | Enterprise-only: Set to true to disable the Late External Processing filter for this listener. This can be overridden by child VirtualHostOptions or RouteOptions. Only one of `disableExtProcLate` or `extProcLate` can be set. |

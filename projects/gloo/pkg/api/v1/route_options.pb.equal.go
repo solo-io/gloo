@@ -310,6 +310,16 @@ func (m *RouteOptions) Equal(that interface{}) bool {
 		}
 	}
 
+	if h, ok := interface{}(m.GetExtProcEarly()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetExtProcEarly()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetExtProcEarly(), target.GetExtProcEarly()) {
+			return false
+		}
+	}
+
 	if h, ok := interface{}(m.GetExtProc()).(equality.Equalizer); ok {
 		if !h.Equal(target.GetExtProc()) {
 			return false

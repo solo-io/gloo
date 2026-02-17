@@ -565,6 +565,11 @@ message Settings {
     reserved 37;
     reserved "graphql_options";
 
+    // Enterprise-only: Early External Processing filter settings. These settings are used as
+    // defaults globally, and can be overridden by HttpListenerOptions, VirtualHostOptions,
+    // or RouteOptions.
+    extproc.options.gloo.solo.io.Settings ext_proc_early = 42;
+
     // Enterprise-only: External Processing filter settings. These settings are used as
     // defaults globally, and can be overridden by HttpListenerOptions, VirtualHostOptions,
     // or RouteOptions.

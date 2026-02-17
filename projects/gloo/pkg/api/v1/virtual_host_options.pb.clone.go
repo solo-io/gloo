@@ -159,6 +159,12 @@ func (m *VirtualHostOptions) Clone() proto.Message {
 		target.StagedTransformations = proto.Clone(m.GetStagedTransformations()).(*github_com_solo_io_gloo_projects_gloo_pkg_api_v1_options_transformation.TransformationStages)
 	}
 
+	if h, ok := interface{}(m.GetExtProcEarly()).(clone.Cloner); ok {
+		target.ExtProcEarly = h.Clone().(*github_com_solo_io_gloo_projects_gloo_pkg_api_v1_enterprise_options_extproc.RouteSettings)
+	} else {
+		target.ExtProcEarly = proto.Clone(m.GetExtProcEarly()).(*github_com_solo_io_gloo_projects_gloo_pkg_api_v1_enterprise_options_extproc.RouteSettings)
+	}
+
 	if h, ok := interface{}(m.GetExtProc()).(clone.Cloner); ok {
 		target.ExtProc = h.Clone().(*github_com_solo_io_gloo_projects_gloo_pkg_api_v1_enterprise_options_extproc.RouteSettings)
 	} else {

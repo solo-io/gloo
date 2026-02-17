@@ -152,6 +152,10 @@ message VirtualHostOptions {
     // If the `regular` field is set in here, the `transformations` field is ignored.
     transformation.options.gloo.solo.io.TransformationStages staged_transformations = 17;
 
+    // Enterprise-only: Early External Processing filter settings for the virtual host. This can be used to
+    // override certain HttpListenerOptions settings, and can be overridden by RouteOptions settings.
+    extproc.options.gloo.solo.io.RouteSettings ext_proc_early = 32;
+
     // Enterprise-only: External Processing filter settings for the virtual host. This can be used to
     // override certain HttpListenerOptions settings, and can be overridden by RouteOptions settings.
     extproc.options.gloo.solo.io.RouteSettings ext_proc = 30;

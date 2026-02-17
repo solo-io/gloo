@@ -165,12 +165,6 @@ func (m *Settings) Clone() proto.Message {
 		}
 	}
 
-	if h, ok := interface{}(m.GetDisabled()).(clone.Cloner); ok {
-		target.Disabled = h.Clone().(*google_golang_org_protobuf_types_known_wrapperspb.BoolValue)
-	} else {
-		target.Disabled = proto.Clone(m.GetDisabled()).(*google_golang_org_protobuf_types_known_wrapperspb.BoolValue)
-	}
-
 	return target
 }
 

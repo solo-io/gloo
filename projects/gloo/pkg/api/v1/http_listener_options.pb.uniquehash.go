@@ -543,6 +543,54 @@ func (m *HttpListenerOptions) HashUnique(hasher hash.Hash64) (uint64, error) {
 		}
 	}
 
+	switch m.ExtProcEarlyConfig.(type) {
+
+	case *HttpListenerOptions_DisableExtProcEarly:
+
+		if h, ok := interface{}(m.GetDisableExtProcEarly()).(safe_hasher.SafeHasher); ok {
+			if _, err = hasher.Write([]byte("DisableExtProcEarly")); err != nil {
+				return 0, err
+			}
+			if _, err = h.Hash(hasher); err != nil {
+				return 0, err
+			}
+		} else {
+			if fieldValue, err := hashstructure.Hash(m.GetDisableExtProcEarly(), nil); err != nil {
+				return 0, err
+			} else {
+				if _, err = hasher.Write([]byte("DisableExtProcEarly")); err != nil {
+					return 0, err
+				}
+				if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
+					return 0, err
+				}
+			}
+		}
+
+	case *HttpListenerOptions_ExtProcEarly:
+
+		if h, ok := interface{}(m.GetExtProcEarly()).(safe_hasher.SafeHasher); ok {
+			if _, err = hasher.Write([]byte("ExtProcEarly")); err != nil {
+				return 0, err
+			}
+			if _, err = h.Hash(hasher); err != nil {
+				return 0, err
+			}
+		} else {
+			if fieldValue, err := hashstructure.Hash(m.GetExtProcEarly(), nil); err != nil {
+				return 0, err
+			} else {
+				if _, err = hasher.Write([]byte("ExtProcEarly")); err != nil {
+					return 0, err
+				}
+				if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
+					return 0, err
+				}
+			}
+		}
+
+	}
+
 	switch m.ExtProcConfig.(type) {
 
 	case *HttpListenerOptions_DisableExtProc:

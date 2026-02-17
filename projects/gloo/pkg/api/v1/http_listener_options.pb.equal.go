@@ -296,6 +296,45 @@ func (m *HttpListenerOptions) Equal(that interface{}) bool {
 		}
 	}
 
+	switch m.ExtProcEarlyConfig.(type) {
+
+	case *HttpListenerOptions_DisableExtProcEarly:
+		if _, ok := target.ExtProcEarlyConfig.(*HttpListenerOptions_DisableExtProcEarly); !ok {
+			return false
+		}
+
+		if h, ok := interface{}(m.GetDisableExtProcEarly()).(equality.Equalizer); ok {
+			if !h.Equal(target.GetDisableExtProcEarly()) {
+				return false
+			}
+		} else {
+			if !proto.Equal(m.GetDisableExtProcEarly(), target.GetDisableExtProcEarly()) {
+				return false
+			}
+		}
+
+	case *HttpListenerOptions_ExtProcEarly:
+		if _, ok := target.ExtProcEarlyConfig.(*HttpListenerOptions_ExtProcEarly); !ok {
+			return false
+		}
+
+		if h, ok := interface{}(m.GetExtProcEarly()).(equality.Equalizer); ok {
+			if !h.Equal(target.GetExtProcEarly()) {
+				return false
+			}
+		} else {
+			if !proto.Equal(m.GetExtProcEarly(), target.GetExtProcEarly()) {
+				return false
+			}
+		}
+
+	default:
+		// m is nil but target is not nil
+		if m.ExtProcEarlyConfig != target.ExtProcEarlyConfig {
+			return false
+		}
+	}
+
 	switch m.ExtProcConfig.(type) {
 
 	case *HttpListenerOptions_DisableExtProc:
