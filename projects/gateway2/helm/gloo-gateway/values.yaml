@@ -16,7 +16,7 @@ gateway:
 
   # replicaCount is intentionally unset here. When omitted, the Deployment's replicas
   # field will not be rendered, letting K8s manage it (default: 1) or an HPA control it.
-  # Set explicitly in GatewayParameters to override.
+  # Set to a positive integer in GatewayParameters to override.
   # replicaCount:
 
   # actual default set in default GatewayParam service.type

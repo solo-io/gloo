@@ -24,7 +24,7 @@ kubeGateway:
               - NET_BIND_SERVICE
       # proxyDeployment.replicas is intentionally unset here. When omitted, the
       # Deployment's replicas field will not be rendered, letting K8s manage it
-      # (default: 1) or an HPA control it. Set explicitly to override.
+      # (default: 1) or an HPA control it. Set to a positive integer to override.
       # proxyDeployment:
       #   replicas: 1
       # If service or service.type are null, a default of LoadBalancer will be

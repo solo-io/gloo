@@ -1355,35 +1355,35 @@ var _ = Describe("Deployer", func() {
 				validationFunc: aiSdsAndFloatingUserIdValidationFunc,
 			}),
 			Entry("nil replicas allows HPA to control scaling", &input{
-			dInputs: defaultDeployerInputs(),
-			gw:      defaultGateway(),
-			defaultGwp: &gw2_v1alpha1.GatewayParameters{
-				TypeMeta: metav1.TypeMeta{
-					Kind:       gw2_v1alpha1.GatewayParametersKind,
-					APIVersion: gw2_v1alpha1.GroupVersion.String(),
-				},
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      wellknown.DefaultGatewayParametersName,
-					Namespace: defaultNamespace,
-					UID:       "1237",
-				},
-				Spec: gw2_v1alpha1.GatewayParametersSpec{
-					Kube: &gw2_v1alpha1.KubernetesProxyConfig{
-						Service: &gw2_v1alpha1.Service{
-							Type: ptr.To(corev1.ServiceTypeLoadBalancer),
+				dInputs: defaultDeployerInputs(),
+				gw:      defaultGateway(),
+				defaultGwp: &gw2_v1alpha1.GatewayParameters{
+					TypeMeta: metav1.TypeMeta{
+						Kind:       gw2_v1alpha1.GatewayParametersKind,
+						APIVersion: gw2_v1alpha1.GroupVersion.String(),
+					},
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      wellknown.DefaultGatewayParametersName,
+						Namespace: defaultNamespace,
+						UID:       "1237",
+					},
+					Spec: gw2_v1alpha1.GatewayParametersSpec{
+						Kube: &gw2_v1alpha1.KubernetesProxyConfig{
+							Service: &gw2_v1alpha1.Service{
+								Type: ptr.To(corev1.ServiceTypeLoadBalancer),
+							},
 						},
 					},
 				},
-			},
-		}, &expectedOutput{
-			validationFunc: func(objs clientObjects, inp *input) error {
-				dep := objs.findDeployment(defaultNamespace, defaultDeploymentName)
-				Expect(dep).ToNot(BeNil())
-				Expect(dep.Spec.Replicas).To(BeNil(), "replicas should be nil when not explicitly set, allowing HPA control")
-				return nil
-			},
-		}),
-		Entry("no listeners on gateway", &input{
+			}, &expectedOutput{
+				validationFunc: func(objs clientObjects, inp *input) error {
+					dep := objs.findDeployment(defaultNamespace, defaultDeploymentName)
+					Expect(dep).ToNot(BeNil())
+					Expect(dep.Spec.Replicas).To(BeNil(), "replicas should be nil when not explicitly set, allowing HPA control")
+					return nil
+				},
+			}),
+			Entry("no listeners on gateway", &input{
 				dInputs: defaultDeployerInputs(),
 				gw: &api.Gateway{
 					ObjectMeta: metav1.ObjectMeta{
