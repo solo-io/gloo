@@ -49,6 +49,21 @@ var _ = Describe("deepMergeGatewayParameters", func() {
 		Expect(out.Spec.Kube.Deployment.Replicas).To(Equal(src.Spec.Kube.Deployment.Replicas))
 	})
 
+	It("preserves nil replicas when src has no deployment", func() {
+		dst := &gw2_v1alpha1.GatewayParameters{
+			Spec: gw2_v1alpha1.GatewayParametersSpec{
+				Kube: &gw2_v1alpha1.KubernetesProxyConfig{},
+			},
+		}
+		src := &gw2_v1alpha1.GatewayParameters{
+			Spec: gw2_v1alpha1.GatewayParametersSpec{
+				Kube: &gw2_v1alpha1.KubernetesProxyConfig{},
+			},
+		}
+		out := deepMergeGatewayParameters(dst, src)
+		Expect(out.Spec.Kube.GetDeployment().GetReplicas()).To(BeNil())
+	})
+
 	It("merges maps", func() {
 		dst := &gw2_v1alpha1.GatewayParameters{
 			Spec: gw2_v1alpha1.GatewayParametersSpec{

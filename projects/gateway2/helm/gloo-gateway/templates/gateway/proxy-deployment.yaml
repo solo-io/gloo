@@ -27,7 +27,7 @@ metadata:
     {{- include "gloo-gateway.gateway.constLabels" . | nindent 4 }}
     {{- include "gloo-gateway.gateway.labels" . | nindent 4 }}
 spec:
-  {{- if not $gateway.autoscaling.enabled }}
+  {{- if $gateway.replicaCount }}
   replicas: {{ $gateway.replicaCount }}
   {{- end }}
   selector:
