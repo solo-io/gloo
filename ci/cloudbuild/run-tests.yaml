@@ -109,6 +109,8 @@ steps:
   - 'prepare-test-tools'
   secretEnv:
   - 'JWT_PRIVATE_KEY'
+  env:
+  - 'DOCKER_API_VERSION=1.41'
 
 - name: 'gcr.io/$PROJECT_ID/e2e-go-mod-ginkgo:0.14.2'
   id: 'run-hashicorp-e2e-tests'
