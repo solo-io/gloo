@@ -22,10 +22,11 @@ kubeGateway:
               - ALL
             add:
               - NET_BIND_SERVICE
-      # If proxyDeployment or proxyDeployment.replicas are null, a default of 1 will be
-      # imposed by the template.
-      proxyDeployment:
-        replicas: 1
+      # proxyDeployment.replicas is intentionally unset here. When omitted, the
+      # Deployment's replicas field will not be rendered, letting K8s manage it
+      # (default: 1) or an HPA control it. Set explicitly to override.
+      # proxyDeployment:
+      #   replicas: 1
       # If service or service.type are null, a default of LoadBalancer will be
       # imposed by the template.
       service:
