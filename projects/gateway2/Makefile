@@ -21,7 +21,7 @@ envtest:
 #----------------------------------------------------------------------------------
 # Env test
 #----------------------------------------------------------------------------------
-ENVTEST_K8S_VERSION = 1.23
+ENVTEST_K8S_VERSION = 1.31
 
 .PHONY: envtest-path
 envtest-path:
@@ -35,4 +35,4 @@ export GOBIN:=$(DEPSGOBIN)
 
 install-go-tools:
 	mkdir -p $(DEPSGOBIN)
-	test -s $(ENVTEST) || go install sigs.k8s.io/controller-runtime/tools/setup-envtest@15d792835235
+	test -s $(ENVTEST) || go install sigs.k8s.io/controller-runtime/tools/setup-envtest@e4c1c38bcbdb

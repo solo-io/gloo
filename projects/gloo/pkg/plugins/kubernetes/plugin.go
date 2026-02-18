@@ -72,8 +72,6 @@ func (p *plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *cl
 		return nil
 	}
 
-	// configure the cluster to use EDS:ADS and call it a day. huh?
-	xds.SetEdsOnCluster(out, p.settings)
 	upstreamRef := in.GetMetadata().Ref()
 
 	// if we are in ggv2 / krt mode, we won't have the kubeCoreCache set.
@@ -85,6 +83,7 @@ func (p *plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *cl
 			Name:      kube.Kube.GetServiceName(),
 			Namespace: kube.Kube.GetServiceNamespace(),
 		}.ResourceName()) != nil {
+			xds.SetEdsOnCluster(out, p.settings)
 			return nil
 		}
 	} else {
@@ -105,6 +104,7 @@ func (p *plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *cl
 
 		for _, s := range svcs {
 			if s.Name == kube.Kube.GetServiceName() {
+				xds.SetEdsOnCluster(out, p.settings)
 				return nil
 			}
 		}
