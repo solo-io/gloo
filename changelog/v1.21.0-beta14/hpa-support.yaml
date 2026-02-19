@@ -1,5 +1,6 @@
 changelog:
 - type: NEW_FEATURE
+  issueLink: https://github.com/solo-io/gloo/issues/11133
   resolvesIssue: false
   description: >-
     Enable HPA support by making replicas optional in the Gateway proxy deployment.
