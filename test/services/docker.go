@@ -36,8 +36,6 @@ func RunContainer(containerName string, args []string) error {
 	cmd := exec.Command("docker", runArgs...)
 	cmd.Stdout = ginkgo.GinkgoWriter
 	cmd.Stderr = ginkgo.GinkgoWriter
-	// Set DOCKER_API_VERSION for compatibility with older Docker daemons
-	cmd.Env = append(os.Environ(), "DOCKER_API_VERSION=1.41")
 	err := cmd.Run()
 	if err != nil {
 		return errors.Wrap(err, "Unable to start "+containerName+" container")
@@ -48,8 +46,6 @@ func RunContainer(containerName string, args []string) error {
 // ContainerExistsWithName returns an empty string if the container does not exist
 func ContainerExistsWithName(containerName string) string {
 	cmd := exec.Command("docker", "ps", "-aq", "-f", "name=^/"+containerName+"$")
-	// Set DOCKER_API_VERSION for compatibility with older Docker daemons
-	cmd.Env = append(os.Environ(), "DOCKER_API_VERSION=1.41")
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		fmt.Printf("cmd.Run() [%s %s] failed with %s\n", cmd.Path, cmd.Args, err)
@@ -61,8 +57,6 @@ func ExecOnContainer(containerName string, args []string) ([]byte, error) {
 	arguments := []string{"exec", containerName}
 	arguments = append(arguments, args...)
 	cmd := exec.Command("docker", arguments...)
-	// Set DOCKER_API_VERSION for compatibility with older Docker daemons
-	cmd.Env = append(os.Environ(), "DOCKER_API_VERSION=1.41")
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		return nil, errors.Wrapf(err, "Unable to execute command %v on [%s] container [%s]", arguments, containerName, out)
@@ -88,8 +82,6 @@ func StopContainer(containerName string) {
 	cmd := exec.Command("docker", "stop", containerName)
 	cmd.Stdout = ginkgo.GinkgoWriter
 	cmd.Stderr = ginkgo.GinkgoWriter
-	// Set DOCKER_API_VERSION for compatibility with older Docker daemons
-	cmd.Env = append(os.Environ(), "DOCKER_API_VERSION=1.41")
 	err := cmd.Run()
 	if err != nil {
 		// We have seen this trip, even when the container is successfully stopped
@@ -102,8 +94,6 @@ func StopContainer(containerName string) {
 func WaitUntilContainerRemoved(containerName string) error {
 	return retry.Do(func() error {
 		cmd := exec.Command("docker", "inspect", containerName)
-		// Set DOCKER_API_VERSION for compatibility with older Docker daemons
-		cmd.Env = append(os.Environ(), "DOCKER_API_VERSION=1.41")
 		inspectErr := cmd.Run()
 		if inspectErr == nil {
 			// If there is no error, it means the container still exists, so we want to retry
