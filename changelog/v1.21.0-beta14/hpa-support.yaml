@@ -1,0 +1,8 @@
+changelog:
+- type: NEW_FEATURE
+  resolvesIssue: false
+  description: >-
+    Enable HPA support by making replicas optional in the Gateway proxy deployment.
+    When replicas is not set in GatewayParameters, the replicas field is omitted from
+    the deployment spec, allowing HorizontalPodAutoscaler to manage scaling. A minimum
+    replicas validation is enforced when the field is set.
