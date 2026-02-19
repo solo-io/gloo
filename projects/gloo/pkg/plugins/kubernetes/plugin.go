@@ -69,8 +69,6 @@ func (p *plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *en
 		return nil
 	}
 
-	// configure the cluster to use EDS:ADS and call it a day
-	xds.SetEdsOnCluster(out, p.settings)
 	upstreamRef := in.GetMetadata().Ref()
 
 	// Lister functions obfuscate the typical (val, ok) pair returned values of maps, so we have to do a nil check instead.
@@ -91,6 +89,7 @@ func (p *plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *en
 	// implementation in case that sn unexpectedly is neither ServiceNamespaceLister nor ServiceLister
 	if sn != nil {
 		if _, err := sn.Get(kube.Kube.GetServiceName()); err == nil {
+			xds.SetEdsOnCluster(out, p.settings)
 			return nil
 		}
 	} else {
@@ -102,6 +101,7 @@ func (p *plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *en
 
 		for _, s := range svcs {
 			if s.Name == kube.Kube.GetServiceName() {
+				xds.SetEdsOnCluster(out, p.settings)
 				return nil
 			}
 		}

@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"net"
-	"os"
 	"os/exec"
 
 	"github.com/solo-io/go-utils/threadsafe"
@@ -299,8 +298,6 @@ func (ei *Instance) Logs() (string, error) {
 	if ei.UseDocker {
 		logsArgs := []string{"logs", ei.DockerContainerName}
 		cmd := exec.Command("docker", logsArgs...)
-		// Set DOCKER_API_VERSION for compatibility with older Docker daemons
-		cmd.Env = append(os.Environ(), "DOCKER_API_VERSION=1.41")
 		byt, err := cmd.CombinedOutput()
 		if err != nil {
 			return "", errors.Wrap(err, "Unable to fetch logs from envoy container")
