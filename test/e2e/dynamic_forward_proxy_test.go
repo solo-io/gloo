@@ -13,13 +13,17 @@ import (
 	"github.com/solo-io/gloo/test/helpers"
 
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/dynamic_forward_proxy"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/hcm"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/protocol_upgrade"
 
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/transformation"
+	"google.golang.org/protobuf/types/known/wrapperspb"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	gloomatchers "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
 )
 
 var _ = Describe("dynamic forward proxy", func() {
@@ -153,6 +157,84 @@ var _ = Describe("dynamic forward proxy", func() {
 				g.Expect(testutils.DefaultHttpClient.Do(requestBuilder.Build())).Should(matchers.HaveHttpResponse(&matchers.HttpResponse{
 					StatusCode: http.StatusOK,
 					Body:       MatchRegexp(`"host":\s*"postman-echo.com"`),
+				}))
+			}, "10s", ".1s").Should(Succeed())
+		})
+	})
+
+	Context("with connect_terminate for HTTPS tunneling", func() {
+
+		BeforeEach(func() {
+			gw := defaults2.DefaultGateway(writeNamespace)
+			gw.GetHttpGateway().Options = &gloov1.HttpListenerOptions{
+				DynamicForwardProxy: &dynamic_forward_proxy.FilterConfig{}, // pick up system defaults to resolve DNS
+				HttpConnectionManagerSettings: &hcm.HttpConnectionManagerSettings{
+					Upgrades: []*protocol_upgrade.ProtocolUpgradeConfig{
+						{
+							UpgradeType: &protocol_upgrade.ProtocolUpgradeConfig_ConnectTerminate{
+								ConnectTerminate: &protocol_upgrade.ProtocolUpgradeConfig_ConnectConfig{
+									Enabled: &wrapperspb.BoolValue{Value: true},
+								},
+							},
+						},
+					},
+				},
+			}
+
+			vs := helpers.NewVirtualServiceBuilder().
+				WithName(e2e.DefaultVirtualServiceName).
+				WithNamespace(writeNamespace).
+				WithDomain(e2e.DefaultHost).
+				WithRouteMatcher(e2e.DefaultRouteName, &gloomatchers.Matcher{
+					PathSpecifier: &gloomatchers.Matcher_ConnectMatcher_{
+						ConnectMatcher: &gloomatchers.Matcher_ConnectMatcher{},
+					},
+				}).
+				WithRouteAction(e2e.DefaultRouteName, &gloov1.RouteAction{
+					Destination: &gloov1.RouteAction_DynamicForwardProxy{
+						DynamicForwardProxy: &dynamic_forward_proxy.PerRouteConfig{
+							HostRewriteSpecifier: &dynamic_forward_proxy.PerRouteConfig_AutoHostRewriteHeader{
+								AutoHostRewriteHeader: "x-rewrite-me",
+							},
+						},
+					},
+				}).
+				WithRouteOptions(e2e.DefaultRouteName, &gloov1.RouteOptions{
+					Upgrades: []*protocol_upgrade.ProtocolUpgradeConfig{
+						{
+							UpgradeType: &protocol_upgrade.ProtocolUpgradeConfig_ConnectTerminate{
+								ConnectTerminate: &protocol_upgrade.ProtocolUpgradeConfig_ConnectConfig{
+									Enabled: &wrapperspb.BoolValue{Value: true},
+								},
+							},
+						},
+					},
+				}).
+				Build()
+
+			resourceToCreate := testContext.ResourcesToCreate()
+			resourceToCreate.Gateways = gatewayv1.GatewayList{
+				gw,
+			}
+			resourceToCreate.VirtualServices = gatewayv1.VirtualServiceList{
+				vs,
+			}
+		})
+
+		// Test that CONNECT requests are properly tunneled with connect_terminate enabled
+		// This validates that ConnectConfig is set on the Envoy route configuration
+		It("should establish CONNECT tunnel for HTTPS proxying", func() {
+			// Create a CONNECT request to tunnel HTTPS traffic
+			// The CONNECT method establishes a TCP tunnel through the proxy
+			requestBuilder := testContext.GetHttpRequestBuilder().
+				WithMethod("CONNECT").
+				WithPath("httpbin.org:443").
+				WithHeader("x-rewrite-me", "httpbin.org")
+
+			Eventually(func(g Gomega) {
+				// A successful CONNECT tunnel returns 200 OK
+				g.Expect(testutils.DefaultHttpClient.Do(requestBuilder.Build())).Should(matchers.HaveHttpResponse(&matchers.HttpResponse{
+					StatusCode: http.StatusOK,
 				}))
 			}, "10s", ".1s").Should(Succeed())
 		})
