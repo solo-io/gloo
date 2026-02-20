@@ -4060,6 +4060,76 @@ var _ = Describe("Translator", func() {
 			})))
 		})
 	})
+
+	Context("Protocol Upgrades - CONNECT", func() {
+		It("should translate connect_terminate with ConnectConfig on routes", func() {
+			routes[0].Options = &v1.RouteOptions{
+				Upgrades: []*protocol_upgrade.ProtocolUpgradeConfig{
+					{
+						UpgradeType: &protocol_upgrade.ProtocolUpgradeConfig_ConnectTerminate{
+							ConnectTerminate: &protocol_upgrade.ProtocolUpgradeConfig_ConnectConfig{
+								Enabled: &wrapperspb.BoolValue{Value: true},
+							},
+						},
+					},
+				},
+			}
+
+			translate()
+			envoyRoute := routeConfiguration.VirtualHosts[0].Routes[0]
+			Expect(envoyRoute.GetRoute().GetUpgradeConfigs()).To(HaveLen(1))
+			upgradeConfig := envoyRoute.GetRoute().GetUpgradeConfigs()[0]
+			Expect(upgradeConfig.UpgradeType).To(Equal("CONNECT"))
+			Expect(upgradeConfig.Enabled.GetValue()).To(BeTrue())
+			// CRITICAL: Verify ConnectConfig is set for TCP tunneling
+			Expect(upgradeConfig.ConnectConfig).NotTo(BeNil())
+		})
+
+		It("should translate legacy connect without ConnectConfig", func() {
+			routes[0].Options = &v1.RouteOptions{
+				Upgrades: []*protocol_upgrade.ProtocolUpgradeConfig{
+					{
+						UpgradeType: &protocol_upgrade.ProtocolUpgradeConfig_Connect{
+							Connect: &protocol_upgrade.ProtocolUpgradeConfig_ProtocolUpgradeSpec{
+								Enabled: &wrapperspb.BoolValue{Value: true},
+							},
+						},
+					},
+				},
+			}
+
+			translate()
+			envoyRoute := routeConfiguration.VirtualHosts[0].Routes[0]
+			Expect(envoyRoute.GetRoute().GetUpgradeConfigs()).To(HaveLen(1))
+			upgradeConfig := envoyRoute.GetRoute().GetUpgradeConfigs()[0]
+			Expect(upgradeConfig.UpgradeType).To(Equal("CONNECT"))
+			Expect(upgradeConfig.Enabled.GetValue()).To(BeTrue())
+			// Verify ConnectConfig is NOT set for legacy connect
+			Expect(upgradeConfig.ConnectConfig).To(BeNil())
+		})
+
+		It("should translate connect_terminate disabled", func() {
+			routes[0].Options = &v1.RouteOptions{
+				Upgrades: []*protocol_upgrade.ProtocolUpgradeConfig{
+					{
+						UpgradeType: &protocol_upgrade.ProtocolUpgradeConfig_ConnectTerminate{
+							ConnectTerminate: &protocol_upgrade.ProtocolUpgradeConfig_ConnectConfig{
+								Enabled: &wrapperspb.BoolValue{Value: false},
+							},
+						},
+					},
+				},
+			}
+
+			translate()
+			envoyRoute := routeConfiguration.VirtualHosts[0].Routes[0]
+			Expect(envoyRoute.GetRoute().GetUpgradeConfigs()).To(HaveLen(1))
+			upgradeConfig := envoyRoute.GetRoute().GetUpgradeConfigs()[0]
+			Expect(upgradeConfig.UpgradeType).To(Equal("CONNECT"))
+			Expect(upgradeConfig.Enabled.GetValue()).To(BeFalse())
+			Expect(upgradeConfig.ConnectConfig).NotTo(BeNil())
+		})
+	})
 })
 
 // The endpoint Cluster is now the UpstreamToClusterName-<hash of upstream> to facilitate

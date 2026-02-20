@@ -110,9 +110,10 @@ type ProtocolUpgradeConfig_Websocket struct {
 }
 
 type ProtocolUpgradeConfig_Connect struct {
-	// DEPRECATED: Use connect_terminate instead.
-	// This field only supports enabling/disabling CONNECT upgrades without the connect_config
-	// that enables TCP tunneling. For HTTPS support through Dynamic Forward Proxy, use connect_terminate.
+	// Specification for CONNECT upgrade requests.
+	// This enables the CONNECT upgrade type without additional configuration.
+	// For TCP tunneling (required for HTTPS targets through Dynamic Forward Proxy),
+	// use connect_terminate instead.
 	Connect *ProtocolUpgradeConfig_ProtocolUpgradeSpec `protobuf:"bytes,2,opt,name=connect,proto3,oneof"`
 }
 

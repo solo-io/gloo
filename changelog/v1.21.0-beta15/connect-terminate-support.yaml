@@ -3,4 +3,4 @@ changelog:
   issueLink: https://github.com/solo-io/solo-projects/issues/8746
   resolvesIssue: true
   description: >-
-    Add connect_terminate support for CONNECT protocol termination in Dynamic Forward Proxy. This enables TCP tunneling for HTTPS traffic through DFP by setting Envoy's connect_config on route upgrade configurations. Users can now configure connectTerminate in protocol upgrades to enable HTTPS proxying.
+    Add connect_terminate support for CONNECT protocol termination in Dynamic Forward Proxy. This enables TCP tunneling for HTTPS traffic through DFP by setting Envoy's connect_config on route upgrade configurations. Users can configure connectTerminate in protocol upgrades to enable HTTPS proxying through CONNECT tunnels.
