@@ -78,6 +78,21 @@ func (m *ProtocolUpgradeConfig) Equal(that interface{}) bool {
 			}
 		}
 
+	case *ProtocolUpgradeConfig_ConnectTerminate:
+		if _, ok := target.UpgradeType.(*ProtocolUpgradeConfig_ConnectTerminate); !ok {
+			return false
+		}
+
+		if h, ok := interface{}(m.GetConnectTerminate()).(equality.Equalizer); ok {
+			if !h.Equal(target.GetConnectTerminate()) {
+				return false
+			}
+		} else {
+			if !proto.Equal(m.GetConnectTerminate(), target.GetConnectTerminate()) {
+				return false
+			}
+		}
+
 	default:
 		// m is nil but target is not nil
 		if m.UpgradeType != target.UpgradeType {
@@ -97,6 +112,40 @@ func (m *ProtocolUpgradeConfig_ProtocolUpgradeSpec) Equal(that interface{}) bool
 	target, ok := that.(*ProtocolUpgradeConfig_ProtocolUpgradeSpec)
 	if !ok {
 		that2, ok := that.(ProtocolUpgradeConfig_ProtocolUpgradeSpec)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	if h, ok := interface{}(m.GetEnabled()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetEnabled()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetEnabled(), target.GetEnabled()) {
+			return false
+		}
+	}
+
+	return true
+}
+
+// Equal function
+func (m *ProtocolUpgradeConfig_ConnectConfig) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*ProtocolUpgradeConfig_ConnectConfig)
+	if !ok {
+		that2, ok := that.(ProtocolUpgradeConfig_ConnectConfig)
 		if ok {
 			target = &that2
 		} else {

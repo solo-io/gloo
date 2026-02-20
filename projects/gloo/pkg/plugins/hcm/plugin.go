@@ -286,6 +286,13 @@ func (p *plugin) ProcessHcmNetworkFilter(params plugins.Params, _ *v1.Listener, 
 				UpgradeType: upgradeconfig.ConnectUpgradeType,
 				Enabled:     config.GetConnect().GetEnabled(),
 			}
+		case *protocol_upgrade.ProtocolUpgradeConfig_ConnectTerminate:
+			// Note: ConnectConfig is only set at the route level, not at HCM level.
+			// The HCM just enables the CONNECT upgrade type.
+			out.GetUpgradeConfigs()[i] = &envoyhttp.HttpConnectionManager_UpgradeConfig{
+				UpgradeType: upgradeconfig.ConnectUpgradeType,
+				Enabled:     config.GetConnectTerminate().GetEnabled(),
+			}
 		default:
 			return errors.Errorf("unimplemented upgrade type: %T", upgradeType)
 		}

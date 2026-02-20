@@ -61,6 +61,18 @@ func (m *ProtocolUpgradeConfig) Clone() proto.Message {
 			}
 		}
 
+	case *ProtocolUpgradeConfig_ConnectTerminate:
+
+		if h, ok := interface{}(m.GetConnectTerminate()).(clone.Cloner); ok {
+			target.UpgradeType = &ProtocolUpgradeConfig_ConnectTerminate{
+				ConnectTerminate: h.Clone().(*ProtocolUpgradeConfig_ConnectConfig),
+			}
+		} else {
+			target.UpgradeType = &ProtocolUpgradeConfig_ConnectTerminate{
+				ConnectTerminate: proto.Clone(m.GetConnectTerminate()).(*ProtocolUpgradeConfig_ConnectConfig),
+			}
+		}
+
 	}
 
 	return target
@@ -73,6 +85,23 @@ func (m *ProtocolUpgradeConfig_ProtocolUpgradeSpec) Clone() proto.Message {
 		return target
 	}
 	target = &ProtocolUpgradeConfig_ProtocolUpgradeSpec{}
+
+	if h, ok := interface{}(m.GetEnabled()).(clone.Cloner); ok {
+		target.Enabled = h.Clone().(*google_golang_org_protobuf_types_known_wrapperspb.BoolValue)
+	} else {
+		target.Enabled = proto.Clone(m.GetEnabled()).(*google_golang_org_protobuf_types_known_wrapperspb.BoolValue)
+	}
+
+	return target
+}
+
+// Clone function
+func (m *ProtocolUpgradeConfig_ConnectConfig) Clone() proto.Message {
+	var target *ProtocolUpgradeConfig_ConnectConfig
+	if m == nil {
+		return target
+	}
+	target = &ProtocolUpgradeConfig_ConnectConfig{}
 
 	if h, ok := interface{}(m.GetEnabled()).(clone.Cloner); ok {
 		target.Enabled = h.Clone().(*google_golang_org_protobuf_types_known_wrapperspb.BoolValue)

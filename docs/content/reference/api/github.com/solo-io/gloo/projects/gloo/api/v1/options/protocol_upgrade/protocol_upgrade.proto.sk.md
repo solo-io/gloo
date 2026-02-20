@@ -13,6 +13,7 @@ weight: 5
 
 - [ProtocolUpgradeConfig](#protocolupgradeconfig)
 - [ProtocolUpgradeSpec](#protocolupgradespec)
+- [ConnectConfig](#connectconfig-1)
   
 
 
@@ -31,13 +32,15 @@ weight: 5
 ```yaml
 "websocket": .protocol_upgrade.options.gloo.solo.io.ProtocolUpgradeConfig.ProtocolUpgradeSpec
 "connect": .protocol_upgrade.options.gloo.solo.io.ProtocolUpgradeConfig.ProtocolUpgradeSpec
+"connectTerminate": .protocol_upgrade.options.gloo.solo.io.ProtocolUpgradeConfig.ConnectConfig
 
 ```
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `websocket` | [.protocol_upgrade.options.gloo.solo.io.ProtocolUpgradeConfig.ProtocolUpgradeSpec](../protocol_upgrade.proto.sk/#protocolupgradespec) | Specification for websocket upgrade requests. Only one of `websocket` or `connect` can be set. |
-| `connect` | [.protocol_upgrade.options.gloo.solo.io.ProtocolUpgradeConfig.ProtocolUpgradeSpec](../protocol_upgrade.proto.sk/#protocolupgradespec) |  Only one of `connect` or `websocket` can be set. |
+| `websocket` | [.protocol_upgrade.options.gloo.solo.io.ProtocolUpgradeConfig.ProtocolUpgradeSpec](../protocol_upgrade.proto.sk/#protocolupgradespec) | Specification for websocket upgrade requests. Only one of `websocket`, `connect`, or `connectTerminate` can be set. |
+| `connect` | [.protocol_upgrade.options.gloo.solo.io.ProtocolUpgradeConfig.ProtocolUpgradeSpec](../protocol_upgrade.proto.sk/#protocolupgradespec) | DEPRECATED: Use connect_terminate instead. This field only supports enabling/disabling CONNECT upgrades without the connect_config that enables TCP tunneling. For HTTPS support through Dynamic Forward Proxy, use connect_terminate. Only one of `connect`, `websocket`, or `connectTerminate` can be set. |
+| `connectTerminate` | [.protocol_upgrade.options.gloo.solo.io.ProtocolUpgradeConfig.ConnectConfig](../protocol_upgrade.proto.sk/#connectconfig) | Configuration for CONNECT protocol termination. This enables TCP tunneling for CONNECT requests, allowing HTTPS traffic to pass through Dynamic Forward Proxy. Only one of `connectTerminate`, `websocket`, or `connect` can be set. |
 
 
 
@@ -55,6 +58,25 @@ weight: 5
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
 | `enabled` | [.google.protobuf.BoolValue](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/bool-value) | Whether the upgrade should be enabled. If left unset, Envoy will enable the protocol upgrade. |
+
+
+
+
+---
+### ConnectConfig {#connectconfig-1}
+
+ 
+Configuration for CONNECT protocol termination.
+When configured, Envoy will terminate CONNECT requests and tunnel the TCP payload.
+
+```yaml
+"enabled": .google.protobuf.BoolValue
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+| `enabled` | [.google.protobuf.BoolValue](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/bool-value) | Whether CONNECT termination should be enabled. If left unset, Envoy will enable CONNECT termination. SECURITY WARNING: This mode of CONNECT support can create major security holes if not configured correctly, as the upstream will be forwarded unsanitized headers if they are in the body payload. Please use with caution! Ensure proper authentication and authorization are in place before enabling this feature. |
 
 
 
