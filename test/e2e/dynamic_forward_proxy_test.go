@@ -1,29 +1,28 @@
 package e2e_test
 
 import (
-	"github.com/solo-io/gloo/test/testutils"
-
-	"github.com/solo-io/gloo/test/gomega/matchers"
-
-	defaults2 "github.com/solo-io/gloo/projects/gateway/pkg/defaults"
-
+	"bufio"
+	"fmt"
+	"net"
 	"net/http"
-
-	"github.com/solo-io/gloo/test/e2e"
-	"github.com/solo-io/gloo/test/helpers"
-
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/dynamic_forward_proxy"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/hcm"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/protocol_upgrade"
-
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/transformation"
-	"google.golang.org/protobuf/types/known/wrapperspb"
+	"strings"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"google.golang.org/protobuf/types/known/wrapperspb"
+
 	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
+	defaults2 "github.com/solo-io/gloo/projects/gateway/pkg/defaults"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	gloomatchers "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/dynamic_forward_proxy"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/hcm"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/protocol_upgrade"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/transformation"
+	"github.com/solo-io/gloo/test/e2e"
+	"github.com/solo-io/gloo/test/gomega/matchers"
+	"github.com/solo-io/gloo/test/helpers"
+	"github.com/solo-io/gloo/test/testutils"
 )
 
 var _ = Describe("dynamic forward proxy", func() {
@@ -224,18 +223,38 @@ var _ = Describe("dynamic forward proxy", func() {
 		// Test that CONNECT requests are properly tunneled with connect_terminate enabled
 		// This validates that ConnectConfig is set on the Envoy route configuration
 		It("should establish CONNECT tunnel for HTTPS proxying", func() {
-			// Create a CONNECT request to tunnel HTTPS traffic
-			// The CONNECT method establishes a TCP tunnel through the proxy
-			requestBuilder := testContext.GetHttpRequestBuilder().
-				WithMethod("CONNECT").
-				WithPath("httpbin.org:443").
-				WithHeader("x-rewrite-me", "httpbin.org")
+			// We need to manually send a CONNECT request because the standard HTTP client
+			// doesn't implement the CONNECT protocol handshake. This mimics what curl does
+			// when using the -x flag: establish TCP connection, send CONNECT, verify 200 OK.
 
 			Eventually(func(g Gomega) {
-				// A successful CONNECT tunnel returns 200 OK
-				g.Expect(testutils.DefaultHttpClient.Do(requestBuilder.Build())).Should(matchers.HaveHttpResponse(&matchers.HttpResponse{
-					StatusCode: http.StatusOK,
-				}))
+				// Get the proxy address from the test context
+				proxyAddr := testContext.EnvoyInstance().LocalAddr()
+
+				// Establish TCP connection to Envoy
+				conn, err := net.Dial("tcp", proxyAddr)
+				g.Expect(err).NotTo(HaveOccurred(), "Should connect to Envoy proxy")
+				defer conn.Close()
+
+				// Send CONNECT request (this is what curl does with -x flag)
+				// The x-rewrite-me header tells DFP which upstream to connect to
+				connectRequest := "CONNECT httpbin.org:443 HTTP/1.1\r\n" +
+					"Host: httpbin.org:443\r\n" +
+					"x-rewrite-me: httpbin.org\r\n" +
+					"\r\n"
+
+				_, err = conn.Write([]byte(connectRequest))
+				g.Expect(err).NotTo(HaveOccurred(), "Should send CONNECT request")
+
+				// Read the response
+				reader := bufio.NewReader(conn)
+				response, err := reader.ReadString('\n')
+				g.Expect(err).NotTo(HaveOccurred(), "Should read CONNECT response")
+
+				// Verify we got 200 Connection Established
+				// This is what proves the CONNECT tunnel was successfully established
+				g.Expect(response).To(ContainSubstring("HTTP/1.1 200"),
+					fmt.Sprintf("Expected 200 OK for CONNECT tunnel, got: %s", strings.TrimSpace(response)))
 			}, "10s", ".1s").Should(Succeed())
 		})
 	})
