@@ -229,7 +229,8 @@ var _ = Describe("dynamic forward proxy", func() {
 
 			Eventually(func(g Gomega) {
 				// Get the proxy address from the test context
-				proxyAddr := testContext.EnvoyInstance().LocalAddr()
+				// LocalAddr() returns the IP, HttpPort returns the port
+				proxyAddr := fmt.Sprintf("%s:%d", testContext.EnvoyInstance().LocalAddr(), testContext.EnvoyInstance().HttpPort)
 
 				// Establish TCP connection to Envoy
 				conn, err := net.Dial("tcp", proxyAddr)
