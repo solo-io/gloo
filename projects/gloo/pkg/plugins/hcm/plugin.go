@@ -291,7 +291,8 @@ func (p *plugin) ProcessHcmNetworkFilter(params plugins.Params, _ *v1.Listener, 
 			// The HCM just enables the CONNECT upgrade type.
 			out.GetUpgradeConfigs()[i] = &envoyhttp.HttpConnectionManager_UpgradeConfig{
 				UpgradeType: upgradeconfig.ConnectUpgradeType,
-				Enabled:     config.GetConnectTerminate().GetEnabled(),
+				// Enabled defaults to nil when unset, which Envoy interprets as true (enabled by default)
+				Enabled: config.GetConnectTerminate().GetEnabled(),
 			}
 		default:
 			return errors.Errorf("unimplemented upgrade type: %T", upgradeType)
