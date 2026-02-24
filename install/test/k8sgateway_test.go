@@ -74,7 +74,7 @@ var _ = Describe("Kubernetes Gateway API integration", func() {
 				gwpKube := gwp.Spec.Kube
 				Expect(gwpKube).ToNot(BeNil())
 
-				Expect(*gwpKube.Deployment.Replicas).To(Equal(uint32(1)))
+				Expect(gwpKube.Deployment.Replicas).To(BeNil())
 
 				Expect(*gwpKube.GetEnvoyContainer().GetImage().GetPullPolicy()).To(Equal(corev1.PullIfNotPresent))
 				Expect(*gwpKube.GetEnvoyContainer().GetImage().GetRegistry()).To(Equal("quay.io/solo-io"))
