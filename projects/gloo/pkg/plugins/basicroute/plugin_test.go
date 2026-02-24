@@ -824,7 +824,7 @@ var _ = Describe("upgrades", func() {
 					},
 					{
 						UpgradeType: &protocol_upgrade.ProtocolUpgradeConfig_ConnectTerminate{
-							ConnectTerminate: &protocol_upgrade.ProtocolUpgradeConfig_ConnectConfig{
+							ConnectTerminate: &protocol_upgrade.ProtocolUpgradeConfig_ProtocolUpgradeSpec{
 								Enabled: &wrappers.BoolValue{Value: true},
 							},
 						},
@@ -858,7 +858,7 @@ var _ = Describe("upgrades", func() {
 				Upgrades: []*protocol_upgrade.ProtocolUpgradeConfig{
 					{
 						UpgradeType: &protocol_upgrade.ProtocolUpgradeConfig_ConnectTerminate{
-							ConnectTerminate: &protocol_upgrade.ProtocolUpgradeConfig_ConnectConfig{
+							ConnectTerminate: &protocol_upgrade.ProtocolUpgradeConfig_ProtocolUpgradeSpec{
 								Enabled: &wrappers.BoolValue{Value: false},
 							},
 						},

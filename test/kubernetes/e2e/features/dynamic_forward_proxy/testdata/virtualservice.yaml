@@ -1,0 +1,22 @@
+# VirtualService configuration for CONNECT tunnel testing with Dynamic Forward Proxy
+# Based on customer reproducer: 7973-https-connect-tunnel/fix/vs-ssl-fixed-with-connect-terminate.yaml
+apiVersion: gateway.solo.io/v1
+kind: VirtualService
+metadata:
+  name: dfp-connect-vs
+  namespace: gloo-system
+spec:
+  displayName: dfp-connect-vs
+  virtualHost:
+    domains:
+    - '*'
+    routes:
+    - matchers:
+      - connectMatcher: {}
+      options:
+        upgrades:
+        - connectTerminate:
+            enabled: true
+      routeAction:
+        dynamicForwardProxy:
+          autoHostRewriteHeader: "x-dfp-host"

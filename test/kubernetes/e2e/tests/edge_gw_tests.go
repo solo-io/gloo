@@ -6,6 +6,7 @@ import (
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/admin_server"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/basicrouting"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/client_tls"
+	"github.com/solo-io/gloo/test/kubernetes/e2e/features/dynamic_forward_proxy"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/headless_svc"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/http_tunnel"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/features/metrics"
@@ -28,6 +29,7 @@ func EdgeGwSuiteRunner() e2e.SuiteRunner {
 	edgeGwSuiteRunner.Register("BasicRouting", basicrouting.NewBasicEdgeRoutingSuite)
 	edgeGwSuiteRunner.Register("PrometheusMetrics", metrics.NewPrometheusMetricsTestingSuite)
 	edgeGwSuiteRunner.Register("HTTPTunnel", http_tunnel.NewTestingSuite)
+	edgeGwSuiteRunner.Register("DynamicForwardProxy", dynamic_forward_proxy.NewTestingSuite)
 	edgeGwSuiteRunner.Register("AccessLog", access_log.NewAccessLogSuite)
 
 	return edgeGwSuiteRunner

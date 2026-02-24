@@ -17,19 +17,6 @@ message ProtocolUpgradeConfig {
         google.protobuf.BoolValue enabled = 1;
     }
 
-    // Configuration for CONNECT protocol termination.
-    // When configured, Envoy will terminate CONNECT requests and tunnel the TCP payload.
-    message ConnectConfig {
-        // Whether CONNECT termination should be enabled.
-        // If left unset, Envoy will enable CONNECT termination.
-        //
-        // SECURITY WARNING: This mode of CONNECT support can create major security holes if not
-        // configured correctly, as the upstream will be forwarded unsanitized headers if they are
-        // in the body payload. Please use with caution! Ensure proper authentication and
-        // authorization are in place before enabling this feature.
-        google.protobuf.BoolValue enabled = 1;
-    }
-
     oneof upgrade_type {
         // Specification for websocket upgrade requests.
         ProtocolUpgradeSpec websocket = 1;
@@ -40,9 +27,14 @@ message ProtocolUpgradeConfig {
         // use connect_terminate instead.
         ProtocolUpgradeSpec connect = 2;
 
-        // Configuration for CONNECT protocol termination.
-        // This enables TCP tunneling for CONNECT requests, allowing HTTPS traffic
-        // to pass through Dynamic Forward Proxy.
-        ConnectConfig connect_terminate = 3;
+        // Specification for CONNECT protocol termination.
+        // When configured, Envoy will terminate CONNECT requests and tunnel the TCP payload,
+        // allowing HTTPS traffic to pass through Dynamic Forward Proxy.
+        //
+        // SECURITY WARNING: This mode of CONNECT support can create major security holes if not
+        // configured correctly, as the upstream will be forwarded unsanitized headers if they are
+        // in the body payload. Please use with caution! Ensure proper authentication and
+        // authorization are in place before enabling this feature.
+        ProtocolUpgradeSpec connect_terminate = 3;
     }
 }
