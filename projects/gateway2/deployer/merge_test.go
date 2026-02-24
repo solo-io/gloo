@@ -8,7 +8,7 @@ import (
 	"k8s.io/utils/ptr"
 )
 
-var _ = FDescribe("deepMergeGatewayParameters", func() {
+var _ = Describe("deepMergeGatewayParameters", func() {
 	It("should override kube when selfManaged is set", func() {
 		dst := &gw2_v1alpha1.GatewayParameters{
 			Spec: gw2_v1alpha1.GatewayParametersSpec{
