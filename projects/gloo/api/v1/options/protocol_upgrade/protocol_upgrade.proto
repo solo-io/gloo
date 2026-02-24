@@ -28,11 +28,6 @@ message ProtocolUpgradeConfig {
         // in the body payload. Please use with caution! Ensure proper authentication and
         // authorization are in place before enabling this feature.
         google.protobuf.BoolValue enabled = 1;
-
-        // Reserved for future use - proxy protocol configuration.
-        // When implemented, this will allow configuring the proxy protocol header
-        // to be prepended to CONNECT payloads.
-        // core.solo.io.envoy.config.core.v3.ProxyProtocolConfig proxy_protocol_config = 2;
     }
 
     oneof upgrade_type {
