@@ -370,7 +370,6 @@ var _ = Describe("Plugin", func() {
 			Expect(cfg.GetUpgradeConfigs()[1].Enabled.Value).To(BeTrue())
 		})
 
-
 		It("legacy connect field still works (backwards compatibility)", func() {
 			settings := &hcm.HttpConnectionManagerSettings{
 				Upgrades: []*protocol_upgrade.ProtocolUpgradeConfig{
