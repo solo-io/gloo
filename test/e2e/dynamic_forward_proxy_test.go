@@ -192,8 +192,8 @@ var _ = Describe("dynamic forward proxy", func() {
 				HttpConnectionManagerSettings: &hcm.HttpConnectionManagerSettings{
 					Upgrades: []*protocol_upgrade.ProtocolUpgradeConfig{
 						{
-							UpgradeType: &protocol_upgrade.ProtocolUpgradeConfig_ConnectTerminate{
-								ConnectTerminate: &protocol_upgrade.ProtocolUpgradeConfig_ProtocolUpgradeSpec{
+							UpgradeType: &protocol_upgrade.ProtocolUpgradeConfig_Connect{
+								Connect: &protocol_upgrade.ProtocolUpgradeConfig_ProtocolUpgradeSpec{
 									Enabled: &wrapperspb.BoolValue{Value: true},
 								},
 							},

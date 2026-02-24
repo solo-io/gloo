@@ -321,7 +321,25 @@ var _ = Describe("Plugin", func() {
 			Expect(cfg.GetUpgradeConfigs()[0].UpgradeType).To(Equal("websocket"))
 		})
 
-		It("works with connect_terminate", func() {
+		It("rejects connect_terminate at HCM level", func() {
+			settings := &hcm.HttpConnectionManagerSettings{
+				Upgrades: []*protocol_upgrade.ProtocolUpgradeConfig{
+					{
+						UpgradeType: &protocol_upgrade.ProtocolUpgradeConfig_ConnectTerminate{
+							ConnectTerminate: &protocol_upgrade.ProtocolUpgradeConfig_ProtocolUpgradeSpec{
+								Enabled: &wrappers.BoolValue{Value: true},
+							},
+						},
+					},
+				},
+			}
+
+			err := processHcmNetworkFilter(cfg, &v1.HttpListenerOptions{HttpConnectionManagerSettings: settings})
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("connect_terminate is not supported at HCM level"))
+		})
+
+		It("works with regular connect at HCM level", func() {
 			settings := &hcm.HttpConnectionManagerSettings{
 				Upgrades: []*protocol_upgrade.ProtocolUpgradeConfig{
 					{
@@ -332,8 +350,8 @@ var _ = Describe("Plugin", func() {
 						},
 					},
 					{
-						UpgradeType: &protocol_upgrade.ProtocolUpgradeConfig_ConnectTerminate{
-							ConnectTerminate: &protocol_upgrade.ProtocolUpgradeConfig_ProtocolUpgradeSpec{
+						UpgradeType: &protocol_upgrade.ProtocolUpgradeConfig_Connect{
+							Connect: &protocol_upgrade.ProtocolUpgradeConfig_ProtocolUpgradeSpec{
 								Enabled: &wrappers.BoolValue{Value: true},
 							},
 						},
@@ -344,44 +362,14 @@ var _ = Describe("Plugin", func() {
 			err := processHcmNetworkFilter(cfg, &v1.HttpListenerOptions{HttpConnectionManagerSettings: settings})
 			Expect(err).NotTo(HaveOccurred())
 
-			// websocket + connect_terminate = 2 configs
+			// websocket + connect = 2 configs
 			Expect(cfg.GetUpgradeConfigs()).To(HaveLen(2))
 			Expect(cfg.GetUpgradeConfigs()[0].UpgradeType).To(Equal("websocket"))
 			Expect(cfg.GetUpgradeConfigs()[0].Enabled.Value).To(BeTrue())
 			Expect(cfg.GetUpgradeConfigs()[1].UpgradeType).To(Equal("CONNECT"))
 			Expect(cfg.GetUpgradeConfigs()[1].Enabled.Value).To(BeTrue())
-			// Note: ConnectConfig is only set at the route level, not at HCM level
 		})
 
-		It("connect_terminate can be disabled", func() {
-			settings := &hcm.HttpConnectionManagerSettings{
-				Upgrades: []*protocol_upgrade.ProtocolUpgradeConfig{
-					{
-						UpgradeType: &protocol_upgrade.ProtocolUpgradeConfig_ConnectTerminate{
-							ConnectTerminate: &protocol_upgrade.ProtocolUpgradeConfig_ProtocolUpgradeSpec{
-								Enabled: &wrappers.BoolValue{Value: false},
-							},
-						},
-					},
-				},
-			}
-
-			err := processHcmNetworkFilter(cfg, &v1.HttpListenerOptions{HttpConnectionManagerSettings: settings})
-			Expect(err).NotTo(HaveOccurred())
-
-			// connect_terminate + default websocket = 2 configs
-			Expect(cfg.GetUpgradeConfigs()).To(HaveLen(2))
-			// Find the CONNECT config (could be at index 0 or 1)
-			var connectConfig *envoyhttp.HttpConnectionManager_UpgradeConfig
-			for _, uc := range cfg.GetUpgradeConfigs() {
-				if uc.UpgradeType == "CONNECT" {
-					connectConfig = uc
-					break
-				}
-			}
-			Expect(connectConfig).NotTo(BeNil())
-			Expect(connectConfig.Enabled.Value).To(BeFalse())
-		})
 
 		It("legacy connect field still works (backwards compatibility)", func() {
 			settings := &hcm.HttpConnectionManagerSettings{

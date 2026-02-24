@@ -287,13 +287,10 @@ func (p *plugin) ProcessHcmNetworkFilter(params plugins.Params, _ *v1.Listener, 
 				Enabled:     config.GetConnect().GetEnabled(),
 			}
 		case *protocol_upgrade.ProtocolUpgradeConfig_ConnectTerminate:
-			// Note: ConnectConfig is only set at the route level, not at HCM level.
-			// The HCM just enables the CONNECT upgrade type.
-			out.GetUpgradeConfigs()[i] = &envoyhttp.HttpConnectionManager_UpgradeConfig{
-				UpgradeType: upgradeconfig.ConnectUpgradeType,
-				// Enabled defaults to nil when unset, which Envoy interprets as true (enabled by default)
-				Enabled: config.GetConnectTerminate().GetEnabled(),
-			}
+			// connect_terminate is only supported at the route level, not at HCM level.
+			// At HCM level, use the regular 'connect' field to enable CONNECT upgrades.
+			// The connect_terminate field sets ConnectConfig which only exists on routes.
+			return errors.Errorf("connect_terminate is not supported at HCM level; use 'connect' at HCM level and 'connect_terminate' at route level")
 		default:
 			return errors.Errorf("unimplemented upgrade type: %T", upgradeType)
 		}
