@@ -50,19 +50,19 @@ func (s *testingSuite) SetupSuite() {
 
 func (s *testingSuite) BeforeTest(suiteName, testName string) {
 	// Apply CONNECT termination gateway and virtualservice configurations
-	err := s.testInstallation.Actions.Kubectl().Apply(s.ctx, gatewayYaml)
+	err := s.testInstallation.Actions.Kubectl().Apply(s.ctx, gatewayYaml, "-n", s.testInstallation.Metadata.InstallNamespace)
 	s.Require().NoError(err)
 
-	err = s.testInstallation.Actions.Kubectl().Apply(s.ctx, virtualServiceYaml)
+	err = s.testInstallation.Actions.Kubectl().Apply(s.ctx, virtualServiceYaml, "-n", s.testInstallation.Metadata.InstallNamespace)
 	s.Require().NoError(err)
 }
 
 func (s *testingSuite) AfterTest(suiteName, testName string) {
 	// Cleanup
-	err := s.testInstallation.Actions.Kubectl().Delete(s.ctx, virtualServiceYaml)
+	err := s.testInstallation.Actions.Kubectl().Delete(s.ctx, virtualServiceYaml, "-n", s.testInstallation.Metadata.InstallNamespace)
 	s.Require().NoError(err)
 
-	err = s.testInstallation.Actions.Kubectl().Delete(s.ctx, gatewayYaml)
+	err = s.testInstallation.Actions.Kubectl().Delete(s.ctx, gatewayYaml, "-n", s.testInstallation.Metadata.InstallNamespace)
 	s.Require().NoError(err)
 }
 

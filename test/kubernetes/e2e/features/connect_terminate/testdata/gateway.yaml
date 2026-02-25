@@ -4,7 +4,6 @@ apiVersion: gateway.solo.io/v1
 kind: Gateway
 metadata:
   name: connect-terminate-gateway
-  namespace: gloo-system
 spec:
   bindAddress: 0.0.0.0
   bindPort: 8080

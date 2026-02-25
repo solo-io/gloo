@@ -4,7 +4,6 @@ apiVersion: gateway.solo.io/v1
 kind: VirtualService
 metadata:
   name: connect-terminate-vs
-  namespace: gloo-system
 spec:
   displayName: connect-terminate-vs
   virtualHost:
