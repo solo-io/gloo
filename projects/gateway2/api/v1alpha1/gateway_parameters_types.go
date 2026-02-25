@@ -192,9 +192,13 @@ func (in *KubernetesProxyConfig) GetFloatingUserId() *bool {
 
 // Configuration for the Proxy deployment in Kubernetes.
 type ProxyDeployment struct {
-	// The number of desired pods. Defaults to 1.
+	// The number of desired pods.
+	// If omitted, the Deployment's replicas field will not be set, letting the
+	// Kubernetes control plane manage it (default: 1). This allows an external
+	// HPA to control scaling without conflict. If set, the value must be >= 0.
 	//
 	// +kubebuilder:validation:Optional
+	// +kubebuilder:validation:Minimum=0
 	Replicas *uint32 `json:"replicas,omitempty"`
 }
 
