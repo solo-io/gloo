@@ -95,8 +95,8 @@ External processor settings that can be configured on a virtual host or route.
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `disabled` | [.google.protobuf.BoolValue](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/bool-value) | Set to true to disable the External Processing filter for this virtual host or route. Set to false to enable the External Processing filter for this virtual host or route if disabled via the global settings. Do not set this (nil) to inherit from the global settings. Only one of `disabled` or `overrides` can be set. |
-| `overrides` | [.extproc.options.gloo.solo.io.Overrides](../extproc.proto.sk/#overrides) | Override specific configuration for this virtual host or route. If a route specifies overrides, it will override the disabled flag of its parent virtual host. If an override is specified, External Processing is enabled, regardless of the global or httpListener settings. Only one of `overrides` or `disabled` can be set. |
+| `disabled` | [.google.protobuf.BoolValue](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/bool-value) | Set to true to disable the External Processing filter for this virtual host or route. Setting this value to false is not supported. Only one of `disabled` or `overrides` can be set. |
+| `overrides` | [.extproc.options.gloo.solo.io.Overrides](../extproc.proto.sk/#overrides) | Override specific configuration for this virtual host or route. If a route specifies overrides, it will override the disabled flag of its parent virtual host. Only one of `overrides` or `disabled` can be set. |
 
 
 
