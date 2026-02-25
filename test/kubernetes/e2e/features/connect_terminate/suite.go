@@ -8,7 +8,6 @@ import (
 
 	"github.com/solo-io/gloo/pkg/utils/kubeutils"
 	"github.com/solo-io/gloo/pkg/utils/requestutils/curl"
-	"github.com/solo-io/gloo/projects/gateway/pkg/defaults"
 	"github.com/solo-io/gloo/test/gomega/matchers"
 	"github.com/solo-io/gloo/test/kubernetes/e2e"
 	testDefaults "github.com/solo-io/gloo/test/kubernetes/e2e/defaults"
@@ -79,7 +78,7 @@ func (s *testingSuite) TearDownSuite() {
 // curl automatically sends CONNECT for https:// targets when using --proxy
 func (s *testingSuite) TestConnectTunnel() {
 	proxyUrl := "http://" + kubeutils.ServiceFQDN(metav1.ObjectMeta{
-		Name:      defaults.GatewayProxyName,
+		Name:      "gateway-proxy-connect-terminate",
 		Namespace: s.testInstallation.Metadata.InstallNamespace,
 	}) + ":80"
 

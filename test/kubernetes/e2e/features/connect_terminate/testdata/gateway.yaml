@@ -6,7 +6,7 @@ metadata:
   name: connect-terminate-gateway
 spec:
   bindAddress: 0.0.0.0
-  bindPort: 8080
+  bindPort: 8086
   httpGateway:
     options:
       dynamicForwardProxy:
@@ -23,3 +23,17 @@ spec:
   proxyNames:
   - gateway-proxy
   useProxyProto: false
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway-proxy-connect-terminate
+spec:
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: 8086
+  selector:
+    gloo: gateway-proxy
+  type: ClusterIP
