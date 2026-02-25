@@ -18,7 +18,7 @@ spec:
             rootCa: /etc/ssl/certs/ca-certificates.crt
       httpConnectionManagerSettings:
         upgrades:
-        - connect:
+        - connectTerminate:
             enabled: true
   proxyNames:
   - gateway-proxy
