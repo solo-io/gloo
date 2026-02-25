@@ -367,7 +367,7 @@ type Istio struct {
 }
 
 type ProvisionedDeployment struct {
-	Replicas *int32 `json:"replicas,omitempty" desc:"number of instances to deploy. If set to null, a default of 1 will be imposed."`
+	Replicas *int32 `json:"replicas,omitempty" desc:"number of instances to deploy. If set to null, the replicas field is omitted from the deployment spec, allowing HorizontalPodAutoscaler to manage scaling."`
 }
 
 type ProvisionedService struct {
