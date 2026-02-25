@@ -1187,7 +1187,7 @@ Resource Types:
           <br/>
           <br/>
             <i>Format</i>: int32<br/>
-            <i>Minimum</i>: 0<br/>
+            <i>Minimum</i>: 1<br/>
         </td>
         <td>false</td>
       </tr></tbody>
