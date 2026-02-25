@@ -15,14 +15,10 @@ spec:
 {{- $gg = .Values.kubeGateway.gatewayParameters.glooGateway -}}
 {{- end }}{{/* if .Values.kubeGateway.gatewayParameters.glooGateway */}}
 {{- end }}{{/* if .Values.kubeGateway.gatewayParameters */}}
-{{- $replicas := 1 -}}
-{{- if $gg.proxyDeployment -}}
-{{- if $gg.proxyDeployment.replicas -}}
-{{- $replicas = $gg.proxyDeployment.replicas -}}
-{{- end -}}{{/* if $gg.proxyDeployment.replicas */}}
-{{- end }}{{/* if $gg.proxyDeployment */}}
+{{- if and $gg.proxyDeployment $gg.proxyDeployment.replicas }}
     deployment:
-      replicas: {{ $replicas }}
+      replicas: {{ $gg.proxyDeployment.replicas }}
+{{- end }}{{/* if proxyDeployment.replicas */}}
 {{- $serviceType := "LoadBalancer" -}}
 {{- if $gg.service -}}
 {{- if $gg.service.type -}}
