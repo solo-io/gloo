@@ -74,8 +74,9 @@ func (s *testingSuite) TearDownSuite() {
 // This replicates the customer reproducer test from:
 // /Users/jasoncigan/Git/customer-success-reproducer-agent/reproductions/7973-https-connect-tunnel
 //
-// Test command: curl --proxy http://gateway-proxy:80 -H "x-dfp-host: httpbin.org" https://httpbin.org/get
+// Test command: curl --proxy http://gateway-proxy:80 https://httpbin.org/get
 // curl automatically sends CONNECT for https:// targets when using --proxy
+// DFP extracts the target hostname from the CONNECT request (e.g., "CONNECT httpbin.org:443")
 func (s *testingSuite) TestConnectTunnel() {
 	proxyUrl := "http://" + kubeutils.ServiceFQDN(metav1.ObjectMeta{
 		Name:      "gateway-proxy-connect-terminate",
@@ -84,7 +85,7 @@ func (s *testingSuite) TestConnectTunnel() {
 
 	// Use curl with --proxy to test CONNECT tunneling
 	// curl automatically sends: "CONNECT httpbin.org:443 HTTP/1.1" for https:// targets
-	// The x-dfp-host header tells DFP which upstream to connect to (via autoHostRewriteHeader)
+	// DFP extracts the target hostname from the CONNECT request itself
 	s.testInstallation.Assertions.AssertEventualCurlResponse(
 		s.ctx,
 		testDefaults.CurlPodExecOpt,
@@ -92,7 +93,6 @@ func (s *testingSuite) TestConnectTunnel() {
 			curl.WithArgs([]string{
 				"curl",
 				"--proxy", proxyUrl,
-				"-H", "x-dfp-host: httpbin.org",
 				"--max-time", "10",
 				"-s", "-o", "/dev/null",
 				"-w", "%{http_code}",
