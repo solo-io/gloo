@@ -1,9 +1,9 @@
-# Gateway configuration for CONNECT tunnel testing with Dynamic Forward Proxy
+# Gateway configuration for CONNECT termination testing
 # Based on customer reproducer: 7973-https-connect-tunnel/fix/gateway-ssl-fixed-with-connect-terminate.yaml
 apiVersion: gateway.solo.io/v1
 kind: Gateway
 metadata:
-  name: dfp-connect-gateway
+  name: connect-terminate-gateway
   namespace: gloo-system
 spec:
   bindAddress: 0.0.0.0

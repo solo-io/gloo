@@ -1,4 +1,4 @@
-package dynamic_forward_proxy
+package connect_terminate
 
 import (
 	"context"
@@ -25,7 +25,7 @@ var gatewayYaml []byte
 //go:embed testdata/virtualservice.yaml
 var virtualServiceYaml []byte
 
-// testingSuite is the entire Suite of tests for the Dynamic Forward Proxy CONNECT feature
+// testingSuite is the entire Suite of tests for the CONNECT termination feature
 type testingSuite struct {
 	suite.Suite
 	ctx              context.Context
@@ -49,7 +49,7 @@ func (s *testingSuite) SetupSuite() {
 }
 
 func (s *testingSuite) BeforeTest(suiteName, testName string) {
-	// Apply DFP gateway and virtualservice configurations
+	// Apply CONNECT termination gateway and virtualservice configurations
 	err := s.testInstallation.Actions.Kubectl().Apply(s.ctx, gatewayYaml)
 	s.Require().NoError(err)
 
