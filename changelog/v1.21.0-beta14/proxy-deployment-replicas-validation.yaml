@@ -1,0 +1,4 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >-
+      "changed proxyDeployement->replicas validation back to >=1"

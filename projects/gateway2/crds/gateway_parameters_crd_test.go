@@ -41,7 +41,7 @@ func TestGatewayParametersReplicasValidationMinimum(t *testing.T) {
 	if replicasSchema.Minimum == nil {
 		t.Fatalf("spec.kube.deployment.replicas must define minimum validation")
 	}
-	if *replicasSchema.Minimum != 0 {
-		t.Fatalf("spec.kube.deployment.replicas minimum must be 0, got %v", *replicasSchema.Minimum)
+	if *replicasSchema.Minimum != 1 {
+		t.Fatalf("spec.kube.deployment.replicas minimum must be 1, got %v", *replicasSchema.Minimum)
 	}
 }
