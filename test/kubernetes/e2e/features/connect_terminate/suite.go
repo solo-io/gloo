@@ -85,7 +85,7 @@ func (s *testingSuite) TestConnectTunnel() {
 
 	// Use curl with --proxy to test CONNECT tunneling
 	// curl automatically sends: "CONNECT httpbin.org:443 HTTP/1.1" for https:// targets
-	// DFP extracts the target hostname from the CONNECT request itself
+	// --proxy-header sends the x-dfp-host header in the CONNECT request itself
 	s.testInstallation.Assertions.AssertEventualCurlResponse(
 		s.ctx,
 		testDefaults.CurlPodExecOpt,
@@ -93,6 +93,7 @@ func (s *testingSuite) TestConnectTunnel() {
 			curl.WithArgs([]string{
 				"curl",
 				"--proxy", proxyUrl,
+				"--proxy-header", "x-dfp-host: httpbin.org",
 				"--max-time", "10",
 				"-s", "-o", "/dev/null",
 				"-w", "%{http_code}",
