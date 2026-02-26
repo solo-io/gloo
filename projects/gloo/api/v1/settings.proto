@@ -566,10 +566,20 @@ message Settings {
     // Enterprise-only: GraphQL settings
     GraphqlOptions graphql_options = 37 [deprecated = true];
 
+    // Enterprise-only: Early External Processing filter settings. These settings are used as
+    // defaults globally, and can be overridden by HttpListenerOptions, VirtualHostOptions,
+    // or RouteOptions.
+    extproc.options.gloo.solo.io.Settings ext_proc_early = 42;
+
     // Enterprise-only: External Processing filter settings. These settings are used as
     // defaults globally, and can be overridden by HttpListenerOptions, VirtualHostOptions,
     // or RouteOptions.
     extproc.options.gloo.solo.io.Settings ext_proc = 39;
+
+    // Enterprise-only: Late External Processing filter settings that happens at the end of the filter chain as an UpstreamHttpFilter.
+    // These settings are used as defaults globally, and can be overridden by HttpListenerOptions, VirtualHostOptions,
+    // or RouteOptions.
+    extproc.options.gloo.solo.io.Settings ext_proc_late = 41;
 
     // A list of Kubernetes selectors that specify the set of namespaces to restrict the namespaces that Gloo controllers
     // take into consideration when watching for resources.

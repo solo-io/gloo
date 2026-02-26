@@ -61,6 +61,17 @@ message HttpListenerOptions {
     // Enterprise-only: Settings for the cache server itself
     caching.options.gloo.solo.io.Settings caching = 17;
 
+    oneof ext_proc_early_config {
+    // Enterprise-only: Set to true to disable the Early External Processing filter for this listener.
+    // This can be overridden by child VirtualHostOptions or RouteOptions.
+    google.protobuf.BoolValue disable_ext_proc_early = 39;
+
+    // Enterprise-only: Early External Processing filter settings for the listener. This can be used to
+    // override the defaults from the global settings (via shallow merge). Some of the settings
+    // on the listener can be overridden by child VirtualHostOptions or RouteOptions.
+    extproc.options.gloo.solo.io.Settings ext_proc_early = 40;
+    }
+
     oneof ext_proc_config {
         // Enterprise-only: Set to true to disable the External Processing filter for this listener.
         // This can be overridden by child VirtualHostOptions or RouteOptions.
@@ -70,6 +81,17 @@ message HttpListenerOptions {
         // override the defaults from the global settings (via shallow merge). Some of the settings
         // on the listener can be overridden by child VirtualHostOptions or RouteOptions.
         extproc.options.gloo.solo.io.Settings ext_proc = 31;
+    }
+
+    oneof ext_proc_late_config {
+        // Enterprise-only: Set to true to disable the Late External Processing filter for this listener.
+        // This can be overridden by child VirtualHostOptions or RouteOptions.
+        google.protobuf.BoolValue disable_ext_proc_late = 37;
+
+        // Enterprise-only: Late External Processing filter settings for the listener. This can be used to
+        // override the defaults from the global settings (via shallow merge). Some of the settings
+        // on the listener can be overridden by child VirtualHostOptions or RouteOptions.
+        extproc.options.gloo.solo.io.Settings ext_proc_late = 38;
     }
 
     // Gzip is an HTTP option which enables Gloo to compress
