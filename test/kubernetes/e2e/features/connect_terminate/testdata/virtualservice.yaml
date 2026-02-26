@@ -17,4 +17,5 @@ spec:
         - connectTerminate:
             enabled: true
       routeAction:
-        dynamicForwardProxy: {}
+        dynamicForwardProxy:
+          autoHostRewriteHeader: "x-dfp-host"
