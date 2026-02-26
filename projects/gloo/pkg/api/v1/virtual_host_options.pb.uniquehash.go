@@ -363,6 +363,26 @@ func (m *VirtualHostOptions) HashUnique(hasher hash.Hash64) (uint64, error) {
 		}
 	}
 
+	if h, ok := interface{}(m.GetExtProcEarly()).(safe_hasher.SafeHasher); ok {
+		if _, err = hasher.Write([]byte("ExtProcEarly")); err != nil {
+			return 0, err
+		}
+		if _, err = h.Hash(hasher); err != nil {
+			return 0, err
+		}
+	} else {
+		if fieldValue, err := hashstructure.Hash(m.GetExtProcEarly(), nil); err != nil {
+			return 0, err
+		} else {
+			if _, err = hasher.Write([]byte("ExtProcEarly")); err != nil {
+				return 0, err
+			}
+			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
+				return 0, err
+			}
+		}
+	}
+
 	if h, ok := interface{}(m.GetExtProc()).(safe_hasher.SafeHasher); ok {
 		if _, err = hasher.Write([]byte("ExtProc")); err != nil {
 			return 0, err
@@ -375,6 +395,26 @@ func (m *VirtualHostOptions) HashUnique(hasher hash.Hash64) (uint64, error) {
 			return 0, err
 		} else {
 			if _, err = hasher.Write([]byte("ExtProc")); err != nil {
+				return 0, err
+			}
+			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
+				return 0, err
+			}
+		}
+	}
+
+	if h, ok := interface{}(m.GetExtProcLate()).(safe_hasher.SafeHasher); ok {
+		if _, err = hasher.Write([]byte("ExtProcLate")); err != nil {
+			return 0, err
+		}
+		if _, err = h.Hash(hasher); err != nil {
+			return 0, err
+		}
+	} else {
+		if fieldValue, err := hashstructure.Hash(m.GetExtProcLate(), nil); err != nil {
+			return 0, err
+		} else {
+			if _, err = hasher.Write([]byte("ExtProcLate")); err != nil {
 				return 0, err
 			}
 			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
