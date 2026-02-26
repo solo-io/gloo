@@ -136,37 +136,3 @@ func (m *ProtocolUpgradeConfig_ProtocolUpgradeSpec) Equal(that interface{}) bool
 
 	return true
 }
-
-// Equal function
-func (m *ProtocolUpgradeConfig_ConnectConfig) Equal(that interface{}) bool {
-	if that == nil {
-		return m == nil
-	}
-
-	target, ok := that.(*ProtocolUpgradeConfig_ConnectConfig)
-	if !ok {
-		that2, ok := that.(ProtocolUpgradeConfig_ConnectConfig)
-		if ok {
-			target = &that2
-		} else {
-			return false
-		}
-	}
-	if target == nil {
-		return m == nil
-	} else if m == nil {
-		return false
-	}
-
-	if h, ok := interface{}(m.GetEnabled()).(equality.Equalizer); ok {
-		if !h.Equal(target.GetEnabled()) {
-			return false
-		}
-	} else {
-		if !proto.Equal(m.GetEnabled(), target.GetEnabled()) {
-			return false
-		}
-	}
-
-	return true
-}

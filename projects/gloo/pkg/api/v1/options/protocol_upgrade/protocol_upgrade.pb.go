@@ -91,7 +91,7 @@ func (x *ProtocolUpgradeConfig) GetConnect() *ProtocolUpgradeConfig_ProtocolUpgr
 	return nil
 }
 
-func (x *ProtocolUpgradeConfig) GetConnectTerminate() *ProtocolUpgradeConfig_ConnectConfig {
+func (x *ProtocolUpgradeConfig) GetConnectTerminate() *ProtocolUpgradeConfig_ProtocolUpgradeSpec {
 	if x != nil {
 		if x, ok := x.UpgradeType.(*ProtocolUpgradeConfig_ConnectTerminate); ok {
 			return x.ConnectTerminate
@@ -118,10 +118,15 @@ type ProtocolUpgradeConfig_Connect struct {
 }
 
 type ProtocolUpgradeConfig_ConnectTerminate struct {
-	// Configuration for CONNECT protocol termination.
-	// This enables TCP tunneling for CONNECT requests, allowing HTTPS traffic
-	// to pass through Dynamic Forward Proxy.
-	ConnectTerminate *ProtocolUpgradeConfig_ConnectConfig `protobuf:"bytes,3,opt,name=connect_terminate,json=connectTerminate,proto3,oneof"`
+	// Specification for CONNECT protocol termination.
+	// When configured, Envoy will terminate CONNECT requests and tunnel the TCP payload,
+	// allowing HTTPS traffic to pass through Dynamic Forward Proxy.
+	//
+	// SECURITY WARNING: This mode of CONNECT support can create major security holes if not
+	// configured correctly, as the upstream will be forwarded unsanitized headers if they are
+	// in the body payload. Please use with caution! Ensure proper authentication and
+	// authorization are in place before enabling this feature.
+	ConnectTerminate *ProtocolUpgradeConfig_ProtocolUpgradeSpec `protobuf:"bytes,3,opt,name=connect_terminate,json=connectTerminate,proto3,oneof"`
 }
 
 func (*ProtocolUpgradeConfig_Websocket) isProtocolUpgradeConfig_UpgradeType() {}
@@ -175,71 +180,16 @@ func (x *ProtocolUpgradeConfig_ProtocolUpgradeSpec) GetEnabled() *wrapperspb.Boo
 	return nil
 }
 
-// Configuration for CONNECT protocol termination.
-// When configured, Envoy will terminate CONNECT requests and tunnel the TCP payload.
-type ProtocolUpgradeConfig_ConnectConfig struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// Whether CONNECT termination should be enabled.
-	// If left unset, Envoy will enable CONNECT termination.
-	//
-	// SECURITY WARNING: This mode of CONNECT support can create major security holes if not
-	// configured correctly, as the upstream will be forwarded unsanitized headers if they are
-	// in the body payload. Please use with caution! Ensure proper authentication and
-	// authorization are in place before enabling this feature.
-	Enabled       *wrapperspb.BoolValue `protobuf:"bytes,1,opt,name=enabled,proto3" json:"enabled,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *ProtocolUpgradeConfig_ConnectConfig) Reset() {
-	*x = ProtocolUpgradeConfig_ConnectConfig{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_options_protocol_upgrade_protocol_upgrade_proto_msgTypes[2]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ProtocolUpgradeConfig_ConnectConfig) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ProtocolUpgradeConfig_ConnectConfig) ProtoMessage() {}
-
-func (x *ProtocolUpgradeConfig_ConnectConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_options_protocol_upgrade_protocol_upgrade_proto_msgTypes[2]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ProtocolUpgradeConfig_ConnectConfig.ProtoReflect.Descriptor instead.
-func (*ProtocolUpgradeConfig_ConnectConfig) Descriptor() ([]byte, []int) {
-	return file_github_com_solo_io_gloo_projects_gloo_api_v1_options_protocol_upgrade_protocol_upgrade_proto_rawDescGZIP(), []int{0, 1}
-}
-
-func (x *ProtocolUpgradeConfig_ConnectConfig) GetEnabled() *wrapperspb.BoolValue {
-	if x != nil {
-		return x.Enabled
-	}
-	return nil
-}
-
 var File_github_com_solo_io_gloo_projects_gloo_api_v1_options_protocol_upgrade_protocol_upgrade_proto protoreflect.FileDescriptor
 
 const file_github_com_solo_io_gloo_projects_gloo_api_v1_options_protocol_upgrade_protocol_upgrade_proto_rawDesc = "" +
 	"\n" +
-	"\\github.com/solo-io/gloo/projects/gloo/api/v1/options/protocol_upgrade/protocol_upgrade.proto\x12%protocol_upgrade.options.gloo.solo.io\x1a\x1egoogle/protobuf/wrappers.proto\x1a\x12extproto/ext.proto\"\x96\x04\n" +
+	"\\github.com/solo-io/gloo/projects/gloo/api/v1/options/protocol_upgrade/protocol_upgrade.proto\x12%protocol_upgrade.options.gloo.solo.io\x1a\x1egoogle/protobuf/wrappers.proto\x1a\x12extproto/ext.proto\"\xd5\x03\n" +
 	"\x15ProtocolUpgradeConfig\x12p\n" +
 	"\twebsocket\x18\x01 \x01(\v2P.protocol_upgrade.options.gloo.solo.io.ProtocolUpgradeConfig.ProtocolUpgradeSpecH\x00R\twebsocket\x12l\n" +
-	"\aconnect\x18\x02 \x01(\v2P.protocol_upgrade.options.gloo.solo.io.ProtocolUpgradeConfig.ProtocolUpgradeSpecH\x00R\aconnect\x12y\n" +
-	"\x11connect_terminate\x18\x03 \x01(\v2J.protocol_upgrade.options.gloo.solo.io.ProtocolUpgradeConfig.ConnectConfigH\x00R\x10connectTerminate\x1aK\n" +
+	"\aconnect\x18\x02 \x01(\v2P.protocol_upgrade.options.gloo.solo.io.ProtocolUpgradeConfig.ProtocolUpgradeSpecH\x00R\aconnect\x12\x7f\n" +
+	"\x11connect_terminate\x18\x03 \x01(\v2P.protocol_upgrade.options.gloo.solo.io.ProtocolUpgradeConfig.ProtocolUpgradeSpecH\x00R\x10connectTerminate\x1aK\n" +
 	"\x13ProtocolUpgradeSpec\x124\n" +
-	"\aenabled\x18\x01 \x01(\v2\x1a.google.protobuf.BoolValueR\aenabled\x1aE\n" +
-	"\rConnectConfig\x124\n" +
 	"\aenabled\x18\x01 \x01(\v2\x1a.google.protobuf.BoolValueR\aenabledB\x0e\n" +
 	"\fupgrade_typeBW\xb8\xf5\x04\x01\xc0\xf5\x04\x01\xd0\xf5\x04\x01ZIgithub.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/protocol_upgradeb\x06proto3"
 
@@ -255,24 +205,22 @@ func file_github_com_solo_io_gloo_projects_gloo_api_v1_options_protocol_upgrade_
 	return file_github_com_solo_io_gloo_projects_gloo_api_v1_options_protocol_upgrade_protocol_upgrade_proto_rawDescData
 }
 
-var file_github_com_solo_io_gloo_projects_gloo_api_v1_options_protocol_upgrade_protocol_upgrade_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_github_com_solo_io_gloo_projects_gloo_api_v1_options_protocol_upgrade_protocol_upgrade_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
 var file_github_com_solo_io_gloo_projects_gloo_api_v1_options_protocol_upgrade_protocol_upgrade_proto_goTypes = []any{
 	(*ProtocolUpgradeConfig)(nil),                     // 0: protocol_upgrade.options.gloo.solo.io.ProtocolUpgradeConfig
 	(*ProtocolUpgradeConfig_ProtocolUpgradeSpec)(nil), // 1: protocol_upgrade.options.gloo.solo.io.ProtocolUpgradeConfig.ProtocolUpgradeSpec
-	(*ProtocolUpgradeConfig_ConnectConfig)(nil),       // 2: protocol_upgrade.options.gloo.solo.io.ProtocolUpgradeConfig.ConnectConfig
-	(*wrapperspb.BoolValue)(nil),                      // 3: google.protobuf.BoolValue
+	(*wrapperspb.BoolValue)(nil),                      // 2: google.protobuf.BoolValue
 }
 var file_github_com_solo_io_gloo_projects_gloo_api_v1_options_protocol_upgrade_protocol_upgrade_proto_depIdxs = []int32{
 	1, // 0: protocol_upgrade.options.gloo.solo.io.ProtocolUpgradeConfig.websocket:type_name -> protocol_upgrade.options.gloo.solo.io.ProtocolUpgradeConfig.ProtocolUpgradeSpec
 	1, // 1: protocol_upgrade.options.gloo.solo.io.ProtocolUpgradeConfig.connect:type_name -> protocol_upgrade.options.gloo.solo.io.ProtocolUpgradeConfig.ProtocolUpgradeSpec
-	2, // 2: protocol_upgrade.options.gloo.solo.io.ProtocolUpgradeConfig.connect_terminate:type_name -> protocol_upgrade.options.gloo.solo.io.ProtocolUpgradeConfig.ConnectConfig
-	3, // 3: protocol_upgrade.options.gloo.solo.io.ProtocolUpgradeConfig.ProtocolUpgradeSpec.enabled:type_name -> google.protobuf.BoolValue
-	3, // 4: protocol_upgrade.options.gloo.solo.io.ProtocolUpgradeConfig.ConnectConfig.enabled:type_name -> google.protobuf.BoolValue
-	5, // [5:5] is the sub-list for method output_type
-	5, // [5:5] is the sub-list for method input_type
-	5, // [5:5] is the sub-list for extension type_name
-	5, // [5:5] is the sub-list for extension extendee
-	0, // [0:5] is the sub-list for field type_name
+	1, // 2: protocol_upgrade.options.gloo.solo.io.ProtocolUpgradeConfig.connect_terminate:type_name -> protocol_upgrade.options.gloo.solo.io.ProtocolUpgradeConfig.ProtocolUpgradeSpec
+	2, // 3: protocol_upgrade.options.gloo.solo.io.ProtocolUpgradeConfig.ProtocolUpgradeSpec.enabled:type_name -> google.protobuf.BoolValue
+	4, // [4:4] is the sub-list for method output_type
+	4, // [4:4] is the sub-list for method input_type
+	4, // [4:4] is the sub-list for extension type_name
+	4, // [4:4] is the sub-list for extension extendee
+	0, // [0:4] is the sub-list for field type_name
 }
 
 func init() {
@@ -293,7 +241,7 @@ func file_github_com_solo_io_gloo_projects_gloo_api_v1_options_protocol_upgrade_
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_github_com_solo_io_gloo_projects_gloo_api_v1_options_protocol_upgrade_protocol_upgrade_proto_rawDesc), len(file_github_com_solo_io_gloo_projects_gloo_api_v1_options_protocol_upgrade_protocol_upgrade_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   3,
+			NumMessages:   2,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

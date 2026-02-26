@@ -4067,7 +4067,7 @@ var _ = Describe("Translator", func() {
 				Upgrades: []*protocol_upgrade.ProtocolUpgradeConfig{
 					{
 						UpgradeType: &protocol_upgrade.ProtocolUpgradeConfig_ConnectTerminate{
-							ConnectTerminate: &protocol_upgrade.ProtocolUpgradeConfig_ConnectConfig{
+							ConnectTerminate: &protocol_upgrade.ProtocolUpgradeConfig_ProtocolUpgradeSpec{
 								Enabled: &wrapperspb.BoolValue{Value: true},
 							},
 						},
@@ -4113,7 +4113,7 @@ var _ = Describe("Translator", func() {
 				Upgrades: []*protocol_upgrade.ProtocolUpgradeConfig{
 					{
 						UpgradeType: &protocol_upgrade.ProtocolUpgradeConfig_ConnectTerminate{
-							ConnectTerminate: &protocol_upgrade.ProtocolUpgradeConfig_ConnectConfig{
+							ConnectTerminate: &protocol_upgrade.ProtocolUpgradeConfig_ProtocolUpgradeSpec{
 								Enabled: &wrapperspb.BoolValue{Value: false},
 							},
 						},

@@ -1,0 +1,21 @@
+# VirtualService configuration for CONNECT termination testing
+# Based on customer reproducer: 7973-https-connect-tunnel/fix/vs-ssl-fixed-with-connect-terminate.yaml
+apiVersion: gateway.solo.io/v1
+kind: VirtualService
+metadata:
+  name: connect-terminate-vs
+spec:
+  displayName: connect-terminate-vs
+  virtualHost:
+    domains:
+    - '*'
+    routes:
+    - matchers:
+      - connectMatcher: {}
+      options:
+        upgrades:
+        - connectTerminate:
+            enabled: true
+      routeAction:
+        dynamicForwardProxy:
+          autoHostRewriteHeader: "x-dfp-host"

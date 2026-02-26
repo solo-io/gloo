@@ -1,0 +1,39 @@
+# Gateway configuration for CONNECT termination testing
+# Based on customer reproducer: 7973-https-connect-tunnel/fix/gateway-ssl-fixed-with-connect-terminate.yaml
+apiVersion: gateway.solo.io/v1
+kind: Gateway
+metadata:
+  name: connect-terminate-gateway
+spec:
+  bindAddress: 0.0.0.0
+  bindPort: 8086
+  httpGateway:
+    options:
+      dynamicForwardProxy:
+        dnsCacheConfig:
+          dnsLookupFamily: V4_ONLY
+          hostTtl: 86400s
+        sslConfig:
+          sslFiles:
+            rootCa: /etc/ssl/certs/ca-certificates.crt
+      httpConnectionManagerSettings:
+        upgrades:
+        - connect:
+            enabled: true
+  proxyNames:
+  - gateway-proxy
+  useProxyProto: false
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway-proxy-connect-terminate
+spec:
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: 8086
+  selector:
+    gloo: gateway-proxy
+  type: ClusterIP
