@@ -42,6 +42,7 @@ type WellKnownUpstreamHTTPFilterStage int
 // If new well known filter stages are added, they should be inserted in a position corresponding to their order
 const (
 	TransformationStage WellKnownUpstreamHTTPFilterStage = iota // Transformation stage
+	LateExtProcStage                                            // LateExtProc stage
 )
 
 // FilterStageComparison helps implement the sort.Interface Less function for use in other implementations of sort.Interface
