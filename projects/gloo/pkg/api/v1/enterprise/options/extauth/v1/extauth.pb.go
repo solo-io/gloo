@@ -236,6 +236,54 @@ func (EndSessionProperties_MethodType) EnumDescriptor() ([]byte, []int) {
 	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_rawDescGZIP(), []int{20, 0}
 }
 
+// Supported HMAC algorithms for API key digest verification.
+type ApiKeyHmac_Algorithm int32
+
+const (
+	// When unspecified, ext-auth-service should default to HMAC_SHA256.
+	ApiKeyHmac_ALGORITHM_UNSPECIFIED ApiKeyHmac_Algorithm = 0
+	ApiKeyHmac_HMAC_SHA256           ApiKeyHmac_Algorithm = 1
+)
+
+// Enum value maps for ApiKeyHmac_Algorithm.
+var (
+	ApiKeyHmac_Algorithm_name = map[int32]string{
+		0: "ALGORITHM_UNSPECIFIED",
+		1: "HMAC_SHA256",
+	}
+	ApiKeyHmac_Algorithm_value = map[string]int32{
+		"ALGORITHM_UNSPECIFIED": 0,
+		"HMAC_SHA256":           1,
+	}
+)
+
+func (x ApiKeyHmac_Algorithm) Enum() *ApiKeyHmac_Algorithm {
+	p := new(ApiKeyHmac_Algorithm)
+	*p = x
+	return p
+}
+
+func (x ApiKeyHmac_Algorithm) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (ApiKeyHmac_Algorithm) Descriptor() protoreflect.EnumDescriptor {
+	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_enumTypes[4].Descriptor()
+}
+
+func (ApiKeyHmac_Algorithm) Type() protoreflect.EnumType {
+	return &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_enumTypes[4]
+}
+
+func (x ApiKeyHmac_Algorithm) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use ApiKeyHmac_Algorithm.Descriptor instead.
+func (ApiKeyHmac_Algorithm) EnumDescriptor() ([]byte, []int) {
+	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_rawDescGZIP(), []int{30, 0}
+}
+
 type SslParameters_ProtocolVersion int32
 
 const (
@@ -276,11 +324,11 @@ func (x SslParameters_ProtocolVersion) String() string {
 }
 
 func (SslParameters_ProtocolVersion) Descriptor() protoreflect.EnumDescriptor {
-	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_enumTypes[4].Descriptor()
+	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_enumTypes[5].Descriptor()
 }
 
 func (SslParameters_ProtocolVersion) Type() protoreflect.EnumType {
-	return &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_enumTypes[4]
+	return &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_enumTypes[5]
 }
 
 func (x SslParameters_ProtocolVersion) Number() protoreflect.EnumNumber {
@@ -289,7 +337,7 @@ func (x SslParameters_ProtocolVersion) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use SslParameters_ProtocolVersion.Descriptor instead.
 func (SslParameters_ProtocolVersion) EnumDescriptor() ([]byte, []int) {
-	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_rawDescGZIP(), []int{47, 0}
+	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_rawDescGZIP(), []int{48, 0}
 }
 
 // This is the user-facing auth configuration. When processed by Gloo, certain configuration types (i.a. oauth, opa)
@@ -3407,8 +3455,11 @@ type ApiKeyAuth struct {
 	// in the data plane and mitigated in a way that provides a consistent experience for the user and visibility for the operator.
 	// This validation comes with a performance cost, and can be disabled by setting this field to `true`.
 	SkipMetadataValidation bool `protobuf:"varint,8,opt,name=skip_metadata_validation,json=skipMetadataValidation,proto3" json:"skip_metadata_validation,omitempty"`
-	unknownFields          protoimpl.UnknownFields
-	sizeCache              protoimpl.SizeCache
+	// Optional HMAC digest verification mode for API key validation. When configured, stored API key values
+	// are treated as HMAC digests and the request API key is transformed prior to comparison.
+	Hmac          *ApiKeyHmac `protobuf:"bytes,9,opt,name=hmac,proto3" json:"hmac,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ApiKeyAuth) Reset() {
@@ -3511,6 +3562,13 @@ func (x *ApiKeyAuth) GetSkipMetadataValidation() bool {
 	return false
 }
 
+func (x *ApiKeyAuth) GetHmac() *ApiKeyHmac {
+	if x != nil {
+		return x.Hmac
+	}
+	return nil
+}
+
 type isApiKeyAuth_StorageBackend interface {
 	isApiKeyAuth_StorageBackend()
 }
@@ -3529,6 +3587,61 @@ func (*ApiKeyAuth_K8SSecretApikeyStorage) isApiKeyAuth_StorageBackend() {}
 
 func (*ApiKeyAuth_AerospikeApikeyStorage) isApiKeyAuth_StorageBackend() {}
 
+// Configuration for HMAC-based API key digest verification.
+type ApiKeyHmac struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Algorithm used to compute the digest for comparison against stored API key values.
+	Algorithm ApiKeyHmac_Algorithm `protobuf:"varint,1,opt,name=algorithm,proto3,enum=enterprise.gloo.solo.io.ApiKeyHmac_Algorithm" json:"algorithm,omitempty"`
+	// Reference to the shared secret used to compute request-time HMAC digests.
+	SharedSecretRef *core.ResourceRef `protobuf:"bytes,2,opt,name=shared_secret_ref,json=sharedSecretRef,proto3" json:"shared_secret_ref,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *ApiKeyHmac) Reset() {
+	*x = ApiKeyHmac{}
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[30]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ApiKeyHmac) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ApiKeyHmac) ProtoMessage() {}
+
+func (x *ApiKeyHmac) ProtoReflect() protoreflect.Message {
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[30]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ApiKeyHmac.ProtoReflect.Descriptor instead.
+func (*ApiKeyHmac) Descriptor() ([]byte, []int) {
+	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_rawDescGZIP(), []int{30}
+}
+
+func (x *ApiKeyHmac) GetAlgorithm() ApiKeyHmac_Algorithm {
+	if x != nil {
+		return x.Algorithm
+	}
+	return ApiKeyHmac_ALGORITHM_UNSPECIFIED
+}
+
+func (x *ApiKeyHmac) GetSharedSecretRef() *core.ResourceRef {
+	if x != nil {
+		return x.SharedSecretRef
+	}
+	return nil
+}
+
 type K8SSecretApiKeyStorage struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Identify all valid API key secrets that match the provided label selector.<br/>
@@ -3543,7 +3656,7 @@ type K8SSecretApiKeyStorage struct {
 
 func (x *K8SSecretApiKeyStorage) Reset() {
 	*x = K8SSecretApiKeyStorage{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[30]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3555,7 +3668,7 @@ func (x *K8SSecretApiKeyStorage) String() string {
 func (*K8SSecretApiKeyStorage) ProtoMessage() {}
 
 func (x *K8SSecretApiKeyStorage) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[30]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3568,7 +3681,7 @@ func (x *K8SSecretApiKeyStorage) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use K8SSecretApiKeyStorage.ProtoReflect.Descriptor instead.
 func (*K8SSecretApiKeyStorage) Descriptor() ([]byte, []int) {
-	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_rawDescGZIP(), []int{30}
+	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *K8SSecretApiKeyStorage) GetLabelSelector() map[string]string {
@@ -3638,7 +3751,7 @@ type AerospikeApiKeyStorage struct {
 
 func (x *AerospikeApiKeyStorage) Reset() {
 	*x = AerospikeApiKeyStorage{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[31]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3650,7 +3763,7 @@ func (x *AerospikeApiKeyStorage) String() string {
 func (*AerospikeApiKeyStorage) ProtoMessage() {}
 
 func (x *AerospikeApiKeyStorage) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[31]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3663,7 +3776,7 @@ func (x *AerospikeApiKeyStorage) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AerospikeApiKeyStorage.ProtoReflect.Descriptor instead.
 func (*AerospikeApiKeyStorage) Descriptor() ([]byte, []int) {
-	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_rawDescGZIP(), []int{31}
+	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *AerospikeApiKeyStorage) GetHostname() string {
@@ -3823,7 +3936,7 @@ type ServerDefaultApiKeyStorage struct {
 
 func (x *ServerDefaultApiKeyStorage) Reset() {
 	*x = ServerDefaultApiKeyStorage{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[32]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3835,7 +3948,7 @@ func (x *ServerDefaultApiKeyStorage) String() string {
 func (*ServerDefaultApiKeyStorage) ProtoMessage() {}
 
 func (x *ServerDefaultApiKeyStorage) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[32]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3848,7 +3961,7 @@ func (x *ServerDefaultApiKeyStorage) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ServerDefaultApiKeyStorage.ProtoReflect.Descriptor instead.
 func (*ServerDefaultApiKeyStorage) Descriptor() ([]byte, []int) {
-	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_rawDescGZIP(), []int{32}
+	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_rawDescGZIP(), []int{33}
 }
 
 type ApiKey struct {
@@ -3868,7 +3981,7 @@ type ApiKey struct {
 
 func (x *ApiKey) Reset() {
 	*x = ApiKey{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[33]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3880,7 +3993,7 @@ func (x *ApiKey) String() string {
 func (*ApiKey) ProtoMessage() {}
 
 func (x *ApiKey) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[33]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3893,7 +4006,7 @@ func (x *ApiKey) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ApiKey.ProtoReflect.Descriptor instead.
 func (*ApiKey) Descriptor() ([]byte, []int) {
-	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_rawDescGZIP(), []int{33}
+	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *ApiKey) GetApiKey() string {
@@ -3940,7 +4053,7 @@ type ApiKeySecret struct {
 
 func (x *ApiKeySecret) Reset() {
 	*x = ApiKeySecret{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[34]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3952,7 +4065,7 @@ func (x *ApiKeySecret) String() string {
 func (*ApiKeySecret) ProtoMessage() {}
 
 func (x *ApiKeySecret) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[34]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3965,7 +4078,7 @@ func (x *ApiKeySecret) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ApiKeySecret.ProtoReflect.Descriptor instead.
 func (*ApiKeySecret) Descriptor() ([]byte, []int) {
-	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_rawDescGZIP(), []int{34}
+	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *ApiKeySecret) GetApiKey() string {
@@ -4014,7 +4127,7 @@ type OpaAuth struct {
 
 func (x *OpaAuth) Reset() {
 	*x = OpaAuth{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[35]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4026,7 +4139,7 @@ func (x *OpaAuth) String() string {
 func (*OpaAuth) ProtoMessage() {}
 
 func (x *OpaAuth) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[35]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4039,7 +4152,7 @@ func (x *OpaAuth) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OpaAuth.ProtoReflect.Descriptor instead.
 func (*OpaAuth) Descriptor() ([]byte, []int) {
-	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_rawDescGZIP(), []int{35}
+	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *OpaAuth) GetModules() []*core.ResourceRef {
@@ -4090,7 +4203,7 @@ type OpaAuthOptions struct {
 
 func (x *OpaAuthOptions) Reset() {
 	*x = OpaAuthOptions{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[36]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4102,7 +4215,7 @@ func (x *OpaAuthOptions) String() string {
 func (*OpaAuthOptions) ProtoMessage() {}
 
 func (x *OpaAuthOptions) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[36]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4115,7 +4228,7 @@ func (x *OpaAuthOptions) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OpaAuthOptions.ProtoReflect.Descriptor instead.
 func (*OpaAuthOptions) Descriptor() ([]byte, []int) {
-	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_rawDescGZIP(), []int{36}
+	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_rawDescGZIP(), []int{37}
 }
 
 func (x *OpaAuthOptions) GetFastInputConversion() bool {
@@ -4162,7 +4275,7 @@ type OpaServerAuth struct {
 
 func (x *OpaServerAuth) Reset() {
 	*x = OpaServerAuth{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[37]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4174,7 +4287,7 @@ func (x *OpaServerAuth) String() string {
 func (*OpaServerAuth) ProtoMessage() {}
 
 func (x *OpaServerAuth) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[37]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4187,7 +4300,7 @@ func (x *OpaServerAuth) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OpaServerAuth.ProtoReflect.Descriptor instead.
 func (*OpaServerAuth) Descriptor() ([]byte, []int) {
-	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_rawDescGZIP(), []int{37}
+	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_rawDescGZIP(), []int{38}
 }
 
 func (x *OpaServerAuth) GetPackage() string {
@@ -4259,7 +4372,7 @@ type Ldap struct {
 
 func (x *Ldap) Reset() {
 	*x = Ldap{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[38]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[39]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4271,7 +4384,7 @@ func (x *Ldap) String() string {
 func (*Ldap) ProtoMessage() {}
 
 func (x *Ldap) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[38]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[39]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4284,7 +4397,7 @@ func (x *Ldap) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Ldap.ProtoReflect.Descriptor instead.
 func (*Ldap) Descriptor() ([]byte, []int) {
-	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_rawDescGZIP(), []int{38}
+	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_rawDescGZIP(), []int{39}
 }
 
 func (x *Ldap) GetAddress() string {
@@ -4355,7 +4468,7 @@ type LdapServiceAccount struct {
 
 func (x *LdapServiceAccount) Reset() {
 	*x = LdapServiceAccount{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[39]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[40]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4367,7 +4480,7 @@ func (x *LdapServiceAccount) String() string {
 func (*LdapServiceAccount) ProtoMessage() {}
 
 func (x *LdapServiceAccount) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[39]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[40]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4380,7 +4493,7 @@ func (x *LdapServiceAccount) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LdapServiceAccount.ProtoReflect.Descriptor instead.
 func (*LdapServiceAccount) Descriptor() ([]byte, []int) {
-	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_rawDescGZIP(), []int{39}
+	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_rawDescGZIP(), []int{40}
 }
 
 func (x *LdapServiceAccount) GetCredentialsSecretRef() *core.ResourceRef {
@@ -4419,7 +4532,7 @@ type PassThroughAuth struct {
 
 func (x *PassThroughAuth) Reset() {
 	*x = PassThroughAuth{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[40]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[41]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4431,7 +4544,7 @@ func (x *PassThroughAuth) String() string {
 func (*PassThroughAuth) ProtoMessage() {}
 
 func (x *PassThroughAuth) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[40]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[41]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4444,7 +4557,7 @@ func (x *PassThroughAuth) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PassThroughAuth.ProtoReflect.Descriptor instead.
 func (*PassThroughAuth) Descriptor() ([]byte, []int) {
-	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_rawDescGZIP(), []int{40}
+	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_rawDescGZIP(), []int{41}
 }
 
 func (x *PassThroughAuth) GetProtocol() isPassThroughAuth_Protocol {
@@ -4517,7 +4630,7 @@ type BackoffStrategy struct {
 
 func (x *BackoffStrategy) Reset() {
 	*x = BackoffStrategy{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[41]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[42]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4529,7 +4642,7 @@ func (x *BackoffStrategy) String() string {
 func (*BackoffStrategy) ProtoMessage() {}
 
 func (x *BackoffStrategy) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[41]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[42]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4542,7 +4655,7 @@ func (x *BackoffStrategy) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BackoffStrategy.ProtoReflect.Descriptor instead.
 func (*BackoffStrategy) Descriptor() ([]byte, []int) {
-	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_rawDescGZIP(), []int{41}
+	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_rawDescGZIP(), []int{42}
 }
 
 func (x *BackoffStrategy) GetBaseInterval() *durationpb.Duration {
@@ -4575,7 +4688,7 @@ type RetryPolicy struct {
 
 func (x *RetryPolicy) Reset() {
 	*x = RetryPolicy{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[42]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[43]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4587,7 +4700,7 @@ func (x *RetryPolicy) String() string {
 func (*RetryPolicy) ProtoMessage() {}
 
 func (x *RetryPolicy) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[42]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[43]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4600,7 +4713,7 @@ func (x *RetryPolicy) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RetryPolicy.ProtoReflect.Descriptor instead.
 func (*RetryPolicy) Descriptor() ([]byte, []int) {
-	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_rawDescGZIP(), []int{42}
+	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_rawDescGZIP(), []int{43}
 }
 
 func (x *RetryPolicy) GetNumRetries() *wrapperspb.UInt32Value {
@@ -4665,7 +4778,7 @@ type PassThroughGrpc struct {
 
 func (x *PassThroughGrpc) Reset() {
 	*x = PassThroughGrpc{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[43]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[44]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4677,7 +4790,7 @@ func (x *PassThroughGrpc) String() string {
 func (*PassThroughGrpc) ProtoMessage() {}
 
 func (x *PassThroughGrpc) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[43]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[44]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4690,7 +4803,7 @@ func (x *PassThroughGrpc) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PassThroughGrpc.ProtoReflect.Descriptor instead.
 func (*PassThroughGrpc) Descriptor() ([]byte, []int) {
-	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_rawDescGZIP(), []int{43}
+	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_rawDescGZIP(), []int{44}
 }
 
 func (x *PassThroughGrpc) GetAddress() string {
@@ -4751,7 +4864,7 @@ type PassThroughHttp struct {
 
 func (x *PassThroughHttp) Reset() {
 	*x = PassThroughHttp{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[44]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[45]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4763,7 +4876,7 @@ func (x *PassThroughHttp) String() string {
 func (*PassThroughHttp) ProtoMessage() {}
 
 func (x *PassThroughHttp) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[44]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[45]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4776,7 +4889,7 @@ func (x *PassThroughHttp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PassThroughHttp.ProtoReflect.Descriptor instead.
 func (*PassThroughHttp) Descriptor() ([]byte, []int) {
-	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_rawDescGZIP(), []int{44}
+	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_rawDescGZIP(), []int{45}
 }
 
 func (x *PassThroughHttp) GetUrl() string {
@@ -4829,7 +4942,7 @@ type PassThroughGrpcTLSConfig struct {
 
 func (x *PassThroughGrpcTLSConfig) Reset() {
 	*x = PassThroughGrpcTLSConfig{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[45]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[46]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4841,7 +4954,7 @@ func (x *PassThroughGrpcTLSConfig) String() string {
 func (*PassThroughGrpcTLSConfig) ProtoMessage() {}
 
 func (x *PassThroughGrpcTLSConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[45]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[46]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4854,7 +4967,7 @@ func (x *PassThroughGrpcTLSConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PassThroughGrpcTLSConfig.ProtoReflect.Descriptor instead.
 func (*PassThroughGrpcTLSConfig) Descriptor() ([]byte, []int) {
-	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_rawDescGZIP(), []int{45}
+	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_rawDescGZIP(), []int{46}
 }
 
 func (x *PassThroughGrpcTLSConfig) GetSecretRef() *core.ResourceRef {
@@ -4886,7 +4999,7 @@ type PassThroughHttpTLSConfig struct {
 
 func (x *PassThroughHttpTLSConfig) Reset() {
 	*x = PassThroughHttpTLSConfig{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[46]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[47]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4898,7 +5011,7 @@ func (x *PassThroughHttpTLSConfig) String() string {
 func (*PassThroughHttpTLSConfig) ProtoMessage() {}
 
 func (x *PassThroughHttpTLSConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[46]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[47]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4911,7 +5024,7 @@ func (x *PassThroughHttpTLSConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PassThroughHttpTLSConfig.ProtoReflect.Descriptor instead.
 func (*PassThroughHttpTLSConfig) Descriptor() ([]byte, []int) {
-	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_rawDescGZIP(), []int{46}
+	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_rawDescGZIP(), []int{47}
 }
 
 func (x *PassThroughHttpTLSConfig) GetSecretRef() *core.ResourceRef {
@@ -4943,7 +5056,7 @@ type SslParameters struct {
 
 func (x *SslParameters) Reset() {
 	*x = SslParameters{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[47]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[48]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4955,7 +5068,7 @@ func (x *SslParameters) String() string {
 func (*SslParameters) ProtoMessage() {}
 
 func (x *SslParameters) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[47]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[48]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4968,7 +5081,7 @@ func (x *SslParameters) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SslParameters.ProtoReflect.Descriptor instead.
 func (*SslParameters) Descriptor() ([]byte, []int) {
-	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_rawDescGZIP(), []int{47}
+	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_rawDescGZIP(), []int{48}
 }
 
 func (x *SslParameters) GetMinimumProtocolVersion() SslParameters_ProtocolVersion {
@@ -5007,7 +5120,7 @@ type PortalAuth struct {
 
 func (x *PortalAuth) Reset() {
 	*x = PortalAuth{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[48]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[49]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5019,7 +5132,7 @@ func (x *PortalAuth) String() string {
 func (*PortalAuth) ProtoMessage() {}
 
 func (x *PortalAuth) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[48]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[49]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5032,7 +5145,7 @@ func (x *PortalAuth) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PortalAuth.ProtoReflect.Descriptor instead.
 func (*PortalAuth) Descriptor() ([]byte, []int) {
-	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_rawDescGZIP(), []int{48}
+	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_rawDescGZIP(), []int{49}
 }
 
 func (x *PortalAuth) GetUrl() string {
@@ -5098,7 +5211,7 @@ type AuthConfig_Config struct {
 
 func (x *AuthConfig_Config) Reset() {
 	*x = AuthConfig_Config{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[49]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[50]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5110,7 +5223,7 @@ func (x *AuthConfig_Config) String() string {
 func (*AuthConfig_Config) ProtoMessage() {}
 
 func (x *AuthConfig_Config) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[49]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[50]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5355,7 +5468,7 @@ type HttpService_Request struct {
 
 func (x *HttpService_Request) Reset() {
 	*x = HttpService_Request{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[50]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[51]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5367,7 +5480,7 @@ func (x *HttpService_Request) String() string {
 func (*HttpService_Request) ProtoMessage() {}
 
 func (x *HttpService_Request) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[50]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[51]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5423,7 +5536,7 @@ type HttpService_Response struct {
 
 func (x *HttpService_Response) Reset() {
 	*x = HttpService_Response{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[51]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[52]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5435,7 +5548,7 @@ func (x *HttpService_Response) String() string {
 func (*HttpService_Response) ProtoMessage() {}
 
 func (x *HttpService_Response) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[51]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[52]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5483,7 +5596,7 @@ type BasicAuth_Apr struct {
 
 func (x *BasicAuth_Apr) Reset() {
 	*x = BasicAuth_Apr{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[54]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[55]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5495,7 +5608,7 @@ func (x *BasicAuth_Apr) String() string {
 func (*BasicAuth_Apr) ProtoMessage() {}
 
 func (x *BasicAuth_Apr) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[54]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[55]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5532,7 +5645,7 @@ type BasicAuth_EncryptionType struct {
 
 func (x *BasicAuth_EncryptionType) Reset() {
 	*x = BasicAuth_EncryptionType{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[55]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[56]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5544,7 +5657,7 @@ func (x *BasicAuth_EncryptionType) String() string {
 func (*BasicAuth_EncryptionType) ProtoMessage() {}
 
 func (x *BasicAuth_EncryptionType) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[55]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[56]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5614,7 +5727,7 @@ type BasicAuth_User struct {
 
 func (x *BasicAuth_User) Reset() {
 	*x = BasicAuth_User{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[56]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[57]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5626,7 +5739,7 @@ func (x *BasicAuth_User) String() string {
 func (*BasicAuth_User) ProtoMessage() {}
 
 func (x *BasicAuth_User) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[56]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[57]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5666,7 +5779,7 @@ type BasicAuth_UserList struct {
 
 func (x *BasicAuth_UserList) Reset() {
 	*x = BasicAuth_UserList{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[57]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[58]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5678,7 +5791,7 @@ func (x *BasicAuth_UserList) String() string {
 func (*BasicAuth_UserList) ProtoMessage() {}
 
 func (x *BasicAuth_UserList) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[57]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[58]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5714,7 +5827,7 @@ type BasicAuth_Apr_SaltedHashedPassword struct {
 
 func (x *BasicAuth_Apr_SaltedHashedPassword) Reset() {
 	*x = BasicAuth_Apr_SaltedHashedPassword{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[58]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[59]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5726,7 +5839,7 @@ func (x *BasicAuth_Apr_SaltedHashedPassword) String() string {
 func (*BasicAuth_Apr_SaltedHashedPassword) ProtoMessage() {}
 
 func (x *BasicAuth_Apr_SaltedHashedPassword) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[58]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[59]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5766,7 +5879,7 @@ type BasicAuth_EncryptionType_Sha1 struct {
 
 func (x *BasicAuth_EncryptionType_Sha1) Reset() {
 	*x = BasicAuth_EncryptionType_Sha1{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[60]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[61]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5778,7 +5891,7 @@ func (x *BasicAuth_EncryptionType_Sha1) String() string {
 func (*BasicAuth_EncryptionType_Sha1) ProtoMessage() {}
 
 func (x *BasicAuth_EncryptionType_Sha1) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[60]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[61]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5803,7 +5916,7 @@ type BasicAuth_EncryptionType_Apr struct {
 
 func (x *BasicAuth_EncryptionType_Apr) Reset() {
 	*x = BasicAuth_EncryptionType_Apr{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[61]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[62]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5815,7 +5928,7 @@ func (x *BasicAuth_EncryptionType_Apr) String() string {
 func (*BasicAuth_EncryptionType_Apr) ProtoMessage() {}
 
 func (x *BasicAuth_EncryptionType_Apr) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[61]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[62]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5850,7 +5963,7 @@ type UserSession_InternalSession struct {
 
 func (x *UserSession_InternalSession) Reset() {
 	*x = UserSession_InternalSession{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[64]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[65]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5862,7 +5975,7 @@ func (x *UserSession_InternalSession) String() string {
 func (*UserSession_InternalSession) ProtoMessage() {}
 
 func (x *UserSession_InternalSession) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[64]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[65]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5928,7 +6041,7 @@ type UserSession_RedisSession struct {
 
 func (x *UserSession_RedisSession) Reset() {
 	*x = UserSession_RedisSession{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[65]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[66]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5940,7 +6053,7 @@ func (x *UserSession_RedisSession) String() string {
 func (*UserSession_RedisSession) ProtoMessage() {}
 
 func (x *UserSession_RedisSession) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[65]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[66]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6029,7 +6142,7 @@ type UserSession_CookieOptions struct {
 
 func (x *UserSession_CookieOptions) Reset() {
 	*x = UserSession_CookieOptions{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[66]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[67]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6041,7 +6154,7 @@ func (x *UserSession_CookieOptions) String() string {
 func (*UserSession_CookieOptions) ProtoMessage() {}
 
 func (x *UserSession_CookieOptions) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[66]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[67]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6115,7 +6228,7 @@ type UserSession_CipherConfig struct {
 
 func (x *UserSession_CipherConfig) Reset() {
 	*x = UserSession_CipherConfig{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[67]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[68]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6127,7 +6240,7 @@ func (x *UserSession_CipherConfig) String() string {
 func (*UserSession_CipherConfig) ProtoMessage() {}
 
 func (x *UserSession_CipherConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[67]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[68]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6185,7 +6298,7 @@ type OidcAuthorizationCode_AccessToken struct {
 
 func (x *OidcAuthorizationCode_AccessToken) Reset() {
 	*x = OidcAuthorizationCode_AccessToken{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[71]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[72]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6197,7 +6310,7 @@ func (x *OidcAuthorizationCode_AccessToken) String() string {
 func (*OidcAuthorizationCode_AccessToken) ProtoMessage() {}
 
 func (x *OidcAuthorizationCode_AccessToken) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[71]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[72]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6232,7 +6345,7 @@ type OidcAuthorizationCode_IdentityToken struct {
 
 func (x *OidcAuthorizationCode_IdentityToken) Reset() {
 	*x = OidcAuthorizationCode_IdentityToken{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[72]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[73]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6244,7 +6357,7 @@ func (x *OidcAuthorizationCode_IdentityToken) String() string {
 func (*OidcAuthorizationCode_IdentityToken) ProtoMessage() {}
 
 func (x *OidcAuthorizationCode_IdentityToken) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[72]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[73]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6283,7 +6396,7 @@ type OidcAuthorizationCode_ClientAuthentication struct {
 
 func (x *OidcAuthorizationCode_ClientAuthentication) Reset() {
 	*x = OidcAuthorizationCode_ClientAuthentication{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[73]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[74]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6295,7 +6408,7 @@ func (x *OidcAuthorizationCode_ClientAuthentication) String() string {
 func (*OidcAuthorizationCode_ClientAuthentication) ProtoMessage() {}
 
 func (x *OidcAuthorizationCode_ClientAuthentication) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[73]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[74]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6367,7 +6480,7 @@ type OidcAuthorizationCode_Default struct {
 
 func (x *OidcAuthorizationCode_Default) Reset() {
 	*x = OidcAuthorizationCode_Default{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[74]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[75]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6379,7 +6492,7 @@ func (x *OidcAuthorizationCode_Default) String() string {
 func (*OidcAuthorizationCode_Default) ProtoMessage() {}
 
 func (x *OidcAuthorizationCode_Default) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[74]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[75]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6406,7 +6519,7 @@ type OidcAuthorizationCode_FrontChannelLogout struct {
 
 func (x *OidcAuthorizationCode_FrontChannelLogout) Reset() {
 	*x = OidcAuthorizationCode_FrontChannelLogout{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[75]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[76]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6418,7 +6531,7 @@ func (x *OidcAuthorizationCode_FrontChannelLogout) String() string {
 func (*OidcAuthorizationCode_FrontChannelLogout) ProtoMessage() {}
 
 func (x *OidcAuthorizationCode_FrontChannelLogout) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[75]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[76]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6457,7 +6570,7 @@ type OidcAuthorizationCode_ClientAuthentication_ClientSecret struct {
 
 func (x *OidcAuthorizationCode_ClientAuthentication_ClientSecret) Reset() {
 	*x = OidcAuthorizationCode_ClientAuthentication_ClientSecret{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[76]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[77]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6469,7 +6582,7 @@ func (x *OidcAuthorizationCode_ClientAuthentication_ClientSecret) String() strin
 func (*OidcAuthorizationCode_ClientAuthentication_ClientSecret) ProtoMessage() {}
 
 func (x *OidcAuthorizationCode_ClientAuthentication_ClientSecret) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[76]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[77]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6515,7 +6628,7 @@ type OidcAuthorizationCode_ClientAuthentication_PrivateKeyJwt struct {
 
 func (x *OidcAuthorizationCode_ClientAuthentication_PrivateKeyJwt) Reset() {
 	*x = OidcAuthorizationCode_ClientAuthentication_PrivateKeyJwt{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[77]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[78]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6527,7 +6640,7 @@ func (x *OidcAuthorizationCode_ClientAuthentication_PrivateKeyJwt) String() stri
 func (*OidcAuthorizationCode_ClientAuthentication_PrivateKeyJwt) ProtoMessage() {}
 
 func (x *OidcAuthorizationCode_ClientAuthentication_PrivateKeyJwt) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[77]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[78]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6574,7 +6687,7 @@ type JwtValidation_RemoteJwks struct {
 
 func (x *JwtValidation_RemoteJwks) Reset() {
 	*x = JwtValidation_RemoteJwks{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[80]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[81]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6586,7 +6699,7 @@ func (x *JwtValidation_RemoteJwks) String() string {
 func (*JwtValidation_RemoteJwks) ProtoMessage() {}
 
 func (x *JwtValidation_RemoteJwks) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[80]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[81]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6630,7 +6743,7 @@ type JwtValidation_LocalJwks struct {
 
 func (x *JwtValidation_LocalJwks) Reset() {
 	*x = JwtValidation_LocalJwks{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[81]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[82]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6642,7 +6755,7 @@ func (x *JwtValidation_LocalJwks) String() string {
 func (*JwtValidation_LocalJwks) ProtoMessage() {}
 
 func (x *JwtValidation_LocalJwks) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[81]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[82]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6674,7 +6787,7 @@ type AccessTokenValidation_Default struct {
 
 func (x *AccessTokenValidation_Default) Reset() {
 	*x = AccessTokenValidation_Default{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[83]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[84]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6686,7 +6799,7 @@ func (x *AccessTokenValidation_Default) String() string {
 func (*AccessTokenValidation_Default) ProtoMessage() {}
 
 func (x *AccessTokenValidation_Default) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[83]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[84]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6711,7 +6824,7 @@ type AccessTokenValidation_ScopeList struct {
 
 func (x *AccessTokenValidation_ScopeList) Reset() {
 	*x = AccessTokenValidation_ScopeList{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[84]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[85]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6723,7 +6836,7 @@ func (x *AccessTokenValidation_ScopeList) String() string {
 func (*AccessTokenValidation_ScopeList) ProtoMessage() {}
 
 func (x *AccessTokenValidation_ScopeList) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[84]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[85]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6763,7 +6876,7 @@ type ApiKeyAuth_SecretKey struct {
 
 func (x *ApiKeyAuth_SecretKey) Reset() {
 	*x = ApiKeyAuth_SecretKey{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[88]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[89]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6775,7 +6888,7 @@ func (x *ApiKeyAuth_SecretKey) String() string {
 func (*ApiKeyAuth_SecretKey) ProtoMessage() {}
 
 func (x *ApiKeyAuth_SecretKey) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[88]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[89]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6821,7 +6934,7 @@ type ApiKeyAuth_MetadataEntry struct {
 
 func (x *ApiKeyAuth_MetadataEntry) Reset() {
 	*x = ApiKeyAuth_MetadataEntry{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[89]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[90]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6833,7 +6946,7 @@ func (x *ApiKeyAuth_MetadataEntry) String() string {
 func (*ApiKeyAuth_MetadataEntry) ProtoMessage() {}
 
 func (x *ApiKeyAuth_MetadataEntry) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[89]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[90]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6878,7 +6991,7 @@ type AerospikeApiKeyStorageReadModeSc struct {
 
 func (x *AerospikeApiKeyStorageReadModeSc) Reset() {
 	*x = AerospikeApiKeyStorageReadModeSc{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[91]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[92]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6890,7 +7003,7 @@ func (x *AerospikeApiKeyStorageReadModeSc) String() string {
 func (*AerospikeApiKeyStorageReadModeSc) ProtoMessage() {}
 
 func (x *AerospikeApiKeyStorageReadModeSc) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[91]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[92]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6903,7 +7016,7 @@ func (x *AerospikeApiKeyStorageReadModeSc) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AerospikeApiKeyStorageReadModeSc.ProtoReflect.Descriptor instead.
 func (*AerospikeApiKeyStorageReadModeSc) Descriptor() ([]byte, []int) {
-	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_rawDescGZIP(), []int{31, 0}
+	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_rawDescGZIP(), []int{32, 0}
 }
 
 func (x *AerospikeApiKeyStorageReadModeSc) GetReadModeSc() isAerospikeApiKeyStorageReadModeSc_ReadModeSc {
@@ -7002,7 +7115,7 @@ type AerospikeApiKeyStorageReadModeAp struct {
 
 func (x *AerospikeApiKeyStorageReadModeAp) Reset() {
 	*x = AerospikeApiKeyStorageReadModeAp{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[92]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[93]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7014,7 +7127,7 @@ func (x *AerospikeApiKeyStorageReadModeAp) String() string {
 func (*AerospikeApiKeyStorageReadModeAp) ProtoMessage() {}
 
 func (x *AerospikeApiKeyStorageReadModeAp) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[92]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[93]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7027,7 +7140,7 @@ func (x *AerospikeApiKeyStorageReadModeAp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AerospikeApiKeyStorageReadModeAp.ProtoReflect.Descriptor instead.
 func (*AerospikeApiKeyStorageReadModeAp) Descriptor() ([]byte, []int) {
-	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_rawDescGZIP(), []int{31, 1}
+	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_rawDescGZIP(), []int{32, 1}
 }
 
 func (x *AerospikeApiKeyStorageReadModeAp) GetReadModeAp() isAerospikeApiKeyStorageReadModeAp_ReadModeAp {
@@ -7091,7 +7204,7 @@ type AerospikeApiKeyStorageTlsCurveID struct {
 
 func (x *AerospikeApiKeyStorageTlsCurveID) Reset() {
 	*x = AerospikeApiKeyStorageTlsCurveID{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[93]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[94]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7103,7 +7216,7 @@ func (x *AerospikeApiKeyStorageTlsCurveID) String() string {
 func (*AerospikeApiKeyStorageTlsCurveID) ProtoMessage() {}
 
 func (x *AerospikeApiKeyStorageTlsCurveID) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[93]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[94]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7116,7 +7229,7 @@ func (x *AerospikeApiKeyStorageTlsCurveID) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AerospikeApiKeyStorageTlsCurveID.ProtoReflect.Descriptor instead.
 func (*AerospikeApiKeyStorageTlsCurveID) Descriptor() ([]byte, []int) {
-	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_rawDescGZIP(), []int{31, 2}
+	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_rawDescGZIP(), []int{32, 2}
 }
 
 func (x *AerospikeApiKeyStorageTlsCurveID) GetCurveId() isAerospikeApiKeyStorageTlsCurveID_CurveId {
@@ -7204,7 +7317,7 @@ type Ldap_ConnectionPool struct {
 
 func (x *Ldap_ConnectionPool) Reset() {
 	*x = Ldap_ConnectionPool{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[97]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[98]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7216,7 +7329,7 @@ func (x *Ldap_ConnectionPool) String() string {
 func (*Ldap_ConnectionPool) ProtoMessage() {}
 
 func (x *Ldap_ConnectionPool) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[97]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[98]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7229,7 +7342,7 @@ func (x *Ldap_ConnectionPool) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Ldap_ConnectionPool.ProtoReflect.Descriptor instead.
 func (*Ldap_ConnectionPool) Descriptor() ([]byte, []int) {
-	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_rawDescGZIP(), []int{38, 0}
+	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_rawDescGZIP(), []int{39, 0}
 }
 
 func (x *Ldap_ConnectionPool) GetMaxSize() *wrapperspb.UInt32Value {
@@ -7299,7 +7412,7 @@ type PassThroughHttp_Request struct {
 
 func (x *PassThroughHttp_Request) Reset() {
 	*x = PassThroughHttp_Request{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[98]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[99]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7311,7 +7424,7 @@ func (x *PassThroughHttp_Request) String() string {
 func (*PassThroughHttp_Request) ProtoMessage() {}
 
 func (x *PassThroughHttp_Request) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[98]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[99]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7324,7 +7437,7 @@ func (x *PassThroughHttp_Request) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PassThroughHttp_Request.ProtoReflect.Descriptor instead.
 func (*PassThroughHttp_Request) Descriptor() ([]byte, []int) {
-	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_rawDescGZIP(), []int{44, 0}
+	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_rawDescGZIP(), []int{45, 0}
 }
 
 func (x *PassThroughHttp_Request) GetAllowedHeaders() []string {
@@ -7395,7 +7508,7 @@ type PassThroughHttp_Response struct {
 
 func (x *PassThroughHttp_Response) Reset() {
 	*x = PassThroughHttp_Response{}
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[99]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[100]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7407,7 +7520,7 @@ func (x *PassThroughHttp_Response) String() string {
 func (*PassThroughHttp_Response) ProtoMessage() {}
 
 func (x *PassThroughHttp_Response) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[99]
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[100]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7420,7 +7533,7 @@ func (x *PassThroughHttp_Response) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PassThroughHttp_Response.ProtoReflect.Descriptor instead.
 func (*PassThroughHttp_Response) Descriptor() ([]byte, []int) {
-	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_rawDescGZIP(), []int{44, 1}
+	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_rawDescGZIP(), []int{45, 1}
 }
 
 func (x *PassThroughHttp_Response) GetAllowedUpstreamHeaders() []string {
@@ -7822,7 +7935,7 @@ const file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extau
 	"\n" +
 	"\bProvider\"2\n" +
 	"\vOauthSecret\x12#\n" +
-	"\rclient_secret\x18\x01 \x01(\tR\fclientSecret\"\xb6\t\n" +
+	"\rclient_secret\x18\x01 \x01(\tR\fclientSecret\"\xef\t\n" +
 	"\n" +
 	"ApiKeyAuth\x12a\n" +
 	"\x0elabel_selector\x18\x01 \x03(\v26.enterprise.gloo.solo.io.ApiKeyAuth.LabelSelectorEntryB\x02\x18\x01R\rlabelSelector\x12L\n" +
@@ -7833,7 +7946,8 @@ const file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extau
 	"\x1bheaders_from_metadata_entry\x18\x05 \x03(\v2A.enterprise.gloo.solo.io.ApiKeyAuth.HeadersFromMetadataEntryEntryR\x18headersFromMetadataEntry\x12l\n" +
 	"\x19k8s_secret_apikey_storage\x18\x06 \x01(\v2/.enterprise.gloo.solo.io.K8sSecretApiKeyStorageH\x00R\x16k8sSecretApikeyStorage\x12k\n" +
 	"\x18aerospike_apikey_storage\x18\a \x01(\v2/.enterprise.gloo.solo.io.AerospikeApiKeyStorageH\x00R\x16aerospikeApikeyStorage\x128\n" +
-	"\x18skip_metadata_validation\x18\b \x01(\bR\x16skipMetadataValidation\x1a@\n" +
+	"\x18skip_metadata_validation\x18\b \x01(\bR\x16skipMetadataValidation\x127\n" +
+	"\x04hmac\x18\t \x01(\v2#.enterprise.gloo.solo.io.ApiKeyHmacR\x04hmac\x1a@\n" +
 	"\x12LabelSelectorEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1au\n" +
@@ -7849,7 +7963,14 @@ const file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extau
 	"\rMetadataEntry\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x1a\n" +
 	"\brequired\x18\x02 \x01(\bR\brequiredB\x11\n" +
-	"\x0fstorage_backend\"\x8f\x02\n" +
+	"\x0fstorage_backend\"\xd9\x01\n" +
+	"\n" +
+	"ApiKeyHmac\x12K\n" +
+	"\talgorithm\x18\x01 \x01(\x0e2-.enterprise.gloo.solo.io.ApiKeyHmac.AlgorithmR\talgorithm\x12E\n" +
+	"\x11shared_secret_ref\x18\x02 \x01(\v2\x19.core.solo.io.ResourceRefR\x0fsharedSecretRef\"7\n" +
+	"\tAlgorithm\x12\x19\n" +
+	"\x15ALGORITHM_UNSPECIFIED\x10\x00\x12\x0f\n" +
+	"\vHMAC_SHA256\x10\x01\"\x8f\x02\n" +
 	"\x16K8sSecretApiKeyStorage\x12i\n" +
 	"\x0elabel_selector\x18\x01 \x03(\v2B.enterprise.gloo.solo.io.K8sSecretApiKeyStorage.LabelSelectorEntryR\rlabelSelector\x12H\n" +
 	"\x13api_key_secret_refs\x18\x02 \x03(\v2\x19.core.solo.io.ResourceRefR\x10apiKeySecretRefs\x1a@\n" +
@@ -8033,290 +8154,295 @@ func file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extaut
 	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_rawDescData
 }
 
-var file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_enumTypes = make([]protoimpl.EnumInfo, 5)
-var file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes = make([]protoimpl.MessageInfo, 101)
+var file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_enumTypes = make([]protoimpl.EnumInfo, 6)
+var file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes = make([]protoimpl.MessageInfo, 102)
 var file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_goTypes = []any{
 	(Settings_ApiVersion)(0),                   // 0: enterprise.gloo.solo.io.Settings.ApiVersion
 	(RedisOptions_SocketType)(0),               // 1: enterprise.gloo.solo.io.RedisOptions.SocketType
 	(UserSession_CookieOptions_SameSite)(0),    // 2: enterprise.gloo.solo.io.UserSession.CookieOptions.SameSite
 	(EndSessionProperties_MethodType)(0),       // 3: enterprise.gloo.solo.io.EndSessionProperties.MethodType
-	(SslParameters_ProtocolVersion)(0),         // 4: enterprise.gloo.solo.io.SslParameters.ProtocolVersion
-	(*AuthConfig)(nil),                         // 5: enterprise.gloo.solo.io.AuthConfig
-	(*ExtAuthExtension)(nil),                   // 6: enterprise.gloo.solo.io.ExtAuthExtension
-	(*Settings)(nil),                           // 7: enterprise.gloo.solo.io.Settings
-	(*GrpcService)(nil),                        // 8: enterprise.gloo.solo.io.GrpcService
-	(*HttpService)(nil),                        // 9: enterprise.gloo.solo.io.HttpService
-	(*BufferSettings)(nil),                     // 10: enterprise.gloo.solo.io.BufferSettings
-	(*CustomAuth)(nil),                         // 11: enterprise.gloo.solo.io.CustomAuth
-	(*AuthPlugin)(nil),                         // 12: enterprise.gloo.solo.io.AuthPlugin
-	(*BasicAuth)(nil),                          // 13: enterprise.gloo.solo.io.BasicAuth
-	(*HmacAuth)(nil),                           // 14: enterprise.gloo.solo.io.HmacAuth
-	(*SecretRefList)(nil),                      // 15: enterprise.gloo.solo.io.SecretRefList
-	(*HmacParametersInHeaders)(nil),            // 16: enterprise.gloo.solo.io.HmacParametersInHeaders
-	(*OAuth)(nil),                              // 17: enterprise.gloo.solo.io.OAuth
-	(*OAuth2)(nil),                             // 18: enterprise.gloo.solo.io.OAuth2
-	(*RedisOptions)(nil),                       // 19: enterprise.gloo.solo.io.RedisOptions
-	(*UserSession)(nil),                        // 20: enterprise.gloo.solo.io.UserSession
-	(*HeaderConfiguration)(nil),                // 21: enterprise.gloo.solo.io.HeaderConfiguration
-	(*DiscoveryOverride)(nil),                  // 22: enterprise.gloo.solo.io.DiscoveryOverride
-	(*JwksOnDemandCacheRefreshPolicy)(nil),     // 23: enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy
-	(*AutoMapFromMetadata)(nil),                // 24: enterprise.gloo.solo.io.AutoMapFromMetadata
-	(*EndSessionProperties)(nil),               // 25: enterprise.gloo.solo.io.EndSessionProperties
-	(*ClaimToHeader)(nil),                      // 26: enterprise.gloo.solo.io.ClaimToHeader
-	(*Azure)(nil),                              // 27: enterprise.gloo.solo.io.Azure
-	(*OidcAuthorizationCode)(nil),              // 28: enterprise.gloo.solo.io.OidcAuthorizationCode
-	(*PlainOAuth2)(nil),                        // 29: enterprise.gloo.solo.io.PlainOAuth2
-	(*JwtValidation)(nil),                      // 30: enterprise.gloo.solo.io.JwtValidation
-	(*IntrospectionValidation)(nil),            // 31: enterprise.gloo.solo.io.IntrospectionValidation
-	(*AccessTokenValidation)(nil),              // 32: enterprise.gloo.solo.io.AccessTokenValidation
-	(*OauthSecret)(nil),                        // 33: enterprise.gloo.solo.io.OauthSecret
-	(*ApiKeyAuth)(nil),                         // 34: enterprise.gloo.solo.io.ApiKeyAuth
-	(*K8SSecretApiKeyStorage)(nil),             // 35: enterprise.gloo.solo.io.K8sSecretApiKeyStorage
-	(*AerospikeApiKeyStorage)(nil),             // 36: enterprise.gloo.solo.io.AerospikeApiKeyStorage
-	(*ServerDefaultApiKeyStorage)(nil),         // 37: enterprise.gloo.solo.io.ServerDefaultApiKeyStorage
-	(*ApiKey)(nil),                             // 38: enterprise.gloo.solo.io.ApiKey
-	(*ApiKeySecret)(nil),                       // 39: enterprise.gloo.solo.io.ApiKeySecret
-	(*OpaAuth)(nil),                            // 40: enterprise.gloo.solo.io.OpaAuth
-	(*OpaAuthOptions)(nil),                     // 41: enterprise.gloo.solo.io.OpaAuthOptions
-	(*OpaServerAuth)(nil),                      // 42: enterprise.gloo.solo.io.OpaServerAuth
-	(*Ldap)(nil),                               // 43: enterprise.gloo.solo.io.Ldap
-	(*LdapServiceAccount)(nil),                 // 44: enterprise.gloo.solo.io.LdapServiceAccount
-	(*PassThroughAuth)(nil),                    // 45: enterprise.gloo.solo.io.PassThroughAuth
-	(*BackoffStrategy)(nil),                    // 46: enterprise.gloo.solo.io.BackoffStrategy
-	(*RetryPolicy)(nil),                        // 47: enterprise.gloo.solo.io.RetryPolicy
-	(*PassThroughGrpc)(nil),                    // 48: enterprise.gloo.solo.io.PassThroughGrpc
-	(*PassThroughHttp)(nil),                    // 49: enterprise.gloo.solo.io.PassThroughHttp
-	(*PassThroughGrpcTLSConfig)(nil),           // 50: enterprise.gloo.solo.io.PassThroughGrpcTLSConfig
-	(*PassThroughHttpTLSConfig)(nil),           // 51: enterprise.gloo.solo.io.PassThroughHttpTLSConfig
-	(*SslParameters)(nil),                      // 52: enterprise.gloo.solo.io.SslParameters
-	(*PortalAuth)(nil),                         // 53: enterprise.gloo.solo.io.PortalAuth
-	(*AuthConfig_Config)(nil),                  // 54: enterprise.gloo.solo.io.AuthConfig.Config
-	(*HttpService_Request)(nil),                // 55: enterprise.gloo.solo.io.HttpService.Request
-	(*HttpService_Response)(nil),               // 56: enterprise.gloo.solo.io.HttpService.Response
-	nil,                                        // 57: enterprise.gloo.solo.io.HttpService.Request.HeadersToAddEntry
-	nil,                                        // 58: enterprise.gloo.solo.io.CustomAuth.ContextExtensionsEntry
-	(*BasicAuth_Apr)(nil),                      // 59: enterprise.gloo.solo.io.BasicAuth.Apr
-	(*BasicAuth_EncryptionType)(nil),           // 60: enterprise.gloo.solo.io.BasicAuth.EncryptionType
-	(*BasicAuth_User)(nil),                     // 61: enterprise.gloo.solo.io.BasicAuth.User
-	(*BasicAuth_UserList)(nil),                 // 62: enterprise.gloo.solo.io.BasicAuth.UserList
-	(*BasicAuth_Apr_SaltedHashedPassword)(nil), // 63: enterprise.gloo.solo.io.BasicAuth.Apr.SaltedHashedPassword
-	nil,                                   // 64: enterprise.gloo.solo.io.BasicAuth.Apr.UsersEntry
-	(*BasicAuth_EncryptionType_Sha1)(nil), // 65: enterprise.gloo.solo.io.BasicAuth.EncryptionType.Sha1
-	(*BasicAuth_EncryptionType_Apr)(nil),  // 66: enterprise.gloo.solo.io.BasicAuth.EncryptionType.Apr
-	nil,                                   // 67: enterprise.gloo.solo.io.BasicAuth.UserList.UsersEntry
-	nil,                                   // 68: enterprise.gloo.solo.io.OAuth.AuthEndpointQueryParamsEntry
-	(*UserSession_InternalSession)(nil),   // 69: enterprise.gloo.solo.io.UserSession.InternalSession
-	(*UserSession_RedisSession)(nil),      // 70: enterprise.gloo.solo.io.UserSession.RedisSession
-	(*UserSession_CookieOptions)(nil),     // 71: enterprise.gloo.solo.io.UserSession.CookieOptions
-	(*UserSession_CipherConfig)(nil),      // 72: enterprise.gloo.solo.io.UserSession.CipherConfig
-	nil,                                   // 73: enterprise.gloo.solo.io.OidcAuthorizationCode.AuthEndpointQueryParamsEntry
-	nil,                                   // 74: enterprise.gloo.solo.io.OidcAuthorizationCode.TokenEndpointQueryParamsEntry
-	nil,                                   // 75: enterprise.gloo.solo.io.OidcAuthorizationCode.DynamicMetadataFromClaimsEntry
-	(*OidcAuthorizationCode_AccessToken)(nil),                        // 76: enterprise.gloo.solo.io.OidcAuthorizationCode.AccessToken
-	(*OidcAuthorizationCode_IdentityToken)(nil),                      // 77: enterprise.gloo.solo.io.OidcAuthorizationCode.IdentityToken
-	(*OidcAuthorizationCode_ClientAuthentication)(nil),               // 78: enterprise.gloo.solo.io.OidcAuthorizationCode.ClientAuthentication
-	(*OidcAuthorizationCode_Default)(nil),                            // 79: enterprise.gloo.solo.io.OidcAuthorizationCode.Default
-	(*OidcAuthorizationCode_FrontChannelLogout)(nil),                 // 80: enterprise.gloo.solo.io.OidcAuthorizationCode.FrontChannelLogout
-	(*OidcAuthorizationCode_ClientAuthentication_ClientSecret)(nil),  // 81: enterprise.gloo.solo.io.OidcAuthorizationCode.ClientAuthentication.ClientSecret
-	(*OidcAuthorizationCode_ClientAuthentication_PrivateKeyJwt)(nil), // 82: enterprise.gloo.solo.io.OidcAuthorizationCode.ClientAuthentication.PrivateKeyJwt
-	nil,                                      // 83: enterprise.gloo.solo.io.PlainOAuth2.AuthEndpointQueryParamsEntry
-	nil,                                      // 84: enterprise.gloo.solo.io.PlainOAuth2.TokenEndpointQueryParamsEntry
-	(*JwtValidation_RemoteJwks)(nil),         // 85: enterprise.gloo.solo.io.JwtValidation.RemoteJwks
-	(*JwtValidation_LocalJwks)(nil),          // 86: enterprise.gloo.solo.io.JwtValidation.LocalJwks
-	nil,                                      // 87: enterprise.gloo.solo.io.AccessTokenValidation.DynamicMetadataFromClaimsEntry
-	(*AccessTokenValidation_Default)(nil),    // 88: enterprise.gloo.solo.io.AccessTokenValidation.Default
-	(*AccessTokenValidation_ScopeList)(nil),  // 89: enterprise.gloo.solo.io.AccessTokenValidation.ScopeList
-	nil,                                      // 90: enterprise.gloo.solo.io.ApiKeyAuth.LabelSelectorEntry
-	nil,                                      // 91: enterprise.gloo.solo.io.ApiKeyAuth.HeadersFromMetadataEntry
-	nil,                                      // 92: enterprise.gloo.solo.io.ApiKeyAuth.HeadersFromMetadataEntryEntry
-	(*ApiKeyAuth_SecretKey)(nil),             // 93: enterprise.gloo.solo.io.ApiKeyAuth.SecretKey
-	(*ApiKeyAuth_MetadataEntry)(nil),         // 94: enterprise.gloo.solo.io.ApiKeyAuth.MetadataEntry
-	nil,                                      // 95: enterprise.gloo.solo.io.K8sSecretApiKeyStorage.LabelSelectorEntry
-	(*AerospikeApiKeyStorageReadModeSc)(nil), // 96: enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeSc
-	(*AerospikeApiKeyStorageReadModeAp)(nil), // 97: enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeAp
-	(*AerospikeApiKeyStorageTlsCurveID)(nil), // 98: enterprise.gloo.solo.io.AerospikeApiKeyStorage.tlsCurveID
-	nil,                                      // 99: enterprise.gloo.solo.io.AerospikeApiKeyStorage.LabelSelectorEntry
-	nil,                                      // 100: enterprise.gloo.solo.io.ApiKey.MetadataEntry
-	nil,                                      // 101: enterprise.gloo.solo.io.ApiKeySecret.MetadataEntry
-	(*Ldap_ConnectionPool)(nil),              // 102: enterprise.gloo.solo.io.Ldap.ConnectionPool
-	(*PassThroughHttp_Request)(nil),          // 103: enterprise.gloo.solo.io.PassThroughHttp.Request
-	(*PassThroughHttp_Response)(nil),         // 104: enterprise.gloo.solo.io.PassThroughHttp.Response
-	nil,                                      // 105: enterprise.gloo.solo.io.PassThroughHttp.Request.HeadersToAddEntry
-	(*core.NamespacedStatuses)(nil),          // 106: core.solo.io.NamespacedStatuses
-	(*core.Metadata)(nil),                    // 107: core.solo.io.Metadata
-	(*wrapperspb.StringValue)(nil),           // 108: google.protobuf.StringValue
-	(*core.ResourceRef)(nil),                 // 109: core.solo.io.ResourceRef
-	(*durationpb.Duration)(nil),              // 110: google.protobuf.Duration
-	(*structpb.Struct)(nil),                  // 111: google.protobuf.Struct
-	(*wrapperspb.BoolValue)(nil),             // 112: google.protobuf.BoolValue
-	(*emptypb.Empty)(nil),                    // 113: google.protobuf.Empty
-	(*wrapperspb.UInt32Value)(nil),           // 114: google.protobuf.UInt32Value
+	(ApiKeyHmac_Algorithm)(0),                  // 4: enterprise.gloo.solo.io.ApiKeyHmac.Algorithm
+	(SslParameters_ProtocolVersion)(0),         // 5: enterprise.gloo.solo.io.SslParameters.ProtocolVersion
+	(*AuthConfig)(nil),                         // 6: enterprise.gloo.solo.io.AuthConfig
+	(*ExtAuthExtension)(nil),                   // 7: enterprise.gloo.solo.io.ExtAuthExtension
+	(*Settings)(nil),                           // 8: enterprise.gloo.solo.io.Settings
+	(*GrpcService)(nil),                        // 9: enterprise.gloo.solo.io.GrpcService
+	(*HttpService)(nil),                        // 10: enterprise.gloo.solo.io.HttpService
+	(*BufferSettings)(nil),                     // 11: enterprise.gloo.solo.io.BufferSettings
+	(*CustomAuth)(nil),                         // 12: enterprise.gloo.solo.io.CustomAuth
+	(*AuthPlugin)(nil),                         // 13: enterprise.gloo.solo.io.AuthPlugin
+	(*BasicAuth)(nil),                          // 14: enterprise.gloo.solo.io.BasicAuth
+	(*HmacAuth)(nil),                           // 15: enterprise.gloo.solo.io.HmacAuth
+	(*SecretRefList)(nil),                      // 16: enterprise.gloo.solo.io.SecretRefList
+	(*HmacParametersInHeaders)(nil),            // 17: enterprise.gloo.solo.io.HmacParametersInHeaders
+	(*OAuth)(nil),                              // 18: enterprise.gloo.solo.io.OAuth
+	(*OAuth2)(nil),                             // 19: enterprise.gloo.solo.io.OAuth2
+	(*RedisOptions)(nil),                       // 20: enterprise.gloo.solo.io.RedisOptions
+	(*UserSession)(nil),                        // 21: enterprise.gloo.solo.io.UserSession
+	(*HeaderConfiguration)(nil),                // 22: enterprise.gloo.solo.io.HeaderConfiguration
+	(*DiscoveryOverride)(nil),                  // 23: enterprise.gloo.solo.io.DiscoveryOverride
+	(*JwksOnDemandCacheRefreshPolicy)(nil),     // 24: enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy
+	(*AutoMapFromMetadata)(nil),                // 25: enterprise.gloo.solo.io.AutoMapFromMetadata
+	(*EndSessionProperties)(nil),               // 26: enterprise.gloo.solo.io.EndSessionProperties
+	(*ClaimToHeader)(nil),                      // 27: enterprise.gloo.solo.io.ClaimToHeader
+	(*Azure)(nil),                              // 28: enterprise.gloo.solo.io.Azure
+	(*OidcAuthorizationCode)(nil),              // 29: enterprise.gloo.solo.io.OidcAuthorizationCode
+	(*PlainOAuth2)(nil),                        // 30: enterprise.gloo.solo.io.PlainOAuth2
+	(*JwtValidation)(nil),                      // 31: enterprise.gloo.solo.io.JwtValidation
+	(*IntrospectionValidation)(nil),            // 32: enterprise.gloo.solo.io.IntrospectionValidation
+	(*AccessTokenValidation)(nil),              // 33: enterprise.gloo.solo.io.AccessTokenValidation
+	(*OauthSecret)(nil),                        // 34: enterprise.gloo.solo.io.OauthSecret
+	(*ApiKeyAuth)(nil),                         // 35: enterprise.gloo.solo.io.ApiKeyAuth
+	(*ApiKeyHmac)(nil),                         // 36: enterprise.gloo.solo.io.ApiKeyHmac
+	(*K8SSecretApiKeyStorage)(nil),             // 37: enterprise.gloo.solo.io.K8sSecretApiKeyStorage
+	(*AerospikeApiKeyStorage)(nil),             // 38: enterprise.gloo.solo.io.AerospikeApiKeyStorage
+	(*ServerDefaultApiKeyStorage)(nil),         // 39: enterprise.gloo.solo.io.ServerDefaultApiKeyStorage
+	(*ApiKey)(nil),                             // 40: enterprise.gloo.solo.io.ApiKey
+	(*ApiKeySecret)(nil),                       // 41: enterprise.gloo.solo.io.ApiKeySecret
+	(*OpaAuth)(nil),                            // 42: enterprise.gloo.solo.io.OpaAuth
+	(*OpaAuthOptions)(nil),                     // 43: enterprise.gloo.solo.io.OpaAuthOptions
+	(*OpaServerAuth)(nil),                      // 44: enterprise.gloo.solo.io.OpaServerAuth
+	(*Ldap)(nil),                               // 45: enterprise.gloo.solo.io.Ldap
+	(*LdapServiceAccount)(nil),                 // 46: enterprise.gloo.solo.io.LdapServiceAccount
+	(*PassThroughAuth)(nil),                    // 47: enterprise.gloo.solo.io.PassThroughAuth
+	(*BackoffStrategy)(nil),                    // 48: enterprise.gloo.solo.io.BackoffStrategy
+	(*RetryPolicy)(nil),                        // 49: enterprise.gloo.solo.io.RetryPolicy
+	(*PassThroughGrpc)(nil),                    // 50: enterprise.gloo.solo.io.PassThroughGrpc
+	(*PassThroughHttp)(nil),                    // 51: enterprise.gloo.solo.io.PassThroughHttp
+	(*PassThroughGrpcTLSConfig)(nil),           // 52: enterprise.gloo.solo.io.PassThroughGrpcTLSConfig
+	(*PassThroughHttpTLSConfig)(nil),           // 53: enterprise.gloo.solo.io.PassThroughHttpTLSConfig
+	(*SslParameters)(nil),                      // 54: enterprise.gloo.solo.io.SslParameters
+	(*PortalAuth)(nil),                         // 55: enterprise.gloo.solo.io.PortalAuth
+	(*AuthConfig_Config)(nil),                  // 56: enterprise.gloo.solo.io.AuthConfig.Config
+	(*HttpService_Request)(nil),                // 57: enterprise.gloo.solo.io.HttpService.Request
+	(*HttpService_Response)(nil),               // 58: enterprise.gloo.solo.io.HttpService.Response
+	nil,                                        // 59: enterprise.gloo.solo.io.HttpService.Request.HeadersToAddEntry
+	nil,                                        // 60: enterprise.gloo.solo.io.CustomAuth.ContextExtensionsEntry
+	(*BasicAuth_Apr)(nil),                      // 61: enterprise.gloo.solo.io.BasicAuth.Apr
+	(*BasicAuth_EncryptionType)(nil),           // 62: enterprise.gloo.solo.io.BasicAuth.EncryptionType
+	(*BasicAuth_User)(nil),                     // 63: enterprise.gloo.solo.io.BasicAuth.User
+	(*BasicAuth_UserList)(nil),                 // 64: enterprise.gloo.solo.io.BasicAuth.UserList
+	(*BasicAuth_Apr_SaltedHashedPassword)(nil), // 65: enterprise.gloo.solo.io.BasicAuth.Apr.SaltedHashedPassword
+	nil,                                   // 66: enterprise.gloo.solo.io.BasicAuth.Apr.UsersEntry
+	(*BasicAuth_EncryptionType_Sha1)(nil), // 67: enterprise.gloo.solo.io.BasicAuth.EncryptionType.Sha1
+	(*BasicAuth_EncryptionType_Apr)(nil),  // 68: enterprise.gloo.solo.io.BasicAuth.EncryptionType.Apr
+	nil,                                   // 69: enterprise.gloo.solo.io.BasicAuth.UserList.UsersEntry
+	nil,                                   // 70: enterprise.gloo.solo.io.OAuth.AuthEndpointQueryParamsEntry
+	(*UserSession_InternalSession)(nil),   // 71: enterprise.gloo.solo.io.UserSession.InternalSession
+	(*UserSession_RedisSession)(nil),      // 72: enterprise.gloo.solo.io.UserSession.RedisSession
+	(*UserSession_CookieOptions)(nil),     // 73: enterprise.gloo.solo.io.UserSession.CookieOptions
+	(*UserSession_CipherConfig)(nil),      // 74: enterprise.gloo.solo.io.UserSession.CipherConfig
+	nil,                                   // 75: enterprise.gloo.solo.io.OidcAuthorizationCode.AuthEndpointQueryParamsEntry
+	nil,                                   // 76: enterprise.gloo.solo.io.OidcAuthorizationCode.TokenEndpointQueryParamsEntry
+	nil,                                   // 77: enterprise.gloo.solo.io.OidcAuthorizationCode.DynamicMetadataFromClaimsEntry
+	(*OidcAuthorizationCode_AccessToken)(nil),                        // 78: enterprise.gloo.solo.io.OidcAuthorizationCode.AccessToken
+	(*OidcAuthorizationCode_IdentityToken)(nil),                      // 79: enterprise.gloo.solo.io.OidcAuthorizationCode.IdentityToken
+	(*OidcAuthorizationCode_ClientAuthentication)(nil),               // 80: enterprise.gloo.solo.io.OidcAuthorizationCode.ClientAuthentication
+	(*OidcAuthorizationCode_Default)(nil),                            // 81: enterprise.gloo.solo.io.OidcAuthorizationCode.Default
+	(*OidcAuthorizationCode_FrontChannelLogout)(nil),                 // 82: enterprise.gloo.solo.io.OidcAuthorizationCode.FrontChannelLogout
+	(*OidcAuthorizationCode_ClientAuthentication_ClientSecret)(nil),  // 83: enterprise.gloo.solo.io.OidcAuthorizationCode.ClientAuthentication.ClientSecret
+	(*OidcAuthorizationCode_ClientAuthentication_PrivateKeyJwt)(nil), // 84: enterprise.gloo.solo.io.OidcAuthorizationCode.ClientAuthentication.PrivateKeyJwt
+	nil,                                      // 85: enterprise.gloo.solo.io.PlainOAuth2.AuthEndpointQueryParamsEntry
+	nil,                                      // 86: enterprise.gloo.solo.io.PlainOAuth2.TokenEndpointQueryParamsEntry
+	(*JwtValidation_RemoteJwks)(nil),         // 87: enterprise.gloo.solo.io.JwtValidation.RemoteJwks
+	(*JwtValidation_LocalJwks)(nil),          // 88: enterprise.gloo.solo.io.JwtValidation.LocalJwks
+	nil,                                      // 89: enterprise.gloo.solo.io.AccessTokenValidation.DynamicMetadataFromClaimsEntry
+	(*AccessTokenValidation_Default)(nil),    // 90: enterprise.gloo.solo.io.AccessTokenValidation.Default
+	(*AccessTokenValidation_ScopeList)(nil),  // 91: enterprise.gloo.solo.io.AccessTokenValidation.ScopeList
+	nil,                                      // 92: enterprise.gloo.solo.io.ApiKeyAuth.LabelSelectorEntry
+	nil,                                      // 93: enterprise.gloo.solo.io.ApiKeyAuth.HeadersFromMetadataEntry
+	nil,                                      // 94: enterprise.gloo.solo.io.ApiKeyAuth.HeadersFromMetadataEntryEntry
+	(*ApiKeyAuth_SecretKey)(nil),             // 95: enterprise.gloo.solo.io.ApiKeyAuth.SecretKey
+	(*ApiKeyAuth_MetadataEntry)(nil),         // 96: enterprise.gloo.solo.io.ApiKeyAuth.MetadataEntry
+	nil,                                      // 97: enterprise.gloo.solo.io.K8sSecretApiKeyStorage.LabelSelectorEntry
+	(*AerospikeApiKeyStorageReadModeSc)(nil), // 98: enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeSc
+	(*AerospikeApiKeyStorageReadModeAp)(nil), // 99: enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeAp
+	(*AerospikeApiKeyStorageTlsCurveID)(nil), // 100: enterprise.gloo.solo.io.AerospikeApiKeyStorage.tlsCurveID
+	nil,                                      // 101: enterprise.gloo.solo.io.AerospikeApiKeyStorage.LabelSelectorEntry
+	nil,                                      // 102: enterprise.gloo.solo.io.ApiKey.MetadataEntry
+	nil,                                      // 103: enterprise.gloo.solo.io.ApiKeySecret.MetadataEntry
+	(*Ldap_ConnectionPool)(nil),              // 104: enterprise.gloo.solo.io.Ldap.ConnectionPool
+	(*PassThroughHttp_Request)(nil),          // 105: enterprise.gloo.solo.io.PassThroughHttp.Request
+	(*PassThroughHttp_Response)(nil),         // 106: enterprise.gloo.solo.io.PassThroughHttp.Response
+	nil,                                      // 107: enterprise.gloo.solo.io.PassThroughHttp.Request.HeadersToAddEntry
+	(*core.NamespacedStatuses)(nil),          // 108: core.solo.io.NamespacedStatuses
+	(*core.Metadata)(nil),                    // 109: core.solo.io.Metadata
+	(*wrapperspb.StringValue)(nil),           // 110: google.protobuf.StringValue
+	(*core.ResourceRef)(nil),                 // 111: core.solo.io.ResourceRef
+	(*durationpb.Duration)(nil),              // 112: google.protobuf.Duration
+	(*structpb.Struct)(nil),                  // 113: google.protobuf.Struct
+	(*wrapperspb.BoolValue)(nil),             // 114: google.protobuf.BoolValue
+	(*emptypb.Empty)(nil),                    // 115: google.protobuf.Empty
+	(*wrapperspb.UInt32Value)(nil),           // 116: google.protobuf.UInt32Value
 }
 var file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_depIdxs = []int32{
-	106, // 0: enterprise.gloo.solo.io.AuthConfig.namespaced_statuses:type_name -> core.solo.io.NamespacedStatuses
-	107, // 1: enterprise.gloo.solo.io.AuthConfig.metadata:type_name -> core.solo.io.Metadata
-	54,  // 2: enterprise.gloo.solo.io.AuthConfig.configs:type_name -> enterprise.gloo.solo.io.AuthConfig.Config
-	108, // 3: enterprise.gloo.solo.io.AuthConfig.boolean_expr:type_name -> google.protobuf.StringValue
-	109, // 4: enterprise.gloo.solo.io.ExtAuthExtension.config_ref:type_name -> core.solo.io.ResourceRef
-	11,  // 5: enterprise.gloo.solo.io.ExtAuthExtension.custom_auth:type_name -> enterprise.gloo.solo.io.CustomAuth
-	109, // 6: enterprise.gloo.solo.io.Settings.extauthz_server_ref:type_name -> core.solo.io.ResourceRef
-	9,   // 7: enterprise.gloo.solo.io.Settings.http_service:type_name -> enterprise.gloo.solo.io.HttpService
-	8,   // 8: enterprise.gloo.solo.io.Settings.grpc_service:type_name -> enterprise.gloo.solo.io.GrpcService
-	110, // 9: enterprise.gloo.solo.io.Settings.request_timeout:type_name -> google.protobuf.Duration
-	10,  // 10: enterprise.gloo.solo.io.Settings.request_body:type_name -> enterprise.gloo.solo.io.BufferSettings
+	108, // 0: enterprise.gloo.solo.io.AuthConfig.namespaced_statuses:type_name -> core.solo.io.NamespacedStatuses
+	109, // 1: enterprise.gloo.solo.io.AuthConfig.metadata:type_name -> core.solo.io.Metadata
+	56,  // 2: enterprise.gloo.solo.io.AuthConfig.configs:type_name -> enterprise.gloo.solo.io.AuthConfig.Config
+	110, // 3: enterprise.gloo.solo.io.AuthConfig.boolean_expr:type_name -> google.protobuf.StringValue
+	111, // 4: enterprise.gloo.solo.io.ExtAuthExtension.config_ref:type_name -> core.solo.io.ResourceRef
+	12,  // 5: enterprise.gloo.solo.io.ExtAuthExtension.custom_auth:type_name -> enterprise.gloo.solo.io.CustomAuth
+	111, // 6: enterprise.gloo.solo.io.Settings.extauthz_server_ref:type_name -> core.solo.io.ResourceRef
+	10,  // 7: enterprise.gloo.solo.io.Settings.http_service:type_name -> enterprise.gloo.solo.io.HttpService
+	9,   // 8: enterprise.gloo.solo.io.Settings.grpc_service:type_name -> enterprise.gloo.solo.io.GrpcService
+	112, // 9: enterprise.gloo.solo.io.Settings.request_timeout:type_name -> google.protobuf.Duration
+	11,  // 10: enterprise.gloo.solo.io.Settings.request_body:type_name -> enterprise.gloo.solo.io.BufferSettings
 	0,   // 11: enterprise.gloo.solo.io.Settings.transport_api_version:type_name -> enterprise.gloo.solo.io.Settings.ApiVersion
-	55,  // 12: enterprise.gloo.solo.io.HttpService.request:type_name -> enterprise.gloo.solo.io.HttpService.Request
-	56,  // 13: enterprise.gloo.solo.io.HttpService.response:type_name -> enterprise.gloo.solo.io.HttpService.Response
-	58,  // 14: enterprise.gloo.solo.io.CustomAuth.context_extensions:type_name -> enterprise.gloo.solo.io.CustomAuth.ContextExtensionsEntry
-	111, // 15: enterprise.gloo.solo.io.AuthPlugin.config:type_name -> google.protobuf.Struct
-	59,  // 16: enterprise.gloo.solo.io.BasicAuth.apr:type_name -> enterprise.gloo.solo.io.BasicAuth.Apr
-	60,  // 17: enterprise.gloo.solo.io.BasicAuth.encryption:type_name -> enterprise.gloo.solo.io.BasicAuth.EncryptionType
-	62,  // 18: enterprise.gloo.solo.io.BasicAuth.user_list:type_name -> enterprise.gloo.solo.io.BasicAuth.UserList
-	15,  // 19: enterprise.gloo.solo.io.HmacAuth.secret_refs:type_name -> enterprise.gloo.solo.io.SecretRefList
-	16,  // 20: enterprise.gloo.solo.io.HmacAuth.parameters_in_headers:type_name -> enterprise.gloo.solo.io.HmacParametersInHeaders
-	109, // 21: enterprise.gloo.solo.io.SecretRefList.secret_refs:type_name -> core.solo.io.ResourceRef
-	109, // 22: enterprise.gloo.solo.io.OAuth.client_secret_ref:type_name -> core.solo.io.ResourceRef
-	68,  // 23: enterprise.gloo.solo.io.OAuth.auth_endpoint_query_params:type_name -> enterprise.gloo.solo.io.OAuth.AuthEndpointQueryParamsEntry
-	28,  // 24: enterprise.gloo.solo.io.OAuth2.oidc_authorization_code:type_name -> enterprise.gloo.solo.io.OidcAuthorizationCode
-	32,  // 25: enterprise.gloo.solo.io.OAuth2.access_token_validation:type_name -> enterprise.gloo.solo.io.AccessTokenValidation
-	29,  // 26: enterprise.gloo.solo.io.OAuth2.oauth2:type_name -> enterprise.gloo.solo.io.PlainOAuth2
+	57,  // 12: enterprise.gloo.solo.io.HttpService.request:type_name -> enterprise.gloo.solo.io.HttpService.Request
+	58,  // 13: enterprise.gloo.solo.io.HttpService.response:type_name -> enterprise.gloo.solo.io.HttpService.Response
+	60,  // 14: enterprise.gloo.solo.io.CustomAuth.context_extensions:type_name -> enterprise.gloo.solo.io.CustomAuth.ContextExtensionsEntry
+	113, // 15: enterprise.gloo.solo.io.AuthPlugin.config:type_name -> google.protobuf.Struct
+	61,  // 16: enterprise.gloo.solo.io.BasicAuth.apr:type_name -> enterprise.gloo.solo.io.BasicAuth.Apr
+	62,  // 17: enterprise.gloo.solo.io.BasicAuth.encryption:type_name -> enterprise.gloo.solo.io.BasicAuth.EncryptionType
+	64,  // 18: enterprise.gloo.solo.io.BasicAuth.user_list:type_name -> enterprise.gloo.solo.io.BasicAuth.UserList
+	16,  // 19: enterprise.gloo.solo.io.HmacAuth.secret_refs:type_name -> enterprise.gloo.solo.io.SecretRefList
+	17,  // 20: enterprise.gloo.solo.io.HmacAuth.parameters_in_headers:type_name -> enterprise.gloo.solo.io.HmacParametersInHeaders
+	111, // 21: enterprise.gloo.solo.io.SecretRefList.secret_refs:type_name -> core.solo.io.ResourceRef
+	111, // 22: enterprise.gloo.solo.io.OAuth.client_secret_ref:type_name -> core.solo.io.ResourceRef
+	70,  // 23: enterprise.gloo.solo.io.OAuth.auth_endpoint_query_params:type_name -> enterprise.gloo.solo.io.OAuth.AuthEndpointQueryParamsEntry
+	29,  // 24: enterprise.gloo.solo.io.OAuth2.oidc_authorization_code:type_name -> enterprise.gloo.solo.io.OidcAuthorizationCode
+	33,  // 25: enterprise.gloo.solo.io.OAuth2.access_token_validation:type_name -> enterprise.gloo.solo.io.AccessTokenValidation
+	30,  // 26: enterprise.gloo.solo.io.OAuth2.oauth2:type_name -> enterprise.gloo.solo.io.PlainOAuth2
 	1,   // 27: enterprise.gloo.solo.io.RedisOptions.socket_type:type_name -> enterprise.gloo.solo.io.RedisOptions.SocketType
-	71,  // 28: enterprise.gloo.solo.io.UserSession.cookie_options:type_name -> enterprise.gloo.solo.io.UserSession.CookieOptions
-	69,  // 29: enterprise.gloo.solo.io.UserSession.cookie:type_name -> enterprise.gloo.solo.io.UserSession.InternalSession
-	70,  // 30: enterprise.gloo.solo.io.UserSession.redis:type_name -> enterprise.gloo.solo.io.UserSession.RedisSession
-	72,  // 31: enterprise.gloo.solo.io.UserSession.cipher_config:type_name -> enterprise.gloo.solo.io.UserSession.CipherConfig
-	112, // 32: enterprise.gloo.solo.io.HeaderConfiguration.use_bearer_schema_for_authorization:type_name -> google.protobuf.BoolValue
-	113, // 33: enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy.never:type_name -> google.protobuf.Empty
-	113, // 34: enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy.always:type_name -> google.protobuf.Empty
+	73,  // 28: enterprise.gloo.solo.io.UserSession.cookie_options:type_name -> enterprise.gloo.solo.io.UserSession.CookieOptions
+	71,  // 29: enterprise.gloo.solo.io.UserSession.cookie:type_name -> enterprise.gloo.solo.io.UserSession.InternalSession
+	72,  // 30: enterprise.gloo.solo.io.UserSession.redis:type_name -> enterprise.gloo.solo.io.UserSession.RedisSession
+	74,  // 31: enterprise.gloo.solo.io.UserSession.cipher_config:type_name -> enterprise.gloo.solo.io.UserSession.CipherConfig
+	114, // 32: enterprise.gloo.solo.io.HeaderConfiguration.use_bearer_schema_for_authorization:type_name -> google.protobuf.BoolValue
+	115, // 33: enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy.never:type_name -> google.protobuf.Empty
+	115, // 34: enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy.always:type_name -> google.protobuf.Empty
 	3,   // 35: enterprise.gloo.solo.io.EndSessionProperties.methodType:type_name -> enterprise.gloo.solo.io.EndSessionProperties.MethodType
-	109, // 36: enterprise.gloo.solo.io.Azure.client_secret:type_name -> core.solo.io.ResourceRef
-	19,  // 37: enterprise.gloo.solo.io.Azure.claims_caching_options:type_name -> enterprise.gloo.solo.io.RedisOptions
-	109, // 38: enterprise.gloo.solo.io.OidcAuthorizationCode.client_secret_ref:type_name -> core.solo.io.ResourceRef
-	73,  // 39: enterprise.gloo.solo.io.OidcAuthorizationCode.auth_endpoint_query_params:type_name -> enterprise.gloo.solo.io.OidcAuthorizationCode.AuthEndpointQueryParamsEntry
-	74,  // 40: enterprise.gloo.solo.io.OidcAuthorizationCode.token_endpoint_query_params:type_name -> enterprise.gloo.solo.io.OidcAuthorizationCode.TokenEndpointQueryParamsEntry
-	20,  // 41: enterprise.gloo.solo.io.OidcAuthorizationCode.session:type_name -> enterprise.gloo.solo.io.UserSession
-	21,  // 42: enterprise.gloo.solo.io.OidcAuthorizationCode.headers:type_name -> enterprise.gloo.solo.io.HeaderConfiguration
-	22,  // 43: enterprise.gloo.solo.io.OidcAuthorizationCode.discovery_override:type_name -> enterprise.gloo.solo.io.DiscoveryOverride
-	110, // 44: enterprise.gloo.solo.io.OidcAuthorizationCode.discovery_poll_interval:type_name -> google.protobuf.Duration
-	23,  // 45: enterprise.gloo.solo.io.OidcAuthorizationCode.jwks_cache_refresh_policy:type_name -> enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy
-	24,  // 46: enterprise.gloo.solo.io.OidcAuthorizationCode.auto_map_from_metadata:type_name -> enterprise.gloo.solo.io.AutoMapFromMetadata
-	25,  // 47: enterprise.gloo.solo.io.OidcAuthorizationCode.end_session_properties:type_name -> enterprise.gloo.solo.io.EndSessionProperties
-	75,  // 48: enterprise.gloo.solo.io.OidcAuthorizationCode.dynamic_metadata_from_claims:type_name -> enterprise.gloo.solo.io.OidcAuthorizationCode.DynamicMetadataFromClaimsEntry
-	112, // 49: enterprise.gloo.solo.io.OidcAuthorizationCode.disable_client_secret:type_name -> google.protobuf.BoolValue
-	76,  // 50: enterprise.gloo.solo.io.OidcAuthorizationCode.access_token:type_name -> enterprise.gloo.solo.io.OidcAuthorizationCode.AccessToken
-	77,  // 51: enterprise.gloo.solo.io.OidcAuthorizationCode.identity_token:type_name -> enterprise.gloo.solo.io.OidcAuthorizationCode.IdentityToken
-	78,  // 52: enterprise.gloo.solo.io.OidcAuthorizationCode.client_authentication:type_name -> enterprise.gloo.solo.io.OidcAuthorizationCode.ClientAuthentication
-	79,  // 53: enterprise.gloo.solo.io.OidcAuthorizationCode.default:type_name -> enterprise.gloo.solo.io.OidcAuthorizationCode.Default
-	27,  // 54: enterprise.gloo.solo.io.OidcAuthorizationCode.azure:type_name -> enterprise.gloo.solo.io.Azure
-	80,  // 55: enterprise.gloo.solo.io.OidcAuthorizationCode.front_channel_logout:type_name -> enterprise.gloo.solo.io.OidcAuthorizationCode.FrontChannelLogout
-	109, // 56: enterprise.gloo.solo.io.PlainOAuth2.client_secret_ref:type_name -> core.solo.io.ResourceRef
-	83,  // 57: enterprise.gloo.solo.io.PlainOAuth2.auth_endpoint_query_params:type_name -> enterprise.gloo.solo.io.PlainOAuth2.AuthEndpointQueryParamsEntry
-	20,  // 58: enterprise.gloo.solo.io.PlainOAuth2.session:type_name -> enterprise.gloo.solo.io.UserSession
-	84,  // 59: enterprise.gloo.solo.io.PlainOAuth2.token_endpoint_query_params:type_name -> enterprise.gloo.solo.io.PlainOAuth2.TokenEndpointQueryParamsEntry
-	112, // 60: enterprise.gloo.solo.io.PlainOAuth2.disable_client_secret:type_name -> google.protobuf.BoolValue
-	85,  // 61: enterprise.gloo.solo.io.JwtValidation.remote_jwks:type_name -> enterprise.gloo.solo.io.JwtValidation.RemoteJwks
-	86,  // 62: enterprise.gloo.solo.io.JwtValidation.local_jwks:type_name -> enterprise.gloo.solo.io.JwtValidation.LocalJwks
-	109, // 63: enterprise.gloo.solo.io.IntrospectionValidation.client_secret_ref:type_name -> core.solo.io.ResourceRef
-	112, // 64: enterprise.gloo.solo.io.IntrospectionValidation.disable_client_secret:type_name -> google.protobuf.BoolValue
-	30,  // 65: enterprise.gloo.solo.io.AccessTokenValidation.jwt:type_name -> enterprise.gloo.solo.io.JwtValidation
-	31,  // 66: enterprise.gloo.solo.io.AccessTokenValidation.introspection:type_name -> enterprise.gloo.solo.io.IntrospectionValidation
-	110, // 67: enterprise.gloo.solo.io.AccessTokenValidation.cache_timeout:type_name -> google.protobuf.Duration
-	89,  // 68: enterprise.gloo.solo.io.AccessTokenValidation.required_scopes:type_name -> enterprise.gloo.solo.io.AccessTokenValidation.ScopeList
-	87,  // 69: enterprise.gloo.solo.io.AccessTokenValidation.dynamic_metadata_from_claims:type_name -> enterprise.gloo.solo.io.AccessTokenValidation.DynamicMetadataFromClaimsEntry
-	26,  // 70: enterprise.gloo.solo.io.AccessTokenValidation.claims_to_headers:type_name -> enterprise.gloo.solo.io.ClaimToHeader
-	88,  // 71: enterprise.gloo.solo.io.AccessTokenValidation.default:type_name -> enterprise.gloo.solo.io.AccessTokenValidation.Default
-	27,  // 72: enterprise.gloo.solo.io.AccessTokenValidation.azure:type_name -> enterprise.gloo.solo.io.Azure
-	90,  // 73: enterprise.gloo.solo.io.ApiKeyAuth.label_selector:type_name -> enterprise.gloo.solo.io.ApiKeyAuth.LabelSelectorEntry
-	109, // 74: enterprise.gloo.solo.io.ApiKeyAuth.api_key_secret_refs:type_name -> core.solo.io.ResourceRef
-	91,  // 75: enterprise.gloo.solo.io.ApiKeyAuth.headers_from_metadata:type_name -> enterprise.gloo.solo.io.ApiKeyAuth.HeadersFromMetadataEntry
-	92,  // 76: enterprise.gloo.solo.io.ApiKeyAuth.headers_from_metadata_entry:type_name -> enterprise.gloo.solo.io.ApiKeyAuth.HeadersFromMetadataEntryEntry
-	35,  // 77: enterprise.gloo.solo.io.ApiKeyAuth.k8s_secret_apikey_storage:type_name -> enterprise.gloo.solo.io.K8sSecretApiKeyStorage
-	36,  // 78: enterprise.gloo.solo.io.ApiKeyAuth.aerospike_apikey_storage:type_name -> enterprise.gloo.solo.io.AerospikeApiKeyStorage
-	95,  // 79: enterprise.gloo.solo.io.K8sSecretApiKeyStorage.label_selector:type_name -> enterprise.gloo.solo.io.K8sSecretApiKeyStorage.LabelSelectorEntry
-	109, // 80: enterprise.gloo.solo.io.K8sSecretApiKeyStorage.api_key_secret_refs:type_name -> core.solo.io.ResourceRef
-	96,  // 81: enterprise.gloo.solo.io.AerospikeApiKeyStorage.read_mode_sc:type_name -> enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeSc
-	97,  // 82: enterprise.gloo.solo.io.AerospikeApiKeyStorage.read_mode_ap:type_name -> enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeAp
-	98,  // 83: enterprise.gloo.solo.io.AerospikeApiKeyStorage.tls_curve_groups:type_name -> enterprise.gloo.solo.io.AerospikeApiKeyStorage.tlsCurveID
-	99,  // 84: enterprise.gloo.solo.io.AerospikeApiKeyStorage.label_selector:type_name -> enterprise.gloo.solo.io.AerospikeApiKeyStorage.LabelSelectorEntry
-	100, // 85: enterprise.gloo.solo.io.ApiKey.metadata:type_name -> enterprise.gloo.solo.io.ApiKey.MetadataEntry
-	101, // 86: enterprise.gloo.solo.io.ApiKeySecret.metadata:type_name -> enterprise.gloo.solo.io.ApiKeySecret.MetadataEntry
-	109, // 87: enterprise.gloo.solo.io.OpaAuth.modules:type_name -> core.solo.io.ResourceRef
-	41,  // 88: enterprise.gloo.solo.io.OpaAuth.options:type_name -> enterprise.gloo.solo.io.OpaAuthOptions
-	41,  // 89: enterprise.gloo.solo.io.OpaServerAuth.options:type_name -> enterprise.gloo.solo.io.OpaAuthOptions
-	102, // 90: enterprise.gloo.solo.io.Ldap.pool:type_name -> enterprise.gloo.solo.io.Ldap.ConnectionPool
-	44,  // 91: enterprise.gloo.solo.io.Ldap.group_lookup_settings:type_name -> enterprise.gloo.solo.io.LdapServiceAccount
-	109, // 92: enterprise.gloo.solo.io.LdapServiceAccount.credentials_secret_ref:type_name -> core.solo.io.ResourceRef
-	48,  // 93: enterprise.gloo.solo.io.PassThroughAuth.grpc:type_name -> enterprise.gloo.solo.io.PassThroughGrpc
-	49,  // 94: enterprise.gloo.solo.io.PassThroughAuth.http:type_name -> enterprise.gloo.solo.io.PassThroughHttp
-	111, // 95: enterprise.gloo.solo.io.PassThroughAuth.config:type_name -> google.protobuf.Struct
-	110, // 96: enterprise.gloo.solo.io.BackoffStrategy.base_interval:type_name -> google.protobuf.Duration
-	110, // 97: enterprise.gloo.solo.io.BackoffStrategy.max_interval:type_name -> google.protobuf.Duration
-	114, // 98: enterprise.gloo.solo.io.RetryPolicy.num_retries:type_name -> google.protobuf.UInt32Value
-	46,  // 99: enterprise.gloo.solo.io.RetryPolicy.retry_back_off:type_name -> enterprise.gloo.solo.io.BackoffStrategy
-	110, // 100: enterprise.gloo.solo.io.PassThroughGrpc.connection_timeout:type_name -> google.protobuf.Duration
-	50,  // 101: enterprise.gloo.solo.io.PassThroughGrpc.tls_config:type_name -> enterprise.gloo.solo.io.PassThroughGrpcTLSConfig
-	47,  // 102: enterprise.gloo.solo.io.PassThroughGrpc.retry_policy:type_name -> enterprise.gloo.solo.io.RetryPolicy
-	103, // 103: enterprise.gloo.solo.io.PassThroughHttp.request:type_name -> enterprise.gloo.solo.io.PassThroughHttp.Request
-	104, // 104: enterprise.gloo.solo.io.PassThroughHttp.response:type_name -> enterprise.gloo.solo.io.PassThroughHttp.Response
-	110, // 105: enterprise.gloo.solo.io.PassThroughHttp.connection_timeout:type_name -> google.protobuf.Duration
-	51,  // 106: enterprise.gloo.solo.io.PassThroughHttp.tls_config:type_name -> enterprise.gloo.solo.io.PassThroughHttpTLSConfig
-	109, // 107: enterprise.gloo.solo.io.PassThroughGrpcTLSConfig.secret_ref:type_name -> core.solo.io.ResourceRef
-	52,  // 108: enterprise.gloo.solo.io.PassThroughGrpcTLSConfig.ssl_params:type_name -> enterprise.gloo.solo.io.SslParameters
-	109, // 109: enterprise.gloo.solo.io.PassThroughHttpTLSConfig.secret_ref:type_name -> core.solo.io.ResourceRef
-	52,  // 110: enterprise.gloo.solo.io.PassThroughHttpTLSConfig.ssl_params:type_name -> enterprise.gloo.solo.io.SslParameters
-	4,   // 111: enterprise.gloo.solo.io.SslParameters.minimum_protocol_version:type_name -> enterprise.gloo.solo.io.SslParameters.ProtocolVersion
-	4,   // 112: enterprise.gloo.solo.io.SslParameters.maximum_protocol_version:type_name -> enterprise.gloo.solo.io.SslParameters.ProtocolVersion
-	19,  // 113: enterprise.gloo.solo.io.PortalAuth.redis_options:type_name -> enterprise.gloo.solo.io.RedisOptions
-	110, // 114: enterprise.gloo.solo.io.PortalAuth.cache_duration:type_name -> google.protobuf.Duration
-	110, // 115: enterprise.gloo.solo.io.PortalAuth.request_timeout:type_name -> google.protobuf.Duration
-	108, // 116: enterprise.gloo.solo.io.AuthConfig.Config.name:type_name -> google.protobuf.StringValue
-	13,  // 117: enterprise.gloo.solo.io.AuthConfig.Config.basic_auth:type_name -> enterprise.gloo.solo.io.BasicAuth
-	17,  // 118: enterprise.gloo.solo.io.AuthConfig.Config.oauth:type_name -> enterprise.gloo.solo.io.OAuth
-	18,  // 119: enterprise.gloo.solo.io.AuthConfig.Config.oauth2:type_name -> enterprise.gloo.solo.io.OAuth2
-	34,  // 120: enterprise.gloo.solo.io.AuthConfig.Config.api_key_auth:type_name -> enterprise.gloo.solo.io.ApiKeyAuth
-	12,  // 121: enterprise.gloo.solo.io.AuthConfig.Config.plugin_auth:type_name -> enterprise.gloo.solo.io.AuthPlugin
-	40,  // 122: enterprise.gloo.solo.io.AuthConfig.Config.opa_auth:type_name -> enterprise.gloo.solo.io.OpaAuth
-	43,  // 123: enterprise.gloo.solo.io.AuthConfig.Config.ldap:type_name -> enterprise.gloo.solo.io.Ldap
-	113, // 124: enterprise.gloo.solo.io.AuthConfig.Config.jwt:type_name -> google.protobuf.Empty
-	45,  // 125: enterprise.gloo.solo.io.AuthConfig.Config.pass_through_auth:type_name -> enterprise.gloo.solo.io.PassThroughAuth
-	14,  // 126: enterprise.gloo.solo.io.AuthConfig.Config.hmac_auth:type_name -> enterprise.gloo.solo.io.HmacAuth
-	42,  // 127: enterprise.gloo.solo.io.AuthConfig.Config.opa_server_auth:type_name -> enterprise.gloo.solo.io.OpaServerAuth
-	53,  // 128: enterprise.gloo.solo.io.AuthConfig.Config.portal_auth:type_name -> enterprise.gloo.solo.io.PortalAuth
-	57,  // 129: enterprise.gloo.solo.io.HttpService.Request.headers_to_add:type_name -> enterprise.gloo.solo.io.HttpService.Request.HeadersToAddEntry
-	64,  // 130: enterprise.gloo.solo.io.BasicAuth.Apr.users:type_name -> enterprise.gloo.solo.io.BasicAuth.Apr.UsersEntry
-	66,  // 131: enterprise.gloo.solo.io.BasicAuth.EncryptionType.apr:type_name -> enterprise.gloo.solo.io.BasicAuth.EncryptionType.Apr
-	65,  // 132: enterprise.gloo.solo.io.BasicAuth.EncryptionType.sha1:type_name -> enterprise.gloo.solo.io.BasicAuth.EncryptionType.Sha1
-	67,  // 133: enterprise.gloo.solo.io.BasicAuth.UserList.users:type_name -> enterprise.gloo.solo.io.BasicAuth.UserList.UsersEntry
-	63,  // 134: enterprise.gloo.solo.io.BasicAuth.Apr.UsersEntry.value:type_name -> enterprise.gloo.solo.io.BasicAuth.Apr.SaltedHashedPassword
-	61,  // 135: enterprise.gloo.solo.io.BasicAuth.UserList.UsersEntry.value:type_name -> enterprise.gloo.solo.io.BasicAuth.User
-	112, // 136: enterprise.gloo.solo.io.UserSession.InternalSession.allow_refreshing:type_name -> google.protobuf.BoolValue
-	19,  // 137: enterprise.gloo.solo.io.UserSession.RedisSession.options:type_name -> enterprise.gloo.solo.io.RedisOptions
-	112, // 138: enterprise.gloo.solo.io.UserSession.RedisSession.allow_refreshing:type_name -> google.protobuf.BoolValue
-	110, // 139: enterprise.gloo.solo.io.UserSession.RedisSession.pre_expiry_buffer:type_name -> google.protobuf.Duration
-	114, // 140: enterprise.gloo.solo.io.UserSession.CookieOptions.max_age:type_name -> google.protobuf.UInt32Value
-	112, // 141: enterprise.gloo.solo.io.UserSession.CookieOptions.http_only:type_name -> google.protobuf.BoolValue
-	108, // 142: enterprise.gloo.solo.io.UserSession.CookieOptions.path:type_name -> google.protobuf.StringValue
-	2,   // 143: enterprise.gloo.solo.io.UserSession.CookieOptions.same_site:type_name -> enterprise.gloo.solo.io.UserSession.CookieOptions.SameSite
-	109, // 144: enterprise.gloo.solo.io.UserSession.CipherConfig.key_ref:type_name -> core.solo.io.ResourceRef
-	26,  // 145: enterprise.gloo.solo.io.OidcAuthorizationCode.AccessToken.claims_to_headers:type_name -> enterprise.gloo.solo.io.ClaimToHeader
-	26,  // 146: enterprise.gloo.solo.io.OidcAuthorizationCode.IdentityToken.claims_to_headers:type_name -> enterprise.gloo.solo.io.ClaimToHeader
-	81,  // 147: enterprise.gloo.solo.io.OidcAuthorizationCode.ClientAuthentication.client_secret:type_name -> enterprise.gloo.solo.io.OidcAuthorizationCode.ClientAuthentication.ClientSecret
-	82,  // 148: enterprise.gloo.solo.io.OidcAuthorizationCode.ClientAuthentication.private_key_jwt:type_name -> enterprise.gloo.solo.io.OidcAuthorizationCode.ClientAuthentication.PrivateKeyJwt
-	109, // 149: enterprise.gloo.solo.io.OidcAuthorizationCode.ClientAuthentication.ClientSecret.client_secret_ref:type_name -> core.solo.io.ResourceRef
-	112, // 150: enterprise.gloo.solo.io.OidcAuthorizationCode.ClientAuthentication.ClientSecret.disable_client_secret:type_name -> google.protobuf.BoolValue
-	109, // 151: enterprise.gloo.solo.io.OidcAuthorizationCode.ClientAuthentication.PrivateKeyJwt.signing_key_ref:type_name -> core.solo.io.ResourceRef
-	110, // 152: enterprise.gloo.solo.io.OidcAuthorizationCode.ClientAuthentication.PrivateKeyJwt.valid_for:type_name -> google.protobuf.Duration
-	110, // 153: enterprise.gloo.solo.io.JwtValidation.RemoteJwks.refresh_interval:type_name -> google.protobuf.Duration
-	93,  // 154: enterprise.gloo.solo.io.ApiKeyAuth.HeadersFromMetadataEntry.value:type_name -> enterprise.gloo.solo.io.ApiKeyAuth.SecretKey
-	94,  // 155: enterprise.gloo.solo.io.ApiKeyAuth.HeadersFromMetadataEntryEntry.value:type_name -> enterprise.gloo.solo.io.ApiKeyAuth.MetadataEntry
-	114, // 156: enterprise.gloo.solo.io.Ldap.ConnectionPool.maxSize:type_name -> google.protobuf.UInt32Value
-	114, // 157: enterprise.gloo.solo.io.Ldap.ConnectionPool.initialSize:type_name -> google.protobuf.UInt32Value
-	105, // 158: enterprise.gloo.solo.io.PassThroughHttp.Request.headers_to_add:type_name -> enterprise.gloo.solo.io.PassThroughHttp.Request.HeadersToAddEntry
-	159, // [159:159] is the sub-list for method output_type
-	159, // [159:159] is the sub-list for method input_type
-	159, // [159:159] is the sub-list for extension type_name
-	159, // [159:159] is the sub-list for extension extendee
-	0,   // [0:159] is the sub-list for field type_name
+	111, // 36: enterprise.gloo.solo.io.Azure.client_secret:type_name -> core.solo.io.ResourceRef
+	20,  // 37: enterprise.gloo.solo.io.Azure.claims_caching_options:type_name -> enterprise.gloo.solo.io.RedisOptions
+	111, // 38: enterprise.gloo.solo.io.OidcAuthorizationCode.client_secret_ref:type_name -> core.solo.io.ResourceRef
+	75,  // 39: enterprise.gloo.solo.io.OidcAuthorizationCode.auth_endpoint_query_params:type_name -> enterprise.gloo.solo.io.OidcAuthorizationCode.AuthEndpointQueryParamsEntry
+	76,  // 40: enterprise.gloo.solo.io.OidcAuthorizationCode.token_endpoint_query_params:type_name -> enterprise.gloo.solo.io.OidcAuthorizationCode.TokenEndpointQueryParamsEntry
+	21,  // 41: enterprise.gloo.solo.io.OidcAuthorizationCode.session:type_name -> enterprise.gloo.solo.io.UserSession
+	22,  // 42: enterprise.gloo.solo.io.OidcAuthorizationCode.headers:type_name -> enterprise.gloo.solo.io.HeaderConfiguration
+	23,  // 43: enterprise.gloo.solo.io.OidcAuthorizationCode.discovery_override:type_name -> enterprise.gloo.solo.io.DiscoveryOverride
+	112, // 44: enterprise.gloo.solo.io.OidcAuthorizationCode.discovery_poll_interval:type_name -> google.protobuf.Duration
+	24,  // 45: enterprise.gloo.solo.io.OidcAuthorizationCode.jwks_cache_refresh_policy:type_name -> enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy
+	25,  // 46: enterprise.gloo.solo.io.OidcAuthorizationCode.auto_map_from_metadata:type_name -> enterprise.gloo.solo.io.AutoMapFromMetadata
+	26,  // 47: enterprise.gloo.solo.io.OidcAuthorizationCode.end_session_properties:type_name -> enterprise.gloo.solo.io.EndSessionProperties
+	77,  // 48: enterprise.gloo.solo.io.OidcAuthorizationCode.dynamic_metadata_from_claims:type_name -> enterprise.gloo.solo.io.OidcAuthorizationCode.DynamicMetadataFromClaimsEntry
+	114, // 49: enterprise.gloo.solo.io.OidcAuthorizationCode.disable_client_secret:type_name -> google.protobuf.BoolValue
+	78,  // 50: enterprise.gloo.solo.io.OidcAuthorizationCode.access_token:type_name -> enterprise.gloo.solo.io.OidcAuthorizationCode.AccessToken
+	79,  // 51: enterprise.gloo.solo.io.OidcAuthorizationCode.identity_token:type_name -> enterprise.gloo.solo.io.OidcAuthorizationCode.IdentityToken
+	80,  // 52: enterprise.gloo.solo.io.OidcAuthorizationCode.client_authentication:type_name -> enterprise.gloo.solo.io.OidcAuthorizationCode.ClientAuthentication
+	81,  // 53: enterprise.gloo.solo.io.OidcAuthorizationCode.default:type_name -> enterprise.gloo.solo.io.OidcAuthorizationCode.Default
+	28,  // 54: enterprise.gloo.solo.io.OidcAuthorizationCode.azure:type_name -> enterprise.gloo.solo.io.Azure
+	82,  // 55: enterprise.gloo.solo.io.OidcAuthorizationCode.front_channel_logout:type_name -> enterprise.gloo.solo.io.OidcAuthorizationCode.FrontChannelLogout
+	111, // 56: enterprise.gloo.solo.io.PlainOAuth2.client_secret_ref:type_name -> core.solo.io.ResourceRef
+	85,  // 57: enterprise.gloo.solo.io.PlainOAuth2.auth_endpoint_query_params:type_name -> enterprise.gloo.solo.io.PlainOAuth2.AuthEndpointQueryParamsEntry
+	21,  // 58: enterprise.gloo.solo.io.PlainOAuth2.session:type_name -> enterprise.gloo.solo.io.UserSession
+	86,  // 59: enterprise.gloo.solo.io.PlainOAuth2.token_endpoint_query_params:type_name -> enterprise.gloo.solo.io.PlainOAuth2.TokenEndpointQueryParamsEntry
+	114, // 60: enterprise.gloo.solo.io.PlainOAuth2.disable_client_secret:type_name -> google.protobuf.BoolValue
+	87,  // 61: enterprise.gloo.solo.io.JwtValidation.remote_jwks:type_name -> enterprise.gloo.solo.io.JwtValidation.RemoteJwks
+	88,  // 62: enterprise.gloo.solo.io.JwtValidation.local_jwks:type_name -> enterprise.gloo.solo.io.JwtValidation.LocalJwks
+	111, // 63: enterprise.gloo.solo.io.IntrospectionValidation.client_secret_ref:type_name -> core.solo.io.ResourceRef
+	114, // 64: enterprise.gloo.solo.io.IntrospectionValidation.disable_client_secret:type_name -> google.protobuf.BoolValue
+	31,  // 65: enterprise.gloo.solo.io.AccessTokenValidation.jwt:type_name -> enterprise.gloo.solo.io.JwtValidation
+	32,  // 66: enterprise.gloo.solo.io.AccessTokenValidation.introspection:type_name -> enterprise.gloo.solo.io.IntrospectionValidation
+	112, // 67: enterprise.gloo.solo.io.AccessTokenValidation.cache_timeout:type_name -> google.protobuf.Duration
+	91,  // 68: enterprise.gloo.solo.io.AccessTokenValidation.required_scopes:type_name -> enterprise.gloo.solo.io.AccessTokenValidation.ScopeList
+	89,  // 69: enterprise.gloo.solo.io.AccessTokenValidation.dynamic_metadata_from_claims:type_name -> enterprise.gloo.solo.io.AccessTokenValidation.DynamicMetadataFromClaimsEntry
+	27,  // 70: enterprise.gloo.solo.io.AccessTokenValidation.claims_to_headers:type_name -> enterprise.gloo.solo.io.ClaimToHeader
+	90,  // 71: enterprise.gloo.solo.io.AccessTokenValidation.default:type_name -> enterprise.gloo.solo.io.AccessTokenValidation.Default
+	28,  // 72: enterprise.gloo.solo.io.AccessTokenValidation.azure:type_name -> enterprise.gloo.solo.io.Azure
+	92,  // 73: enterprise.gloo.solo.io.ApiKeyAuth.label_selector:type_name -> enterprise.gloo.solo.io.ApiKeyAuth.LabelSelectorEntry
+	111, // 74: enterprise.gloo.solo.io.ApiKeyAuth.api_key_secret_refs:type_name -> core.solo.io.ResourceRef
+	93,  // 75: enterprise.gloo.solo.io.ApiKeyAuth.headers_from_metadata:type_name -> enterprise.gloo.solo.io.ApiKeyAuth.HeadersFromMetadataEntry
+	94,  // 76: enterprise.gloo.solo.io.ApiKeyAuth.headers_from_metadata_entry:type_name -> enterprise.gloo.solo.io.ApiKeyAuth.HeadersFromMetadataEntryEntry
+	37,  // 77: enterprise.gloo.solo.io.ApiKeyAuth.k8s_secret_apikey_storage:type_name -> enterprise.gloo.solo.io.K8sSecretApiKeyStorage
+	38,  // 78: enterprise.gloo.solo.io.ApiKeyAuth.aerospike_apikey_storage:type_name -> enterprise.gloo.solo.io.AerospikeApiKeyStorage
+	36,  // 79: enterprise.gloo.solo.io.ApiKeyAuth.hmac:type_name -> enterprise.gloo.solo.io.ApiKeyHmac
+	4,   // 80: enterprise.gloo.solo.io.ApiKeyHmac.algorithm:type_name -> enterprise.gloo.solo.io.ApiKeyHmac.Algorithm
+	111, // 81: enterprise.gloo.solo.io.ApiKeyHmac.shared_secret_ref:type_name -> core.solo.io.ResourceRef
+	97,  // 82: enterprise.gloo.solo.io.K8sSecretApiKeyStorage.label_selector:type_name -> enterprise.gloo.solo.io.K8sSecretApiKeyStorage.LabelSelectorEntry
+	111, // 83: enterprise.gloo.solo.io.K8sSecretApiKeyStorage.api_key_secret_refs:type_name -> core.solo.io.ResourceRef
+	98,  // 84: enterprise.gloo.solo.io.AerospikeApiKeyStorage.read_mode_sc:type_name -> enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeSc
+	99,  // 85: enterprise.gloo.solo.io.AerospikeApiKeyStorage.read_mode_ap:type_name -> enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeAp
+	100, // 86: enterprise.gloo.solo.io.AerospikeApiKeyStorage.tls_curve_groups:type_name -> enterprise.gloo.solo.io.AerospikeApiKeyStorage.tlsCurveID
+	101, // 87: enterprise.gloo.solo.io.AerospikeApiKeyStorage.label_selector:type_name -> enterprise.gloo.solo.io.AerospikeApiKeyStorage.LabelSelectorEntry
+	102, // 88: enterprise.gloo.solo.io.ApiKey.metadata:type_name -> enterprise.gloo.solo.io.ApiKey.MetadataEntry
+	103, // 89: enterprise.gloo.solo.io.ApiKeySecret.metadata:type_name -> enterprise.gloo.solo.io.ApiKeySecret.MetadataEntry
+	111, // 90: enterprise.gloo.solo.io.OpaAuth.modules:type_name -> core.solo.io.ResourceRef
+	43,  // 91: enterprise.gloo.solo.io.OpaAuth.options:type_name -> enterprise.gloo.solo.io.OpaAuthOptions
+	43,  // 92: enterprise.gloo.solo.io.OpaServerAuth.options:type_name -> enterprise.gloo.solo.io.OpaAuthOptions
+	104, // 93: enterprise.gloo.solo.io.Ldap.pool:type_name -> enterprise.gloo.solo.io.Ldap.ConnectionPool
+	46,  // 94: enterprise.gloo.solo.io.Ldap.group_lookup_settings:type_name -> enterprise.gloo.solo.io.LdapServiceAccount
+	111, // 95: enterprise.gloo.solo.io.LdapServiceAccount.credentials_secret_ref:type_name -> core.solo.io.ResourceRef
+	50,  // 96: enterprise.gloo.solo.io.PassThroughAuth.grpc:type_name -> enterprise.gloo.solo.io.PassThroughGrpc
+	51,  // 97: enterprise.gloo.solo.io.PassThroughAuth.http:type_name -> enterprise.gloo.solo.io.PassThroughHttp
+	113, // 98: enterprise.gloo.solo.io.PassThroughAuth.config:type_name -> google.protobuf.Struct
+	112, // 99: enterprise.gloo.solo.io.BackoffStrategy.base_interval:type_name -> google.protobuf.Duration
+	112, // 100: enterprise.gloo.solo.io.BackoffStrategy.max_interval:type_name -> google.protobuf.Duration
+	116, // 101: enterprise.gloo.solo.io.RetryPolicy.num_retries:type_name -> google.protobuf.UInt32Value
+	48,  // 102: enterprise.gloo.solo.io.RetryPolicy.retry_back_off:type_name -> enterprise.gloo.solo.io.BackoffStrategy
+	112, // 103: enterprise.gloo.solo.io.PassThroughGrpc.connection_timeout:type_name -> google.protobuf.Duration
+	52,  // 104: enterprise.gloo.solo.io.PassThroughGrpc.tls_config:type_name -> enterprise.gloo.solo.io.PassThroughGrpcTLSConfig
+	49,  // 105: enterprise.gloo.solo.io.PassThroughGrpc.retry_policy:type_name -> enterprise.gloo.solo.io.RetryPolicy
+	105, // 106: enterprise.gloo.solo.io.PassThroughHttp.request:type_name -> enterprise.gloo.solo.io.PassThroughHttp.Request
+	106, // 107: enterprise.gloo.solo.io.PassThroughHttp.response:type_name -> enterprise.gloo.solo.io.PassThroughHttp.Response
+	112, // 108: enterprise.gloo.solo.io.PassThroughHttp.connection_timeout:type_name -> google.protobuf.Duration
+	53,  // 109: enterprise.gloo.solo.io.PassThroughHttp.tls_config:type_name -> enterprise.gloo.solo.io.PassThroughHttpTLSConfig
+	111, // 110: enterprise.gloo.solo.io.PassThroughGrpcTLSConfig.secret_ref:type_name -> core.solo.io.ResourceRef
+	54,  // 111: enterprise.gloo.solo.io.PassThroughGrpcTLSConfig.ssl_params:type_name -> enterprise.gloo.solo.io.SslParameters
+	111, // 112: enterprise.gloo.solo.io.PassThroughHttpTLSConfig.secret_ref:type_name -> core.solo.io.ResourceRef
+	54,  // 113: enterprise.gloo.solo.io.PassThroughHttpTLSConfig.ssl_params:type_name -> enterprise.gloo.solo.io.SslParameters
+	5,   // 114: enterprise.gloo.solo.io.SslParameters.minimum_protocol_version:type_name -> enterprise.gloo.solo.io.SslParameters.ProtocolVersion
+	5,   // 115: enterprise.gloo.solo.io.SslParameters.maximum_protocol_version:type_name -> enterprise.gloo.solo.io.SslParameters.ProtocolVersion
+	20,  // 116: enterprise.gloo.solo.io.PortalAuth.redis_options:type_name -> enterprise.gloo.solo.io.RedisOptions
+	112, // 117: enterprise.gloo.solo.io.PortalAuth.cache_duration:type_name -> google.protobuf.Duration
+	112, // 118: enterprise.gloo.solo.io.PortalAuth.request_timeout:type_name -> google.protobuf.Duration
+	110, // 119: enterprise.gloo.solo.io.AuthConfig.Config.name:type_name -> google.protobuf.StringValue
+	14,  // 120: enterprise.gloo.solo.io.AuthConfig.Config.basic_auth:type_name -> enterprise.gloo.solo.io.BasicAuth
+	18,  // 121: enterprise.gloo.solo.io.AuthConfig.Config.oauth:type_name -> enterprise.gloo.solo.io.OAuth
+	19,  // 122: enterprise.gloo.solo.io.AuthConfig.Config.oauth2:type_name -> enterprise.gloo.solo.io.OAuth2
+	35,  // 123: enterprise.gloo.solo.io.AuthConfig.Config.api_key_auth:type_name -> enterprise.gloo.solo.io.ApiKeyAuth
+	13,  // 124: enterprise.gloo.solo.io.AuthConfig.Config.plugin_auth:type_name -> enterprise.gloo.solo.io.AuthPlugin
+	42,  // 125: enterprise.gloo.solo.io.AuthConfig.Config.opa_auth:type_name -> enterprise.gloo.solo.io.OpaAuth
+	45,  // 126: enterprise.gloo.solo.io.AuthConfig.Config.ldap:type_name -> enterprise.gloo.solo.io.Ldap
+	115, // 127: enterprise.gloo.solo.io.AuthConfig.Config.jwt:type_name -> google.protobuf.Empty
+	47,  // 128: enterprise.gloo.solo.io.AuthConfig.Config.pass_through_auth:type_name -> enterprise.gloo.solo.io.PassThroughAuth
+	15,  // 129: enterprise.gloo.solo.io.AuthConfig.Config.hmac_auth:type_name -> enterprise.gloo.solo.io.HmacAuth
+	44,  // 130: enterprise.gloo.solo.io.AuthConfig.Config.opa_server_auth:type_name -> enterprise.gloo.solo.io.OpaServerAuth
+	55,  // 131: enterprise.gloo.solo.io.AuthConfig.Config.portal_auth:type_name -> enterprise.gloo.solo.io.PortalAuth
+	59,  // 132: enterprise.gloo.solo.io.HttpService.Request.headers_to_add:type_name -> enterprise.gloo.solo.io.HttpService.Request.HeadersToAddEntry
+	66,  // 133: enterprise.gloo.solo.io.BasicAuth.Apr.users:type_name -> enterprise.gloo.solo.io.BasicAuth.Apr.UsersEntry
+	68,  // 134: enterprise.gloo.solo.io.BasicAuth.EncryptionType.apr:type_name -> enterprise.gloo.solo.io.BasicAuth.EncryptionType.Apr
+	67,  // 135: enterprise.gloo.solo.io.BasicAuth.EncryptionType.sha1:type_name -> enterprise.gloo.solo.io.BasicAuth.EncryptionType.Sha1
+	69,  // 136: enterprise.gloo.solo.io.BasicAuth.UserList.users:type_name -> enterprise.gloo.solo.io.BasicAuth.UserList.UsersEntry
+	65,  // 137: enterprise.gloo.solo.io.BasicAuth.Apr.UsersEntry.value:type_name -> enterprise.gloo.solo.io.BasicAuth.Apr.SaltedHashedPassword
+	63,  // 138: enterprise.gloo.solo.io.BasicAuth.UserList.UsersEntry.value:type_name -> enterprise.gloo.solo.io.BasicAuth.User
+	114, // 139: enterprise.gloo.solo.io.UserSession.InternalSession.allow_refreshing:type_name -> google.protobuf.BoolValue
+	20,  // 140: enterprise.gloo.solo.io.UserSession.RedisSession.options:type_name -> enterprise.gloo.solo.io.RedisOptions
+	114, // 141: enterprise.gloo.solo.io.UserSession.RedisSession.allow_refreshing:type_name -> google.protobuf.BoolValue
+	112, // 142: enterprise.gloo.solo.io.UserSession.RedisSession.pre_expiry_buffer:type_name -> google.protobuf.Duration
+	116, // 143: enterprise.gloo.solo.io.UserSession.CookieOptions.max_age:type_name -> google.protobuf.UInt32Value
+	114, // 144: enterprise.gloo.solo.io.UserSession.CookieOptions.http_only:type_name -> google.protobuf.BoolValue
+	110, // 145: enterprise.gloo.solo.io.UserSession.CookieOptions.path:type_name -> google.protobuf.StringValue
+	2,   // 146: enterprise.gloo.solo.io.UserSession.CookieOptions.same_site:type_name -> enterprise.gloo.solo.io.UserSession.CookieOptions.SameSite
+	111, // 147: enterprise.gloo.solo.io.UserSession.CipherConfig.key_ref:type_name -> core.solo.io.ResourceRef
+	27,  // 148: enterprise.gloo.solo.io.OidcAuthorizationCode.AccessToken.claims_to_headers:type_name -> enterprise.gloo.solo.io.ClaimToHeader
+	27,  // 149: enterprise.gloo.solo.io.OidcAuthorizationCode.IdentityToken.claims_to_headers:type_name -> enterprise.gloo.solo.io.ClaimToHeader
+	83,  // 150: enterprise.gloo.solo.io.OidcAuthorizationCode.ClientAuthentication.client_secret:type_name -> enterprise.gloo.solo.io.OidcAuthorizationCode.ClientAuthentication.ClientSecret
+	84,  // 151: enterprise.gloo.solo.io.OidcAuthorizationCode.ClientAuthentication.private_key_jwt:type_name -> enterprise.gloo.solo.io.OidcAuthorizationCode.ClientAuthentication.PrivateKeyJwt
+	111, // 152: enterprise.gloo.solo.io.OidcAuthorizationCode.ClientAuthentication.ClientSecret.client_secret_ref:type_name -> core.solo.io.ResourceRef
+	114, // 153: enterprise.gloo.solo.io.OidcAuthorizationCode.ClientAuthentication.ClientSecret.disable_client_secret:type_name -> google.protobuf.BoolValue
+	111, // 154: enterprise.gloo.solo.io.OidcAuthorizationCode.ClientAuthentication.PrivateKeyJwt.signing_key_ref:type_name -> core.solo.io.ResourceRef
+	112, // 155: enterprise.gloo.solo.io.OidcAuthorizationCode.ClientAuthentication.PrivateKeyJwt.valid_for:type_name -> google.protobuf.Duration
+	112, // 156: enterprise.gloo.solo.io.JwtValidation.RemoteJwks.refresh_interval:type_name -> google.protobuf.Duration
+	95,  // 157: enterprise.gloo.solo.io.ApiKeyAuth.HeadersFromMetadataEntry.value:type_name -> enterprise.gloo.solo.io.ApiKeyAuth.SecretKey
+	96,  // 158: enterprise.gloo.solo.io.ApiKeyAuth.HeadersFromMetadataEntryEntry.value:type_name -> enterprise.gloo.solo.io.ApiKeyAuth.MetadataEntry
+	116, // 159: enterprise.gloo.solo.io.Ldap.ConnectionPool.maxSize:type_name -> google.protobuf.UInt32Value
+	116, // 160: enterprise.gloo.solo.io.Ldap.ConnectionPool.initialSize:type_name -> google.protobuf.UInt32Value
+	107, // 161: enterprise.gloo.solo.io.PassThroughHttp.Request.headers_to_add:type_name -> enterprise.gloo.solo.io.PassThroughHttp.Request.HeadersToAddEntry
+	162, // [162:162] is the sub-list for method output_type
+	162, // [162:162] is the sub-list for method input_type
+	162, // [162:162] is the sub-list for extension type_name
+	162, // [162:162] is the sub-list for extension extendee
+	0,   // [0:162] is the sub-list for field type_name
 }
 
 func init() {
@@ -8376,18 +8502,18 @@ func file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extaut
 		(*ApiKeyAuth_K8SSecretApikeyStorage)(nil),
 		(*ApiKeyAuth_AerospikeApikeyStorage)(nil),
 	}
-	file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[31].OneofWrappers = []any{
+	file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[32].OneofWrappers = []any{
 		(*AerospikeApiKeyStorage_CommitAll)(nil),
 		(*AerospikeApiKeyStorage_CommitMaster)(nil),
 	}
-	file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[40].OneofWrappers = []any{
+	file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[41].OneofWrappers = []any{
 		(*PassThroughAuth_Grpc)(nil),
 		(*PassThroughAuth_Http)(nil),
 	}
-	file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[42].OneofWrappers = []any{
+	file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[43].OneofWrappers = []any{
 		(*RetryPolicy_RetryBackOff)(nil),
 	}
-	file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[49].OneofWrappers = []any{
+	file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[50].OneofWrappers = []any{
 		(*AuthConfig_Config_BasicAuth)(nil),
 		(*AuthConfig_Config_Oauth)(nil),
 		(*AuthConfig_Config_Oauth2)(nil),
@@ -8401,28 +8527,28 @@ func file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extaut
 		(*AuthConfig_Config_OpaServerAuth)(nil),
 		(*AuthConfig_Config_PortalAuth)(nil),
 	}
-	file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[55].OneofWrappers = []any{
+	file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[56].OneofWrappers = []any{
 		(*BasicAuth_EncryptionType_Apr_)(nil),
 		(*BasicAuth_EncryptionType_Sha1_)(nil),
 	}
-	file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[67].OneofWrappers = []any{
+	file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[68].OneofWrappers = []any{
 		(*UserSession_CipherConfig_KeyRef)(nil),
 	}
-	file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[73].OneofWrappers = []any{
+	file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[74].OneofWrappers = []any{
 		(*OidcAuthorizationCode_ClientAuthentication_ClientSecret_)(nil),
 		(*OidcAuthorizationCode_ClientAuthentication_PrivateKeyJwt_)(nil),
 	}
-	file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[91].OneofWrappers = []any{
+	file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[92].OneofWrappers = []any{
 		(*AerospikeApiKeyStorageReadModeSc_ReadModeScSession)(nil),
 		(*AerospikeApiKeyStorageReadModeSc_ReadModeScLinearize)(nil),
 		(*AerospikeApiKeyStorageReadModeSc_ReadModeScReplica)(nil),
 		(*AerospikeApiKeyStorageReadModeSc_ReadModeScAllowUnavailable)(nil),
 	}
-	file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[92].OneofWrappers = []any{
+	file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[93].OneofWrappers = []any{
 		(*AerospikeApiKeyStorageReadModeAp_ReadModeApOne)(nil),
 		(*AerospikeApiKeyStorageReadModeAp_ReadModeApAll)(nil),
 	}
-	file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[93].OneofWrappers = []any{
+	file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_msgTypes[94].OneofWrappers = []any{
 		(*AerospikeApiKeyStorageTlsCurveID_CurveP256)(nil),
 		(*AerospikeApiKeyStorageTlsCurveID_CurveP384)(nil),
 		(*AerospikeApiKeyStorageTlsCurveID_CurveP521)(nil),
@@ -8433,8 +8559,8 @@ func file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extaut
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_rawDesc), len(file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_rawDesc)),
-			NumEnums:      5,
-			NumMessages:   101,
+			NumEnums:      6,
+			NumMessages:   102,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

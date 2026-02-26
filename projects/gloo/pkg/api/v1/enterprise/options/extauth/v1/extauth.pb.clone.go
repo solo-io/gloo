@@ -1294,6 +1294,12 @@ func (m *ApiKeyAuth) Clone() proto.Message {
 
 	target.SkipMetadataValidation = m.GetSkipMetadataValidation()
 
+	if h, ok := interface{}(m.GetHmac()).(clone.Cloner); ok {
+		target.Hmac = h.Clone().(*ApiKeyHmac)
+	} else {
+		target.Hmac = proto.Clone(m.GetHmac()).(*ApiKeyHmac)
+	}
+
 	switch m.StorageBackend.(type) {
 
 	case *ApiKeyAuth_K8SSecretApikeyStorage:
@@ -1320,6 +1326,25 @@ func (m *ApiKeyAuth) Clone() proto.Message {
 			}
 		}
 
+	}
+
+	return target
+}
+
+// Clone function
+func (m *ApiKeyHmac) Clone() proto.Message {
+	var target *ApiKeyHmac
+	if m == nil {
+		return target
+	}
+	target = &ApiKeyHmac{}
+
+	target.Algorithm = m.GetAlgorithm()
+
+	if h, ok := interface{}(m.GetSharedSecretRef()).(clone.Cloner); ok {
+		target.SharedSecretRef = h.Clone().(*github_com_solo_io_solo_kit_pkg_api_v1_resources_core.ResourceRef)
+	} else {
+		target.SharedSecretRef = proto.Clone(m.GetSharedSecretRef()).(*github_com_solo_io_solo_kit_pkg_api_v1_resources_core.ResourceRef)
 	}
 
 	return target
