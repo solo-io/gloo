@@ -110,8 +110,7 @@ func (d *Deployer) GetGvksToWatch(ctx context.Context) ([]schema.GroupVersionKin
 	// In order to get the GVKs for the resources to watch, we need:
 	// - a placeholder Gateway (only the name and namespace are used, but the actual values don't matter,
 	//   as we only care about the GVKs of the rendered resources)
-	// - the minimal values that render all the proxy resources (HPA is not included because it's not
-	//   fully integrated/working at the moment)
+	// - the minimal values that render all the proxy resources
 	// - a flag to indicate whether mtls is enabled, so we can render the secret if needed
 	//
 	// Note: another option is to hardcode the GVKs here, but rendering the helm chart is a
@@ -330,17 +329,9 @@ func (d *Deployer) getValues(ctx context.Context, gw *api.Gateway, gwParam *v1al
 	gateway := vals.Gateway
 
 	// deployment values
+	// Only set ReplicaCount when explicitly configured. When nil, the Deployment
+	// template will omit the replicas field, letting K8s or an HPA control scaling.
 	gateway.ReplicaCount = deployConfig.GetReplicas()
-
-	// TODO: The follow stanza has been commented out as autoscaling support has been removed.
-	// see https://github.com/solo-io/solo-projects/issues/5948 for more info.
-	//
-	// autoscalingVals := getAutoscalingValues(kubeProxyConfig.GetAutoscaling())
-	// vals.Gateway.Autoscaling = autoscalingVals
-	// if autoscalingVals == nil && deployConfig.GetReplicas() != nil {
-	// 	replicas := deployConfig.GetReplicas().GetValue()
-	// 	vals.Gateway.ReplicaCount = &replicas
-	// }
 
 	// service values
 	gateway.Service = getServiceValues(svcConfig)

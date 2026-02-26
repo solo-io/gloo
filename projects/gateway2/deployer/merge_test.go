@@ -49,6 +49,98 @@ var _ = Describe("deepMergeGatewayParameters", func() {
 		Expect(out.Spec.Kube.Deployment.Replicas).To(Equal(src.Spec.Kube.Deployment.Replicas))
 	})
 
+	// This may or may not be what we want but more just capturing existing merge behavior
+	It("preserves dst replicas when src has no deployment", func() {
+		dst := &gw2_v1alpha1.GatewayParameters{
+			Spec: gw2_v1alpha1.GatewayParametersSpec{
+				Kube: &gw2_v1alpha1.KubernetesProxyConfig{
+					Deployment: &gw2_v1alpha1.ProxyDeployment{
+						Replicas: ptr.To[uint32](2),
+					},
+				},
+			},
+		}
+		src := &gw2_v1alpha1.GatewayParameters{
+			Spec: gw2_v1alpha1.GatewayParametersSpec{
+				Kube: &gw2_v1alpha1.KubernetesProxyConfig{},
+			},
+		}
+		out := deepMergeGatewayParameters(dst, src)
+		replicas := out.Spec.Kube.GetDeployment().GetReplicas()
+		Expect(replicas).ToNot(BeNil())
+		Expect(*replicas).To(Equal(uint32(2)))
+	})
+
+	// This may or may not be what we want but more just capturing existing merge behavior
+	It("preserves src replicas when dst has no deployment", func() {
+		dst := &gw2_v1alpha1.GatewayParameters{
+			Spec: gw2_v1alpha1.GatewayParametersSpec{
+				Kube: &gw2_v1alpha1.KubernetesProxyConfig{},
+			},
+		}
+		src := &gw2_v1alpha1.GatewayParameters{
+			Spec: gw2_v1alpha1.GatewayParametersSpec{
+				Kube: &gw2_v1alpha1.KubernetesProxyConfig{
+					Deployment: &gw2_v1alpha1.ProxyDeployment{
+						Replicas: ptr.To[uint32](2),
+					},
+				},
+			},
+		}
+		out := deepMergeGatewayParameters(dst, src)
+		replicas := out.Spec.Kube.GetDeployment().GetReplicas()
+		Expect(replicas).ToNot(BeNil())
+		Expect(*replicas).To(Equal(uint32(2)))
+	})
+
+	// This may or may not be what we want but more just capturing existing merge behavior
+	It("preserves dst replicas when src has no replicas", func() {
+		dst := &gw2_v1alpha1.GatewayParameters{
+			Spec: gw2_v1alpha1.GatewayParametersSpec{
+				Kube: &gw2_v1alpha1.KubernetesProxyConfig{
+					Deployment: &gw2_v1alpha1.ProxyDeployment{
+						Replicas: ptr.To[uint32](2),
+					},
+				},
+			},
+		}
+		src := &gw2_v1alpha1.GatewayParameters{
+			Spec: gw2_v1alpha1.GatewayParametersSpec{
+				Kube: &gw2_v1alpha1.KubernetesProxyConfig{
+					Deployment: &gw2_v1alpha1.ProxyDeployment{},
+				},
+			},
+		}
+		out := deepMergeGatewayParameters(dst, src)
+		replicas := out.Spec.Kube.GetDeployment().GetReplicas()
+		Expect(replicas).ToNot(BeNil())
+		Expect(*replicas).To(Equal(uint32(2)))
+	})
+
+	// This may or may not be what we want but more just capturing existing merge behavior
+	It("preserves src replicas when dst has no replicas", func() {
+		dst := &gw2_v1alpha1.GatewayParameters{
+			Spec: gw2_v1alpha1.GatewayParametersSpec{
+				Kube: &gw2_v1alpha1.KubernetesProxyConfig{
+					Deployment: &gw2_v1alpha1.ProxyDeployment{},
+				},
+			},
+		}
+		src := &gw2_v1alpha1.GatewayParameters{
+			Spec: gw2_v1alpha1.GatewayParametersSpec{
+				Kube: &gw2_v1alpha1.KubernetesProxyConfig{
+					Deployment: &gw2_v1alpha1.ProxyDeployment{
+						Replicas: ptr.To[uint32](2),
+					},
+				},
+			},
+		}
+		out := deepMergeGatewayParameters(dst, src)
+		replicas := out.Spec.Kube.GetDeployment().GetReplicas()
+		Expect(replicas).ToNot(BeNil())
+		Expect(*replicas).To(Equal(uint32(2)))
+	})
+
 	It("merges maps", func() {
 		dst := &gw2_v1alpha1.GatewayParameters{
 			Spec: gw2_v1alpha1.GatewayParametersSpec{
