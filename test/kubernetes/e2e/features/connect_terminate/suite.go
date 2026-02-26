@@ -3,6 +3,7 @@ package connect_terminate
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/onsi/gomega"
 	"github.com/stretchr/testify/suite"
@@ -97,14 +98,18 @@ func (s *testingSuite) TestConnectTunnel() {
 	}
 
 	// Eventually check that curl shows CONNECT succeeded
+	// Use longer timeout since curl pod may need time to become ready
 	s.testInstallation.Assertions.Gomega.Eventually(func() string {
-		curlResponse, _ := s.testInstallation.Actions.Kubectl().CurlFromPod(
+		curlResponse, err := s.testInstallation.Actions.Kubectl().CurlFromPod(
 			s.ctx,
 			testDefaults.CurlPodExecOpt,
 			curlOpts...,
 		)
+		if err != nil {
+			return "" // Return empty string on error, will retry
+		}
 		// curl's verbose output goes to stderr
 		return curlResponse.StdErr
-	}).Should(gomega.ContainSubstring("Proxy replied 200 to CONNECT request"),
+	}, 30*time.Second, 2*time.Second).Should(gomega.ContainSubstring("Proxy replied 200 to CONNECT request"),
 		"CONNECT request should succeed (return 200 OK)")
 }
