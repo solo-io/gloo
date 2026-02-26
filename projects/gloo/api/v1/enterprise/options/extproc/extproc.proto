@@ -31,6 +31,7 @@ message Settings {
   GrpcService grpc_service = 1;
 
   // Required. Where in the HTTP filter chain to insert the filter.
+  // This is not honoured when specified in ext_proc_late.
   .filters.gloo.solo.io.FilterStage filter_stage = 2;
 
   // By default, if the gRPC stream cannot be established, or if it is closed
@@ -141,7 +142,6 @@ message Settings {
   // It works in a way similar to `metadata_context_namespaces` but allows envoy and external processing server to share the protobuf message definition
   // in order to do a safe parsing.
   repeated string typed_metadata_context_namespaces = 17;
-
 }
 
 // External processor settings that can be configured on a virtual host or route.

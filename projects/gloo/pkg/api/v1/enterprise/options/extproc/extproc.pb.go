@@ -44,6 +44,7 @@ type Settings struct {
 	// Required. Configuration for the gRPC service that the filter will communicate with.
 	GrpcService *GrpcService `protobuf:"bytes,1,opt,name=grpc_service,json=grpcService,proto3" json:"grpc_service,omitempty"`
 	// Required. Where in the HTTP filter chain to insert the filter.
+	// This is not honoured when specified in ext_proc_late.
 	FilterStage *filters.FilterStage `protobuf:"bytes,2,opt,name=filter_stage,json=filterStage,proto3" json:"filter_stage,omitempty"`
 	// By default, if the gRPC stream cannot be established, or if it is closed
 	// prematurely with an error, the filter will fail. Specifically, if the
