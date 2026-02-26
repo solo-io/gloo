@@ -70,22 +70,17 @@ func (s *testingSuite) TearDownSuite() {
 	s.Require().NoError(err)
 }
 
-// TestConnectTunnel tests that CONNECT requests are properly tunneled with connect_terminate enabled
-// This replicates the customer reproducer test from:
-// /Users/jasoncigan/Git/customer-success-reproducer-agent/reproductions/7973-https-connect-tunnel
-//
-// Test command: curl --proxy http://gateway-proxy:80 https://httpbin.org/get
-// curl automatically sends CONNECT for https:// targets when using --proxy
-// DFP extracts the target hostname from the CONNECT request (e.g., "CONNECT httpbin.org:443")
+// TestConnectTunnel tests that CONNECT tunneling works end-to-end with connect_terminate enabled
+// This verifies that Envoy's connect_config is properly set, enabling TCP tunneling for HTTPS traffic
 func (s *testingSuite) TestConnectTunnel() {
 	proxyUrl := "http://" + kubeutils.ServiceFQDN(metav1.ObjectMeta{
 		Name:      "gateway-proxy-connect-terminate",
 		Namespace: s.testInstallation.Metadata.InstallNamespace,
 	}) + ":80"
 
-	// Use curl with --proxy to test CONNECT tunneling
-	// curl automatically sends: "CONNECT httpbin.org:443 HTTP/1.1" for https:// targets
-	// --proxy-header sends the x-dfp-host header in the CONNECT request itself
+	// Test full HTTPS through CONNECT tunnel
+	// curl --proxy sends CONNECT for https:// URLs
+	// --proxy-header sends x-dfp-host in the CONNECT request (required by DFP)
 	s.testInstallation.Assertions.AssertEventualCurlResponse(
 		s.ctx,
 		testDefaults.CurlPodExecOpt,

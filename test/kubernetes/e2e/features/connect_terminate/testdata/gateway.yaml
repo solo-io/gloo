@@ -13,9 +13,10 @@ spec:
         dnsCacheConfig:
           dnsLookupFamily: V4_ONLY
           hostTtl: 86400s
-        sslConfig:
-          sslFiles:
-            rootCa: /etc/ssl/certs/ca-certificates.crt
+        # NOTE: sslConfig is intentionally omitted for CONNECT tunneling
+        # CONNECT creates a raw TCP tunnel - the client handles TLS end-to-end
+        # If sslConfig is present, DFP wraps the connection in TLS, causing
+        # double TLS and "wrong version number" errors
       httpConnectionManagerSettings:
         upgrades:
         - connect:
