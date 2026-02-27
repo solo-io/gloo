@@ -21,7 +21,7 @@ spec:
         - connect:
             enabled: true
   proxyNames:
-  - gateway-proxy
+  - gateway-proxy-connect-terminate
   ssl: true
   useProxyProto: false
 ---
