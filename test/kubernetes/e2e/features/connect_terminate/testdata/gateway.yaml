@@ -1,12 +1,12 @@
 # Gateway configuration for CONNECT termination testing
-# Using HTTP proxy (port 80) - HTTPS tunnel is established end-to-end through CONNECT
+# Matches manual validation that succeeded
 apiVersion: gateway.solo.io/v1
 kind: Gateway
 metadata:
   name: connect-terminate-gateway
 spec:
   bindAddress: 0.0.0.0
-  bindPort: 80
+  bindPort: 8444
   httpGateway:
     options:
       dynamicForwardProxy:
@@ -22,8 +22,22 @@ spec:
             enabled: true
   proxyNames:
   - gateway-proxy
-  ssl: false
+  ssl: true
   useProxyProto: false
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway-proxy-connect-terminate
+spec:
+  ports:
+  - name: https
+    port: 8444
+    protocol: TCP
+    targetPort: 8444
+  selector:
+    gloo: gateway-proxy
+  type: ClusterIP
 ---
 apiVersion: v1
 kind: Service

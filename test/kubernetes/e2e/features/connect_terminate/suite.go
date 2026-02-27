@@ -75,17 +75,18 @@ func (s *testingSuite) TearDownSuite() {
 // This replicates the manual validation that succeeded: HTTPS proxy, full HTTPS through tunnel
 func (s *testingSuite) TestConnectTunnel() {
 	proxyService := kubeutils.ServiceFQDN(metav1.ObjectMeta{
-		Name:      "gateway-proxy",
+		Name:      "gateway-proxy-connect-terminate",
 		Namespace: s.testInstallation.Metadata.InstallNamespace,
 	})
 
-	// Using HTTP proxy on port 80 - HTTPS tunnel is established end-to-end through CONNECT
-	// Manual validation used HTTPS proxy, but HTTP proxy works equally well for CONNECT tunneling
+	// Matches manual validation: curl -kv -x https://localhost:8443 https://httpbin.org/get
+	// (using port 8444 in test env to avoid conflicts with other listeners)
 	curlOpts := []curl.Option{
 		curl.WithArgs([]string{
 			"curl",
+			"-k", // --insecure for proxy SSL
 			"-v", // verbose
-			"-x", fmt.Sprintf("http://%s:80", proxyService),
+			"-x", fmt.Sprintf("https://%s:8444", proxyService),
 			"--proxy-header", "x-dfp-host: httpbin.org",
 			"--max-time", "10",
 			"-s", "-o", "/dev/null",
