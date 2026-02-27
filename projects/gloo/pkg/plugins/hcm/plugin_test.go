@@ -370,7 +370,7 @@ var _ = Describe("Plugin", func() {
 			Expect(cfg.GetUpgradeConfigs()[1].Enabled.Value).To(BeTrue())
 		})
 
-		It("legacy connect field still works (backwards compatibility)", func() {
+		It("connect (without terminating) field still works", func() {
 			settings := &hcm.HttpConnectionManagerSettings{
 				Upgrades: []*protocol_upgrade.ProtocolUpgradeConfig{
 					{
@@ -388,17 +388,17 @@ var _ = Describe("Plugin", func() {
 
 			// connect + default websocket = 2 configs
 			Expect(cfg.GetUpgradeConfigs()).To(HaveLen(2))
-			// Find the CONNECT config
-			var connectConfig *envoyhttp.HttpConnectionManager_UpgradeConfig
+			// Find the CONNECT upgrade config
+			var connectUpgrade *envoyhttp.HttpConnectionManager_UpgradeConfig
 			for _, uc := range cfg.GetUpgradeConfigs() {
 				if uc.UpgradeType == "CONNECT" {
-					connectConfig = uc
+					connectUpgrade = uc
 					break
 				}
 			}
-			Expect(connectConfig).NotTo(BeNil())
-			Expect(connectConfig.Enabled.Value).To(BeTrue())
-			// Note: ConnectConfig doesn't exist at HCM level, only at route level
+			Expect(connectUpgrade).NotTo(BeNil())
+			Expect(connectUpgrade.Enabled.Value).To(BeTrue())
+			// Note: The route-level ConnectConfig field doesn't exist at HCM level
 		})
 
 		It("should error when there's a duplicate upgrade config", func() {

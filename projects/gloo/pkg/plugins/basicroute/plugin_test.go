@@ -840,7 +840,7 @@ var _ = Describe("upgrades", func() {
 		Expect(routeAction.GetUpgradeConfigs()[0].Enabled.Value).To(BeTrue())
 		Expect(routeAction.GetUpgradeConfigs()[1].UpgradeType).To(Equal("CONNECT"))
 		Expect(routeAction.GetUpgradeConfigs()[1].Enabled.Value).To(BeTrue())
-		// CRITICAL: Verify that ConnectConfig is set (this is the whole point!)
+		// Verify ConnectConfig is set for connect_terminate
 		Expect(routeAction.GetUpgradeConfigs()[1].ConnectConfig).NotTo(BeNil())
 	})
 	It("connect_terminate can be disabled", func() {

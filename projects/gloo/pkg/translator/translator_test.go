@@ -4085,7 +4085,7 @@ var _ = Describe("Translator", func() {
 			Expect(upgradeConfig.ConnectConfig).NotTo(BeNil())
 		})
 
-		It("should translate legacy connect without ConnectConfig", func() {
+		It("should translate connect (without terminating) without ConnectConfig", func() {
 			routes[0].Options = &v1.RouteOptions{
 				Upgrades: []*protocol_upgrade.ProtocolUpgradeConfig{
 					{
@@ -4104,7 +4104,7 @@ var _ = Describe("Translator", func() {
 			upgradeConfig := envoyRoute.GetRoute().GetUpgradeConfigs()[0]
 			Expect(upgradeConfig.UpgradeType).To(Equal("CONNECT"))
 			Expect(upgradeConfig.Enabled.GetValue()).To(BeTrue())
-			// Verify ConnectConfig is NOT set for legacy connect
+			// Verify ConnectConfig is NOT set for non-terminating connect
 			Expect(upgradeConfig.ConnectConfig).To(BeNil())
 		})
 
