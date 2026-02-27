@@ -1,13 +1,13 @@
 package e2e_test
 
 import (
-	"net/http"
-
 	"github.com/solo-io/gloo/test/testutils"
 
 	"github.com/solo-io/gloo/test/gomega/matchers"
 
 	defaults2 "github.com/solo-io/gloo/projects/gateway/pkg/defaults"
+
+	"net/http"
 
 	"github.com/solo-io/gloo/test/e2e"
 	"github.com/solo-io/gloo/test/helpers"
@@ -18,7 +18,6 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-
 	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 )
