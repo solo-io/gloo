@@ -4,6 +4,8 @@ apiVersion: gateway.solo.io/v1
 kind: VirtualService
 metadata:
   name: connect-terminate-vs
+  labels:
+    gateway-type: connect-terminate
 spec:
   displayName: connect-terminate-vs
   virtualHost:

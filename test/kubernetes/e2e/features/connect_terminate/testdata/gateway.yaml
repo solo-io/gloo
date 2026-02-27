@@ -8,6 +8,8 @@ spec:
   bindAddress: 0.0.0.0
   bindPort: 80
   httpGateway:
+    virtualServiceSelector:
+      gateway-type: connect-terminate
     options:
       dynamicForwardProxy:
         dnsCacheConfig:
@@ -24,17 +26,3 @@ spec:
   - gateway-proxy
   ssl: false
   useProxyProto: false
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: gateway-proxy-connect-terminate
-spec:
-  ports:
-  - name: https
-    port: 8444
-    protocol: TCP
-    targetPort: 8444
-  selector:
-    gloo: gateway-proxy
-  type: ClusterIP
