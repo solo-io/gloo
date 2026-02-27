@@ -248,6 +248,9 @@ apis:
   enterprise.gloo.solo.io.ApiKeyDeleteResponse:
     relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth-internal.proto.sk/#ApiKeyDeleteResponse
     package: enterprise.gloo.solo.io
+  enterprise.gloo.solo.io.ApiKeyHmac:
+    relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth.proto.sk/#ApiKeyHmac
+    package: enterprise.gloo.solo.io
   enterprise.gloo.solo.io.ApiKeyReadRequest:
     relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth-internal.proto.sk/#ApiKeyReadRequest
     package: enterprise.gloo.solo.io

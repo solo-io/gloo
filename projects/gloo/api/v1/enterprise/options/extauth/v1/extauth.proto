@@ -1195,6 +1195,26 @@ message ApiKeyAuth {
     // in the data plane and mitigated in a way that provides a consistent experience for the user and visibility for the operator.
     // This validation comes with a performance cost, and can be disabled by setting this field to `true`.
     bool skip_metadata_validation = 8;
+
+    // Optional HMAC digest verification mode for API key validation. When configured, stored API key values
+    // are treated as HMAC digests and the request API key is transformed prior to comparison.
+    ApiKeyHmac hmac = 9;
+}
+
+// Configuration for HMAC-based API key digest verification.
+message ApiKeyHmac {
+    // Supported HMAC algorithms for API key digest verification.
+    enum Algorithm {
+        // When unspecified, ext-auth-service should default to HMAC_SHA256.
+        ALGORITHM_UNSPECIFIED = 0;
+        HMAC_SHA256 = 1;
+    }
+
+    // Algorithm used to compute the digest for comparison against stored API key values.
+    Algorithm algorithm = 1;
+
+    // Reference to the shared secret used to compute request-time HMAC digests.
+    core.solo.io.ResourceRef shared_secret_ref = 2;
 }
 message K8sSecretApiKeyStorage {
     // Identify all valid API key secrets that match the provided label selector.<br/>

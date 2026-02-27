@@ -2151,6 +2151,16 @@ func (m *ApiKeyAuth) Equal(that interface{}) bool {
 		return false
 	}
 
+	if h, ok := interface{}(m.GetHmac()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetHmac()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetHmac(), target.GetHmac()) {
+			return false
+		}
+	}
+
 	switch m.StorageBackend.(type) {
 
 	case *ApiKeyAuth_K8SSecretApikeyStorage:
@@ -2186,6 +2196,44 @@ func (m *ApiKeyAuth) Equal(that interface{}) bool {
 	default:
 		// m is nil but target is not nil
 		if m.StorageBackend != target.StorageBackend {
+			return false
+		}
+	}
+
+	return true
+}
+
+// Equal function
+func (m *ApiKeyHmac) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*ApiKeyHmac)
+	if !ok {
+		that2, ok := that.(ApiKeyHmac)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	if m.GetAlgorithm() != target.GetAlgorithm() {
+		return false
+	}
+
+	if h, ok := interface{}(m.GetSharedSecretRef()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetSharedSecretRef()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetSharedSecretRef(), target.GetSharedSecretRef()) {
 			return false
 		}
 	}

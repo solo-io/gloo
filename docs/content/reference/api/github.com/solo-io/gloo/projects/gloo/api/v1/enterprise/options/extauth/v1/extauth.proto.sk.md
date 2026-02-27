@@ -72,6 +72,8 @@ weight: 5
 - [ApiKeyAuth](#apikeyauth)
 - [SecretKey](#secretkey)
 - [MetadataEntry](#metadataentry)
+- [ApiKeyHmac](#apikeyhmac)
+- [Algorithm](#algorithm)
 - [K8sSecretApiKeyStorage](#k8ssecretapikeystorage)
 - [AerospikeApiKeyStorage](#aerospikeapikeystorage)
 - [readModeSc](#readmodesc)
@@ -1475,6 +1477,7 @@ added to the `AuthorizationRequest` state under the "api_key_value" key name.
 "k8SSecretApikeyStorage": .enterprise.gloo.solo.io.K8sSecretApiKeyStorage
 "aerospikeApikeyStorage": .enterprise.gloo.solo.io.AerospikeApiKeyStorage
 "skipMetadataValidation": bool
+"hmac": .enterprise.gloo.solo.io.ApiKeyHmac
 
 ```
 
@@ -1488,6 +1491,7 @@ added to the `AuthorizationRequest` state under the "api_key_value" key name.
 | `k8SSecretApikeyStorage` | [.enterprise.gloo.solo.io.K8sSecretApiKeyStorage](../extauth.proto.sk/#k8ssecretapikeystorage) |  Only one of `k8sSecretApikeyStorage` or `aerospikeApikeyStorage` can be set. |
 | `aerospikeApikeyStorage` | [.enterprise.gloo.solo.io.AerospikeApiKeyStorage](../extauth.proto.sk/#aerospikeapikeystorage) | <b>Deprecated</b>: Support for Aerospike is deprecated and will be removed in a future release. Use of this feature is not recommended. Only one of `aerospikeApikeyStorage` or `k8sSecretApikeyStorage` can be set. |
 | `skipMetadataValidation` | `bool` | API key metadata may contain data is is invalid for a header, such as a newline. By default, this data will be validated in the data plane and mitigated in a way that provides a consistent experience for the user and visibility for the operator. This validation comes with a performance cost, and can be disabled by setting this field to `true`. |
+| `hmac` | [.enterprise.gloo.solo.io.ApiKeyHmac](../extauth.proto.sk/#apikeyhmac) | Optional HMAC digest verification mode for API key validation. When configured, stored API key values are treated as HMAC digests and the request API key is transformed prior to comparison. |
 
 
 
@@ -1529,6 +1533,40 @@ For the Aerospike backend, this data is stored as bins on the key's record
 | ----- | ---- | ----------- | 
 | `name` | `string` | (Required) The key of the API key metadata entry to inspect. |
 | `required` | `bool` | If this field is set to `true`, Gloo will reject an API key structure that does not contain data for the given key. Defaults to `false`. In this case, if an API key structure does not contain the requested data, no header will be added to the request. |
+
+
+
+
+---
+### ApiKeyHmac {#apikeyhmac}
+
+ 
+Configuration for HMAC-based API key digest verification.
+
+```yaml
+"algorithm": .enterprise.gloo.solo.io.ApiKeyHmac.Algorithm
+"sharedSecretRef": .core.solo.io.ResourceRef
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+| `algorithm` | [.enterprise.gloo.solo.io.ApiKeyHmac.Algorithm](../extauth.proto.sk/#algorithm) | Algorithm used to compute the digest for comparison against stored API key values. |
+| `sharedSecretRef` | [.core.solo.io.ResourceRef](../../../../../../../../../../solo-kit/api/v1/ref.proto.sk/#resourceref) | Reference to the shared secret used to compute request-time HMAC digests. |
+
+
+
+
+---
+### Algorithm {#algorithm}
+
+ 
+Supported HMAC algorithms for API key digest verification.
+
+| Name | Description |
+| ----- | ----------- | 
+| `ALGORITHM_UNSPECIFIED` | When unspecified, ext-auth-service should default to HMAC_SHA256. |
+| `HMAC_SHA256` |  |
 
 
 
