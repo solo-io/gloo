@@ -874,7 +874,7 @@ var _ = Describe("upgrades", func() {
 		Expect(routeAction.GetUpgradeConfigs()[0].Enabled.Value).To(BeFalse())
 		Expect(routeAction.GetUpgradeConfigs()[0].ConnectConfig).NotTo(BeNil())
 	})
-	It("legacy connect field still works (backwards compatibility)", func() {
+	It("connect (without terminating) field still works", func() {
 		p := NewPlugin()
 
 		routeAction := &envoy_config_route_v3.RouteAction{}
