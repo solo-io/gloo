@@ -6,7 +6,7 @@ metadata:
   name: connect-terminate-gateway
 spec:
   bindAddress: 0.0.0.0
-  bindPort: 9443
+  bindPort: 8444
   httpGateway:
     options:
       dynamicForwardProxy:
@@ -21,7 +21,7 @@ spec:
         - connect:
             enabled: true
   proxyNames:
-  - gateway-proxy-connect-terminate
+  - gateway-proxy
   ssl: true
   useProxyProto: false
 ---
@@ -32,9 +32,9 @@ metadata:
 spec:
   ports:
   - name: https
-    port: 9443
+    port: 8444
     protocol: TCP
-    targetPort: 9443
+    targetPort: 8444
   selector:
     gloo: gateway-proxy
   type: ClusterIP

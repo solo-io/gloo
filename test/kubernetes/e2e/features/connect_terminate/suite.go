@@ -80,13 +80,13 @@ func (s *testingSuite) TestConnectTunnel() {
 	})
 
 	// Matches manual validation: curl -kv -x https://localhost:8443 https://httpbin.org/get
-	// (using port 9443 in test env to avoid conflicts with other listeners)
+	// (using port 8444 in test env to avoid conflicts with other listeners)
 	curlOpts := []curl.Option{
 		curl.WithArgs([]string{
 			"curl",
 			"-k", // --insecure for proxy SSL
 			"-v", // verbose
-			"-x", fmt.Sprintf("https://%s:9443", proxyService),
+			"-x", fmt.Sprintf("https://%s:8444", proxyService),
 			"--proxy-header", "x-dfp-host: httpbin.org",
 			"--max-time", "10",
 			"-s", "-o", "/dev/null",
