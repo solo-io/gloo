@@ -23,8 +23,7 @@ message ProtocolUpgradeConfig {
 
         // Specification for CONNECT upgrade requests.
         // This enables the CONNECT upgrade type without additional configuration.
-        // For TCP tunneling (required for HTTPS targets through Dynamic Forward Proxy),
-        // use connect_terminate instead.
+        // This will allow a CONNECT request to be proxied as HTTP request to upstream.
         ProtocolUpgradeSpec connect = 2;
 
         // Specification for CONNECT protocol termination.
