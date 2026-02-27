@@ -903,7 +903,7 @@ var _ = Describe("upgrades", func() {
 		Expect(routeAction.GetUpgradeConfigs()).To(HaveLen(1))
 		Expect(routeAction.GetUpgradeConfigs()[0].UpgradeType).To(Equal("CONNECT"))
 		Expect(routeAction.GetUpgradeConfigs()[0].Enabled.Value).To(BeTrue())
-		// Make ConnectConfig is NOT set for non-terminating mode.
+		// Make sure ConnectConfig is NOT set for non-terminating mode.
 		Expect(routeAction.GetUpgradeConfigs()[0].ConnectConfig).To(BeNil())
 	})
 	It("fails on double config", func() {

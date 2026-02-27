@@ -112,15 +112,17 @@ type ProtocolUpgradeConfig_Websocket struct {
 type ProtocolUpgradeConfig_Connect struct {
 	// Specification for CONNECT upgrade requests.
 	// This enables the CONNECT upgrade type without additional configuration.
-	// For TCP tunneling (required for HTTPS targets through Dynamic Forward Proxy),
-	// use connect_terminate instead.
+	// This will allow a CONNECT request to be proxied as HTTP request to upstream.
 	Connect *ProtocolUpgradeConfig_ProtocolUpgradeSpec `protobuf:"bytes,2,opt,name=connect,proto3,oneof"`
 }
 
 type ProtocolUpgradeConfig_ConnectTerminate struct {
 	// Specification for CONNECT protocol termination.
-	// When configured, Envoy will terminate CONNECT requests and tunnel the TCP payload,
-	// allowing HTTPS traffic to pass through Dynamic Forward Proxy.
+	// When configured, Envoy will terminate CONNECT requests and proxy the payload in the request
+	// body as raw tcp data to upstream.
+	//
+	// NOTE: connect_terminate can only be configured at the route level (RouteOptions).
+	// It is not supported in HttpConnectionManagerSettings.
 	//
 	// SECURITY WARNING: This mode of CONNECT support can create major security holes if not
 	// configured correctly, as the upstream will be forwarded unsanitized headers if they are
