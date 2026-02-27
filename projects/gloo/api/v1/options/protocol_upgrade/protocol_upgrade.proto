@@ -28,8 +28,8 @@ message ProtocolUpgradeConfig {
         ProtocolUpgradeSpec connect = 2;
 
         // Specification for CONNECT protocol termination.
-        // When configured, Envoy will terminate CONNECT requests and tunnel the TCP payload,
-        // allowing HTTPS traffic to pass through Dynamic Forward Proxy.
+        // When configured, Envoy will terminate CONNECT requests and proxy the payload in the request 
+        // body as raw tcp data to upstream.
         //
         // SECURITY WARNING: This mode of CONNECT support can create major security holes if not
         // configured correctly, as the upstream will be forwarded unsanitized headers if they are
