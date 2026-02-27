@@ -1,28 +1,28 @@
 # Gateway configuration for CONNECT termination testing
-# Based on customer reproducer: 7973-https-connect-tunnel/fix/gateway-ssl-fixed-with-connect-terminate.yaml
+# Matches manual validation that succeeded
 apiVersion: gateway.solo.io/v1
 kind: Gateway
 metadata:
   name: connect-terminate-gateway
 spec:
   bindAddress: 0.0.0.0
-  bindPort: 8086
+  bindPort: 8443
   httpGateway:
     options:
       dynamicForwardProxy:
         dnsCacheConfig:
           dnsLookupFamily: V4_ONLY
           hostTtl: 86400s
-        # NOTE: sslConfig is intentionally omitted for CONNECT tunneling
-        # CONNECT creates a raw TCP tunnel - the client handles TLS end-to-end
-        # If sslConfig is present, DFP wraps the connection in TLS, causing
-        # double TLS and "wrong version number" errors
+        sslConfig:
+          sslFiles:
+            rootCa: /etc/ssl/certs/ca-certificates.crt
       httpConnectionManagerSettings:
         upgrades:
         - connect:
             enabled: true
   proxyNames:
   - gateway-proxy
+  ssl: true
   useProxyProto: false
 ---
 apiVersion: v1
@@ -31,10 +31,10 @@ metadata:
   name: gateway-proxy-connect-terminate
 spec:
   ports:
-  - name: http
-    port: 80
+  - name: https
+    port: 8443
     protocol: TCP
-    targetPort: 8086
+    targetPort: 8443
   selector:
     gloo: gateway-proxy
   type: ClusterIP

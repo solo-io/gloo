@@ -1,5 +1,5 @@
 # VirtualService configuration for CONNECT termination testing
-# Based on customer reproducer: 7973-https-connect-tunnel/fix/vs-ssl-fixed-with-connect-terminate.yaml
+# Matches manual validation that succeeded
 apiVersion: gateway.solo.io/v1
 kind: VirtualService
 metadata:

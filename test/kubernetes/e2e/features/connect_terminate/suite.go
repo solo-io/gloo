@@ -71,34 +71,30 @@ func (s *testingSuite) TearDownSuite() {
 	s.Require().NoError(err)
 }
 
-// TestConnectTunnel tests that CONNECT requests are properly handled with connect_terminate enabled
-// This test verifies that Envoy's connect_config is set on the route, allowing CONNECT method requests
-// to return 200 OK (indicating tunnel establishment), rather than being rejected.
-//
-// Note: This test only verifies CONNECT tunnel establishment (200 OK response), not end-to-end
-// HTTPS traffic through the tunnel. We verify the tunnel is established by checking curl's verbose
-// output for "Proxy replied 200 to CONNECT request".
+// TestConnectTunnel tests that CONNECT tunneling works end-to-end with connect_terminate enabled
+// This replicates the manual validation that succeeded: HTTPS proxy, full HTTPS through tunnel
 func (s *testingSuite) TestConnectTunnel() {
 	proxyService := kubeutils.ServiceFQDN(metav1.ObjectMeta{
 		Name:      "gateway-proxy-connect-terminate",
 		Namespace: s.testInstallation.Metadata.InstallNamespace,
 	})
 
-	// Run curl with verbose output to capture CONNECT response
-	// curl may return error due to TLS issues, but we only care that CONNECT succeeded
+	// Matches manual validation: curl -kv -x https://localhost:8443 https://httpbin.org/get
 	curlOpts := []curl.Option{
 		curl.WithArgs([]string{
 			"curl",
-			"--proxy", fmt.Sprintf("http://%s:80", proxyService),
+			"-k", // --insecure for proxy SSL
+			"-v", // verbose
+			"-x", fmt.Sprintf("https://%s:8443", proxyService),
 			"--proxy-header", "x-dfp-host: httpbin.org",
-			"-v", // verbose mode to see CONNECT response
-			"--max-time", "5",
+			"--max-time", "10",
+			"-s", "-o", "/dev/null",
+			"-w", "%{http_code}",
 			"https://httpbin.org/get",
 		}),
 	}
 
-	// Eventually check that curl shows CONNECT succeeded
-	// Use longer timeout since curl pod may need time to become ready
+	// Test should succeed with 200 OK - full HTTPS through CONNECT tunnel
 	s.testInstallation.Assertions.Gomega.Eventually(func() string {
 		curlResponse, err := s.testInstallation.Actions.Kubectl().CurlFromPod(
 			s.ctx,
@@ -106,10 +102,9 @@ func (s *testingSuite) TestConnectTunnel() {
 			curlOpts...,
 		)
 		if err != nil {
-			return "" // Return empty string on error, will retry
+			return fmt.Sprintf("error: %v", err)
 		}
-		// curl's verbose output goes to stderr
-		return curlResponse.StdErr
-	}, 30*time.Second, 2*time.Second).Should(gomega.ContainSubstring("Proxy replied 200 to CONNECT request"),
-		"CONNECT request should succeed (return 200 OK)")
+		return curlResponse.StdOut
+	}, 30*time.Second, 2*time.Second).Should(gomega.Equal("200"),
+		"Should get 200 OK from httpbin.org through CONNECT tunnel")
 }
