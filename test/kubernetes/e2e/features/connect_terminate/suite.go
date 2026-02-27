@@ -86,6 +86,7 @@ func (s *testingSuite) TestConnectTunnel() {
 			"curl",
 			"-v", // verbose
 			"-x", fmt.Sprintf("http://%s:80", proxyService),
+			"-H", "Host: connect-terminate.example.com",
 			"--proxy-header", "x-dfp-host: httpbin.org",
 			"--max-time", "10",
 			"-s", "-o", "/dev/null",

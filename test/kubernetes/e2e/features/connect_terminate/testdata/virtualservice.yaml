@@ -10,7 +10,7 @@ spec:
   displayName: connect-terminate-vs
   virtualHost:
     domains:
-    - '*'
+    - 'connect-terminate.example.com'
     routes:
     - matchers:
       - connectMatcher: {}
