@@ -1,0 +1,9 @@
+changelog:
+  - type: NEW_FEATURE
+    issueLink: https://github.com/solo-io/gloo-gateway/issues/1581
+    resolvesIssue: false
+    description: >-
+      Add enterprise ExtAuth AuthConfig API/CRD support for API-key HMAC digest
+      configuration via `apiKeyAuth.hmac` (including `HMAC_SHA256` algorithm and
+      `sharedSecretRef`). This PR adds the proto/schema/generated API surface only;
+      runtime verification behavior is implemented in downstream ext-auth-service.

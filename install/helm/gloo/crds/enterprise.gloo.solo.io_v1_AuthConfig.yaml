@@ -152,6 +152,19 @@ spec:
                                 type: boolean
                             type: object
                           type: object
+                        hmac:
+                          properties:
+                            algorithm:
+                              type: string
+                              x-kubernetes-int-or-string: true
+                            sharedSecretRef:
+                              properties:
+                                name:
+                                  type: string
+                                namespace:
+                                  type: string
+                              type: object
+                          type: object
                         k8sSecretApikeyStorage:
                           properties:
                             apiKeySecretRefs:
