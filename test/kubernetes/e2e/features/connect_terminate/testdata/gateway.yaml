@@ -11,13 +11,6 @@ spec:
     virtualServiceSelector:
       gateway-type: connect-terminate
     options:
-      dynamicForwardProxy:
-        dnsCacheConfig:
-          dnsLookupFamily: V4_ONLY
-          hostTtl: 86400s
-        sslConfig:
-          sslFiles:
-            rootCa: /etc/ssl/certs/ca-certificates.crt
       httpConnectionManagerSettings:
         upgrades:
         - connect:

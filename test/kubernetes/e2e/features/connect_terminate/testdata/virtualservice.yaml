@@ -21,3 +21,9 @@ spec:
       routeAction:
         dynamicForwardProxy:
           autoHostRewriteHeader: "x-dfp-host"
+          dnsCacheConfig:
+            dnsLookupFamily: V4_ONLY
+            hostTtl: 86400s
+          sslConfig:
+            sslFiles:
+              rootCa: /etc/ssl/certs/ca-certificates.crt
