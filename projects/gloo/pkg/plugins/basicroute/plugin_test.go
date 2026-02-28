@@ -802,6 +802,110 @@ var _ = Describe("upgrades", func() {
 		Expect(routeAction.GetUpgradeConfigs()[1].UpgradeType).To(Equal("CONNECT"))
 		Expect(routeAction.GetUpgradeConfigs()[1].Enabled.Value).To(BeTrue())
 	})
+	It("works with connect_terminate", func() {
+		p := NewPlugin()
+
+		routeAction := &envoy_config_route_v3.RouteAction{}
+
+		out := &envoy_config_route_v3.Route{
+			Action: &envoy_config_route_v3.Route_Route{
+				Route: routeAction,
+			},
+		}
+		err := p.ProcessRoute(plugins.RouteParams{}, &v1.Route{
+			Options: &v1.RouteOptions{
+				Upgrades: []*protocol_upgrade.ProtocolUpgradeConfig{
+					{
+						UpgradeType: &protocol_upgrade.ProtocolUpgradeConfig_Websocket{
+							Websocket: &protocol_upgrade.ProtocolUpgradeConfig_ProtocolUpgradeSpec{
+								Enabled: &wrappers.BoolValue{Value: true},
+							},
+						},
+					},
+					{
+						UpgradeType: &protocol_upgrade.ProtocolUpgradeConfig_ConnectTerminate{
+							ConnectTerminate: &protocol_upgrade.ProtocolUpgradeConfig_ProtocolUpgradeSpec{
+								Enabled: &wrappers.BoolValue{Value: true},
+							},
+						},
+					},
+				},
+			},
+			Action: &v1.Route_RouteAction{},
+		}, out)
+
+		Expect(err).NotTo(HaveOccurred())
+		Expect(routeAction.GetUpgradeConfigs()).To(HaveLen(2))
+		Expect(routeAction.GetUpgradeConfigs()[0].UpgradeType).To(Equal("websocket"))
+		Expect(routeAction.GetUpgradeConfigs()[0].Enabled.Value).To(BeTrue())
+		Expect(routeAction.GetUpgradeConfigs()[1].UpgradeType).To(Equal("CONNECT"))
+		Expect(routeAction.GetUpgradeConfigs()[1].Enabled.Value).To(BeTrue())
+		// Verify ConnectConfig is set for connect_terminate
+		Expect(routeAction.GetUpgradeConfigs()[1].ConnectConfig).NotTo(BeNil())
+	})
+	It("connect_terminate can be disabled", func() {
+		p := NewPlugin()
+
+		routeAction := &envoy_config_route_v3.RouteAction{}
+
+		out := &envoy_config_route_v3.Route{
+			Action: &envoy_config_route_v3.Route_Route{
+				Route: routeAction,
+			},
+		}
+		err := p.ProcessRoute(plugins.RouteParams{}, &v1.Route{
+			Options: &v1.RouteOptions{
+				Upgrades: []*protocol_upgrade.ProtocolUpgradeConfig{
+					{
+						UpgradeType: &protocol_upgrade.ProtocolUpgradeConfig_ConnectTerminate{
+							ConnectTerminate: &protocol_upgrade.ProtocolUpgradeConfig_ProtocolUpgradeSpec{
+								Enabled: &wrappers.BoolValue{Value: false},
+							},
+						},
+					},
+				},
+			},
+			Action: &v1.Route_RouteAction{},
+		}, out)
+
+		Expect(err).NotTo(HaveOccurred())
+		Expect(routeAction.GetUpgradeConfigs()).To(HaveLen(1))
+		Expect(routeAction.GetUpgradeConfigs()[0].UpgradeType).To(Equal("CONNECT"))
+		Expect(routeAction.GetUpgradeConfigs()[0].Enabled.Value).To(BeFalse())
+		Expect(routeAction.GetUpgradeConfigs()[0].ConnectConfig).NotTo(BeNil())
+	})
+	It("connect (without terminating) field still works", func() {
+		p := NewPlugin()
+
+		routeAction := &envoy_config_route_v3.RouteAction{}
+
+		out := &envoy_config_route_v3.Route{
+			Action: &envoy_config_route_v3.Route_Route{
+				Route: routeAction,
+			},
+		}
+		err := p.ProcessRoute(plugins.RouteParams{}, &v1.Route{
+			Options: &v1.RouteOptions{
+				Upgrades: []*protocol_upgrade.ProtocolUpgradeConfig{
+					{
+						UpgradeType: &protocol_upgrade.ProtocolUpgradeConfig_Connect{
+							Connect: &protocol_upgrade.ProtocolUpgradeConfig_ProtocolUpgradeSpec{
+								Enabled: &wrappers.BoolValue{Value: true},
+							},
+						},
+					},
+				},
+			},
+			Action: &v1.Route_RouteAction{},
+		}, out)
+
+		Expect(err).NotTo(HaveOccurred())
+		Expect(routeAction.GetUpgradeConfigs()).To(HaveLen(1))
+		Expect(routeAction.GetUpgradeConfigs()[0].UpgradeType).To(Equal("CONNECT"))
+		Expect(routeAction.GetUpgradeConfigs()[0].Enabled.Value).To(BeTrue())
+		// Make sure ConnectConfig is NOT set for non-terminating mode.
+		Expect(routeAction.GetUpgradeConfigs()[0].ConnectConfig).To(BeNil())
+	})
 	It("fails on double config", func() {
 		p := NewPlugin()
 
@@ -836,6 +940,42 @@ var _ = Describe("upgrades", func() {
 		}, out)
 
 		Expect(err).To(MatchError(ContainSubstring("upgrade config websocket is not unique")))
+	})
+
+	It("fails when both connect and connect_terminate are specified", func() {
+		p := NewPlugin()
+
+		routeAction := &envoy_config_route_v3.RouteAction{}
+
+		out := &envoy_config_route_v3.Route{
+			Action: &envoy_config_route_v3.Route_Route{
+				Route: routeAction,
+			},
+		}
+
+		err := p.ProcessRoute(plugins.RouteParams{}, &v1.Route{
+			Options: &v1.RouteOptions{
+				Upgrades: []*protocol_upgrade.ProtocolUpgradeConfig{
+					{
+						UpgradeType: &protocol_upgrade.ProtocolUpgradeConfig_Connect{
+							Connect: &protocol_upgrade.ProtocolUpgradeConfig_ProtocolUpgradeSpec{
+								Enabled: &wrappers.BoolValue{Value: true},
+							},
+						},
+					},
+					{
+						UpgradeType: &protocol_upgrade.ProtocolUpgradeConfig_ConnectTerminate{
+							ConnectTerminate: &protocol_upgrade.ProtocolUpgradeConfig_ProtocolUpgradeSpec{
+								Enabled: &wrappers.BoolValue{Value: true},
+							},
+						},
+					},
+				},
+			},
+			Action: &v1.Route_RouteAction{},
+		}, out)
+
+		Expect(err).To(MatchError(ContainSubstring("upgrade config CONNECT is not unique")))
 	})
 })
 

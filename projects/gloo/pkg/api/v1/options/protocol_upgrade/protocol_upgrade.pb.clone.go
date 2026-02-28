@@ -61,6 +61,18 @@ func (m *ProtocolUpgradeConfig) Clone() proto.Message {
 			}
 		}
 
+	case *ProtocolUpgradeConfig_ConnectTerminate:
+
+		if h, ok := interface{}(m.GetConnectTerminate()).(clone.Cloner); ok {
+			target.UpgradeType = &ProtocolUpgradeConfig_ConnectTerminate{
+				ConnectTerminate: h.Clone().(*ProtocolUpgradeConfig_ProtocolUpgradeSpec),
+			}
+		} else {
+			target.UpgradeType = &ProtocolUpgradeConfig_ConnectTerminate{
+				ConnectTerminate: proto.Clone(m.GetConnectTerminate()).(*ProtocolUpgradeConfig_ProtocolUpgradeSpec),
+			}
+		}
+
 	}
 
 	return target

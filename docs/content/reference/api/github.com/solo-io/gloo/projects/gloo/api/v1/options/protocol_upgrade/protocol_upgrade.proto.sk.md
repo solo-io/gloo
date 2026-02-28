@@ -31,13 +31,15 @@ weight: 5
 ```yaml
 "websocket": .protocol_upgrade.options.gloo.solo.io.ProtocolUpgradeConfig.ProtocolUpgradeSpec
 "connect": .protocol_upgrade.options.gloo.solo.io.ProtocolUpgradeConfig.ProtocolUpgradeSpec
+"connectTerminate": .protocol_upgrade.options.gloo.solo.io.ProtocolUpgradeConfig.ProtocolUpgradeSpec
 
 ```
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `websocket` | [.protocol_upgrade.options.gloo.solo.io.ProtocolUpgradeConfig.ProtocolUpgradeSpec](../protocol_upgrade.proto.sk/#protocolupgradespec) | Specification for websocket upgrade requests. Only one of `websocket` or `connect` can be set. |
-| `connect` | [.protocol_upgrade.options.gloo.solo.io.ProtocolUpgradeConfig.ProtocolUpgradeSpec](../protocol_upgrade.proto.sk/#protocolupgradespec) |  Only one of `connect` or `websocket` can be set. |
+| `websocket` | [.protocol_upgrade.options.gloo.solo.io.ProtocolUpgradeConfig.ProtocolUpgradeSpec](../protocol_upgrade.proto.sk/#protocolupgradespec) | Specification for websocket upgrade requests. Only one of `websocket`, `connect`, or `connectTerminate` can be set. |
+| `connect` | [.protocol_upgrade.options.gloo.solo.io.ProtocolUpgradeConfig.ProtocolUpgradeSpec](../protocol_upgrade.proto.sk/#protocolupgradespec) | Specification for CONNECT upgrade requests. This enables the CONNECT upgrade type without additional configuration. This will allow a CONNECT request to be proxied as HTTP request to upstream. Only one of `connect`, `websocket`, or `connectTerminate` can be set. |
+| `connectTerminate` | [.protocol_upgrade.options.gloo.solo.io.ProtocolUpgradeConfig.ProtocolUpgradeSpec](../protocol_upgrade.proto.sk/#protocolupgradespec) | Specification for CONNECT protocol termination. When configured, Envoy will terminate CONNECT requests and proxy the payload in the request body as raw tcp data to upstream. NOTE: connect_terminate can only be configured at the route level (RouteOptions). It is not supported in HttpConnectionManagerSettings. SECURITY WARNING: This mode of CONNECT support can create major security holes if not configured correctly, as the upstream will be forwarded unsanitized headers if they are in the body payload. Please use with caution! Ensure proper authentication and authorization are in place before enabling this feature. Only one of `connectTerminate`, `websocket`, or `connect` can be set. |
 
 
 
