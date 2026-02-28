@@ -78,6 +78,21 @@ func (m *ProtocolUpgradeConfig) Equal(that interface{}) bool {
 			}
 		}
 
+	case *ProtocolUpgradeConfig_ConnectTerminate:
+		if _, ok := target.UpgradeType.(*ProtocolUpgradeConfig_ConnectTerminate); !ok {
+			return false
+		}
+
+		if h, ok := interface{}(m.GetConnectTerminate()).(equality.Equalizer); ok {
+			if !h.Equal(target.GetConnectTerminate()) {
+				return false
+			}
+		} else {
+			if !proto.Equal(m.GetConnectTerminate(), target.GetConnectTerminate()) {
+				return false
+			}
+		}
+
 	default:
 		// m is nil but target is not nil
 		if m.UpgradeType != target.UpgradeType {

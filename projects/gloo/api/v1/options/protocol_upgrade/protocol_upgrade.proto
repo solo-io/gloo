@@ -20,6 +20,23 @@ message ProtocolUpgradeConfig {
     oneof upgrade_type {
         // Specification for websocket upgrade requests.
         ProtocolUpgradeSpec websocket = 1;
+
+        // Specification for CONNECT upgrade requests.
+        // This enables the CONNECT upgrade type without additional configuration.
+        // This will allow a CONNECT request to be proxied as HTTP request to upstream.
         ProtocolUpgradeSpec connect = 2;
+
+        // Specification for CONNECT protocol termination.
+        // When configured, Envoy will terminate CONNECT requests and proxy the payload in the request
+        // body as raw tcp data to upstream.
+        //
+        // NOTE: connect_terminate can only be configured at the route level (RouteOptions).
+        // It is not supported in HttpConnectionManagerSettings.
+        //
+        // SECURITY WARNING: This mode of CONNECT support can create major security holes if not
+        // configured correctly, as the upstream will be forwarded unsanitized headers if they are
+        // in the body payload. Please use with caution! Ensure proper authentication and
+        // authorization are in place before enabling this feature.
+        ProtocolUpgradeSpec connect_terminate = 3;
     }
 }

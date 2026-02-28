@@ -1687,6 +1687,12 @@ spec:
                                       nullable: true
                                       type: boolean
                                   type: object
+                                connectTerminate:
+                                  properties:
+                                    enabled:
+                                      nullable: true
+                                      type: boolean
+                                  type: object
                                 websocket:
                                   properties:
                                     enabled:
@@ -2395,6 +2401,12 @@ spec:
                             items:
                               properties:
                                 connect:
+                                  properties:
+                                    enabled:
+                                      nullable: true
+                                      type: boolean
+                                  type: object
+                                connectTerminate:
                                   properties:
                                     enabled:
                                       nullable: true
@@ -4235,6 +4247,12 @@ spec:
                                       items:
                                         properties:
                                           connect:
+                                            properties:
+                                              enabled:
+                                                nullable: true
+                                                type: boolean
+                                            type: object
+                                          connectTerminate:
                                             properties:
                                               enabled:
                                                 nullable: true

@@ -289,6 +289,13 @@ func applyUpgrades(in *v1.Route, out *envoy_config_route_v3.Route) error {
 				UpgradeType: upgradeconfig.ConnectUpgradeType,
 				Enabled:     config.GetConnect().GetEnabled(),
 			}
+		case *protocol_upgrade.ProtocolUpgradeConfig_ConnectTerminate:
+			routeAction.Route.GetUpgradeConfigs()[i] = &envoy_config_route_v3.RouteAction_UpgradeConfig{
+				UpgradeType: upgradeconfig.ConnectUpgradeType,
+				// Enabled defaults to nil when unset, which Envoy interprets as true (enabled by default)
+				Enabled:       config.GetConnectTerminate().GetEnabled(),
+				ConnectConfig: &envoy_config_route_v3.RouteAction_UpgradeConfig_ConnectConfig{},
+			}
 		default:
 			return errors.Errorf("unimplemented upgrade type: %T", upgradeType)
 		}
