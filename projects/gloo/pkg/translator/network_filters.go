@@ -284,8 +284,8 @@ func (h *hcmNetworkFilterTranslator) computeUpstreamHTTPFilters(params plugins.P
 	sort.Sort(upstreamHttpFilters)
 
 	hasWaitFilter := false
-	sortedFilters := make([]*envoyhttp.HttpFilter, len(upstreamHttpFilters))
-	for i, filter := range upstreamHttpFilters {
+	sortedFilters := make([]*envoyhttp.HttpFilter, 0, len(upstreamHttpFilters))
+	for _, filter := range upstreamHttpFilters {
 		// Skip adding multiple wait filters
 		if filter.Filter.GetName() == WaitFilterName {
 			if hasWaitFilter {
@@ -293,7 +293,7 @@ func (h *hcmNetworkFilterTranslator) computeUpstreamHTTPFilters(params plugins.P
 			}
 			hasWaitFilter = true
 		}
-		sortedFilters[i] = filter.Filter
+		sortedFilters = append(sortedFilters, filter.Filter)
 	}
 
 	msg, err := proto_utils.MessageToAny(&codecv3.UpstreamCodec{})
