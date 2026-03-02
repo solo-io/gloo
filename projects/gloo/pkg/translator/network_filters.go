@@ -287,7 +287,7 @@ func (h *hcmNetworkFilterTranslator) computeUpstreamHTTPFilters(params plugins.P
 	sortedFilters := make([]*envoyhttp.HttpFilter, len(upstreamHttpFilters))
 	for i, filter := range upstreamHttpFilters {
 		// Skip adding multiple wait filters
-		if filter.Filter.Name == WaitFilterName {
+		if filter.Filter.GetName() == WaitFilterName {
 			if hasWaitFilter {
 				continue
 			}
