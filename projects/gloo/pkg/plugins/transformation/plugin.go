@@ -8,6 +8,7 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/solo-io/gloo/pkg/utils/statsutils"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/utils/validator"
+	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 
 	envoy_config_route_v3 "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
@@ -39,7 +40,6 @@ var (
 const (
 	ExtensionName      = "transformation"
 	FilterName         = "io.solo.transformation"
-	WaitFilterName     = "io.solo.wait"
 	RegularStageNumber = 0
 	EarlyStageNumber   = 1
 	AwsStageNumber     = 2
@@ -264,7 +264,7 @@ func (p *Plugin) UpstreamHttpFilters(params plugins.Params, listener *v1.HttpLis
 		// major benefit of running the filter at this stage.
 		{
 			Filter: &envoyhttp.HttpFilter{
-				Name: WaitFilterName,
+				Name: translator.WaitFilterName,
 				ConfigType: &envoyhttp.HttpFilter_TypedConfig{
 					TypedConfig: upstreamWaitMsg,
 				},
