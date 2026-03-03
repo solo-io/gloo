@@ -1,5 +1,5 @@
 changelog:
-- type: NEW_FEATURE
+- type: FIX
   issueLink: https://github.com/solo-io/gloo-gateway/issues/1495
   resolvesIssue: false
   description: Add two new configs, ExtProcEarly && ExtProcLate. The former can be run at a specified stage, but the latter runs as the final filter before a request leaves envoy and the first filter when the response enters envoy.
