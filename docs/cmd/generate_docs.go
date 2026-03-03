@@ -275,7 +275,14 @@ func generateChangelogMd(opts *options) error {
 }
 
 // Fetches Gloo Enterprise releases, merges in open source release notes, and orders them by version
-func generateGlooEChangelog(preNameVersion *versionutils.Version) error {
+func generateGlooEChangelog(preNameVersion *versionutils.Version) (err error) {
+	// Recover from panic in go-utils changeloggenutils (e.g. nil ChangelogNotes when merging enterprise with OS).
+	defer func() {
+		if r := recover(); r != nil {
+			err = eris.Errorf("gloo E changelog generation panicked (often due to go-utils when an enterprise release has no matching OS changelog): %v", r)
+		}
+	}()
+
 	// Initialize Auth
 	ctx := context.Background()
 	ghToken := os.Getenv("GITHUB_TOKEN")
