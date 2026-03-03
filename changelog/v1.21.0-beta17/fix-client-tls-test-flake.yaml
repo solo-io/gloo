@@ -1,0 +1,5 @@
+changelog:
+- type: NON_USER_FACING
+  description: >-
+    Fix flaky ClientTls e2e test by waiting for Gloo snapshot to stabilize
+    after upstream creation before applying the VirtualService.
