@@ -292,6 +292,7 @@ func (h *hcmNetworkFilterTranslator) computeUpstreamHTTPFilters(params plugins.P
 
 	if len(upstreamHttpFilters) > 0 {
 		routerV3.UpstreamHttpFilters = sortedFilters
+		// Add the Upstream Codec filter at the end since it is a terminal filter
 		routerV3.UpstreamHttpFilters = append(routerV3.GetUpstreamHttpFilters(), &envoyhttp.HttpFilter{
 			Name: UpstreamCodeFilterName,
 			ConfigType: &envoyhttp.HttpFilter_TypedConfig{
