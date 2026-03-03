@@ -1,0 +1,8 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >-
+      Push-docs workflow fixes: recover from go-utils changelog panic and fallback for Gloo E changelog;
+      fix Slack failure notification payload parsing (use JSON so link pipe character is not interpreted as YAML).
+
+      skipCI-kube-tests:true
+      skipCI-docs-build:true
