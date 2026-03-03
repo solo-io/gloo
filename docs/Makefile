@@ -25,7 +25,7 @@ site-common: clean gloo-enterprise-version
 	go run cmd/generate_docs.go gen-releases -r gloo > opensource.out
 	go run cmd/generate_docs.go gen-releases -r glooe > enterprise.out
 	go run cmd/generate_docs.go gen-changelog-md -r gloo > content/static/content/gloo-changelog.docgen
-	go run cmd/generate_docs.go gen-changelog-md -r glooe > content/static/content/glooe-changelog.docgen
+	go run cmd/generate_docs.go gen-changelog-md -r glooe > content/static/content/glooe-changelog.docgen || echo '{"Opts":{"RepoOwner":"solo-io","MainRepo":"solo-projects","DependentRepo":"gloo"},"ReleaseData":[]}' > content/static/content/glooe-changelog.docgen
 
 	# generate split security scans for gloo versions which HAVE received new split-templating updates
 	MIN_SCANNED_VERSION=$(MIN_SCANNED_VERSION) go run cmd/generate_docs.go gen-security-scan-md -r gloo > content/static/content/gloo-security-scan.docgen
