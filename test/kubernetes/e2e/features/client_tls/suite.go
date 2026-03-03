@@ -41,6 +41,14 @@ func (s *clientTlsTestingSuite) SetupSuite() {
 	s.NoError(err, "can apply Nginx setup manifest")
 	err = s.testInstallation.Actions.Kubectl().Apply(s.ctx, testdefaults.CurlPodYaml)
 	s.NoError(err, "can apply Curl setup manifest")
+
+	// Check that test resources are running
+	s.testInstallation.AssertionsT(s.T()).EventuallyPodsRunning(s.ctx, testdefaults.NginxPod.ObjectMeta.GetNamespace(), metav1.ListOptions{
+		LabelSelector: "app.kubernetes.io/name=nginx",
+	})
+	s.testInstallation.AssertionsT(s.T()).EventuallyPodsRunning(s.ctx, testdefaults.CurlPod.ObjectMeta.GetNamespace(), metav1.ListOptions{
+		LabelSelector: "app.kubernetes.io/name=curl",
+	})
 }
 
 func (s *clientTlsTestingSuite) TearDownSuite() {
@@ -130,15 +138,17 @@ func (s *clientTlsTestingSuite) TestOneWayTlsDoesNotRequestClientCertificate() {
 		s.NoError(err, "can delete upstream manifest file")
 	})
 
-	// Wait for the nginx-tls secret to exist and be available to Gloo before applying the VS
-	// The secret is created in SetupSuite, but we need to ensure Gloo has picked it up
-	secret := nginxTlsSecret(nginxNs)
-	s.eventuallySecretInSnapshot(secret.ObjectMeta)
-
 	// Apply the upstream that the VirtualService references
 	// The VirtualService references the "nginx" upstream in the nginx namespace
 	err := s.testInstallation.Actions.Kubectl().Apply(s.ctx, NginxUpstreamsYaml)
 	s.NoError(err, "can apply upstream manifest file")
+
+	// Wait for the nginx-tls secret to exist and be available to Gloo before applying the VS.
+	// We do this AFTER creating the upstreams because upstream creation triggers a snapshot
+	// refresh. If the VS is applied while the snapshot is still refreshing, the admission
+	// webhook may transiently fail to find the secret.
+	secret := nginxTlsSecret(nginxNs)
+	s.eventuallySecretInSnapshot(secret.ObjectMeta)
 
 	err = s.testInstallation.Actions.Kubectl().Apply(s.ctx, VSOnewayDownstreamTlsYaml, "-n", ns)
 	s.NoError(err, "can apply vs oneway downstream tls manifest file")
