@@ -229,6 +229,34 @@ func (m *HttpListenerOptions) Clone() proto.Message {
 		target.HeaderValidationSettings = proto.Clone(m.GetHeaderValidationSettings()).(*github_com_solo_io_gloo_projects_gloo_pkg_api_v1_options_header_validation.HeaderValidationSettings)
 	}
 
+	switch m.ExtProcEarlyConfig.(type) {
+
+	case *HttpListenerOptions_DisableExtProcEarly:
+
+		if h, ok := interface{}(m.GetDisableExtProcEarly()).(clone.Cloner); ok {
+			target.ExtProcEarlyConfig = &HttpListenerOptions_DisableExtProcEarly{
+				DisableExtProcEarly: h.Clone().(*google_golang_org_protobuf_types_known_wrapperspb.BoolValue),
+			}
+		} else {
+			target.ExtProcEarlyConfig = &HttpListenerOptions_DisableExtProcEarly{
+				DisableExtProcEarly: proto.Clone(m.GetDisableExtProcEarly()).(*google_golang_org_protobuf_types_known_wrapperspb.BoolValue),
+			}
+		}
+
+	case *HttpListenerOptions_ExtProcEarly:
+
+		if h, ok := interface{}(m.GetExtProcEarly()).(clone.Cloner); ok {
+			target.ExtProcEarlyConfig = &HttpListenerOptions_ExtProcEarly{
+				ExtProcEarly: h.Clone().(*github_com_solo_io_gloo_projects_gloo_pkg_api_v1_enterprise_options_extproc.Settings),
+			}
+		} else {
+			target.ExtProcEarlyConfig = &HttpListenerOptions_ExtProcEarly{
+				ExtProcEarly: proto.Clone(m.GetExtProcEarly()).(*github_com_solo_io_gloo_projects_gloo_pkg_api_v1_enterprise_options_extproc.Settings),
+			}
+		}
+
+	}
+
 	switch m.ExtProcConfig.(type) {
 
 	case *HttpListenerOptions_DisableExtProc:
@@ -252,6 +280,34 @@ func (m *HttpListenerOptions) Clone() proto.Message {
 		} else {
 			target.ExtProcConfig = &HttpListenerOptions_ExtProc{
 				ExtProc: proto.Clone(m.GetExtProc()).(*github_com_solo_io_gloo_projects_gloo_pkg_api_v1_enterprise_options_extproc.Settings),
+			}
+		}
+
+	}
+
+	switch m.ExtProcLateConfig.(type) {
+
+	case *HttpListenerOptions_DisableExtProcLate:
+
+		if h, ok := interface{}(m.GetDisableExtProcLate()).(clone.Cloner); ok {
+			target.ExtProcLateConfig = &HttpListenerOptions_DisableExtProcLate{
+				DisableExtProcLate: h.Clone().(*google_golang_org_protobuf_types_known_wrapperspb.BoolValue),
+			}
+		} else {
+			target.ExtProcLateConfig = &HttpListenerOptions_DisableExtProcLate{
+				DisableExtProcLate: proto.Clone(m.GetDisableExtProcLate()).(*google_golang_org_protobuf_types_known_wrapperspb.BoolValue),
+			}
+		}
+
+	case *HttpListenerOptions_ExtProcLate:
+
+		if h, ok := interface{}(m.GetExtProcLate()).(clone.Cloner); ok {
+			target.ExtProcLateConfig = &HttpListenerOptions_ExtProcLate{
+				ExtProcLate: h.Clone().(*github_com_solo_io_gloo_projects_gloo_pkg_api_v1_enterprise_options_extproc.Settings),
+			}
+		} else {
+			target.ExtProcLateConfig = &HttpListenerOptions_ExtProcLate{
+				ExtProcLate: proto.Clone(m.GetExtProcLate()).(*github_com_solo_io_gloo_projects_gloo_pkg_api_v1_enterprise_options_extproc.Settings),
 			}
 		}
 

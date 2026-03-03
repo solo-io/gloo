@@ -244,9 +244,17 @@ message RouteOptions {
     // Please refer to the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest/api-v3/config/route/v3/route_components.proto#envoy-v3-api-field-config-route-v3-routeaction-idle-timeout)
     google.protobuf.Duration idle_timeout = 29;
 
+    // Enterprise-only: Early External Processing filter settings for the route. This can be used to
+    // override certain HttpListenerOptions or VirtualHostOptions settings.
+    extproc.options.gloo.solo.io.RouteSettings ext_proc_early = 34;
+
     // Enterprise-only: External Processing filter settings for the route. This can be used to
     // override certain HttpListenerOptions or VirtualHostOptions settings.
     extproc.options.gloo.solo.io.RouteSettings ext_proc = 30;
+
+    // Enterprise-only: Late External Processing filter settings for the route. This can be used to
+    // override certain HttpListenerOptions or VirtualHostOptions settings.
+    extproc.options.gloo.solo.io.RouteSettings ext_proc_late = 33;
 
     // Enterprise-only: Settings to configure ai settings for a route.
     // These settings will only apply if the backend is an `ai` Upstream.
