@@ -3,3 +3,8 @@ changelog:
   description: >-
     Fix flaky ClientTls e2e test by waiting for Gloo snapshot to stabilize
     after upstream creation before applying the VirtualService.
+- type: FIX
+  description: Add only one wait UpstreamHTTPFilter if multiple have been specified.
+  issueLink: https://github.com/solo-io/gloo/issues/11142
+  resolvesIssue: false
+
