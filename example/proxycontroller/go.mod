@@ -1,17 +1,18 @@
 module proxycontroller
 
-go 1.16
+go 1.25.7
 
 require (
-       github.com/solo-io/gloo v1.6.0-beta16
-       github.com/solo-io/k8s-utils v0.0.3 // indirect
-       github.com/solo-io/solo-kit v0.15.2 // indirect
+	github.com/solo-io/gloo v1.18.0
+	github.com/solo-io/k8s-utils v0.12.0
+	github.com/solo-io/solo-kit v0.40.0
 )
 
 replace (
 	github.com/Azure/go-autorest => github.com/Azure/go-autorest v13.0.0+incompatible
 	github.com/Sirupsen/logrus => github.com/sirupsen/logrus v1.4.2
 	github.com/docker/docker => github.com/moby/moby v0.7.3-0.20190826074503-38ab9da00309
+	github.com/imdario/mergo => github.com/imdario/mergo v0.3.16
 	k8s.io/api => k8s.io/api v0.18.6
 	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.18.6
 	k8s.io/apimachinery => k8s.io/apimachinery v0.18.6
