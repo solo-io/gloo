@@ -1,0 +1,6 @@
+changelog:
+- type: FIX
+  description: Add only one wait UpstreamHTTPFilter if multiple have been specified.
+  issueLink: https://github.com/solo-io/gloo/issues/11142
+  resolvesIssue: false
+
