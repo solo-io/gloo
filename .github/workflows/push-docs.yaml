@@ -49,18 +49,19 @@ jobs:
           version=${{ inputs.branch }}
         fi
         echo "lts=$version" >> $GITHUB_OUTPUT
-    # ON_LTS_UPDATE - bump version
+    # ON_LTS_UPDATE - bump version. Main branch minor is the single source of truth for "version that maps to main".
     - name: Set version variables
       id: version-variables
       run: |
+        main_minor="1.21"
         minor=""
         directory=""
         if [[ "${{ steps.lts-version.outputs.lts }}" == "main" ]]; then
-          minor="1.21"
-          directory="1.21.x"
+          minor="${main_minor}"
+          directory="${main_minor}.x"
         elif [[ "${{ steps.lts-version.outputs.lts }}" == "v1.21.x" ]]; then
-          minor="1.21"
-          directory="1.21.x"
+          minor="${main_minor}"
+          directory="${main_minor}.x"
         elif [[ "${{ steps.lts-version.outputs.lts }}" == "v1.20.x" ]]; then
           minor="1.20"
           directory="1.20.x"
@@ -76,6 +77,15 @@ jobs:
         fi
         echo "minor=${minor}" >> $GITHUB_OUTPUT
         echo "directory=${directory}" >> $GITHUB_OUTPUT
+        echo "main_minor=${main_minor}" >> $GITHUB_OUTPUT
+    - name: Set gloo checkout ref
+      id: gloo-checkout-ref
+      run: |
+        if [[ "${{ steps.version-variables.outputs.minor }}" == "${{ steps.version-variables.outputs.main_minor }}" ]]; then
+          echo "ref=main" >> $GITHUB_OUTPUT
+        else
+          echo "ref=${{ steps.lts-version.outputs.lts }}" >> $GITHUB_OUTPUT
+        fi
     - name: Checkout docs repo
       uses: actions/checkout@v4
       with:
@@ -90,7 +100,7 @@ jobs:
         repository: "solo-io/gloo"
         token: ${{ secrets.DOCS_TOKEN }}
         path: gloo
-        ref: ${{ steps.lts-version.outputs.lts }}
+        ref: ${{ steps.gloo-checkout-ref.outputs.ref }}
     # Searches in the version conrefs (assets/conrefs/versions) for any instances of the previous tag for the minor version, like 1.19.0-beta3, and replaces them with the current tag, like 1.19.0-beta4.
     - name: Bump version conrefs
       run: |
