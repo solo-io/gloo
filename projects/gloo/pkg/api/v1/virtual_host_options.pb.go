@@ -125,9 +125,15 @@ type VirtualHostOptions struct {
 	// Early transformations stage. These transformations run before most other options are processed.
 	// If the `regular` field is set in here, the `transformations` field is ignored.
 	StagedTransformations *transformation.TransformationStages `protobuf:"bytes,17,opt,name=staged_transformations,json=stagedTransformations,proto3" json:"staged_transformations,omitempty"`
+	// Enterprise-only: Early External Processing filter settings for the virtual host. This can be used to
+	// override certain HttpListenerOptions settings, and can be overridden by RouteOptions settings.
+	ExtProcEarly *extproc.RouteSettings `protobuf:"bytes,32,opt,name=ext_proc_early,json=extProcEarly,proto3" json:"ext_proc_early,omitempty"`
 	// Enterprise-only: External Processing filter settings for the virtual host. This can be used to
 	// override certain HttpListenerOptions settings, and can be overridden by RouteOptions settings.
 	ExtProc *extproc.RouteSettings `protobuf:"bytes,30,opt,name=ext_proc,json=extProc,proto3" json:"ext_proc,omitempty"`
+	// Enterprise-only: Late External Processing filter settings for the virtual host. This can be used to
+	// override certain HttpListenerOptions settings, and can be overridden by RouteOptions settings.
+	ExtProcLate *extproc.RouteSettings `protobuf:"bytes,31,opt,name=ext_proc_late,json=extProcLate,proto3" json:"ext_proc_late,omitempty"`
 	// Settings for determining merge strategy for CORS settings when present at both Route and VirtualHost levels.
 	CorsPolicyMergeSettings *cors.CorsPolicyMergeSettings `protobuf:"bytes,20,opt,name=cors_policy_merge_settings,json=corsPolicyMergeSettings,proto3" json:"cors_policy_merge_settings,omitempty"`
 	unknownFields           protoimpl.UnknownFields
@@ -378,9 +384,23 @@ func (x *VirtualHostOptions) GetStagedTransformations() *transformation.Transfor
 	return nil
 }
 
+func (x *VirtualHostOptions) GetExtProcEarly() *extproc.RouteSettings {
+	if x != nil {
+		return x.ExtProcEarly
+	}
+	return nil
+}
+
 func (x *VirtualHostOptions) GetExtProc() *extproc.RouteSettings {
 	if x != nil {
 		return x.ExtProc
+	}
+	return nil
+}
+
+func (x *VirtualHostOptions) GetExtProcLate() *extproc.RouteSettings {
+	if x != nil {
+		return x.ExtProcLate
 	}
 	return nil
 }
@@ -498,7 +518,7 @@ var File_github_com_solo_io_gloo_projects_gloo_api_v1_virtual_host_options_proto
 
 const file_github_com_solo_io_gloo_projects_gloo_api_v1_virtual_host_options_proto_rawDesc = "" +
 	"\n" +
-	"Ggithub.com/solo-io/gloo/projects/gloo/api/v1/virtual_host_options.proto\x12\fgloo.solo.io\x1a\x12extproto/ext.proto\x1a=github.com/solo-io/gloo/projects/gloo/api/v1/extensions.proto\x1aJgithub.com/solo-io/gloo/projects/gloo/api/v1/options/retries/retries.proto\x1aFgithub.com/solo-io/gloo/projects/gloo/api/v1/options/stats/stats.proto\x1aJgithub.com/solo-io/gloo/projects/gloo/api/v1/options/headers/headers.proto\x1aDgithub.com/solo-io/gloo/projects/gloo/api/v1/options/cors/cors.proto\x1aXgithub.com/solo-io/gloo/projects/gloo/api/v1/options/transformation/transformation.proto\x1aYgithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/ratelimit/ratelimit.proto\x1aMgithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/waf/waf.proto\x1aMgithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/jwt/jwt.proto\x1aOgithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/rbac/rbac.proto\x1aXgithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth.proto\x1aMgithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/dlp/dlp.proto\x1aggithub.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/filters/http/buffer/v3/buffer.proto\x1acgithub.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/filters/http/csrf/v3/csrf.proto\x1aUgithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/extproc/extproc.proto\x1a\x1egoogle/protobuf/wrappers.proto\"\xb2\x12\n" +
+	"Ggithub.com/solo-io/gloo/projects/gloo/api/v1/virtual_host_options.proto\x12\fgloo.solo.io\x1a\x12extproto/ext.proto\x1a=github.com/solo-io/gloo/projects/gloo/api/v1/extensions.proto\x1aJgithub.com/solo-io/gloo/projects/gloo/api/v1/options/retries/retries.proto\x1aFgithub.com/solo-io/gloo/projects/gloo/api/v1/options/stats/stats.proto\x1aJgithub.com/solo-io/gloo/projects/gloo/api/v1/options/headers/headers.proto\x1aDgithub.com/solo-io/gloo/projects/gloo/api/v1/options/cors/cors.proto\x1aXgithub.com/solo-io/gloo/projects/gloo/api/v1/options/transformation/transformation.proto\x1aYgithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/ratelimit/ratelimit.proto\x1aMgithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/waf/waf.proto\x1aMgithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/jwt/jwt.proto\x1aOgithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/rbac/rbac.proto\x1aXgithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth.proto\x1aMgithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/dlp/dlp.proto\x1aggithub.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/filters/http/buffer/v3/buffer.proto\x1acgithub.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/filters/http/csrf/v3/csrf.proto\x1aUgithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/extproc/extproc.proto\x1a\x1egoogle/protobuf/wrappers.proto\"\xd6\x13\n" +
 	"\x12VirtualHostOptions\x128\n" +
 	"\n" +
 	"extensions\x18\x01 \x01(\v2\x18.gloo.solo.io.ExtensionsR\n" +
@@ -527,8 +547,10 @@ const file_github_com_solo_io_gloo_projects_gloo_api_v1_virtual_host_options_pro
 	"\x04csrf\x18\x12 \x01(\v29.solo.io.envoy.extensions.filters.http.csrf.v3.CsrfPolicyR\x04csrf\x12]\n" +
 	"\x1dinclude_request_attempt_count\x18\x0f \x01(\v2\x1a.google.protobuf.BoolValueR\x1aincludeRequestAttemptCount\x12d\n" +
 	"!include_attempt_count_in_response\x18\x10 \x01(\v2\x1a.google.protobuf.BoolValueR\x1dincludeAttemptCountInResponse\x12p\n" +
-	"\x16staged_transformations\x18\x11 \x01(\v29.transformation.options.gloo.solo.io.TransformationStagesR\x15stagedTransformations\x12F\n" +
-	"\bext_proc\x18\x1e \x01(\v2+.extproc.options.gloo.solo.io.RouteSettingsR\aextProc\x12o\n" +
+	"\x16staged_transformations\x18\x11 \x01(\v29.transformation.options.gloo.solo.io.TransformationStagesR\x15stagedTransformations\x12Q\n" +
+	"\x0eext_proc_early\x18  \x01(\v2+.extproc.options.gloo.solo.io.RouteSettingsR\fextProcEarly\x12F\n" +
+	"\bext_proc\x18\x1e \x01(\v2+.extproc.options.gloo.solo.io.RouteSettingsR\aextProc\x12O\n" +
+	"\rext_proc_late\x18\x1f \x01(\v2+.extproc.options.gloo.solo.io.RouteSettingsR\vextProcLate\x12o\n" +
 	"\x1acors_policy_merge_settings\x18\x14 \x01(\v22.cors.options.gloo.solo.io.CorsPolicyMergeSettingsR\x17corsPolicyMergeSettingsB\x1e\n" +
 	"\x1crate_limit_early_config_typeB\x18\n" +
 	"\x16rate_limit_config_typeB \n" +
@@ -598,13 +620,15 @@ var file_github_com_solo_io_gloo_projects_gloo_api_v1_virtual_host_options_proto
 	18, // 21: gloo.solo.io.VirtualHostOptions.include_request_attempt_count:type_name -> google.protobuf.BoolValue
 	18, // 22: gloo.solo.io.VirtualHostOptions.include_attempt_count_in_response:type_name -> google.protobuf.BoolValue
 	19, // 23: gloo.solo.io.VirtualHostOptions.staged_transformations:type_name -> transformation.options.gloo.solo.io.TransformationStages
-	20, // 24: gloo.solo.io.VirtualHostOptions.ext_proc:type_name -> extproc.options.gloo.solo.io.RouteSettings
-	21, // 25: gloo.solo.io.VirtualHostOptions.cors_policy_merge_settings:type_name -> cors.options.gloo.solo.io.CorsPolicyMergeSettings
-	26, // [26:26] is the sub-list for method output_type
-	26, // [26:26] is the sub-list for method input_type
-	26, // [26:26] is the sub-list for extension type_name
-	26, // [26:26] is the sub-list for extension extendee
-	0,  // [0:26] is the sub-list for field type_name
+	20, // 24: gloo.solo.io.VirtualHostOptions.ext_proc_early:type_name -> extproc.options.gloo.solo.io.RouteSettings
+	20, // 25: gloo.solo.io.VirtualHostOptions.ext_proc:type_name -> extproc.options.gloo.solo.io.RouteSettings
+	20, // 26: gloo.solo.io.VirtualHostOptions.ext_proc_late:type_name -> extproc.options.gloo.solo.io.RouteSettings
+	21, // 27: gloo.solo.io.VirtualHostOptions.cors_policy_merge_settings:type_name -> cors.options.gloo.solo.io.CorsPolicyMergeSettings
+	28, // [28:28] is the sub-list for method output_type
+	28, // [28:28] is the sub-list for method input_type
+	28, // [28:28] is the sub-list for extension type_name
+	28, // [28:28] is the sub-list for extension extendee
+	0,  // [0:28] is the sub-list for field type_name
 }
 
 func init() { file_github_com_solo_io_gloo_projects_gloo_api_v1_virtual_host_options_proto_init() }

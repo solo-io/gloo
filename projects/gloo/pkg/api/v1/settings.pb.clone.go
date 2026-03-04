@@ -211,10 +211,22 @@ func (m *Settings) Clone() proto.Message {
 		target.GraphqlOptions = proto.Clone(m.GetGraphqlOptions()).(*GraphqlOptions)
 	}
 
+	if h, ok := interface{}(m.GetExtProcEarly()).(clone.Cloner); ok {
+		target.ExtProcEarly = h.Clone().(*github_com_solo_io_gloo_projects_gloo_pkg_api_v1_enterprise_options_extproc.Settings)
+	} else {
+		target.ExtProcEarly = proto.Clone(m.GetExtProcEarly()).(*github_com_solo_io_gloo_projects_gloo_pkg_api_v1_enterprise_options_extproc.Settings)
+	}
+
 	if h, ok := interface{}(m.GetExtProc()).(clone.Cloner); ok {
 		target.ExtProc = h.Clone().(*github_com_solo_io_gloo_projects_gloo_pkg_api_v1_enterprise_options_extproc.Settings)
 	} else {
 		target.ExtProc = proto.Clone(m.GetExtProc()).(*github_com_solo_io_gloo_projects_gloo_pkg_api_v1_enterprise_options_extproc.Settings)
+	}
+
+	if h, ok := interface{}(m.GetExtProcLate()).(clone.Cloner); ok {
+		target.ExtProcLate = h.Clone().(*github_com_solo_io_gloo_projects_gloo_pkg_api_v1_enterprise_options_extproc.Settings)
+	} else {
+		target.ExtProcLate = proto.Clone(m.GetExtProcLate()).(*github_com_solo_io_gloo_projects_gloo_pkg_api_v1_enterprise_options_extproc.Settings)
 	}
 
 	if m.GetWatchNamespaceSelectors() != nil {
