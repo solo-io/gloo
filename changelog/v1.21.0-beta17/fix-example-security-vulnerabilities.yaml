@@ -1,7 +1,7 @@
 # Note: Using general CVE tracking issue as reference. This PR addresses specific vulnerabilities
 # in example code dependencies but does not resolve all CVEs tracked in the linked issue.
 changelog:
-- type: FIX
+- type: NON_USER_FACING
   description: >-
     Update vulnerable dependencies in example projects to address critical security vulnerabilities.
     Updated example/proxycontroller/go.mod: solo-kit (v0.15.2 -> v0.40.0), k8s-utils (v0.0.3 -> v0.12.0), gloo (v1.6.0-beta16 -> v1.18.0).
