@@ -1,0 +1,7 @@
+changelog:
+- type: FIX
+  description: >-
+    Update vulnerable dependencies in example projects to address critical security vulnerabilities.
+    Updated example/proxycontroller/go.mod: solo-kit (v0.15.2 -> v0.40.0), k8s-utils (v0.0.3 -> v0.12.0), gloo (v1.6.0-beta16 -> v1.18.0).
+    Updated docs/examples/grpc-json-transcoding/bookstore/go.mod: golang.org/x/net, google.golang.org/grpc (v1.28.1 -> v1.76.0), google.golang.org/genproto, and transitive golang.org/x/crypto dependency.
+  resolvesIssue: false
