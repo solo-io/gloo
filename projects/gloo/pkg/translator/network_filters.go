@@ -22,6 +22,10 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils/validation"
 )
 
+const (
+	WaitFilterName = "io.solo.wait"
+)
+
 type NetworkFilterTranslator interface {
 	ComputeNetworkFilters(params plugins.Params) ([]*envoy_config_listener_v3.Filter, error)
 }
@@ -279,9 +283,17 @@ func (h *hcmNetworkFilterTranslator) computeUpstreamHTTPFilters(params plugins.P
 
 	sort.Sort(upstreamHttpFilters)
 
-	sortedFilters := make([]*envoyhttp.HttpFilter, len(upstreamHttpFilters))
-	for i, filter := range upstreamHttpFilters {
-		sortedFilters[i] = filter.Filter
+	hasWaitFilter := false
+	sortedFilters := make([]*envoyhttp.HttpFilter, 0, len(upstreamHttpFilters))
+	for _, filter := range upstreamHttpFilters {
+		// Skip adding multiple wait filters
+		if filter.Filter.GetName() == WaitFilterName {
+			if hasWaitFilter {
+				continue
+			}
+			hasWaitFilter = true
+		}
+		sortedFilters = append(sortedFilters, filter.Filter)
 	}
 
 	msg, err := proto_utils.MessageToAny(&codecv3.UpstreamCodec{})
