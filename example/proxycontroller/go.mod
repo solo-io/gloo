@@ -1,12 +1,6 @@
 module proxycontroller
 
-go 1.25.7
-
-require (
-	github.com/solo-io/gloo v1.18.0
-	github.com/solo-io/k8s-utils v0.12.0
-	github.com/solo-io/solo-kit v0.40.0
-)
+go 1.25.8
 
 replace (
 	github.com/Azure/go-autorest => github.com/Azure/go-autorest v13.0.0+incompatible

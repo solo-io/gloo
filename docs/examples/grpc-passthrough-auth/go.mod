@@ -1,12 +1,11 @@
 module github.com/envoyproxy/envoy/examples/ext_authz/auth/grpc-service
 
-go 1.24
+go 1.25.8
 
 require (
 	github.com/envoyproxy/go-control-plane/envoy v1.32.3
 	github.com/golang/protobuf v1.5.4
 	github.com/solo-io/gloo v1.18.10
-	google.golang.org/genproto v0.0.0-20250224174004-546df14abb99
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250219182151-9fdb1cabc7b2
 	google.golang.org/grpc v1.70.0
 )
