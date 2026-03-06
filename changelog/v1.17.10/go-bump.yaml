@@ -1,0 +1,19 @@
+changelog:
+- type: DEPENDENCY_BUMP
+  issueLink: https://github.com/solo-io/gloo/issues/11158
+  resolvesIssue: false
+  description: >-
+    Bump Go version to 1.25.8. This addresses several CVEs in the Go standard library:
+    CVE-2025-68121 (crypto/tls session resumption flaw),
+    CVE-2025-61729 (crypto/x509 resource exhaustion),
+    CVE-2025-61726 (net/url memory consumption).
+- type: DEPENDENCY_BUMP
+  issueLink: https://github.com/solo-io/gloo/issues/11158
+  resolvesIssue: false
+  description: Bump golang.org/x/net to v0.51.0 for security fixes.
+- type: DEPENDENCY_BUMP
+  issueLink: https://github.com/solo-io/gloo/issues/11158
+  resolvesIssue: false
+  description: >-
+    Bump containerd to v1.7.30 to fix CVE-2024-25621 (permission bypass on
+    /var/lib/containerd with overly broad default permissions).
