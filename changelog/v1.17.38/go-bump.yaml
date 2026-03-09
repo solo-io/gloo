@@ -33,3 +33,10 @@ changelog:
     dependencyTag: v0.6.0
     issueLink: https://github.com/solo-io/gloo/issues/11158
     resolvesIssue: false
+  - type: DEPENDENCY_BUMP
+    description: Bump OpenTelemetry to v1.41.0 for latest improvements and fixes.
+    dependencyOwner: open-telemetry
+    dependencyRepo: opentelemetry-go
+    dependencyTag: v1.41.0
+    issueLink: https://github.com/solo-io/gloo/issues/11158
+    resolvesIssue: false
