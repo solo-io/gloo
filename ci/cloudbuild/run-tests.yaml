@@ -135,6 +135,7 @@ options:
   machineType: 'N1_HIGHCPU_32'
   env:
   - 'TAGGED_VERSION=$TAG_NAME'
+  - 'GOTOOLCHAIN=auto'
   - 'TEST_ASSET_ID=$_PR_NUM'
   - 'ENVOY_BINARY=/workspace/envoy'
   - 'AWS_SHARED_CREDENTIALS_FILE=/workspace/aws_credentials'
