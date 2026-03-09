@@ -144,6 +144,7 @@ options:
   env:
   - 'DOCKER_CONFIG=/workspace/docker-config'
   - 'TAGGED_VERSION=$TAG_NAME'
+  - 'GOTOOLCHAIN=auto'
   - 'TEST_ASSET_ID=$_PR_NUM'
   volumes:
   - name: 'gopath'
