@@ -1,6 +1,7 @@
 options:
   env:
-    - "_GO_VERSION=1.25.8"
+    - "GO111MODULE=on"
+    - "GOTOOLCHAIN=auto"
 
 steps:
 - name: gcr.io/cloud-builders/gsutil
@@ -12,7 +13,12 @@ steps:
     path: '/go/pkg'
   id: 'untar-mod-cache'
 
-- name: 'golang:${_GO_VERSION}'
+- name: 'golang:1.25'
+  # NOTE: No need to bump 1.25 when you bump the go version in go.mod. We could
+  # use a version as old as 1.21 because, thanks to GOTOOLCHAIN=auto, go.mod's
+  # go version will dictate the toolchain. Our tarball includes the correct
+  # toolchain -- the toolchain lands in /go/pkg/mod/golang.org/toolchain@...,
+  # so 'tar' picks it up
   entrypoint: 'bash'
   args:
     - '-c'
