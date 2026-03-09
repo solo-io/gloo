@@ -40,3 +40,7 @@ changelog:
     dependencyTag: v1.41.0
     issueLink: https://github.com/solo-io/gloo/issues/11158
     resolvesIssue: false
+  - type: NON_USER_FACING
+    description: >-
+      Set GOTOOLCHAIN=auto to allow Go to auto-download the version specified in go.mod,
+      avoiding the need to bump cloudbuilder images with Go version updates.
