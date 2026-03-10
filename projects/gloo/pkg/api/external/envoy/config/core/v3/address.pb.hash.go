@@ -26,10 +26,6 @@ var (
 )
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *Pipe) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -55,10 +51,6 @@ func (m *Pipe) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *SocketAddress) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -110,10 +102,6 @@ func (m *SocketAddress) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *TcpKeepalive) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -190,10 +178,6 @@ func (m *TcpKeepalive) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *BindConfig) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -274,10 +258,6 @@ func (m *BindConfig) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *Address) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -342,10 +322,6 @@ func (m *Address) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *CidrRange) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil

@@ -26,10 +26,6 @@ var (
 )
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *AuthConfig) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -115,10 +111,6 @@ func (m *AuthConfig) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *ExtAuthExtension) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -190,10 +182,6 @@ func (m *ExtAuthExtension) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *Settings) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -346,10 +334,6 @@ func (m *Settings) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *GrpcService) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -370,10 +354,6 @@ func (m *GrpcService) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *HttpService) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -434,10 +414,6 @@ func (m *HttpService) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *BufferSettings) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -469,10 +445,6 @@ func (m *BufferSettings) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *CustomAuth) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -516,10 +488,6 @@ func (m *CustomAuth) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *AuthPlugin) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -568,10 +536,6 @@ func (m *AuthPlugin) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *BasicAuth) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -658,10 +622,6 @@ func (m *BasicAuth) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *HmacAuth) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -730,10 +690,6 @@ func (m *HmacAuth) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *SecretRefList) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -774,10 +730,6 @@ func (m *SecretRefList) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *HmacParametersInHeaders) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -794,10 +746,6 @@ func (m *HmacParametersInHeaders) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *OAuth) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -881,10 +829,6 @@ func (m *OAuth) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *OAuth2) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -971,10 +915,6 @@ func (m *OAuth2) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *RedisOptions) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -1014,10 +954,6 @@ func (m *RedisOptions) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *UserSession) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -1127,10 +1063,6 @@ func (m *UserSession) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *HeaderConfiguration) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -1175,10 +1107,6 @@ func (m *HeaderConfiguration) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *DiscoveryOverride) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -1263,10 +1191,6 @@ func (m *DiscoveryOverride) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *JwksOnDemandCacheRefreshPolicy) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -1338,10 +1262,6 @@ func (m *JwksOnDemandCacheRefreshPolicy) Hash(hasher hash.Hash64) (uint64, error
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *AutoMapFromMetadata) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -1362,10 +1282,6 @@ func (m *AutoMapFromMetadata) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *EndSessionProperties) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -1387,10 +1303,6 @@ func (m *EndSessionProperties) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *ClaimToHeader) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -1420,10 +1332,6 @@ func (m *ClaimToHeader) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *Azure) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -1488,10 +1396,6 @@ func (m *Azure) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *OidcAuthorizationCode) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -1926,10 +1830,6 @@ func (m *OidcAuthorizationCode) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *PlainOAuth2) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -2092,10 +1992,6 @@ func (m *PlainOAuth2) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *JwtValidation) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -2164,10 +2060,6 @@ func (m *JwtValidation) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *IntrospectionValidation) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -2236,10 +2128,6 @@ func (m *IntrospectionValidation) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *AccessTokenValidation) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -2455,10 +2343,6 @@ func (m *AccessTokenValidation) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *OauthSecret) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -2479,10 +2363,6 @@ func (m *OauthSecret) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *ApiKeyAuth) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -2681,10 +2561,6 @@ func (m *ApiKeyAuth) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *K8SSecretApiKeyStorage) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -2748,10 +2624,6 @@ func (m *K8SSecretApiKeyStorage) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *AerospikeApiKeyStorage) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -2920,10 +2792,6 @@ func (m *AerospikeApiKeyStorage) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *ServerDefaultApiKeyStorage) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -2940,10 +2808,6 @@ func (m *ServerDefaultApiKeyStorage) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *ApiKey) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -2999,10 +2863,6 @@ func (m *ApiKey) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *ApiKeySecret) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -3054,10 +2914,6 @@ func (m *ApiKeySecret) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *OpaAuth) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -3122,10 +2978,6 @@ func (m *OpaAuth) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *OpaAuthOptions) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -3152,10 +3004,6 @@ func (m *OpaAuthOptions) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *OpaServerAuth) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -3204,10 +3052,6 @@ func (m *OpaServerAuth) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *Ldap) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -3293,10 +3137,6 @@ func (m *Ldap) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *LdapServiceAccount) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -3338,10 +3178,6 @@ func (m *LdapServiceAccount) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *PassThroughAuth) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -3431,10 +3267,6 @@ func (m *PassThroughAuth) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *BackoffStrategy) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -3491,10 +3323,6 @@ func (m *BackoffStrategy) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *RetryPolicy) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -3557,10 +3385,6 @@ func (m *RetryPolicy) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *PassThroughGrpc) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -3641,10 +3465,6 @@ func (m *PassThroughGrpc) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *PassThroughGrpcTLSConfig) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -3661,10 +3481,6 @@ func (m *PassThroughGrpcTLSConfig) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *PassThroughHttp) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -3745,10 +3561,6 @@ func (m *PassThroughHttp) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *PortalAuth) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -3833,10 +3645,6 @@ func (m *PortalAuth) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *AuthConfig_Config) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -4141,10 +3949,6 @@ func (m *AuthConfig_Config) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *HttpService_Request) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -4200,10 +4004,6 @@ func (m *HttpService_Request) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *HttpService_Response) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -4244,10 +4044,6 @@ func (m *HttpService_Response) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *BasicAuth_Apr) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -4303,10 +4099,6 @@ func (m *BasicAuth_Apr) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *BasicAuth_EncryptionType) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -4371,10 +4163,6 @@ func (m *BasicAuth_EncryptionType) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *BasicAuth_User) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -4399,10 +4187,6 @@ func (m *BasicAuth_User) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *BasicAuth_UserList) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -4458,10 +4242,6 @@ func (m *BasicAuth_UserList) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *BasicAuth_Apr_SaltedHashedPassword) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -4486,10 +4266,6 @@ func (m *BasicAuth_Apr_SaltedHashedPassword) Hash(hasher hash.Hash64) (uint64, e
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *BasicAuth_EncryptionType_Sha1) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -4506,10 +4282,6 @@ func (m *BasicAuth_EncryptionType_Sha1) Hash(hasher hash.Hash64) (uint64, error)
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *BasicAuth_EncryptionType_Apr) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -4526,10 +4298,6 @@ func (m *BasicAuth_EncryptionType_Apr) Hash(hasher hash.Hash64) (uint64, error) 
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *UserSession_InternalSession) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -4574,10 +4342,6 @@ func (m *UserSession_InternalSession) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *UserSession_RedisSession) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -4670,10 +4434,6 @@ func (m *UserSession_RedisSession) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *UserSession_CookieOptions) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -4764,10 +4524,6 @@ func (m *UserSession_CookieOptions) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *UserSession_CipherConfig) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -4810,10 +4566,6 @@ func (m *UserSession_CipherConfig) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *OidcAuthorizationCode_AccessToken) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -4854,10 +4606,6 @@ func (m *OidcAuthorizationCode_AccessToken) Hash(hasher hash.Hash64) (uint64, er
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *OidcAuthorizationCode_IdentityToken) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -4898,10 +4646,6 @@ func (m *OidcAuthorizationCode_IdentityToken) Hash(hasher hash.Hash64) (uint64, 
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *OidcAuthorizationCode_ClientAuthentication) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -4966,10 +4710,6 @@ func (m *OidcAuthorizationCode_ClientAuthentication) Hash(hasher hash.Hash64) (u
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *OidcAuthorizationCode_Default) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -4986,10 +4726,6 @@ func (m *OidcAuthorizationCode_Default) Hash(hasher hash.Hash64) (uint64, error)
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *OidcAuthorizationCode_FrontChannelLogout) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -5010,10 +4746,6 @@ func (m *OidcAuthorizationCode_FrontChannelLogout) Hash(hasher hash.Hash64) (uin
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *OidcAuthorizationCode_ClientAuthentication_ClientSecret) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -5070,10 +4802,6 @@ func (m *OidcAuthorizationCode_ClientAuthentication_ClientSecret) Hash(hasher ha
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *OidcAuthorizationCode_ClientAuthentication_PrivateKeyJwt) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -5130,10 +4858,6 @@ func (m *OidcAuthorizationCode_ClientAuthentication_PrivateKeyJwt) Hash(hasher h
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *JwtValidation_RemoteJwks) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -5174,10 +4898,6 @@ func (m *JwtValidation_RemoteJwks) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *JwtValidation_LocalJwks) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -5198,10 +4918,6 @@ func (m *JwtValidation_LocalJwks) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *AccessTokenValidation_Default) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -5218,10 +4934,6 @@ func (m *AccessTokenValidation_Default) Hash(hasher hash.Hash64) (uint64, error)
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *AccessTokenValidation_ScopeList) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -5246,10 +4958,6 @@ func (m *AccessTokenValidation_ScopeList) Hash(hasher hash.Hash64) (uint64, erro
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *ApiKeyAuth_SecretKey) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -5275,10 +4983,6 @@ func (m *ApiKeyAuth_SecretKey) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *ApiKeyAuth_MetadataEntry) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -5304,10 +5008,6 @@ func (m *ApiKeyAuth_MetadataEntry) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *AerospikeApiKeyStorageReadModeSc) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -5356,10 +5056,6 @@ func (m *AerospikeApiKeyStorageReadModeSc) Hash(hasher hash.Hash64) (uint64, err
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *AerospikeApiKeyStorageReadModeAp) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -5394,10 +5090,6 @@ func (m *AerospikeApiKeyStorageReadModeAp) Hash(hasher hash.Hash64) (uint64, err
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *AerospikeApiKeyStorageTlsCurveID) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -5446,10 +5138,6 @@ func (m *AerospikeApiKeyStorageTlsCurveID) Hash(hasher hash.Hash64) (uint64, err
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *Ldap_ConnectionPool) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -5506,10 +5194,6 @@ func (m *Ldap_ConnectionPool) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *PassThroughHttp_Request) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -5572,10 +5256,6 @@ func (m *PassThroughHttp_Request) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-//
-// Deprecated: due to hashing implemention only using field values. The omission
-// of the field name in the hash calculation can lead to hash collisions.
-// Prefer the HashUnique function instead.
 func (m *PassThroughHttp_Response) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil

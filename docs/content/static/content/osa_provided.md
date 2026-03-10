@@ -51,20 +51,20 @@ Name|Version|License
 [spf13/pflag](https://github.com/spf13/pflag)|v1.0.6|BSD 3-clause "New" or "Revised" License
 [spf13/viper](https://github.com/spf13/viper)|v1.19.0|MIT License
 [stoewer/go-strcase](https://github.com/stoewer/go-strcase)|v1.3.0|MIT License
-[stretchr/testify](https://github.com/stretchr/testify)|v1.10.0|MIT License
+[stretchr/testify](https://github.com/stretchr/testify)|v1.11.1|MIT License
 [go.opencensus.io](https://go.opencensus.io)|v0.24.0|Apache License 2.0
 [go.uber.org/goleak](https://go.uber.org/goleak)|v1.3.0|MIT License
 [go.uber.org/multierr](https://go.uber.org/multierr)|v1.11.0|MIT License
 [go.uber.org/zap](https://go.uber.org/zap)|v1.27.0|MIT License
-[x/crypto](https://golang.org/x/crypto)|v0.39.0|BSD 3-clause "New" or "Revised" License
+[x/crypto](https://golang.org/x/crypto)|v0.48.0|BSD 3-clause "New" or "Revised" License
 [x/exp](https://golang.org/x/exp)|v0.0.0-20241215155358-4a5509556b9e|BSD 3-clause "New" or "Revised" License
-[x/mod](https://golang.org/x/mod)|v0.25.0|BSD 3-clause "New" or "Revised" License
-[x/sync](https://golang.org/x/sync)|v0.15.0|BSD 3-clause "New" or "Revised" License
-[x/tools](https://golang.org/x/tools)|v0.33.0|BSD 3-clause "New" or "Revised" License
+[x/mod](https://golang.org/x/mod)|v0.32.0|BSD 3-clause "New" or "Revised" License
+[x/sync](https://golang.org/x/sync)|v0.19.0|BSD 3-clause "New" or "Revised" License
+[x/tools](https://golang.org/x/tools)|v0.41.0|BSD 3-clause "New" or "Revised" License
 [googleapis/api](https://google.golang.org/genproto/googleapis/api)|v0.0.0-20250122153221-138b5a5a4fd4|Apache License 2.0
 [googleapis/rpc](https://google.golang.org/genproto/googleapis/rpc)|v0.0.0-20250122153221-138b5a5a4fd4|Apache License 2.0
 [google.golang.org/grpc](https://google.golang.org/grpc)|v1.70.0|Apache License 2.0
-[google.golang.org/protobuf](https://google.golang.org/protobuf)|v1.36.5|BSD 3-clause "New" or "Revised" License
+[google.golang.org/protobuf](https://google.golang.org/protobuf)|v1.36.11|BSD 3-clause "New" or "Revised" License
 [AlecAivazis/survey.v1](https://gopkg.in/AlecAivazis/survey.v1)|v1.8.7|MIT License
 [helm/v3](https://helm.sh/helm/v3)|v3.18.4|Apache License 2.0
 [istio.io/api](https://istio.io/api)|v1.25.0-alpha.0.0.20250210220544-0b64afd2de85|Apache License 2.0
