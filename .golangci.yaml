@@ -87,8 +87,8 @@ output:
   formats:
     text:
       path: stdout
-      print-linter-name: true
-      print-issued-lines: true
+          print-linter-name: true
+          print-issued-lines: true
 
 # Formatters configuration (v2)
 formatters:
