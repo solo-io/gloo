@@ -71,10 +71,6 @@ run:
   # The GME team found performance to be better when using a subset of total CPUs, so we chose 4, like they did.
   concurrency: 4
 
-  # Target Go version to use for linting.
-  # Set to 1.24 to match the Go version used to build golangci-lint v1.64.5
-  go: "1.24"
-
   # Include test files or not.
   # We have found that tests which break the linter are often symptomatic of a poorly written test.
   # To avoid unintentionally introducing tests that don't do what we expect, we run the linter against them.
