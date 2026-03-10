@@ -1,6 +1,7 @@
 options:
   env:
-    - "_GO_VERSION=1.25.7"
+    - "GO111MODULE=on"
+    - "GOTOOLCHAIN=auto"
 
 steps:
 - name: gcr.io/cloud-builders/gsutil
@@ -12,7 +13,9 @@ steps:
     path: '/go/pkg'
   id: 'untar-mod-cache'
 
-- name: 'golang:${_GO_VERSION}'
+# NOTE: No need to bump 1.26 when you bump the go version in go.mod.
+# The GOTOOLCHAIN=auto env var will automatically use the go version specified in go.mod.
+- name: 'golang:1.26'
   entrypoint: 'bash'
   args:
     - '-c'

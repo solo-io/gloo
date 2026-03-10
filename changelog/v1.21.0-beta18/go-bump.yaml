@@ -1,0 +1,4 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >-
+      Bump Go to 1.26.1 and use GOTOOLCHAIN=auto to automatically manage Go toolchain versions based on go.mod.
