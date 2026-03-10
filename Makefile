@@ -162,7 +162,7 @@ install-go-tools: mod-download ## Download and install Go dependencies
 	go install github.com/solo-io/protoc-gen-ext
 	go install github.com/solo-io/protoc-gen-openapi
 	go install github.com/envoyproxy/protoc-gen-validate
-	go install github.com/golang/protobuf/protoc-gen-go
+	go install github.com/golang/protobuf/protoc-gen-go@v1.5.4
 	go install golang.org/x/tools/cmd/goimports
 	go install github.com/cratonica/2goarray
 	go install github.com/golang/mock/mockgen
