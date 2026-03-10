@@ -26,6 +26,10 @@ var (
 )
 
 // Hash function
+//
+// Deprecated: due to hashing implemention only using field values. The omission
+// of the field name in the hash calculation can lead to hash collisions.
+// Prefer the HashUnique function instead.
 func (m *HttpConnectionManagerSettings) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -799,6 +803,10 @@ func (m *HttpConnectionManagerSettings) Hash(hasher hash.Hash64) (uint64, error)
 }
 
 // Hash function
+//
+// Deprecated: due to hashing implemention only using field values. The omission
+// of the field name in the hash calculation can lead to hash collisions.
+// Prefer the HashUnique function instead.
 func (m *HttpConnectionManagerSettings_SetCurrentClientCertDetails) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -915,6 +923,10 @@ func (m *HttpConnectionManagerSettings_SetCurrentClientCertDetails) Hash(hasher 
 }
 
 // Hash function
+//
+// Deprecated: due to hashing implemention only using field values. The omission
+// of the field name in the hash calculation can lead to hash collisions.
+// Prefer the HashUnique function instead.
 func (m *HttpConnectionManagerSettings_UuidRequestIdConfigSettings) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -971,6 +983,10 @@ func (m *HttpConnectionManagerSettings_UuidRequestIdConfigSettings) Hash(hasher 
 }
 
 // Hash function
+//
+// Deprecated: due to hashing implemention only using field values. The omission
+// of the field name in the hash calculation can lead to hash collisions.
+// Prefer the HashUnique function instead.
 func (m *HttpConnectionManagerSettings_CidrRange) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -1011,6 +1027,10 @@ func (m *HttpConnectionManagerSettings_CidrRange) Hash(hasher hash.Hash64) (uint
 }
 
 // Hash function
+//
+// Deprecated: due to hashing implemention only using field values. The omission
+// of the field name in the hash calculation can lead to hash collisions.
+// Prefer the HashUnique function instead.
 func (m *HttpConnectionManagerSettings_InternalAddressConfig) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
