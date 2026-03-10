@@ -5,9 +5,11 @@
 # * https://github.com/golangci/golangci-lint/blob/master/.golangci.reference.yml
 # * https://golangci-lint.run/usage/configuration/
 #
+version: "2"
+
 linters:
   # Disable all linters.
-  disable-all: true
+  default: none
   # Enable specific linters
   # https://golangci-lint.run/usage/linters/#enabled-by-default
   enable:
@@ -24,7 +26,7 @@ linters:
     - importas
 
 # Settings dedicated to specific linters.
-linters-settings:
+settings:
   importas:
     alias:
       - pkg: k8s.io/api/apps/v1
@@ -84,17 +86,8 @@ run:
 
 # output configuration options
 output:
-  # Use default format
-  # Default:
-  #   formats:
-  #     - format: colored-line-number
-  #       path: stdout
-
-  # Print lines of code with issue.
+  formats:
+    - format: colored-line-number
   print-issued-lines: true
-
-  # Print linter name in the end of issue text.
   print-linter-name: true
-
-  # Sort results by: filepath, line and column.
   sort-results: true
