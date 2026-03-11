@@ -8,6 +8,7 @@ import (
 
 	dto "github.com/prometheus/client_model/go"
 	"github.com/prometheus/common/expfmt"
+	"github.com/prometheus/common/model"
 	"github.com/solo-io/gloo/pkg/utils/envutils"
 	"github.com/solo-io/gloo/pkg/utils/kubeutils/portforward"
 	"github.com/solo-io/gloo/pkg/utils/statsutils/metrics"
@@ -172,7 +173,7 @@ func (s *prometheusMetricsTestingSuite) fetchMetrics() (map[string]*dto.MetricFa
 	s.Require().NotNil(res.Body, "response body is not nil")
 
 	// parse the response body
-	var parser expfmt.TextParser
+	parser := expfmt.NewTextParser(model.LegacyValidation)
 	mf, err := parser.TextToMetricFamilies(res.Body)
 	s.Require().NoError(err, "can parse metrics")
 
