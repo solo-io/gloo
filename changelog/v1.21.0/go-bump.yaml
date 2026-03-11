@@ -1,0 +1,44 @@
+changelog:
+  - type: NEW_FEATURE
+    issueLink: https://github.com/solo-io/solo-projects/issues/8746
+    resolvesIssue: true
+    description: >-
+      Add connect_terminate support for CONNECT protocol termination in Dynamic Forward Proxy. This enables TCP tunneling for HTTPS traffic through DFP by setting Envoy's connect_config on route upgrade configurations. Users can configure connectTerminate in protocol upgrades to enable HTTPS proxying through CONNECT tunnels.
+  - type: DEPENDENCY_BUMP
+    description: >-
+      Bump Go version to 1.25.8. This addresses several CVEs in the Go standard library:
+      CVE-2025-68121 (crypto/tls session resumption flaw),
+      CVE-2025-61729 (crypto/x509 resource exhaustion),
+      CVE-2025-61726 (net/url memory consumption).
+    dependencyOwner: golang
+    dependencyRepo: go
+    dependencyTag: v1.25.8
+    issueLink: https://github.com/solo-io/gloo/issues/11158
+    resolvesIssue: false
+  - type: DEPENDENCY_BUMP
+    description: Bump golang.org/x/net to v0.51.0 for security fixes.
+    dependencyOwner: golang
+    dependencyRepo: net
+    dependencyTag: v0.51.0
+    issueLink: https://github.com/solo-io/gloo/issues/11158
+    resolvesIssue: false
+  - type: DEPENDENCY_BUMP
+    description: >-
+      Bump containerd to v1.7.30 to fix CVE-2024-25621 (permission bypass on
+      /var/lib/containerd with overly broad default permissions).
+    dependencyOwner: containerd
+    dependencyRepo: containerd
+    dependencyTag: v1.7.30
+    issueLink: https://github.com/solo-io/gloo/issues/11158
+    resolvesIssue: false
+  - type: DEPENDENCY_BUMP
+    description: Bump OpenTelemetry to v1.41.0 for latest improvements and fixes.
+    dependencyOwner: open-telemetry
+    dependencyRepo: opentelemetry-go
+    dependencyTag: v1.41.0
+    issueLink: https://github.com/solo-io/gloo/issues/11158
+    resolvesIssue: false
+  - type: NON_USER_FACING
+    description: >-
+      Set GOTOOLCHAIN=auto to allow Go to auto-download the version specified in go.mod,
+      avoiding the need to bump cloudbuilder images with Go version updates.
