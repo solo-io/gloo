@@ -156,14 +156,14 @@ func (t *testContainer) deploy(timeout time.Duration) error {
 }
 
 func (t *testContainer) TerminatePod() error {
-	if err := testutils.Kubectl("delete", "pod", "-n", t.namespace, t.podName, "--grace-period=0"); err != nil {
+	if err := testutils.Kubectl("delete", "pod", "-n", t.namespace, t.podName, "--grace-period=0", "--force", "--ignore-not-found=true"); err != nil {
 		return errors.Wrapf(err, "deleting %s pod", t.podName)
 	}
 	return nil
 }
 
 func (t *testContainer) DeleteService() error {
-	if err := testutils.Kubectl("delete", "service", "-n", t.namespace, t.podName, "--grace-period=0"); err != nil {
+	if err := testutils.Kubectl("delete", "service", "-n", t.namespace, t.podName, "--grace-period=0", "--ignore-not-found=true"); err != nil {
 		return errors.Wrapf(err, "deleting %s service", t.podName)
 	}
 	return nil
