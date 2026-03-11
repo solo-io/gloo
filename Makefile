@@ -162,13 +162,13 @@ install-go-tools: mod-download ## Download and install Go dependencies
 	go install github.com/solo-io/protoc-gen-ext
 	go install github.com/solo-io/protoc-gen-openapi
 	go install github.com/envoyproxy/protoc-gen-validate
-	go install github.com/golang/protobuf/protoc-gen-go
+	go install github.com/golang/protobuf/protoc-gen-go@v1.5.4
 	go install golang.org/x/tools/cmd/goimports
 	go install github.com/cratonica/2goarray
 	go install github.com/golang/mock/mockgen
 	go install github.com/saiskee/gettercheck
 	# This version must stay in sync with the version used in CI: .github/workflows/static-analysis.yaml
-	go install github.com/golangci/golangci-lint/cmd/golangci-lint@$(LINTER_VERSION)
+	go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@$(LINTER_VERSION)
 	go install github.com/quasilyte/go-ruleguard/cmd/ruleguard@v0.3.16
 
 .PHONY: install-go-test-coverage
