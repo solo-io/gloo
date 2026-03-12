@@ -304,7 +304,7 @@ func (s *tsuite) TestUnresolvedChild() {
 		foundUnresolvedRef := false
 		for _, parent := range route.Status.Parents {
 			for _, condition := range parent.Conditions {
-				if ContainSubstring("unresolved reference").Match(condition.Message) {
+				if matches, _ := ContainSubstring("unresolved reference").Match(condition.Message); matches {
 					foundUnresolvedRef = true
 					break
 				}
