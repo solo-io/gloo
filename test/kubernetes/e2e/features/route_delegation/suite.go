@@ -7,7 +7,6 @@ import (
 	"time"
 
 	. "github.com/onsi/gomega"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -293,14 +292,14 @@ func (s *tsuite) TestInvalidChildValidStandalone() {
 }
 
 func (s *tsuite) TestUnresolvedChild() {
-	s.Require().EventuallyWithT(func(c *assert.CollectT) {
+	Eventually(func(g Gomega) {
 		route := &gwv1.HTTPRoute{}
 		err := s.ti.ClusterContext.Client.Get(s.ctx,
 			types.NamespacedName{Name: routeRoot.Name, Namespace: routeRoot.Namespace},
 			route)
-		assert.NoError(c, err, "route not found")
+		g.Expect(err).NotTo(HaveOccurred(), "route not found")
 		s.ti.Assertions.AssertHTTPRouteStatusContainsSubstring(route, "unresolved reference")
-	}, 10*time.Second, 1*time.Second)
+	}).WithTimeout(10*time.Second).WithPolling(1*time.Second).Should(Succeed())
 }
 
 func (s *tsuite) TestRouteOptions() {
