@@ -299,7 +299,7 @@ func (s *tsuite) TestUnresolvedChild() {
 			route)
 		g.Expect(err).NotTo(HaveOccurred(), "route not found")
 		s.ti.Assertions.AssertHTTPRouteStatusContainsSubstring(route, "unresolved reference")
-	}).WithTimeout(10*time.Second).WithPolling(1*time.Second).Should(Succeed())
+	}).WithTimeout(10 * time.Second).WithPolling(1 * time.Second).Should(Succeed())
 }
 
 func (s *tsuite) TestRouteOptions() {
