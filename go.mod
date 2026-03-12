@@ -354,11 +354,6 @@ require (
 )
 
 replace (
-	github.com/apache/thrift => github.com/apache/thrift v0.14.0
-	github.com/census-instrumentation/opencensus-proto => github.com/census-instrumentation/opencensus-proto v0.2.0 // indirect
-	// required for ci https://github.com/solo-io/gloo/pull/4147#discussion_r562911110
-	github.com/containerd/containerd => github.com/containerd/containerd v1.7.30
-
 	// pin to the jwt-go fork to fix CVE.
 	// using the pseudo version of github.com/form3tech-oss/jwt-go@v3.2.3 instead of the version directly,
 	// to avoid error about it being used for two different module paths
@@ -366,9 +361,6 @@ replace (
 	// Updated to fix CVE-2025-15558
 	github.com/docker/cli => github.com/docker/cli v29.2.0+incompatible
 	github.com/docker/docker => github.com/moby/moby v28.2.2+incompatible
-	// https://github.com/fsnotify/fsnotify/issues/672
-	github.com/fsnotify/fsnotify => github.com/fsnotify/fsnotify v1.7.0
-
 	// go.uber.org/mock => go.uber.org/mock v0.5.2
 
 	// Newer versions result in changes to the names of generated metrics
@@ -383,9 +375,6 @@ replace (
 	github.com/pseudomuto/protoc-gen-doc => github.com/pseudomuto/protoc-gen-doc v1.0.0
 	// Required for proper serialization of CRDs
 	github.com/renstrom/dedent => github.com/lithammer/dedent v1.0.0
-
-	// Pin this to a version compatible with protoc-gen-openapi
-	github.com/ugorji/go/codec => github.com/ugorji/go/codec v1.2.7
 
 	// Pin Kube libraries to v0.34.2
 	// These should be upgraded collectively

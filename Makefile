@@ -1276,7 +1276,7 @@ SCAN_BUCKET ?= solo-gloo-security-scans
 # ON_LTS_UPDATE - bump version
 MIN_SCANNED_VERSION ?= v1.17.0
 
-.PHONY: run-security-scans
+.PHONY: run-security-scan
 run-security-scan:
 	MIN_SCANNED_VERSION=$(MIN_SCANNED_VERSION) GO111MODULE=on go run docs/cmd/generate_docs.go run-security-scan -r gloo -a github-issue-latest
 	MIN_SCANNED_VERSION=$(MIN_SCANNED_VERSION) GO111MODULE=on go run docs/cmd/generate_docs.go run-security-scan -r glooe -a github-issue-latest
