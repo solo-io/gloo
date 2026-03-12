@@ -555,10 +555,11 @@ func installGloo(testHelper *helper.SoloTestHelper, chartUri string, fromRelease
 	}
 	args = append(args,
 		// As most CD tools wait for resources to be ready before marking the release as successful,
-		// we're emulating that here by passing these two flags.
+		// we’re emulating that here by passing these two flags.
 		// This way we ensure that we indirectly add support for CD tools
 		"--wait",
 		"--wait-for-jobs",
+		"--timeout", "15m",
 		// We run our e2e tests on a kind cluster, but kind hasn’t implemented LoadBalancer support.
 		// This leads to the service being in a pending state.
 		// Since the --wait flag is set, this can cause the upgrade to fail
@@ -609,10 +610,11 @@ func upgradeGlooWithCustomValuesFile(testHelper *helper.SoloTestHelper, chartUri
 
 	var args = []string{"upgrade", testHelper.HelmChartName,
 		// As most CD tools wait for resources to be ready before marking the release as successful,
-		// we're emulating that here by passing these two flags.
+		// we’re emulating that here by passing these two flags.
 		// This way we ensure that we indirectly add support for CD tools
 		"--wait",
 		"--wait-for-jobs",
+		"--timeout", "15m",
 		// We run our e2e tests on a kind cluster, but kind hasn’t implemented LoadBalancer support.
 		// This leads to the service being in a pending state.
 		// Since the --wait flag is set, this can cause the upgrade to fail

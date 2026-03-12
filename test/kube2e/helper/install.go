@@ -286,7 +286,28 @@ func (h *SoloTestHelper) uninstallGloo(all bool) error {
 	if all {
 		cmdArgs = append(cmdArgs, "--all")
 	}
-	return exec.RunCommand(h.RootDir, true, cmdArgs...)
+	return glooctlUninstallWithTimeout(h.RootDir, cmdArgs, 2*time.Minute)
+}
+
+// Wait for the glooctl uninstall command to respond, err on timeout.
+// Prevents tests from hanging indefinitely if uninstall gets stuck
+// waiting for resources to delete (e.g., finalizers, webhooks).
+func glooctlUninstallWithTimeout(rootDir string, cmdArgs []string, timeout time.Duration) error {
+	runResponse := make(chan error, 1)
+	go func() {
+		err := exec.RunCommand(rootDir, true, cmdArgs...)
+		if err != nil {
+			runResponse <- errors.Wrapf(err, "error while uninstalling gloo")
+		}
+		runResponse <- nil
+	}()
+
+	select {
+	case err := <-runResponse:
+		return err // can be nil
+	case <-time.After(timeout):
+		return errors.New("timeout while uninstalling gloo - cleanup may be incomplete")
+	}
 }
 
 // Parses the Helm index file and returns the version of the chart.
