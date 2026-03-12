@@ -298,7 +298,19 @@ func (s *tsuite) TestUnresolvedChild() {
 			types.NamespacedName{Name: routeRoot.Name, Namespace: routeRoot.Namespace},
 			route)
 		g.Expect(err).NotTo(HaveOccurred(), "route not found")
-		s.ti.Assertions.AssertHTTPRouteStatusContainsSubstring(route, "unresolved reference")
+
+		// Check that at least one parent status contains "unresolved reference"
+		g.Expect(route.Status.Parents).NotTo(BeEmpty(), "route should have parent statuses")
+		foundUnresolvedRef := false
+		for _, parent := range route.Status.Parents {
+			for _, condition := range parent.Conditions {
+				if ContainSubstring("unresolved reference").Match(condition.Message) {
+					foundUnresolvedRef = true
+					break
+				}
+			}
+		}
+		g.Expect(foundUnresolvedRef).To(BeTrue(), "route status should contain 'unresolved reference' message")
 	}).WithTimeout(10 * time.Second).WithPolling(1 * time.Second).Should(Succeed())
 }
 
