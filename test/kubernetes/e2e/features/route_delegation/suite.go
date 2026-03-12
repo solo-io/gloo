@@ -7,7 +7,6 @@ import (
 	"time"
 
 	. "github.com/onsi/gomega"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -293,14 +292,26 @@ func (s *tsuite) TestInvalidChildValidStandalone() {
 }
 
 func (s *tsuite) TestUnresolvedChild() {
-	s.Require().EventuallyWithT(func(c *assert.CollectT) {
+	Eventually(func(g Gomega) {
 		route := &gwv1.HTTPRoute{}
 		err := s.ti.ClusterContext.Client.Get(s.ctx,
 			types.NamespacedName{Name: routeRoot.Name, Namespace: routeRoot.Namespace},
 			route)
-		assert.NoError(c, err, "route not found")
-		s.ti.Assertions.AssertHTTPRouteStatusContainsSubstring(route, "unresolved reference")
-	}, 10*time.Second, 1*time.Second)
+		g.Expect(err).NotTo(HaveOccurred(), "route not found")
+
+		// Check that at least one parent status contains "unresolved reference"
+		g.Expect(route.Status.Parents).NotTo(BeEmpty(), "route should have parent statuses")
+		foundUnresolvedRef := false
+		for _, parent := range route.Status.Parents {
+			for _, condition := range parent.Conditions {
+				if matches, _ := ContainSubstring("unresolved reference").Match(condition.Message); matches {
+					foundUnresolvedRef = true
+					break
+				}
+			}
+		}
+		g.Expect(foundUnresolvedRef).To(BeTrue(), "route status should contain 'unresolved reference' message")
+	}).WithTimeout(10 * time.Second).WithPolling(1 * time.Second).Should(Succeed())
 }
 
 func (s *tsuite) TestRouteOptions() {

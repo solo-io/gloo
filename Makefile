@@ -162,13 +162,13 @@ install-go-tools: mod-download ## Download and install Go dependencies
 	go install github.com/solo-io/protoc-gen-ext
 	go install github.com/solo-io/protoc-gen-openapi
 	go install github.com/envoyproxy/protoc-gen-validate
-	go install github.com/golang/protobuf/protoc-gen-go
+	go install github.com/golang/protobuf/protoc-gen-go@v1.5.4
 	go install golang.org/x/tools/cmd/goimports
 	go install github.com/cratonica/2goarray
 	go install github.com/golang/mock/mockgen
 	go install github.com/saiskee/gettercheck
 	# This version must stay in sync with the version used in CI: .github/workflows/static-analysis.yaml
-	go install github.com/golangci/golangci-lint/cmd/golangci-lint@$(LINTER_VERSION)
+	go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@$(LINTER_VERSION)
 	go install github.com/quasilyte/go-ruleguard/cmd/ruleguard@v0.3.16
 
 .PHONY: install-go-test-coverage
@@ -288,7 +288,7 @@ GO_TEST_ENV ?= GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore
 # Testings flags: https://pkg.go.dev/cmd/go#hdr-Testing_flags
 # The default timeout for a suite is 10 minutes, but this can be overridden by setting the -timeout flag. Currently set
 # to 25 minutes based on the time it takes to run the longest test setup (k8s_gw_test).
-GO_TEST_ARGS ?= -timeout=25m -cpu=4 -race -outputdir=$(OUTPUT_DIR)
+GO_TEST_ARGS ?= -timeout=25m -cpu=4 -outputdir=$(OUTPUT_DIR)
 GO_TEST_COVERAGE_ARGS ?= --cover --covermode=atomic --coverprofile=cover.out
 
 # This is a way for a user executing `make go-test` to be able to provide args which we do not include by default

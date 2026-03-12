@@ -55,8 +55,15 @@ func (p *Provider) ConsistentlyObjectsNotExist(ctx context.Context, objects ...c
 }
 
 func (p *Provider) ExpectNamespaceNotExist(ctx context.Context, ns string) {
-	_, err := p.clusterContext.Clientset.CoreV1().Namespaces().Get(ctx, ns, metav1.GetOptions{})
-	p.Gomega.Expect(apierrors.IsNotFound(err)).To(BeTrue(), fmt.Sprintf("namespace %s should not be found in cluster", ns))
+	p.Gomega.Eventually(func(innerG Gomega) {
+		_, err := p.clusterContext.Clientset.CoreV1().Namespaces().Get(ctx, ns, metav1.GetOptions{})
+		innerG.Expect(apierrors.IsNotFound(err)).To(BeTrue(), fmt.Sprintf("namespace %s should not be found in cluster", ns))
+	}).
+		WithContext(ctx).
+		// Namespace deletion can take time, especially with finalizers
+		WithTimeout(time.Second * 60).
+		WithPolling(time.Millisecond * 500).
+		Should(Succeed())
 }
 
 func (p *Provider) ExpectGlooObjectNotExist(ctx context.Context, getter helpers.InputResourceGetter, meta *metav1.ObjectMeta) {
