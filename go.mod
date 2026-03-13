@@ -62,8 +62,8 @@ require (
 	github.com/solo-io/solo-apis v0.0.0-20251212201919-e8dd072aea09
 	github.com/solo-io/solo-kit v0.40.0
 	github.com/spf13/afero v1.14.0
-	github.com/spf13/cobra v1.9.1
-	github.com/spf13/pflag v1.0.7
+	github.com/spf13/cobra v1.10.0
+	github.com/spf13/pflag v1.0.9
 	github.com/spf13/viper v1.20.1
 	go.opencensus.io v0.24.0
 	go.uber.org/goleak v1.3.0
@@ -76,13 +76,13 @@ require (
 	google.golang.org/protobuf v1.36.10
 	gopkg.in/AlecAivazis/survey.v1 v1.8.7
 	helm.sh/helm/v3 v3.18.6
-	k8s.io/api v0.34.2
-	k8s.io/apiextensions-apiserver v0.34.2
-	k8s.io/apimachinery v0.34.2
-	k8s.io/client-go v0.34.2
-	k8s.io/code-generator v0.34.2
-	k8s.io/component-base v0.34.2
-	k8s.io/kubectl v0.34.2
+	k8s.io/api v0.35.2
+	k8s.io/apiextensions-apiserver v0.35.2
+	k8s.io/apimachinery v0.35.2
+	k8s.io/client-go v0.35.2
+	k8s.io/code-generator v0.35.2
+	k8s.io/component-base v0.35.2
+	k8s.io/kubectl v0.35.2
 	knative.dev/networking v0.0.0-20211210083629-bace06e98aee
 	knative.dev/pkg v0.0.0-20211206113427-18589ac7627e
 	sigs.k8s.io/controller-runtime v0.22.4
@@ -113,7 +113,7 @@ require (
 	istio.io/api v1.28.0-alpha.0.0.20251210001900-ce7b5802387c
 	istio.io/client-go v1.28.0-alpha.0.0.20251210002059-b67694478a4b
 	istio.io/istio v0.0.0-20251215222123-9eb419397d40
-	k8s.io/utils v0.0.0-20250820121507-0af2bda4dd1d
+	k8s.io/utils v0.0.0-20251002143259-bc988d571ff4
 	sigs.k8s.io/controller-tools v0.19.0
 	sigs.k8s.io/structured-merge-diff/v6 v6.3.0
 )
@@ -337,14 +337,14 @@ require (
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1
-	k8s.io/apiserver v0.34.2 // indirect
-	k8s.io/cli-runtime v0.34.2 // indirect
-	k8s.io/component-helpers v0.34.2 // indirect
+	k8s.io/apiserver v0.35.2 // indirect
+	k8s.io/cli-runtime v0.35.2 // indirect
+	k8s.io/component-helpers v0.35.2 // indirect
 	k8s.io/gengo v0.0.0-20230829151522-9cce18d56c01 // indirect
-	k8s.io/gengo/v2 v2.0.0-20250820003526-c297c0c1eb9d // indirect
+	k8s.io/gengo/v2 v2.0.0-20250922181213-ec3ebc5fd46b // indirect
 	k8s.io/klog/v2 v2.130.1 // indirect
-	k8s.io/kube-openapi v0.0.0-20250814151709-d7b6acb124c3 // indirect
-	k8s.io/metrics v0.34.2 // indirect
+	k8s.io/kube-openapi v0.0.0-20250910181357-589584f1c912 // indirect
+	k8s.io/metrics v0.35.2 // indirect
 	sigs.k8s.io/json v0.0.0-20250730193827-2d320260d730 // indirect
 	sigs.k8s.io/kustomize/api v0.20.1 // indirect
 	sigs.k8s.io/kustomize/kustomize/v5 v5.7.1 // indirect
@@ -382,24 +382,21 @@ replace (
 	// Required for proper serialization of CRDs
 	github.com/renstrom/dedent => github.com/lithammer/dedent v1.0.0
 
-	// Pin this to a version compatible with protoc-gen-openapi
-	github.com/ugorji/go/codec => github.com/ugorji/go/codec v1.2.7
-
-	// Pin Kube libraries to v0.34.2
+	// Pin Kube libraries to v0.35.2
 	// These should be upgraded collectively
-	k8s.io/api => k8s.io/api v0.34.2
-	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.34.2
-	k8s.io/apimachinery => k8s.io/apimachinery v0.34.2
-	k8s.io/apiserver => k8s.io/apiserver v0.34.2
-	k8s.io/cli-runtime => k8s.io/cli-runtime v0.34.2
-	k8s.io/client-go => k8s.io/client-go v0.34.2
-	k8s.io/code-generator => k8s.io/code-generator v0.34.2
-	k8s.io/component-base => k8s.io/component-base v0.34.2
-	k8s.io/component-helpers => k8s.io/component-helpers v0.34.2
-	// version of kube-openapi used by client-go v0.34.2
-	k8s.io/kube-openapi => k8s.io/kube-openapi v0.0.0-20250710124328-f3f2b991d03b
-	k8s.io/kubectl => k8s.io/kubectl v0.34.2
-	k8s.io/metrics => k8s.io/metrics v0.34.2
+	k8s.io/api => k8s.io/api v0.35.2
+	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.35.2
+	k8s.io/apimachinery => k8s.io/apimachinery v0.35.2
+	k8s.io/apiserver => k8s.io/apiserver v0.35.2
+	k8s.io/cli-runtime => k8s.io/cli-runtime v0.35.2
+	k8s.io/client-go => k8s.io/client-go v0.35.2
+	k8s.io/code-generator => k8s.io/code-generator v0.35.2
+	k8s.io/component-base => k8s.io/component-base v0.35.2
+	k8s.io/component-helpers => k8s.io/component-helpers v0.35.2
+	// version of kube-openapi used by client-go v0.35.2
+	k8s.io/kube-openapi => k8s.io/kube-openapi v0.0.0-20250910181357-589584f1c912
+	k8s.io/kubectl => k8s.io/kubectl v0.35.2
+	k8s.io/metrics => k8s.io/metrics v0.35.2
 	k8s.io/utils => k8s.io/utils v0.0.0-20250604170112-4c0f3b243397
 )
 

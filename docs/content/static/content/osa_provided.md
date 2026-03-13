@@ -51,8 +51,8 @@ Name|Version|License
 [saiskee/gettercheck](https://github.com/saiskee/gettercheck)|v0.0.0-20210820204958-38443d06ebe0|MIT License
 [sergi/go-diff](https://github.com/sergi/go-diff)|v1.2.0|MIT License
 [spf13/afero](https://github.com/spf13/afero)|v1.14.0|Apache License 2.0
-[spf13/cobra](https://github.com/spf13/cobra)|v1.9.1|Apache License 2.0
-[spf13/pflag](https://github.com/spf13/pflag)|v1.0.7|BSD 3-clause "New" or "Revised" License
+[spf13/cobra](https://github.com/spf13/cobra)|v1.10.0|Apache License 2.0
+[spf13/pflag](https://github.com/spf13/pflag)|v1.0.9|BSD 3-clause "New" or "Revised" License
 [spf13/viper](https://github.com/spf13/viper)|v1.20.1|MIT License
 [stoewer/go-strcase](https://github.com/stoewer/go-strcase)|v1.3.1|MIT License
 [stretchr/testify](https://github.com/stretchr/testify)|v1.11.1|MIT License
@@ -77,13 +77,13 @@ Name|Version|License
 [istio.io/api](https://istio.io/api)|v1.28.0-alpha.0.0.20251210001900-ce7b5802387c|Apache License 2.0
 [istio.io/client-go](https://istio.io/client-go)|v1.28.0-alpha.0.0.20251210002059-b67694478a4b|Apache License 2.0
 [istio.io/istio](https://istio.io/istio)|v0.0.0-20251215222123-9eb419397d40|Apache License 2.0
-[k8s.io/api](https://k8s.io/api)|v0.34.2|Apache License 2.0
-[k8s.io/apiextensions-apiserver](https://k8s.io/apiextensions-apiserver)|v0.34.2|Apache License 2.0
-[k8s.io/apimachinery](https://k8s.io/apimachinery)|v0.34.2|Apache License 2.0
-[k8s.io/client-go](https://k8s.io/client-go)|v0.34.2|Apache License 2.0
-[k8s.io/code-generator](https://k8s.io/code-generator)|v0.34.2|Apache License 2.0
-[k8s.io/component-base](https://k8s.io/component-base)|v0.34.2|Apache License 2.0
-[k8s.io/kubectl](https://k8s.io/kubectl)|v0.34.2|Apache License 2.0
+[k8s.io/api](https://k8s.io/api)|v0.35.2|Apache License 2.0
+[k8s.io/apiextensions-apiserver](https://k8s.io/apiextensions-apiserver)|v0.35.2|Apache License 2.0
+[k8s.io/apimachinery](https://k8s.io/apimachinery)|v0.35.2|Apache License 2.0
+[k8s.io/client-go](https://k8s.io/client-go)|v0.35.2|Apache License 2.0
+[k8s.io/code-generator](https://k8s.io/code-generator)|v0.35.2|Apache License 2.0
+[k8s.io/component-base](https://k8s.io/component-base)|v0.35.2|Apache License 2.0
+[k8s.io/kubectl](https://k8s.io/kubectl)|v0.35.2|Apache License 2.0
 [k8s.io/utils](https://k8s.io/utils)|v0.0.0-20250604170112-4c0f3b243397|Apache License 2.0
 [knative.dev/networking](https://knative.dev/networking)|v0.0.0-20211210083629-bace06e98aee|Apache License 2.0
 [knative.dev/pkg](https://knative.dev/pkg)|v0.0.0-20211206113427-18589ac7627e|Apache License 2.0
