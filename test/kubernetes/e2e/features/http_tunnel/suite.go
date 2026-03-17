@@ -78,7 +78,9 @@ func (s *testingSuite) BeforeTest(suiteName, testName string) {
 	}
 	s.testInstallation.AssertionsT(s.T()).EventuallyPodsRunning(s.ctx, squidMeta.Namespace, metav1.ListOptions{
 		LabelSelector: fmt.Sprintf("app.kubernetes.io/name=%s", squidMeta.Name),
-	})
+	},
+		time.Second*40,
+	)
 
 	if s.testInstallation.Metadata.K8sGatewayEnabled {
 		err = s.testInstallation.Actions.Kubectl().Apply(s.ctx, gatewayYaml)
