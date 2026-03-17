@@ -58,11 +58,27 @@ func (s *testingSuite) SetupSuite() {
 
 	err = s.testInstallation.Actions.Kubectl().Apply(s.ctx, testDefaults.CurlPodYaml)
 	s.Require().NoError(err)
+
+	httpbinMeta := metav1.ObjectMeta{
+		Name:      "httpbin",
+		Namespace: "httpbin",
+	}
+	s.testInstallation.AssertionsT(s.T()).EventuallyPodsRunning(s.ctx, httpbinMeta.Namespace, metav1.ListOptions{
+		LabelSelector: fmt.Sprintf("app.kubernetes.io/name=%s", httpbinMeta.Name),
+	})
 }
 
 func (s *testingSuite) BeforeTest(suiteName, testName string) {
 	err := s.testInstallation.Actions.Kubectl().Apply(s.ctx, squidYaml)
 	s.Require().NoError(err)
+
+	squidMeta := metav1.ObjectMeta{
+		Name:      "squid",
+		Namespace: "default",
+	}
+	s.testInstallation.AssertionsT(s.T()).EventuallyPodsRunning(s.ctx, squidMeta.Namespace, metav1.ListOptions{
+		LabelSelector: fmt.Sprintf("app.kubernetes.io/name=%s", squidMeta.Name),
+	})
 
 	if s.testInstallation.Metadata.K8sGatewayEnabled {
 		err = s.testInstallation.Actions.Kubectl().Apply(s.ctx, gatewayYaml)
@@ -99,6 +115,11 @@ func (s *testingSuite) TearDownSuite() {
 }
 
 func (s *testingSuite) TestHttpTunnel() {
+	s.T().Cleanup(func() {
+		s.testInstallation.Actions.Kubectl().Delete(s.ctx, gatewayYaml)
+		s.testInstallation.Actions.Kubectl().Delete(s.ctx, edgeYaml)
+	})
+
 	opts := []curl.Option{
 		curl.WithHostHeader(httpbinExampleCom),
 		curl.WithPath("/headers"),

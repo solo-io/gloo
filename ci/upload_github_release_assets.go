@@ -77,7 +77,9 @@ func validateReleaseVersionOfCli(dryRun bool, releaseVersion string) {
 	cmd := exec.Command(name, "version")
 	bytes, err := cmd.Output()
 	if err != nil {
-		log.Fatalf("Error while trying to validate artifact version. Error was: %s. Output was %s", err.Error(), string(bytes))
+		f, ferr := os.Stat(name)
+		log.Warnf("Does the file exist ? ", f, ferr)
+		log.Fatalf("Error while trying to validate artifact version. Command was `%s`. Output was %s. Error was: %s", fmt.Sprintf(name, cmd.Args), string(bytes), err.Error())
 	}
 	if !strings.Contains(string(bytes), `"client": `) {
 		log.Fatalf("Unexpected version output for glooctl: %s", string(bytes))

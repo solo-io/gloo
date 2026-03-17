@@ -17,6 +17,7 @@ metadata:
   name: squid
   labels:
     app: squid
+    app.kubernetes.io/name: squid
 spec:
   volumes:
   - name: squid-config

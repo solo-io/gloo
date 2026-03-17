@@ -428,7 +428,7 @@ go-generate-mocks: clean-vendor-any ## Runs all generate directives for mockgen 
 
 .PHONY: generate-cli-docs
 generate-cli-docs: clean-cli-docs ## Removes existing CLI docs and re-generates them
-	GO111MODULE=on go run projects/gloo/cli/cmd/docs/main.go
+	GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore GO111MODULE=on go run projects/gloo/cli/cmd/docs/main.go
 
 # Ensures that accesses for fields which have "getter" functions are exclusively done via said "getter" functions
 .PHONY: getter-check
