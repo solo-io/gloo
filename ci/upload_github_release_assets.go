@@ -75,7 +75,7 @@ func main() {
 func validateReleaseVersionOfCli(dryRun bool, releaseVersion string) {
 	name := fmt.Sprintf("_output/glooctl-%s-amd64", runtime.GOOS)
 	cmd := exec.Command(name, "version")
-	bytes, err := cmd.CombinedOutput()
+	bytes, err := cmd.Output()
 	if err != nil {
 		log.Fatalf("Error while trying to validate artifact version. Output was %s. Error was: %s", string(bytes), err.Error())
 	}
