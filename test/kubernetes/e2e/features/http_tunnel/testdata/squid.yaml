@@ -31,6 +31,11 @@ spec:
       value: "UTC"
     ports:
     - containerPort: 3128
+    readinessProbe:
+      tcpSocket:
+        port: 3128
+      periodSeconds: 1
+      failureThreshold: 30
     volumeMounts:
     - name: squid-config
       mountPath: /etc/squid/squid.conf
