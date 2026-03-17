@@ -83,6 +83,14 @@ func (s *testingSuite) BeforeTest(suiteName, testName string) {
 	if s.testInstallation.Metadata.K8sGatewayEnabled {
 		err = s.testInstallation.Actions.Kubectl().Apply(s.ctx, gatewayYaml)
 		s.Require().NoError(err)
+
+		gwMeta := metav1.ObjectMeta{
+			Name:      "gloo-proxy-gw",
+			Namespace: "default",
+		}
+		s.testInstallation.AssertionsT(s.T()).EventuallyPodsRunning(s.ctx, gwMeta.Namespace, metav1.ListOptions{
+			LabelSelector: fmt.Sprintf("app.kubernetes.io/name=%s", gwMeta.Name),
+		})
 	} else {
 		err = s.testInstallation.Actions.Kubectl().Apply(s.ctx, edgeYaml)
 		s.Require().NoError(err)
