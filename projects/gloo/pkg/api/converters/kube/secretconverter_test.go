@@ -14,7 +14,6 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kubesecret"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
-	. "github.com/solo-io/solo-kit/test/matchers"
 )
 
 var _ = Describe("SecretConverter", func() {
@@ -99,10 +98,11 @@ var _ = Describe("SecretConverter", func() {
 		var t TLSSecretConverter
 		kubeSecret, err := t.ToKubeSecret(context.Background(), nil, secret)
 		Expect(err).NotTo(HaveOccurred())
-		Expect(kubeSecret).To(MatchProto(&corev1.Secret{
+		Expect(kubeSecret).To(BeEquivalentTo(&corev1.Secret{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      "s1",
-				Namespace: "ns",
+				Name:            "s1",
+				Namespace:       "ns",
+				OwnerReferences: []metav1.OwnerReference{},
 			},
 			Data: map[string][]byte{
 				"tls.key":         []byte("key"),

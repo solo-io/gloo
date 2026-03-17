@@ -148,6 +148,11 @@ options:
   # Ginkgo reports a failure, even when all test suites pass. As a result, we do not run tests in parallel in CI.
   - 'GINKGO_USER_FLAGS=-procs=1'
   - 'DOCKER_API_VERSION=1.41'
+  # Disable WatchListClient to prevent 10s timeouts when using fake clients.
+  # Since client-go v0.35, WatchListClient is enabled by default, but fake
+  # clients don't emit the required bookmark events, causing reflectors to
+  # stall for 10 seconds before falling back to the legacy list/watch path.
+  - KUBE_FEATURE_WatchListClient=false
   volumes:
   - name: 'gopath'
     path: '/go'

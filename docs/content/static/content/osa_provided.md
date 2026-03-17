@@ -11,7 +11,7 @@ Name|Version|License
 [envoyproxy/go-control-plane](https://github.com/envoyproxy/go-control-plane)|v0.14.1-0.20260113062649-004b9ec70a46|Apache License 2.0
 [go-control-plane/contrib](https://github.com/envoyproxy/go-control-plane)|v1.36.1-0.20260108162445-88062bc404b3|Apache License 2.0
 [go-control-plane/envoy](https://github.com/envoyproxy/go-control-plane)|v1.36.1-0.20260108162445-88062bc404b3|Apache License 2.0
-[go-control-plane/ratelimit](https://github.com/envoyproxy/go-control-plane)|v0.1.1-0.20250507123352-93990c5ec02f|Apache License 2.0
+[go-control-plane/ratelimit](https://github.com/envoyproxy/go-control-plane)|v0.1.0|Apache License 2.0
 [envoyproxy/protoc-gen-validate](https://github.com/envoyproxy/protoc-gen-validate)|v1.3.0|Apache License 2.0
 [fatih/color](https://github.com/fatih/color)|v1.18.0|MIT License
 [form3tech-oss/jwt-go](https://github.com/form3tech-oss/jwt-go)|v3.2.5+incompatible|MIT License

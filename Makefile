@@ -211,7 +211,7 @@ check-spelling:
 # The analyze target runs a suite of static analysis tools against the codebase.
 # The options are defined in .golangci.yaml, and can be overridden by setting the ANALYZE_OPTIONS variable.
 .PHONY: analyze
-ANALYZE_OPTIONS ?= --fast --verbose
+ANALYZE_OPTIONS ?= --verbose
 analyze:
 	$(DEPSGOBIN)/golangci-lint run $(ANALYZE_OPTIONS) ./...
 
@@ -303,6 +303,11 @@ run-kube-e2e-tests: test
 #----------------------------------------------------------------------------------
 # Go Tests
 #----------------------------------------------------------------------------------
+# Disable WatchListClient to prevent 10s timeouts when using fake clients.
+# Since client-go v0.35, WatchListClient is enabled by default, but fake
+# clients don't emit the required bookmark events, causing reflectors to
+# stall for 10 seconds before falling back to the legacy list/watch path.
+KUBE_FEATURE_FLAGS ?= KUBE_FEATURE_WatchListClient=false
 GO_TEST_ENV ?= GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore
 # Testings flags: https://pkg.go.dev/cmd/go#hdr-Testing_flags
 # The default timeout for a suite is 10 minutes, but this can be overridden by setting the -timeout flag. Currently set
@@ -317,7 +322,7 @@ GO_TEST_USER_ARGS ?=
 .PHONY: go-test
 go-test: ## Run all tests, or only run the test package at {TEST_PKG} if it is specified
 go-test: clean-bug-report clean-test-logs $(BUG_REPORT_DIR) $(TEST_LOG_DIR) # Ensure the bug_report dir is reset before each invocation
-	@$(GO_TEST_ENV) go test -ldflags=$(LDFLAGS) \
+	@$(GO_TEST_ENV) $(KUBE_FEATURE_FLAGS) go test -ldflags=$(LDFLAGS) \
     $(GO_TEST_ARGS) $(GO_TEST_USER_ARGS) \
     $(TEST_PKG) > $(TEST_LOG_DIR)/go-test 2>&1; \
     RESULT=$$?; \
