@@ -151,6 +151,7 @@ options:
   # clients don't emit the required bookmark events, causing reflectors to
   # stall for 10 seconds before falling back to the legacy list/watch path.
   - KUBE_FEATURE_WatchListClient=false
+  - GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore
   volumes:
   - name: 'gopath'
     path: '/go'
