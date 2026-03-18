@@ -17,6 +17,7 @@ metadata:
   name: squid
   labels:
     app: squid
+    app.kubernetes.io/name: squid
 spec:
   volumes:
   - name: squid-config
@@ -24,12 +25,17 @@ spec:
       name: squid-config
   containers:
   - name: squid-container
-    image: ubuntu/squid:5.2-22.04_beta
+    image: ubuntu/squid:5.6-22.10_beta
     env:
     - name: TZ
       value: "UTC"
     ports:
     - containerPort: 3128
+    readinessProbe:
+      tcpSocket:
+        port: 3128
+      periodSeconds: 1
+      failureThreshold: 30
     volumeMounts:
     - name: squid-config
       mountPath: /etc/squid/squid.conf
@@ -81,6 +87,7 @@ data:
     http_access allow localhost
     http_access allow localnet
     http_access deny all
+    max_filedescriptors 16384
     http_port 3128
     coredump_dir /var/spool/squid
     refresh_pattern ^ftp:		1440	20%	10080

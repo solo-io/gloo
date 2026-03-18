@@ -11,6 +11,7 @@ metadata:
   namespace: httpbin
   labels:
     app: httpbin
+    app.kubernetes.io/name: httpbin
 spec:
   containers:
     - name: httpbin
