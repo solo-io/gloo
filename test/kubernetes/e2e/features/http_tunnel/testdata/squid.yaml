@@ -25,7 +25,7 @@ spec:
       name: squid-config
   containers:
   - name: squid-container
-    image: ubuntu/squid:5.2-22.04_beta
+    image: ubuntu/squid:5.6-22.10_beta
     env:
     - name: TZ
       value: "UTC"
@@ -87,6 +87,7 @@ data:
     http_access allow localhost
     http_access allow localnet
     http_access deny all
+    max_filedescriptors 16384
     http_port 3128
     coredump_dir /var/spool/squid
     refresh_pattern ^ftp:		1440	20%	10080
