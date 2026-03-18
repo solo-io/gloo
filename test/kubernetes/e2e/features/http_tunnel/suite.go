@@ -3,6 +3,7 @@ package http_tunnel
 import (
 	"context"
 	"fmt"
+	"io"
 	"net/http"
 	"regexp"
 	"strings"
@@ -214,6 +215,34 @@ func (s *testingSuite) dumpSquidPodDebug(namespace, podName string) {
 	} else {
 		fmt.Printf("squid pod logs:\n%s\n", logs)
 	}
+
+	previousLogs, err := s.getPodLogs(namespace, podName, true)
+	if err != nil {
+		fmt.Printf("error getting previous squid pod logs %s/%s: %v\n", namespace, podName, err)
+	} else if previousLogs != "" {
+		fmt.Printf("previous squid pod logs:\n%s\n", previousLogs)
+	} else {
+		fmt.Printf("previous squid pod logs: none available\n")
+	}
+}
+
+func (s *testingSuite) getPodLogs(namespace, podName string, previous bool) (string, error) {
+	req := s.testInstallation.ClusterContext.Clientset.CoreV1().Pods(namespace).GetLogs(podName, &corev1.PodLogOptions{
+		Previous: previous,
+	})
+
+	logs, err := req.Stream(s.ctx)
+	if err != nil {
+		return "", err
+	}
+	defer logs.Close()
+
+	buf, err := io.ReadAll(logs)
+	if err != nil {
+		return "", err
+	}
+
+	return string(buf), nil
 }
 
 func (s *testingSuite) TearDownSuite() {
