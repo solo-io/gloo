@@ -1,30 +1,30 @@
 ---
 title: About external processing
 weight: 40
-description: Learn about what external processing is, how it works, and how to enable it in Gloo Gateway. 
+description: Learn about what external processing is, how it works, and how to enable it in Gloo Gateway.
 ---
 
-Envoy offers multiple filters that you can use to manage, monitor, and secure traffic to your apps. Although Envoy is extensible via C++ and WebAssembly modules, it might not be practical to implement these extensions for all of your apps. You might also have very specific requirements for how to process a request or response to allow traffic routing between different types of apps, such as adding specific headers to new and legacy apps. 
+Envoy offers multiple filters that you can use to manage, monitor, and secure traffic to your apps. Although Envoy is extensible via C++ and WebAssembly modules, it might not be practical to implement these extensions for all of your apps. You might also have very specific requirements for how to process a request or response to allow traffic routing between different types of apps, such as adding specific headers to new and legacy apps.
 
-With external processing, you can implement an external processing server that can read and modify all aspects of an HTTP request or response, such as headers, body, and trailers. This gives you the flexibility to apply your requirements to all types of apps, without the need to run WebAssembly or other custom scripts. 
+With external processing, you can implement an external processing server that can read and modify all aspects of an HTTP request or response, such as headers, body, and trailers. This gives you the flexibility to apply your requirements to all types of apps, without the need to run WebAssembly or other custom scripts.
 
 {{% notice note %}}
-External processing is an Enterprise-only feature. 
+External processing is an Enterprise-only feature.
 {{% /notice %}}
 
 ### How it works
 
-The following diagram shows an example for how request header manipulation works when an external processing server is used. 
+The following diagram shows an example for how request header manipulation works when an external processing server is used.
 
 <figure><img src="{{% versioned_link_path fromRoot="/img/extproc.svg" %}}">
 <figcaption style="text-align:center;font-style:italic">External processing for request headers</figcaption></figure>
 
-1. The downstream service sends a request with headers to the Envoy gateway. 
-2. The gateway extracts the header information and sends it to the external processing server. 
-3. The external processing server modifies, adds, or removes the request headers. 
-4. The modified request headers are sent back to the gateway. 
+1. The downstream service sends a request with headers to the Envoy gateway.
+2. The gateway extracts the header information and sends it to the external processing server.
+3. The external processing server modifies, adds, or removes the request headers.
+4. The modified request headers are sent back to the gateway.
 5. The modified headers are added to the request.
-6. The request is forwarded to the upstream application. 
+6. The request is forwarded to the upstream application.
 
 ## ExtProc server considerations
 
@@ -37,28 +37,85 @@ In Gloo Gateway version 1.17.0, the Gloo Gateway extProc filter implementation w
 
 If you implemented your extProc server to expect request and response attributes as part of the HTTP header processing request, you must change this implementation to read attributes from the top-level processing request instead. </br></br>
 
-For more information, see the [extProc proto definition](https://github.com/envoyproxy/envoy/blob/main/api/envoy/service/ext_proc/v3/external_processor.proto) in Envoy. 
+For more information, see the [extProc proto definition](https://github.com/envoyproxy/envoy/blob/main/api/envoy/service/ext_proc/v3/external_processor.proto) in Envoy.
 {{% /notice %}}
+
+## ExtProc filter variants
+
+Gloo Gateway supports three ExtProc filter variants that run at different positions in the Envoy filter chain. You can configure one or more variants simultaneously to process a request at multiple stages.
+
+| Field | Position in filter chain | Notes |
+|---|---|---|
+| `extProcEarly` | Early stage, before most other filters | Stage is configurable via the `filterStage` field. |
+| `extProc` | Middle stage | Stage is configurable via the `filterStage` field. |
+| `extProcLate` | Final filter before a request leaves Envoy; first filter when a response enters Envoy | Runs as an `UpstreamHttpFilter`. The `filterStage` field has no effect. |
+
+Using multiple variants lets you observe what Envoy modifies between stages. For example, you can configure `extProcEarly` and `extProcLate` to log a request as it enters the filter chain and again just before it leaves Envoy, and compare the two to identify changes that Envoy made in between.
 
 ## Enable ExtProc in Gloo Gateway
 
-You can enable ExtProc for all requests and responses that the gateway processes by using the [Settings]({{% versioned_link_path fromRoot="/reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/settings.proto.sk/" %}}) custom resource. Alternatively, you can enable ExtProc for a specific gateway listener, virtual host, or route. 
+You can enable any of the ExtProc filter variants globally for all requests and responses that the gateway processes by using the [Settings]({{% versioned_link_path fromRoot="/reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/settings.proto.sk/" %}}) custom resource. Alternatively, you can enable ExtProc for a specific gateway listener, virtual host, or route.
 
-Example configuration to add to the `default` Settings resource: 
+The following table summarizes which fields are available at each configuration level.
+
+| Configuration level | Available fields |
+|---|---|
+| Settings (global) | `extProcEarly`, `extProc`, `extProcLate` |
+| HttpListenerOptions | `extProcEarly` / `disableExtProcEarly`, `extProc` / `disableExtProc`, `extProcLate` / `disableExtProcLate` |
+| VirtualHostOptions | `extProcEarly`, `extProc`, `extProcLate` |
+| RouteOptions | `extProcEarly`, `extProc`, `extProcLate` |
+
+Settings defined at a lower level (listener, virtual host, or route) override the global Settings defaults via a shallow merge.
+
+### Example: global Settings
+
+The following example shows how to configure all three ExtProc filter variants in the `default` Settings resource:
 
 ```yaml
-extProc: 
-  grpcService: 
-    extProcServerRef: 
+extProcEarly:
+  grpcService:
+    extProcServerRef:
+      name: early-ext-proc-grpc-4444
+      namespace: gloo-system
+  filterStage:
+    stage: AuthNStage
+    predicate: Before
+  processingMode:
+    requestHeaderMode: SEND
+    responseHeaderMode: SKIP
+extProc:
+  grpcService:
+    extProcServerRef:
       name: default-ext-proc-grpc-4444
       namespace: gloo-system
-  filterStage: 
+  filterStage:
     stage: AuthZStage
     predicate: After
   failureModeAllow: false
   allowModeOverride: false
-  processingMode: 
+  processingMode:
     requestHeaderMode: SEND
     responseHeaderMode: SKIP
+extProcLate:
+  grpcService:
+    extProcServerRef:
+      name: late-ext-proc-grpc-4444
+      namespace: gloo-system
+  processingMode:
+    requestHeaderMode: SEND
+    responseHeaderMode: SEND
+```
+
+{{% notice note %}}
+The `filterStage` field has no effect on `extProcLate`. The late filter always runs as the final filter before a request leaves Envoy and as the first filter when a response enters Envoy.
+{{% /notice %}}
+
+### Example: disable a variant at the listener level
+
+To disable a specific ExtProc variant for a listener while leaving it enabled globally, set the corresponding `disable` field in your HttpListenerOptions:
+
+```yaml
+disableExtProcEarly: true
+disableExtProcLate: true
 ```
 
