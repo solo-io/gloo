@@ -42,13 +42,13 @@ For more information, see the [extProc proto definition](https://github.com/envo
 
 ## ExtProc filter variants
 
-Gloo Gateway supports three ExtProc filter variants that run at different positions in the Envoy filter chain. You can configure one or more variants simultaneously to process a request at multiple stages.
+Gloo Gateway supports three ExtProc filter variants that run at different positions in the Envoy filter chain. You can configure one or more variants simultaneously to process a request at multiple stages. For an overview of the filters in the Envoy filter chain, see [Filter flow description]({{% versioned_link_path fromRoot="/introduction/traffic_filter/#filter-flow-description" %}}).
 
 | Field | Position in filter chain | Notes |
 |---|---|---|
-| `extProcEarly` | Early stage, before most other filters | Stage is configurable via the `filterStage` field. |
-| `extProc` | Middle stage | Stage is configurable via the `filterStage` field. |
-| `extProcLate` | Final filter before a request leaves Envoy; first filter when a response enters Envoy | Runs as an `UpstreamHttpFilter`. The `filterStage` field has no effect. |
+| `extProcEarly` | Early stage | Stage is configurable via the `filterStage` field. For example, choose `FaultStage` to execute the variant before or after the fault injection stage, which is the first filter in the Envoy filter chain. Depending on your filter stage setting, this variant might be executed before or after the `extProc` variant.  |
+| `extProc` | Middle stage | Stage is configurable via the `filterStage` field. For example, choose `AuthNStage` to execute the variant before or after the external authentication stage. Depending on your filter stage setting, this variant might be executed before or after the `extProcEarly` variant.  |
+| `extProcLate` | Final filter before a request leaves Envoy; first filter when a response enters Envoy | You must provide a `filterStage` setting. However, this setting is ignored as this variant is always executed as part of the `UpstreamHttpFilter`. This filter is part of the Router phase, which is the last filter in the Envoy filter chain. |
 
 Using multiple variants lets you observe what Envoy modifies between stages. For example, you can configure `extProcEarly` and `extProcLate` to log a request as it enters the filter chain and again just before it leaves Envoy, and compare the two to identify changes that Envoy made in between.
 
