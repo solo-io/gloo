@@ -85,6 +85,20 @@ To support this feature, a new `connectTerminate` field was introduced in the Vi
 
 For configuration examples and verification steps, see [HTTPS tunneling with Dynamic Forward Proxy]({{% versioned_link_path fromRoot="/guides/traffic_management/listener_configuration/http_connection_manager/dfp/#https-tunneling-with-dynamic-forward-proxy" %}}).
 
+### Multiple extProc filter variants
+
+Starting in Gloo Gateway Enterprise v1.21.0, you can configure up to three external processing (extProc) filters that run at different positions in the Envoy filter chain. Previously, only a single `extProc` filter was supported.
+
+| Field | Position in filter chain |
+|---|---|
+| `extProcEarly` | Early in the filter chain. Stage is configurable via `filterStage`. |
+| `extProc` | Middle of the filter chain. Stage is configurable via `filterStage`. |
+| `extProcLate` | Final filter before a request leaves Envoy; first filter when a response enters Envoy. Always runs as an `upstream_http_filter` regardless of `filterStage`. |
+
+All three fields are available at the global Settings, HttpListenerOptions, VirtualHostOptions, and RouteOptions levels. You can enable or disable individual variants at the listener level with `disableExtProcEarly` and `disableExtProcLate`.
+
+For more information, see [ExtProc filter variants]({{% versioned_link_path fromRoot="/guides/traffic_management/extproc/about/#extproc-filter-variants" %}}) and the [Header manipulation]({{% versioned_link_path fromRoot="/guides/traffic_management/extproc/header-manipulation/" %}}) guide. 
+
 ### Regex matching for JWT claims
 
 Starting in Gloo Gateway Enterprise v1.21.0, you can match JWT claims against regular expressions (regex) instead of the default exact string comparison. To enable regex matching, set the `matcher` field to `REGEX_MATCH` in the `jwtPrincipal` of your RBAC policy, and provide a regex pattern as the claim value. For example, to match an `email` claim against a pattern:

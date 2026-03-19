@@ -274,7 +274,7 @@ EOF
     }
     ```
 
-## Use multiple ExtProc filter variants
+## Use multiple extProc filter variants
 
 You can configure `extProcEarly` and `extProcLate` alongside `extProc` to run multiple external processors at different stages of the filter chain. For example, you might want to debug your extProc server by logging requests at both the earliest and latest stages so that you can compare what changed in between. You can also use this setup to integrate with different extProc servers. 
 
@@ -286,7 +286,7 @@ You can configure `extProcEarly` and `extProcLate` alongside `extProc` to run mu
    kubectl edit settings default -n gloo-system
    ```
 
-   Add or replace the ExtProc fields in the `spec` section:
+   Update your settings as follows: 
    ```yaml
    extProcEarly:
      grpcService:
@@ -326,7 +326,7 @@ You can configure `extProcEarly` and `extProcLate` alongside `extProc` to run mu
        responseHeaderMode: SEND
    ```
 
-2. Create a virtual service to expose the httpbin app on the gateway, if you have not already done so.
+2. Create a virtual service to expose the httpbin app on the gateway.
    ```yaml
    kubectl apply -f- <<EOF
    apiVersion: gateway.solo.io/v1
@@ -359,7 +359,7 @@ You can configure `extProcEarly` and `extProcLate` alongside `extProc` to run mu
    HTTP/1.1 200 OK
    ```
 
-4. Check the ExtProc server logs to verify that it received 3 processing requests (one for each stage). Because each variant sends request headers (`requestHeaderMode: SEND`), the server receives three separate gRPC processing calls per request. 
+4. Check the extProc server logs to verify that it received 3 processing requests (one for each stage). Because each variant sends request headers (`requestHeaderMode: SEND`), the server receives three separate gRPC processing calls per request. 
    ```sh
    kubectl logs -l app=ext-proc-grpc --tail=50
    ```
