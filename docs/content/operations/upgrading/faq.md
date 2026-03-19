@@ -69,9 +69,7 @@ The Envoy dependency in Gloo Gateway 1.21 was upgraded from 1.35.x to 1.36.x. Th
 
 ##### XSLT transformation deprecated
 
-The XSLT transformation feature (Enterprise) is deprecated in Gloo Gateway v1.21.0 and will be removed in v1.22.0. If you use XSLT transformations, plan to use an external processing server to process this type of transformation. For more information, see []().  
-
- before upgrading to v1.22.0. For more information, see the [XSLT transformation guide]({{% versioned_link_path fromRoot="/guides/traffic_management/request_processing/transformations/xslt_transformation/" %}}).
+The XSLT transformation feature (Enterprise) is deprecated in Gloo Gateway v1.21.0 and will be removed in v1.22.0. If you use XSLT transformations, plan to use an external processing server to process this type of transformation. For more information, see [External processing]({{% versioned_link_path fromRoot="/guides/traffic_management/extproc/" %}}).  
 
 ## New features
 
