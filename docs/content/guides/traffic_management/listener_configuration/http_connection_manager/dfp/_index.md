@@ -61,11 +61,11 @@ EOF
 
 ## HTTPS tunneling with Dynamic Forward Proxy
 
-To route traffic to HTTPS targets via the dynamic forward proxy, set the `connectTerminate` upgrade type on the VirtualService. This instructs Envoy to terminate the HTTP `CONNECT` request, resolve the target host using DFP DNS, and forward the raw TCP payload upstream. This allows the client to complete a TLS handshake directly with the destination without Envoy decrypting or re-encrypting the traffic.
+To route traffic to HTTPS targets via the dynamic forward proxy, set the `connectTerminate` upgrade type on the VirtualService. This setting instructs Envoy to terminate the HTTP `CONNECT` request, resolve the target host using DFP DNS, and forward the raw TCP payload upstream. This configuration allows the client to complete a TLS handshake directly with the destination without Envoy decrypting or re-encrypting the traffic.
 
 To enable HTTPS tunneling, you need two settings:
 1. **Gateway**: Enable the `CONNECT` upgrade type on the **httpConnectionManagerSettings**. By default, Envoy rejects HTTP `CONNECT` requests unless the `CONNECT` upgrade is explicitly allowed at the listener level. This Gateway-level setting tells the HttpConnectionManager to accept `CONNECT` as a valid upgrade protocol, which is a prerequisite for any route-level handling.
-2. **VirtualService**: Enable `connectTerminate` in the route's upgrade options. This settings instructs Envoy to terminate the `CONNECT` handshake and forward the raw TCP stream to the upstream, rather than proxying the `CONNECT` request as a regular HTTP request.
+2. **VirtualService**: Enable `connectTerminate` in the route's upgrade options. This setting instructs Envoy to terminate the `CONNECT` handshake and forward the raw TCP stream to the upstream, rather than proxying the `CONNECT` request as a regular HTTP request.
 
 {{% notice warning %}}
 `connectTerminate` creates a raw TCP tunnel between the client and upstream. Because Envoy forwards the payload as opaque bytes without inspecting HTTP headers or applying HTTP-level policies, any HTTP request filters (such as header manipulation, WAF rules, or authorization checks) configured on the route do not apply to the tunneled traffic. An attacker could use the tunnel to bypass those controls and reach the upstream directly. Ensure that network-level controls or separate mTLS policies are in place to restrict what clients can tunnel to before enabling this feature in production.
