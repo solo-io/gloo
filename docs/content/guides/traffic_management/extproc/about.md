@@ -48,7 +48,7 @@ Gloo Gateway supports three ExtProc filter variants that run at different positi
 |---|---|---|
 | `extProcEarly` | Early stage | Stage is configurable via the `filterStage` field. For example, choose `FaultStage` to execute the variant before or after the fault injection stage, which is the first filter in the Envoy filter chain. Depending on your filter stage setting, this variant might be executed before or after the `extProc` variant.  |
 | `extProc` | Middle stage | Stage is configurable via the `filterStage` field. For example, choose `AuthNStage` to execute the variant before or after the external authentication stage. Depending on your filter stage setting, this variant might be executed before or after the `extProcEarly` variant.  |
-| `extProcLate` | Final filter before a request leaves Envoy; first filter when a response enters Envoy | You must provide a `filterStage` setting. However, this setting is ignored as this variant is always executed as part of the `upstream_http_filter`. This filter is part of the Router phase, which is the last filter in the Envoy filter chain. |
+| `extProcLate` | Final filter before a request leaves Envoy; first filter when a response enters Envoy | You must provide a `filterStage` setting with supported values. However, this setting is ignored as this variant is always executed as part of the `upstream_http_filter`. This filter is part of the Router phase, which is the last filter in the Envoy filter chain. |
 
 Using multiple variants lets you observe what Envoy modifies between stages. For example, you can configure `extProcEarly` and `extProcLate` to log a request as it enters the filter chain and again just before it leaves Envoy, and compare the two to identify changes that Envoy made in between.
 
@@ -116,7 +116,11 @@ The `filterStage` field has no effect on `extProcLate`. The late filter always r
 
 ### Disable a variant at the listener level
 
-To disable a specific extProc variant for a gateway listener while leaving other variants enabled globally, create an `HttpListenerOption` resource and disable the specific variant in the `options` section. The following example disables `extProcEarly` and `extProcLate` for the `gateway-proxy`, while leaving the `extProc` variant active. 
+To disable a specific extProc variant for a gateway listener while leaving other variants enabled globally, create an `HttpListenerOption` resource and disable the specific variant in the `options` section.
+
+For example, you might enable all three variants globally to log requests as they enter (`extProcEarly`) and exit (`extProcLate`) the filter chain for full observability. However, for a listener that handles high-throughput internal traffic where the extra processing stages add unnecessary latency, you can disable `extProcEarly` and `extProcLate` for that listener while keeping `extProc` active for authentication or header manipulation.
+
+The following example disables `extProcEarly` and `extProcLate` for the HTTP listener on the `gateway-proxy`, while leaving the `extProc` variant active.
 
 ```yaml
 apiVersion: gateway.solo.io/v1
@@ -130,6 +134,7 @@ spec:
     kind: Gateway
     name: gateway-proxy
     namespace: gloo-system
+    sectionName: http
   options:
     disableExtProcEarly: true
     disableExtProcLate: true
