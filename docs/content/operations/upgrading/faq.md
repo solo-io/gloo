@@ -48,61 +48,73 @@ Review the following changes made to Gloo Gateway in version {{< readfile file="
 
 Review the breaking changes in this release. 
 
-##### AuthPlugin removed
-
-The `AuthPlugin` auth config type is removed in 1.20. If you use this config type, you must remove it from your Helm values file before upgrading. If you need to configure your own auth service, check out [Custom Auth server]({{< versioned_link_path fromRoot="/guides/security/auth/custom_auth/" >}}).
-
-##### Discovery disabled by default
-
-To improve performance, discovery is now disabled by default in 1.20. Upstreams are no longer automatically created for discovered Kubernetes services. If you want to continue using discovery, set `discovery.enabled=true` (or `gloo.discovery.enabled` in Gloo Gateway Enterprise) in your Helm values file before upgrading. For more information, see the [Discovery guide]({{< versioned_link_path fromRoot="/installation/advanced_configuration/fds_mode/" >}}).
-
 ##### Envoy version upgrade
 
-The Envoy dependency in Gloo Gateway 1.20 was upgraded from 1.33.x to 1.35.x. This change includes the following upstream breaking changes. For more information about these changes, see the changelog documentation for [Envoy v1.34](https://www.envoyproxy.io/docs/envoy/latest/version_history/v1.34/v1.34) and [Envoy v1.35](https://www.envoyproxy.io/docs/envoy/latest/version_history/v1.35/v1.35).
+The Envoy dependency in Gloo Gateway 1.21 was upgraded from 1.35.x to 1.36.x. This change includes the following upstream breaking changes. For more information about these changes, see the changelog documentation for [Envoy v1.36](https://www.envoyproxy.io/docs/envoy/latest/version_history/v1.36/v1.36).
 
-**Envoy v1.34**:
-* **Extproc - Tracing changes**: When the `modeOverride` fields of the header and trailer modes have the value `DEFAULT` or are unset, no change is made to the processing mode that is set in the filter configuration. Additionally, a bug was fixed in which local replies were incorrectly sent to the extProc server for external processing. You can temoporarily revert this change by setting the runtime guard field `envoy.reloadable_features.skip_ext_proc_on_local_reply` to `false`.
-* **TLS - Envoy FIPS**: The Envoy FIPS build is updated to use the same version of BoringSSL as the Envoy standard build to meet the requirements of the revised FedRAMP policy. Default values might have changed in the encyrption settings due to the large version bump.
-* **HTTP connection manager - Generate request ID**: When the `x-request-id` header is empty, `generateRequestId` now generates a request ID on the request. Previously, it only generated an ID when the header was missing.
-* **Formatters**: The `%CEL%` and `%METADATA%` formatters are now considered built-in, and can be used directly in substitution format strings if the related extensions are linked.
+**Envoy v1.36**:
+* **ExtProc changes**: Removed support for `fail_open` and `FULL_DUPLEX_STREAMED` configuration combinations. For more information, see the related [Envoy pull request](https://github.com/envoyproxy/envoy/pull/39740). 
 
-**Envoy v1.35**:
-* **Tracing changes**: Added `max_cache_size` to the OpenTelemetry tracer config. This limits the number of spans that can be cached before the cache is flushed. The default is 1024 spans. Previously, flushing only happened at the interval that you set. You can change this setting based on the expected telemetry volume in your environment.
+* **Tracing changes**: A route refresh now results in a tracing refresh. The trace sampling decision and decoration of the new route is applied to the active span. This change can be reverted by setting the runtime guard `envoy.reloadable_features.trace_refresh_after_route_refresh` to `false`. Note, that if `pack_trace_reason` is set to `true` (default value), a request that is marked as traced cannot be unmarked as traced after the tracing refresh.
+
+* **HTTP/2 default value changes**: The following default values were changed. 
+  * The maximum number of concurrent streams in HTTP/2 changed from 2147483647 to 1024. 
+  * The initial stream window size in HTTP/2 changed from 256MiB to 16MiB. 
+  * The initial connection window size in HTTP/2 was changed from 256MiB to 24MiB. 
+
+  You can temporarily revert this change by setting the runtime guard `envoy.reloadable_features.safe_http2_options` to `false`.
+
+* **HTTP/1 CONNECT request changes**: The HTTP/1.1 proxy transport socket now generates RFC 9110 compliant `CONNECT` requests that include a Host header by default. When the proxy address is configured via endpoint metadata, the transport socket now prefers `hostname:port` format over `IP:port` when the hostname is available. The legacy behavior that allows `CONNECT` requests without a Host header can be restored by setting the runtime flag `envoy.reloadable_features.http_11_proxy_connect_legacy_format` to `true`.
 
 
-##### Caching filter deprecated
+##### XSLT transformation deprecated
 
-The [caching filter]({{< versioned_link_path fromRoot="/guides/traffic_management/listener_configuration/caching/" >}}) is deprecated and planned to be removed in Gloo Gateway version 1.21. 
-
+The XSLT transformation feature (Enterprise) is deprecated in Gloo Gateway v1.21.0 and will be removed in v1.22.0. If you use XSLT transformations, plan to use an external processing server to process this type of transformation. For more information, see [External processing]({{% versioned_link_path fromRoot="/guides/traffic_management/extproc/" %}}).  
 
 ## New features
 
-### Change proxy metrics to `usedonly` stats
+The following features were introduced. 
 
-By default, the Gloo Gateway Prometheus endpoint emits large numbers of metrics that can overwhelm your Prometheus instance or other instances that scrape these metrics. You can apply a query parameter to the Prometheus scraping endpoint to reduce the number of metrics that the proxy emits. 
+### HTTPS tunneling support for Dynamic Forward Proxy
 
-For more information, see [Apply metrics filter to Prometheus scraping endpoint]({{< versioned_link_path fromRoot="/operations/production_deployment/#apply-metrics-filter-to-prometheus-scraping-endpoint" >}}).
+Starting in Gloo Gateway 1.21.0, the Dynamic Forward Proxy (DFP) supports HTTPS targets via HTTP CONNECT tunneling. Previously, CONNECT requests were forwarded as regular HTTP/1.1, causing HTTPS connections to fail.
+
+To support this feature, a new `connectTerminate` field was introduced in the VirtualService. When set, Envoy terminates the `CONNECT` request and forwards the raw TCP payload to the upstream.
+
+For configuration examples and verification steps, see [HTTPS tunneling with Dynamic Forward Proxy]({{% versioned_link_path fromRoot="/guides/traffic_management/listener_configuration/http_connection_manager/dfp/#https-tunneling-with-dynamic-forward-proxy" %}}).
+
+### Multiple extProc filter variants
+
+Starting in Gloo Gateway Enterprise v1.21.0, you can configure up to three external processing (extProc) filters that run at different positions in the Envoy filter chain. Previously, only a single `extProc` filter was supported.
+
+| Field | Position in filter chain |
+|---|---|
+| `extProcEarly` | Early in the filter chain. Stage is configurable via `filterStage`. |
+| `extProc` | Middle of the filter chain. Stage is configurable via `filterStage`. |
+| `extProcLate` | Final filter before a request leaves Envoy; first filter when a response enters Envoy. Always runs as an `upstream_http_filter` regardless of `filterStage`. |
+
+All three fields are available at the global Settings, HttpListenerOptions, VirtualHostOptions, and RouteOptions levels. You can enable or disable individual variants at the listener level with `disableExtProcEarly` and `disableExtProcLate`.
+
+For more information, see [ExtProc filter variants]({{% versioned_link_path fromRoot="/guides/traffic_management/extproc/about/#extproc-filter-variants" %}}) and the [Header manipulation]({{% versioned_link_path fromRoot="/guides/traffic_management/extproc/header-manipulation/" %}}) guide. 
+
+### Regex matching for JWT claims
+
+Starting in Gloo Gateway Enterprise v1.21.0, you can match JWT claims against regular expressions (regex) instead of the default exact string comparison. To enable regex matching, set the `matcher` field to `REGEX_MATCH` in the `jwtPrincipal` of your RBAC policy, and provide a regex pattern as the claim value. For example, to match an `email` claim against a pattern:
+
+```yaml
+rbac:
+  policies:
+    viewer:
+      principals:
+      - jwtPrincipal:
+          claims:
+            email: "dev[0-1]@solo\\.io"
+          matcher: REGEX_MATCH
+```
+
+For more information and additional examples, see [Matching JWT claims with regex]({{% versioned_link_path fromRoot="/guides/security/auth/jwt/access_control/access_control_examples/#regex" %}}).
 
 
-### Retries on rate limited requests 
-
-You can configure a separate retry backoff strategy for requests that are rate limited. This way, you can prevent retries on already rate limited services. 
-
-To determine if a request was rate limited, a specific reset header is used, such as the `X-RateLimit-Reset` or `Retry-After` headers. If the header is present in the response, the backoff strategy for rate limited requests is applied and the general retry backoff strategy is ignored.
-
-For more information, see [Retries for rate limited requests]({{< versioned_link_path fromRoot="/guides/traffic_management/request_processing/retries/#retries-for-rate-limited-requests">}}). 
-
-### Circuit breakers for DFP-enabled routes
-
-You can configure separate circuit breakers for dynamically discovered upstream hosts. By default, Envoy creates a cluster for each resolved upstream and limits the number of connections to this cluster to 1024. When using Dynamic Forward Proxies, Envoy creates a cluster for each host and applies the default circuit breaker settings to it.
-
-Depending on your setup, you might quickly reach the circuit breaker limit for each upstream host, even though overall traffic is not high. To overwrite the default circuit breaker settings, configure the `dynamicForwardProxy.circuitBreakers` fields on your gateway proxy. 
-
-For more information, see [Set circuit breakers for dynamically discovered upstreams]({{< versioned_link_path fromRoot="/guides/traffic_management/listener_configuration/http_connection_manager/dfp/" >}})
-
-### Mutual TLS in passthrough auth
-
-You can configure the Gloo Gateway external auth client to use mutual TLS when connecting to the passthrough server. For information for how to set up passthrough auth, see [Passthrough auth]({{< versioned_link_path fromRoot="/guides/security/auth/extauth/passthrough_auth/" >}}).
 
 <!-- TODO confirm 1.20 k8s and istio testing support before uncommenting these
 ### Kubernetes 1.33 support 
@@ -132,19 +144,7 @@ You can use the changelogs' built-in [comparison tool]({{< versioned_link_path f
 
 ### Feature changes {#features}
 
-##### GraphQL support removed
-
-In version 1.20.0, support for GraphQL is removed. Any related documentation was also removed. If you need to access GraphQL-specific documentation, such as guides or the API reference, refer to previous documentation versions, such as [1.19.x](https://docs.solo.io/gloo-edge/v1.19.x). 
-
-
-### Helm changes {#helm}
-
-Review the following summary of important new, deprecated, or removed Helm fields. For full details, see the [changelogs](#changelogs).
-
-**Updated Helm fields**:
-
-* **discovery.enabled=false**: To improve performance, discovery is now disabled by default. This change means that Upstreams are no longer automatically created for discovered Kubernetes services. If you want to continue using discovery, set `discovery.enabled=true` (or `gloo.discovery.enabled` in Gloo Gateway Enterprise) in your Helm values file before upgrading. For more information, see the [Discovery guide]({{< versioned_link_path fromRoot="/installation/advanced_configuration/fds_mode/" >}}).
-
+No feature changes are reported. 
 <!--
 ### CRD changes {#crd}
 

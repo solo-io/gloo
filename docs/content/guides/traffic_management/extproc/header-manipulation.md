@@ -88,7 +88,8 @@ EOF
    kubectl edit settings default -n gloo-system
    ```
 
-   Add the following ExtProc settings to the `spec` section:
+   Add the following ExtProc settings to the `spec` section. This example configures the standard `extProc` filter, which runs in the middle of the Envoy filter chain. Gloo Gateway also supports `extProcEarly` (runs early in the filter chain) and `extProcLate` (runs as the final filter before a request leaves Envoy). For more information, see [ExtProc filter variants]({{% versioned_link_path fromRoot="/guides/traffic_management/extproc/about/#extproc-filter-variants" %}}).
+
    ```yaml
    extProc:
      grpcService:
@@ -110,7 +111,7 @@ EOF
    |`grpcService`| The configuration of the external processing server that you created earlier.|
    |`grpcService.exProcServerRef.name`| The name of the upstream that was created for the ExtProc server.|
    |`grpcService.exProcServerRef.namespace`| The namespace of the upstream that was created for the ExtProc server.|
-   |`filterStage`|Where in the filter chain you want to apply the external processing.|
+   |`filterStage`|Where in the filter chain you want to apply the external processing. Applies to `extProcEarly` and `extProc`. Has no effect on `extProcLate`, which always runs as the final filter.|
    |`failureModeAllow`|Allow the ExtProc server to continue when an error is detected during external processing. If set to `true`, the ExtProc server continues. If set to `false`, external processing is stopped and an error is returned to the Envoy proxy. |
    |`allowModeOverride`|Allow the ExtProc server to override the processing mode settings that you set. Default value is `false`. |
    |`processingMode`|Decide how you want the ExtProc server to process request and response information. |
@@ -272,6 +273,114 @@ EOF
      "url": "http://example.com/get"
     }
     ```
+
+## Use multiple extProc filter variants
+
+You can configure `extProcEarly` and `extProcLate` alongside `extProc` to run multiple external processors at different stages of the filter chain. For example, you might want to debug your extProc server by logging requests at both the earliest and latest stages so that you can compare what changed in between. You can also use this setup to integrate with different extProc servers. 
+
+1. Update the `default` Settings resource to configure all three extProc variants. In this example, all extProc variants use the same extProc server. However, you can configure a specific extProc server for each phase. The extProc stages are processed as follows: 
+   * **extProcEarly**: Requests are modified before the `Fault` Envoy filter. The `Fault` filter is the first filter in the filter chain. For more information, see [Filter flow description]({{% versioned_link_path fromRoot="/introduction/traffic_filter/#filter-flow-description" %}}).
+   * **extProc**: Requests are modified after the `AuthZ` Envoy filter. 
+   * **extProcLate**: Requests are modified in the `upstream_http_filter` that is part of the Router phase. Note that although you must provide a `filterStage` setting, this setting is ignored as the `extProcLate` variant is always executed as part of the `upstream_http_filter` filter.
+   ```sh
+   kubectl edit settings default -n gloo-system
+   ```
+
+   Update your settings as follows: 
+   ```yaml
+   extProcEarly:
+     grpcService:
+       extProcServerRef:
+         name: default-ext-proc-grpc-4444
+         namespace: gloo-system
+     filterStage:
+       stage: FaulStage
+       predicate: Before
+     processingMode:
+       requestHeaderMode: SEND
+       responseHeaderMode: SEND
+   extProc:
+     grpcService:
+       extProcServerRef:
+         name: default-ext-proc-grpc-4444
+         namespace: gloo-system
+     filterStage: 
+       stage: AuthZStage
+       predicate: After
+     failureModeAllow: false
+     allowModeOverride: false
+     processingMode:
+       requestHeaderMode: SEND
+       responseHeaderMode: SKIP
+   extProcLate:
+     # The filter stage is ignored as it is always executed in the upstream_http_filter. 
+     filterStage:  
+       stage: AuthZStage
+       predicate: After
+     grpcService:
+       extProcServerRef:
+         name: default-ext-proc-grpc-4444
+         namespace: gloo-system
+     processingMode:
+       requestHeaderMode: SEND
+       responseHeaderMode: SEND
+   ```
+
+2. Create a virtual service to expose the httpbin app on the gateway.
+   ```yaml
+   kubectl apply -f- <<EOF
+   apiVersion: gateway.solo.io/v1
+   kind: VirtualService
+   metadata:
+     name: vs
+     namespace: gloo-system
+   spec:
+     virtualHost:
+       domains:
+       - '*'
+       routes:
+       - matchers:
+         - prefix: /
+         routeAction:
+           single:
+             upstream:
+               name: default-httpbin-8000
+               namespace: gloo-system
+   EOF
+   ```
+
+3. Send a request to the httpbin app.
+   ```sh
+   curl -vik $(glooctl proxy url --name gateway-proxy)/get -H "header1: value1"
+   ```
+
+   Verify that you get back a 200 HTTP response code.
+   ```
+   HTTP/1.1 200 OK
+   ```
+
+4. Check the extProc server logs to verify that it received 3 processing requests (one for each stage). Because each variant sends request headers (`requestHeaderMode: SEND`), the server receives three separate gRPC processing calls per request. 
+   ```sh
+   kubectl logs -l app=ext-proc-grpc --tail=50
+   ```
+
+   Example output: 
+   {{< highlight bash "hl_lines=2 5 8" >}}
+   "Wed, 18 Mar 2026 19:57:41 UTC: /Users/ben/Documents/solo-repos/ext-proc-examples/basic-sink/main.go:207"	Starting gRPC server on port ":18080"
+   "Thu, 19 Mar 2026 13:14:48 UTC: /Users/ben/Documents/solo-repos/ext-proc-examples/basic-sink/main.go:55"	Process
+   "Thu, 19 Mar 2026 13:14:48 UTC: /Users/ben/Documents/solo-repos/ext-proc-examples/basic-sink/main.go:78"	Got RequestHeaders
+   "Thu, 19 Mar 2026 13:14:48 UTC: /Users/ben/Documents/solo-repos/ext-proc-examples/basic-sink/main.go:182"	Sending ProcessingResponse
+   "Thu, 19 Mar 2026 13:14:48 UTC: /Users/ben/Documents/solo-repos/ext-proc-examples/basic-sink/main.go:55"	Process
+   "Thu, 19 Mar 2026 13:14:48 UTC: /Users/ben/Documents/solo-repos/ext-proc-examples/basic-sink/main.go:78"	Got RequestHeaders
+   "Thu, 19 Mar 2026 13:14:48 UTC: /Users/ben/Documents/solo-repos/ext-proc-examples/basic-sink/main.go:182"	Sending ProcessingResponse
+   "Thu, 19 Mar 2026 13:14:48 UTC: /Users/ben/Documents/solo-repos/ext-proc-examples/basic-sink/main.go:55"	Process
+   "Thu, 19 Mar 2026 13:14:48 UTC: /Users/ben/Documents/solo-repos/ext-proc-examples/basic-sink/main.go:78"	Got RequestHeaders
+   "Thu, 19 Mar 2026 13:14:48 UTC: /Users/ben/Documents/solo-repos/ext-proc-examples/basic-sink/main.go:182"	Sending ProcessingResponse
+   "Thu, 19 Mar 2026 13:14:48 UTC: /Users/ben/Documents/solo-repos/ext-proc-examples/basic-sink/main.go:137"	Got ResponseHeaders
+   "Thu, 19 Mar 2026 13:14:48 UTC: /Users/ben/Documents/solo-repos/ext-proc-examples/basic-sink/main.go:182"	Sending ProcessingResponse
+   {{< /highlight >}}
+
+   
 
 ## Cleanup
 

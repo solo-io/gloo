@@ -40,6 +40,7 @@ Then, set the actual destination of the client request. The destination can be t
 Review the following basic example to see how you can apply the dynamic forward option to a route.
 
 ```yaml
+kubectl apply -f- <<EOF
 apiVersion: gateway.solo.io/v1
 kind: VirtualService
 metadata:
@@ -55,7 +56,148 @@ spec:
         routeAction:
           dynamicForwardProxy:
             autoHostRewriteHeader: "x-rewrite-me" # host header will be rewritten to the value of this header
+EOF
 ```
+
+## HTTPS tunneling with Dynamic Forward Proxy
+
+To route traffic to HTTPS targets via the dynamic forward proxy, set the `connectTerminate` upgrade type on the VirtualService. This setting instructs Envoy to terminate the HTTP `CONNECT` request, resolve the target host using DFP DNS, and forward the raw TCP payload upstream. This configuration allows the client to complete a TLS handshake directly with the destination without Envoy decrypting or re-encrypting the traffic.
+
+To enable HTTPS tunneling, you need two settings:
+1. **Gateway**: Enable the `CONNECT` upgrade type on the **httpConnectionManagerSettings**. By default, Envoy rejects HTTP `CONNECT` requests unless the `CONNECT` upgrade is explicitly allowed at the listener level. This Gateway-level setting tells the HttpConnectionManager to accept `CONNECT` as a valid upgrade protocol, which is a prerequisite for any route-level handling.
+2. **VirtualService**: Enable `connectTerminate` in the route's upgrade options. This setting instructs Envoy to terminate the `CONNECT` handshake and forward the raw TCP stream to the upstream, rather than proxying the `CONNECT` request as a regular HTTP request.
+
+{{% notice warning %}}
+`connectTerminate` creates a raw TCP tunnel between the client and upstream. Because Envoy forwards the payload as opaque bytes without inspecting HTTP headers or applying HTTP-level policies, any HTTP request filters (such as header manipulation, WAF rules, or authorization checks) configured on the route do not apply to the tunneled traffic. An attacker could use the tunnel to bypass those controls and reach the upstream directly. Ensure that network-level controls or separate mTLS policies are in place to restrict what clients can tunnel to before enabling this feature in production.
+{{% /notice %}}
+
+### Configure CONNECT tunneling
+
+1. Apply the Gateway resource to enable the CONNECT upgrade for the dynamic forward proxy. This example updates the default `gateway-proxy` Gateway resource. Note that `bindAddress` and `bindPort` must be unique across all Gateways on the same proxy.
+
+   ```shell
+   kubectl apply -f- <<EOF
+   apiVersion: gateway.solo.io/v1
+   kind: Gateway
+   metadata:
+     name: gateway-proxy
+     namespace: gloo-system
+   spec:
+     bindAddress: "::"
+     bindPort: 8080
+     httpGateway:
+       options:
+         dynamicForwardProxy:
+           dnsCacheConfig:
+             dnsLookupFamily: V4_ONLY
+             hostTtl: 86400s
+         httpConnectionManagerSettings:
+           upgrades:
+             - connect:
+                 enabled: true
+       virtualServiceSelector:
+         app: my-forward-proxy
+     ssl: false
+     useProxyProto: false
+   EOF
+   ```
+
+   {{% notice note %}}
+   To get the current values for `bindAddress`, `bindPort`, `ssl`, `useProxyProto`, and `proxyNames` on your existing Gateway resource before applying, run `kubectl get gw gateway-proxy -n gloo-system -o yaml`.
+   {{% /notice %}}
+
+2. Create a VirtualService that matches `CONNECT` requests and terminates them by using the `connectTerminate` setting. 
+   ```yaml
+   kubectl apply -f- <<EOF
+   apiVersion: gateway.solo.io/v1
+   kind: VirtualService
+   metadata:
+     name: forward-proxy-vs
+     namespace: gloo-system
+     labels: 
+       app: my-forward-proxy
+   spec:
+     virtualHost:
+       domains:
+         - '*'
+       routes:
+         - matchers:
+             - connectMatcher: {}   # matches HTTP CONNECT requests
+           routeAction:
+             dynamicForwardProxy: {}   # host is taken from the CONNECT request authority
+           options:
+             upgrades:
+               - connectTerminate:
+                   enabled: true   # terminates CONNECT and forwards payload as raw TCP
+   EOF
+   ```
+
+3. Send an HTTPS request to the `httpbin.org` site through the gateway proxy. When you target an HTTPS URL through an HTTP dynamic forward proxy, `curl` automatically sends a `CONNECT` request to establish the tunnel before performing the TLS handshake.
+   ```sh
+   export INGRESS_GW_ADDRESS=$(kubectl get svc -n gloo-system gateway-proxy \
+    -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+   curl -v -x http://$INGRESS_GW_ADDRESS:80 https://httpbin.org/get 
+   ```
+
+   In the CLI output, verify that you see that the `CONNECT` tunnel was established and that you successfully connected to the httpbin.org site via HTTPS.
+
+   {{< highlight shell "hl_lines=2 4 5 10 13 14" >}}
+   * Connected to 172.18.0.4 (172.18.0.4) port 80
+   * CONNECT tunnel: HTTP/1.1 negotiated
+   * allocate connect buffer
+   * Establish HTTP proxy tunnel to httpbin.org:443
+   > CONNECT httpbin.org:443 HTTP/1.1
+   > Host: httpbin.org:443
+   > User-Agent: curl/8.7.1
+   > Proxy-Connection: Keep-Alive
+   >
+   < HTTP/1.1 200 OK
+   < server: envoy
+   <
+   * CONNECT phase completed
+   * CONNECT tunnel established, response 200
+   * ALPN: curl offers h2,http/1.1
+   * (304) (OUT), TLS handshake, Client hello (1):
+   *  CAfile: /etc/ssl/cert.pem
+   *  CApath: none
+   * (304) (IN), TLS handshake, Server hello (2):
+   * TLSv1.2 (IN), TLS handshake, Certificate (11):
+   ...
+   * using HTTP/2
+   * [HTTP/2] [1] OPENED stream for https://httpbin.org/get
+   * [HTTP/2] [1] [:method: GET]
+   * [HTTP/2] [1] [:scheme: https]
+   * [HTTP/2] [1] [:authority: httpbin.org]
+   * [HTTP/2] [1] [:path: /get]
+   * [HTTP/2] [1] [user-agent: curl/8.7.1]
+   * [HTTP/2] [1] [accept: */*]
+   > GET /get HTTP/2
+   > Host: httpbin.org
+   > User-Agent: curl/8.7.1
+   > Accept: */*
+   >
+   * Request completely sent off
+   < HTTP/2 200
+   < content-type: application/json
+   < content-length: 252
+   < server: gunicorn/19.9.0
+   < access-control-allow-origin: *
+   < access-control-allow-credentials: true
+   <
+   {
+     "args": {},
+     "headers": {
+       "Accept": "*/*",
+       "Host": "httpbin.org",
+       "User-Agent": "curl/8.7.1",
+       "X-Amzn-Trace-Id": "Root=1-69baf890-425cbdb422823e25314bd8bf"
+     },
+     "origin": "69.X.XX.XXX",
+     "url": "https://httpbin.org/get"
+     }
+   * Connection #0 to host 172.18.0.4 left intact
+   {{< /highlight >}}
+
 
 ## Set circuit breakers for dynamically discovered upstreams {#dfp-circuit-breakers}
 

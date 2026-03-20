@@ -5,7 +5,7 @@ description: Transforming the request body from SOAP/XML to a JSON.
 ---
 
 {{% notice warning %}}
-This feature is deprecated in Gloo Gateway v1.21.0 and will be removed in a future release
+This feature is deprecated in Gloo Gateway v1.21.0 and will be removed in v1.22.0. If you use XSLT transformations, plan to migrate away from this feature before upgrading to v1.22.0.
 {{% /notice %}}
 
 {{% notice note %}}
