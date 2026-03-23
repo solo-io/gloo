@@ -3,8 +3,10 @@ package http_tunnel
 import (
 	"context"
 	"fmt"
+	"io"
 	"net/http"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/stretchr/testify/suite"
@@ -15,6 +17,7 @@ import (
 	"github.com/solo-io/gloo/test/gomega/matchers"
 	"github.com/solo-io/gloo/test/kubernetes/e2e"
 	testDefaults "github.com/solo-io/gloo/test/kubernetes/e2e/defaults"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	_ "embed"
@@ -58,15 +61,33 @@ func (s *testingSuite) SetupSuite() {
 
 	err = s.testInstallation.Actions.Kubectl().Apply(s.ctx, testDefaults.CurlPodYaml)
 	s.Require().NoError(err)
+
+	httpbinMeta := metav1.ObjectMeta{
+		Name:      "httpbin",
+		Namespace: "httpbin",
+	}
+	s.testInstallation.AssertionsT(s.T()).EventuallyPodsRunning(s.ctx, httpbinMeta.Namespace, metav1.ListOptions{
+		LabelSelector: fmt.Sprintf("app.kubernetes.io/name=%s", httpbinMeta.Name),
+	})
 }
 
 func (s *testingSuite) BeforeTest(suiteName, testName string) {
 	err := s.testInstallation.Actions.Kubectl().Apply(s.ctx, squidYaml)
 	s.Require().NoError(err)
 
+	s.waitForSquidPodReady(time.Second * 40)
+
 	if s.testInstallation.Metadata.K8sGatewayEnabled {
 		err = s.testInstallation.Actions.Kubectl().Apply(s.ctx, gatewayYaml)
 		s.Require().NoError(err)
+
+		gwMeta := metav1.ObjectMeta{
+			Name:      "gloo-proxy-gw",
+			Namespace: "default",
+		}
+		s.testInstallation.AssertionsT(s.T()).EventuallyPodsRunning(s.ctx, gwMeta.Namespace, metav1.ListOptions{
+			LabelSelector: fmt.Sprintf("app.kubernetes.io/name=%s", gwMeta.Name),
+		})
 	} else {
 		err = s.testInstallation.Actions.Kubectl().Apply(s.ctx, edgeYaml)
 		s.Require().NoError(err)
@@ -90,6 +111,140 @@ func (s *testingSuite) AfterTest(suiteName, testName string) {
 	s.Require().NoError(err)
 }
 
+func (s *testingSuite) waitForSquidPodReady(timeout time.Duration) {
+	const (
+		squidNamespace = "default"
+		squidPodName   = "squid"
+		pollInterval   = 3 * time.Second
+	)
+
+	deadline := time.Now().Add(timeout)
+	ticker := time.NewTicker(pollInterval)
+	defer ticker.Stop()
+
+	lastSnapshot := ""
+	for {
+		snapshot, ready := s.getSquidPodSnapshot(squidNamespace, squidPodName)
+		if snapshot != lastSnapshot {
+			fmt.Printf("squid pod state while waiting for readiness:\n%s\n", snapshot)
+			lastSnapshot = snapshot
+		}
+		if ready {
+			return
+		}
+		if time.Now().After(deadline) {
+			break
+		}
+
+		select {
+		case <-s.ctx.Done():
+			s.FailNow(fmt.Sprintf("context canceled while waiting for squid pod readiness: %v", s.ctx.Err()))
+		case <-ticker.C:
+		}
+	}
+
+	fmt.Printf("timed out waiting %s for squid pod to become ready\n", timeout)
+	s.dumpSquidPodDebug(squidNamespace, squidPodName)
+	s.FailNow("squid pod should become ready")
+}
+
+func (s *testingSuite) getSquidPodSnapshot(namespace, podName string) (string, bool) {
+	pod, err := s.testInstallation.ClusterContext.Clientset.CoreV1().Pods(namespace).Get(s.ctx, podName, metav1.GetOptions{})
+	if err != nil {
+		return fmt.Sprintf("failed to get squid pod %s/%s: %v", namespace, podName, err), false
+	}
+
+	ready := false
+	var out strings.Builder
+	fmt.Fprintf(&out, "pod=%s/%s phase=%s podIP=%s hostIP=%s\n", namespace, podName, pod.Status.Phase, pod.Status.PodIP, pod.Status.HostIP)
+
+	if pod.DeletionTimestamp != nil {
+		fmt.Fprintf(&out, "deletionTimestamp=%s\n", pod.DeletionTimestamp.Time.Format(time.RFC3339))
+	}
+
+	if len(pod.Status.Conditions) > 0 {
+		out.WriteString("conditions:\n")
+		for _, condition := range pod.Status.Conditions {
+			if condition.Type == corev1.PodReady {
+				ready = condition.Status == corev1.ConditionTrue
+			}
+			fmt.Fprintf(&out, "- %s=%s reason=%s message=%s\n", condition.Type, condition.Status, condition.Reason, condition.Message)
+		}
+	}
+
+	if len(pod.Status.ContainerStatuses) > 0 {
+		out.WriteString("containers:\n")
+		for _, status := range pod.Status.ContainerStatuses {
+			fmt.Fprintf(&out, "- %s ready=%t restarts=%d state=%s lastState=%s\n",
+				status.Name,
+				status.Ready,
+				status.RestartCount,
+				formatContainerState(status.State),
+				formatContainerState(status.LastTerminationState),
+			)
+		}
+	}
+
+	return strings.TrimSpace(out.String()), ready
+}
+
+func formatContainerState(state corev1.ContainerState) string {
+	switch {
+	case state.Waiting != nil:
+		return fmt.Sprintf("waiting(reason=%s, message=%s)", state.Waiting.Reason, state.Waiting.Message)
+	case state.Running != nil:
+		return fmt.Sprintf("running(startedAt=%s)", state.Running.StartedAt.Time.Format(time.RFC3339))
+	case state.Terminated != nil:
+		return fmt.Sprintf("terminated(reason=%s, exitCode=%d, message=%s)", state.Terminated.Reason, state.Terminated.ExitCode, state.Terminated.Message)
+	default:
+		return "none"
+	}
+}
+
+func (s *testingSuite) dumpSquidPodDebug(namespace, podName string) {
+	describe, err := s.testInstallation.Actions.Kubectl().Describe(s.ctx, namespace, "pod/"+podName)
+	if err != nil {
+		fmt.Printf("error describing squid pod %s/%s: %v\n", namespace, podName, err)
+	} else {
+		fmt.Printf("squid pod describe output:\n%s\n", describe)
+	}
+
+	logs, err := s.testInstallation.Actions.Kubectl().GetContainerLogs(s.ctx, namespace, podName)
+	if err != nil {
+		fmt.Printf("error getting squid pod logs %s/%s: %v\n", namespace, podName, err)
+	} else {
+		fmt.Printf("squid pod logs:\n%s\n", logs)
+	}
+
+	previousLogs, err := s.getPodLogs(namespace, podName, true)
+	if err != nil {
+		fmt.Printf("error getting previous squid pod logs %s/%s: %v\n", namespace, podName, err)
+	} else if previousLogs != "" {
+		fmt.Printf("previous squid pod logs:\n%s\n", previousLogs)
+	} else {
+		fmt.Printf("previous squid pod logs: none available\n")
+	}
+}
+
+func (s *testingSuite) getPodLogs(namespace, podName string, previous bool) (string, error) {
+	req := s.testInstallation.ClusterContext.Clientset.CoreV1().Pods(namespace).GetLogs(podName, &corev1.PodLogOptions{
+		Previous: previous,
+	})
+
+	logs, err := req.Stream(s.ctx)
+	if err != nil {
+		return "", err
+	}
+	defer logs.Close()
+
+	buf, err := io.ReadAll(logs)
+	if err != nil {
+		return "", err
+	}
+
+	return string(buf), nil
+}
+
 func (s *testingSuite) TearDownSuite() {
 	err := s.testInstallation.Actions.Kubectl().Delete(s.ctx, testDefaults.CurlPodYaml)
 	s.Require().NoError(err)
@@ -99,6 +254,11 @@ func (s *testingSuite) TearDownSuite() {
 }
 
 func (s *testingSuite) TestHttpTunnel() {
+	s.T().Cleanup(func() {
+		s.testInstallation.Actions.Kubectl().Delete(s.ctx, gatewayYaml)
+		s.testInstallation.Actions.Kubectl().Delete(s.ctx, edgeYaml)
+	})
+
 	opts := []curl.Option{
 		curl.WithHostHeader(httpbinExampleCom),
 		curl.WithPath("/headers"),

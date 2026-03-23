@@ -57,5 +57,6 @@
     "AddProxyProtocolConnectionState",
     "Http1SafeMaxConnectionDuration",
     "AppendLocalOverload",
-    "StreamFlushTimeout"
+    "StreamFlushTimeout",
+    "ForwardClientCertMatcher"
 ]

@@ -9,17 +9,15 @@ require (
 	github.com/aws/aws-sdk-go v1.34.9
 	github.com/cncf/xds/go v0.0.0-20251110193048-8bfbf64dc13e
 	github.com/cratonica/2goarray v0.0.0-20190331194516-514510793eaa
-	github.com/envoyproxy/go-control-plane v0.14.0
-	github.com/envoyproxy/go-control-plane/contrib v1.32.5-0.20250627145903-197b96a9c7f8
-	github.com/envoyproxy/go-control-plane/envoy v1.36.1-0.20251120180717-7c66c7f1d0b2
-	github.com/envoyproxy/go-control-plane/ratelimit v0.1.1-0.20250507123352-93990c5ec02f
-	github.com/envoyproxy/protoc-gen-validate v1.2.1
+	github.com/envoyproxy/go-control-plane v0.14.1-0.20260113062649-004b9ec70a46
+	github.com/envoyproxy/go-control-plane/envoy v1.36.1-0.20260108162445-88062bc404b3
+	github.com/envoyproxy/protoc-gen-validate v1.3.0
 	github.com/form3tech-oss/jwt-go v3.2.5+incompatible
 	github.com/fsnotify/fsnotify v1.9.0
 	github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32
 	github.com/go-openapi/loads v0.19.4
 	github.com/go-openapi/spec v0.19.6
-	github.com/go-openapi/swag v0.23.1
+	github.com/go-openapi/swag v0.25.4
 	github.com/go-swagger/go-swagger v0.21.0
 	github.com/gogo/googleapis v1.4.0
 	github.com/gogo/protobuf v1.3.2
@@ -47,20 +45,20 @@ require (
 	github.com/saiskee/gettercheck v0.0.0-20210820204958-38443d06ebe0
 	github.com/sergi/go-diff v1.2.0
 	github.com/solo-io/go-list-licenses v0.1.4
-	github.com/solo-io/go-utils v0.29.0
-	github.com/solo-io/k8s-utils v0.12.0
+	github.com/solo-io/go-utils v0.30.0
+	github.com/solo-io/k8s-utils v0.13.0
 	github.com/solo-io/protoc-gen-ext v0.1.0
 	github.com/solo-io/protoc-gen-openapi v0.4.0
-	github.com/solo-io/skv2 v0.45.0
+	github.com/solo-io/skv2 v0.46.0
 
-	// Pinned to the `k8s-1.34-bump` tag of solo-apis on `gloo-main` branch
+	// Pinned to the `k8s-1.35-bump` tag of solo-apis on `gloo-main` branch
 	// Ref: https://github.com/solo-io/gloo/pull/9463/files#r1594409655 && https://solo-io-corp.slack.com/archives/C03MFATU265/p1716913420716729?thread_ts=1716476992.938679&cid=C03MFATU265
 	// as to why it is now based off `gloo-main` and not `gloo-repo-branch`
-	github.com/solo-io/solo-apis v0.0.0-20251212201919-e8dd072aea09
-	github.com/solo-io/solo-kit v0.40.0
+	github.com/solo-io/solo-apis v0.0.0-20260317133711-cac1509378f4
+	github.com/solo-io/solo-kit v0.41.0
 	github.com/spf13/afero v1.14.0
-	github.com/spf13/cobra v1.9.1
-	github.com/spf13/pflag v1.0.7
+	github.com/spf13/cobra v1.10.0
+	github.com/spf13/pflag v1.0.10
 	github.com/spf13/viper v1.20.1
 	go.opencensus.io v0.24.0
 	go.uber.org/goleak v1.3.0
@@ -69,17 +67,17 @@ require (
 	golang.org/x/crypto v0.48.0
 	golang.org/x/sync v0.19.0
 	golang.org/x/tools v0.41.0
-	google.golang.org/grpc v1.76.0
+	google.golang.org/grpc v1.78.0
 	google.golang.org/protobuf v1.36.11
 	gopkg.in/AlecAivazis/survey.v1 v1.8.7
 	helm.sh/helm/v3 v3.18.6
-	k8s.io/api v0.34.2
-	k8s.io/apiextensions-apiserver v0.34.2
-	k8s.io/apimachinery v0.34.2
-	k8s.io/client-go v0.34.2
-	k8s.io/code-generator v0.34.2
-	k8s.io/component-base v0.34.2
-	k8s.io/kubectl v0.34.2
+	k8s.io/api v0.35.2
+	k8s.io/apiextensions-apiserver v0.35.2
+	k8s.io/apimachinery v0.35.2
+	k8s.io/client-go v0.35.2
+	k8s.io/code-generator v0.35.2
+	k8s.io/component-base v0.35.2
+	k8s.io/kubectl v0.35.2
 	knative.dev/networking v0.0.0-20211210083629-bace06e98aee
 	knative.dev/pkg v0.0.0-20211206113427-18589ac7627e
 	sigs.k8s.io/controller-runtime v0.22.4
@@ -90,6 +88,8 @@ require (
 require (
 	github.com/ahmetb/gen-crd-api-reference-docs v0.3.1-0.20240214155107-6cf1ede4da61
 	github.com/avast/retry-go/v4 v4.3.3
+	github.com/envoyproxy/go-control-plane/contrib v1.36.1-0.20260108162445-88062bc404b3
+	github.com/envoyproxy/go-control-plane/ratelimit v0.1.0
 	github.com/go-logr/zapr v1.3.0
 	github.com/golang-jwt/jwt/v4 v4.5.2
 	github.com/google/go-cmp v0.7.0
@@ -105,20 +105,31 @@ require (
 	go.uber.org/mock v0.6.0
 	golang.org/x/exp v0.0.0-20251017212417-90e834f514db
 	golang.org/x/mod v0.32.0
-	google.golang.org/genproto/googleapis/api v0.0.0-20251020155222-88f65dc88635
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20251020155222-88f65dc88635
-	istio.io/api v1.28.0-alpha.0.0.20251210001900-ce7b5802387c
-	istio.io/client-go v1.28.0-alpha.0.0.20251210002059-b67694478a4b
-	istio.io/istio v0.0.0-20251215222123-9eb419397d40
-	k8s.io/utils v0.0.0-20250820121507-0af2bda4dd1d
+	google.golang.org/genproto/googleapis/api v0.0.0-20251213004720-97cd9d5aeac2
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20251213004720-97cd9d5aeac2
+	istio.io/api v1.29.0-rc.1.0.20260209142455-7fea5efd57ca
+	istio.io/client-go v1.29.0-rc.1.0.20260209143053-34bf90f81feb
+	istio.io/istio v0.0.0-20260306174214-6991a379e1fc
+	k8s.io/utils v0.0.0-20251219084037-98d557b7f1e7
 	sigs.k8s.io/controller-tools v0.19.0
-	sigs.k8s.io/structured-merge-diff/v6 v6.3.0
+	sigs.k8s.io/structured-merge-diff/v6 v6.3.1
 )
 
 require (
 	github.com/containerd/errdefs v0.3.0 // indirect
 	github.com/containerd/log v0.1.0 // indirect
 	github.com/containerd/platforms v0.2.1 // indirect
+	github.com/go-openapi/swag/cmdutils v0.25.4 // indirect
+	github.com/go-openapi/swag/conv v0.25.4 // indirect
+	github.com/go-openapi/swag/fileutils v0.25.4 // indirect
+	github.com/go-openapi/swag/jsonname v0.25.4 // indirect
+	github.com/go-openapi/swag/jsonutils v0.25.4 // indirect
+	github.com/go-openapi/swag/loading v0.25.4 // indirect
+	github.com/go-openapi/swag/mangling v0.25.4 // indirect
+	github.com/go-openapi/swag/netutils v0.25.4 // indirect
+	github.com/go-openapi/swag/stringutils v0.25.4 // indirect
+	github.com/go-openapi/swag/typeutils v0.25.4 // indirect
+	github.com/go-openapi/swag/yamlutils v0.25.4 // indirect
 	github.com/go-viper/mapstructure/v2 v2.4.0 // indirect
 	github.com/golang/mock v1.7.0-rc.1 // indirect
 	github.com/klauspost/compress v1.18.0 // indirect
@@ -194,8 +205,8 @@ require (
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-openapi/analysis v0.19.5 // indirect
 	github.com/go-openapi/errors v0.19.2 // indirect
-	github.com/go-openapi/jsonpointer v0.21.2 // indirect
-	github.com/go-openapi/jsonreference v0.21.0 // indirect
+	github.com/go-openapi/jsonpointer v0.22.4 // indirect
+	github.com/go-openapi/jsonreference v0.21.4 // indirect
 	github.com/go-openapi/runtime v0.19.5 // indirect
 	github.com/go-openapi/strfmt v0.19.5 // indirect
 	github.com/go-openapi/validate v0.19.8 // indirect
@@ -209,7 +220,7 @@ require (
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/btree v1.1.3 // indirect
 	github.com/google/cel-go v0.26.0 // indirect
-	github.com/google/gnostic-models v0.7.0 // indirect
+	github.com/google/gnostic-models v0.7.1 // indirect
 	github.com/google/go-querystring v1.0.0 // indirect
 	github.com/google/pprof v0.0.0-20250923004556-9e5a51aed1e8 // indirect
 	github.com/goph/emperror v0.17.1 // indirect
@@ -337,14 +348,14 @@ require (
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1
-	k8s.io/apiserver v0.34.2 // indirect
-	k8s.io/cli-runtime v0.34.2 // indirect
-	k8s.io/component-helpers v0.34.2 // indirect
+	k8s.io/apiserver v0.35.2 // indirect
+	k8s.io/cli-runtime v0.35.2 // indirect
+	k8s.io/component-helpers v0.35.2 // indirect
 	k8s.io/gengo v0.0.0-20230829151522-9cce18d56c01 // indirect
-	k8s.io/gengo/v2 v2.0.0-20250820003526-c297c0c1eb9d // indirect
+	k8s.io/gengo/v2 v2.0.0-20250922181213-ec3ebc5fd46b // indirect
 	k8s.io/klog/v2 v2.130.1 // indirect
-	k8s.io/kube-openapi v0.0.0-20250814151709-d7b6acb124c3 // indirect
-	k8s.io/metrics v0.34.2 // indirect
+	k8s.io/kube-openapi v0.0.0-20251125145642-4e65d59e963e // indirect
+	k8s.io/metrics v0.35.2 // indirect
 	sigs.k8s.io/json v0.0.0-20250730193827-2d320260d730 // indirect
 	sigs.k8s.io/kustomize/api v0.20.1 // indirect
 	sigs.k8s.io/kustomize/kustomize/v5 v5.7.1 // indirect
@@ -376,22 +387,21 @@ replace (
 	// Required for proper serialization of CRDs
 	github.com/renstrom/dedent => github.com/lithammer/dedent v1.0.0
 
-	// Pin Kube libraries to v0.34.2
+	// Pin Kube libraries to v0.35.2
 	// These should be upgraded collectively
-	k8s.io/api => k8s.io/api v0.34.2
-	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.34.2
-	k8s.io/apimachinery => k8s.io/apimachinery v0.34.2
-	k8s.io/apiserver => k8s.io/apiserver v0.34.2
-	k8s.io/cli-runtime => k8s.io/cli-runtime v0.34.2
-	k8s.io/client-go => k8s.io/client-go v0.34.2
-	k8s.io/code-generator => k8s.io/code-generator v0.34.2
-	k8s.io/component-base => k8s.io/component-base v0.34.2
-	k8s.io/component-helpers => k8s.io/component-helpers v0.34.2
-	// version of kube-openapi used by client-go v0.34.2
-	k8s.io/kube-openapi => k8s.io/kube-openapi v0.0.0-20250710124328-f3f2b991d03b
-	k8s.io/kubectl => k8s.io/kubectl v0.34.2
-	k8s.io/metrics => k8s.io/metrics v0.34.2
-	k8s.io/utils => k8s.io/utils v0.0.0-20250604170112-4c0f3b243397
+	k8s.io/api => k8s.io/api v0.35.2
+	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.35.2
+	k8s.io/apimachinery => k8s.io/apimachinery v0.35.2
+	k8s.io/apiserver => k8s.io/apiserver v0.35.2
+	k8s.io/cli-runtime => k8s.io/cli-runtime v0.35.2
+	k8s.io/client-go => k8s.io/client-go v0.35.2
+	k8s.io/code-generator => k8s.io/code-generator v0.35.2
+	k8s.io/component-base => k8s.io/component-base v0.35.2
+	k8s.io/component-helpers => k8s.io/component-helpers v0.35.2
+	// version of kube-openapi used by client-go v0.35.2
+	k8s.io/kube-openapi => k8s.io/kube-openapi v0.0.0-20250910181357-589584f1c912
+	k8s.io/kubectl => k8s.io/kubectl v0.35.2
+	k8s.io/metrics => k8s.io/metrics v0.35.2
 )
 
 exclude (
