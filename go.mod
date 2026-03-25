@@ -7,7 +7,7 @@ require (
 	github.com/Netflix/go-expect v0.0.0-20180928190340-9d1f4485533b
 	github.com/avast/retry-go v2.4.3+incompatible
 	github.com/aws/aws-sdk-go v1.34.9
-	github.com/cncf/xds/go v0.0.0-20251110193048-8bfbf64dc13e
+	github.com/cncf/xds/go v0.0.0-20251210132809-ee656c7534f5
 	github.com/cratonica/2goarray v0.0.0-20190331194516-514510793eaa
 	github.com/envoyproxy/go-control-plane v0.14.1-0.20260113062649-004b9ec70a46
 	github.com/envoyproxy/go-control-plane/envoy v1.36.1-0.20260108162445-88062bc404b3
@@ -67,7 +67,7 @@ require (
 	golang.org/x/crypto v0.48.0
 	golang.org/x/sync v0.19.0
 	golang.org/x/tools v0.41.0
-	google.golang.org/grpc v1.78.0
+	google.golang.org/grpc v1.79.3
 	google.golang.org/protobuf v1.36.11
 	gopkg.in/AlecAivazis/survey.v1 v1.8.7
 	helm.sh/helm/v3 v3.18.6
@@ -92,6 +92,7 @@ require (
 	github.com/envoyproxy/go-control-plane/ratelimit v0.1.0
 	github.com/go-logr/zapr v1.3.0
 	github.com/golang-jwt/jwt/v4 v4.5.2
+	github.com/golang/mock v1.7.0-rc.1
 	github.com/google/go-cmp v0.7.0
 	github.com/google/uuid v1.6.0
 	github.com/mccutchen/go-httpbin/v2 v2.15.0
@@ -131,7 +132,6 @@ require (
 	github.com/go-openapi/swag/typeutils v0.25.4 // indirect
 	github.com/go-openapi/swag/yamlutils v0.25.4 // indirect
 	github.com/go-viper/mapstructure/v2 v2.4.0 // indirect
-	github.com/golang/mock v1.7.0-rc.1 // indirect
 	github.com/klauspost/compress v1.18.0 // indirect
 	github.com/oasdiff/yaml v0.0.0-20250309154309-f31be36b4037 // indirect
 	github.com/oasdiff/yaml3 v0.0.0-20250309153720-d2182401db90 // indirect
@@ -148,7 +148,7 @@ require (
 )
 
 require (
-	cel.dev/expr v0.24.0 // indirect
+	cel.dev/expr v0.25.1 // indirect
 	contrib.go.opencensus.io/exporter/prometheus v0.4.0 // indirect
 	cuelang.org/go v0.10.0 // indirect
 	dario.cat/mergo v1.0.2 // indirect
