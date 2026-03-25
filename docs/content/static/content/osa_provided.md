@@ -6,7 +6,7 @@ Name|Version|License
 [avast/retry-go](https://github.com/avast/retry-go)|v2.4.3+incompatible|MIT License
 [retry-go/v4](https://github.com/avast/retry-go)|v4.3.3|MIT License
 [aws/aws-sdk-go](https://github.com/aws/aws-sdk-go)|v1.34.9|Apache License 2.0
-[xds/go](https://github.com/cncf/xds)|v0.0.0-20251110193048-8bfbf64dc13e|Apache License 2.0
+[xds/go](https://github.com/cncf/xds)|v0.0.0-20251210132809-ee656c7534f5|Apache License 2.0
 [cratonica/2goarray](https://github.com/cratonica/2goarray)|v0.0.0-20190331194516-514510793eaa|MIT License
 [envoyproxy/go-control-plane](https://github.com/envoyproxy/go-control-plane)|v0.14.1-0.20260113062649-004b9ec70a46|Apache License 2.0
 [go-control-plane/contrib](https://github.com/envoyproxy/go-control-plane)|v1.36.1-0.20260108162445-88062bc404b3|Apache License 2.0
@@ -69,7 +69,7 @@ Name|Version|License
 [x/tools](https://golang.org/x/tools)|v0.41.0|BSD 3-clause "New" or "Revised" License
 [googleapis/api](https://google.golang.org/genproto/googleapis/api)|v0.0.0-20251213004720-97cd9d5aeac2|Apache License 2.0
 [googleapis/rpc](https://google.golang.org/genproto/googleapis/rpc)|v0.0.0-20251213004720-97cd9d5aeac2|Apache License 2.0
-[google.golang.org/grpc](https://google.golang.org/grpc)|v1.78.0|Apache License 2.0
+[google.golang.org/grpc](https://google.golang.org/grpc)|v1.79.3|Apache License 2.0
 [google.golang.org/protobuf](https://google.golang.org/protobuf)|v1.36.11|BSD 3-clause "New" or "Revised" License
 [AlecAivazis/survey.v1](https://gopkg.in/AlecAivazis/survey.v1)|v1.8.7|MIT License
 [gopkg.in/yaml.v3](https://gopkg.in/yaml.v3)|v3.0.1|MIT License
