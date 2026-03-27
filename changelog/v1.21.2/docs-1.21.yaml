@@ -4,5 +4,3 @@ changelog:
     description: >-
       Doc release for 1.21. 
       skipCI-kube-tests:true
-      skipCI-storybook-tests:true
-      skipCI-in-memory-e2e-tests:true
