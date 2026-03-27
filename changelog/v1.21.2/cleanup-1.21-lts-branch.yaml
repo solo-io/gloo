@@ -1,0 +1,5 @@
+changelog:
+  - type: NON_USER_FACING
+    resolvesIssue: false
+    description: >-
+      "clean up 1.21.x LTS branch"
