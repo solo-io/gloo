@@ -194,7 +194,7 @@ jobs:
   # Reminder: when setting up the job next release branch, copy from "end_to_end_tests_main" not the previous release job as configuration may have changed
   end_to_end_tests_v1_21_x:
     name: End-to-End (branch=v1.21.x, cluster=${{ matrix.test.cluster-name }}, version=${{ matrix.version-files.label }} )
-    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-kubernetes-end-to-end && inputs.branch == 'v1.21.x') || github.event.schedule == '0 6 * * *' }}
+    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-kubernetes-end-to-end && inputs.branch == 'v1.21.x') || github.event.schedule == '0 6 * * 1' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 180
     strategy:
@@ -256,7 +256,7 @@ jobs:
 
   end_to_end_tests_v1_20_x:
     name: End-to-End (branch=v1.20.x, cluster=${{ matrix.test.cluster-name }}, version=${{ matrix.version-files.label }} )
-    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-kubernetes-end-to-end && inputs.branch == 'v1.20.x') || github.event.schedule == '0 7 * * *' }}
+    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-kubernetes-end-to-end && inputs.branch == 'v1.20.x') || github.event.schedule == '0 7 * * 1' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 180
     strategy:
@@ -490,7 +490,7 @@ jobs:
   
   regression_tests_v1_21_0:
     name: v1.21.x regression tests (${{ matrix.kube-e2e-test-type }} - ${{ matrix.kube-version.kubectl }})
-    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-regression && inputs.branch == 'v1.21.x') || github.event.schedule == '0 6 * * *' }}
+    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-regression && inputs.branch == 'v1.21.x') || github.event.schedule == '0 6 * * 1' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     strategy:
@@ -627,7 +627,7 @@ jobs:
     name: v1.21.x performance tests
     # Instead of false, we would want to define: env.ENABLE_PERFORMANCE_TESTS == 'true'
     # Due to https://github.com/actions/runner/issues/1189#issuecomment-880110759, we cannot use env variables in job.if
-    if: ${{ false && ((github.event_name == 'workflow_dispatch' && inputs.run-performance && inputs.branch == 'v1.21.x') || github.event.schedule == '0 6 * * *') }}
+    if: ${{ false && ((github.event_name == 'workflow_dispatch' && inputs.run-performance && inputs.branch == 'v1.21.x') || github.event.schedule == '0 6 * * 1') }}
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     steps:
@@ -745,7 +745,7 @@ jobs:
 
   kube_gateway_api_conformance_tests_v1_21_x:
     name: Conformance (branch=v1.21.x, type=Kubernetes Gateway API, version-file=${{matrix.version-files.label}})
-    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-conformance && inputs.branch == 'v1.21.x') || github.event.schedule == '0 6 * * *' }}
+    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-conformance && inputs.branch == 'v1.21.x') || github.event.schedule == '0 6 * * 1' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     strategy:
