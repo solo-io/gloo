@@ -488,7 +488,7 @@ jobs:
         ref: main
     - uses: ./.github/workflows/composite-actions/regression-tests
   
-  regression_tests_v1_21_0:
+  regression_tests_v1_21_x:
     name: v1.21.x regression tests (${{ matrix.kube-e2e-test-type }} - ${{ matrix.kube-version.kubectl }})
     if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-regression && inputs.branch == 'v1.21.x') || github.event.schedule == '0 6 * * 1' }}
     runs-on: ubuntu-24.04
@@ -652,7 +652,7 @@ jobs:
       - uses: ./.github/workflows/composite-actions/performance-tests
 
   performance_tests_v1_19_x:
-    name: v1.19.x performance tests"
+    name: v1.19.x performance tests
     # Instead of false, we would want to define: env.ENABLE_PERFORMANCE_TESTS == 'true'
     # Due to https://github.com/actions/runner/issues/1189#issuecomment-880110759, we cannot use env variables in job.if
     if: ${{ false && ((github.event_name == 'workflow_dispatch' && inputs.run-performance && inputs.branch == 'v1.19.x' ) || github.event.schedule == '0 8 * * 1') }}
