@@ -1,0 +1,5 @@
+changelog:
+  - type: NON_USER_FACING
+    resolvesIssue: false
+    description: >-
+      "placeholder changelog to start the 1.22 dev cycle"
