@@ -1,0 +1,40 @@
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+//go:generate sh -c "echo '// Licensed under the Apache License, Version 2.0 (the \"License\");' > filter_types.gen.go"
+//go:generate sh -c "echo '// you may not use this file except in compliance with the License.' >> filter_types.gen.go"
+//go:generate sh -c "echo '// You may obtain a copy of the License at' >> filter_types.gen.go"
+//go:generate sh -c "echo '//' >> filter_types.gen.go"
+//go:generate sh -c "echo '//     http://www.apache.org/licenses/LICENSE-2.0' >> filter_types.gen.go"
+//go:generate sh -c "echo '//' >> filter_types.gen.go"
+//go:generate sh -c "echo '// Unless required by applicable law or agreed to in writing, software' >> filter_types.gen.go"
+//go:generate sh -c "echo '// distributed under the License is distributed on an \"AS IS\" BASIS,' >> filter_types.gen.go"
+//go:generate sh -c "echo '// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.' >> filter_types.gen.go"
+//go:generate sh -c "echo '// See the License for the specific language governing permissions and' >> filter_types.gen.go"
+//go:generate sh -c "echo '// limitations under the License.\n' >> filter_types.gen.go"
+//go:generate sh -c "echo '//  GENERATED FILE -- DO NOT EDIT\n' >> filter_types.gen.go"
+//go:generate sh -c "echo 'package filter_types_cli\n\nimport (' >> filter_types.gen.go"
+//go:generate sh -c "echo '\n\t// github.com/envoyproxy/go-control-plane/...' >> filter_types.gen.go"
+//go:generate sh -c "go list github.com/envoyproxy/go-control-plane/... | grep 'v[3-9]' | xargs -n1 -I{} echo '\t_ \"{}\"' >> filter_types.gen.go"
+//go:generate sh -c "echo '\n\t// github.com/envoyproxy/go-control-plane/envoy/...' >> filter_types.gen.go"
+//go:generate sh -c "go list github.com/envoyproxy/go-control-plane/envoy/... | grep 'v[3-9]' | xargs -n1 -I{} echo '\t_ \"{}\"' >> filter_types.gen.go"
+//go:generate sh -c "echo '\n\t// github.com/envoyproxy/go-control-plane/ratelimit/...' >> filter_types.gen.go"
+//go:generate sh -c "go list github.com/envoyproxy/go-control-plane/ratelimit/... | grep 'v[3-9]' | xargs -n1 -I{} echo '\t_ \"{}\"' >> filter_types.gen.go"
+//go:generate sh -c "echo '\n\t// gloo filter types' >> filter_types.gen.go"
+//go:generate sh -c "go list github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/... | xargs -n1 -I{} echo '\t_ \"{}\"' >> filter_types.gen.go"
+//go:generate sh -c "echo ')' >> filter_types.gen.go"
+
+package filter_types_cli
+
+// Import Envoy and Gloo filter types used by CLI xDS inspection so typed_config
+// deserialization succeeds without pulling in go-control-plane/contrib, which
+// currently conflicts with Istio's ALPN proto registration during glooctl builds.
