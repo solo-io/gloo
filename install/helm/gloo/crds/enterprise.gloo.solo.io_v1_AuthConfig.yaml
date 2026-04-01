@@ -132,6 +132,12 @@ spec:
                                 type: string
                             type: object
                           type: array
+                        digest:
+                          properties:
+                            algorithm:
+                              type: string
+                              x-kubernetes-int-or-string: true
+                          type: object
                         headerName:
                           type: string
                         headersFromMetadata:
@@ -184,6 +190,16 @@ spec:
                         labelSelector:
                           additionalProperties:
                             type: string
+                          type: object
+                        match:
+                          properties:
+                            headers:
+                              items:
+                                properties:
+                                  name:
+                                    type: string
+                                type: object
+                              type: array
                           type: object
                         skipMetadataValidation:
                           type: boolean

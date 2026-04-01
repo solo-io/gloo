@@ -131,6 +131,16 @@ func fixExtauthCrossReferences() error {
 		return err
 	}
 	content = []byte(strings.ReplaceAll(string(content), "extauth-internal.proto.sk/#config", "extauth.proto.sk/#config"))
+	content = []byte(strings.ReplaceAll(
+		string(content),
+		"[.enterprise.gloo.solo.io.ApiKeyDigest.Algorithm](../extauth.proto.sk/#algorithm)",
+		"[.enterprise.gloo.solo.io.ApiKeyDigest.Algorithm](../extauth.proto.sk/#algorithm-1)",
+	))
+	content = []byte(strings.ReplaceAll(
+		string(content),
+		"[[]enterprise.gloo.solo.io.HeaderMatch](../extauth.proto.sk/#headermatch)",
+		"[[]enterprise.gloo.solo.io.HeaderMatch](../extauth.proto.sk/#headermatch-1)",
+	))
 	err = os.WriteFile(extauthDocPath, content, 0644)
 	if err != nil {
 		return err
