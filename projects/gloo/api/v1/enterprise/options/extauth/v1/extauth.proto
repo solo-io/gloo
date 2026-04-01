@@ -1609,7 +1609,7 @@ message PassThroughHttp {
         bool pass_through_body = 5;
     }
     // Pass through the incoming request body, ext auth state, and filter metadata.
-    // For more information, see the [PassThrough Http Request description](#request-1).
+    // For more information, see the [PassThrough Http Request description](#passthroughhttp-request).
     Request request = 3;
 
     message Response {
@@ -1641,7 +1641,7 @@ message PassThroughHttp {
         repeated string allowed_upstream_headers_to_overwrite = 4;
     }
     // Pass through response information such as the headers and body to downstream clients.
-    // For more information, see the [PassThrough Http Response description](#response-1).
+    // For more information, see the [PassThrough Http Response description](#passthroughhttp-response).
     Response response = 4;
 
     // Timeout for the auth server to respond. Defaults to 5s

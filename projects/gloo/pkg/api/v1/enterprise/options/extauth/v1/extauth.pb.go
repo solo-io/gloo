@@ -4848,10 +4848,10 @@ type PassThroughHttp struct {
 	// +kubebuilder:validation:MinLength=1
 	Url string `protobuf:"bytes,1,opt,name=url,proto3" json:"url,omitempty"`
 	// Pass through the incoming request body, ext auth state, and filter metadata.
-	// For more information, see the [PassThrough Http Request description](#request-1).
+	// For more information, see the [PassThrough Http Request description](#passthroughhttp-request).
 	Request *PassThroughHttp_Request `protobuf:"bytes,3,opt,name=request,proto3" json:"request,omitempty"`
 	// Pass through response information such as the headers and body to downstream clients.
-	// For more information, see the [PassThrough Http Response description](#response-1).
+	// For more information, see the [PassThrough Http Response description](#passthroughhttp-response).
 	Response *PassThroughHttp_Response `protobuf:"bytes,4,opt,name=response,proto3" json:"response,omitempty"`
 	// Timeout for the auth server to respond. Defaults to 5s
 	ConnectionTimeout *durationpb.Duration `protobuf:"bytes,8,opt,name=connection_timeout,json=connectionTimeout,proto3" json:"connection_timeout,omitempty"`
