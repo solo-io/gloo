@@ -4,11 +4,7 @@ This document is for maintainers who need to cut a release for `solo-io/gloo`.
 
 ## Overview
 
-A pushed tag is not the full release process for this repo.
-
-- The GitHub Release object must exist before `glooctl` assets can be uploaded.
-- `glooctl` assets are uploaded by Build Bot / Google Cloud Build, not by GitHub Actions.
-- The release-triggered GitHub Actions are follow-up jobs. They do not attach `glooctl` binaries to the GitHub release page.
+A release in this repo starts by tagging the target branch and creating the matching GitHub Release. That GitHub Release works together with the repo's release automation: Build Bot / Google Cloud Build publishes the release artifacts such as container images, the Helm chart, and `glooctl` binaries, while release-triggered GitHub Actions handle follow-up tasks such as copying docs and syncing APIs to `solo-apis`. After the automation completes, verify that the expected assets were published and follow up on any failed release jobs.
 
 Relevant implementation details:
 
