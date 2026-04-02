@@ -3508,9 +3508,11 @@ type ApiKeyAuth struct {
 	Hmac *ApiKeyHmac `protobuf:"bytes,9,opt,name=hmac,proto3" json:"hmac,omitempty"`
 	// Optional digest verification mode for API key validation. When configured, stored API key values
 	// are treated as digests and the request API key is transformed prior to comparison.
+	// When omitted, existing raw API key comparison behavior remains unchanged.
 	Digest *ApiKeyDigest `protobuf:"bytes,10,opt,name=digest,proto3" json:"digest,omitempty"`
-	// Optional additional request header matching for API key validation. When configured, each header
-	// must match a same-named data key on the matched API key secret.
+	// Optional additional request header matching for digest-based API key validation. This field is only
+	// valid when digest is configured. ext-auth-service should reject configs that set match without digest.
+	// When configured, each header must match a same-named data key on the matched API key secret.
 	Match         *ApiKeyMatch `protobuf:"bytes,11,opt,name=match,proto3" json:"match,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -3757,6 +3759,7 @@ func (x *ApiKeyDigest) GetAlgorithm() ApiKeyDigest_Algorithm {
 }
 
 // Additional request headers that must match same-named data keys on the matched API key secret.
+// This message is only valid when ApiKeyAuth.digest is configured.
 type ApiKeyMatch struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Headers       []*HeaderMatch         `protobuf:"bytes,1,rep,name=headers,proto3" json:"headers,omitempty"`
@@ -3803,8 +3806,10 @@ func (x *ApiKeyMatch) GetHeaders() []*HeaderMatch {
 
 // A request header that must match the same-named data key on the matched API key secret.
 type HeaderMatch struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Header name to match. Request headers are case-insensitive, but this configured name is also used
+	// as the Secret data key for same-name matching, so operators should use a canonical lowercase name.
+	Name          string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }

@@ -1202,10 +1202,12 @@ message ApiKeyAuth {
 
     // Optional digest verification mode for API key validation. When configured, stored API key values
     // are treated as digests and the request API key is transformed prior to comparison.
+    // When omitted, existing raw API key comparison behavior remains unchanged.
     ApiKeyDigest digest = 10;
 
-    // Optional additional request header matching for API key validation. When configured, each header
-    // must match a same-named data key on the matched API key secret.
+    // Optional additional request header matching for digest-based API key validation. This field is only
+    // valid when digest is configured. ext-auth-service should reject configs that set match without digest.
+    // When configured, each header must match a same-named data key on the matched API key secret.
     ApiKeyMatch match = 11;
 }
 
@@ -1239,12 +1241,15 @@ message ApiKeyDigest {
 }
 
 // Additional request headers that must match same-named data keys on the matched API key secret.
+// This message is only valid when ApiKeyAuth.digest is configured.
 message ApiKeyMatch {
     repeated HeaderMatch headers = 1;
 }
 
 // A request header that must match the same-named data key on the matched API key secret.
 message HeaderMatch {
+    // Header name to match. Request headers are case-insensitive, but this configured name is also used
+    // as the Secret data key for same-name matching, so operators should use a canonical lowercase name.
     string name = 1;
 }
 

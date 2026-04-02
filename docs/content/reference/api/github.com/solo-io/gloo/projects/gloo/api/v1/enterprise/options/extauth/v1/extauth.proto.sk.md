@@ -1498,8 +1498,8 @@ added to the `AuthorizationRequest` state under the "api_key_value" key name.
 | `aerospikeApikeyStorage` | [.enterprise.gloo.solo.io.AerospikeApiKeyStorage](../extauth.proto.sk/#aerospikeapikeystorage) | <b>Deprecated</b>: Support for Aerospike is deprecated and will be removed in a future release. Use of this feature is not recommended. Only one of `aerospikeApikeyStorage` or `k8sSecretApikeyStorage` can be set. |
 | `skipMetadataValidation` | `bool` | API key metadata may contain data is is invalid for a header, such as a newline. By default, this data will be validated in the data plane and mitigated in a way that provides a consistent experience for the user and visibility for the operator. This validation comes with a performance cost, and can be disabled by setting this field to `true`. |
 | `hmac` | [.enterprise.gloo.solo.io.ApiKeyHmac](../extauth.proto.sk/#apikeyhmac) | Optional HMAC digest verification mode for API key validation. When configured, stored API key values are treated as HMAC digests and the request API key is transformed prior to comparison. |
-| `digest` | [.enterprise.gloo.solo.io.ApiKeyDigest](../extauth.proto.sk/#apikeydigest) | Optional digest verification mode for API key validation. When configured, stored API key values are treated as digests and the request API key is transformed prior to comparison. |
-| `match` | [.enterprise.gloo.solo.io.ApiKeyMatch](../extauth.proto.sk/#apikeymatch) | Optional additional request header matching for API key validation. When configured, each header must match a same-named data key on the matched API key secret. |
+| `digest` | [.enterprise.gloo.solo.io.ApiKeyDigest](../extauth.proto.sk/#apikeydigest) | Optional digest verification mode for API key validation. When configured, stored API key values are treated as digests and the request API key is transformed prior to comparison. When omitted, existing raw API key comparison behavior remains unchanged. |
+| `match` | [.enterprise.gloo.solo.io.ApiKeyMatch](../extauth.proto.sk/#apikeymatch) | Optional additional request header matching for digest-based API key validation. This field is only valid when digest is configured. ext-auth-service should reject configs that set match without digest. When configured, each header must match a same-named data key on the matched API key secret. |
 
 
 
@@ -1616,6 +1616,7 @@ Supported digest algorithms for API key verification.
 
  
 Additional request headers that must match same-named data keys on the matched API key secret.
+This message is only valid when ApiKeyAuth.digest is configured.
 
 ```yaml
 "headers": []enterprise.gloo.solo.io.HeaderMatch
@@ -1642,7 +1643,7 @@ A request header that must match the same-named data key on the matched API key 
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `name` | `string` |  |
+| `name` | `string` | Header name to match. Request headers are case-insensitive, but this configured name is also used as the Secret data key for same-name matching, so operators should use a canonical lowercase name. |
 
 
 
