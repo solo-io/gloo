@@ -1300,6 +1300,18 @@ func (m *ApiKeyAuth) Clone() proto.Message {
 		target.Hmac = proto.Clone(m.GetHmac()).(*ApiKeyHmac)
 	}
 
+	if h, ok := interface{}(m.GetDigest()).(clone.Cloner); ok {
+		target.Digest = h.Clone().(*ApiKeyDigest)
+	} else {
+		target.Digest = proto.Clone(m.GetDigest()).(*ApiKeyDigest)
+	}
+
+	if h, ok := interface{}(m.GetMatch()).(clone.Cloner); ok {
+		target.Match = h.Clone().(*ApiKeyMatch)
+	} else {
+		target.Match = proto.Clone(m.GetMatch()).(*ApiKeyMatch)
+	}
+
 	switch m.StorageBackend.(type) {
 
 	case *ApiKeyAuth_K8SSecretApikeyStorage:
@@ -1346,6 +1358,56 @@ func (m *ApiKeyHmac) Clone() proto.Message {
 	} else {
 		target.SharedSecretRef = proto.Clone(m.GetSharedSecretRef()).(*github_com_solo_io_solo_kit_pkg_api_v1_resources_core.ResourceRef)
 	}
+
+	return target
+}
+
+// Clone function
+func (m *ApiKeyDigest) Clone() proto.Message {
+	var target *ApiKeyDigest
+	if m == nil {
+		return target
+	}
+	target = &ApiKeyDigest{}
+
+	target.Algorithm = m.GetAlgorithm()
+
+	return target
+}
+
+// Clone function
+func (m *ApiKeyMatch) Clone() proto.Message {
+	var target *ApiKeyMatch
+	if m == nil {
+		return target
+	}
+	target = &ApiKeyMatch{}
+
+	if m.GetHeaders() != nil {
+		target.Headers = make([]*HeaderMatch, len(m.GetHeaders()))
+		for idx, v := range m.GetHeaders() {
+
+			if h, ok := interface{}(v).(clone.Cloner); ok {
+				target.Headers[idx] = h.Clone().(*HeaderMatch)
+			} else {
+				target.Headers[idx] = proto.Clone(v).(*HeaderMatch)
+			}
+
+		}
+	}
+
+	return target
+}
+
+// Clone function
+func (m *HeaderMatch) Clone() proto.Message {
+	var target *HeaderMatch
+	if m == nil {
+		return target
+	}
+	target = &HeaderMatch{}
+
+	target.Name = m.GetName()
 
 	return target
 }

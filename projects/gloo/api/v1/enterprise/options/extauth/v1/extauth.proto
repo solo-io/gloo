@@ -1199,6 +1199,16 @@ message ApiKeyAuth {
     // Optional HMAC digest verification mode for API key validation. When configured, stored API key values
     // are treated as HMAC digests and the request API key is transformed prior to comparison.
     ApiKeyHmac hmac = 9;
+
+    // Optional digest verification mode for API key validation. When configured, stored API key values
+    // are treated as digests and the request API key is transformed prior to comparison.
+    // When omitted, existing raw API key comparison behavior remains unchanged.
+    ApiKeyDigest digest = 10;
+
+    // Optional additional request header matching for digest-based API key validation. This field is only
+    // valid when digest is configured. ext-auth-service should reject configs that set match without digest.
+    // When configured, each header must match a same-named data key on the matched API key secret.
+    ApiKeyMatch match = 11;
 }
 
 // Configuration for HMAC-based API key digest verification.
@@ -1216,6 +1226,33 @@ message ApiKeyHmac {
     // Reference to the shared secret used to compute request-time HMAC digests.
     core.solo.io.ResourceRef shared_secret_ref = 2;
 }
+
+// Configuration for digest-based API key verification.
+message ApiKeyDigest {
+    // Supported digest algorithms for API key verification.
+    enum Algorithm {
+        // When unspecified, ext-auth-service should default to SHA256.
+        ALGORITHM_UNSPECIFIED = 0;
+        SHA256 = 1;
+    }
+
+    // Algorithm used to compute the digest for comparison against stored API key values.
+    Algorithm algorithm = 1;
+}
+
+// Additional request headers that must match same-named data keys on the matched API key secret.
+// This message is only valid when ApiKeyAuth.digest is configured.
+message ApiKeyMatch {
+    repeated HeaderMatch headers = 1;
+}
+
+// A request header that must match the same-named data key on the matched API key secret.
+message HeaderMatch {
+    // Header name to match. Request headers are case-insensitive, but this configured name is also used
+    // as the Secret data key for same-name matching, so operators should use a canonical lowercase name.
+    string name = 1;
+}
+
 message K8sSecretApiKeyStorage {
     // Identify all valid API key secrets that match the provided label selector.<br/>
     // API key secrets must be in one of the watch namespaces for gloo to locate them.

@@ -131,6 +131,19 @@ func fixExtauthCrossReferences() error {
 		return err
 	}
 	content = []byte(strings.ReplaceAll(string(content), "extauth-internal.proto.sk/#config", "extauth.proto.sk/#config"))
+	// The docs generator already emits the ApiKeyMatch and HeaderMatch sections correctly. These rewrites
+	// only fix duplicate-anchor collisions introduced by the second nested Algorithm section and the second
+	// HeaderMatch symbol in extauth.proto.
+	content = []byte(strings.ReplaceAll(
+		string(content),
+		"[.enterprise.gloo.solo.io.ApiKeyDigest.Algorithm](../extauth.proto.sk/#algorithm)",
+		"[.enterprise.gloo.solo.io.ApiKeyDigest.Algorithm](../extauth.proto.sk/#algorithm-1)",
+	))
+	content = []byte(strings.ReplaceAll(
+		string(content),
+		"[[]enterprise.gloo.solo.io.HeaderMatch](../extauth.proto.sk/#headermatch)",
+		"[[]enterprise.gloo.solo.io.HeaderMatch](../extauth.proto.sk/#headermatch-1)",
+	))
 	err = os.WriteFile(extauthDocPath, content, 0644)
 	if err != nil {
 		return err
