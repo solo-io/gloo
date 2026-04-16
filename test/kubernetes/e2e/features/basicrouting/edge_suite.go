@@ -4,7 +4,6 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/onsi/gomega"
 	"github.com/solo-io/gloo/pkg/utils/kubeutils"
 	"github.com/solo-io/gloo/pkg/utils/kubeutils/kubectl"
 	"github.com/solo-io/gloo/pkg/utils/requestutils/curl"
@@ -115,7 +114,6 @@ func (s *edgeBasicRoutingSuite) TestBasicVirtualServiceRouting() {
 		},
 		&testmatchers.HttpResponse{
 			StatusCode: http.StatusOK,
-			Body:       gomega.ContainSubstring(testdefaults.NginxResponse),
 		})
 
 }

@@ -2,6 +2,7 @@ changelog:
 - type: DEPENDENCY_BUMP
   dependencyOwner: golang
   dependencyRepo: go
+  dependencyTag: v1.25.9
   issueLink: https://github.com/solo-io/gloo/issues/11192
   description: >-
     Bump go to 1.25.9 to fix CVE-2026-32282
@@ -19,3 +20,8 @@ changelog:
   issueLink: https://github.com/solo-io/gloo/issues/11192
   description: >-
     Bump go.opentelemetry.io/otel/sdk to v1.43.0 to fix CVE-2026-39883
+- type: NON_USER_FACING
+  issueLink: https://github.com/solo-io/gloo/issues/11204
+  description: >-
+    Drop e2e body content assertion for nginx welcome page, assert only HTTP 200.
+    The full-HTML match broke when nginx 1.30 rewrote its default index.html.
