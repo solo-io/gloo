@@ -17,6 +17,7 @@
     "SchemeHeaderTransformation",
     "MaxRequestHeadersKb",
     "StreamIdleTimeout",
+    "StreamFlushTimeout",
     "RequestTimeout",
     "RequestHeadersTimeout",
     "DrainTimeout",
