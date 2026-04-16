@@ -1,0 +1,14 @@
+changelog:
+- type: DEPENDENCY_BUMP
+  dependencyOwner: golang
+  dependencyRepo: go
+  issueLink: https://github.com/solo-io/gloo/issues/11202
+  description: >-
+    Bump go to 1.26.2 to fix CVE-2026-32282
+- type: DEPENDENCY_BUMP
+  dependencyOwner: open-telemetry
+  dependencyRepo: opentelemetry-go
+  dependencyTag: v1.43.0
+  issueLink: https://github.com/solo-io/gloo/issues/11202
+  description: >-
+    Bump go.opentelemetry.io/otel/sdk to v1.43.0 to fix CVE-2026-39883
