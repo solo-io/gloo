@@ -122,6 +122,7 @@ func (s *edgeBasicRoutingSuite) TestBasicVirtualServiceRouting() {
 			curl.WithPort(80),
 		},
 		&testmatchers.HttpResponse{
+			// temp PR make sure this fails
 			StatusCode: http.StatusOK,
 			Body:       gomega.ContainSubstring(testdefaults.NginxResponse),
 		})
