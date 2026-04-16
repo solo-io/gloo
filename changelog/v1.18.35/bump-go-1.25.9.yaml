@@ -1,0 +1,21 @@
+changelog:
+- type: DEPENDENCY_BUMP
+  dependencyOwner: golang
+  dependencyRepo: go
+  issueLink: https://github.com/solo-io/gloo/issues/11192
+  description: >-
+    Bump go to 1.25.9 to fix CVE-2026-32282
+- type: DEPENDENCY_BUMP
+  dependencyOwner: grpc
+  dependencyRepo: grpc-go
+  dependencyTag: v1.79.3
+  issueLink: https://github.com/solo-io/gloo/issues/11192
+  description: >-
+    Bump google.golang.org/grpc to v1.79.3 to fix CVE-2026-33186
+- type: DEPENDENCY_BUMP
+  dependencyOwner: open-telemetry
+  dependencyRepo: opentelemetry-go
+  dependencyTag: v1.43.0
+  issueLink: https://github.com/solo-io/gloo/issues/11192
+  description: >-
+    Bump go.opentelemetry.io/otel/sdk to v1.43.0 to fix CVE-2026-39883
