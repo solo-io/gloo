@@ -1,0 +1,5 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/solo-projects/issues/8887
+    description: >-
+      "upgrade doc custom_auth dockerfile and detect certgen fips image fips"
