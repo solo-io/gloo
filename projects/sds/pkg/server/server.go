@@ -2,11 +2,13 @@ package server
 
 import (
 	"context"
+	"crypto/tls"
 	"encoding/pem"
 	"fmt"
 	"hash/fnv"
 	"net"
 	"os"
+	"time"
 
 	"github.com/avast/retry-go"
 	envoy_config_core_v3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
@@ -95,31 +97,12 @@ func (s *Server) UpdateSDSConfig(ctx context.Context) error {
 	var certs [][]byte
 	var items []cache_types.Resource
 	for _, sec := range s.secrets {
-		key, err := readAndVerifyCert(ctx, sec.SslKeyFile)
+		secretCerts, secretItems, err := readAndValidateSecret(ctx, sec)
 		if err != nil {
 			return err
 		}
-		certs = append(certs, key)
-		certChain, err := readAndVerifyCert(ctx, sec.SslCertFile)
-		if err != nil {
-			return err
-		}
-		certs = append(certs, certChain)
-		ca, err := readAndVerifyCert(ctx, sec.SslCaFile)
-		if err != nil {
-			return err
-		}
-		certs = append(certs, ca)
-		var ocspStaple []byte // ocsp stapling is optional
-		if sec.SslOcspFile != "" {
-			ocspStaple, err = readAndVerifyCert(ctx, sec.SslOcspFile)
-			if err != nil {
-				return err
-			}
-			certs = append(certs, ocspStaple)
-		}
-		items = append(items, serverCertSecret(key, certChain, ocspStaple, sec.ServerCert))
-		items = append(items, validationContextSecret(ca, sec.ValidationContext))
+		certs = append(certs, secretCerts...)
+		items = append(items, secretItems...)
 	}
 
 	snapshotVersion, err := GetSnapshotVersion(certs)
@@ -132,6 +115,55 @@ func (s *Server) UpdateSDSConfig(ctx context.Context) error {
 	secretSnapshot := &cache.Snapshot{}
 	secretSnapshot.Resources[cache_types.Secret] = cache.NewResources(snapshotVersion, items)
 	return s.snapshotCache.SetSnapshot(ctx, s.sdsClient, secretSnapshot)
+}
+
+// readAndValidateSecret reads TLS material for one Secret, re-reading until the cert and key
+// form a matching pair (or attempts are exhausted). That avoids pushing a mismatched pair to
+// Envoy when a writer updates key and cert files non-atomically (e.g. Istio rotation).
+func readAndValidateSecret(ctx context.Context, sec Secret) ([][]byte, []cache_types.Resource, error) {
+	var certs [][]byte
+	var items []cache_types.Resource
+	err := retry.Do(
+		func() error {
+			key, err := readAndVerifyCert(ctx, sec.SslKeyFile)
+			if err != nil {
+				return err
+			}
+			certChain, err := readAndVerifyCert(ctx, sec.SslCertFile)
+			if err != nil {
+				return err
+			}
+			if _, err := tls.X509KeyPair(certChain, key); err != nil {
+				return err
+			}
+			ca, err := readAndVerifyCert(ctx, sec.SslCaFile)
+			if err != nil {
+				return err
+			}
+			var ocspStaple []byte
+			if sec.SslOcspFile != "" {
+				ocspStaple, err = readAndVerifyCert(ctx, sec.SslOcspFile)
+				if err != nil {
+					return err
+				}
+			}
+			certs = [][]byte{key, certChain, ca}
+			if sec.SslOcspFile != "" {
+				certs = append(certs, ocspStaple)
+			}
+			items = []cache_types.Resource{
+				serverCertSecret(key, certChain, ocspStaple, sec.ServerCert),
+				validationContextSecret(ca, sec.ValidationContext),
+			}
+			return nil
+		},
+		retry.Attempts(15),
+		retry.Delay(100*time.Millisecond),
+	)
+	if err != nil {
+		return nil, nil, err
+	}
+	return certs, items, nil
 }
 
 // GetSnapshotVersion generates a version string by hashing the certs

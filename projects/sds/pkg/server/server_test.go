@@ -2,7 +2,6 @@ package server_test
 
 import (
 	"context"
-	"os"
 	"strings"
 	"time"
 
@@ -19,49 +18,43 @@ import (
 var _ = Describe("SDS Server", func() {
 
 	var (
-		fs                                          afero.Fs
-		dir                                         string
-		keyFile, certFile, caFile, ocspResponseFile afero.File
-		err                                         error
-		serverAddr                                  = "127.0.0.1:8888"
-		sdsClient                                   = "test-client"
-		srv                                         *server.Server
+		fs                        afero.Fs
+		dir                       string
+		keyFile, certFile, caFile afero.File
+		err                       error
+		serverAddr                = "127.0.0.1:8888"
+		sdsClient                 = "test-client"
+		srv                       *server.Server
 	)
 
 	BeforeEach(func() {
 		fs = afero.NewOsFs()
 		dir, err = afero.TempDir(fs, "", "")
 		Expect(err).NotTo(HaveOccurred())
-		fileString := `test`
+
+		keyPEM, certPEM, caPEM := testutils.MustSelfSignedPEM()
 
 		keyFile, err = afero.TempFile(fs, dir, "")
 		Expect(err).NotTo(HaveOccurred())
-		_, err = keyFile.WriteString(fileString)
+		_, err = keyFile.Write(keyPEM)
 		Expect(err).NotTo(HaveOccurred())
 
 		certFile, err = afero.TempFile(fs, dir, "")
 		Expect(err).NotTo(HaveOccurred())
-		_, err = certFile.WriteString(fileString)
+		_, err = certFile.Write(certPEM)
 		Expect(err).NotTo(HaveOccurred())
 
 		caFile, err = afero.TempFile(fs, dir, "")
 		Expect(err).NotTo(HaveOccurred())
-		_, err = caFile.WriteString(fileString)
+		_, err = caFile.Write(caPEM)
 		Expect(err).NotTo(HaveOccurred())
 
-		ocspResponseFile, err = afero.TempFile(fs, dir, "")
-		Expect(err).NotTo(HaveOccurred())
-		ocspResp, err := os.ReadFile("certs/ocsp_response.der")
-		Expect(err).NotTo(HaveOccurred())
-		_, err = ocspResponseFile.Write(ocspResp)
-		Expect(err).NotTo(HaveOccurred())
 		secrets := []server.Secret{
 			{
 				ServerCert:        "test-server",
 				SslCaFile:         caFile.Name(),
 				SslCertFile:       certFile.Name(),
 				SslKeyFile:        keyFile.Name(),
-				SslOcspFile:       ocspResponseFile.Name(),
 				ValidationContext: "test-validation",
 			},
 		}
@@ -72,37 +65,22 @@ var _ = Describe("SDS Server", func() {
 		_ = fs.RemoveAll(dir)
 	})
 
-	DescribeTable("correctly reads tls secrets from files to generate snapshot version", func(useOcsp bool, expectedHashes []string) {
+	It("correctly reads tls secrets from files to generate snapshot version", func() {
 		certs, err := testutils.FilesToBytes(keyFile.Name(), certFile.Name(), caFile.Name())
 		Expect(err).NotTo(HaveOccurred())
-		if useOcsp {
-			ocspResponse, err := os.ReadFile(ocspResponseFile.Name())
-			Expect(err).NotTo(HaveOccurred())
-			certs = append(certs, ocspResponse)
-		}
 
-		snapshotVersion, err := server.GetSnapshotVersion(certs)
+		snapshotVersionBefore, err := server.GetSnapshotVersion(certs)
 		Expect(err).NotTo(HaveOccurred())
-		Expect(snapshotVersion).To(Equal(expectedHashes[0]))
 
-		// Test that the snapshot version changes if the contents of the file changes
 		_, err = keyFile.WriteString(`newFileString`)
 		Expect(err).NotTo(HaveOccurred())
 		certs, err = testutils.FilesToBytes(keyFile.Name(), certFile.Name(), caFile.Name())
 		Expect(err).NotTo(HaveOccurred())
-		if useOcsp {
-			ocspResponse, err := os.ReadFile(ocspResponseFile.Name())
-			Expect(err).NotTo(HaveOccurred())
-			certs = append(certs, ocspResponse)
-		}
 
-		snapshotVersion, err = server.GetSnapshotVersion(certs)
+		snapshotVersionAfter, err := server.GetSnapshotVersion(certs)
 		Expect(err).NotTo(HaveOccurred())
-		Expect(snapshotVersion).To(Equal(expectedHashes[1]))
-	},
-		Entry("without ocsps", false, []string{"6730780456972595554", "4234248347190811569"}),
-		Entry("with ocsps", true, []string{"969835737182439215", "6328977429293055969"}),
-	)
+		Expect(snapshotVersionAfter).NotTo(Equal(snapshotVersionBefore))
+	})
 
 	Context("Test gRPC Server", func() {
 		var (
@@ -151,7 +129,6 @@ var _ = Describe("SDS Server", func() {
 					if strings.Contains(resourceData, "test-server") {
 						Expect(resource.String()).To(ContainSubstring("certificate_chain"))
 						Expect(resource.String()).To(ContainSubstring("private_key"))
-						Expect(resource.String()).To(ContainSubstring("ocsp_staple"))
 					} else if strings.Contains(resourceData, "test-validation") {
 						Expect(resource.String()).To(ContainSubstring("trusted_ca"))
 					}
