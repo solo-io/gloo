@@ -4,7 +4,6 @@ import (
 	"context"
 	"os"
 	"os/signal"
-	"sync"
 	"syscall"
 	"time"
 
@@ -56,39 +55,16 @@ func Run(ctx context.Context, secrets []server.Secret, sdsClient, sdsServerAddre
 	// watches to `watcher`
 	watchFiles(ctx, watcher, secrets)
 
-	var debounceMu sync.Mutex
-	var debounceTimer *time.Timer
-	scheduleDebouncedUpdate := func() {
-		debounceMu.Lock()
-		defer debounceMu.Unlock()
-		if debounceTimer != nil {
-			debounceTimer.Stop()
-		}
-		debounceTimer = time.AfterFunc(sdsUpdateDebounce, func() {
+	go func() {
+		runWatcherLoop(ctx, watcher, func(ctx context.Context) {
 			if err := sdsServer.UpdateSDSConfig(ctx); err != nil {
 				contextutils.LoggerFrom(ctx).Warnw("failed to update SDS config after cert file change", zap.Error(err))
 			}
-			watchFiles(ctx, watcher, secrets)
-		})
-	}
-
-	go func() {
-		for {
-			select {
-			case event := <-watcher.Events:
-				contextutils.LoggerFrom(ctx).Infow("received event", zap.Any("event", event))
-				scheduleDebouncedUpdate()
-			case err := <-watcher.Errors:
-				contextutils.LoggerFrom(ctx).Warnw("Received error from file watcher", zap.Error(err))
-			case <-ctx.Done():
-				debounceMu.Lock()
-				if debounceTimer != nil {
-					debounceTimer.Stop()
-				}
-				debounceMu.Unlock()
+			if ctx.Err() != nil {
 				return
 			}
-		}
+			watchFiles(ctx, watcher, secrets)
+		})
 	}()
 
 	select {
@@ -101,6 +77,50 @@ func Run(ctx context.Context, secrets []server.Secret, sdsClient, sdsServerAddre
 		return nil
 	case <-time.After(3 * time.Second):
 		return nil
+	}
+}
+
+func runWatcherLoop(ctx context.Context, watcher *fsnotify.Watcher, onDebouncedUpdate func(context.Context)) {
+	debounceTimer := time.NewTimer(sdsUpdateDebounce)
+	stopAndDrainTimer(debounceTimer)
+	defer debounceTimer.Stop()
+
+	var pendingUpdate bool
+	for {
+		select {
+		case event := <-watcher.Events:
+			contextutils.LoggerFrom(ctx).Infow("received event", zap.Any("event", event))
+			pendingUpdate = true
+			stopAndDrainTimer(debounceTimer)
+			debounceTimer.Reset(sdsUpdateDebounce)
+		case err := <-watcher.Errors:
+			contextutils.LoggerFrom(ctx).Warnw("Received error from file watcher", zap.Error(err))
+		case <-debounceTimer.C:
+			if !pendingUpdate {
+				continue
+			}
+			pendingUpdate = false
+			if ctx.Err() != nil {
+				return
+			}
+			onDebouncedUpdate(ctx)
+		case <-ctx.Done():
+			stopAndDrainTimer(debounceTimer)
+			return
+		}
+	}
+}
+
+func stopAndDrainTimer(timer *time.Timer) {
+	if timer == nil {
+		return
+	}
+	if timer.Stop() {
+		return
+	}
+	select {
+	case <-timer.C:
+	default:
 	}
 }
 
