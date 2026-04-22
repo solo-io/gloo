@@ -2,9 +2,11 @@ package server_test
 
 import (
 	"context"
+	"os"
 	"strings"
 	"time"
 
+	envoy_extensions_transport_sockets_tls_v3 "github.com/envoyproxy/go-control-plane/envoy/extensions/transport_sockets/tls/v3"
 	envoy_service_discovery_v3 "github.com/envoyproxy/go-control-plane/envoy/service/discovery/v3"
 	envoy_service_secret_v3 "github.com/envoyproxy/go-control-plane/envoy/service/secret/v3"
 	. "github.com/onsi/ginkgo/v2"
@@ -18,13 +20,13 @@ import (
 var _ = Describe("SDS Server", func() {
 
 	var (
-		fs                        afero.Fs
-		dir                       string
-		keyFile, certFile, caFile afero.File
-		err                       error
-		serverAddr                = "127.0.0.1:8888"
-		sdsClient                 = "test-client"
-		srv                       *server.Server
+		fs                                          afero.Fs
+		dir                                         string
+		keyFile, certFile, caFile, ocspResponseFile afero.File
+		err                                         error
+		serverAddr                                  = "127.0.0.1:8888"
+		sdsClient                                   = "test-client"
+		srv                                         *server.Server
 	)
 
 	BeforeEach(func() {
@@ -47,6 +49,11 @@ var _ = Describe("SDS Server", func() {
 		caFile, err = afero.TempFile(fs, dir, "")
 		Expect(err).NotTo(HaveOccurred())
 		_, err = caFile.Write(caPEM)
+		Expect(err).NotTo(HaveOccurred())
+
+		ocspResponseFile, err = afero.TempFile(fs, dir, "")
+		Expect(err).NotTo(HaveOccurred())
+		_, err = ocspResponseFile.Write([]byte("-----BEGIN OCSP RESPONSE-----\nAQIDBAU=\n-----END OCSP RESPONSE-----\n"))
 		Expect(err).NotTo(HaveOccurred())
 
 		secrets := []server.Secret{
@@ -80,6 +87,53 @@ var _ = Describe("SDS Server", func() {
 		snapshotVersionAfter, err := server.GetSnapshotVersion(certs)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(snapshotVersionAfter).NotTo(Equal(snapshotVersionBefore))
+	})
+
+	It("includes configured ocsp staple in the served tls secret", func() {
+		ocspServerAddr := "127.0.0.1:8889"
+		ocspSrv := server.SetupEnvoySDS([]server.Secret{{
+			ServerCert:        "test-server",
+			SslCaFile:         caFile.Name(),
+			SslCertFile:       certFile.Name(),
+			SslKeyFile:        keyFile.Name(),
+			SslOcspFile:       ocspResponseFile.Name(),
+			ValidationContext: "test-validation",
+		}}, sdsClient, ocspServerAddr)
+
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+
+		_, err = ocspSrv.Run(ctx)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(ocspSrv.UpdateSDSConfig(ctx)).To(Succeed())
+
+		conn, err := grpc.Dial(ocspServerAddr, grpc.WithInsecure())
+		Expect(err).NotTo(HaveOccurred())
+		defer conn.Close()
+
+		client := envoy_service_secret_v3.NewSecretDiscoveryServiceClient(conn)
+		var resp *envoy_service_discovery_v3.DiscoveryResponse
+		Eventually(func() bool {
+			resp, err = client.FetchSecrets(ctx, &envoy_service_discovery_v3.DiscoveryRequest{})
+			return err == nil
+		}, "10s", "200ms").Should(BeTrue())
+
+		ocspBytes, err := os.ReadFile(ocspResponseFile.Name())
+		Expect(err).NotTo(HaveOccurred())
+
+		var serverSecret *envoy_extensions_transport_sockets_tls_v3.Secret
+		for _, resource := range resp.GetResources() {
+			parsed := new(envoy_extensions_transport_sockets_tls_v3.Secret)
+			Expect(resource.UnmarshalTo(parsed)).To(Succeed())
+			if parsed.GetName() == "test-server" {
+				serverSecret = parsed
+				break
+			}
+		}
+		Expect(serverSecret).NotTo(BeNil())
+		Expect(serverSecret.GetTlsCertificate()).NotTo(BeNil())
+		Expect(serverSecret.GetTlsCertificate().GetOcspStaple()).NotTo(BeNil())
+		Expect(serverSecret.GetTlsCertificate().GetOcspStaple().GetInlineBytes()).To(Equal(ocspBytes))
 	})
 
 	Context("Test gRPC Server", func() {

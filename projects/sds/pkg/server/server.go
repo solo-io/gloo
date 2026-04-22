@@ -27,6 +27,15 @@ var (
 	grpcOptions = []grpc.ServerOption{grpc.MaxConcurrentStreams(10000)}
 )
 
+const (
+	// sdsKeyPairValidationDelay intentionally stays shorter than the watcher debounce so a
+	// debounced reload can still spend a small bounded window re-reading files if Istio wrote
+	// the key and cert non-atomically. Together these give SDS about 1.5s to recover from a
+	// torn write before surfacing a real error.
+	sdsKeyPairValidationAttempts = 15
+	sdsKeyPairValidationDelay    = 100 * time.Millisecond
+)
+
 // Secret represents an envoy auth secret
 type Secret struct {
 	SslCaFile         string
@@ -123,28 +132,31 @@ func (s *Server) UpdateSDSConfig(ctx context.Context) error {
 func readAndValidateSecret(ctx context.Context, sec Secret) ([][]byte, []cache_types.Resource, error) {
 	var certs [][]byte
 	var items []cache_types.Resource
+	attempts := 0
 	err := retry.Do(
 		func() error {
+			attempts++
+
 			key, err := readAndVerifyCert(ctx, sec.SslKeyFile)
 			if err != nil {
-				return err
+				return fmt.Errorf("reading private key %q: %w", sec.SslKeyFile, err)
 			}
 			certChain, err := readAndVerifyCert(ctx, sec.SslCertFile)
 			if err != nil {
-				return err
+				return fmt.Errorf("reading certificate chain %q: %w", sec.SslCertFile, err)
 			}
 			if _, err := tls.X509KeyPair(certChain, key); err != nil {
-				return err
+				return fmt.Errorf("validating certificate chain %q with private key %q: %w", sec.SslCertFile, sec.SslKeyFile, err)
 			}
 			ca, err := readAndVerifyCert(ctx, sec.SslCaFile)
 			if err != nil {
-				return err
+				return fmt.Errorf("reading CA bundle %q: %w", sec.SslCaFile, err)
 			}
 			var ocspStaple []byte
 			if sec.SslOcspFile != "" {
 				ocspStaple, err = readAndVerifyCert(ctx, sec.SslOcspFile)
 				if err != nil {
-					return err
+					return fmt.Errorf("reading OCSP staple %q: %w", sec.SslOcspFile, err)
 				}
 			}
 			certs = [][]byte{key, certChain, ca}
@@ -157,11 +169,22 @@ func readAndValidateSecret(ctx context.Context, sec Secret) ([][]byte, []cache_t
 			}
 			return nil
 		},
-		retry.Attempts(15),
-		retry.Delay(100*time.Millisecond),
+		retry.Attempts(sdsKeyPairValidationAttempts),
+		retry.Delay(sdsKeyPairValidationDelay),
 	)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, fmt.Errorf("building SDS secret %q after %d attempts: %w", sec.ServerCert, attempts, err)
+	}
+	if attempts > 1 {
+		contextutils.LoggerFrom(ctx).Infow(
+			"recovered SDS secret after retrying torn cert rotation",
+			zap.String("serverCert", sec.ServerCert),
+			zap.Int("attempts", attempts),
+			zap.String("sslKeyFile", sec.SslKeyFile),
+			zap.String("sslCertFile", sec.SslCertFile),
+			zap.String("sslCaFile", sec.SslCaFile),
+			zap.String("sslOcspFile", sec.SslOcspFile),
+		)
 	}
 	return certs, items, nil
 }

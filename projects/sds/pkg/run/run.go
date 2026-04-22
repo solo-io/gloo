@@ -53,7 +53,7 @@ func Run(ctx context.Context, secrets []server.Secret, sdsClient, sdsServerAddre
 
 	// call watchFiles here before calling it again in the
 	// goroutine, otherwise the two calls may race when adding
-	// watches to `watcer`
+	// watches to `watcher`
 	watchFiles(ctx, watcher, secrets)
 
 	var debounceMu sync.Mutex
