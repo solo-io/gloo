@@ -10,7 +10,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/avast/retry-go"
+	retry "github.com/avast/retry-go/v4"
 	envoy_config_core_v3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	envoy_extensions_transport_sockets_tls_v3 "github.com/envoyproxy/go-control-plane/envoy/extensions/transport_sockets/tls/v3"
 	envoy_service_secret_v3 "github.com/envoyproxy/go-control-plane/envoy/service/secret/v3"
@@ -136,6 +136,11 @@ func readAndValidateSecret(ctx context.Context, sec Secret) ([][]byte, []cache_t
 	err := retry.Do(
 		func() error {
 			attempts++
+			select {
+			case <-ctx.Done():
+				return ctx.Err()
+			default:
+			}
 
 			key, err := readAndVerifyCert(ctx, sec.SslKeyFile)
 			if err != nil {
@@ -170,6 +175,7 @@ func readAndValidateSecret(ctx context.Context, sec Secret) ([][]byte, []cache_t
 			return nil
 		},
 		retry.Attempts(sdsKeyPairValidationAttempts),
+		retry.Context(ctx),
 		retry.Delay(sdsKeyPairValidationDelay),
 	)
 	if err != nil {
@@ -195,40 +201,22 @@ func GetSnapshotVersion(certs ...interface{}) (string, error) {
 	return fmt.Sprintf("%d", hash), err
 }
 
-// readAndVerifyCert will read the file from the given
-// path, then check for validity every 100ms for 2 seconds.
-// This is needed because the filesystem watcher
-// that gets triggered by a WRITE doesn't have a guarantee
-// that the write has finished yet.
-// See https://github.com/fsnotify/fsnotify/pull/252 for more context
-//
-//nolint:unparam // currently error is always nil but there is a todo to change that
-func readAndVerifyCert(_ context.Context, certFilePath string) ([]byte, error) {
-	var err error
-	var fileBytes []byte
-	var validCerts bool
-	// Retry for a few seconds as a write may still be in progress
-	err = retry.Do(
-		func() error {
-			fileBytes, err = os.ReadFile(certFilePath)
-			if err != nil {
-				return err
-			}
-			validCerts = checkCert(fileBytes)
-			if !validCerts {
-				return fmt.Errorf("failed to validate file %v", certFilePath)
-			}
-			return nil
-		},
-		retry.Attempts(5), // Exponential backoff over ~3s
-	)
+// readAndVerifyCert reads the file once and validates that it contains well-formed PEM blocks.
+// Torn-write retry behavior is owned by readAndValidateSecret so the total retry budget stays bounded.
+func readAndVerifyCert(ctx context.Context, certFilePath string) ([]byte, error) {
+	select {
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	default:
+	}
 
-	// TODO: we should return error here, but this currently makes ci tests fail so leaving it unchanged for now
-	// if err != nil {
-	// 	contextutils.LoggerFrom(ctx).Warnf("error checking certs %v", err)
-	// 	return fileBytes, err
-	// }
-
+	fileBytes, err := os.ReadFile(certFilePath)
+	if err != nil {
+		return nil, err
+	}
+	if !checkCert(fileBytes) {
+		return nil, fmt.Errorf("failed to validate file %v", certFilePath)
+	}
 	return fileBytes, nil
 }
 
