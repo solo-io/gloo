@@ -9,6 +9,8 @@ import (
 	"time"
 
 	"github.com/fsnotify/fsnotify"
+	"github.com/solo-io/gloo/projects/sds/pkg/server"
+	"github.com/solo-io/gloo/projects/sds/pkg/testutils"
 )
 
 func TestRunWatcherLoopSerializesDebouncedUpdates(t *testing.T) {
@@ -111,6 +113,103 @@ func TestRunWatcherLoopSkipsPendingUpdateAfterCancel(t *testing.T) {
 	}
 }
 
+func TestRunWatcherLoopRecoversFromSingleObservedTornRotation(t *testing.T) {
+	keyA, certA, caA := testutils.MustSelfSignedPEM()
+	keyB, certB, _ := testutils.MustSelfSignedPEMRotation1()
+
+	dir := t.TempDir()
+	keyPath := filepath.Join(dir, "key.pem")
+	certPath := filepath.Join(dir, "cert.pem")
+	caPath := filepath.Join(dir, "ca.pem")
+	for path, contents := range map[string][]byte{
+		keyPath:  keyA,
+		certPath: certA,
+		caPath:   caA,
+	} {
+		if err := os.WriteFile(path, contents, 0o600); err != nil {
+			t.Fatalf("writing %s: %v", path, err)
+		}
+	}
+
+	srv := server.SetupEnvoySDS([]server.Secret{{
+		SslKeyFile:        keyPath,
+		SslCertFile:       certPath,
+		SslCaFile:         caPath,
+		ServerCert:        "server",
+		ValidationContext: "vc",
+	}}, "client", "127.0.0.1:0")
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	if err := srv.UpdateSDSConfig(ctx); err != nil {
+		t.Fatalf("seeding initial snapshot: %v", err)
+	}
+
+	watcher, err := newWatcherForFile(keyPath)
+	if err != nil {
+		t.Fatalf("creating watcher: %v", err)
+	}
+	defer watcher.Close()
+
+	updateStarted := make(chan struct{}, 1)
+	certUpdated := make(chan struct{})
+	updateDone := make(chan error, 1)
+	loopDone := make(chan struct{})
+	var updatesStarted int32
+
+	go func() {
+		runWatcherLoop(ctx, watcher, func(ctx context.Context) {
+			if atomic.AddInt32(&updatesStarted, 1) == 1 {
+				updateStarted <- struct{}{}
+			}
+			updateDone <- srv.UpdateSDSConfig(ctx)
+		})
+		close(loopDone)
+	}()
+
+	if err := os.WriteFile(keyPath, keyB, 0o600); err != nil {
+		t.Fatalf("writing rotated key: %v", err)
+	}
+
+	waitForSignal(t, updateStarted, "debounced update to start")
+
+	time.Sleep(150 * time.Millisecond)
+	select {
+	case err := <-updateDone:
+		t.Fatalf("expected update to still be retrying before cert catches up, got %v", err)
+	default:
+	}
+
+	go func() {
+		time.Sleep(300 * time.Millisecond)
+		if err := os.WriteFile(certPath, certB, 0o600); err != nil {
+			updateDone <- err
+			return
+		}
+		close(certUpdated)
+	}()
+
+	waitForSignal(t, certUpdated, "matching cert write during retry window")
+
+	select {
+	case err := <-updateDone:
+		if err != nil {
+			t.Fatalf("expected single observed event to recover after cert catches up: %v", err)
+		}
+	case <-time.After(5 * time.Second):
+		t.Fatal("timed out waiting for debounced update to finish")
+	}
+
+	time.Sleep(sdsUpdateDebounce + 200*time.Millisecond)
+	if got := atomic.LoadInt32(&updatesStarted); got != 1 {
+		t.Fatalf("expected exactly one debounced update from a single observed event, got %d", got)
+	}
+
+	cancel()
+	waitForSignal(t, loopDone, "watcher loop shutdown")
+}
+
 func newTestWatcher(t *testing.T) (*fsnotify.Watcher, string) {
 	t.Helper()
 
@@ -130,6 +229,18 @@ func newTestWatcher(t *testing.T) (*fsnotify.Watcher, string) {
 	}
 
 	return watcher, watchedFile
+}
+
+func newWatcherForFile(watchedFile string) (*fsnotify.Watcher, error) {
+	watcher, err := fsnotify.NewWatcher()
+	if err != nil {
+		return nil, err
+	}
+	if err := watcher.Add(watchedFile); err != nil {
+		watcher.Close()
+		return nil, err
+	}
+	return watcher, nil
 }
 
 func triggerWatcherEvent(t *testing.T, watchedFile, contents string) {
