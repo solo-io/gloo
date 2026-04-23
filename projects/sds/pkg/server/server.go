@@ -177,6 +177,7 @@ func readAndValidateSecret(ctx context.Context, sec Secret) ([][]byte, []cache_t
 		retry.Attempts(sdsKeyPairValidationAttempts),
 		retry.Context(ctx),
 		retry.Delay(sdsKeyPairValidationDelay),
+		retry.DelayType(retry.FixedDelay),
 	)
 	if err != nil {
 		return nil, nil, fmt.Errorf("building SDS secret %q after %d attempts: %w", sec.ServerCert, attempts, err)
