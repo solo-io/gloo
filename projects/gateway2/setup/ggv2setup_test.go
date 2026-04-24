@@ -201,7 +201,7 @@ func testScenariosWithCRDs(
 		Port: int(0),
 	}
 	controlPlane := gloosetup.NewControlPlane(ctx, setupOpts.Cache, grpc.NewServer(), addr, bootstrap.KubernetesControlPlaneConfig{}, uniqueClientCallbacks, true)
-	xds.SetupEnvoyXds(controlPlane.GrpcServer, controlPlane.XDSServer, controlPlane.SnapshotCache)
+	xds.SetupEnvoyXds(controlPlane.GrpcServer, controlPlane.XDSServer, controlPlane.SnapshotCache, false)
 
 	lis, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
