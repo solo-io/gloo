@@ -103,6 +103,7 @@ Represents global settings for all the Gloo components.
 "extProc": .extproc.options.gloo.solo.io.Settings
 "extProcLate": .extproc.options.gloo.solo.io.Settings
 "watchNamespaceSelectors": []gloo.solo.io.LabelSelector
+"ipV4Only": bool
 
 ```
 
@@ -146,6 +147,7 @@ Represents global settings for all the Gloo components.
 | `extProc` | [.extproc.options.gloo.solo.io.Settings](../enterprise/options/extproc/extproc.proto.sk/#settings) | Enterprise-only: External Processing filter settings. These settings are used as defaults globally, and can be overridden by HttpListenerOptions, VirtualHostOptions, or RouteOptions. |
 | `extProcLate` | [.extproc.options.gloo.solo.io.Settings](../enterprise/options/extproc/extproc.proto.sk/#settings) | Enterprise-only: Late External Processing filter settings that happens at the end of the filter chain as an UpstreamHttpFilter. These settings are used as defaults globally, and can be overridden by HttpListenerOptions, VirtualHostOptions, or RouteOptions. |
 | `watchNamespaceSelectors` | [[]gloo.solo.io.LabelSelector](../settings.proto.sk/#labelselector) | A list of Kubernetes selectors that specify the set of namespaces to restrict the namespaces that Gloo controllers take into consideration when watching for resources. Elements in the list are disjunctive (OR semantics), i.e. a namespace will be included if it matches any selector. The following example selects any namespace that matches either below: 1. The namespace has both of these labels: `env: prod` and `region: us-east1` 2. The namespace has label `app` equal to `cassandra` or `spark`. ```yaml watchNamespaceSelectors: - matchLabels: env: prod region: us-east1 - matchExpressions: - key: app operator: In values: - cassandra - spark ``` However, if the match conditions are part of the same same list item, the namespace must match all conditions. ```yaml watchNamespaceSelectors: - matchLabels: env: prod region: us-east1 matchExpressions: - key: app operator: In values: - cassandra - spark ``` Refer to the [Kubernetes selector docs](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#label-selectors) for additional detail on selector semantics. |
+| `ipV4Only` | `bool` | Set to true to only use ipv4 when creating gateways when running in gateway api mode. Defaults to false. |
 
 
 
