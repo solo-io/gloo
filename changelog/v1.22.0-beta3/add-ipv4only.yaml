@@ -1,0 +1,7 @@
+changelog:
+changelog:
+- type: NEW_FEATURE
+  description: Add ipV4Only Setting for Gateway API Mode which sets the bind address to `0.0.0.0` instead of `::`. Defaults to false
+  issueLink: https://github.com/solo-io/solo-projects/issues/8916
+  resolvesIssue: false
+
