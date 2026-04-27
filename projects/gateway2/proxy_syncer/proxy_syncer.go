@@ -37,11 +37,13 @@ import (
 	"istio.io/istio/pkg/kube/kclient"
 	"istio.io/istio/pkg/kube/krt"
 	"istio.io/istio/pkg/kube/kubetypes"
+	"istio.io/istio/pkg/ptr"
 	"k8s.io/apimachinery/pkg/runtime"
 
 	"github.com/avast/retry-go/v4"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
+	"github.com/solo-io/gloo/pkg/utils/settingsutil"
 	"github.com/solo-io/gloo/pkg/utils/statsutils"
 	"github.com/solo-io/gloo/projects/gateway2/extensions"
 	"github.com/solo-io/gloo/projects/gateway2/krtcollections"
@@ -432,6 +434,10 @@ func (s *ProxySyncer) Init(ctx context.Context, dbg *krt.DebugHandler) error {
 		}
 		logger.Debugf("building proxy for kube gw %s version %s", client.ObjectKeyFromObject(gw), gw.GetResourceVersion())
 		s.proxyTrigger.MarkDependant(kctx)
+
+		ksettings := ptr.Flatten(krt.FetchOne(kctx, s.proxyTranslator.settings.AsCollection()))
+		ctx = settingsutil.WithSettings(ctx, &ksettings.Spec)
+
 		proxy := s.buildProxy(ctx, gw)
 		return proxy
 	}, withDebug, krt.WithName("GlooProxies"))
