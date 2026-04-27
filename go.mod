@@ -362,6 +362,11 @@ replace (
 	// Updated to fix CVE-2025-15558
 	github.com/docker/cli => github.com/docker/cli v29.2.0+incompatible
 	github.com/docker/docker => github.com/moby/moby v26.0.0+incompatible
+
+	// Pin go-control-plane proto bindings to match the envoy v1.32 runtime used on v1.19.x.
+	// Newer versions were pulled in transitively by google.golang.org/grpc v1.79.3 (CVE bump).
+	github.com/envoyproxy/go-control-plane => github.com/envoyproxy/go-control-plane v0.13.5-0.20250123154839-2a6715911fec
+	github.com/envoyproxy/go-control-plane/envoy => github.com/envoyproxy/go-control-plane/envoy v1.32.5-0.20250211152746-ef139ef8ea6b
 	// https://github.com/fsnotify/fsnotify/issues/672
 	github.com/fsnotify/fsnotify => github.com/fsnotify/fsnotify v1.7.0
 
@@ -400,6 +405,9 @@ replace (
 )
 
 exclude (
+	// Exclude the pre-release pulled in transitively by the pinned v0.13.5-era cel.dev/expr → rules_go chain.
+	github.com/golang/mock v1.7.0-rc.1
+
 	// Exclude pre-go-mod kubernetes tags, because they are older
 	// than v0.x releases but are picked when updating dependencies.
 	k8s.io/client-go v1.4.0
