@@ -4294,6 +4294,20 @@ spec:
 						testManifest.ExpectUnstructured(settings.GetKind(), settings.GetNamespace(), settings.GetName()).To(BeEquivalentTo(settings))
 					})
 
+					It("correctly sets the `ipV4Only` field in the settings", func() {
+						prepareMakefile(namespace, glootestutils.HelmValues{
+							ValuesArgs: []string{
+								"settings.ipV4Only=true",
+							},
+						})
+						testManifest.SelectResources(func(resource *unstructured.Unstructured) bool {
+							return resource.GetKind() == "Settings"
+						}).ExpectAll(func(settings *unstructured.Unstructured) {
+							field := getFieldFromUnstructured(settings, "spec", "ipV4Only")
+							Expect(field).To(BeTrue())
+						})
+					})
+
 					It("correctly sets the gateway validation fields in the settings", func() {
 						settings := makeUnstructureFromTemplateFile("fixtures/settings/gateway_validation.yaml", namespace)
 

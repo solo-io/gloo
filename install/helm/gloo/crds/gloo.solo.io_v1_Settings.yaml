@@ -1100,6 +1100,8 @@ spec:
                   xdsBindAddr:
                     type: string
                 type: object
+              ipV4Only:
+                type: boolean
               knative:
                 properties:
                   clusterIngressProxyAddress:

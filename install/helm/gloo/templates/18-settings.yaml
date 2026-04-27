@@ -105,6 +105,9 @@ spec:
 {{- if .Values.settings.linkerd }}
   linkerd: true
 {{- end }}
+{{- if .Values.settings.ipV4Only }}
+  ipV4Only: {{ .Values.settings.ipV4Only }}
+{{- end }}
 {{- if .Values.settings.integrations.knative.enabled }}
   knative:
 {{- if (semverCompare "< 0.8.0" .Values.settings.integrations.knative.version ) }}

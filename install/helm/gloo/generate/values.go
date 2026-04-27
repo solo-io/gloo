@@ -235,6 +235,7 @@ type Settings struct {
 	// NOTE: DevMode is deprecated. See https://docs.solo.io/gloo-edge/latest/operations/debugging_gloo/#debugging-the-control-plane for more details.
 	DevMode       *bool         `json:"devMode,omitempty" desc:"Whether or not to enable dev mode. Defaults to false. Setting to true at install time will expose the gloo dev admin endpoint on port 10010. Not recommended for production. Warning: this value is deprecated as of 1.17 and will be removed in a future release."`
 	SecretOptions SecretOptions `json:"secretOptions,omitempty" desc:"Options for how Gloo Edge should handle secrets."`
+	IPv4Only      *bool         `json:"ipV4Only,omitempty" desc:"Set to true to only use IPv4 when creating gateways in Gateway API mode. Sets listener bind addresses to 0.0.0.0 instead of ::."`
 	*KubeResourceOverride
 }
 

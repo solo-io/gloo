@@ -16,6 +16,7 @@ import (
 	gwv1a2 "sigs.k8s.io/gateway-api/apis/v1alpha2"
 	gwxv1a1 "sigs.k8s.io/gateway-api/apisx/v1alpha1"
 
+	"github.com/solo-io/gloo/pkg/utils/settingsutil"
 	"github.com/solo-io/gloo/projects/gateway2/ports"
 	"github.com/solo-io/gloo/projects/gateway2/query"
 	"github.com/solo-io/gloo/projects/gateway2/reports"
@@ -530,10 +531,15 @@ func (ml *MergedListener) TranslateListener(
 		}
 	}
 
+	bindAddress := "::"
+	if settingsutil.MaybeFromContext(ctx).GetIpV4Only() {
+		bindAddress = "0.0.0.0"
+	}
+
 	// Create and return the listener with all filter chains and TCP listeners
 	return &v1.Listener{
 		Name:        ml.name,
-		BindAddress: "::",
+		BindAddress: bindAddress,
 		BindPort:    uint32(ml.port),
 		ListenerType: &v1.Listener_AggregateListener{
 			AggregateListener: &v1.AggregateListener{
