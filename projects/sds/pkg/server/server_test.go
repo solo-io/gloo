@@ -53,9 +53,10 @@ var _ = Describe("SDS Server", func() {
 
 		ocspResponseFile, err = afero.TempFile(fs, dir, "")
 		Expect(err).NotTo(HaveOccurred())
-		_, err = ocspResponseFile.Write([]byte("-----BEGIN OCSP RESPONSE-----\nAQIDBAU=\n-----END OCSP RESPONSE-----\n"))
+		ocspResp, err := os.ReadFile("certs/ocsp_response.der")
 		Expect(err).NotTo(HaveOccurred())
-
+		_, err = ocspResponseFile.Write(ocspResp)
+		Expect(err).NotTo(HaveOccurred())
 		secrets := []server.Secret{
 			{
 				ServerCert:        "test-server",

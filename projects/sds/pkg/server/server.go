@@ -159,7 +159,7 @@ func readAndValidateSecret(ctx context.Context, sec Secret) ([][]byte, []cache_t
 			}
 			var ocspStaple []byte
 			if sec.SslOcspFile != "" {
-				ocspStaple, err = readAndVerifyCert(ctx, sec.SslOcspFile)
+				ocspStaple, err = readFile(ctx, sec.SslOcspFile)
 				if err != nil {
 					return fmt.Errorf("reading OCSP staple %q: %w", sec.SslOcspFile, err)
 				}
@@ -202,16 +202,10 @@ func GetSnapshotVersion(certs ...interface{}) (string, error) {
 	return fmt.Sprintf("%d", hash), err
 }
 
-// readAndVerifyCert reads the file once and validates that it contains well-formed PEM blocks.
-// Torn-write retry behavior is owned by readAndValidateSecret so the total retry budget stays bounded.
+// readAndVerifyCert reads a PEM-encoded key/cert/CA file once and validates
+// that it contains well-formed PEM blocks
 func readAndVerifyCert(ctx context.Context, certFilePath string) ([]byte, error) {
-	select {
-	case <-ctx.Done():
-		return nil, ctx.Err()
-	default:
-	}
-
-	fileBytes, err := os.ReadFile(certFilePath)
+	fileBytes, err := readFile(ctx, certFilePath)
 	if err != nil {
 		return nil, err
 	}
@@ -219,6 +213,16 @@ func readAndVerifyCert(ctx context.Context, certFilePath string) ([]byte, error)
 		return nil, fmt.Errorf("failed to validate file %v", certFilePath)
 	}
 	return fileBytes, nil
+}
+
+func readFile(ctx context.Context, filePath string) ([]byte, error) {
+	select {
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	default:
+	}
+
+	return os.ReadFile(filePath)
 }
 
 // checkCert uses pem.Decode to verify that the given
