@@ -1,0 +1,10 @@
+changelog:
+- type: NON_USER_FACING
+  description: >-
+    Add a go.mod regression test that enforces the go-control-plane pin:
+    the root module must stay below v0.33 and each of
+    github.com/envoyproxy/go-control-plane{,/envoy,/contrib,/ratelimit,/xdsmatcher}
+    must stay on its currently approved minor. The test inspects the
+    effective pin (replace target if present, otherwise require) so it
+    flags a bump introduced transitively by an unrelated upgrade before
+    the proto bindings drift out of sync with the Envoy runtime.
