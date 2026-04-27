@@ -236,6 +236,8 @@ func (m *Settings) Clone() proto.Message {
 		}
 	}
 
+	target.IpV4Only = m.GetIpV4Only()
+
 	switch m.ConfigSource.(type) {
 
 	case *Settings_KubernetesConfigSource:

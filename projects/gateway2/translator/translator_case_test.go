@@ -21,6 +21,7 @@ import (
 	core "github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
 
+	"github.com/solo-io/gloo/pkg/utils/settingsutil"
 	"github.com/solo-io/gloo/pkg/utils/statusutils"
 	sologatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	solokubev1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1/kube/apis/gateway.solo.io/v1"
@@ -41,6 +42,7 @@ import (
 
 type TestCase struct {
 	InputFiles []string
+	Settings   *v1.Settings
 }
 
 type ActualTestResult struct {
@@ -159,6 +161,10 @@ func (tc TestCase) Run(ctx context.Context) (map[types.NamespacedName]ActualTest
 	pluginRegistry := registry.NewPluginRegistry(allPlugins)
 
 	results := make(map[types.NamespacedName]ActualTestResult)
+
+	if tc.Settings != nil {
+		ctx = settingsutil.WithSettings(ctx, tc.Settings)
+	}
 
 	for _, gw := range gateways {
 		gwNN := types.NamespacedName{

@@ -599,6 +599,14 @@ func (m *Settings) HashUnique(hasher hash.Hash64) (uint64, error) {
 
 	}
 
+	if _, err = hasher.Write([]byte("IpV4Only")); err != nil {
+		return 0, err
+	}
+	err = binary.Write(hasher, binary.LittleEndian, m.GetIpV4Only())
+	if err != nil {
+		return 0, err
+	}
+
 	switch m.ConfigSource.(type) {
 
 	case *Settings_KubernetesConfigSource:

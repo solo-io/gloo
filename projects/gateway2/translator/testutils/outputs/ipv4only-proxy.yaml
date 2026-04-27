@@ -1,0 +1,39 @@
+listeners:
+- aggregateListener:
+    httpFilterChains:
+    - matcher: {}
+      virtualHostRefs:
+      - listener~8080~example_com
+    httpResources:
+      virtualHosts:
+        listener~8080~example_com:
+          domains:
+          - example.com
+          name: listener~8080~example_com
+          routes:
+          - matchers:
+            - prefix: /
+            name: httproute-example-route-default-0-0
+            options: {}
+            routeAction:
+              single:
+                kube:
+                  port: 80
+                  ref:
+                    name: blackhole_cluster
+                    namespace: blackhole_ns
+  bindAddress: 0.0.0.0
+  bindPort: 8080
+  metadataStatic:
+    sources:
+    - resourceKind: gateway.networking.k8s.io/Gateway
+      resourceRef:
+        name: listener~8080
+        namespace: default
+  name: listener~8080
+metadata:
+  labels:
+    created_by: gloo-kube-gateway-api
+    gateway_namespace: default
+  name: default-example-gateway
+  namespace: gloo-system
