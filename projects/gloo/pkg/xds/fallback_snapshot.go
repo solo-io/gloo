@@ -17,13 +17,18 @@ import (
 var fallbackBindPort = defaults.HttpPort
 
 const (
-	fallbackBindAddr   = "::"
-	fallbackStatusCode = 500
+	fallbackBindAddrIPV6 = "::"
+	fallbackBindAddrIPV4 = "0.0.0.0"
+	fallbackStatusCode   = 500
 )
 
 // createFallbackSnapshot returns a snapshot that is served to proxies which
 // do not contain a node identifier, as a way of signaling that they are invalid
-func createFallbackSnapshot() cache.Snapshot {
+func createFallbackSnapshot(ipV4Only bool) cache.Snapshot {
+	fallbackBindAddr := fallbackBindAddrIPV6
+	if ipV4Only {
+		fallbackBindAddr = fallbackBindAddrIPV4
+	}
 	return fallbackSnapshot(fallbackBindAddr, fallbackBindPort, fallbackStatusCode)
 }
 
