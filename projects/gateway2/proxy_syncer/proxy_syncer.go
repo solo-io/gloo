@@ -436,9 +436,9 @@ func (s *ProxySyncer) Init(ctx context.Context, dbg *krt.DebugHandler) error {
 		s.proxyTrigger.MarkDependant(kctx)
 
 		ksettings := ptr.Flatten(krt.FetchOne(kctx, s.proxyTranslator.settings.AsCollection()))
-		ctx = settingsutil.WithSettings(ctx, &ksettings.Spec)
+		proxyCtx := settingsutil.WithSettings(ctx, &ksettings.Spec)
 
-		proxy := s.buildProxy(ctx, gw)
+		proxy := s.buildProxy(proxyCtx, gw)
 		return proxy
 	}, withDebug, krt.WithName("GlooProxies"))
 	s.mostXdsSnapshots = krt.NewCollection(glooProxies, func(kctx krt.HandlerContext, proxy glooProxy) *XdsSnapWrapper {
