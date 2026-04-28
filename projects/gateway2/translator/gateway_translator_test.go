@@ -14,6 +14,7 @@ import (
 	gwv1a2 "sigs.k8s.io/gateway-api/apis/v1alpha2"
 
 	"github.com/solo-io/gloo/projects/gateway2/reports"
+	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 )
 
 type translatorTestCase struct {
@@ -21,6 +22,7 @@ type translatorTestCase struct {
 	outputFile    string
 	gwNN          types.NamespacedName
 	assertReports func(gwNN types.NamespacedName, reportsMap reports.ReportMap)
+	settings      *v1.Settings
 }
 
 var _ = DescribeTable("Basic GatewayTranslator Tests",
@@ -30,6 +32,7 @@ var _ = DescribeTable("Basic GatewayTranslator Tests",
 
 		results, err := TestCase{
 			InputFiles: []string{filepath.Join(dir, "testutils/inputs/", in.inputFile)},
+			Settings:   in.settings,
 		}.Run(ctx)
 
 		Expect(err).NotTo(HaveOccurred())
@@ -375,6 +378,19 @@ var _ = DescribeTable("Basic GatewayTranslator Tests",
 			gwNN: types.NamespacedName{
 				Namespace: "default",
 				Name:      "example-gateway",
+			},
+		}),
+	Entry(
+		"With ipV4Only=true",
+		translatorTestCase{
+			inputFile:  "ipv4only",
+			outputFile: "ipv4only-proxy.yaml",
+			gwNN: types.NamespacedName{
+				Namespace: "default",
+				Name:      "example-gateway",
+			},
+			settings: &v1.Settings{
+				IpV4Only: true,
 			},
 		}),
 )

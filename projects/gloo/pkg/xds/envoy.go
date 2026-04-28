@@ -14,7 +14,7 @@ import (
 )
 
 // register xDS methods with GRPC server
-func SetupEnvoyXds(grpcServer *grpc.Server, xdsServer envoyserver.Server, envoyCache envoycache.SnapshotCache) {
+func SetupEnvoyXds(grpcServer *grpc.Server, xdsServer envoyserver.Server, envoyCache envoycache.SnapshotCache, ipV4Only bool) {
 
 	// check if we need to register
 	if _, ok := grpcServer.GetServiceInfo()["solo.io.xds.SoloDiscoveryService"]; ok {
@@ -35,5 +35,5 @@ func SetupEnvoyXds(grpcServer *grpc.Server, xdsServer envoyserver.Server, envoyC
 	envoy_service_discovery_v3.RegisterAggregatedDiscoveryServiceServer(grpcServer, envoyServer)
 
 	// Seed the cache with a fallback snapshot
-	envoyCache.SetSnapshot(FallbackNodeCacheKey, createFallbackSnapshot())
+	envoyCache.SetSnapshot(FallbackNodeCacheKey, createFallbackSnapshot(ipV4Only))
 }
