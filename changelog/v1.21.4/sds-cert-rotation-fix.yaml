@@ -1,0 +1,8 @@
+changelog:
+- type: FIX
+  issueLink: https://github.com/solo-io/solo-projects/issues/8911
+  resolvesIssue: false
+  description: >-
+    Make SDS cert rotation more resilient to non-atomic Istio cert writes by
+    debouncing file watcher reloads and retrying until the certificate and key
+    form a valid pair before publishing a new snapshot.

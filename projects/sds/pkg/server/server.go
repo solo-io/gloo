@@ -2,13 +2,15 @@ package server
 
 import (
 	"context"
+	"crypto/tls"
 	"encoding/pem"
 	"fmt"
 	"hash/fnv"
 	"net"
 	"os"
+	"time"
 
-	"github.com/avast/retry-go"
+	retry "github.com/avast/retry-go/v4"
 	envoy_config_core_v3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	envoy_extensions_transport_sockets_tls_v3 "github.com/envoyproxy/go-control-plane/envoy/extensions/transport_sockets/tls/v3"
 	envoy_service_secret_v3 "github.com/envoyproxy/go-control-plane/envoy/service/secret/v3"
@@ -23,6 +25,15 @@ import (
 
 var (
 	grpcOptions = []grpc.ServerOption{grpc.MaxConcurrentStreams(10000)}
+)
+
+const (
+	// sdsKeyPairValidationDelay intentionally stays shorter than the watcher debounce so a
+	// debounced reload can still spend a small bounded window re-reading files if Istio wrote
+	// the key and cert non-atomically. Together these give SDS about 1.5s to recover from a
+	// torn write before surfacing a real error.
+	sdsKeyPairValidationAttempts = 15
+	sdsKeyPairValidationDelay    = 100 * time.Millisecond
 )
 
 // Secret represents an envoy auth secret
@@ -95,31 +106,12 @@ func (s *Server) UpdateSDSConfig(ctx context.Context) error {
 	var certs [][]byte
 	var items []cache_types.Resource
 	for _, sec := range s.secrets {
-		key, err := readAndVerifyCert(ctx, sec.SslKeyFile)
+		secretCerts, secretItems, err := readAndValidateSecret(ctx, sec)
 		if err != nil {
 			return err
 		}
-		certs = append(certs, key)
-		certChain, err := readAndVerifyCert(ctx, sec.SslCertFile)
-		if err != nil {
-			return err
-		}
-		certs = append(certs, certChain)
-		ca, err := readAndVerifyCert(ctx, sec.SslCaFile)
-		if err != nil {
-			return err
-		}
-		certs = append(certs, ca)
-		var ocspStaple []byte // ocsp stapling is optional
-		if sec.SslOcspFile != "" {
-			ocspStaple, err = readAndVerifyCert(ctx, sec.SslOcspFile)
-			if err != nil {
-				return err
-			}
-			certs = append(certs, ocspStaple)
-		}
-		items = append(items, serverCertSecret(key, certChain, ocspStaple, sec.ServerCert))
-		items = append(items, validationContextSecret(ca, sec.ValidationContext))
+		certs = append(certs, secretCerts...)
+		items = append(items, secretItems...)
 	}
 
 	snapshotVersion, err := GetSnapshotVersion(certs)
@@ -134,47 +126,103 @@ func (s *Server) UpdateSDSConfig(ctx context.Context) error {
 	return s.snapshotCache.SetSnapshot(ctx, s.sdsClient, secretSnapshot)
 }
 
+// readAndValidateSecret reads TLS material for one Secret, re-reading until the cert and key
+// form a matching pair (or attempts are exhausted). That avoids pushing a mismatched pair to
+// Envoy when a writer updates key and cert files non-atomically (e.g. Istio rotation).
+func readAndValidateSecret(ctx context.Context, sec Secret) ([][]byte, []cache_types.Resource, error) {
+	var certs [][]byte
+	var items []cache_types.Resource
+	attempts := 0
+	err := retry.Do(
+		func() error {
+			attempts++
+			select {
+			case <-ctx.Done():
+				return ctx.Err()
+			default:
+			}
+
+			key, err := readAndVerifyCert(ctx, sec.SslKeyFile)
+			if err != nil {
+				return fmt.Errorf("reading private key %q: %w", sec.SslKeyFile, err)
+			}
+			certChain, err := readAndVerifyCert(ctx, sec.SslCertFile)
+			if err != nil {
+				return fmt.Errorf("reading certificate chain %q: %w", sec.SslCertFile, err)
+			}
+			if _, err := tls.X509KeyPair(certChain, key); err != nil {
+				return fmt.Errorf("validating certificate chain %q with private key %q: %w", sec.SslCertFile, sec.SslKeyFile, err)
+			}
+			ca, err := readAndVerifyCert(ctx, sec.SslCaFile)
+			if err != nil {
+				return fmt.Errorf("reading CA bundle %q: %w", sec.SslCaFile, err)
+			}
+			var ocspStaple []byte
+			if sec.SslOcspFile != "" {
+				ocspStaple, err = readFile(ctx, sec.SslOcspFile)
+				if err != nil {
+					return fmt.Errorf("reading OCSP staple %q: %w", sec.SslOcspFile, err)
+				}
+			}
+			certs = [][]byte{key, certChain, ca}
+			if sec.SslOcspFile != "" {
+				certs = append(certs, ocspStaple)
+			}
+			items = []cache_types.Resource{
+				serverCertSecret(key, certChain, ocspStaple, sec.ServerCert),
+				validationContextSecret(ca, sec.ValidationContext),
+			}
+			return nil
+		},
+		retry.Attempts(sdsKeyPairValidationAttempts),
+		retry.Context(ctx),
+		retry.Delay(sdsKeyPairValidationDelay),
+		retry.DelayType(retry.FixedDelay),
+	)
+	if err != nil {
+		return nil, nil, fmt.Errorf("building SDS secret %q after %d attempts: %w", sec.ServerCert, attempts, err)
+	}
+	if attempts > 1 {
+		contextutils.LoggerFrom(ctx).Infow(
+			"recovered SDS secret after retrying torn cert rotation",
+			zap.String("serverCert", sec.ServerCert),
+			zap.Int("attempts", attempts),
+			zap.String("sslKeyFile", sec.SslKeyFile),
+			zap.String("sslCertFile", sec.SslCertFile),
+			zap.String("sslCaFile", sec.SslCaFile),
+			zap.String("sslOcspFile", sec.SslOcspFile),
+		)
+	}
+	return certs, items, nil
+}
+
 // GetSnapshotVersion generates a version string by hashing the certs
 func GetSnapshotVersion(certs ...interface{}) (string, error) {
 	hash, err := hashutils.HashAllSafe(fnv.New64(), certs...)
 	return fmt.Sprintf("%d", hash), err
 }
 
-// readAndVerifyCert will read the file from the given
-// path, then check for validity every 100ms for 2 seconds.
-// This is needed because the filesystem watcher
-// that gets triggered by a WRITE doesn't have a guarantee
-// that the write has finished yet.
-// See https://github.com/fsnotify/fsnotify/pull/252 for more context
-//
-//nolint:unparam // currently error is always nil but there is a todo to change that
-func readAndVerifyCert(_ context.Context, certFilePath string) ([]byte, error) {
-	var err error
-	var fileBytes []byte
-	var validCerts bool
-	// Retry for a few seconds as a write may still be in progress
-	err = retry.Do(
-		func() error {
-			fileBytes, err = os.ReadFile(certFilePath)
-			if err != nil {
-				return err
-			}
-			validCerts = checkCert(fileBytes)
-			if !validCerts {
-				return fmt.Errorf("failed to validate file %v", certFilePath)
-			}
-			return nil
-		},
-		retry.Attempts(5), // Exponential backoff over ~3s
-	)
-
-	// TODO: we should return error here, but this currently makes ci tests fail so leaving it unchanged for now
-	// if err != nil {
-	// 	contextutils.LoggerFrom(ctx).Warnf("error checking certs %v", err)
-	// 	return fileBytes, err
-	// }
-
+// readAndVerifyCert reads a PEM-encoded key/cert/CA file once and validates
+// that it contains well-formed PEM blocks
+func readAndVerifyCert(ctx context.Context, certFilePath string) ([]byte, error) {
+	fileBytes, err := readFile(ctx, certFilePath)
+	if err != nil {
+		return nil, err
+	}
+	if !checkCert(fileBytes) {
+		return nil, fmt.Errorf("failed to validate file %v", certFilePath)
+	}
 	return fileBytes, nil
+}
+
+func readFile(ctx context.Context, filePath string) ([]byte, error) {
+	select {
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	default:
+	}
+
+	return os.ReadFile(filePath)
 }
 
 // checkCert uses pem.Decode to verify that the given
