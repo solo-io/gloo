@@ -1,0 +1,5 @@
+changelog:
+- type: FIX
+  issueLink: https://github.com/solo-io/gloo/pull/11225
+  resolvesIssue: false
+  description: Add mkdir -p in push-docs workflow before copying CLI reference docs to ensure destination directory exists for new minor versions.
