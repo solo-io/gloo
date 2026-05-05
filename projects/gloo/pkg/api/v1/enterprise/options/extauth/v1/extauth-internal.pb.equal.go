@@ -2569,6 +2569,17 @@ func (m *ExtAuthConfig_AccessTokenValidationConfig_JwtValidation) Equal(that int
 		return false
 	}
 
+	if len(m.GetAudiences()) != len(target.GetAudiences()) {
+		return false
+	}
+	for idx, v := range m.GetAudiences() {
+
+		if strings.Compare(v, target.GetAudiences()[idx]) != 0 {
+			return false
+		}
+
+	}
+
 	switch m.JwksSourceSpecifier.(type) {
 
 	case *ExtAuthConfig_AccessTokenValidationConfig_JwtValidation_RemoteJwks_:

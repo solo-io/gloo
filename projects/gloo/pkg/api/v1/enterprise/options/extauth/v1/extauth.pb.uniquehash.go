@@ -2403,6 +2403,23 @@ func (m *JwtValidation) HashUnique(hasher hash.Hash64) (uint64, error) {
 		return 0, err
 	}
 
+	if _, err = hasher.Write([]byte("Audiences")); err != nil {
+		return 0, err
+	}
+	for i, v := range m.GetAudiences() {
+		if _, err = hasher.Write([]byte(strconv.Itoa(i))); err != nil {
+			return 0, err
+		}
+
+		if _, err = hasher.Write([]byte("v")); err != nil {
+			return 0, err
+		}
+		if _, err = hasher.Write([]byte(v)); err != nil {
+			return 0, err
+		}
+
+	}
+
 	switch m.JwksSourceSpecifier.(type) {
 
 	case *JwtValidation_RemoteJwks_:

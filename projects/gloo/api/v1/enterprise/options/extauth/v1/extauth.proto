@@ -1001,6 +1001,10 @@ message JwtValidation {
     // Allow only tokens that have been issued by this principal (i.e. whose "iss" claim matches this value).
     // If empty, issuer validation will be skipped.
     string issuer = 3;
+
+    // List of JWT audiences allowed for this provider. The token's "aud" claim
+    // must intersect this list. If empty or unset, audience validation is skipped.
+    repeated string audiences = 4;
 }
 
 // Defines how (opaque) access tokens, received from the oauth authorization endpoint, are validated

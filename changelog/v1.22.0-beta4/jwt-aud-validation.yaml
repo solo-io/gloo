@@ -1,0 +1,8 @@
+changelog:
+- type: NEW_FEATURE
+  issueLink: https://github.com/solo-io/gloo-gateway/issues/1494
+  resolvesIssue: false
+  description: >-
+    Add `audiences` field to `JwtValidation` in the extauth API. When set, the
+    JWT's `aud` claim must intersect this list; when empty or unset, audience
+    validation is skipped.
