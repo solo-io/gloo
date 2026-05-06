@@ -2112,6 +2112,14 @@ func (m *JwtValidation) Hash(hasher hash.Hash64) (uint64, error) {
 		return 0, err
 	}
 
+	for _, v := range m.GetAudiences() {
+
+		if _, err = hasher.Write([]byte(v)); err != nil {
+			return 0, err
+		}
+
+	}
+
 	switch m.JwksSourceSpecifier.(type) {
 
 	case *JwtValidation_RemoteJwks_:

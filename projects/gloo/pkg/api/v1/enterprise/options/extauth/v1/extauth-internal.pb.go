@@ -3509,7 +3509,11 @@ type ExtAuthConfig_AccessTokenValidationConfig_JwtValidation struct {
 	JwksSourceSpecifier isExtAuthConfig_AccessTokenValidationConfig_JwtValidation_JwksSourceSpecifier `protobuf_oneof:"jwks_source_specifier"`
 	// Allow only tokens that have been issued by this principal (i.e. whose "iss" claim matches this value).
 	// If empty, issuer validation will be skipped.
-	Issuer        string `protobuf:"bytes,3,opt,name=issuer,proto3" json:"issuer,omitempty"`
+	Issuer string `protobuf:"bytes,3,opt,name=issuer,proto3" json:"issuer,omitempty"`
+	// List of JWT audiences allowed for this provider. The token's "aud"
+	// claim must intersect this list. If empty or unset, audience
+	// validation is skipped.
+	Audiences     []string `protobuf:"bytes,4,rep,name=audiences,proto3" json:"audiences,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -3574,6 +3578,13 @@ func (x *ExtAuthConfig_AccessTokenValidationConfig_JwtValidation) GetIssuer() st
 		return x.Issuer
 	}
 	return ""
+}
+
+func (x *ExtAuthConfig_AccessTokenValidationConfig_JwtValidation) GetAudiences() []string {
+	if x != nil {
+		return x.Audiences
+	}
+	return nil
 }
 
 type isExtAuthConfig_AccessTokenValidationConfig_JwtValidation_JwksSourceSpecifier interface {
@@ -4007,7 +4018,7 @@ var File_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth
 
 const file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_internal_proto_rawDesc = "" +
 	"\n" +
-	"agithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth-internal.proto\x12\x17enterprise.gloo.solo.io\x1a,github.com/solo-io/solo-kit/api/v1/ref.proto\x1a\x12extproto/ext.proto\x1a1github.com/solo-io/solo-kit/api/v1/metadata.proto\x1a/github.com/solo-io/solo-kit/api/v1/status.proto\x1a1github.com/solo-io/solo-kit/api/v1/solo-kit.proto\x1aEgithub.com/solo-io/solo-kit/api/external/envoy/api/v2/discovery.proto\x1aXgithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1egoogle/protobuf/wrappers.proto\x1a\x1bgoogle/protobuf/empty.proto\"\xd6g\n" +
+	"agithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth-internal.proto\x12\x17enterprise.gloo.solo.io\x1a,github.com/solo-io/solo-kit/api/v1/ref.proto\x1a\x12extproto/ext.proto\x1a1github.com/solo-io/solo-kit/api/v1/metadata.proto\x1a/github.com/solo-io/solo-kit/api/v1/status.proto\x1a1github.com/solo-io/solo-kit/api/v1/solo-kit.proto\x1aEgithub.com/solo-io/solo-kit/api/external/envoy/api/v2/discovery.proto\x1aXgithub.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1egoogle/protobuf/wrappers.proto\x1a\x1bgoogle/protobuf/empty.proto\"\xf4g\n" +
 	"\rExtAuthConfig\x12/\n" +
 	"\x14auth_config_ref_name\x18\x01 \x01(\tR\x11authConfigRefName\x12G\n" +
 	"\aconfigs\x18\b \x03(\v2-.enterprise.gloo.solo.io.ExtAuthConfig.ConfigR\aconfigs\x12?\n" +
@@ -4118,7 +4129,7 @@ const file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extau
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01B\n" +
 	"\n" +
-	"\bProvider\x1a\x99\x0e\n" +
+	"\bProvider\x1a\xb7\x0e\n" +
 	"\x1bAccessTokenValidationConfig\x121\n" +
 	"\x11introspection_url\x18\x01 \x01(\tB\x02\x18\x01H\x00R\x10introspectionUrl\x12d\n" +
 	"\x03jwt\x18\x02 \x01(\v2P.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidationH\x00R\x03jwt\x12\x82\x01\n" +
@@ -4129,13 +4140,14 @@ const file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extau
 	"\x1cdynamic_metadata_from_claims\x18\a \x03(\v2a.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.DynamicMetadataFromClaimsEntryR\x19dynamicMetadataFromClaims\x12`\n" +
 	"\x11claims_to_headers\x18\b \x03(\v24.enterprise.gloo.solo.io.ExtAuthConfig.ClaimToHeaderR\x0fclaimsToHeaders\x12f\n" +
 	"\adefault\x18\x1a \x01(\v2J.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.DefaultH\x02R\adefault\x12D\n" +
-	"\x05azure\x18\x1b \x01(\v2,.enterprise.gloo.solo.io.ExtAuthConfig.AzureH\x02R\x05azure\x1a\xd5\x03\n" +
+	"\x05azure\x18\x1b \x01(\v2,.enterprise.gloo.solo.io.ExtAuthConfig.AzureH\x02R\x05azure\x1a\xf3\x03\n" +
 	"\rJwtValidation\x12~\n" +
 	"\vremote_jwks\x18\x01 \x01(\v2[.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.RemoteJwksH\x00R\n" +
 	"remoteJwks\x12{\n" +
 	"\n" +
 	"local_jwks\x18\x02 \x01(\v2Z.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.LocalJwksH\x00R\tlocalJwks\x12\x16\n" +
-	"\x06issuer\x18\x03 \x01(\tR\x06issuer\x1ad\n" +
+	"\x06issuer\x18\x03 \x01(\tR\x06issuer\x12\x1c\n" +
+	"\taudiences\x18\x04 \x03(\tR\taudiences\x1ad\n" +
 	"\n" +
 	"RemoteJwks\x12\x10\n" +
 	"\x03url\x18\x01 \x01(\tR\x03url\x12D\n" +

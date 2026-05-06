@@ -1042,6 +1042,15 @@ func (m *JwtValidation) Clone() proto.Message {
 
 	target.Issuer = m.GetIssuer()
 
+	if m.GetAudiences() != nil {
+		target.Audiences = make([]string, len(m.GetAudiences()))
+		for idx, v := range m.GetAudiences() {
+
+			target.Audiences[idx] = v
+
+		}
+	}
+
 	switch m.JwksSourceSpecifier.(type) {
 
 	case *JwtValidation_RemoteJwks_:

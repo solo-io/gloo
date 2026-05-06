@@ -1565,6 +1565,15 @@ func (m *ExtAuthConfig_AccessTokenValidationConfig_JwtValidation) Clone() proto.
 
 	target.Issuer = m.GetIssuer()
 
+	if m.GetAudiences() != nil {
+		target.Audiences = make([]string, len(m.GetAudiences()))
+		for idx, v := range m.GetAudiences() {
+
+			target.Audiences[idx] = v
+
+		}
+	}
+
 	switch m.JwksSourceSpecifier.(type) {
 
 	case *ExtAuthConfig_AccessTokenValidationConfig_JwtValidation_RemoteJwks_:

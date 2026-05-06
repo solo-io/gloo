@@ -546,6 +546,7 @@ If the JWT has been successfully validated, its set of claims will be added to t
 "remoteJwks": .enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.RemoteJwks
 "localJwks": .enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.LocalJwks
 "issuer": string
+"audiences": []string
 
 ```
 
@@ -554,6 +555,7 @@ If the JWT has been successfully validated, its set of claims will be added to t
 | `remoteJwks` | [.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.RemoteJwks](../extauth-internal.proto.sk/#remotejwks) | Fetches the JWKS from a remote location. Only one of `remoteJwks` or `localJwks` can be set. |
 | `localJwks` | [.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.LocalJwks](../extauth-internal.proto.sk/#localjwks) | Loads the JWKS from a local data source. Only one of `localJwks` or `remoteJwks` can be set. |
 | `issuer` | `string` | Allow only tokens that have been issued by this principal (i.e. whose "iss" claim matches this value). If empty, issuer validation will be skipped. |
+| `audiences` | `[]string` | List of JWT audiences allowed for this provider. The token's "aud" claim must intersect this list. If empty or unset, audience validation is skipped. |
 
 
 

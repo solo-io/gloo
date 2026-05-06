@@ -3452,6 +3452,23 @@ func (m *ExtAuthConfig_AccessTokenValidationConfig_JwtValidation) HashUnique(has
 		return 0, err
 	}
 
+	if _, err = hasher.Write([]byte("Audiences")); err != nil {
+		return 0, err
+	}
+	for i, v := range m.GetAudiences() {
+		if _, err = hasher.Write([]byte(strconv.Itoa(i))); err != nil {
+			return 0, err
+		}
+
+		if _, err = hasher.Write([]byte("v")); err != nil {
+			return 0, err
+		}
+		if _, err = hasher.Write([]byte(v)); err != nil {
+			return 0, err
+		}
+
+	}
+
 	switch m.JwksSourceSpecifier.(type) {
 
 	case *ExtAuthConfig_AccessTokenValidationConfig_JwtValidation_RemoteJwks_:
