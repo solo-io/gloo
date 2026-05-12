@@ -1911,6 +1911,18 @@ func (m *PassThroughHttp) Clone() proto.Message {
 		target.TlsConfig = proto.Clone(m.GetTlsConfig()).(*PassThroughHttpTLSConfig)
 	}
 
+	if h, ok := interface{}(m.GetResponseHeaderTimeout()).(clone.Cloner); ok {
+		target.ResponseHeaderTimeout = h.Clone().(*google_golang_org_protobuf_types_known_durationpb.Duration)
+	} else {
+		target.ResponseHeaderTimeout = proto.Clone(m.GetResponseHeaderTimeout()).(*google_golang_org_protobuf_types_known_durationpb.Duration)
+	}
+
+	if h, ok := interface{}(m.GetConnectionPool()).(clone.Cloner); ok {
+		target.ConnectionPool = h.Clone().(*PassThroughHttp_ConnectionPool)
+	} else {
+		target.ConnectionPool = proto.Clone(m.GetConnectionPool()).(*PassThroughHttp_ConnectionPool)
+	}
+
 	return target
 }
 
@@ -2956,6 +2968,27 @@ func (m *PassThroughHttp_Response) Clone() proto.Message {
 			target.AllowedUpstreamHeadersToOverwrite[idx] = v
 
 		}
+	}
+
+	return target
+}
+
+// Clone function
+func (m *PassThroughHttp_ConnectionPool) Clone() proto.Message {
+	var target *PassThroughHttp_ConnectionPool
+	if m == nil {
+		return target
+	}
+	target = &PassThroughHttp_ConnectionPool{}
+
+	target.MaxIdleConns = m.GetMaxIdleConns()
+
+	target.MaxConnsPerHost = m.GetMaxConnsPerHost()
+
+	if h, ok := interface{}(m.GetIdleTimeout()).(clone.Cloner); ok {
+		target.IdleTimeout = h.Clone().(*google_golang_org_protobuf_types_known_durationpb.Duration)
+	} else {
+		target.IdleTimeout = proto.Clone(m.GetIdleTimeout()).(*google_golang_org_protobuf_types_known_durationpb.Duration)
 	}
 
 	return target

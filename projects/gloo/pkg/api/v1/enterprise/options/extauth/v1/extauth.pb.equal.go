@@ -3240,6 +3240,26 @@ func (m *PassThroughHttp) Equal(that interface{}) bool {
 		}
 	}
 
+	if h, ok := interface{}(m.GetResponseHeaderTimeout()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetResponseHeaderTimeout()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetResponseHeaderTimeout(), target.GetResponseHeaderTimeout()) {
+			return false
+		}
+	}
+
+	if h, ok := interface{}(m.GetConnectionPool()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetConnectionPool()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetConnectionPool(), target.GetConnectionPool()) {
+			return false
+		}
+	}
+
 	return true
 }
 
@@ -5066,6 +5086,48 @@ func (m *PassThroughHttp_Response) Equal(that interface{}) bool {
 			return false
 		}
 
+	}
+
+	return true
+}
+
+// Equal function
+func (m *PassThroughHttp_ConnectionPool) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*PassThroughHttp_ConnectionPool)
+	if !ok {
+		that2, ok := that.(PassThroughHttp_ConnectionPool)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	if m.GetMaxIdleConns() != target.GetMaxIdleConns() {
+		return false
+	}
+
+	if m.GetMaxConnsPerHost() != target.GetMaxConnsPerHost() {
+		return false
+	}
+
+	if h, ok := interface{}(m.GetIdleTimeout()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetIdleTimeout()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetIdleTimeout(), target.GetIdleTimeout()) {
+			return false
+		}
 	}
 
 	return true

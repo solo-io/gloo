@@ -99,6 +99,7 @@ weight: 5
 - [PassThroughHttp](#passthroughhttp)
 - [Request](#request-3)
 - [Response](#response-2)
+- [ConnectionPool](#connectionpool-1)
 - [PassThroughGrpcTLSConfig](#passthroughgrpctlsconfig)
 - [PassThroughHttpTLSConfig](#passthroughhttptlsconfig)
 - [SslParameters](#sslparameters)
@@ -2102,6 +2103,8 @@ else the request is unauthorized.
 "response": .enterprise.gloo.solo.io.PassThroughHttp.Response
 "connectionTimeout": .google.protobuf.Duration
 "tlsConfig": .enterprise.gloo.solo.io.PassThroughHttpTLSConfig
+"responseHeaderTimeout": .google.protobuf.Duration
+"connectionPool": .enterprise.gloo.solo.io.PassThroughHttp.ConnectionPool
 
 ```
 
@@ -2112,6 +2115,8 @@ else the request is unauthorized.
 | `response` | [.enterprise.gloo.solo.io.PassThroughHttp.Response](../extauth.proto.sk/#response) | Pass through response information such as the headers and body to downstream clients. For more information, see the [PassThrough Http Response description](#passthroughhttp-response). |
 | `connectionTimeout` | [.google.protobuf.Duration](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/duration) | Timeout for the auth server to respond. Defaults to 5s. |
 | `tlsConfig` | [.enterprise.gloo.solo.io.PassThroughHttpTLSConfig](../extauth.proto.sk/#passthroughhttptlsconfig) | TLS config for the HTTP passthrough, if not configured the connection will use insecure. When specified, this supports configuration for either simple TLS or mTLS. |
+| `responseHeaderTimeout` | [.google.protobuf.Duration](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/duration) | Maximum time to wait for the passthrough auth server to begin sending response headers after the request is fully written. Maps to http.Transport.ResponseHeaderTimeout on the auth-service client. Independent from connection_timeout (the overall request budget) — whichever fires first wins. Defaults to 0 (unset; only connection_timeout applies). |
+| `connectionPool` | [.enterprise.gloo.solo.io.PassThroughHttp.ConnectionPool](../extauth.proto.sk/#connectionpool) | Connection pool tuning. If unset, defaults apply (max_idle_conns=100, max_conns_per_host=100, idle_timeout=0). |
 
 
 
@@ -2174,6 +2179,31 @@ JSON marshalling.
 | `allowedClientHeadersOnDenied` | `[]string` | When this is set, authorization response headers in this list will be added to the response to the downstream client when the auth request is denied. If the response header already exists, it will replace the response header. If this is empty, by default, no authorization response headers will be added to the response to the downstream client. |
 | `readStateFromResponse` | `bool` | If this is set to true, the body of the response from the http passthrough auth server is expected to have shape { "state": object (map[string]interface{}) } The state will be marshalled from the response body and this is the state that will be passed on to other auth configs. Because of the marshalling from JSON to Go map, this will add some latency to the request. If the marshalling fails, the authorization check will fail and the request will be unauthorized after the ext-auth-service pod logs the marshal error. |
 | `allowedUpstreamHeadersToOverwrite` | `[]string` | When this is set, authorization response headers that have a header in this list will be added to the original client request and sent to the upstream when the auth request is successful. These will overwrite to any request headers that already exist. If this and allowed_upstream_headers are empty, by default, no authorization response headers will be added to the upstream request. Header names may not be included in both allowed_upstream_headers and allowed_upstream_headers_to_overwrite. |
+
+
+
+
+---
+### ConnectionPool {#connectionpool-1}
+
+ 
+Tuning knobs for the underlying HTTP connection pool that the
+auth-service client maintains to this passthrough auth server. Each
+PassThroughHttp config targets a single URL → single host, so per-host
+caps and global caps are collapsed where applicable.
+
+```yaml
+"maxIdleConns": int
+"maxConnsPerHost": int
+"idleTimeout": .google.protobuf.Duration
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+| `maxIdleConns` | `int` | Maximum number of idle (keep-alive) connections kept in the pool for reuse. Sets both http.Transport.MaxIdleConns and MaxIdleConnsPerHost (single-host config — both equal). Defaults to 100. To approximate Go's "unlimited" behavior, set to a large number — 0 is coerced to the default. |
+| `maxConnsPerHost` | `int` | Maximum total concurrent connections to the auth server, including in-flight requests. Sets http.Transport.MaxConnsPerHost. When reached, additional requests block until a slot frees (backpressure). Defaults to the value of max_idle_conns. To approximate Go's "unlimited" behavior, set to a large number — 0 is coerced to the default. |
+| `idleTimeout` | [.google.protobuf.Duration](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/duration) | How long an idle (keep-alive) connection remains in the pool before being closed. Maps to http.Transport.IdleConnTimeout. Defaults to 0 (no idle expiry — Go default). |
 
 
 
