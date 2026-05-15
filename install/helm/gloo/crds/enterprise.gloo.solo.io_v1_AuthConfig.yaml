@@ -965,6 +965,17 @@ spec:
                           type: object
                         http:
                           properties:
+                            connectionPool:
+                              properties:
+                                idleTimeout:
+                                  type: string
+                                maxConns:
+                                  format: int32
+                                  type: integer
+                                maxIdleConns:
+                                  format: int32
+                                  type: integer
+                              type: object
                             connectionTimeout:
                               type: string
                             request:
@@ -1001,6 +1012,8 @@ spec:
                                 readStateFromResponse:
                                   type: boolean
                               type: object
+                            responseHeaderTimeout:
+                              type: string
                             tlsConfig:
                               properties:
                                 secretRef:
