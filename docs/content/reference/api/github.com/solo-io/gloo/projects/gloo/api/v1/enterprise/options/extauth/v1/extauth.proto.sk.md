@@ -1897,7 +1897,7 @@ by using the OpaServerAuth setting instead.
 ### OpaServerAuth {#opaserverauth}
 
  
-Enforce Open Policy Agent (OPA) policies through an OPA sidecar
+Enforce Open Policy Agent (OPA) policies through an OPA sidecar 
 to the the Gloo external auth server, or by bringing your own OPA server.
 This way, you can use OPA at scale and with additional capabilities, such as bundling or caching.
 
