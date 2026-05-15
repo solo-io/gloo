@@ -969,7 +969,7 @@ spec:
                               properties:
                                 idleTimeout:
                                   type: string
-                                maxConnsPerHost:
+                                maxConns:
                                   format: int32
                                   type: integer
                                 maxIdleConns:

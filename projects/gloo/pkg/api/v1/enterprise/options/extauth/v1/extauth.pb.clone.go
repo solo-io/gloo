@@ -2983,7 +2983,7 @@ func (m *PassThroughHttp_ConnectionPool) Clone() proto.Message {
 
 	target.MaxIdleConns = m.GetMaxIdleConns()
 
-	target.MaxConnsPerHost = m.GetMaxConnsPerHost()
+	target.MaxConns = m.GetMaxConns()
 
 	if h, ok := interface{}(m.GetIdleTimeout()).(clone.Cloner); ok {
 		target.IdleTimeout = h.Clone().(*google_golang_org_protobuf_types_known_durationpb.Duration)

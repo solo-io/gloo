@@ -5116,7 +5116,7 @@ func (m *PassThroughHttp_ConnectionPool) Equal(that interface{}) bool {
 		return false
 	}
 
-	if m.GetMaxConnsPerHost() != target.GetMaxConnsPerHost() {
+	if m.GetMaxConns() != target.GetMaxConns() {
 		return false
 	}
 

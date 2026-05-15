@@ -6038,7 +6038,7 @@ func (m *PassThroughHttp_ConnectionPool) Hash(hasher hash.Hash64) (uint64, error
 		return 0, err
 	}
 
-	err = binary.Write(hasher, binary.LittleEndian, m.GetMaxConnsPerHost())
+	err = binary.Write(hasher, binary.LittleEndian, m.GetMaxConns())
 	if err != nil {
 		return 0, err
 	}
