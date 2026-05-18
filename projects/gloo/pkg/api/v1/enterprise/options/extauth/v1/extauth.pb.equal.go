@@ -5112,10 +5112,6 @@ func (m *PassThroughHttp_ConnectionPool) Equal(that interface{}) bool {
 		return false
 	}
 
-	if m.GetMaxIdleConns() != target.GetMaxIdleConns() {
-		return false
-	}
-
 	if m.GetMaxConns() != target.GetMaxConns() {
 		return false
 	}

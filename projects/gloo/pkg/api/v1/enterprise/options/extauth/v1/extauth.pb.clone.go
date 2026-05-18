@@ -2981,8 +2981,6 @@ func (m *PassThroughHttp_ConnectionPool) Clone() proto.Message {
 	}
 	target = &PassThroughHttp_ConnectionPool{}
 
-	target.MaxIdleConns = m.GetMaxIdleConns()
-
 	target.MaxConns = m.GetMaxConns()
 
 	if h, ok := interface{}(m.GetIdleTimeout()).(clone.Cloner); ok {

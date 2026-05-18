@@ -2116,7 +2116,7 @@ else the request is unauthorized.
 | `connectionTimeout` | [.google.protobuf.Duration](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/duration) | Timeout for the auth server to respond. Defaults to 5s. |
 | `tlsConfig` | [.enterprise.gloo.solo.io.PassThroughHttpTLSConfig](../extauth.proto.sk/#passthroughhttptlsconfig) | TLS config for the HTTP passthrough, if not configured the connection will use insecure. When specified, this supports configuration for either simple TLS or mTLS. |
 | `responseHeaderTimeout` | [.google.protobuf.Duration](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/duration) | Maximum time to wait for the passthrough auth server to begin sending response headers after the request is fully written. Independent from connection_timeout (the overall request budget) — whichever fires first wins. Defaults to 0 (unset; only connection_timeout applies). |
-| `connectionPool` | [.enterprise.gloo.solo.io.PassThroughHttp.ConnectionPool](../extauth.proto.sk/#connectionpool) | Connection pool tuning. If unset, defaults apply (max_idle_conns=100, max_conns=100, idle_timeout=0). |
+| `connectionPool` | [.enterprise.gloo.solo.io.PassThroughHttp.ConnectionPool](../extauth.proto.sk/#connectionpool) | Connection pool tuning. If unset, defaults apply (max_conns=100, idle_timeout=0). |
 
 
 
@@ -2191,7 +2191,6 @@ Tuning knobs for the HTTP connection pool maintained to the passthrough
 auth server.
 
 ```yaml
-"maxIdleConns": int
 "maxConns": int
 "idleTimeout": .google.protobuf.Duration
 
@@ -2199,8 +2198,7 @@ auth server.
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `maxIdleConns` | `int` | Maximum number of idle (keep-alive) connections kept in the pool for reuse between requests. Defaults to 100. If greater than max_conns, the number of idle connections will be capped at max_conns. |
-| `maxConns` | `int` | Maximum total concurrent connections to the auth server, including in-flight requests. When reached, additional requests block until a slot frees (backpressure). Defaults to 100. |
+| `maxConns` | `int` | Maximum total concurrent connections to the auth server, including in-flight requests. When reached, additional requests block until a slot frees. Defaults to 100. |
 | `idleTimeout` | [.google.protobuf.Duration](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/duration) | How long an idle (keep-alive) connection remains in the pool before being closed. Defaults to 0 (no idle expiry). |
 
 
