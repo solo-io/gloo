@@ -1,0 +1,12 @@
+# In some env, the follow can become `deployment: {}`
+# with empty map, we should still use `deployment` as kind
+# gloo:
+#   gatewayProxies:
+#     gatewayProxy:
+#       kind:
+#         deployment:
+#           replicas: null
+gatewayProxies:
+  gatewayProxy:
+    kind:
+      deployment: {}
