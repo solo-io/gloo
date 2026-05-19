@@ -26,7 +26,7 @@
 {{- $statsConfig := coalesce $spec.stats $global.glooStats }}
 {{- if not $spec.disabled }}
 apiVersion: apps/v1
-{{- if $spec.kind.deployment}}
+{{- if (kindIs "map" $spec.kind.deployment)}}
 kind: Deployment
 {{- else }}
 kind: DaemonSet
@@ -39,7 +39,7 @@ metadata:
   name: {{ $name | kebabcase }}
   namespace: {{ $spec.namespace | default .Release.Namespace }}
 spec:
-  {{- if $spec.kind.deployment}}
+  {{- if (kindIs "map" $spec.kind.deployment)}}
   {{- if $spec.kind.deployment.replicas}}
   replicas: {{ $spec.kind.deployment.replicas }}
   {{- end}}
@@ -109,7 +109,7 @@ spec:
 {{ include "gloo.securityContext" (dict "values" $spec.podTemplate.podSecurityContext "defaults" $securityDefaults "indent" 6 "globalSec" $global.securitySettings) -}}
 {{- end -}}
 
-{{- if $spec.kind.deployment }}
+{{- if (kindIs "map" $spec.kind.deployment) }}
 {{ if or ($spec.antiAffinity) ($spec.affinity) }}
       affinity:
 {{- end }}
@@ -142,7 +142,7 @@ spec:
       {{- if $spec.podTemplate.nodeName }}
       nodeName: {{$spec.podTemplate.nodeName}}
       {{- end }}
-      {{- if $spec.kind.deployment}}
+      {{- if (kindIs "map" $spec.kind.deployment)}}
       {{- if $spec.kind.deployment.priorityClassName }}
       priorityClassName: {{ $spec.kind.deployment.priorityClassName }}
       {{- end }}
@@ -184,7 +184,7 @@ spec:
             {{- end }}
           {{- end}}
         env:
-{{- if $spec.kind.deployment }}
+{{- if (kindIs "map" $spec.kind.deployment) }}
 {{- if $spec.kind.deployment.customEnv }}
 {{ toYaml $spec.kind.deployment.customEnv | indent 8 }}
 {{- end }}

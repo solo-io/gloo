@@ -1,0 +1,8 @@
+changelog:
+  - type: BREAKING_CHANGE
+    issueLink: https://github.com/solo-io/solo-projects/issues/8948
+    resolvesIssue: false
+    description: >-
+      Fixed helm template for proxy deployment kind check to correctly detect empty map/object.
+      While this is technically a fix but if any user relies on the existing behavior that has deployed the proxy
+      as daemonset, this can be a breaking change.

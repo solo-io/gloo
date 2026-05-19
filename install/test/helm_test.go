@@ -3089,6 +3089,26 @@ spec:
 						testManifest.ExpectDeploymentAppsV1(gatewayProxyDeployment)
 					})
 
+					It("renders a Deployment (not DaemonSet) when kind.deployment.replicas is null", func() {
+						prepareMakefile(namespace, glootestutils.HelmValues{
+							ValuesArgs: []string{
+								"gatewayProxies.gatewayProxy.kind.deployment.replicas=null",
+							},
+						})
+						deploy := getStructuredDeployment(testManifest, "gateway-proxy")
+						Expect(deploy).NotTo(BeNil())
+						Expect(deploy.Spec.Replicas).To(BeNil())
+					})
+
+					It("renders a Deployment with default replicas when kind.deployment is an empty object: deployment:{} merges to deployment:{replicas:1})", func() {
+						// HelmRelease sets kind.deployment={}; Helm deep-merges
+						// the empty object with chart defaults, applying replicas:1.
+						prepareMakefileFromValuesFile("values/val_gwp_deployment_empty.yaml")
+						deploy := getStructuredDeployment(testManifest, "gateway-proxy")
+						Expect(deploy.Spec.Replicas).NotTo(BeNil())
+						Expect(*deploy.Spec.Replicas).To(Equal(int32(1)))
+					})
+
 					It("supports multiple deployments", func() {
 						prepareMakefile(namespace, glootestutils.HelmValues{
 							ValuesArgs: []string{
