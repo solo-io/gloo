@@ -5,7 +5,7 @@
 {{- $gatewayProxy := .Values.gatewayProxies.gatewayProxy -}}
 {{- $spec := include "gloo.util.mergeOverwriteWithOmit" (list $gatewaySpec $gatewayProxy) | fromJson }}
 {{- if not $spec.disabled }}
-{{- if $spec.kind.deployment }}
+{{- if (hasKey $spec.kind "deployment") }}
 {{- if $spec.horizontalPodAutoscaler }}
 apiVersion: {{ $spec.horizontalPodAutoscaler.apiVersion }}
 kind: HorizontalPodAutoscaler
