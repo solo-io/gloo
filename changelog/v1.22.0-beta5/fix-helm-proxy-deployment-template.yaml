@@ -1,0 +1,6 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/solo-projects/issues/8948
+    resolvesIssue: false
+    description: >-
+      "fixed helm template for proxy deployment kind check"
