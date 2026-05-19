@@ -5082,8 +5082,8 @@ type PassThroughHttp struct {
 	// connection_timeout (the overall request budget) — whichever fires first
 	// wins. Defaults to 0 (unset; only connection_timeout applies).
 	ResponseHeaderTimeout *durationpb.Duration `protobuf:"bytes,10,opt,name=response_header_timeout,json=responseHeaderTimeout,proto3" json:"response_header_timeout,omitempty"`
-	// Connection pool tuning. If unset, defaults apply (max_idle_conns=100,
-	// max_conns=100, idle_timeout=0).
+	// Connection pool tuning. If unset, defaults apply (max_conns=100,
+	// idle_timeout=0).
 	ConnectionPool *PassThroughHttp_ConnectionPool `protobuf:"bytes,11,opt,name=connection_pool,json=connectionPool,proto3" json:"connection_pool,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
@@ -7809,17 +7809,13 @@ func (x *PassThroughHttp_Response) GetAllowedUpstreamHeadersToOverwrite() []stri
 // auth server.
 type PassThroughHttp_ConnectionPool struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// Maximum number of idle (keep-alive) connections kept in the pool for
-	// reuse between requests. Defaults to 100. If greater than max_conns,
-	// the number of idle connections will be capped at max_conns.
-	MaxIdleConns int32 `protobuf:"varint,1,opt,name=max_idle_conns,json=maxIdleConns,proto3" json:"max_idle_conns,omitempty"`
 	// Maximum total concurrent connections to the auth server, including
 	// in-flight requests. When reached, additional requests block until a
-	// slot frees (backpressure). Defaults to 100.
-	MaxConns int32 `protobuf:"varint,2,opt,name=max_conns,json=maxConns,proto3" json:"max_conns,omitempty"`
+	// slot frees. Defaults to 100.
+	MaxConns uint32 `protobuf:"varint,1,opt,name=max_conns,json=maxConns,proto3" json:"max_conns,omitempty"`
 	// How long an idle (keep-alive) connection remains in the pool before
 	// being closed. Defaults to 0 (no idle expiry).
-	IdleTimeout   *durationpb.Duration `protobuf:"bytes,3,opt,name=idle_timeout,json=idleTimeout,proto3" json:"idle_timeout,omitempty"`
+	IdleTimeout   *durationpb.Duration `protobuf:"bytes,2,opt,name=idle_timeout,json=idleTimeout,proto3" json:"idle_timeout,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -7854,14 +7850,7 @@ func (*PassThroughHttp_ConnectionPool) Descriptor() ([]byte, []int) {
 	return file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_proto_rawDescGZIP(), []int{48, 2}
 }
 
-func (x *PassThroughHttp_ConnectionPool) GetMaxIdleConns() int32 {
-	if x != nil {
-		return x.MaxIdleConns
-	}
-	return 0
-}
-
-func (x *PassThroughHttp_ConnectionPool) GetMaxConns() int32 {
+func (x *PassThroughHttp_ConnectionPool) GetMaxConns() uint32 {
 	if x != nil {
 		return x.MaxConns
 	}
@@ -8420,7 +8409,7 @@ const file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extau
 	"\x12connection_timeout\x18\x02 \x01(\v2\x19.google.protobuf.DurationR\x11connectionTimeout\x12P\n" +
 	"\n" +
 	"tls_config\x18\x03 \x01(\v21.enterprise.gloo.solo.io.PassThroughGrpcTLSConfigR\ttlsConfig\x12G\n" +
-	"\fretry_policy\x18\x04 \x01(\v2$.enterprise.gloo.solo.io.RetryPolicyR\vretryPolicy\"\xb8\n" +
+	"\fretry_policy\x18\x04 \x01(\v2$.enterprise.gloo.solo.io.RetryPolicyR\vretryPolicy\"\x91\n" +
 	"\n" +
 	"\x0fPassThroughHttp\x12\x10\n" +
 	"\x03url\x18\x01 \x01(\tR\x03url\x12J\n" +
@@ -8445,11 +8434,10 @@ const file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extau
 	"\x18allowed_upstream_headers\x18\x01 \x03(\tR\x16allowedUpstreamHeaders\x12F\n" +
 	" allowed_client_headers_on_denied\x18\x02 \x03(\tR\x1callowedClientHeadersOnDenied\x127\n" +
 	"\x18read_state_from_response\x18\x03 \x01(\bR\x15readStateFromResponse\x12P\n" +
-	"%allowed_upstream_headers_to_overwrite\x18\x04 \x03(\tR!allowedUpstreamHeadersToOverwrite\x1a\x91\x01\n" +
-	"\x0eConnectionPool\x12$\n" +
-	"\x0emax_idle_conns\x18\x01 \x01(\x05R\fmaxIdleConns\x12\x1b\n" +
-	"\tmax_conns\x18\x02 \x01(\x05R\bmaxConns\x12<\n" +
-	"\fidle_timeout\x18\x03 \x01(\v2\x19.google.protobuf.DurationR\vidleTimeout\"\x9b\x01\n" +
+	"%allowed_upstream_headers_to_overwrite\x18\x04 \x03(\tR!allowedUpstreamHeadersToOverwrite\x1ak\n" +
+	"\x0eConnectionPool\x12\x1b\n" +
+	"\tmax_conns\x18\x01 \x01(\rR\bmaxConns\x12<\n" +
+	"\fidle_timeout\x18\x02 \x01(\v2\x19.google.protobuf.DurationR\vidleTimeout\"\x9b\x01\n" +
 	"\x18PassThroughGrpcTLSConfig\x128\n" +
 	"\n" +
 	"secret_ref\x18\x01 \x01(\v2\x19.core.solo.io.ResourceRefR\tsecretRef\x12E\n" +

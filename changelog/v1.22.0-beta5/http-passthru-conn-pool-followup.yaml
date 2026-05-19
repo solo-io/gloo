@@ -1,0 +1,6 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/solo-projects/issues/8888
+    resolvesIssue: false
+    description: >-
+      "Follow up API changes to connection pool config for HTTP passthrough"

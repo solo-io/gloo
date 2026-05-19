@@ -1701,22 +1701,17 @@ message PassThroughHttp {
     // Tuning knobs for the HTTP connection pool maintained to the passthrough
     // auth server.
     message ConnectionPool {
-        // Maximum number of idle (keep-alive) connections kept in the pool for
-        // reuse between requests. Defaults to 100. If greater than max_conns,
-        // the number of idle connections will be capped at max_conns.
-        int32 max_idle_conns = 1;
-
         // Maximum total concurrent connections to the auth server, including
         // in-flight requests. When reached, additional requests block until a
-        // slot frees (backpressure). Defaults to 100.
-        int32 max_conns = 2;
+        // slot frees. Defaults to 100.
+        uint32 max_conns = 1;
 
         // How long an idle (keep-alive) connection remains in the pool before
         // being closed. Defaults to 0 (no idle expiry).
-        google.protobuf.Duration idle_timeout = 3;
+        google.protobuf.Duration idle_timeout = 2;
     }
-    // Connection pool tuning. If unset, defaults apply (max_idle_conns=100,
-    // max_conns=100, idle_timeout=0).
+    // Connection pool tuning. If unset, defaults apply (max_conns=100,
+    // idle_timeout=0).
     ConnectionPool connection_pool = 11;
 }
 

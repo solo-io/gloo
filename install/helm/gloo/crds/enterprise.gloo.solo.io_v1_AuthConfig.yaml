@@ -970,10 +970,8 @@ spec:
                                 idleTimeout:
                                   type: string
                                 maxConns:
-                                  format: int32
-                                  type: integer
-                                maxIdleConns:
-                                  format: int32
+                                  maximum: 4294967295
+                                  minimum: 0
                                   type: integer
                               type: object
                             connectionTimeout:
