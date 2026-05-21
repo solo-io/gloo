@@ -63,6 +63,18 @@ func GetLogLevelEnvVar(level string) corev1.EnvVar {
 	}
 }
 
+func GetEnvoyConcurrencyEnvVar() corev1.EnvVar {
+	return corev1.EnvVar{
+		Name: "ENVOY_CONCURRENCY",
+		ValueFrom: &corev1.EnvVarSource{
+			ResourceFieldRef: &corev1.ResourceFieldSelector{
+				Resource: string(corev1.ResourceLimitsCPU),
+				Divisor:  resource.MustParse("1"),
+			},
+		},
+	}
+}
+
 func GetTestExtraEnvVar() corev1.EnvVar {
 	return corev1.EnvVar{
 		Name:  "TEST_EXTRA_ENV_VAR",
@@ -3584,6 +3596,15 @@ spec:
 								corev1.ResourceCPU:    resource.MustParse("5m"),
 							},
 						}
+						gatewayProxyDeployment.Spec.Template.Spec.Containers[0].Args = append(
+							gatewayProxyDeployment.Spec.Template.Spec.Containers[0].Args,
+							"--concurrency",
+							"$(ENVOY_CONCURRENCY)",
+						)
+						gatewayProxyDeployment.Spec.Template.Spec.Containers[0].Env = append(
+							[]corev1.EnvVar{GetEnvoyConcurrencyEnvVar()},
+							gatewayProxyDeployment.Spec.Template.Spec.Containers[0].Env...,
+						)
 						testManifest.ExpectDeploymentAppsV1(gatewayProxyDeployment)
 					})
 
@@ -4639,6 +4660,12 @@ spec:
 									Expect(container.Resources.Limits.Cpu().String()).To(Equal(expectedVals[3]),
 										"deployment/container %s/%s had incorrect limit cpu: expected %s, got %s",
 										deployment.GetName(), container.Name, expectedVals[3], container.Resources.Limits.Cpu().String())
+
+									if container.Name == "istio-proxy" {
+										Expect(container.Args).To(ContainElement("--concurrency"))
+										Expect(container.Args).To(ContainElement("$(ENVOY_CONCURRENCY)"))
+										expectEnvVarExists(container, GetEnvoyConcurrencyEnvVar())
+									}
 								}
 							}
 						}

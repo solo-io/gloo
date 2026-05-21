@@ -410,7 +410,18 @@ spec:
         - --dnsRefreshRate
         - 300s
         - --controlPlaneBootstrap=false
+        {{- if (($global.glooMtls.envoySidecarResources).limits).cpu }}
+        - --concurrency
+        - $(ENVOY_CONCURRENCY)
+        {{- end }}
         env:
+{{- if (($global.glooMtls.envoySidecarResources).limits).cpu }}
+          - name: ENVOY_CONCURRENCY
+            valueFrom:
+              resourceFieldRef:
+                resource: limits.cpu
+                divisor: "1"
+{{- end }}
           - name: OUTPUT_CERTS
             value: "/etc/istio-certs"
           - name: JWT_POLICY
