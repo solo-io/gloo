@@ -1,7 +1,6 @@
 changelog:
 - type: FIX
   resolvesIssue: false
-  issueLink: https://github.com/solo-io/gloo/issues/9034
   description: >-
     Update certgen dependency versions for security fixes.
 - type: DEPENDENCY_BUMP

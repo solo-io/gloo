@@ -11,3 +11,6 @@ changelog:
   description: >-
     Bump the Alpine base image to 3.23.4 to pick up OpenSSL fixes for
     CVE-2026-31789.
+
+    skipCI-kube-tests:true
+    skipCI-docs-build:true
