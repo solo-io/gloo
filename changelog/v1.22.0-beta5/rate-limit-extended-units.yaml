@@ -2,5 +2,8 @@ changelog:
   - type: DEPENDENCY_BUMP
     issueLink: https://github.com/solo-io/gloo-gateway/issues/2083
     resolvesIssue: false
+    dependencyOwner: solo-io
+    dependencyRepo: solo-apis
+    dependencyTag: v0.0.0-20260529155429-309beeb6d941
     description: >-
-      Added support for WEEK, MONTH, and YEAR as valid rate limit time units, enabled by rate-limiter v0.18.7.
+      Bumped solo-apis to include WEEK, MONTH, and YEAR as valid rate limit time units, enabled by rate-limiter v0.18.7.
