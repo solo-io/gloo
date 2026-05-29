@@ -1162,6 +1162,13 @@ spec:
                             actions:
                               items:
                                 properties:
+                                  cel:
+                                    properties:
+                                      expression:
+                                        type: string
+                                      key:
+                                        type: string
+                                    type: object
                                   destinationCluster:
                                     type: object
                                   genericKey:
@@ -1263,6 +1270,13 @@ spec:
                             setActions:
                               items:
                                 properties:
+                                  cel:
+                                    properties:
+                                      expression:
+                                        type: string
+                                      key:
+                                        type: string
+                                    type: object
                                   destinationCluster:
                                     type: object
                                   genericKey:
@@ -1343,6 +1357,9 @@ spec:
                                     type: object
                                 type: object
                               type: array
+                            type:
+                              type: string
+                              x-kubernetes-int-or-string: true
                           type: object
                         type: array
                     type: object
@@ -1393,6 +1410,13 @@ spec:
                             actions:
                               items:
                                 properties:
+                                  cel:
+                                    properties:
+                                      expression:
+                                        type: string
+                                      key:
+                                        type: string
+                                    type: object
                                   destinationCluster:
                                     type: object
                                   genericKey:
@@ -1494,6 +1518,13 @@ spec:
                             setActions:
                               items:
                                 properties:
+                                  cel:
+                                    properties:
+                                      expression:
+                                        type: string
+                                      key:
+                                        type: string
+                                    type: object
                                   destinationCluster:
                                     type: object
                                   genericKey:
@@ -1574,6 +1605,9 @@ spec:
                                     type: object
                                 type: object
                               type: array
+                            type:
+                              type: string
+                              x-kubernetes-int-or-string: true
                           type: object
                         type: array
                     type: object
@@ -1601,6 +1635,13 @@ spec:
                             actions:
                               items:
                                 properties:
+                                  cel:
+                                    properties:
+                                      expression:
+                                        type: string
+                                      key:
+                                        type: string
+                                    type: object
                                   destinationCluster:
                                     type: object
                                   genericKey:
@@ -1702,6 +1743,13 @@ spec:
                             setActions:
                               items:
                                 properties:
+                                  cel:
+                                    properties:
+                                      expression:
+                                        type: string
+                                      key:
+                                        type: string
+                                    type: object
                                   destinationCluster:
                                     type: object
                                   genericKey:
@@ -1782,6 +1830,9 @@ spec:
                                     type: object
                                 type: object
                               type: array
+                            type:
+                              type: string
+                              x-kubernetes-int-or-string: true
                           type: object
                         type: array
                     type: object

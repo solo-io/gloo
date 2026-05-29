@@ -15,7 +15,6 @@ weight: 5
 - [Raw](#raw)
 - [RateLimitConfigStatus](#ratelimitconfigstatus)
 - [State](#state-3)
-- [RateLimitConfigNamespacedStatuses](#ratelimitconfignamespacedstatuses)
 - [Descriptor](#descriptor)
 - [SetDescriptor](#setdescriptor)
 - [SimpleDescriptor](#simpledescriptor)
@@ -31,6 +30,7 @@ weight: 5
 - [HeaderValueMatch](#headervaluematch-2)
 - [HeaderMatcher](#headermatcher-3)
 - [Int64Range](#int64range-3)
+- [CEL](#cel)
 - [MetaData](#metadata-2)
 - [MetadataKey](#metadatakey-1)
 - [PathSegment](#pathsegment-4)
@@ -38,6 +38,13 @@ weight: 5
 - [Override](#override-1)
 - [DynamicMetadata](#dynamicmetadata-2)
   
+
+ 
+
+**Enums:**
+
+
+	- [LimitType](#limittype)
 
 
 
@@ -123,23 +130,6 @@ The current status of the `RateLimitConfig`.
 | `PENDING` |  |
 | `ACCEPTED` |  |
 | `REJECTED` |  |
-
-
-
-
----
-### RateLimitConfigNamespacedStatuses {#ratelimitconfignamespacedstatuses}
-
-
-
-```yaml
-"statuses": map<string, .ratelimit.api.solo.io.RateLimitConfigStatus>
-
-```
-
-| Field | Type | Description |
-| ----- | ---- | ----------- | 
-| `statuses` | `map<string, .ratelimit.api.solo.io.RateLimitConfigStatus>` |  |
 
 
 
@@ -344,6 +334,7 @@ setDescriptors:
 "actions": []ratelimit.api.solo.io.Action
 "setActions": []ratelimit.api.solo.io.Action
 "limit": .ratelimit.api.solo.io.Override
+"type": .ratelimit.api.solo.io.LimitType
 
 ```
 
@@ -352,6 +343,7 @@ setDescriptors:
 | `actions` | [[]ratelimit.api.solo.io.Action](../ratelimit.proto.sk/#action) |  |
 | `setActions` | [[]ratelimit.api.solo.io.Action](../ratelimit.proto.sk/#action) |  |
 | `limit` | [.ratelimit.api.solo.io.Override](../ratelimit.proto.sk/#override) | An optional limit override to be appended to the descriptor produced by this rate limit configuration. If the override value is invalid or cannot be resolved from metadata, no override is provided. |
+| `type` | [.ratelimit.api.solo.io.LimitType](../ratelimit.proto.sk/#limittype) | Optional type defining the rate limit metric, such as requests or token counts. The TOKEN type is only relevant for AI backends that emit a token count and is used by agentgateway. Defaults to REQUEST if not specified. |
 
 
 
@@ -388,6 +380,9 @@ A `RateLimit` specifies the actual rate limit that will be used when there is a 
 | `MINUTE` |  |
 | `HOUR` |  |
 | `DAY` |  |
+| `MONTH` |  |
+| `YEAR` |  |
+| `WEEK` |  |
 
 
 
@@ -407,18 +402,20 @@ https://www.envoyproxy.io/docs/envoy/latest/api-v3/config/route/v3/route_compone
 "genericKey": .ratelimit.api.solo.io.Action.GenericKey
 "headerValueMatch": .ratelimit.api.solo.io.Action.HeaderValueMatch
 "metadata": .ratelimit.api.solo.io.MetaData
+"cel": .ratelimit.api.solo.io.Action.CEL
 
 ```
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `sourceCluster` | [.ratelimit.api.solo.io.Action.SourceCluster](../ratelimit.proto.sk/#sourcecluster) | Rate limit on source cluster. Only one of `sourceCluster`, `destinationCluster`, `requestHeaders`, `remoteAddress`, `genericKey`, `headerValueMatch`, or `metadata` can be set. |
-| `destinationCluster` | [.ratelimit.api.solo.io.Action.DestinationCluster](../ratelimit.proto.sk/#destinationcluster) | Rate limit on destination cluster. Only one of `destinationCluster`, `sourceCluster`, `requestHeaders`, `remoteAddress`, `genericKey`, `headerValueMatch`, or `metadata` can be set. |
-| `requestHeaders` | [.ratelimit.api.solo.io.Action.RequestHeaders](../ratelimit.proto.sk/#requestheaders) | Rate limit on request headers. Only one of `requestHeaders`, `sourceCluster`, `destinationCluster`, `remoteAddress`, `genericKey`, `headerValueMatch`, or `metadata` can be set. |
-| `remoteAddress` | [.ratelimit.api.solo.io.Action.RemoteAddress](../ratelimit.proto.sk/#remoteaddress) | Rate limit on remote address. Only one of `remoteAddress`, `sourceCluster`, `destinationCluster`, `requestHeaders`, `genericKey`, `headerValueMatch`, or `metadata` can be set. |
-| `genericKey` | [.ratelimit.api.solo.io.Action.GenericKey](../ratelimit.proto.sk/#generickey) | Rate limit on a generic key. Only one of `genericKey`, `sourceCluster`, `destinationCluster`, `requestHeaders`, `remoteAddress`, `headerValueMatch`, or `metadata` can be set. |
-| `headerValueMatch` | [.ratelimit.api.solo.io.Action.HeaderValueMatch](../ratelimit.proto.sk/#headervaluematch) | Rate limit on the existence of request headers. Only one of `headerValueMatch`, `sourceCluster`, `destinationCluster`, `requestHeaders`, `remoteAddress`, `genericKey`, or `metadata` can be set. |
-| `metadata` | [.ratelimit.api.solo.io.MetaData](../ratelimit.proto.sk/#metadata) | Rate limit on metadata. Only one of `metadata`, `sourceCluster`, `destinationCluster`, `requestHeaders`, `remoteAddress`, `genericKey`, or `headerValueMatch` can be set. |
+| `sourceCluster` | [.ratelimit.api.solo.io.Action.SourceCluster](../ratelimit.proto.sk/#sourcecluster) | Rate limit on source cluster. Only one of `sourceCluster`, `destinationCluster`, `requestHeaders`, `remoteAddress`, `genericKey`, `headerValueMatch`, `metadata`, or `cel` can be set. |
+| `destinationCluster` | [.ratelimit.api.solo.io.Action.DestinationCluster](../ratelimit.proto.sk/#destinationcluster) | Rate limit on destination cluster. Only one of `destinationCluster`, `sourceCluster`, `requestHeaders`, `remoteAddress`, `genericKey`, `headerValueMatch`, `metadata`, or `cel` can be set. |
+| `requestHeaders` | [.ratelimit.api.solo.io.Action.RequestHeaders](../ratelimit.proto.sk/#requestheaders) | Rate limit on request headers. Only one of `requestHeaders`, `sourceCluster`, `destinationCluster`, `remoteAddress`, `genericKey`, `headerValueMatch`, `metadata`, or `cel` can be set. |
+| `remoteAddress` | [.ratelimit.api.solo.io.Action.RemoteAddress](../ratelimit.proto.sk/#remoteaddress) | Rate limit on remote address. Only one of `remoteAddress`, `sourceCluster`, `destinationCluster`, `requestHeaders`, `genericKey`, `headerValueMatch`, `metadata`, or `cel` can be set. |
+| `genericKey` | [.ratelimit.api.solo.io.Action.GenericKey](../ratelimit.proto.sk/#generickey) | Rate limit on a generic key. Only one of `genericKey`, `sourceCluster`, `destinationCluster`, `requestHeaders`, `remoteAddress`, `headerValueMatch`, `metadata`, or `cel` can be set. |
+| `headerValueMatch` | [.ratelimit.api.solo.io.Action.HeaderValueMatch](../ratelimit.proto.sk/#headervaluematch) | Rate limit on the existence of request headers. Only one of `headerValueMatch`, `sourceCluster`, `destinationCluster`, `requestHeaders`, `remoteAddress`, `genericKey`, `metadata`, or `cel` can be set. |
+| `metadata` | [.ratelimit.api.solo.io.MetaData](../ratelimit.proto.sk/#metadata) | Rate limit on metadata. Only one of `metadata`, `sourceCluster`, `destinationCluster`, `requestHeaders`, `remoteAddress`, `genericKey`, `headerValueMatch`, or `cel` can be set. |
+| `cel` | [.ratelimit.api.solo.io.Action.CEL](../ratelimit.proto.sk/#cel) | Rate limit on CEL expression. Only supported for agentgateway ratelimiting. Only one of `cel`, `sourceCluster`, `destinationCluster`, `requestHeaders`, `remoteAddress`, `genericKey`, `headerValueMatch`, or `metadata` can be set. |
 
 
 
@@ -623,6 +620,26 @@ end).
 
 
 ---
+### CEL {#cel}
+
+ 
+CEL expression and key to ratelimit on. Only supported for agentgateway ratelimiting.
+
+```yaml
+"expression": string
+"key": string
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+| `expression` | `string` | The CEL expression to evaluate. |
+| `key` | `string` | The key to use in the descriptor entry. |
+
+
+
+
+---
 ### MetaData {#metadata-2}
 
  
@@ -756,6 +773,16 @@ Fetches the override from the dynamic metadata.
 
 
 
+  
+### LimitType {#limittype}
+
+Description: LimitType specifies whether the global rate limit applies to requests or tokens.
+Defaults to REQUEST if not specified.
+
+| Name | Description |
+| ----- | ----------- | 
+| REQUEST | Count the number of requests to apply ratelimit. |
+| TOKEN | Count the LLM tokens to apply ratelimit. This field is only used for ratelimiting AI backends that emit a token count and is used by agentgateway. |
 
 
 <!-- Start of HubSpot Embed Code -->
