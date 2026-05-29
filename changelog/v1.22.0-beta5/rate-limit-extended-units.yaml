@@ -1,5 +1,5 @@
 changelog:
-  - type: NEW_FEATURE
+  - type: DEPENDENCY_BUMP
     issueLink: https://github.com/solo-io/gloo-gateway/issues/2083
     resolvesIssue: false
     description: >-
