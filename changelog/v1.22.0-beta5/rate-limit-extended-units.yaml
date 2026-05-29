@@ -1,0 +1,6 @@
+changelog:
+  - type: NEW_FEATURE
+    issueLink: https://github.com/solo-io/gloo-gateway/issues/2083
+    resolvesIssue: false
+    description: >-
+      Added support for WEEK, MONTH, and YEAR as valid rate limit time units, enabled by rate-limiter v0.18.7.

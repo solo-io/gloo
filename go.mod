@@ -54,7 +54,7 @@ require (
 	// Pinned to the `k8s-1.35-bump` tag of solo-apis on `gloo-main` branch
 	// Ref: https://github.com/solo-io/gloo/pull/9463/files#r1594409655 && https://solo-io-corp.slack.com/archives/C03MFATU265/p1716913420716729?thread_ts=1716476992.938679&cid=C03MFATU265
 	// as to why it is now based off `gloo-main` and not `gloo-repo-branch`
-	github.com/solo-io/solo-apis v0.0.0-20260317133711-cac1509378f4
+	github.com/solo-io/solo-apis v0.0.0-20260529054806-bbd8461c23ed
 	github.com/solo-io/solo-kit v0.41.0
 	github.com/spf13/afero v1.14.0
 	github.com/spf13/cobra v1.10.0
@@ -92,6 +92,7 @@ require (
 	github.com/envoyproxy/go-control-plane/ratelimit v0.1.0
 	github.com/go-logr/zapr v1.3.0
 	github.com/golang-jwt/jwt/v4 v4.5.2
+	github.com/golang/mock v1.7.0-rc.1
 	github.com/google/go-cmp v0.7.0
 	github.com/google/uuid v1.6.0
 	github.com/mccutchen/go-httpbin/v2 v2.15.0
@@ -131,7 +132,6 @@ require (
 	github.com/go-openapi/swag/typeutils v0.25.4 // indirect
 	github.com/go-openapi/swag/yamlutils v0.25.4 // indirect
 	github.com/go-viper/mapstructure/v2 v2.4.0 // indirect
-	github.com/golang/mock v1.7.0-rc.1 // indirect
 	github.com/klauspost/compress v1.18.0 // indirect
 	github.com/oasdiff/yaml v0.0.0-20250309154309-f31be36b4037 // indirect
 	github.com/oasdiff/yaml3 v0.0.0-20250309153720-d2182401db90 // indirect
