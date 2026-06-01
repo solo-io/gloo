@@ -63,6 +63,14 @@ Please reach out to us on [Slack](https://slack.solo.io) or [File an Issue](http
 
 ---
 
+## WAF compatibility {#waf-compatibility}
+
+By default, the [Web Application Firewall (WAF) filter]({{% versioned_link_path fromRoot="/guides/security/waf/" %}}) buffers the full request body and waits for an HTTP end-of-stream signal before evaluating WAF rules. While WebSocket upgrades start as an HTTP/1.1 request with an `Upgrade: websocket` header, the connection then switches to a persistent, full-duplex WebSocket stream that never sends an HTTP end-of-stream signal. Because of that, WebSocket upgrades are silently dropped with no error or 403 HTTP response. 
+
+To allow WebSocket upgrades through the WAF, add `requestHeadersOnly: true` and `responseHeadersOnly: true` to your WAF configuration. For more information, see [Streaming protocols: gRPC and WebSockets]({{% versioned_link_path fromRoot="/guides/security/waf/#streaming-protocols" %}}).
+
+---
+
 ## Next Steps
 
 For background on Traffic Management, check out the [concepts page]({{% versioned_link_path fromRoot="/introduction/traffic_management/" %}}) dealing with the topic. You may also be interested in how [routing decisions]({{% versioned_link_path fromRoot="/guides/traffic_management/destination_selection/" %}}) are made and the possible [destinations for routing]({{% versioned_link_path fromRoot="/guides/traffic_management/destination_types/" %}}).
