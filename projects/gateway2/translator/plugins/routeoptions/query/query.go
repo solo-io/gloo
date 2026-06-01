@@ -62,19 +62,9 @@ func (r *routeOptionQueries) GetRouteOptionForRouteRule(
 	rule *gwv1.HTTPRouteRule,
 	gwQueries gwquery.GatewayQueries,
 ) (*solokubev1.RouteOption, []*gloov1.SourceMetadata_SourceRef, error) {
-	var sources []*gloov1.SourceMetadata_SourceRef
-	merged := &solokubev1.RouteOption{}
-
 	filterAttachments, err := lookupFilterAttachments(ctx, route, rule, gwQueries)
 	if err != nil {
 		return nil, nil, err
-	}
-	for _, opt := range filterAttachments {
-		optionUsed := false
-		merged.Spec.Options, optionUsed = glooutils.ShallowMergeRouteOptions(merged.Spec.GetOptions(), opt.Spec.GetOptions())
-		if optionUsed {
-			sources = append(sources, routeOptionToSourceRef(opt))
-		}
 	}
 
 	var list solokubev1.RouteOptionList
@@ -87,24 +77,77 @@ func (r *routeOptionQueries) GetRouteOptionForRouteRule(
 		return nil, nil, err
 	}
 
-	if len(list.Items) == 0 {
-		return nilOptionIfEmpty(merged), sources, nil
-	}
-
-	out := make([]*solokubev1.RouteOption, len(list.Items))
+	// Build the ordered list of candidate RouteOptions: ExtensionRef filter
+	// attachments take priority over targetRef attachments, and the earliest
+	// created targetRef resource wins over later ones (handled by SortByCreationTime).
+	candidates := make([]*solokubev1.RouteOption, 0, len(filterAttachments)+len(list.Items))
+	candidates = append(candidates, filterAttachments...)
+	targetRefs := make([]*solokubev1.RouteOption, len(list.Items))
 	for i := range list.Items {
-		out[i] = &list.Items[i]
+		targetRefs[i] = &list.Items[i]
 	}
-	gwutils.SortByCreationTime(out)
-	for _, opt := range out {
+	gwutils.SortByCreationTime(targetRefs)
+	candidates = append(candidates, targetRefs...)
+
+	sources, merged := mergeCandidateRouteOptions(candidates)
+	return nilOptionIfEmpty(merged), sources, nil
+}
+
+// mergeCandidateRouteOptions merges the given RouteOptions in priority order
+// (earlier candidates win) into a single RouteOption.
+//
+// It uses copy-on-write to avoid deep-cloning the (potentially large)
+// RouteOptions tree on every route rule: when only a single candidate
+// contributes options, that candidate's Options are returned by reference
+// rather than cloned. This is the dominant case (one RouteOption attached to a
+// route) and previously accounted for a large share of translation heap because
+// the full transformation template tree was deep-copied per route rule.
+// See https://github.com/solo-io/solo-projects/issues/8802.
+//
+// MUTATION SAFETY: when a single candidate is returned by reference, the result
+// aliases a resource owned by the informer cache and MUST NOT be mutated in
+// place. The translation pipeline upholds this: the routeoptions plugin only
+// ever passes the result as the read-only src of MergeRouteOptionsWithOverrides,
+// which clones it (when the output route has no options yet) or copies top-level
+// field pointers into a separate destination, before assigning it to the output
+// route. As soon as a second candidate must be merged, the base is cloned once
+// so the in-place field merge never touches a cached resource.
+func mergeCandidateRouteOptions(candidates []*solokubev1.RouteOption) ([]*gloov1.SourceMetadata_SourceRef, *solokubev1.RouteOption) {
+	var sources []*gloov1.SourceMetadata_SourceRef
+	merged := &solokubev1.RouteOption{}
+
+	// owned tracks whether merged.Spec.Options is a copy we own (and may mutate)
+	// or a reference to a cached resource that must remain read-only.
+	owned := false
+	for _, opt := range candidates {
+		src := opt.Spec.GetOptions()
+		if src == nil {
+			continue
+		}
+
+		if merged.Spec.GetOptions() == nil {
+			// First contributing candidate: share by reference, do not clone.
+			merged.Spec.Options = src
+			sources = append(sources, routeOptionToSourceRef(opt))
+			continue
+		}
+
+		// A second candidate needs to be merged. ShallowMergeRouteOptions merges
+		// src into dst in place, so clone the aliased base exactly once before the
+		// first such merge to avoid mutating the cached resource.
+		if !owned {
+			merged.Spec.Options = merged.Spec.GetOptions().Clone().(*gloov1.RouteOptions)
+			owned = true
+		}
+
 		optionUsed := false
-		merged.Spec.Options, optionUsed = glooutils.ShallowMergeRouteOptions(merged.Spec.GetOptions(), opt.Spec.GetOptions())
+		merged.Spec.Options, optionUsed = glooutils.ShallowMergeRouteOptions(merged.Spec.GetOptions(), src)
 		if optionUsed {
 			sources = append(sources, routeOptionToSourceRef(opt))
 		}
 	}
 
-	return nilOptionIfEmpty(merged), sources, nil
+	return sources, merged
 }
 
 func nilOptionIfEmpty(opt *solokubev1.RouteOption) *solokubev1.RouteOption {
