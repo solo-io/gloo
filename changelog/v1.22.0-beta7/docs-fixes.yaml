@@ -1,0 +1,6 @@
+changelog:
+  - type: NON_USER_FACING
+    resolvesIssue: false
+    description: >-
+      Adds information about WAF and Websocket incompatibilty.
+      skipCI-kube-tests:true
