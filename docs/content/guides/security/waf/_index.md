@@ -184,7 +184,7 @@ Now that you are familiar with how to apply WAF rule sets in Gloo Gateway, try o
 * Dynamically apply updates to rule sets by using [Kubernetes configmaps](#dynamic-configmaps).
 * Apply the [OWASP core rule set](#core-rule-set).
 * Restrict access to a specific [IP address or subnet range](#ip-allowlist).
-* For [gRPC calls](#grpc), configure headers to avoid timeouts.
+* For [gRPC and WebSocket connections](#streaming-protocols), configure headers-only inspection to avoid timeouts and silent upgrade failures.
 * Enable [audit logging](#audit-logging).
 
 ## Dynamically load rule sets with Kubernetes configmaps {#dynamic-configmaps}
@@ -390,10 +390,16 @@ spec:
 
 We are applying a WAF rule at the `virtualHost` level, meaning that the rule will be applied to all routes for this `VirtualService`. The rule we are applying will cause modsecurity to inspect the remote address for the request being processed and if the IP address does not fall in the `173.175.0.0/16` network range, the request will be denied with a 403 status code.
 
-## gRPC 
+## Streaming protocols: gRPC and WebSockets {#streaming-protocols}
 
-If you have configured WAF, gRPC calls to a VirtualService fronting a gRPC services may timeout if the gRPC call is a stream
-as the WAF filter requires an end stream to be specified to finish evaluating intervention. To avoid this timeout, add `requestHeadersOnly: true` and `responseHeadersOnly: true` to the WAF config:
+The WAF filter (ModSecurity) operates at the HTTP layer and by default buffers the full request and response body before evaluating rules. The body is buffered, even if the ModSecurity rule that you set only checks for headers. 
+
+While this processing works for HTTP traffic, it can cause issues with streaming protocols, such as gRPC and WebSocket upgrades. 
+
+- **gRPC streaming calls** never send an HTTP end-of-stream signal while the stream is open. ModSecurity waits for that signal to finish evaluating, which causes the gRPC call to time out.
+- **WebSocket upgrades** start as an HTTP/1.1 request with an `Upgrade: websocket` header. After this request is accepted, the connection switches to a persistent, full-duplex WebSocket stream. No HTTP end-of-stream signal is ever sent. ModSecurity's body inspection waits for the HTTP end-of-stream signal. However, because this signal does not arrive, the WebSocket upgrade is silently dropped with no error or 403 HTTP response. 
+
+To prevent these issues, configure ModSecurity to only inspect HTTP headers and skip body buffering entirely by setting the `requestHeadersOnly: true` and `responseHeadersOnly: true` fields in the WAF config. WAF rules that inspect headers, such as `User-Agent` checks or IP allowlists, continue to work normally. 
 
 ```yaml
 waf:
@@ -406,6 +412,10 @@ waf:
       SecRuleEngine On
       SecRule REQUEST_HEADERS:User-Agent "scammer" "deny,status:403,id:107,phase:1,msg:'blocked scammer'"
 ```
+
+{{% notice note %}}
+With `requestHeadersOnly` and `responseHeadersOnly` enabled, WAF rules that inspect request or response bodies, such as `SecRule REQUEST_BODY`, are not evaluated. Only header-based rules apply.
+{{% /notice %}}
 
 ## Audit Logging
 
