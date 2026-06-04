@@ -70,6 +70,7 @@ import (
 	v1kubernetes "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/kubernetes"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/protocol_upgrade"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/retries"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/shadowing"
 	v1static "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/static"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/tracing"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/transformation"
@@ -4058,6 +4059,39 @@ var _ = Describe("Translator", func() {
 					},
 				},
 			})))
+		})
+	})
+
+	Context("shadowing", func() {
+		It("should translate shadowing with DisableShadowHostSuffixAppend", func() {
+			routes[0].Options = &v1.RouteOptions{
+				Shadowing: &shadowing.RouteShadowing{
+					Upstream:                      upstream.Metadata.Ref(),
+					Percentage:                    100,
+					DisableShadowHostSuffixAppend: true,
+				},
+			}
+
+			translate()
+
+			mirrorPolicies := routeConfiguration.VirtualHosts[0].Routes[0].GetRoute().GetRequestMirrorPolicies()
+			Expect(mirrorPolicies).To(HaveLen(1))
+			Expect(mirrorPolicies[0].GetDisableShadowHostSuffixAppend()).To(BeTrue())
+		})
+
+		It("should translate shadowing without DisableShadowHostSuffixAppend by default", func() {
+			routes[0].Options = &v1.RouteOptions{
+				Shadowing: &shadowing.RouteShadowing{
+					Upstream:   upstream.Metadata.Ref(),
+					Percentage: 100,
+				},
+			}
+
+			translate()
+
+			mirrorPolicies := routeConfiguration.VirtualHosts[0].Routes[0].GetRoute().GetRequestMirrorPolicies()
+			Expect(mirrorPolicies).To(HaveLen(1))
+			Expect(mirrorPolicies[0].GetDisableShadowHostSuffixAppend()).To(BeFalse())
 		})
 	})
 
