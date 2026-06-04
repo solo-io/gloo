@@ -60,5 +60,9 @@ func (m *RouteShadowing) Equal(that interface{}) bool {
 		return false
 	}
 
+	if m.GetDisableShadowHostSuffixAppend() != target.GetDisableShadowHostSuffixAppend() {
+		return false
+	}
+
 	return true
 }
