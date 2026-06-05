@@ -1,6 +1,6 @@
 module github.com/solo-io/gloo/examples/bookstore
 
-go 1.25.8
+go 1.25.11
 
 require (
 	github.com/golang/protobuf v1.3.5
