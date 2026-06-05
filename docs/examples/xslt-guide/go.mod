@@ -1,6 +1,6 @@
 module github.com/solo-io/gloo/docs/examples/xslt-guide
 
-go 1.25.8
+go 1.25.11
 
 require (
 	github.com/foomo/soap v0.1.0
