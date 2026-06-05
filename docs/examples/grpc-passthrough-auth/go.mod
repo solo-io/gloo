@@ -1,6 +1,6 @@
 module github.com/envoyproxy/envoy/examples/ext_authz/auth/grpc-service
 
-go 1.25.8
+go 1.25.11
 
 require (
 	github.com/envoyproxy/go-control-plane/envoy v1.32.3

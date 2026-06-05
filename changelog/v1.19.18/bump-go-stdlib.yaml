@@ -1,0 +1,7 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: golang
+    dependencyRepo: go
+    dependencyTag: v1.25.11
+    description: >-
+      Bump Go to 1.25.11 for security fixes.
