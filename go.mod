@@ -1,6 +1,6 @@
 module github.com/solo-io/gloo
 
-go 1.25.9
+go 1.25.11
 
 require (
 	github.com/Masterminds/semver/v3 v3.4.0
