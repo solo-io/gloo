@@ -21,4 +21,9 @@ message RouteShadowing {
 
     // This should be a value between 0.0 and 100.0, with up to 6 significant digits.
     float percentage = 2;
+
+    // If true, the host/authority header of the shadow request will not have `-shadow` appended.
+    // Useful when the shadow destination has strict host-based routing rules that would reject the modified header.
+    // See https://www.envoyproxy.io/docs/envoy/latest/api-v3/config/route/v3/route_components.proto#envoy-v3-api-field-config-route-v3-routeaction-requestmirrorpolicy-disable-shadow-host-suffix-append
+    bool disable_shadow_host_suffix_append = 3;
 }

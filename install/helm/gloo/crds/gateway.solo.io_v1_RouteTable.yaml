@@ -1994,6 +1994,8 @@ spec:
                           type: object
                         shadowing:
                           properties:
+                            disableShadowHostSuffixAppend:
+                              type: boolean
                             percentage:
                               type: number
                             upstream:
