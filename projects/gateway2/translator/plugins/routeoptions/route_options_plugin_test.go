@@ -96,7 +96,11 @@ var _ = Describe("RouteOptionsPlugin", func() {
 			plugin := NewPlugin(gwQueries, fakeClient, routeOptionCollection, statusReporter)
 
 			rtCtx := &plugins.RouteContext{
-				HTTPRoute: &gwv1.HTTPRoute{},
+				HTTPRoute: &gwv1.HTTPRoute{
+					ObjectMeta: metav1.ObjectMeta{
+						Namespace: "default",
+					},
+				},
 				Rule: &gwv1.HTTPRouteRule{
 					Filters: []gwv1.HTTPRouteFilter{{
 						Type: gwv1.HTTPRouteFilterExtensionRef,
@@ -337,7 +341,11 @@ var _ = Describe("RouteOptionsPlugin", func() {
 					plugin := NewPlugin(gwQueries, fakeClient, routeOptionCollection, statusReporter)
 
 					rtCtx := &plugins.RouteContext{
-						HTTPRoute: &gwv1.HTTPRoute{},
+						HTTPRoute: &gwv1.HTTPRoute{
+							ObjectMeta: metav1.ObjectMeta{
+								Namespace: "default",
+							},
+						},
 						Rule: &gwv1.HTTPRouteRule{
 							Filters: []gwv1.HTTPRouteFilter{{
 								Type: gwv1.HTTPRouteFilterExtensionRef,

@@ -6,7 +6,6 @@ import (
 	"github.com/hashicorp/go-multierror"
 	"github.com/rotisserie/eris"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
@@ -15,7 +14,6 @@ import (
 
 	sologatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	solokubev1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1/kube/apis/gateway.solo.io/v1"
-	gwquery "github.com/solo-io/gloo/projects/gateway2/query"
 	utils "github.com/solo-io/gloo/projects/gateway2/translator/plugins/utils"
 	gwutils "github.com/solo-io/gloo/projects/gateway2/utils"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
@@ -40,11 +38,18 @@ type RouteOptionQueries interface {
 	// resource is considered for the merge.
 	//
 	// It returns the merged RouteOption, a list of sources corresponding to the merge, and an error if one occurs.
+	//
+	// MEMORY/MUTABILITY CONTRACT: to avoid deep-copying potentially large RouteOptions for every
+	// route rule on every translation (solo-io/solo-projects#8802), the lookups pass
+	// client.UnsafeDisableDeepCopy and the merged RouteOption shares its options sub-messages with
+	// the objects in the client's cache. The merged options are a distinct top-level message, so
+	// callers may reassign its top-level fields, but must NEVER mutate nested messages, slices, or
+	// maps reachable from it: those are shared with the informer cache and with every other route
+	// referencing the same RouteOption.
 	GetRouteOptionForRouteRule(
 		ctx context.Context,
 		route types.NamespacedName,
 		rule *gwv1.HTTPRouteRule,
-		gwQueries gwquery.GatewayQueries,
 	) (*solokubev1.RouteOption, []*gloov1.SourceMetadata_SourceRef, error)
 }
 
@@ -60,7 +65,6 @@ func (r *routeOptionQueries) GetRouteOptionForRouteRule(
 	ctx context.Context,
 	route types.NamespacedName,
 	rule *gwv1.HTTPRouteRule,
-	gwQueries gwquery.GatewayQueries,
 ) (*solokubev1.RouteOption, []*gloov1.SourceMetadata_SourceRef, error) {
 	var sources []*gloov1.SourceMetadata_SourceRef
 	merged := &solokubev1.RouteOption{}
@@ -89,7 +93,7 @@ func (r *routeOptionQueries) GetRouteOptionForRouteRule(
 		}
 	}
 
-	filterAttachments, err := lookupFilterAttachments(ctx, route, rule, gwQueries)
+	filterAttachments, err := r.lookupFilterAttachments(ctx, route, rule)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -103,6 +107,12 @@ func (r *routeOptionQueries) GetRouteOptionForRouteRule(
 		&list,
 		client.MatchingFieldsSelector{Selector: fields.OneTermEqualSelector(RouteOptionTargetField, route.String())},
 		client.InNamespace(route.Namespace),
+		// Do not deep-copy the matching RouteOptions out of the cache on every call: this query
+		// runs for every route rule on every translation, and per-call copies defeat the
+		// sub-message sharing that keeps translation heap bounded when many routes reference the
+		// same RouteOption (solo-io/solo-projects#8802). The returned objects are shared with the
+		// cache and must be treated as read-only, per the contract on RouteOptionQueries.
+		client.UnsafeDisableDeepCopy,
 	); err != nil {
 		return nil, nil, err
 	}
@@ -130,12 +140,12 @@ func nilOptionIfEmpty(opt *solokubev1.RouteOption) *solokubev1.RouteOption {
 	return opt
 }
 
-// lookupFilterAttachments returns the RouteOptions attached to the route via ExtensionRef filters on the route's rule
-func lookupFilterAttachments(
+// lookupFilterAttachments returns the RouteOptions attached to the route via ExtensionRef filters on the route's rule.
+// ExtensionRefs are local object references, so the lookup is always in the route's namespace.
+func (r *routeOptionQueries) lookupFilterAttachments(
 	ctx context.Context,
 	route types.NamespacedName,
 	rule *gwv1.HTTPRouteRule,
-	gwQueries gwquery.GatewayQueries,
 ) ([]*solokubev1.RouteOption, error) {
 	if rule == nil {
 		return nil, nil
@@ -148,9 +158,16 @@ func lookupFilterAttachments(
 
 	var out []*solokubev1.RouteOption
 	var multiErr *multierror.Error
-	extLookup := extensionRefLookup{namespace: route.Namespace}
 	for _, filter := range filters {
-		routeOption, err := utils.GetExtensionRefObjFrom[*solokubev1.RouteOption](ctx, extLookup, gwQueries, filter.ExtensionRef)
+		routeOption := &solokubev1.RouteOption{}
+		err := r.c.Get(
+			ctx,
+			types.NamespacedName{Namespace: route.Namespace, Name: string(filter.ExtensionRef.Name)},
+			routeOption,
+			// Shared with the cache and read-only, same as the List below; see the contract on
+			// RouteOptionQueries.
+			client.UnsafeDisableDeepCopy,
+		)
 		if err != nil {
 			// If the filter is not found, report a specific error so that it can reflect more
 			// clearly on the status of the HTTPRoute.
@@ -165,21 +182,6 @@ func lookupFilterAttachments(
 	}
 
 	return out, multiErr.ErrorOrNil()
-}
-
-type extensionRefLookup struct {
-	namespace string
-}
-
-func (e extensionRefLookup) GroupKind() (metav1.GroupKind, error) {
-	return metav1.GroupKind{
-		Group: routeOptionGK.Group,
-		Kind:  routeOptionGK.Kind,
-	}, nil
-}
-
-func (e extensionRefLookup) Namespace() string {
-	return e.namespace
 }
 
 func errFilterNotFound(namespace string, filter *gwv1.HTTPRouteFilter) error {
