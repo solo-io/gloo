@@ -87,7 +87,7 @@ Build a Docker image that has the Wasm filter image you previously created and u
 
 1. Create a Dockerfile in the same location as your Wasm filter. The Dockerfile makes an image that has your Wasm filter, and copies the filter to the `/wasm-filters/` directory when the image runs. Later, you mount this directory in a shared volume. _Note: In the previous section, your Wasm file is called `filter.wasm` and is located at `.wasmstore/<uniqueId>/filter.wasm`. If built your filter with a different tool than `wasme` (such as `bazel`), your filter location might differ._
    ```
-   FROM alpine
+   FROM alpine:3.23.4
 
    COPY filter.wasm filter.wasm
    

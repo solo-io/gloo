@@ -1,0 +1,7 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    description: Bumped alpine base image to 3.23.4 in Dockerfiles and docs.
+    dependencyOwner: alpinelinux
+    dependencyRepo: aports
+    dependencyTag: v3.23.4
+    issueLink: https://github.com/solo-io/gloo/issues/11237
