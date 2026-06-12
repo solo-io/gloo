@@ -46,6 +46,7 @@ Gloo Gateway is a feature-rich, fast, and flexible Kubernetes-native ingress con
 
 ## Contributing to Gloo Gateway
 The [devel](devel) folder should be the starting point for understanding the code, and contributing to the product.
+For maintainer release instructions, see [RELEASE.md](RELEASE.md).
 
 ## Thanks
 **Gloo Gateway** would not be possible without the valuable open-source work of projects in the community. We would like to extend a special thank-you to [Envoy](https://www.envoyproxy.io).
