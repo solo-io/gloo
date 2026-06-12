@@ -1,0 +1,13 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/solo-projects/issues/8802
+    resolvesIssue: false
+    description: >-
+      Fix excessive control plane memory usage in the Kubernetes Gateway API translation when many
+      routes reference the same RouteOption. Translation no longer deep-copies the attached
+      RouteOption's options (including potentially large transformation templates) for every route
+      rule on every translation cycle: the merged options now share their sub-messages with the
+      cached RouteOption, so memory scales with the number of unique RouteOptions instead of the
+      number of translated routes. The merged options remain a distinct per-route message, so
+      translation plugins can still set route-level fields safely; they must not mutate nested
+      option messages in place.
