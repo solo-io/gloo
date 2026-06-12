@@ -692,6 +692,8 @@ func (s *ProxySyncer) buildProxy(ctx context.Context, gw *gwv1.Gateway) *glooPro
 	stopwatch := statsutils.NewTranslatorStopWatch("ProxySyncer")
 	stopwatch.Start()
 
+	// a fresh registry per pass: plugins carry per-pass state and must not be reused across
+	// translation passes (see K8sGatewayExtensions.CreatePluginRegistry)
 	pluginRegistry := s.k8sGwExtensions.CreatePluginRegistry(ctx)
 	rm := reports.NewReportMap()
 	r := reports.NewReporter(&rm)
