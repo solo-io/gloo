@@ -21,6 +21,10 @@ import (
 // which have Enterprise variants.
 type K8sGatewayExtensions interface {
 	// CreatePluginRegistry exposes the plugins supported by this implementation.
+	//
+	// Implementations must build a fresh registry on every call: plugins carry per-pass state
+	// (e.g. the routeoptions plugin's status cache and its query's interned RouteOption copies,
+	// see rtoptquery.NewQuery) and must not be reused across translation passes.
 	CreatePluginRegistry(context.Context) registry.PluginRegistry
 
 	// GetTranslator allows an extension to provide custom translation for
