@@ -51,9 +51,10 @@ func (t *trackingClient) List(ctx context.Context, list client.ObjectList, opts 
 
 var _ = Describe("RouteOptionsPlugin cache mutation guard", func() {
 	var (
-		ctx context.Context
-		rec *trackingClient
-		p   *plugin
+		ctx           context.Context
+		rec           *trackingClient
+		p             *plugin
+		origInterning bool
 	)
 
 	// expectReturnedUnchanged compares every RouteOption the client handed out against a freshly
@@ -77,11 +78,19 @@ var _ = Describe("RouteOptionsPlugin cache mutation guard", func() {
 
 	BeforeEach(func() {
 		ctx = context.Background()
+		// This guard protects the interning (cache-sharing) path, which is opt-in via
+		// GG_ROUTE_OPTION_INTERNING; enable it so NewQuery captures it.
+		origInterning = rtoptquery.RouteOptionInterningEnabled
+		rtoptquery.RouteOptionInterningEnabled = true
 		deps := []client.Object{routeOption(), attachedRouteOption()}
 		fakeClient := testutils.BuildIndexedFakeClient(deps, gwquery.IterateIndices, rtoptquery.IterateIndices)
 		rec = &trackingClient{Client: fakeClient}
 		gwQueries := testutils.BuildGatewayQueriesWithClient(rec)
 		p = NewPlugin(gwQueries, rec, nil, nil)
+	})
+
+	AfterEach(func() {
+		rtoptquery.RouteOptionInterningEnabled = origInterning
 	})
 
 	It("merges attachments and existing route options without touching the returned RouteOptions", func() {

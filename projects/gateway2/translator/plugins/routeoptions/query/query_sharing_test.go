@@ -69,17 +69,25 @@ func disablesDeepCopyOnGet(opts []client.GetOption) bool {
 
 var _ = Describe("Query no-clone contract", func() {
 	var (
-		ctx     context.Context
-		builder *fake.ClientBuilder
+		ctx           context.Context
+		builder       *fake.ClientBuilder
+		origInterning bool
 	)
 
 	BeforeEach(func() {
 		ctx = context.Background()
+		// These specs pin the interning behavior, which is opt-in via GG_ROUTE_OPTION_INTERNING.
+		origInterning = query.RouteOptionInterningEnabled
+		query.RouteOptionInterningEnabled = true
 		builder = fake.NewClientBuilder().WithScheme(schemes.GatewayScheme())
 		query.IterateIndices(func(o client.Object, f string, fun client.IndexerFunc) error {
 			builder.WithIndex(o, f, fun)
 			return nil
 		})
+	})
+
+	AfterEach(func() {
+		query.RouteOptionInterningEnabled = origInterning
 	})
 
 	It("does not deep-copy targetRef-attached RouteOptions on every lookup", func() {
@@ -257,5 +265,70 @@ var _ = Describe("Query no-clone contract", func() {
 			Expect(proto.Equal(ro.Spec.GetOptions(), fixture.Spec.GetOptions())).To(BeTrue(),
 				"the merge mutated RouteOption %q, which is shared with the cache", ro.GetName())
 		}
+	})
+})
+
+var _ = Describe("Query interning disabled (default)", func() {
+	var (
+		ctx           context.Context
+		builder       *fake.ClientBuilder
+		origInterning bool
+	)
+
+	BeforeEach(func() {
+		ctx = context.Background()
+		// Default behavior: interning is opt-in, so off here.
+		origInterning = query.RouteOptionInterningEnabled
+		query.RouteOptionInterningEnabled = false
+		builder = fake.NewClientBuilder().WithScheme(schemes.GatewayScheme())
+		query.IterateIndices(func(o client.Object, f string, fun client.IndexerFunc) error {
+			builder.WithIndex(o, f, fun)
+			return nil
+		})
+	})
+
+	AfterEach(func() {
+		query.RouteOptionInterningEnabled = origInterning
+	})
+
+	It("does not pass UnsafeDisableDeepCopy on lookups", func() {
+		hr := httpRouteWithFilters()
+		rec := &recordingClient{Client: builder.WithObjects(hr, attachedRouteOption1(), attachedRouteOption2()).Build()}
+		q := query.NewQuery(rec)
+
+		_, _, err := q.GetRouteOptionForRouteRule(ctx, types.NamespacedName{Namespace: hr.GetNamespace(), Name: hr.GetName()}, &hr.Spec.Rules[0])
+		Expect(err).NotTo(HaveOccurred())
+
+		// With interning off the cache-backed client must deep-copy each lookup (the historical,
+		// safe behavior): the merge reads the returned objects directly, so they must not be
+		// cache-shared.
+		Expect(rec.getOpts).To(HaveLen(2))
+		for _, opts := range rec.getOpts {
+			Expect(disablesDeepCopyOnGet(opts)).To(BeFalse(),
+				"with interning disabled, RouteOption Get must not pass client.UnsafeDisableDeepCopy")
+		}
+		Expect(rec.listOpts).ToNot(BeEmpty())
+		for _, opts := range rec.listOpts {
+			Expect(disablesDeepCopyOnList(opts)).To(BeFalse(),
+				"with interning disabled, RouteOption List must not pass client.UnsafeDisableDeepCopy")
+		}
+	})
+
+	It("deep-copies per lookup instead of sharing across route rules", func() {
+		hr := httpRoute()
+		rec := &recordingClient{Client: builder.WithObjects(hr, attachedRouteOption()).Build()}
+		q := query.NewQuery(rec)
+
+		nn := types.NamespacedName{Namespace: hr.GetNamespace(), Name: hr.GetName()}
+		merged1, _, err := q.GetRouteOptionForRouteRule(ctx, nn, nil)
+		Expect(err).NotTo(HaveOccurred())
+		merged2, _, err := q.GetRouteOptionForRouteRule(ctx, nn, nil)
+		Expect(err).NotTo(HaveOccurred())
+
+		// The merged output is still correct...
+		Expect(merged1.Spec.GetOptions().GetFaults().GetAbort().GetHttpStatus()).To(BeEquivalentTo(500))
+		// ...but each route rule gets its own copy (no cross-route sharing) — the historical
+		// behavior the flag falls back to.
+		Expect(merged1.Spec.GetOptions().GetFaults()).NotTo(BeIdenticalTo(merged2.Spec.GetOptions().GetFaults()))
 	})
 })

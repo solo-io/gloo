@@ -12,10 +12,12 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
 
+	"github.com/solo-io/gloo/pkg/utils/envutils"
 	sologatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	solokubev1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1/kube/apis/gateway.solo.io/v1"
 	utils "github.com/solo-io/gloo/projects/gateway2/translator/plugins/utils"
 	gwutils "github.com/solo-io/gloo/projects/gateway2/utils"
+	"github.com/solo-io/gloo/projects/gloo/constants"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	glooutils "github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
@@ -25,6 +27,14 @@ var routeOptionGK = schema.GroupKind{
 	Group: sologatewayv1.RouteOptionGVK.Group,
 	Kind:  sologatewayv1.RouteOptionGVK.Kind,
 }
+
+// RouteOptionInterningEnabled gates the per-pass RouteOption interning memory optimization
+// (solo-io/solo-projects#8802). When false (the default), each attached RouteOption is deep-copied
+// per route rule as before; set GG_ROUTE_OPTION_INTERNING truthy to share one interned copy per
+// unique RouteOption across all routes in a translation pass and skip the cache's per-call deep
+// copies. Read once at init and captured per query in NewQuery so a pass cannot flip mid-translation;
+// exported so tests can toggle it directly.
+var RouteOptionInterningEnabled = envutils.IsEnvTruthy(constants.GlooGatewayRouteOptionInterningEnv)
 
 type RouteOptionQueries interface {
 	// GetRouteOptionForRouteRule returns the RouteOption attached to the given route and rule.
@@ -39,16 +49,19 @@ type RouteOptionQueries interface {
 	//
 	// It returns the merged RouteOption, a list of sources corresponding to the merge, and an error if one occurs.
 	//
-	// MEMORY/MUTABILITY CONTRACT: to avoid deep-copying potentially large RouteOptions for every
-	// route rule on every translation (solo-io/solo-projects#8802), the lookups pass
-	// client.UnsafeDisableDeepCopy and the query interns one deep copy per unique RouteOption
-	// for its own lifetime (a fresh query is constructed per translation pass and retained with
-	// that pass's output; see NewQuery). The merged RouteOption shares its options sub-messages
-	// with that interned copy, never with the informer cache, so the cache cannot be corrupted
-	// through the merged result. The merged options are a distinct top-level message, so callers
-	// may reassign its top-level fields; they still must not mutate nested messages, slices, or
-	// maps reachable from it, since those are shared with every other route referencing the same
-	// RouteOption in this pass.
+	// MEMORY/MUTABILITY CONTRACT: by default each attached RouteOption is deep-copied per route
+	// rule (via the cache-backed client and ShallowMergeRouteOptions), matching historical behavior.
+	//
+	// When GG_ROUTE_OPTION_INTERNING is enabled (see RouteOptionInterningEnabled), the query
+	// instead avoids deep-copying potentially large RouteOptions for every route rule on every
+	// translation (solo-io/solo-projects#8802): the lookups pass client.UnsafeDisableDeepCopy and
+	// the query interns one deep copy per unique RouteOption for its own lifetime (a fresh query is
+	// constructed per translation pass and retained with that pass's output; see NewQuery). In that
+	// mode the merged RouteOption shares its options sub-messages with the interned copy, never with
+	// the informer cache, so the cache cannot be corrupted through the merged result. The merged
+	// options are always a distinct top-level message, so callers may reassign its top-level fields;
+	// when interning is enabled they must not mutate nested messages, slices, or maps reachable from
+	// it, since those are shared with every other route referencing the same RouteOption in this pass.
 	GetRouteOptionForRouteRule(
 		ctx context.Context,
 		route types.NamespacedName,
@@ -59,10 +72,15 @@ type RouteOptionQueries interface {
 type routeOptionQueries struct {
 	c client.Client
 
-	// interned holds this query's one deep copy per unique RouteOption. An entry is replaced
-	// when the cached RouteOption's resourceVersion moves, so a lookup can never be served stale
-	// options and the map stays bounded by the number of RouteOptions even if the query outlives
-	// the translation pass it was built for. The interned copies are what keep the informer
+	// intern captures RouteOptionInterningEnabled at construction so the behavior is stable for
+	// the query's lifetime (one translation pass) and cannot flip mid-translation.
+	intern bool
+
+	// interned holds this query's one deep copy per unique RouteOption (only used when intern is
+	// true). An entry is replaced when the cached RouteOption's resourceVersion moves, so a lookup
+	// can never be served stale options and the map stays bounded by the number of RouteOptions
+	// even if the query outlives the translation pass it was built for. The interned copies keep
+	// the informer
 	// cache unreachable from translation output while still sharing one copy across all routes
 	// that reference the same RouteOption (solo-io/solo-projects#8802). Not safe for concurrent
 	// use: route plugins run sequentially within a pass.
@@ -84,6 +102,7 @@ type internedRouteOption struct {
 func NewQuery(c client.Client) RouteOptionQueries {
 	return &routeOptionQueries{
 		c:        c,
+		intern:   RouteOptionInterningEnabled,
 		interned: map[types.NamespacedName]internedRouteOption{},
 	}
 }
@@ -120,15 +139,28 @@ func (r *routeOptionQueries) GetRouteOptionForRouteRule(
 	// mergeAttachment folds a single RouteOption attachment into the accumulated `merged` result,
 	// recording it as a source if any of its fields were used.
 	//
-	// The merge reads from the query's interned copy of each attachment, never from the
-	// cache-shared object itself, and the first attachment seeds `merged` with a shallow copy
-	// (sharing the interned copy's sub-messages by pointer) rather than a deep clone.
+	// When interning is enabled the merge reads from the query's interned copy of each attachment,
+	// never from the cache-shared object itself, and the first attachment seeds `merged` with a
+	// shallow copy (sharing the interned copy's sub-messages by pointer) rather than a deep clone.
 	// Deep-cloning the first attachment per route is what dominated translation heap, since every
 	// route referencing the same RouteOption received its own deep copy of identical (and often
 	// large) transformation templates. `merged.Spec.Options` is a distinct top-level message per
 	// route, so downstream route plugins can still reassign its top-level fields safely; they
 	// must not mutate the shared sub-messages in place.
+	//
+	// When interning is disabled the merge reads the cache-backed client's per-call deep copies
+	// directly and ShallowMergeRouteOptions deep-clones the first source, matching historical
+	// behavior.
 	mergeAttachment := func(opt *solokubev1.RouteOption) {
+		if !r.intern {
+			optionUsed := false
+			merged.Spec.Options, optionUsed = glooutils.ShallowMergeRouteOptions(merged.Spec.GetOptions(), opt.Spec.GetOptions())
+			if optionUsed {
+				sources = append(sources, routeOptionToSourceRef(opt))
+			}
+			return
+		}
+
 		options := r.internedOptions(opt)
 		if options == nil {
 			return
@@ -153,19 +185,21 @@ func (r *routeOptionQueries) GetRouteOptionForRouteRule(
 		mergeAttachment(opt)
 	}
 
-	var list solokubev1.RouteOptionList
-	if err := r.c.List(
-		ctx,
-		&list,
+	listOpts := []client.ListOption{
 		client.MatchingFieldsSelector{Selector: fields.OneTermEqualSelector(RouteOptionTargetField, route.String())},
 		client.InNamespace(route.Namespace),
+	}
+	if r.intern {
 		// Skip the client's per-call deep copy out of the cache: the merge only ever reads this
 		// query's interned copies (see internedOptions), so a per-call copy would be pure
 		// allocation churn thrown away after each lookup of a query that runs for every route
 		// rule on every translation (solo-io/solo-projects#8802). The returned objects are
 		// shared with the cache and are only read, never written.
-		client.UnsafeDisableDeepCopy,
-	); err != nil {
+		listOpts = append(listOpts, client.UnsafeDisableDeepCopy)
+	}
+
+	var list solokubev1.RouteOptionList
+	if err := r.c.List(ctx, &list, listOpts...); err != nil {
 		return nil, nil, err
 	}
 
@@ -208,6 +242,14 @@ func (r *routeOptionQueries) lookupFilterAttachments(
 		return nil, nil
 	}
 
+	var getOpts []client.GetOption
+	if r.intern {
+		// Shared with the cache and only read, never written, same as the List in
+		// GetRouteOptionForRouteRule; the merge reads only this query's interned copies
+		// (see internedOptions).
+		getOpts = append(getOpts, client.UnsafeDisableDeepCopy)
+	}
+
 	var out []*solokubev1.RouteOption
 	var multiErr *multierror.Error
 	for _, filter := range filters {
@@ -216,10 +258,7 @@ func (r *routeOptionQueries) lookupFilterAttachments(
 			ctx,
 			types.NamespacedName{Namespace: route.Namespace, Name: string(filter.ExtensionRef.Name)},
 			routeOption,
-			// Shared with the cache and only read, never written, same as the List in
-			// GetRouteOptionForRouteRule; the merge reads only this query's interned copies
-			// (see internedOptions).
-			client.UnsafeDisableDeepCopy,
+			getOpts...,
 		)
 		if err != nil {
 			// If the filter is not found, report a specific error so that it can reflect more
