@@ -178,6 +178,10 @@ spec:
         {{- if $spec.envoyLogLevel }}
           - --log-level {{ $spec.envoyLogLevel }}
         {{- end}}
+        {{- if (($spec.podTemplate.resources).limits).cpu }}
+          - --concurrency
+          - $(ENVOY_CONCURRENCY)
+        {{- end }}
           {{- with $spec.extraEnvoyArgs}}
             {{- range . }}
           - {{ . | quote }}
@@ -189,6 +193,13 @@ spec:
 {{ toYaml $spec.kind.deployment.customEnv | indent 8 }}
 {{- end }}
 {{- end }}
+        {{- if (($spec.podTemplate.resources).limits).cpu }}
+        - name: ENVOY_CONCURRENCY
+          valueFrom:
+            resourceFieldRef:
+              resource: limits.cpu
+              divisor: "1"
+        {{- end }}
         - name: POD_NAMESPACE
           valueFrom:
             fieldRef:
@@ -399,7 +410,18 @@ spec:
         - --dnsRefreshRate
         - 300s
         - --controlPlaneBootstrap=false
+        {{- if (($global.glooMtls.envoySidecarResources).limits).cpu }}
+        - --concurrency
+        - $(ENVOY_CONCURRENCY)
+        {{- end }}
         env:
+{{- if (($global.glooMtls.envoySidecarResources).limits).cpu }}
+          - name: ENVOY_CONCURRENCY
+            valueFrom:
+              resourceFieldRef:
+                resource: limits.cpu
+                divisor: "1"
+{{- end }}
           - name: OUTPUT_CERTS
             value: "/etc/istio-certs"
           - name: JWT_POLICY
