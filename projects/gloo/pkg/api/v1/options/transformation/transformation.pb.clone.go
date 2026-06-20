@@ -13,8 +13,6 @@ import (
 	"github.com/solo-io/protoc-gen-ext/pkg/clone"
 	"google.golang.org/protobuf/proto"
 
-	github_com_solo_io_gloo_projects_gloo_pkg_api_external_envoy_extensions_transformers_xslt "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/transformers/xslt"
-
 	github_com_solo_io_gloo_projects_gloo_pkg_api_v1_core_matchers "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
 
 	google_golang_org_protobuf_types_known_emptypb "google.golang.org/protobuf/types/known/emptypb"
@@ -234,18 +232,6 @@ func (m *Transformation) Clone() proto.Message {
 		} else {
 			target.TransformationType = &Transformation_HeaderBodyTransform{
 				HeaderBodyTransform: proto.Clone(m.GetHeaderBodyTransform()).(*HeaderBodyTransform),
-			}
-		}
-
-	case *Transformation_XsltTransformation:
-
-		if h, ok := interface{}(m.GetXsltTransformation()).(clone.Cloner); ok {
-			target.TransformationType = &Transformation_XsltTransformation{
-				XsltTransformation: h.Clone().(*github_com_solo_io_gloo_projects_gloo_pkg_api_external_envoy_extensions_transformers_xslt.XsltTransformation),
-			}
-		} else {
-			target.TransformationType = &Transformation_XsltTransformation{
-				XsltTransformation: proto.Clone(m.GetXsltTransformation()).(*github_com_solo_io_gloo_projects_gloo_pkg_api_external_envoy_extensions_transformers_xslt.XsltTransformation),
 			}
 		}
 

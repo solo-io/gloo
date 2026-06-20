@@ -137,7 +137,6 @@ The `requestTransformation` and `responseTransformation` attributes have the {{<
 - `headerBodyTransform`: This type of transformation makes all the headers available in the body and returns a JSON body that consists of two attributes: `headers`, containing the headers, and `body`, containing the original body.
   - If `addRequestMetadata` is true, `queryString`, `queryStringParameters`, `multiValueQueryStringParameters`, `httpMethod`, `path`, and `multiValueHeaders` will additionally be present in the body.
 - `transformationTemplate`: This type of transformation allows you to define transformation templates. This is the more powerful and flexible type of transformation. For more information, see [Transformation templates](#transformation-templates).
-- `xsltTransformation`: This type of transformation allows you to use the XSLT transformation language to describe your transformation. For more information, see [XSLT Transformation](#xslt-transformation).
 
 The `inheritTransformation` attribute allows child routes to inherit transformations from their parent RouteTables and/or VirtualHosts. For more information, see [Inheritance rules](#inheritance-rules).
 
@@ -472,28 +471,6 @@ In addition to the standard functions available in the core _Inja_ library, you 
 - `raw_string(string)`: returns the input string with escaped characters intact. Useful for constructing JSON request or response bodies.
 
 You can use templates to mutate [headers](#headers), the [body](#body), and [dynamic metadata](#dynamicmetadatavalues).
-
-#### XSLT Transformation
-{{< protobuf display="XSLT transformations" name="envoy.config.transformer.xslt.v2.XsltTransformation" >}} allow transformations on HTTP requests using the XSLT transformation language.
-The following snippet illustrates the structure of the `xsltTransformation` object.
-```yaml
-xsltTransformation:
-  xslt: string
-  setContentType: string
-  nonXmlTransform: bool
-```
-
-##### xslt
-The XSLT transformation is specified in this field as a string. Like other transformations, an invalid XSLT transformation will not be accepted and envoy
-validation will reject the transformation configuration.
-
-##### setContentType
-XSLT transformations can be used to transform HTTP body between content type. For example, from [XML to JSON](https://www.w3.org/TR/xslt-30/#func-xml-to-json), or [JSON to XML](https://www.w3.org/TR/xslt-30/#func-json-to-xml).
-In the case of these transformations, the `content-type` HTTP header is set to the value of `setContentType`. If left empty, the `content-type` header is unchanged.
-
-##### nonXmlTransform
-XSLT transformations typically accept only XML as input. If the input to the transformation is not XML, this should be set to true. For example, if
-the XSLT transformation is transforming a JSON input to XML, this would be set to `true`. By default, this is false and the XSLT transformation will only accept XML input.
 
 ### Common use cases
 On this page we have seen all the properties of the Gloo Gateway Transformation API as well as some simple example snippets. If are looking for complete examples, please check out the following tutorials, which will guide you through some of the most common transformation use cases.

@@ -677,9 +677,6 @@ apis:
   envoy.config.tap.output_sink.v3.HttpOutputSink:
     relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/external/envoy/config/tap/output_sink/v3/http_output_sink.proto.sk/#HttpOutputSink
     package: envoy.config.tap.output_sink.v3
-  envoy.config.transformer.xslt.v2.XsltTransformation:
-    relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/transformers/xslt/xslt_transformer.proto.sk/#XsltTransformation
-    package: envoy.config.transformer.xslt.v2
   envoy.extensions.cache.grpc.v2.GrpcCacheConfig:
     relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/cache/grpc/config.proto.sk/#GrpcCacheConfig
     package: envoy.extensions.cache.grpc.v2
