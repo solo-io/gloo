@@ -1,0 +1,6 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/solo-projects/issues/8887
+    resolvesIssue: false
+    description: >-
+      "added missing certgen-fips in helm helpers template"
