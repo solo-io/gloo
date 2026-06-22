@@ -32,7 +32,7 @@ for fips or fips-distroless variants: add -fips to the image repo (name)
 {{- if .repository -}}
 {{- $repository := .repository -}}
 {{- if or .fips (has .variant (list "fips" "fips-distroless")) -}}
-{{- $fipsSupportedImages := list "gloo-ee" "extauth-ee" "gloo-ee-envoy-wrapper" "rate-limit-ee" "discovery-ee" "sds-ee" -}}
+{{- $fipsSupportedImages := list "gloo-ee" "extauth-ee" "gloo-ee-envoy-wrapper" "rate-limit-ee" "discovery-ee" "sds-ee" "certgen" -}}
 {{- if (has .repository $fipsSupportedImages) -}}
 {{- $repository = printf "%s-fips" $repository -}}
 {{- end -}}{{- /* if (has .repository $fipsSupportedImages) */ -}}
