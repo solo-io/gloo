@@ -117,6 +117,7 @@ gloo:
     replicas: 1
     runAsUser: 10101
     serviceAccount: {}
+    goMemLimitPercent: 0  # Compute GOMEMLIMIT as this % of limits.memory at render time (1-100). 0 = disabled.
 discovery:
   enabled: false
   fdsMode: WHITELIST
@@ -128,6 +129,7 @@ discovery:
     runAsUser: 10101
     enablePodSecurityContext: true
     fsGroup: 10101
+    goMemLimitPercent: 0  # Compute GOMEMLIMIT as this % of limits.memory at render time (1-100). 0 = disabled.
 gateway:
   enabled: true
   translateEmptyGateways: false

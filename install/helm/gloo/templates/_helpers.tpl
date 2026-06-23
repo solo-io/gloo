@@ -404,3 +404,39 @@ app: gloo
 {{ toYaml . }}
 {{- end }}
 {{- end }}
+
+{{/*
+gloo.memToMiB: convert a Kubernetes memory quantity string to integer MiB.
+Supported suffixes: Gi, G, Mi, M. Fails on unrecognised input.
+*/}}
+{{- define "gloo.memToMiB" -}}
+{{- $mem := . -}}
+{{- $mib := 0 -}}
+{{- if hasSuffix "Gi" $mem -}}
+  {{- $mib = mul (trimSuffix "Gi" $mem | atoi) 1024 -}}
+{{- else if hasSuffix "G" $mem -}}
+  {{- $mib = div (mul (trimSuffix "G" $mem | atoi) 1000) 1049 -}}
+{{- else if hasSuffix "Mi" $mem -}}
+  {{- $mib = trimSuffix "Mi" $mem | atoi -}}
+{{- else if hasSuffix "M" $mem -}}
+  {{- $mib = trimSuffix "M" $mem | atoi -}}
+{{- else -}}
+  {{- fail (printf "goMemLimitPercent: unsupported memory quantity %q — use Gi, Mi, G, or M suffix (e.g. \"2Gi\", \"512Mi\")" $mem) -}}
+{{- end -}}
+{{- $mib -}}
+{{- end -}}
+
+{{/*
+gloo.goMemLimit: compute GOMEMLIMIT string from a memory quantity and integer percent.
+Usage: include "gloo.goMemLimit" (list "2Gi" 80) -> "1638MiB"
+*/}}
+{{- define "gloo.goMemLimit" -}}
+{{- $mem := index . 0 -}}
+{{- $pct := index . 1 -}}
+{{- if or (lt (int $pct) 1) (gt (int $pct) 100) -}}
+  {{- fail (printf "goMemLimitPercent must be between 1 and 100, got %d" (int $pct)) -}}
+{{- else -}}
+  {{- $mib := include "gloo.memToMiB" $mem | trim | int -}}
+  {{- printf "%dMiB" (div (mul $mib $pct) 100) -}}
+{{- end -}}
+{{- end -}}

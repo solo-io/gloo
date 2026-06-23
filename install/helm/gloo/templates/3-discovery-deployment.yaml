@@ -76,12 +76,17 @@ spec:
                 name: {{ .Values.license_secret_name }}
                 key: license-key
 {{- end }}
-{{- if (((.Values.discovery.deployment.resources).limits).memory) }}
+{{- with .Values.discovery.deployment }}
+{{- if and .goMemLimitPercent (((.resources).limits).memory) }}
+          - name: GOMEMLIMIT
+            value: {{ include "gloo.goMemLimit" (list .resources.limits.memory .goMemLimitPercent) | quote }}
+{{- else if (((.resources).limits).memory) }}
           - name: GOMEMLIMIT
             valueFrom:
               resourceFieldRef:
                 divisor: "1"
                 resource: limits.memory
+{{- end }}
 {{- end -}}
 {{- if (((.Values.discovery.deployment.resources).limits).cpu) }}
           - name: GOMAXPROCS
