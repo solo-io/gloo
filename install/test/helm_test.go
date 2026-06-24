@@ -5262,6 +5262,177 @@ metadata:
 						expectEnvVarDoesNotExist(glooContainer, "GOMAXPROCS")
 					})
 
+					It("computes GOMEMLIMIT as a static MiB value when goMemLimitPercent is set alongside limits.memory", func() {
+						prepareMakefile(namespace, glootestutils.HelmValues{
+							ValuesArgs: []string{
+								"gloo.deployment.resources.limits.memory=2Gi",
+								"gloo.deployment.resources.limits.cpu=2",
+								"gloo.deployment.goMemLimitPercent=80",
+							},
+						})
+						// 80% of 2Gi (2048 MiB) = 1638 MiB; rendered as a static value, not a resourceFieldRef
+						deploy := getStructuredDeployment(testManifest, kubeutils.GlooDeploymentName)
+						glooContainer := deploy.Spec.Template.Spec.Containers[0]
+						expectEnvVarExists(glooContainer, corev1.EnvVar{
+							Name:  "GOMEMLIMIT",
+							Value: "1638MiB",
+						})
+					})
+
+					It("does not set GOMEMLIMIT when goMemLimitPercent is set but limits.memory is absent", func() {
+						prepareMakefile(namespace, glootestutils.HelmValues{
+							ValuesArgs: []string{
+								"gloo.deployment.resources.requests.memory=512Mi",
+								"gloo.deployment.goMemLimitPercent=80",
+							},
+						})
+						deploy := getStructuredDeployment(testManifest, kubeutils.GlooDeploymentName)
+						glooContainer := deploy.Spec.Template.Spec.Containers[0]
+						expectEnvVarDoesNotExist(glooContainer, "GOMEMLIMIT")
+					})
+
+					Context("goMemLimitPercent validation", func() {
+						It("fails to render when goMemLimitPercent is greater than 100", func() {
+							expectRenderError(namespace, glootestutils.HelmValues{
+								ValuesArgs: []string{
+									"gloo.deployment.resources.limits.memory=2Gi",
+									"gloo.deployment.goMemLimitPercent=101",
+								},
+							})
+							Expect(renderErr).To(HaveOccurred())
+							Expect(renderErr.Error()).To(ContainSubstring("goMemLimitPercent must be between 1 and 100"))
+						})
+
+						It("fails to render when limits.memory uses an unsupported suffix", func() {
+							expectRenderError(namespace, glootestutils.HelmValues{
+								ValuesArgs: []string{
+									"gloo.deployment.resources.limits.memory=512Ki",
+									"gloo.deployment.goMemLimitPercent=80",
+								},
+							})
+							Expect(renderErr).To(HaveOccurred())
+							Expect(renderErr.Error()).To(ContainSubstring("unsupported memory quantity"))
+							Expect(renderErr.Error()).To(ContainSubstring("512Ki"))
+						})
+					})
+
+					Context("goMemLimitPercent boundary values", func() {
+						It("falls back to valueFrom when goMemLimitPercent is 0 (default, feature disabled)", func() {
+							// 0 is falsy in Helm; `if and .goMemLimitPercent (...)` short-circuits, helper not called
+							prepareMakefile(namespace, glootestutils.HelmValues{
+								ValuesArgs: []string{
+									"gloo.deployment.resources.limits.memory=2Gi",
+									"gloo.deployment.resources.limits.cpu=2",
+									"gloo.deployment.goMemLimitPercent=0",
+								},
+							})
+							deploy := getStructuredDeployment(testManifest, kubeutils.GlooDeploymentName)
+							glooContainer := deploy.Spec.Template.Spec.Containers[0]
+							expectEnvVarExists(glooContainer, corev1.EnvVar{
+								Name: "GOMEMLIMIT",
+								ValueFrom: &corev1.EnvVarSource{
+									ResourceFieldRef: &corev1.ResourceFieldSelector{
+										Resource: string(corev1.ResourceLimitsMemory),
+										Divisor:  resource.MustParse("1"),
+									},
+								}})
+						})
+
+						It("fails to render when goMemLimitPercent is negative", func() {
+							// -1 is non-zero (truthy), so the helper is called and its lt (int $pct) 1 guard fires
+							expectRenderError(namespace, glootestutils.HelmValues{
+								ValuesArgs: []string{
+									"gloo.deployment.resources.limits.memory=2Gi",
+									"gloo.deployment.goMemLimitPercent=-1",
+								},
+							})
+							Expect(renderErr).To(HaveOccurred())
+							Expect(renderErr.Error()).To(ContainSubstring("goMemLimitPercent must be between 1 and 100"))
+						})
+
+						It("renders GOMEMLIMIT at goMemLimitPercent=1 (lower inclusive boundary)", func() {
+							// 1% of 2Gi (2048 MiB) = 20 MiB
+							prepareMakefile(namespace, glootestutils.HelmValues{
+								ValuesArgs: []string{
+									"gloo.deployment.resources.limits.memory=2Gi",
+									"gloo.deployment.goMemLimitPercent=1",
+								},
+							})
+							deploy := getStructuredDeployment(testManifest, kubeutils.GlooDeploymentName)
+							glooContainer := deploy.Spec.Template.Spec.Containers[0]
+							expectEnvVarExists(glooContainer, corev1.EnvVar{
+								Name:  "GOMEMLIMIT",
+								Value: "20MiB",
+							})
+						})
+
+						It("renders GOMEMLIMIT at goMemLimitPercent=100 (upper inclusive boundary)", func() {
+							// 100% of 2Gi (2048 MiB) = 2048 MiB
+							prepareMakefile(namespace, glootestutils.HelmValues{
+								ValuesArgs: []string{
+									"gloo.deployment.resources.limits.memory=2Gi",
+									"gloo.deployment.goMemLimitPercent=100",
+								},
+							})
+							deploy := getStructuredDeployment(testManifest, kubeutils.GlooDeploymentName)
+							glooContainer := deploy.Spec.Template.Spec.Containers[0]
+							expectEnvVarExists(glooContainer, corev1.EnvVar{
+								Name:  "GOMEMLIMIT",
+								Value: "2048MiB",
+							})
+						})
+					})
+
+					Context("gloo.memToMiB suffix handling", func() {
+						It("treats M suffix as MiB (SI megabytes approximated as mebibytes)", func() {
+							// 512M → 512 MiB in the helper (~4.86% overestimate vs true 488 MiB); 80% = 409 MiB
+							prepareMakefile(namespace, glootestutils.HelmValues{
+								ValuesArgs: []string{
+									"gloo.deployment.resources.limits.memory=512M",
+									"gloo.deployment.goMemLimitPercent=80",
+								},
+							})
+							deploy := getStructuredDeployment(testManifest, kubeutils.GlooDeploymentName)
+							glooContainer := deploy.Spec.Template.Spec.Containers[0]
+							expectEnvVarExists(glooContainer, corev1.EnvVar{
+								Name:  "GOMEMLIMIT",
+								Value: "409MiB",
+							})
+						})
+
+						It("computes GOMEMLIMIT correctly for G suffix (SI gigabytes)", func() {
+							// div(1×1,000,000, 1049) = 953 MiB; 80% = 762 MiB
+							prepareMakefile(namespace, glootestutils.HelmValues{
+								ValuesArgs: []string{
+									"gloo.deployment.resources.limits.memory=1G",
+									"gloo.deployment.goMemLimitPercent=80",
+								},
+							})
+							deploy := getStructuredDeployment(testManifest, kubeutils.GlooDeploymentName)
+							glooContainer := deploy.Spec.Template.Spec.Containers[0]
+							expectEnvVarExists(glooContainer, corev1.EnvVar{
+								Name:  "GOMEMLIMIT",
+								Value: "762MiB",
+							})
+						})
+
+						It("computes GOMEMLIMIT correctly for large G suffix (48G)", func() {
+							// div(48×1,000,000, 1049) = 45,757 MiB; 80% = 36,605 MiB
+							prepareMakefile(namespace, glootestutils.HelmValues{
+								ValuesArgs: []string{
+									"gloo.deployment.resources.limits.memory=48G",
+									"gloo.deployment.goMemLimitPercent=80",
+								},
+							})
+							deploy := getStructuredDeployment(testManifest, kubeutils.GlooDeploymentName)
+							glooContainer := deploy.Spec.Template.Spec.Containers[0]
+							expectEnvVarExists(glooContainer, corev1.EnvVar{
+								Name:  "GOMEMLIMIT",
+								Value: "36605MiB",
+							})
+						})
+					})
+
 					It("can overwrite the container image information", func() {
 						container := GetContainerSpec("gcr.io/solo-public", "gloo", version, GetPodNamespaceEnvVar(), GetPodNamespaceStats())
 						container.PullPolicy = "Always"
@@ -5554,6 +5725,37 @@ metadata:
 						// since no resource limits are set, GOMEMLIMIT and GOMAXPROCS should also not be set
 						expectEnvVarDoesNotExist(discoveryContainer, "GOMEMLIMIT")
 						expectEnvVarDoesNotExist(discoveryContainer, "GOMAXPROCS")
+					})
+
+					It("computes GOMEMLIMIT as a static MiB value when goMemLimitPercent is set alongside limits.memory", func() {
+						prepareMakefile(namespace, glootestutils.HelmValues{
+							ValuesArgs: []string{
+								"discovery.enabled=true",
+								"discovery.deployment.resources.limits.memory=1Gi",
+								"discovery.deployment.resources.limits.cpu=1",
+								"discovery.deployment.goMemLimitPercent=80",
+							},
+						})
+						// 80% of 1Gi (1024 MiB) = 819 MiB
+						deploy := getStructuredDeployment(testManifest, kubeutils.DiscoveryDeploymentName)
+						discoveryContainer := deploy.Spec.Template.Spec.Containers[0]
+						expectEnvVarExists(discoveryContainer, corev1.EnvVar{
+							Name:  "GOMEMLIMIT",
+							Value: "819MiB",
+						})
+					})
+
+					It("does not set GOMEMLIMIT when goMemLimitPercent is set but limits.memory is absent", func() {
+						prepareMakefile(namespace, glootestutils.HelmValues{
+							ValuesArgs: []string{
+								"discovery.enabled=true",
+								"discovery.deployment.resources.requests.memory=512Mi",
+								"discovery.deployment.goMemLimitPercent=80",
+							},
+						})
+						deploy := getStructuredDeployment(testManifest, kubeutils.DiscoveryDeploymentName)
+						discoveryContainer := deploy.Spec.Template.Spec.Containers[0]
+						expectEnvVarDoesNotExist(discoveryContainer, "GOMEMLIMIT")
 					})
 
 					It("can overwrite the container image information", func() {
