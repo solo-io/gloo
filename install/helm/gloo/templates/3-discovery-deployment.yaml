@@ -77,6 +77,13 @@ spec:
                 key: license-key
 {{- end }}
 {{- with .Values.discovery.deployment }}
+{{- if .goMemLimitPercent }}
+  {{- range .customEnv }}
+    {{- if eq .name "GOMEMLIMIT" }}
+      {{- fail "goMemLimitPercent and a customEnv GOMEMLIMIT entry cannot both be set; use one or the other" }}
+    {{- end }}
+  {{- end }}
+{{- end }}
 {{- if and .goMemLimitPercent (((.resources).limits).memory) }}
           - name: GOMEMLIMIT
             value: {{ include "gloo.goMemLimit" (list .resources.limits.memory .goMemLimitPercent) | quote }}

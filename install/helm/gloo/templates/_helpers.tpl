@@ -415,7 +415,7 @@ Supported suffixes: Gi, G, Mi, M. Fails on unrecognised input.
 {{- if hasSuffix "Gi" $mem -}}
   {{- $mib = mul (trimSuffix "Gi" $mem | atoi) 1024 -}}
 {{- else if hasSuffix "G" $mem -}}
-  {{- $mib = div (mul (trimSuffix "G" $mem | atoi) 1000) 1049 -}}
+  {{- $mib = div (mul (trimSuffix "G" $mem | atoi) 1000000) 1049 -}}
 {{- else if hasSuffix "Mi" $mem -}}
   {{- $mib = trimSuffix "Mi" $mem | atoi -}}
 {{- else if hasSuffix "M" $mem -}}
