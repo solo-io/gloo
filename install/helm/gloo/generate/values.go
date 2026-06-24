@@ -123,8 +123,8 @@ type DeploymentSpecSansResources struct {
 
 type DeploymentSpec struct {
 	DeploymentSpecSansResources
-	Resources          *ResourceRequirements `json:"resources,omitempty" desc:"resources for the main pod in the deployment"`
-	GoMemLimitPercent  *int                  `json:"goMemLimitPercent,omitempty" desc:"Compute GOMEMLIMIT as this percentage of resources.limits.memory at render time (1-100). 0 or unset disables the feature. Recommended 80-90%."`
+	Resources         *ResourceRequirements `json:"resources,omitempty" desc:"resources for the main pod in the deployment"`
+	GoMemLimitPercent *int                  `json:"goMemLimitPercent,omitempty" desc:"Compute GOMEMLIMIT as this percentage of resources.limits.memory at render time (1-100). 0 or unset disables the feature. Recommended 80-90%."`
 	*KubeResourceOverride
 }
 

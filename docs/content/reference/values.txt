@@ -319,6 +319,7 @@
 |settings.integrations.knative.proxy.resources.limits.cpu|string||amount of CPUs|
 |settings.integrations.knative.proxy.resources.requests.memory|string||amount of memory|
 |settings.integrations.knative.proxy.resources.requests.cpu|string||amount of CPUs|
+|settings.integrations.knative.proxy.goMemLimitPercent|int||Compute GOMEMLIMIT as this percentage of resources.limits.memory at render time (1-100). 0 or unset disables the feature. Recommended 80-90%.|
 |settings.integrations.knative.proxy.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |settings.integrations.knative.proxy.service.type|string|LoadBalancer|K8s service type|
 |settings.integrations.knative.proxy.service.extraAnnotations.NAME|string||extra annotations to add to the service|
@@ -502,6 +503,7 @@
 |gloo.deployment.resources.limits.cpu|string||amount of CPUs|
 |gloo.deployment.resources.requests.memory|string||amount of memory|
 |gloo.deployment.resources.requests.cpu|string||amount of CPUs|
+|gloo.deployment.goMemLimitPercent|int|0|Compute GOMEMLIMIT as this percentage of resources.limits.memory at render time (1-100). 0 or unset disables the feature. Recommended 80-90%.|
 |gloo.deployment.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |gloo.deployment.image.tag|string|<release_version, ex: 1.2.3>|The image tag for the container.|
 |gloo.deployment.image.repository|string|gloo|The image repository (name) for the container.|
@@ -635,6 +637,7 @@
 |discovery.deployment.resources.limits.cpu|string||amount of CPUs|
 |discovery.deployment.resources.requests.memory|string||amount of memory|
 |discovery.deployment.resources.requests.cpu|string||amount of CPUs|
+|discovery.deployment.goMemLimitPercent|int|0|Compute GOMEMLIMIT as this percentage of resources.limits.memory at render time (1-100). 0 or unset disables the feature. Recommended 80-90%.|
 |discovery.deployment.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |discovery.fdsMode|string|WHITELIST|mode for function discovery (blacklist or whitelist). See more info in the settings docs|
 |discovery.udsOptions.enabled|bool||Enable upstream discovery service. Defaults to true.|
@@ -1474,6 +1477,7 @@
 |ingress.deployment.resources.limits.cpu|string||amount of CPUs|
 |ingress.deployment.resources.requests.memory|string||amount of memory|
 |ingress.deployment.resources.requests.cpu|string||amount of CPUs|
+|ingress.deployment.goMemLimitPercent|int||Compute GOMEMLIMIT as this percentage of resources.limits.memory at render time (1-100). 0 or unset disables the feature. Recommended 80-90%.|
 |ingress.deployment.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |ingress.requireIngressClass|bool||only serve traffic for Ingress objects with the Ingress Class annotation 'kubernetes.io/ingress.class'. By default the annotation value must be set to 'gloo', however this can be overridden via customIngressClass.|
 |ingress.customIngressClass|bool||Only relevant when requireIngressClass is set to true. Setting this value will cause the Gloo Edge Ingress Controller to process only those Ingress objects which have their ingress class set to this value (e.g. 'kubernetes.io/ingress.class=SOMEVALUE').|
@@ -1559,6 +1563,7 @@
 |ingressProxy.deployment.resources.limits.cpu|string||amount of CPUs|
 |ingressProxy.deployment.resources.requests.memory|string||amount of memory|
 |ingressProxy.deployment.resources.requests.cpu|string||amount of CPUs|
+|ingressProxy.deployment.goMemLimitPercent|int||Compute GOMEMLIMIT as this percentage of resources.limits.memory at render time (1-100). 0 or unset disables the feature. Recommended 80-90%.|
 |ingressProxy.deployment.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |ingressProxy.configMap.data.NAME|string|||
 |ingressProxy.configMap.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
@@ -1662,6 +1667,7 @@
 |accessLogger.resources.limits.cpu|string||amount of CPUs|
 |accessLogger.resources.requests.memory|string||amount of memory|
 |accessLogger.resources.requests.cpu|string||amount of CPUs|
+|accessLogger.goMemLimitPercent|int||Compute GOMEMLIMIT as this percentage of resources.limits.memory at render time (1-100). 0 or unset disables the feature. Recommended 80-90%.|
 |accessLogger.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |global.image.tag|string||The image tag for the container.|
 |global.image.repository|string||The image repository (name) for the container.|
