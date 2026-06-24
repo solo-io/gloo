@@ -6,3 +6,5 @@ require (
 	github.com/foomo/soap v0.1.0
 	github.com/lithammer/fuzzysearch v1.1.2
 )
+
+require golang.org/x/text v0.3.8 // indirect
