@@ -59,7 +59,7 @@ spec:
 {{ toYaml .Values.settings.integrations.knative.proxy.resources | indent 10}}
 {{- end}}
         {{- $capabilities := dict "drop" (list "ALL") "add" (list "NET_BIND_SERVICE") -}}
-        {{- $securityDefaults := dict 
+        {{- $securityDefaults := dict
             "readOnlyRootFilesystem" true
             "allowPrivilegeEscalation" false
             "capabilities" $capabilities
@@ -85,7 +85,7 @@ spec:
 
 {{- end }}
 {{- end }}
-{{- end }} {{/* define knativeExternalProxy.deploymentSpec */}}
+{{- end }}{{/* define knativeExternalProxy.deploymentSpec */}}
 
 {{/* Render template with yaml overrides */}}
 {{- $kubeResourceOverride := dict -}}

@@ -46,7 +46,7 @@ spec:
 {{- end }}
   selector:
     gloo: gloo
-{{- end }} {{/* define "gloo.serviceSpec "*/}}
+{{- end }}{{/* define "gloo.serviceSpec "*/}}
 
 {{/* Render template with yaml overrides */}}
 {{- $kubeResourceOverride := dict -}}

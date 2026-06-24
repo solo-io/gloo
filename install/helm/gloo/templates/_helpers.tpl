@@ -50,7 +50,7 @@ for distroless or fips-distroless variants: add -distroless to the tag
 {{- if and .tag (has .variant (list "distroless" "fips-distroless")) -}}
 {{- $distrolessSupportedImages := list "gloo" "gloo-envoy-wrapper" "discovery" "sds" "certgen" "kubectl" "access-logger" "ingress" "gloo-ee" "extauth-ee" "gloo-ee-envoy-wrapper" "rate-limit-ee" "discovery-ee" "sds-ee" "observability-ee" "caching-ee" -}}
 {{- if (has .repository $distrolessSupportedImages) -}}
-{{- $tag = printf "%s-distroless" $tag -}} {{- /* Add distroless suffix to the tag since it contains the same binaries in a different container */ -}}
+{{- $tag = printf "%s-distroless" $tag -}}{{- /* Add distroless suffix to the tag since it contains the same binaries in a different container */ -}}
 {{- end -}}{{- /* if (has .repository $distrolessSupportedImages) */ -}}
 {{- end -}}{{- /* if and .tag (has .variant (list "distroless" "fips-distroless")) */ -}}
 {{ $tag }}
@@ -350,7 +350,7 @@ version, which merges two named templates.
 {{- include (index . 2) $top -}}{{/* render source as is */}}
 {{- else -}}
 {{- $merged := mergeOverwrite $tpl $overrides -}}
-{{- toYaml $merged -}} {{/* render source with overrides as YAML */}}
+{{- toYaml $merged -}}{{/* render source with overrides as YAML */}}
 {{- end -}}
 {{- end -}}
 
@@ -406,29 +406,59 @@ app: gloo
 {{- end }}
 
 {{/*
-gloo.memToMiB: convert a Kubernetes memory quantity string to integer MiB.
-Supported suffixes: Gi, G, Mi, M. Fails on unrecognised input.
+gloo.memToBytes: convert a Kubernetes memory quantity string to integer bytes.
+Supported suffixes: Ki, Mi, Gi, Ti, Pi, Ei, k, M, G, T, P, E, or no suffix.
 */}}
-{{- define "gloo.memToMiB" -}}
-{{- $mem := . -}}
-{{- $mib := 0 -}}
-{{- if hasSuffix "Gi" $mem -}}
-  {{- $mib = mul (trimSuffix "Gi" $mem | atoi) 1024 -}}
-{{- else if hasSuffix "G" $mem -}}
-  {{- $mib = div (mul (trimSuffix "G" $mem | atoi) 1000000) 1049 -}}
+{{- define "gloo.memToBytes" -}}
+{{- $mem := printf "%v" . -}}
+{{- $number := $mem -}}
+{{- $multiplier := 1.0 -}}
+{{- if hasSuffix "Ki" $mem -}}
+  {{- $number = trimSuffix "Ki" $mem -}}
+  {{- $multiplier = 1024.0 -}}
 {{- else if hasSuffix "Mi" $mem -}}
-  {{- $mib = trimSuffix "Mi" $mem | atoi -}}
+  {{- $number = trimSuffix "Mi" $mem -}}
+  {{- $multiplier = 1048576.0 -}}
+{{- else if hasSuffix "Gi" $mem -}}
+  {{- $number = trimSuffix "Gi" $mem -}}
+  {{- $multiplier = 1073741824.0 -}}
+{{- else if hasSuffix "Ti" $mem -}}
+  {{- $number = trimSuffix "Ti" $mem -}}
+  {{- $multiplier = 1099511627776.0 -}}
+{{- else if hasSuffix "Pi" $mem -}}
+  {{- $number = trimSuffix "Pi" $mem -}}
+  {{- $multiplier = 1125899906842624.0 -}}
+{{- else if hasSuffix "Ei" $mem -}}
+  {{- $number = trimSuffix "Ei" $mem -}}
+  {{- $multiplier = 1152921504606846976.0 -}}
+{{- else if hasSuffix "k" $mem -}}
+  {{- $number = trimSuffix "k" $mem -}}
+  {{- $multiplier = 1000.0 -}}
 {{- else if hasSuffix "M" $mem -}}
-  {{- $mib = trimSuffix "M" $mem | atoi -}}
-{{- else -}}
-  {{- fail (printf "goMemLimitPercent: unsupported memory quantity %q — use Gi, Mi, G, or M suffix (e.g. \"2Gi\", \"512Mi\")" $mem) -}}
+  {{- $number = trimSuffix "M" $mem -}}
+  {{- $multiplier = 1000000.0 -}}
+{{- else if hasSuffix "G" $mem -}}
+  {{- $number = trimSuffix "G" $mem -}}
+  {{- $multiplier = 1000000000.0 -}}
+{{- else if hasSuffix "T" $mem -}}
+  {{- $number = trimSuffix "T" $mem -}}
+  {{- $multiplier = 1000000000000.0 -}}
+{{- else if hasSuffix "P" $mem -}}
+  {{- $number = trimSuffix "P" $mem -}}
+  {{- $multiplier = 1000000000000000.0 -}}
+{{- else if hasSuffix "E" $mem -}}
+  {{- $number = trimSuffix "E" $mem -}}
+  {{- $multiplier = 1000000000000000000.0 -}}
 {{- end -}}
-{{- $mib -}}
+{{- if not (regexMatch "^([0-9]+(\\.[0-9]+)?|\\.[0-9]+)([eE][+-]?[0-9]+)?$" $number) -}}
+  {{- fail (printf "goMemLimitPercent: unsupported memory quantity %q; use a Kubernetes memory quantity such as \"2Gi\", \"1.5Gi\", or \"512M\"" $mem) -}}
+{{- end -}}
+{{- printf "%.0f" (floor (mulf (float64 $number) $multiplier)) -}}
 {{- end -}}
 
 {{/*
-gloo.goMemLimit: compute GOMEMLIMIT string from a memory quantity and integer percent.
-Usage: include "gloo.goMemLimit" (list "2Gi" 80) -> "1638MiB"
+gloo.goMemLimit: compute a byte-valued GOMEMLIMIT string from a memory quantity and integer percent.
+Usage: include "gloo.goMemLimit" (list "2Gi" 80) -> "1717986918"
 */}}
 {{- define "gloo.goMemLimit" -}}
 {{- $mem := index . 0 -}}
@@ -436,7 +466,7 @@ Usage: include "gloo.goMemLimit" (list "2Gi" 80) -> "1638MiB"
 {{- if or (lt (int $pct) 1) (gt (int $pct) 100) -}}
   {{- fail (printf "goMemLimitPercent must be between 1 and 100, got %d" (int $pct)) -}}
 {{- else -}}
-  {{- $mib := include "gloo.memToMiB" $mem | trim | int -}}
-  {{- printf "%dMiB" (div (mul $mib $pct) 100) -}}
+  {{- $bytes := include "gloo.memToBytes" $mem | trim | float64 -}}
+  {{- printf "%.0f" (floor (divf (mulf $bytes (float64 $pct)) 100.0)) -}}
 {{- end -}}
 {{- end -}}

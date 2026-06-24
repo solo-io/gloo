@@ -69,7 +69,7 @@ specific resources, we will manage the resources that the webhook receives via t
     - v1beta1 # v1beta1 still live in 1.22 https://github.com/kubernetes/api/blob/release-1.22/admission/v1beta1/types.go#L33
 {{- if .Values.gateway.validation.failurePolicy }}
   failurePolicy: {{ .Values.gateway.validation.failurePolicy }}
-{{- end }} {{- /* if .Values.gateway.validation.failurePolicy */}}
+{{- end }}{{- /* if .Values.gateway.validation.failurePolicy */}}
 
 {{/* Webhook for core resources - only render if we need to */}}
 {{- if and
@@ -112,17 +112,17 @@ specific resources, we will manage the resources that the webhook receives via t
     - v1beta1 # v1beta1 still live in 1.22 https://github.com/kubernetes/api/blob/release-1.22/admission/v1beta1/types.go#L33
 {{- if .Values.gateway.validation.kubeCoreFailurePolicy }}
   failurePolicy: {{ .Values.gateway.validation.kubeCoreFailurePolicy -}}
-{{- end }} {{/* if .Values.gateway.validation.kubeCoreFailurePolicy */}}
-{{- end }} {{/* render webhook if */}}
+{{- end }}{{/* if .Values.gateway.validation.kubeCoreFailurePolicy */}}
+{{- end }}{{/* render webhook if */}}
 
-{{- end }} {{/* if and .Values.gateway.enabled .Values.gateway.validation.enabled .Values.gateway.validation.webhook.enabled */}}
-{{- end }} {{/* define "gateway.validationWebhookSpec" */}}
+{{- end }}{{/* if and .Values.gateway.enabled .Values.gateway.validation.enabled .Values.gateway.validation.webhook.enabled */}}
+{{- end }}{{/* define "gateway.validationWebhookSpec" */}}
 
 {{/* Render template with yaml overrides */}}
 {{- $kubeResourceOverride := dict -}}
 {{- if .Values.gateway.validation -}}
 {{- if .Values.gateway.validation.webhook -}}
 {{- $kubeResourceOverride = .Values.gateway.validation.webhook.kubeResourceOverride   -}}
-{{- end -}} {{/* if .Values.gateway.validation.webhook */ -}}
-{{- end -}} {{/* if .Values.gateway.validation */ -}}
+{{- end -}}{{/* if .Values.gateway.validation.webhook */ -}}
+{{- end -}}{{/* if .Values.gateway.validation */ -}}
 {{- include "gloo.util.merge" (list . $kubeResourceOverride "gateway.validationWebhookSpec") -}}

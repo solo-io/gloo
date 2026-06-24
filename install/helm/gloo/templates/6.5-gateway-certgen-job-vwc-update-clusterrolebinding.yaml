@@ -20,5 +20,5 @@ roleRef:
   kind: ClusterRole
   name: gloo-gateway-vwc-update{{ include "gloo.rbacNameSuffix" . }}
   apiGroup: rbac.authorization.k8s.io
-{{- end }} {{/* .Values.global.glooRbac.create */}}
-{{- end }} {{/* {{- if or (and gateway.enabled validation.enabled certGenJob.enabled glooMtls.enabled */}}
+{{- end }}{{/* .Values.global.glooRbac.create */}}
+{{- end }}{{/* {{- if or (and gateway.enabled validation.enabled certGenJob.enabled glooMtls.enabled */}}

@@ -80,9 +80,9 @@ spec:
           name: clusteringress-envoy-config
         name: envoy-config
 
-{{- end }} {{/*  if (semverCompare "< 0.8.0" .Values.settings.integrations.knative.version ) */}}
-{{- end }} {{/* if .Values.settings.integrations.knative.enabled */}}
-{{- end }} {{/* define clusterIngressProxy.deploymentSpec */}}
+{{- end }}{{/*  if (semverCompare "< 0.8.0" .Values.settings.integrations.knative.version ) */}}
+{{- end }}{{/* if .Values.settings.integrations.knative.enabled */}}
+{{- end }}{{/* define clusterIngressProxy.deploymentSpec */}}
 
 {{/* Render template with yaml overrides */}}
 {{- $kubeResourceOverride := dict -}}

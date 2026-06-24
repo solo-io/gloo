@@ -16,5 +16,5 @@ rules:
 - apiGroups: ["admissionregistration.k8s.io"]
   resources: ["validatingwebhookconfigurations"]
   verbs: ["get", "update"]
-{{- end }} {{/* .Values.global.glooRbac.create */}}
-{{- end }} {{/* {{- if or (and gateway.enabled validation.enabled certGenJob.enabled glooMtls.enabled */}}
+{{- end }}{{/* .Values.global.glooRbac.create */}}
+{{- end }}{{/* {{- if or (and gateway.enabled validation.enabled certGenJob.enabled glooMtls.enabled */}}

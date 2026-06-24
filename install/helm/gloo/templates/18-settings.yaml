@@ -152,12 +152,12 @@ spec:
 {{- if .Values.discovery.udsOptions }}
     udsOptions:
     {{- toYaml .Values.discovery.udsOptions | nindent 6 }}
-{{- end }} {{/* if .Values.discovery.udsOptions */}}
+{{- end }}{{/* if .Values.discovery.udsOptions */}}
 {{- if .Values.discovery.fdsOptions }}
     fdsOptions:
     {{- toYaml .Values.discovery.fdsOptions | nindent 6 }}
-{{- end }} {{/* if .Values.discovery.fdsOptions */}}
-{{- end }} {{/* if .Values.discovery */}}
+{{- end }}{{/* if .Values.discovery.fdsOptions */}}
+{{- end }}{{/* if .Values.discovery */}}
 
 {{- if .Values.settings.extensions }}
   extensions:
@@ -197,16 +197,16 @@ spec:
   {{- range . }}
   - {{ . }}
   {{- end }}
-{{- end }} {{/* with .Values.settings.watchNamespaces */}}
-{{- end }} {{/* if .Values.settings.singleNamespace */}}
+{{- end }}{{/* with .Values.settings.watchNamespaces */}}
+{{- end }}{{/* if .Values.settings.singleNamespace */}}
 
 {{- if .Values.settings.watchNamespaceSelectors }}
   watchNamespaceSelectors:
   {{ toYaml .Values.settings.watchNamespaceSelectors | nindent 4 }}
-{{- end }} {{/* if .Values.settings.watchNamespaceSelectors */}}
+{{- end }}{{/* if .Values.settings.watchNamespaceSelectors */}}
 
-{{- end }} {{/* if .Values.settings.create  */}}
-{{- end }} {{/* define "settings.settingsSpec" */}}
+{{- end }}{{/* if .Values.settings.create  */}}
+{{- end }}{{/* define "settings.settingsSpec" */}}
 
 
 {{/* Render template with yaml overrides */}}

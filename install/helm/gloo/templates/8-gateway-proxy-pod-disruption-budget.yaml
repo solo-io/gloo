@@ -25,8 +25,8 @@ spec:
       gateway-proxy-id: {{ $name | kebabcase }}
 {{- end }}
 {{- end }}
-{{- end }} {{/* with */}}
-{{- end }} {{/* define gatewayProxy.deploymentSpec*/}}
+{{- end }}{{/* with */}}
+{{- end }}{{/* define gatewayProxy.deploymentSpec*/}}
 
 {{- if .Values.gateway.enabled }}
 {{- range $name, $gatewaySpec := .Values.gatewayProxies }}
@@ -34,7 +34,7 @@ spec:
 {{- $kubeResourceOverride := dict -}}
 {{- if $gatewaySpec.podDisruptionBudget -}}
 {{- $kubeResourceOverride = $gatewaySpec.podDisruptionBudget.kubeResourceOverride }}
-{{- end -}} {{/*if $gatewaySpec.podDisruptionBudget*/}}
+{{- end -}}{{/*if $gatewaySpec.podDisruptionBudget*/}}
 {{- $ctx := (list $ $name $gatewaySpec)}}
 ---
 {{ include "gloo.util.merge" (list $ctx $kubeResourceOverride "gatewayProxy.disruptionBudgetSpec") -}}

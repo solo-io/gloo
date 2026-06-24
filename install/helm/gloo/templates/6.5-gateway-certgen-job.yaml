@@ -63,12 +63,12 @@ spec:
             - "--validating-webhook-configuration-name=gloo-gateway-validation-webhook-{{ .Release.Namespace }}"
             {{- if .Values.gateway.certGenJob.forceRotation }}
             - "--force-rotation=true"
-            {{- end }} {{/* if .Values.gateway.certGenJob.forceRotation */}}
+            {{- end }}{{/* if .Values.gateway.certGenJob.forceRotation */}}
         {{- with .Values.gateway.certGenJob.resources }}
           resources: {{ toYaml . | nindent 12}}
         {{- end }}
-{{- end }} {{/* if and gateway.enabled gateway.validation.enabled gateway.certGenJob.enabled */}}
-{{- end }} {{/* define "gloo.gatewayCertGenJobSpec" */}}
+{{- end }}{{/* if and gateway.enabled gateway.validation.enabled gateway.certGenJob.enabled */}}
+{{- end }}{{/* define "gloo.gatewayCertGenJobSpec" */}}
 
 {{/* Render template with yaml overrides */}}
 {{- $kubeResourceOverride := dict -}}

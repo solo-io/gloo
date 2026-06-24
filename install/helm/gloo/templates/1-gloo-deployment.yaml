@@ -219,7 +219,8 @@ spec:
 {{- with .Values.gloo.deployment }}
 {{- if .goMemLimitPercent }}
   {{- range .customEnv }}
-    {{- if eq .name "GOMEMLIMIT" }}
+    {{- $name := or .name .Name }}
+    {{- if eq $name "GOMEMLIMIT" }}
       {{- fail "goMemLimitPercent and a customEnv GOMEMLIMIT entry cannot both be set; use one or the other" }}
     {{- end }}
   {{- end }}
@@ -310,7 +311,7 @@ spec:
           failureThreshold: 3
 {{- end }}
 {{- end }}{{/* if not .Values.global.glooMtls.enabled */}}
-{{- end }} {{/* define "gloo.deploymentSpec "*/}}
+{{- end }}{{/* define "gloo.deploymentSpec "*/}}
 
 {{/* Render template with yaml overrides */}}
 {{- include "gloo.util.merge" (list . .Values.gloo.deployment.kubeResourceOverride "gloo.deploymentSpec") -}}

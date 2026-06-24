@@ -135,7 +135,7 @@ spec:
       serviceAccountName: gateway-proxy
       {{- if $spec.kind.daemonSet }}
       {{- if $spec.kind.daemonSet.hostPort }}
-      hostNetwork: {{ ne "false" ($spec.kind.daemonSet.hostNetwork | toString) }} {{/* defaults to true if undefined */}}
+      hostNetwork: {{ ne "false" ($spec.kind.daemonSet.hostNetwork | toString) }}{{/* defaults to true if undefined */}}
       dnsPolicy: ClusterFirstWithHostNet
       {{- end}}
       {{- end}}
@@ -295,12 +295,12 @@ spec:
         - mountPath: /etc/envoy/ssl
           name: gloo-mtls-certs
           readOnly: true
-{{- end}} {{- /* $global.glooMtls.enabled */}}
+{{- end}}{{- /* $global.glooMtls.enabled */}}
 {{- if $spec.extraContainersHelper }}
         - mountPath: /usr/share/shared-data
           name: shared-data
 {{- include $spec.extraContainersHelper . | nindent 6 }}
-{{- end }} {{- /* $spec.extraContainersHelper */}}
+{{- end }}{{- /* $spec.extraContainersHelper */}}
 {{- if or $global.glooMtls.enabled (or $global.istioSDS.enabled $global.istioIntegration.enabled) }}
       {{- $sdsImage := merge $global.glooMtls.sds.image $global.image }}
       - name: sds
@@ -362,7 +362,7 @@ spec:
           initialDelaySeconds: 3
           periodSeconds: 10
           failureThreshold: 3
-{{- end }} {{- /* or $global.glooMtls.enabled (or $.Values.istioSDS.enabled $global.istioIntegration.enabled) */}}
+{{- end }}{{- /* or $global.glooMtls.enabled (or $.Values.istioSDS.enabled $global.istioIntegration.enabled) */}}
 {{- if or $global.istioSDS.enabled $global.istioIntegration.enabled }}
 {{- if $global.istioSDS.customSidecars }}
 {{ toYaml $global.istioSDS.customSidecars | indent 6}}
@@ -462,7 +462,7 @@ spec:
           name: workload-socket
         - mountPath: /var/run/secrets/workload-spiffe-credentials
           name: workload-certs
-{{- end }} {{/* if not $global.istioSDS.customSidecars */}}
+{{- end }}{{/* if not $global.istioSDS.customSidecars */}}
 {{- end }}{{/* if or $global.istioSDS.enabled $global.istioIntegration.enabled */}}
       volumes:
       - configMap:
@@ -500,7 +500,7 @@ spec:
         secret:
           defaultMode: 420
           secretName: gloo-mtls-certs
-{{- end }} {{/* if $global.glooMtls.enabled */}}
+{{- end }}{{/* if $global.glooMtls.enabled */}}
       {{- if $spec.extraContainersHelper }}
       - name: shared-data
         emptyDir: {}
@@ -512,8 +512,8 @@ spec:
       {{- include $spec.extraVolumeHelper . | nindent 6 }}
       {{- end }}
 {{- end }}
-{{- end }} {{/* with */}}
-{{- end }} {{/* define gatewayProxy.deploymentSpec*/}}
+{{- end }}{{/* with */}}
+{{- end }}{{/* define gatewayProxy.deploymentSpec*/}}
 
 {{- if .Values.gateway.enabled }}
 {{- range $name, $gatewaySpec := .Values.gatewayProxies }}
@@ -522,5 +522,5 @@ spec:
 {{- $kubeResourceOverride := $gatewaySpec.kubeResourceOverride  }}
 {{- $ctx := (list $ $name $gatewaySpec)}}
 {{ include "gloo.util.merge" (list $ctx $kubeResourceOverride "gatewayProxy.deploymentSpec") -}}
-{{- end }} {{/* range $name, $gatewaySpec := .Values.gatewayProxies */}}
-{{- end }} {{/* if .Values.gateway.enabled */}}
+{{- end }}{{/* range $name, $gatewaySpec := .Values.gatewayProxies */}}
+{{- end }}{{/* if .Values.gateway.enabled */}}
