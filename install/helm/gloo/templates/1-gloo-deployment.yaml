@@ -219,7 +219,8 @@ spec:
 {{- with .Values.gloo.deployment }}
 {{- if .goMemLimitPercent }}
   {{- range .customEnv }}
-    {{- if eq .name "GOMEMLIMIT" }}
+    {{- $name := or .name .Name }}
+    {{- if eq $name "GOMEMLIMIT" }}
       {{- fail "goMemLimitPercent and a customEnv GOMEMLIMIT entry cannot both be set; use one or the other" }}
     {{- end }}
   {{- end }}

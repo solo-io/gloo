@@ -123,8 +123,7 @@ type DeploymentSpecSansResources struct {
 
 type DeploymentSpec struct {
 	DeploymentSpecSansResources
-	Resources         *ResourceRequirements `json:"resources,omitempty" desc:"resources for the main pod in the deployment"`
-	GoMemLimitPercent *int                  `json:"goMemLimitPercent,omitempty" desc:"Compute GOMEMLIMIT as this percentage of resources.limits.memory at render time (1-100). 0 or unset disables the feature. Recommended 80-90%."`
+	Resources *ResourceRequirements `json:"resources,omitempty" desc:"resources for the main pod in the deployment"`
 	*KubeResourceOverride
 }
 
@@ -420,6 +419,7 @@ type GlooDeployment struct {
 	LivenessProbeEnabled  *bool               `json:"livenessProbeEnabled,omitempty" desc:"Set to true to enable a liveness probe for Gloo Edge (default is false)."`
 	OssImageTag           *string             `json:"ossImageTag,omitempty" desc:"Used for debugging. The version of Gloo OSS that the current version of Gloo Enterprise was built with."`
 	PodSecurityContext    *PodSecurityContext `json:"podSecurityContext,omitempty" desc:"podSecurityContext for the gloo deployment. If this is defined it supersedes any values set in FloatingUserId, RunAsUser, or FsGroup.  See [pod security context](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#podsecuritycontext-v1-core) for details."`
+	GoMemLimitPercent     *int                `json:"goMemLimitPercent,omitempty" desc:"Compute GOMEMLIMIT as this percentage of resources.limits.memory at render time (1-100). 0 or unset disables the feature. Recommended 80-90%."`
 	*DeploymentSpec
 	*GlooDeploymentContainer
 }
@@ -449,6 +449,7 @@ type DiscoveryDeployment struct {
 	ExtraDiscoveryAnnotations         map[string]string `json:"extraDiscoveryAnnotations,omitempty" desc:"Optional extra key-value pairs to add to the spec.template.metadata.annotations data of the gloo edge discovery deployment."`
 	EnablePodSecurityContext          *bool             `json:"enablePodSecurityContext,omitempty" desc:"Whether or not to render the pod security context. Default is true"`
 	DiscoveryContainerSecurityContext *SecurityContext  `json:"discoveryContainerSecurityContext,omitempty" desc:"securityContext for the discovery container. If this is defined it supercedes any values set in FloatingUserId or RunAsUser. See [security context](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#securitycontext-v1-core) for details."`
+	GoMemLimitPercent                 *int              `json:"goMemLimitPercent,omitempty" desc:"Compute GOMEMLIMIT as this percentage of resources.limits.memory at render time (1-100). 0 or unset disables the feature. Recommended 80-90%."`
 	*DeploymentSpec
 }
 
