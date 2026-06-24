@@ -119,7 +119,7 @@ data:
 {{- if .Values.ingressProxy.tracing }}
                     tracing:
 {{ toYaml .Values.ingressProxy.tracing | indent 22}}
-{{- end}}{{/* if .Values.ingressProxy.tracing */}}
+{{- end}} {{/* if .Values.ingressProxy.tracing */}}
 {{- end}}
 
     dynamic_resources:
@@ -143,7 +143,7 @@ data:
           port_value: 19000
 {{- else}}{{ toYaml .Values.ingressProxy.configMap.data | indent 2}}{{- end}}
 {{- end }}
-{{- end}}{{/* define "ingressProxy.configMapSpec "*/}}
+{{- end}} {{/* define "ingressProxy.configMapSpec "*/}}
 
 {{/* Render template with yaml overrides */}}
 {{- $kubeResourceOverride := dict -}}

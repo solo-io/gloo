@@ -84,8 +84,8 @@ spec:
         name: envoy-config
 
 {{- end }}
-{{- end }}{{/* if .Values.settings.integrations.knative.enabled */}}
-{{- end }}{{/* define knativeInternalProxy.deploymentSpec */}}
+{{- end }} {{/* if .Values.settings.integrations.knative.enabled */}}
+{{- end }} {{/* define knativeInternalProxy.deploymentSpec */}}
 
 {{/* Render template with yaml overrides */}}
 {{- $kubeResourceOverride := dict -}}

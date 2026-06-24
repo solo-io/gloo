@@ -26,8 +26,8 @@ spec:
     {{- range . }}
     - {{ . }}
     {{- end }}
-{{- end }}{{- /* with spec.service.externalIPs */}}
-{{- end }}{{- /* $spec.service.externalIPs */}}
+{{- end }} {{- /* with spec.service.externalIPs */}}
+{{- end }} {{- /* $spec.service.externalIPs */}}
 {{- if $spec.service.externalTrafficPolicy }}
   externalTrafficPolicy: {{ $spec.service.externalTrafficPolicy }}
 {{- end }}
@@ -71,8 +71,8 @@ spec:
     protocol: TCP
     name: failover
     nodePort: {{ $spec.failover.nodePort }}
-{{- end }}{{- /* if failover.enabled */}}
-{{- end }}{{- /* if failover */}}
+{{- end }} {{- /* if failover.enabled */}}
+{{- end }} {{- /* if failover */}}
 {{- if $spec.service.customPorts }}
 {{ toYaml $spec.service.customPorts | indent 2 }}
 {{- end}}
@@ -86,18 +86,18 @@ spec:
   {{- if eq $spec.service.type "LoadBalancer" }}
   {{- if $spec.service.loadBalancerIP }}
   loadBalancerIP: {{ $spec.service.loadBalancerIP }}
-  {{- end }}{{/* $spec.service.loadBalancerIP */}}
+  {{- end }} {{/* $spec.service.loadBalancerIP */}}
   {{- if $spec.service.loadBalancerSourceRanges }}
   {{- with $spec.service.loadBalancerSourceRanges }}
   loadBalancerSourceRanges:
     {{- range . }}
     - {{ . }}
     {{- end }}
-  {{- end }}{{/* with spec.service.loadBalancerSourceRanges */}}
-  {{- end }}{{/* $spec.service.loadBalancerSourceRanges */}}
-  {{- end }}{{/* $spec.service.type "LoadBalancer" */}}
-  {{- end }}{{/* with */}}
-  {{- end }}{{/* define gatewayProxy.serviceSpec */}}
+  {{- end }} {{/* with spec.service.loadBalancerSourceRanges */}}
+  {{- end }} {{/* $spec.service.loadBalancerSourceRanges */}}
+  {{- end }} {{/* $spec.service.type "LoadBalancer" */}}
+  {{- end }} {{/* with */}}
+  {{- end }} {{/* define gatewayProxy.serviceSpec */}}
 {{- define "gatewayProxy.configDumpServiceSpec" }}
 {{- $name := (index . 1) }}
 {{- $spec := (index . 2) }}
@@ -119,8 +119,8 @@ spec:
   ports:
     - protocol: TCP
       port: 8082
-{{- end }}{{/* with (first .) */}}
-{{- end }}{{/* define gatewayProxy.configDumpServiceSpec */}}
+{{- end }} {{/* with (first .) */}}
+{{- end }} {{/* define gatewayProxy.configDumpServiceSpec */}}
 {{- define "gatewayProxy.monitoringServiceSpec" }}
 {{- $name := (index . 1) -}}
 {{- $spec := (index . 2) -}}
@@ -142,8 +142,8 @@ spec:
   ports:
     - name: http-monitoring
       port: 8081
-{{- end }}{{/* with (first .) */}}
-{{- end }}{{/* define gatewayProxy.monitoringServiceSpec */}}
+{{- end }} {{/* with (first .) */}}
+{{- end }} {{/* define gatewayProxy.monitoringServiceSpec */}}
 
 {{- if .Values.gateway.enabled }}
 {{- $global := .Values.global }}
@@ -168,12 +168,12 @@ spec:
 {{- if and $spec.readConfig $spec.readConfigMulticluster }}
 ---
 {{ include "gloo.util.merge" (list $ctx $configDumpServiceYamlOverride "gatewayProxy.configDumpServiceSpec") -}}
-{{- end }}{{/* if and ($spec.readConfig $spec.readConfigMulticluster) */}}
+{{- end }} {{/* if and ($spec.readConfig $spec.readConfigMulticluster) */}}
 {{- $statsConfig := coalesce $spec.stats $global.glooStats }}
 {{- if and $statsConfig.enabled $statsConfig.serviceMonitorEnabled }}
 ---
 {{- include "gatewayProxy.monitoringServiceSpec" $ctx -}}
-{{- end }}{{/* if $statsConfig.serviceMonitorEnabled */}}
+{{- end }} {{/* if $statsConfig.serviceMonitorEnabled */}}
 {{- end }}{{/* if not $spec.disabled */}}
-{{- end }}{{/* range $name, $spec := .Values.gatewayProxies */}}
-{{- end }}{{/* if .Values.gateway.enabled */}}
+{{- end }} {{/* range $name, $spec := .Values.gatewayProxies */}}
+{{- end }} {{/* if .Values.gateway.enabled */}}

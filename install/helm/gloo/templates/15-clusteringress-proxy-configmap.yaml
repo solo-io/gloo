@@ -120,7 +120,7 @@ data:
 {{- if .Values.settings.integrations.knative.proxy.tracing }}
                     tracing:
 {{ toYaml .Values.settings.integrations.knative.proxy.tracing | indent 22}}
-{{- end}}{{/* if .Values.settings.integrations.knative.proxy.tracing */}}
+{{- end}} {{/* if .Values.settings.integrations.knative.proxy.tracing */}}
 {{- end}}
 
 
@@ -144,8 +144,8 @@ data:
           address: {{ .Values.settings.integrations.knative.proxy.loopBackAddress }}
           port_value: 19000
 {{- end }}
-{{- end }}{{/* if .Values.settings.integrations.knative.enabled */}}
-{{- end }}{{/*define "clusterIngressProxy.configMapSpec"*/}}
+{{- end }} {{/* if .Values.settings.integrations.knative.enabled */}}
+{{- end }} {{/*define "clusterIngressProxy.configMapSpec"*/}}
 
 {{/* Render template with yaml overrides */}}
 {{- $kubeResourceOverride := dict -}}

@@ -77,7 +77,7 @@ spec:
 {{- if .Values.accessLogger.serviceName }}
           - name: SERVICE_NAME
             value: {{.Values.accessLogger.serviceName}}
-{{- end }}{{/* if .Values.accessLogger.serviceName */}}
+{{- end }} {{/* if .Values.accessLogger.serviceName */}}
           - name: SERVER_PORT
             value: "{{ .Values.accessLogger.port }}"
           ports:
@@ -87,9 +87,9 @@ spec:
 {{- if and $statsConfig.enabled $statsConfig.podMonitorEnabled }}
           - name: http-monitoring
             containerPort: 9091
-{{- end }}{{/* if $statsConfig.podMonitorEnabled */}}
-{{- end }}{{/* if and .Values.gateway.enabled .Values.accessLogger.enabled */}}
-{{- end }}{{/* define "accessLogger.deploymentSpec" */}}
+{{- end }} {{/* if $statsConfig.podMonitorEnabled */}}
+{{- end }} {{/* if and .Values.gateway.enabled .Values.accessLogger.enabled */}}
+{{- end }} {{/* define "accessLogger.deploymentSpec" */}}
 
 {{/* Render template with yaml overrides */}}
 {{- $kubeResourceOverride := dict  -}}

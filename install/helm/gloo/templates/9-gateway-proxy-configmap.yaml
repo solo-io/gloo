@@ -46,14 +46,14 @@ data:
         role: {{.Values.settings.writeNamespace | default .Release.Namespace }}~{{ $name | kebabcase }}
 {{- if $spec.envoyStatsConfig }}
     stats_config: {{- toYaml $spec.envoyStatsConfig | nindent 6}}
-{{- end }}{{- /* if $spec.envoyStatsConfig */}}
+{{- end }} {{- /* if $spec.envoyStatsConfig */}}
     static_resources:
 {{- if or $statsConfig.enabled (or $spec.readConfig $spec.extraListenersHelper) }}
       listeners:
-{{- end }}{{- /* if or $statsConfig.enabled (or $spec.readConfig $spec.extraListenersHelper) */}}
+{{- end }} {{- /* if or $statsConfig.enabled (or $spec.readConfig $spec.extraListenersHelper) */}}
 {{- if $spec.extraListenersHelper }}
 {{- include $spec.extraListenersHelper . | nindent 8 }}
-{{- end }}{{- /* $spec.extraListenersHelper */}}
+{{- end }} {{- /* $spec.extraListenersHelper */}}
 {{- if $statsConfig.enabled }}
         - name: prometheus_listener
           address:
@@ -103,7 +103,7 @@ data:
                       - name: envoy.filters.http.router
                         typed_config:
                           "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
-{{- end}}{{- /* if $statsConfig.enabled */}}
+{{- end}} {{- /* if $statsConfig.enabled */}}
 {{- if $spec.readConfig }}
         - name: read_config_listener
           address:
@@ -156,7 +156,7 @@ data:
                       - name: envoy.filters.http.router
                         typed_config:
                           "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
-{{- end}}{{- /* if $spec.readConfig */}}
+{{- end}} {{- /* if $spec.readConfig */}}
       clusters:
       - name: gloo.{{ .Release.Namespace }}.svc.{{ .Values.k8s.clusterName}}:{{ .Values.gloo.deployment.xdsPort }}
         alt_stat_name: xds_cluster
@@ -293,12 +293,12 @@ data:
                             port_value: {{.Values.accessLogger.port}}
         http2_protocol_options: {}
         type: STRICT_DNS
-{{- end}}{{- /* if .Values.accessLogger.enabled */}}
+{{- end}} {{- /* if .Values.accessLogger.enabled */}}
 {{- if $spec.tracing -}}
 {{- if $spec.tracing.cluster}}
 {{ toYaml $spec.tracing.cluster | indent 6}}
-{{- end}}{{- /* if $spec.tracing.cluster */}}
-{{- end}}{{- /* if $spec.tracing */}}
+{{- end}} {{- /* if $spec.tracing.cluster */}}
+{{- end}} {{- /* if $spec.tracing */}}
 
 {{- if .Values.settings.aws.enableServiceAccountCredentials }}
       - name: aws_sts_cluster
@@ -327,7 +327,7 @@ data:
 {{- else }}
                     address: sts.{{ .Values.settings.aws.stsCredentialsRegion }}.amazonaws.com
 {{- end }}
-{{- end}}{{- /* if $.Values.settings.aws.enableServiceAccountCredentials */}}
+{{- end}} {{- /* if $.Values.settings.aws.enableServiceAccountCredentials */}}
 
 {{- if or $statsConfig.enabled ($spec.readConfig) }}
       - name: admin_port_cluster
@@ -343,7 +343,7 @@ data:
                   socket_address:
                     address: {{ $spec.loopBackAddress }}
                     port_value: 19000
-{{- end}}{{- /* if or $statsConfig.enabled ($spec.readConfig) */}}
+{{- end}} {{- /* if or $statsConfig.enabled ($spec.readConfig) */}}
 {{- if $spec.envoyStaticClusters }}
 {{ toYaml $spec.envoyStaticClusters | indent 6}}
 {{- end}}
@@ -379,11 +379,11 @@ data:
           address: {{ $spec.loopBackAddress }}
           port_value: 19000
 {{- else}}{{ toYaml $spec.configMap.data | indent 2}}
-{{- end }}{{/* if (empty $spec.configMap.data) ## allows full custom */}}
-{{- end }}{{/* if not $spec.disabled */}}
-{{- end }}{{/* with */}}
+{{- end }} {{/* if (empty $spec.configMap.data) ## allows full custom */}}
+{{- end }} {{/* if not $spec.disabled */}}
+{{- end }} {{/* with */}}
 
-{{- end }}{{/* define gatewayProxy.configMapSpec*/}}
+{{- end }} {{/* define gatewayProxy.configMapSpec*/}}
 
 {{- if .Values.gateway.enabled }}
 {{- range $name, $gatewaySpec := .Values.gatewayProxies }}
@@ -392,7 +392,7 @@ data:
 {{- $kubeResourceOverride := dict -}}
 {{- if $gatewaySpec.configMap -}}
 {{- $kubeResourceOverride = $gatewaySpec.configMap.kubeResourceOverride -}}
-{{- end -}}{{/* if $gatewaySpec.configMap */}}
+{{- end -}} {{/* if $gatewaySpec.configMap */}}
 {{- $ctx := (list $ $name $gatewaySpec)}}
 {{ $configmap := include "gloo.util.merge" (list $ctx $kubeResourceOverride "gatewayProxy.configMapSpec") -}}
 {{- $checksum := $configmap | sha256sum -}}

@@ -32,8 +32,8 @@ spec:
   {{- if and (eq .Values.ingressProxy.service.type "LoadBalancer") .Values.ingressProxy.service.loadBalancerIP }}
   loadBalancerIP: {{ .Values.ingressProxy.service.loadBalancerIP }}
   {{- end }}
-{{- end }}{{/* if .Values.ingress.enabled */}}
-{{- end }}{{/* define ingressProxy.serviceSpec */}}
+{{- end }} {{/* if .Values.ingress.enabled */}}
+{{- end }} {{/* define ingressProxy.serviceSpec */}}
 
 {{/* Render template with yaml overrides */}}
 {{- $kubeResourceOverride := dict -}}

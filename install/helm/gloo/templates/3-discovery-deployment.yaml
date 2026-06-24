@@ -135,7 +135,7 @@ spec:
         {{- include "gloo.securityContext" (dict "defaults" $securityDefaults "indent" 6 "globalSec" .Values.global.securitySettings) -}}
       {{- end}}
 {{- end }}
-{{- end }}{{/* define "discovery.deploymentSpec"*/}}
+{{- end }} {{/* define "discovery.deploymentSpec"*/}}
 
 {{/* Render template with yaml overrides */}}
 {{- $kubeResourceOverride := dict -}}
@@ -143,3 +143,4 @@ spec:
 {{- $kubeResourceOverride = .Values.discovery.deployment.kubeResourceOverride  -}}
 {{- end -}}
 {{- include "gloo.util.merge" (list . $kubeResourceOverride "discovery.deploymentSpec") -}}
+

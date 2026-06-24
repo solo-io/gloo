@@ -120,7 +120,7 @@ data:
 {{- if .Values.settings.integrations.knative.proxy.tracing }}
                     tracing:
 {{ toYaml .Values.settings.integrations.knative.proxy.tracing | indent 22}}
-{{- end}}{{/* if .Values.settings.integrations.knative.proxy.tracing */}}
+{{- end}} {{/* if .Values.settings.integrations.knative.proxy.tracing */}}
 {{- end}}
 
     dynamic_resources:
@@ -142,15 +142,15 @@ data:
         socket_address:
           address: {{ .Values.settings.integrations.knative.proxy.loopBackAddress }}
           port_value: 19000
-{{- end }}{{/* if (semverCompare ">= 0.8.0" .Values.settings.integrations.knative.version ) */}}
-{{- end }}{{/* .Values.settings.integrations.knative.enabled */}}
-{{- end }}{{/*define "knativeExternalProxy.configMapSpec"*/}}
+{{- end }} {{/* if (semverCompare ">= 0.8.0" .Values.settings.integrations.knative.version ) */}}
+{{- end }} {{/* .Values.settings.integrations.knative.enabled */}}
+{{- end }} {{/*define "knativeExternalProxy.configMapSpec"*/}}
 
 {{/* Render template with yaml overrides */}}
 {{- $kubeResourceOverride := dict -}}
 {{- if .Values.settings.integrations.knative.proxy -}}
 {{- if .Values.settings.integrations.knative.proxy.configMap -}}
 {{- $kubeResourceOverride = .Values.settings.integrations.knative.proxy.configMap.kubeResourceOverride  -}}
-{{- end }}{{/* if .Values.settings.integrations.knative.configMap */}}
+{{- end }} {{/* if .Values.settings.integrations.knative.configMap */}}
 {{- end }}
 {{- include "gloo.util.merge" (list . $kubeResourceOverride "knativeExternalProxy.configMapSpec") -}}

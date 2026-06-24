@@ -50,7 +50,7 @@ for distroless or fips-distroless variants: add -distroless to the tag
 {{- if and .tag (has .variant (list "distroless" "fips-distroless")) -}}
 {{- $distrolessSupportedImages := list "gloo" "gloo-envoy-wrapper" "discovery" "sds" "certgen" "kubectl" "access-logger" "ingress" "gloo-ee" "extauth-ee" "gloo-ee-envoy-wrapper" "rate-limit-ee" "discovery-ee" "sds-ee" "observability-ee" "caching-ee" -}}
 {{- if (has .repository $distrolessSupportedImages) -}}
-{{- $tag = printf "%s-distroless" $tag -}}{{- /* Add distroless suffix to the tag since it contains the same binaries in a different container */ -}}
+{{- $tag = printf "%s-distroless" $tag -}} {{- /* Add distroless suffix to the tag since it contains the same binaries in a different container */ -}}
 {{- end -}}{{- /* if (has .repository $distrolessSupportedImages) */ -}}
 {{- end -}}{{- /* if and .tag (has .variant (list "distroless" "fips-distroless")) */ -}}
 {{ $tag }}
@@ -350,7 +350,7 @@ version, which merges two named templates.
 {{- include (index . 2) $top -}}{{/* render source as is */}}
 {{- else -}}
 {{- $merged := mergeOverwrite $tpl $overrides -}}
-{{- toYaml $merged -}}{{/* render source with overrides as YAML */}}
+{{- toYaml $merged -}} {{/* render source with overrides as YAML */}}
 {{- end -}}
 {{- end -}}
 

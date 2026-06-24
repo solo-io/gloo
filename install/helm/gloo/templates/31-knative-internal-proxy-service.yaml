@@ -23,8 +23,8 @@ spec:
     gloo: knative-internal-proxy
   type: ClusterIP
 {{- end }}
-{{- end }}{{/* if .Values.settings.integrations.knative.enabled */}}
-{{- end }}{{/*define "knativeInternalProxy.serviceSpec"*/}}
+{{- end }} {{/* if .Values.settings.integrations.knative.enabled */}}
+{{- end }} {{/*define "knativeInternalProxy.serviceSpec"*/}}
 
 {{/* Render template with yaml overrides */}}
 {{- $kubeResourceOverride := dict -}}
