@@ -5314,6 +5314,19 @@ metadata:
 							Expect(renderErr.Error()).To(ContainSubstring("unsupported memory quantity"))
 							Expect(renderErr.Error()).To(ContainSubstring("512Ki"))
 						})
+
+						It("fails to render when goMemLimitPercent and a customEnv GOMEMLIMIT are both set", func() {
+							expectRenderError(namespace, glootestutils.HelmValues{
+								ValuesArgs: []string{
+									"gloo.deployment.resources.limits.memory=2Gi",
+									"gloo.deployment.goMemLimitPercent=80",
+									"gloo.deployment.customEnv[0].name=GOMEMLIMIT",
+									"gloo.deployment.customEnv[0].value=500MiB",
+								},
+							})
+							Expect(renderErr).To(HaveOccurred())
+							Expect(renderErr.Error()).To(ContainSubstring("goMemLimitPercent and a customEnv GOMEMLIMIT entry cannot both be set"))
+						})
 					})
 
 					Context("goMemLimitPercent boundary values", func() {
