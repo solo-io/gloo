@@ -178,6 +178,7 @@ func StartGGv2WithConfig(ctx context.Context,
 		Dev:             false,
 		GlooMtlsEnabled: glooMtls,
 		Debugger:        setupOpts.KrtDebugger,
+		DeployerOpts:    setupOpts.DeployerOpts,
 	})
 	if err != nil {
 		logger.Error("failed initializing controller: ", err)

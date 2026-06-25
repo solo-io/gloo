@@ -859,6 +859,7 @@ type SdsContainer struct {
 	SecurityContext *SecurityContext      `json:"securityContext,omitempty" desc:"securityContext for sds gloo deployment container. If this is defined it supersedes any values set in FloatingUserId, RunAsUser, DisableNetBind, RunUnprivileged. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#securitycontext-v1-core for details."`
 	LogLevel        *string               `json:"logLevel,omitempty" desc:"Log level for sds.  Options include \"info\", \"debug\", \"warn\", \"error\", \"panic\" and \"fatal\". Default level is info."`
 	Resources       *ResourceRequirements `json:"sdsResources,omitempty" desc:"Sets default resource requirements for all sds containers."`
+	ReadinessProbe  *corev1.Probe         `json:"readinessProbe,omitempty" desc:"Readiness probe for the sds container. If not provided, a default tcpSocket probe on port 8234 is used. Set to null to disable."`
 }
 
 type GatewayParamsSdsContainer struct {

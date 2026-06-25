@@ -21,6 +21,7 @@ import (
 
 	"github.com/solo-io/gloo/pkg/bootstrap/leaderelector"
 	gwtranslator "github.com/solo-io/gloo/projects/gateway/pkg/translator"
+	"github.com/solo-io/gloo/projects/gateway2/deployer"
 	ggv2utils "github.com/solo-io/gloo/projects/gateway2/utils"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/upstreams/consul"
@@ -34,7 +35,8 @@ type SetupOpts struct {
 	ExtraGatewayClasses []string
 	ExtraCallbacks      xdsserver.Callbacks
 
-	KrtDebugger *krt.DebugHandler
+	KrtDebugger  *krt.DebugHandler
+	DeployerOpts []deployer.Option
 
 	xdsHost    string
 	xdsPort    int32

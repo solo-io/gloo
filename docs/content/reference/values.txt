@@ -1726,6 +1726,27 @@
 |global.glooMtls.sds.sdsResources.limits.cpu|string||amount of CPUs|
 |global.glooMtls.sds.sdsResources.requests.memory|string||amount of memory|
 |global.glooMtls.sds.sdsResources.requests.cpu|string||amount of CPUs|
+|global.glooMtls.sds.readinessProbe.exec.command[]|string|||
+|global.glooMtls.sds.readinessProbe.httpGet.path|string|||
+|global.glooMtls.sds.readinessProbe.httpGet.port|int64|||
+|global.glooMtls.sds.readinessProbe.httpGet.port|int32|||
+|global.glooMtls.sds.readinessProbe.httpGet.port|string|||
+|global.glooMtls.sds.readinessProbe.httpGet.host|string|||
+|global.glooMtls.sds.readinessProbe.httpGet.scheme|string|||
+|global.glooMtls.sds.readinessProbe.httpGet.httpHeaders[].name|string|||
+|global.glooMtls.sds.readinessProbe.httpGet.httpHeaders[].value|string|||
+|global.glooMtls.sds.readinessProbe.tcpSocket.port|int64|0||
+|global.glooMtls.sds.readinessProbe.tcpSocket.port|int32|8234||
+|global.glooMtls.sds.readinessProbe.tcpSocket.port|string|||
+|global.glooMtls.sds.readinessProbe.tcpSocket.host|string|||
+|global.glooMtls.sds.readinessProbe.grpc.port|int32|||
+|global.glooMtls.sds.readinessProbe.grpc.service|string|||
+|global.glooMtls.sds.readinessProbe.initialDelaySeconds|int32|3||
+|global.glooMtls.sds.readinessProbe.timeoutSeconds|int32|0||
+|global.glooMtls.sds.readinessProbe.periodSeconds|int32|10||
+|global.glooMtls.sds.readinessProbe.successThreshold|int32|0||
+|global.glooMtls.sds.readinessProbe.failureThreshold|int32|3||
+|global.glooMtls.sds.readinessProbe.terminationGracePeriodSeconds|int64|||
 |global.glooMtls.envoy.image.tag|string|<release_version, ex: 1.2.3>|The image tag for the container.|
 |global.glooMtls.envoy.image.repository|string|gloo-envoy-wrapper|The image repository (name) for the container.|
 |global.glooMtls.envoy.image.digest|string||The container image's hash digest (e.g. 'sha256:12345...'), consumed when variant=standard.|

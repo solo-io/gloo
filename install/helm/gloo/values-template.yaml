@@ -302,6 +302,12 @@ global:
       image:
         repository: sds
       logLevel: info
+      readinessProbe:
+        tcpSocket:
+          port: 8234
+        initialDelaySeconds: 3
+        periodSeconds: 10
+        failureThreshold: 3
     istioProxy:
       image:
         repository: proxyv2
