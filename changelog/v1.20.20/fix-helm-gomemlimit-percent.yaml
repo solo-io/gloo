@@ -1,0 +1,9 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/gloo/issues/11285
+    resolvesIssue: false
+    description: >-
+      Add goMemLimitPercent Helm value to gloo and discovery deployments to compute
+      GOMEMLIMIT as a percentage of limits.memory at render time. Previously GOMEMLIMIT
+      was set to 100% of the cgroup limit via resourceFieldRef, leaving no headroom for
+      Go GC and causing OOM kills during HPA prescale. Recommended value: 80-90%.
