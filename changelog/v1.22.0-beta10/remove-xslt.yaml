@@ -1,6 +1,0 @@
-changelog:
-  - type: FIX
-    issueLink: https://github.com/solo-io/solo-projects/issues/8981
-    resolvesIssue: false
-    description: >-
-      "remove xslt"
