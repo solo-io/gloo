@@ -108,9 +108,9 @@ func NewDeployer(cli client.Client, inputs *Inputs, opts ...Option) (*Deployer, 
 	}
 
 	d := &Deployer{
-		cli:     cli,
-		chart:   helmChart,
-		inputs:  inputs,
+		cli:    cli,
+		chart:  helmChart,
+		inputs: inputs,
 	}
 	for _, o := range opts {
 		o(d)
