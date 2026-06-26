@@ -60,6 +60,9 @@ type GatewayConfig struct {
 	Extensions extensions.K8sGatewayExtensions
 	// CRDs defines the set of discovered Gateway API CRDs
 	CRDs sets.Set[string]
+
+	// DeployerOpts are optional deployer.Option values passed to deployer.NewDeployer.
+	DeployerOpts []deployer.Option
 }
 
 func NewBaseGatewayController(ctx context.Context, cfg GatewayConfig) error {
@@ -221,7 +224,7 @@ func (c *controllerBuilder) watchGw(ctx context.Context) error {
 	}, query.NewData(
 		c.cfg.Mgr.GetClient(),
 		c.cfg.Mgr.GetScheme(),
-	))
+	), c.cfg.DeployerOpts...)
 	if err != nil {
 		return err
 	}
