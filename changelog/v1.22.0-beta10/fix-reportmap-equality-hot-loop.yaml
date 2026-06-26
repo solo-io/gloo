@@ -4,11 +4,11 @@ changelog:
     resolvesIssue: true
     description: >-
       Fix a Kubernetes Gateway control-plane hot loop where the ProxySyncer
-      continuously re-translated proxies and re-wrote Gateway/Route status even
-      when nothing changed, pinning CPU and driving steady memory growth. The
+      continuously re-translated proxies and re-emitted status reports even when
+      nothing changed, pinning CPU and driving steady allocation churn. The
       report-map equality checks used in change detection (glooProxy.Equals and
       report.Equals) compared maps of pointer values, so they always reported
       "changed" on every recompute; report.Equals additionally never converged
       because condition LastTransitionTime differs each pass. They now compare
       report content and ignore LastTransitionTime, so a stable config no longer
-      triggers redundant translation or status writes.
+      triggers redundant translation and report processing.
