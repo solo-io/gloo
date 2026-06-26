@@ -165,6 +165,10 @@ spec:
           - containerPort: 8234
             name: sds
             protocol: TCP
+{{- with $gateway.sdsContainer.readinessProbe }}
+        readinessProbe:
+{{ toYaml . | indent 10}}
+{{- else }}
         readinessProbe:
           failureThreshold: 3
           initialDelaySeconds: 3
@@ -173,6 +177,7 @@ spec:
           tcpSocket:
             port: 8234
           timeoutSeconds: 1
+{{- end }} {{/*  $gateway.sdsContainer.readinessProbe */}}
         {{- if $gateway.sdsContainer.resources }}
         resources:
           {{- toYaml $gateway.sdsContainer.resources | nindent 10 }}
