@@ -1,6 +1,0 @@
-changelog:
-- type: NON_USER_FACING
-  issueLink: https://github.com/solo-io/gloo/issues/11296
-  resolvesIssue: false
-  description: Introduce a post renderer for k8s gws.
-
