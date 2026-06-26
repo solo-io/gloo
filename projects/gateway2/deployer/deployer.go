@@ -44,13 +44,28 @@ var (
 	NilDeployerInputsErr = eris.New("nil inputs to NewDeployer")
 )
 
+// PostRenderer is a function that may mutate the objects produced by the deployer
+// before they are returned to the caller. It is called after owner references are set.
+type PostRenderer func(ctx context.Context, objs []client.Object) ([]client.Object, error)
+
+// Option configures a Deployer.
+type Option func(*Deployer)
+
+// WithPostRenderer registers a PostRenderer that is applied in GetObjsToDeploy.
+func WithPostRenderer(fn PostRenderer) Option {
+	return func(d *Deployer) {
+		d.postRenderer = fn
+	}
+}
+
 // A Deployer is responsible for deploying proxies
 type Deployer struct {
 	chart *chart.Chart
 	cli   client.Client
 
-	inputs  *Inputs
-	queries query.GatewayQueries
+	inputs       *Inputs
+	queries      query.GatewayQueries
+	postRenderer PostRenderer
 }
 
 type ControlPlaneInfo struct {
@@ -79,7 +94,7 @@ type Inputs struct {
 }
 
 // NewDeployer creates a new gateway deployer
-func NewDeployer(cli client.Client, inputs *Inputs, queries query.GatewayQueries) (*Deployer, error) {
+func NewDeployer(cli client.Client, inputs *Inputs, queries query.GatewayQueries, opts ...Option) (*Deployer, error) {
 	if inputs == nil {
 		return nil, NilDeployerInputsErr
 	}
@@ -94,12 +109,16 @@ func NewDeployer(cli client.Client, inputs *Inputs, queries query.GatewayQueries
 		helmChart.Metadata.Version = version.Version
 	}
 
-	return &Deployer{
+	d := &Deployer{
 		cli:     cli,
 		chart:   helmChart,
 		inputs:  inputs,
 		queries: queries,
-	}, nil
+	}
+	for _, o := range opts {
+		o(d)
+	}
+	return d, nil
 }
 
 // GetGvksToWatch returns the list of GVKs that the deployer will watch for
@@ -518,6 +537,13 @@ func (d *Deployer) GetObjsToDeploy(ctx context.Context, gw *api.Gateway) ([]clie
 			UID:        gw.UID,
 			Name:       gw.Name,
 		}})
+	}
+
+	if d.postRenderer != nil {
+		objs, err = d.postRenderer(ctx, objs)
+		if err != nil {
+			return nil, fmt.Errorf("post-renderer failed for gateway %s.%s: %w", gw.GetNamespace(), gw.GetName(), err)
+		}
 	}
 
 	return objs, nil
