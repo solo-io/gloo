@@ -635,6 +635,116 @@ func parentRouteRef() *gwv1.ParentReference {
 	}
 }
 
+var _ = Describe("ReportMap.Equals", func() {
+	// buildReportMap mimics one translation pass: it allocates a fresh
+	// ReportMap (with fresh report pointers) and populates a Gateway and an
+	// HTTPRoute parentRef condition.
+	buildReportMap := func() reports.ReportMap {
+		gw := gw()
+		route := &gwv1.HTTPRoute{
+			ObjectMeta: metav1.ObjectMeta{Namespace: "default", Name: "route"},
+		}
+		rm := reports.NewReportMap()
+		reporter := reports.NewReporter(&rm)
+		reporter.Gateway(gw).SetCondition(reports.GatewayCondition{
+			Type:   gwv1.GatewayConditionProgrammed,
+			Status: metav1.ConditionTrue,
+			Reason: gwv1.GatewayReasonProgrammed,
+		})
+		reporter.Route(route).ParentRef(&gwv1.ParentReference{
+			Name: "test",
+		}).SetCondition(reports.RouteCondition{
+			Type:   gwv1.RouteConditionAccepted,
+			Status: metav1.ConditionTrue,
+			Reason: gwv1.RouteReasonAccepted,
+		})
+		return rm
+	}
+
+	It("returns true for two independently-built, identical report maps", func() {
+		// Regression: Equals must compare report content, not pointer identity.
+		// The maps hold *RouteReport/*GatewayReport, so a pointer-based compare
+		// always reports "changed" and pegs the control plane re-translating.
+		a := buildReportMap()
+		b := buildReportMap()
+		Expect(a.Equals(b)).To(BeTrue(), "identical report content must compare equal")
+	})
+
+	It("returns false when a condition differs", func() {
+		a := buildReportMap()
+		b := buildReportMap()
+
+		route := &gwv1.HTTPRoute{
+			ObjectMeta: metav1.ObjectMeta{Namespace: "default", Name: "route"},
+		}
+		reports.NewReporter(&b).Route(route).ParentRef(&gwv1.ParentReference{
+			Name: "test",
+		}).SetCondition(reports.RouteCondition{
+			Type:   gwv1.RouteConditionAccepted,
+			Status: metav1.ConditionFalse,
+			Reason: gwv1.RouteReasonBackendNotFound,
+		})
+
+		Expect(a.Equals(b)).To(BeFalse(), "differing condition must compare not-equal")
+	})
+
+	It("returns false when route sets differ", func() {
+		a := buildReportMap()
+		b := buildReportMap()
+		extra := &gwv1.HTTPRoute{
+			ObjectMeta: metav1.ObjectMeta{Namespace: "default", Name: "route2"},
+		}
+		reports.NewReporter(&b).Route(extra)
+		Expect(a.Equals(b)).To(BeFalse(), "different route key set must compare not-equal")
+	})
+
+	// supportedKinds mimics translation building RouteGroupKinds with FRESH Group
+	// pointers each pass (see buildDefaultRouteKindsForProtocol). Each call returns
+	// equal-by-value kinds backed by distinct *Group pointers.
+	supportedKinds := func() []gwv1.RouteGroupKind {
+		http := gwv1.Group(gwv1.GroupName)
+		grpc := gwv1.Group(gwv1.GroupName)
+		return []gwv1.RouteGroupKind{
+			{Group: &http, Kind: gwv1.Kind("HTTPRoute")},
+			{Group: &grpc, Kind: gwv1.Kind("GRPCRoute")},
+		}
+	}
+
+	buildWithSupportedKinds := func(kinds []gwv1.RouteGroupKind) reports.ReportMap {
+		gw := gw()
+		rm := reports.NewReportMap()
+		reports.NewReporter(&rm).Gateway(gw).Listener(listener()).SetSupportedKinds(kinds)
+		return rm
+	}
+
+	It("returns true when SupportedKinds are equal by value but use fresh Group pointers", func() {
+		// Regression: RouteGroupKind.Group is a *Group; comparing the struct with
+		// == compares the pointer, so identical kinds with fresh pointers (as
+		// translation produces every pass) would otherwise look "changed" and keep
+		// the hot loop alive for normal valid listeners.
+		a := buildWithSupportedKinds(supportedKinds())
+		b := buildWithSupportedKinds(supportedKinds())
+		Expect(a.Equals(b)).To(BeTrue(), "value-equal SupportedKinds with fresh Group pointers must compare equal")
+	})
+
+	It("returns true when SupportedKinds match but are in a different order", func() {
+		// The kinds builder ranges a map, so slice order is not stable across passes.
+		kinds := supportedKinds()
+		reversed := []gwv1.RouteGroupKind{kinds[1], kinds[0]}
+		a := buildWithSupportedKinds(kinds)
+		b := buildWithSupportedKinds(reversed)
+		Expect(a.Equals(b)).To(BeTrue(), "SupportedKinds must compare order-insensitively")
+	})
+
+	It("returns false when SupportedKinds differ in value", func() {
+		http := gwv1.Group(gwv1.GroupName)
+		a := buildWithSupportedKinds([]gwv1.RouteGroupKind{{Group: &http, Kind: gwv1.Kind("HTTPRoute")}})
+		tcp := gwv1.Group(gwv1.GroupName)
+		b := buildWithSupportedKinds([]gwv1.RouteGroupKind{{Group: &tcp, Kind: gwv1.Kind("TCPRoute")}})
+		Expect(a.Equals(b)).To(BeFalse(), "different SupportedKinds must compare not-equal")
+	})
+})
+
 func gw() *gwv1.Gateway {
 	gw := &gwv1.Gateway{
 		ObjectMeta: metav1.ObjectMeta{
