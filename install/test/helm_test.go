@@ -3715,6 +3715,79 @@ spec:
 						Expect(gwpDepl.Spec.Template.Spec.Volumes[7]).To(Equal(corev1.Volume{Name: "workload-certs", VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}}}))
 					})
 
+					It("renders default sds readiness probe when glooMtls is enabled", func() {
+						prepareMakefile(namespace, glootestutils.HelmValues{
+							ValuesArgs: []string{
+								"global.glooMtls.enabled=true",
+							},
+						})
+
+						gwpDepl := getDeployment(testManifest, namespace, "gateway-proxy")
+						Expect(gwpDepl.Spec.Template.Spec.Containers).To(HaveLen(2))
+
+						sdsContainer := gwpDepl.Spec.Template.Spec.Containers[1]
+						Expect(sdsContainer.Name).To(Equal("sds"))
+						Expect(sdsContainer.ReadinessProbe).To(BeEquivalentTo(&corev1.Probe{
+							ProbeHandler: corev1.ProbeHandler{
+								TCPSocket: &corev1.TCPSocketAction{
+									Port: intstr.FromInt32(8234),
+								},
+							},
+							InitialDelaySeconds: 3,
+							PeriodSeconds:       10,
+							FailureThreshold:    3,
+						}))
+					})
+
+					It("renders custom sds readiness probe when overridden", func() {
+						prepareMakefile(namespace, glootestutils.HelmValues{
+							ValuesArgs: []string{
+								"global.glooMtls.enabled=true",
+								"global.glooMtls.sds.readinessProbe.tcpSocket=null",
+								"global.glooMtls.sds.readinessProbe.httpGet.path=/healthz/ready",
+								"global.glooMtls.sds.readinessProbe.httpGet.port=8234",
+								"global.glooMtls.sds.readinessProbe.httpGet.scheme=HTTP",
+								"global.glooMtls.sds.readinessProbe.initialDelaySeconds=5",
+								"global.glooMtls.sds.readinessProbe.periodSeconds=15",
+								"global.glooMtls.sds.readinessProbe.failureThreshold=5",
+							},
+						})
+
+						gwpDepl := getDeployment(testManifest, namespace, "gateway-proxy")
+						Expect(gwpDepl.Spec.Template.Spec.Containers).To(HaveLen(2))
+
+						sdsContainer := gwpDepl.Spec.Template.Spec.Containers[1]
+						Expect(sdsContainer.Name).To(Equal("sds"))
+						Expect(sdsContainer.ReadinessProbe).To(BeEquivalentTo(&corev1.Probe{
+							ProbeHandler: corev1.ProbeHandler{
+								HTTPGet: &corev1.HTTPGetAction{
+									Path:   "/healthz/ready",
+									Port:   intstr.FromInt32(8234),
+									Scheme: "HTTP",
+								},
+							},
+							InitialDelaySeconds: 5,
+							PeriodSeconds:       15,
+							FailureThreshold:    5,
+						}))
+					})
+
+					It("omits sds readiness probe when set to null", func() {
+						prepareMakefile(namespace, glootestutils.HelmValues{
+							ValuesArgs: []string{
+								"global.glooMtls.enabled=true",
+								"global.glooMtls.sds.readinessProbe=null",
+							},
+						})
+
+						gwpDepl := getDeployment(testManifest, namespace, "gateway-proxy")
+						Expect(gwpDepl.Spec.Template.Spec.Containers).To(HaveLen(2))
+
+						sdsContainer := gwpDepl.Spec.Template.Spec.Containers[1]
+						Expect(sdsContainer.Name).To(Equal("sds"))
+						Expect(sdsContainer.ReadinessProbe).To(BeNil())
+					})
+
 					DescribeTable("supports deploying the specified tag, digest, and variant of the istioProxy image", func(registry, repo, tag, digest, variant, expectedImage string) {
 						vals := []string{
 							"global.glooMtls.enabled=true",
