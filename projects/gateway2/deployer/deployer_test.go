@@ -920,6 +920,12 @@ var _ = Describe("Deployer", func() {
 					Expect(secret).ToNot(BeNil())
 					Expect(secret.Type).To(Equal(corev1.SecretTypeTLS))
 					Expect(secret.Data).To(BeEquivalentTo(mtlsSecretData()))
+
+					sdsContainerIdx := slices.IndexFunc(dep.Spec.Template.Spec.Containers, func(c corev1.Container) bool {
+						return c.Name == "sds"
+					})
+					Expect(sdsContainerIdx).ToNot(Equal(-1))
+					Expect(dep.Spec.Template.Spec.Containers[sdsContainerIdx].ReadinessProbe).To(BeEquivalentTo(defaultSdsReadinessProbe()))
 				}
 
 				logLevelsMap := expectedGwp.EnvoyContainer.Bootstrap.ComponentLogLevels
@@ -1776,5 +1782,22 @@ func generateReadinessProbe() *corev1.Probe {
 		InitialDelaySeconds: 5,
 		PeriodSeconds:       5,
 		FailureThreshold:    2,
+	}
+}
+
+func defaultSdsReadinessProbe() *corev1.Probe {
+	return &corev1.Probe{
+		ProbeHandler: corev1.ProbeHandler{
+			TCPSocket: &corev1.TCPSocketAction{
+				Port: intstr.IntOrString{
+					IntVal: 8234,
+				},
+			},
+		},
+		InitialDelaySeconds: 3,
+		PeriodSeconds:       10,
+		FailureThreshold:    3,
+		SuccessThreshold:    1,
+		TimeoutSeconds:      1,
 	}
 }
