@@ -53,10 +53,7 @@ func (p *plugin) applyRequestFilter(
 	if config == nil {
 		return errors.Errorf("RequestHeaderModifier filter supplied does not define requestHeaderModifier")
 	}
-	headerManipulation := outputRoute.GetOptions().GetHeaderManipulation()
-	if headerManipulation == nil {
-		headerManipulation = &headers.HeaderManipulation{}
-	}
+	headerManipulation := cloneHeaderManipulation(outputRoute.GetOptions().GetHeaderManipulation())
 	headerManipulation.RequestHeadersToAdd = requestHeadersToAdd(config.Add, config.Set)
 	headerManipulation.RequestHeadersToRemove = config.Remove
 	outputRoute.GetOptions().HeaderManipulation = headerManipulation
@@ -70,14 +67,23 @@ func (p *plugin) applyResponseFilter(
 	if config == nil {
 		return errors.Errorf("Response filter supplied does not define requestHeaderModifier")
 	}
-	headerManipulation := outputRoute.GetOptions().GetHeaderManipulation()
-	if headerManipulation == nil {
-		headerManipulation = &headers.HeaderManipulation{}
-	}
+	headerManipulation := cloneHeaderManipulation(outputRoute.GetOptions().GetHeaderManipulation())
 	headerManipulation.ResponseHeadersToAdd = responseHeadersToAdd(config.Add, config.Set)
 	headerManipulation.ResponseHeadersToRemove = config.Remove
 	outputRoute.GetOptions().HeaderManipulation = headerManipulation
 	return nil
+}
+
+// cloneHeaderManipulation returns a deep copy of hm (or a fresh message if nil) for the filter
+// writes above to land on. The existing HeaderManipulation must never be written to in place:
+// route options share their sub-messages with every route referencing the same RouteOption
+// (solo-io/solo-projects#8802), and parent filters re-applied to delegated child routes reach
+// this plugin with options already populated from RouteOptions.
+func cloneHeaderManipulation(hm *headers.HeaderManipulation) *headers.HeaderManipulation {
+	if hm == nil {
+		return &headers.HeaderManipulation{}
+	}
+	return hm.Clone().(*headers.HeaderManipulation)
 }
 
 func requestHeadersToAdd(add []gwv1.HTTPHeader, set []gwv1.HTTPHeader) []*core.HeaderValueOption {

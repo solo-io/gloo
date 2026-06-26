@@ -14,7 +14,6 @@ import (
 	sologatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	solokubev1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1/kube/apis/gateway.solo.io/v1"
 	"github.com/solo-io/gloo/projects/gateway2/translator/plugins/routeoptions/query"
-	"github.com/solo-io/gloo/projects/gateway2/translator/testutils"
 	"github.com/solo-io/gloo/projects/gateway2/wellknown"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/faultinjection"
@@ -52,9 +51,8 @@ var _ = Describe("Query", func() {
 			fakeClient := builder.WithObjects(deps...).Build()
 
 			query := query.NewQuery(fakeClient)
-			gwQuery := testutils.BuildGatewayQueriesWithClient(fakeClient)
 
-			rtOpt, sources, err := query.GetRouteOptionForRouteRule(ctx, hrNsName, nil, gwQuery)
+			rtOpt, sources, err := query.GetRouteOptionForRouteRule(ctx, hrNsName, nil)
 
 			Expect(err).NotTo(HaveOccurred())
 			Expect(rtOpt).ToNot(BeNil())
@@ -76,9 +74,8 @@ var _ = Describe("Query", func() {
 			fakeClient := builder.WithObjects(deps...).Build()
 
 			query := query.NewQuery(fakeClient)
-			gwQuery := testutils.BuildGatewayQueriesWithClient(fakeClient)
 
-			rtOpt, sources, err := query.GetRouteOptionForRouteRule(ctx, hrNsName, nil, gwQuery)
+			rtOpt, sources, err := query.GetRouteOptionForRouteRule(ctx, hrNsName, nil)
 
 			Expect(err).NotTo(HaveOccurred())
 			Expect(rtOpt).To(BeNil())
@@ -100,9 +97,8 @@ var _ = Describe("Query", func() {
 			fakeClient := builder.WithObjects(deps...).Build()
 
 			query := query.NewQuery(fakeClient)
-			gwQuery := testutils.BuildGatewayQueriesWithClient(fakeClient)
 
-			rtOpt, sources, err := query.GetRouteOptionForRouteRule(ctx, hrNsName, nil, gwQuery)
+			rtOpt, sources, err := query.GetRouteOptionForRouteRule(ctx, hrNsName, nil)
 
 			Expect(err).NotTo(HaveOccurred())
 			Expect(rtOpt).ToNot(BeNil())
@@ -124,9 +120,8 @@ var _ = Describe("Query", func() {
 			fakeClient := builder.WithObjects(deps...).Build()
 
 			query := query.NewQuery(fakeClient)
-			gwQuery := testutils.BuildGatewayQueriesWithClient(fakeClient)
 
-			rtOpt, sources, err := query.GetRouteOptionForRouteRule(ctx, hrNsName, nil, gwQuery)
+			rtOpt, sources, err := query.GetRouteOptionForRouteRule(ctx, hrNsName, nil)
 
 			Expect(err).NotTo(HaveOccurred())
 			Expect(rtOpt).To(BeNil())
@@ -151,9 +146,8 @@ var _ = Describe("Query", func() {
 			fakeClient := builder.WithObjects(deps...).Build()
 
 			query := query.NewQuery(fakeClient)
-			gwQuery := testutils.BuildGatewayQueriesWithClient(fakeClient)
 
-			rtOpt, sources, err := query.GetRouteOptionForRouteRule(ctx, hrNsName, &hr.Spec.Rules[0], gwQuery)
+			rtOpt, sources, err := query.GetRouteOptionForRouteRule(ctx, hrNsName, &hr.Spec.Rules[0])
 
 			Expect(err).NotTo(HaveOccurred())
 			Expect(rtOpt).ToNot(BeNil())
