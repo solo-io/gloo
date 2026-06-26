@@ -1,0 +1,8 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/solo-projects/issues/8979
+    resolvesIssue: true
+    description: >-
+      Fix grpcjson plugin to validate protoDescriptorBin bytes form a valid FileDescriptorSet before
+      passing them to Envoy. Before this, invalid bytes would cause Envoy to NACK the RouteConfiguration
+      while the Upstream falsely reported state: Accepted.

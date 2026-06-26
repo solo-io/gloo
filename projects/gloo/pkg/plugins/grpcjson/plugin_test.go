@@ -1,11 +1,15 @@
 package grpcjson_test
 
 import (
+	"encoding/base64"
+
 	envoy_config_cluster_v3 "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
 	envoy_config_route_v3 "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
 	envoy_extensions_filters_http_grpc_json_transcoder_v3 "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/http/grpc_json_transcoder/v3"
 	envoyhttp "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/http_connection_manager/v3"
 	"github.com/envoyproxy/go-control-plane/pkg/wellknown"
+	"github.com/golang/protobuf/proto"
+	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
@@ -179,14 +183,52 @@ var _ = Describe("GrpcJson", func() {
 		Expect(err).NotTo(HaveOccurred())
 		Expect(f).To(BeEmpty())
 	})
+	It("should return error from ProcessUpstream if inline protoDescriptorBin is not a valid FileDescriptorSet", func() {
+		us := &v1.Upstream{
+			Metadata: &core.Metadata{
+				Name:      "testUs",
+				Namespace: "gloo-system",
+			},
+			UpstreamType: &v1.Upstream_Kube{
+				Kube: &kubernetes.UpstreamSpec{
+					ServiceSpec: &options.ServiceSpec{
+						PluginType: &options.ServiceSpec_GrpcJsonTranscoder{
+							GrpcJsonTranscoder: &grpc_json.GrpcJsonTranscoder{
+								DescriptorSet: &grpc_json.GrpcJsonTranscoder_ProtoDescriptorBin{
+									ProtoDescriptorBin: []byte("this is not a valid proto descriptor"),
+								},
+								Services: []string{"main.Bookstore"},
+							},
+						},
+					},
+				},
+			},
+		}
+
+		p := grpcjson.NewPlugin()
+		p.Init(initParams)
+		err := p.ProcessUpstream(plugins.Params{}, us, &envoy_config_cluster_v3.Cluster{})
+		Expect(err).To(HaveOccurred())
+		Expect(err.Error()).To(ContainSubstring("protoDescriptorBin is not a valid FileDescriptorSet"))
+	})
+
 	Context("proto descriptor configmap", func() {
 		var (
 			snap           *gloosnapshot.ApiSnapshot
 			hl             *v1.HttpListener
 			expectedFilter []plugins.StagedHttpFilter
+			validDescBytes []byte
 		)
 
 		BeforeEach(func() {
+			var err error
+			validDescBytes, err = proto.Marshal(&descriptor.FileDescriptorSet{
+				File: []*descriptor.FileDescriptorProto{
+					{Name: proto.String("test.proto")},
+				},
+			})
+			Expect(err).NotTo(HaveOccurred())
+
 			// add an artifact (configmap) containing the proto descriptor data to the snapshot
 			snap = &gloosnapshot.ApiSnapshot{
 				Artifacts: v1.ArtifactList{
@@ -196,7 +238,7 @@ var _ = Describe("GrpcJson", func() {
 							Namespace: "gloo-system",
 						},
 						Data: map[string]string{
-							"protoDesc": "aGVsbG8K",
+							"protoDesc": base64.StdEncoding.EncodeToString(validDescBytes),
 						},
 					},
 				},
@@ -216,7 +258,7 @@ var _ = Describe("GrpcJson", func() {
 
 			envoyGrpcJsonConf := &envoy_extensions_filters_http_grpc_json_transcoder_v3.GrpcJsonTranscoder{
 				DescriptorSet: &envoy_extensions_filters_http_grpc_json_transcoder_v3.GrpcJsonTranscoder_ProtoDescriptorBin{
-					ProtoDescriptorBin: []byte("hello\n"),
+					ProtoDescriptorBin: validDescBytes,
 				},
 				Services: []string{"main.Bookstore"},
 			}
@@ -334,6 +376,18 @@ var _ = Describe("GrpcJson", func() {
 			}, hl)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal(grpcjson.DecodingError(hl.GetOptions().GetGrpcJsonTranscoder().GetProtoDescriptorConfigMap(), "protoDesc").Error()))
+		})
+
+		It("should return error if proto descriptor bytes are not a valid FileDescriptorSet", func() {
+			snap.Artifacts[0].Data["protoDesc"] = base64.StdEncoding.EncodeToString([]byte("this is not a valid proto descriptor"))
+
+			p := grpcjson.NewPlugin()
+			p.Init(initParams)
+			_, err := p.HttpFilters(plugins.Params{
+				Snapshot: snap,
+			}, hl)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("protoDescriptorBin is not a valid FileDescriptorSet"))
 		})
 
 		It("should have no effect if the action is not a routeAction", func() {

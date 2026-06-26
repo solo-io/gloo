@@ -404,3 +404,69 @@ app: gloo
 {{ toYaml . }}
 {{- end }}
 {{- end }}
+
+{{/*
+gloo.memToBytes: convert a Kubernetes memory quantity string to integer bytes.
+Supported suffixes: Ki, Mi, Gi, Ti, Pi, Ei, k, M, G, T, P, E, or no suffix.
+*/}}
+{{- define "gloo.memToBytes" -}}
+{{- $mem := printf "%v" . -}}
+{{- $number := $mem -}}
+{{- $multiplier := 1.0 -}}
+{{- if hasSuffix "Ki" $mem -}}
+  {{- $number = trimSuffix "Ki" $mem -}}
+  {{- $multiplier = 1024.0 -}}
+{{- else if hasSuffix "Mi" $mem -}}
+  {{- $number = trimSuffix "Mi" $mem -}}
+  {{- $multiplier = 1048576.0 -}}
+{{- else if hasSuffix "Gi" $mem -}}
+  {{- $number = trimSuffix "Gi" $mem -}}
+  {{- $multiplier = 1073741824.0 -}}
+{{- else if hasSuffix "Ti" $mem -}}
+  {{- $number = trimSuffix "Ti" $mem -}}
+  {{- $multiplier = 1099511627776.0 -}}
+{{- else if hasSuffix "Pi" $mem -}}
+  {{- $number = trimSuffix "Pi" $mem -}}
+  {{- $multiplier = 1125899906842624.0 -}}
+{{- else if hasSuffix "Ei" $mem -}}
+  {{- $number = trimSuffix "Ei" $mem -}}
+  {{- $multiplier = 1152921504606846976.0 -}}
+{{- else if hasSuffix "k" $mem -}}
+  {{- $number = trimSuffix "k" $mem -}}
+  {{- $multiplier = 1000.0 -}}
+{{- else if hasSuffix "M" $mem -}}
+  {{- $number = trimSuffix "M" $mem -}}
+  {{- $multiplier = 1000000.0 -}}
+{{- else if hasSuffix "G" $mem -}}
+  {{- $number = trimSuffix "G" $mem -}}
+  {{- $multiplier = 1000000000.0 -}}
+{{- else if hasSuffix "T" $mem -}}
+  {{- $number = trimSuffix "T" $mem -}}
+  {{- $multiplier = 1000000000000.0 -}}
+{{- else if hasSuffix "P" $mem -}}
+  {{- $number = trimSuffix "P" $mem -}}
+  {{- $multiplier = 1000000000000000.0 -}}
+{{- else if hasSuffix "E" $mem -}}
+  {{- $number = trimSuffix "E" $mem -}}
+  {{- $multiplier = 1000000000000000000.0 -}}
+{{- end -}}
+{{- if not (regexMatch "^([0-9]+(\\.[0-9]+)?|\\.[0-9]+)([eE][+-]?[0-9]+)?$" $number) -}}
+  {{- fail (printf "goMemLimitPercent: unsupported memory quantity %q; use a Kubernetes memory quantity such as \"2Gi\", \"1.5Gi\", or \"512M\"" $mem) -}}
+{{- end -}}
+{{- printf "%.0f" (floor (mulf (float64 $number) $multiplier)) -}}
+{{- end -}}
+
+{{/*
+gloo.goMemLimit: compute a byte-valued GOMEMLIMIT string from a memory quantity and integer percent.
+Usage: include "gloo.goMemLimit" (list "2Gi" 80) -> "1717986918"
+*/}}
+{{- define "gloo.goMemLimit" -}}
+{{- $mem := index . 0 -}}
+{{- $pct := index . 1 -}}
+{{- if or (lt (int $pct) 1) (gt (int $pct) 100) -}}
+  {{- fail (printf "goMemLimitPercent must be between 1 and 100, got %d" (int $pct)) -}}
+{{- else -}}
+  {{- $bytes := include "gloo.memToBytes" $mem | trim | float64 -}}
+  {{- printf "%.0f" (floor (divf (mulf $bytes (float64 $pct)) 100.0)) -}}
+{{- end -}}
+{{- end -}}

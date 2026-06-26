@@ -34,9 +34,13 @@ type RouteShadowing struct {
 	// The upstream to which the shadowed traffic should be sent.
 	Upstream *core.ResourceRef `protobuf:"bytes,1,opt,name=upstream,proto3" json:"upstream,omitempty"`
 	// This should be a value between 0.0 and 100.0, with up to 6 significant digits.
-	Percentage    float32 `protobuf:"fixed32,2,opt,name=percentage,proto3" json:"percentage,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	Percentage float32 `protobuf:"fixed32,2,opt,name=percentage,proto3" json:"percentage,omitempty"`
+	// If true, the host/authority header of the shadow request will not have `-shadow` appended.
+	// Useful when the shadow destination has strict host-based routing rules that would reject the modified header.
+	// See https://www.envoyproxy.io/docs/envoy/latest/api-v3/config/route/v3/route_components.proto#envoy-v3-api-field-config-route-v3-routeaction-requestmirrorpolicy-disable-shadow-host-suffix-append
+	DisableShadowHostSuffixAppend bool `protobuf:"varint,3,opt,name=disable_shadow_host_suffix_append,json=disableShadowHostSuffixAppend,proto3" json:"disable_shadow_host_suffix_append,omitempty"`
+	unknownFields                 protoimpl.UnknownFields
+	sizeCache                     protoimpl.SizeCache
 }
 
 func (x *RouteShadowing) Reset() {
@@ -83,16 +87,24 @@ func (x *RouteShadowing) GetPercentage() float32 {
 	return 0
 }
 
+func (x *RouteShadowing) GetDisableShadowHostSuffixAppend() bool {
+	if x != nil {
+		return x.DisableShadowHostSuffixAppend
+	}
+	return false
+}
+
 var File_github_com_solo_io_gloo_projects_gloo_api_v1_options_shadowing_shadowing_proto protoreflect.FileDescriptor
 
 const file_github_com_solo_io_gloo_projects_gloo_api_v1_options_shadowing_shadowing_proto_rawDesc = "" +
 	"\n" +
-	"Ngithub.com/solo-io/gloo/projects/gloo/api/v1/options/shadowing/shadowing.proto\x12\x1eshadowing.options.gloo.solo.io\x1a,github.com/solo-io/solo-kit/api/v1/ref.proto\x1a\x12extproto/ext.proto\"g\n" +
+	"Ngithub.com/solo-io/gloo/projects/gloo/api/v1/options/shadowing/shadowing.proto\x12\x1eshadowing.options.gloo.solo.io\x1a,github.com/solo-io/solo-kit/api/v1/ref.proto\x1a\x12extproto/ext.proto\"\xb1\x01\n" +
 	"\x0eRouteShadowing\x125\n" +
 	"\bupstream\x18\x01 \x01(\v2\x19.core.solo.io.ResourceRefR\bupstream\x12\x1e\n" +
 	"\n" +
 	"percentage\x18\x02 \x01(\x02R\n" +
-	"percentageBP\xb8\xf5\x04\x01\xc0\xf5\x04\x01\xd0\xf5\x04\x01ZBgithub.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/shadowingb\x06proto3"
+	"percentage\x12H\n" +
+	"!disable_shadow_host_suffix_append\x18\x03 \x01(\bR\x1ddisableShadowHostSuffixAppendBP\xb8\xf5\x04\x01\xc0\xf5\x04\x01\xd0\xf5\x04\x01ZBgithub.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/shadowingb\x06proto3"
 
 var (
 	file_github_com_solo_io_gloo_projects_gloo_api_v1_options_shadowing_shadowing_proto_rawDescOnce sync.Once

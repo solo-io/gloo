@@ -1,0 +1,20 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    resolvesIssue: false
+    description: >-
+      Bumped some go dependencies for CVEs, mirroring solo-projects.
+    dependencyOwner: golang
+    dependencyRepo: net
+    dependencyTag: v0.56.0
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: golang
+    dependencyRepo: sync
+    dependencyTag: v0.21.0
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: golang
+    dependencyRepo: tools
+    dependencyTag: v0.45.0
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: golang
+    dependencyRepo: mod
+    dependencyTag: v0.36.0

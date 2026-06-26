@@ -1,0 +1,29 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    resolvesIssue: false
+    description: >-
+      Bump the Alpine base image to 3.24.1 to pick up OpenSSL fixes, including
+      CVE-2026-45447.
+    dependencyOwner: alpine
+    dependencyRepo: alpine
+    dependencyTag: 3.24.1
+  - type: DEPENDENCY_BUMP
+    description: >-
+      Bump containerd to v1.7.33 for CVE fixes.
+    dependencyOwner: containerd
+    dependencyRepo: containerd
+    dependencyTag: v1.7.33
+  - type: DEPENDENCY_BUMP
+    description: >-
+      Bump go-git to v5.19.0 for CVE fixes.
+    dependencyOwner: go-git
+    dependencyRepo: go-git
+    dependencyTag: v5.19.0
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: go-git
+    dependencyRepo: go-billy
+    dependencyTag: v5.9.0
+  - type: NON_USER_FACING
+    description: >-
+      Bump dependencies in the docs example modules (grpc, golang.org/x/net,
+      golang.org/x/crypto, golang.org/x/text) to clear scanner-reported CVEs.
