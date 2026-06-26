@@ -743,6 +743,51 @@ var _ = Describe("ReportMap.Equals", func() {
 		b := buildWithSupportedKinds([]gwv1.RouteGroupKind{{Group: &tcp, Kind: gwv1.Kind("TCPRoute")}})
 		Expect(a.Equals(b)).To(BeFalse(), "different SupportedKinds must compare not-equal")
 	})
+
+	It("remains equal to fresh translation output after gateway status rendering", func() {
+		gateway := gw()
+		build := func() reports.ReportMap {
+			rm := reports.NewReportMap()
+			reports.NewReporter(&rm).Gateway(gateway)
+			return rm
+		}
+
+		rm := build()
+		expected := build()
+
+		Expect(rm.BuildGWStatus(context.Background(), *gateway)).NotTo(BeNil())
+		Expect(rm.Equals(expected)).To(BeTrue(), "status rendering must not add default conditions to the report")
+	})
+
+	It("remains equal to fresh translation output after listener set status rendering", func() {
+		listenerSet := ls()
+		build := func() reports.ReportMap {
+			rm := reports.NewReportMap()
+			reports.NewReporter(&rm).ListenerSet(listenerSet)
+			return rm
+		}
+
+		rm := build()
+		expected := build()
+
+		Expect(rm.BuildListenerSetStatus(context.Background(), *listenerSet)).NotTo(BeNil())
+		Expect(rm.Equals(expected)).To(BeTrue(), "status rendering must not add listener set defaults to the report")
+	})
+
+	It("remains equal to fresh translation output after route status rendering", func() {
+		route := httpRoute()
+		build := func() reports.ReportMap {
+			rm := reports.NewReportMap()
+			reports.NewReporter(&rm).Route(route)
+			return rm
+		}
+
+		rm := build()
+		expected := build()
+
+		Expect(rm.BuildRouteStatus(context.Background(), route, "gloo-gateway")).NotTo(BeNil())
+		Expect(rm.Equals(expected)).To(BeTrue(), "status rendering must not add parent defaults to the report")
+	})
 })
 
 func gw() *gwv1.Gateway {
