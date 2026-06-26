@@ -82,6 +82,9 @@ type StartConfig struct {
 	GlooMtlsEnabled bool
 
 	Debugger *krt.DebugHandler
+
+	// DeployerOpts are optional deployer.Option values passed to deployer.NewDeployer.
+	DeployerOpts []deployer.Option
 }
 
 // Start runs the controllers responsible for processing the K8s Gateway API objects
@@ -277,6 +280,7 @@ func (c *ControllerBuilder) Start(ctx context.Context) error {
 		Kick:                    c.inputChannels.Kick,
 		Extensions:              c.k8sGwExtensions,
 		CRDs:                    crds,
+		DeployerOpts:            c.cfg.DeployerOpts,
 	}
 	if err := NewBaseGatewayController(ctx, gwCfg); err != nil {
 		setupLog.Error(err, "unable to create controller")
