@@ -643,10 +643,17 @@ func (s *ProxySyncer) Start(ctx context.Context) error {
 				snapWrap := e.Latest()
 				s.proxyTranslator.syncXds(ctx, snapWrap.snap, snapWrap.proxyKey)
 			} else {
-				// key := e.Latest().proxyKey
-				// if _, err := s.proxyTranslator.xdsCache.GetSnapshot(key); err == nil {
-				// 	s.proxyTranslator.xdsCache.ClearSnapshot(e.Latest().proxyKey)
-				// }
+				// Evict the snapshot for a disconnected/obsolete unique client.
+				// Without this, the xds SnapshotCache grows unbounded under client
+				// churn (each new role+labels+namespace key leaves a snapshot behind
+				// forever). The delete event only fires once the last stream for this
+				// proxyKey is gone (uniqueClients is refcounted), so no connected envoy
+				// still needs it; if a client with the same key reconnects, the
+				// snapshot is rebuilt and re-set. See solo-projects#7086.
+				key := e.Latest().proxyKey
+				if _, err := s.proxyTranslator.xdsCache.GetSnapshot(key); err == nil {
+					s.proxyTranslator.xdsCache.ClearSnapshot(key)
+				}
 			}
 		}
 	}, true)
