@@ -185,9 +185,9 @@ jobs:
       run: |
         pushd docs || exit 1
         # OSS
-        cp ../gloo/docs/content/reference/values.txt assets/conrefs/pages/gloo-platform/reference/helm/values_${{ steps.version-variables.outputs.minor }}.txt
+        cp ../gloo/docs/content/reference/values.txt assets/gateway-docs/pages/reference/helm/values_${{ steps.version-variables.outputs.minor }}.txt
         # Enterprise
-        cp ../gloo/docs/content/static/content/glooe-values.docgen assets/conrefs/pages/gloo-platform/reference/helm/glooe-values_${{ steps.version-variables.outputs.minor }}.md
+        cp ../gloo/docs/content/static/content/glooe-values.docgen assets/gateway-docs/pages/reference/helm/glooe-values_${{ steps.version-variables.outputs.minor }}.md
     - name: Copy CLI
       run: |
         pushd docs || exit 1
