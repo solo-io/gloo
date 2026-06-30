@@ -698,6 +698,26 @@ var _ = Describe("ReportMap.Equals", func() {
 		Expect(a.Equals(b)).To(BeFalse(), "different route key set must compare not-equal")
 	})
 
+	It("returns false when route observedGeneration differs", func() {
+		buildWithGeneration := func(gen int64) reports.ReportMap {
+			route := &gwv1.HTTPRoute{
+				ObjectMeta: metav1.ObjectMeta{Namespace: "default", Name: "route", Generation: gen},
+			}
+			rm := reports.NewReportMap()
+			reports.NewReporter(&rm).Route(route).ParentRef(&gwv1.ParentReference{
+				Name: "test",
+			}).SetCondition(reports.RouteCondition{
+				Type:   gwv1.RouteConditionAccepted,
+				Status: metav1.ConditionTrue,
+				Reason: gwv1.RouteReasonAccepted,
+			})
+			return rm
+		}
+		a := buildWithGeneration(1)
+		b := buildWithGeneration(2)
+		Expect(a.Equals(b)).To(BeFalse(), "differing route observedGeneration must compare not-equal")
+	})
+
 	// supportedKinds mimics translation building RouteGroupKinds with FRESH Group
 	// pointers each pass (see buildDefaultRouteKindsForProtocol). Each call returns
 	// equal-by-value kinds backed by distinct *Group pointers.
@@ -729,9 +749,12 @@ var _ = Describe("ReportMap.Equals", func() {
 
 	It("returns true when SupportedKinds match but are in a different order", func() {
 		// The kinds builder ranges a map, so slice order is not stable across passes.
-		kinds := supportedKinds()
-		reversed := []gwv1.RouteGroupKind{kinds[1], kinds[0]}
-		a := buildWithSupportedKinds(kinds)
+		// Build the reversed slice from a fresh supportedKinds() call so it also uses
+		// distinct *Group pointers; equality must hold across BOTH order and pointer
+		// differences, as translation produces every pass.
+		fresh := supportedKinds()
+		reversed := []gwv1.RouteGroupKind{fresh[1], fresh[0]}
+		a := buildWithSupportedKinds(supportedKinds())
 		b := buildWithSupportedKinds(reversed)
 		Expect(a.Equals(b)).To(BeTrue(), "SupportedKinds must compare order-insensitively")
 	})

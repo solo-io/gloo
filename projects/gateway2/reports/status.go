@@ -26,7 +26,7 @@ func (r *ReportMap) BuildGWStatus(ctx context.Context, gw gwv1.Gateway) *gwv1.Ga
 
 	finalListeners := make([]gwv1.ListenerStatus, 0, len(gw.Spec.Listeners))
 	for _, lis := range gw.Spec.Listeners {
-		listenerStatus := listenerStatusWithDefaults(gatewayListenerReport(gwReport, lis.Name), lis.Name)
+		listenerStatus := listenerStatusWithDefaults(listenerReport(gwReport.listeners, lis.Name), lis.Name)
 
 		finalConditions := make([]metav1.Condition, 0, len(listenerStatus.Conditions))
 		oldLisStatusIndex := slices.IndexFunc(gw.Status.Listeners, func(l gwv1.ListenerStatus) bool {
@@ -48,7 +48,7 @@ func (r *ReportMap) BuildGWStatus(ctx context.Context, gw gwv1.Gateway) *gwv1.Ga
 	}
 
 	finalConditions := make([]metav1.Condition, 0)
-	for _, gwCondition := range gatewayConditionsWithDefaults(gwReport) {
+	for _, gwCondition := range gatewayConditionsWithDefaults(gwReport.GetConditions()) {
 		gwCondition.ObservedGeneration = gwReport.observedGeneration
 
 		// copy old condition from gw so LastTransitionTime is set correctly below by SetStatusCondition()
@@ -90,7 +90,7 @@ func (r *ReportMap) BuildListenerSetStatus(ctx context.Context, ls gwxv1a1.XList
 	if !listenerSetRejected(lsReport) {
 		for _, l := range ls.Spec.Listeners {
 			lis := utils.ToListener(l)
-			listenerStatus := listenerStatusWithDefaults(listenerSetListenerReport(lsReport, lis.Name), lis.Name)
+			listenerStatus := listenerStatusWithDefaults(listenerReport(lsReport.listeners, lis.Name), lis.Name)
 
 			finalConditions := make([]metav1.Condition, 0, len(listenerStatus.Conditions))
 			oldLisStatusIndex := slices.IndexFunc(ls.Status.Listeners, func(l gwxv1a1.ListenerEntryStatus) bool {
@@ -113,7 +113,7 @@ func (r *ReportMap) BuildListenerSetStatus(ctx context.Context, ls gwxv1a1.XList
 	}
 
 	finalConditions := make([]metav1.Condition, 0)
-	for _, lsCondition := range listenerSetConditionsWithDefaults(lsReport) {
+	for _, lsCondition := range gatewayConditionsWithDefaults(lsReport.GetConditions()) {
 		lsCondition.ObservedGeneration = lsReport.observedGeneration
 
 		// copy old condition from ls so LastTransitionTime is set correctly below by SetStatusCondition()
@@ -241,27 +241,13 @@ func (r *ReportMap) BuildRouteStatus(ctx context.Context, obj client.Object, cNa
 // so all missing conditions are assumed to be positive. The helpers below add
 // those defaults to clones so status rendering does not mutate the ReportMap
 // used by krt equality.
-func gatewayConditionsWithDefaults(gwReport *GatewayReport) []metav1.Condition {
-	conditions := slices.Clone(gwReport.GetConditions())
-	if cond := meta.FindStatusCondition(conditions, string(gwv1.GatewayConditionAccepted)); cond == nil {
-		meta.SetStatusCondition(&conditions, metav1.Condition{
-			Type:   string(gwv1.GatewayConditionAccepted),
-			Status: metav1.ConditionTrue,
-			Reason: string(gwv1.GatewayReasonAccepted),
-		})
-	}
-	if cond := meta.FindStatusCondition(conditions, string(gwv1.GatewayConditionProgrammed)); cond == nil {
-		meta.SetStatusCondition(&conditions, metav1.Condition{
-			Type:   string(gwv1.GatewayConditionProgrammed),
-			Status: metav1.ConditionTrue,
-			Reason: string(gwv1.GatewayReasonProgrammed),
-		})
-	}
-	return conditions
-}
-
-func listenerSetConditionsWithDefaults(lsReport *ListenerSetReport) []metav1.Condition {
-	conditions := slices.Clone(lsReport.GetConditions())
+//
+// gatewayConditionsWithDefaults adds the default-positive Accepted and Programmed
+// conditions when absent. Gateways and ListenerSets share the same defaults, so
+// both BuildGWStatus and BuildListenerSetStatus call this with the report's
+// conditions.
+func gatewayConditionsWithDefaults(reportConditions []metav1.Condition) []metav1.Condition {
+	conditions := slices.Clone(reportConditions)
 	if cond := meta.FindStatusCondition(conditions, string(gwv1.GatewayConditionAccepted)); cond == nil {
 		meta.SetStatusCondition(&conditions, metav1.Condition{
 			Type:   string(gwv1.GatewayConditionAccepted),
@@ -283,6 +269,9 @@ func listenerStatusWithDefaults(lisReport *ListenerReport, name gwv1.SectionName
 	status := gwv1.ListenerStatus{Name: name}
 	if lisReport != nil {
 		status = lisReport.Status
+		// The rendered status name is the spec listener name the caller asked for,
+		// independent of how the report happens to be keyed.
+		status.Name = name
 		status.Conditions = slices.Clone(lisReport.Status.Conditions)
 		status.SupportedKinds = slices.Clone(lisReport.Status.SupportedKinds)
 	}
@@ -341,18 +330,11 @@ func parentRefConditionsWithDefaults(report *ParentRefReport) []metav1.Condition
 	return conditions
 }
 
-func gatewayListenerReport(gwReport *GatewayReport, name gwv1.SectionName) *ListenerReport {
-	if gwReport == nil || gwReport.listeners == nil {
-		return nil
-	}
-	return gwReport.listeners[string(name)]
-}
-
-func listenerSetListenerReport(lsReport *ListenerSetReport, name gwv1.SectionName) *ListenerReport {
-	if lsReport == nil || lsReport.listeners == nil {
-		return nil
-	}
-	return lsReport.listeners[string(name)]
+// listenerReport returns the ListenerReport for the named listener, or nil if
+// none was recorded during translation. Indexing a nil map is safe, so callers
+// may pass a nil listeners map.
+func listenerReport(listeners map[string]*ListenerReport, name gwv1.SectionName) *ListenerReport {
+	return listeners[string(name)]
 }
 
 func parentRefReport(routeReport *RouteReport, parentRef *gwv1.ParentReference) *ParentRefReport {
