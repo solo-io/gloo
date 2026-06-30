@@ -3,12 +3,13 @@ changelog:
     issueLink: https://github.com/solo-io/solo-projects/issues/8013
     resolvesIssue: true
     description: >-
-      Fix a Kubernetes Gateway control-plane hot loop where the ProxySyncer
-      continuously re-translated proxies and re-emitted status reports even when
-      nothing changed, pinning CPU and driving steady allocation churn. The
-      report-map equality checks used in change detection (glooProxy.Equals and
-      report.Equals) compared maps of pointer values, so they always reported
-      "changed" on every recompute; report.Equals additionally never converged
-      because condition LastTransitionTime differs each pass. They now compare
-      report content and ignore LastTransitionTime, so a stable config no longer
-      triggers redundant translation and report processing.
+      Fix no-op Kubernetes Gateway report churn by comparing report maps by
+      content and keeping status rendering read-only. The report-map equality
+      checks used in change detection (glooProxy.Equals and report.Equals)
+      compared maps of pointer values, so identical translation output could be
+      reported as "changed" on every recompute; condition LastTransitionTime
+      could also prevent convergence. Status rendering also wrote default
+      conditions back into the report objects used for equality. Reports now
+      compare semantically, ignore LastTransitionTime for change detection, and
+      status rendering leaves ReportMap unchanged, allowing stable output to
+      converge without redundant report/status processing.
