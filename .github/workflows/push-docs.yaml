@@ -178,8 +178,8 @@ jobs:
     - name: Copy OSA
       run: |
         pushd docs || exit 1
-        cp ../gloo/docs/content/static/content/osa_included.md assets/conrefs/pages/gateway/reference/osa_included_${{ steps.version-variables.outputs.minor }}.md
-        cp ../gloo/docs/content/static/content/osa_provided.md assets/conrefs/pages/gateway/reference/osa_provided_${{ steps.version-variables.outputs.minor }}.md
+        cp ../gloo/docs/content/static/content/osa_included.md assets/gateway-docs/pages/reference/osa_included_${{ steps.version-variables.outputs.minor }}.md
+        cp ../gloo/docs/content/static/content/osa_provided.md assets/gateway-docs/pages/reference/osa_provided_${{ steps.version-variables.outputs.minor }}.md
         popd || exit 1
     - name: Copy Helm
       run: |
