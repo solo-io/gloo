@@ -132,10 +132,10 @@ jobs:
         fi
 
         # Run sed replacement on matching files
-        find "$TARGET_DIR" -type f -name "$FILE_PATTERN" -exec \
+        find "$TARGET_DIR" "assets/gateway-docs/versions" -type f -name "$FILE_PATTERN" -exec \
           sed -E -i "s/\}\}${MINOR_VERSION_ESCAPED}\.[0-9]+(-[a-zA-Z0-9]+)?\{\{/}}${SAFE_NEW_VERSION}{{/g" {} \;
 
-        echo "Replaced versions matching '$OLD_VERSION_REGEX' with '$TRIMMED_NEW_VERSION' in $TARGET_DIR/$FILE_PATTERN"
+        echo "Replaced versions matching '$OLD_VERSION_REGEX' with '$TRIMMED_NEW_VERSION' in $TARGET_DIR/$FILE_PATTERN and assets/gateway-docs/versions/$FILE_PATTERN"
 
         popd || exit 1
     - name: Generate docs

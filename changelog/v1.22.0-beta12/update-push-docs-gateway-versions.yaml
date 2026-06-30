@@ -1,0 +1,4 @@
+changelog:
+- type: NON_USER_FACING
+  resolvesIssue: false
+  description: Update push-docs workflow to also bump version conrefs in assets/gateway-docs/versions/ after docs repo reorganization moved gloo_oss_patch files there.
