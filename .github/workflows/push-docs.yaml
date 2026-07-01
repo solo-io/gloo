@@ -33,6 +33,13 @@ concurrency:
   group: push-docs
   cancel-in-progress: false
 
+env:
+  # Oldest LTS minor to regenerate reference docs for. LTS branches (vMAJOR.MINOR.x) newer than or
+  # equal to this are built automatically; older lines are EOL for docsgen and stay frozen in the
+  # docs repo (e.g. 1.17.x is hosted but no longer refreshed). *** Bump this when the oldest
+  # supported line goes EOL - it is the only version value maintained by hand. ***
+  MIN_MINOR: "1.18"
+
 jobs:
   # ---------------------------------------------------------------------------
   # OSS: regenerate ALL supported lines and open one consolidated PR (Option B).
@@ -42,7 +49,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout docs repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: "solo-io/docs"
           token: ${{ secrets.DOCS_TOKEN }}
@@ -50,16 +57,19 @@ jobs:
           fetch-depth: 0
           fetch-tags: "true"
       - name: Checkout gloo repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: "solo-io/gloo"
           token: ${{ secrets.DOCS_TOKEN }}
           path: gloo
           fetch-depth: 0
           fetch-tags: "true"
+          # Treeless-of-blobs (partial) clone: full commit/tag graph so `git describe` works, but
+          # skip the ~300MB of historical file blobs; blobs for each checked-out tip fetch on demand.
+          filter: blob:none
       - name: Fetch all supported gloo branches and tags
         run: |
-          git -C gloo fetch --tags --force origin '+refs/heads/*:refs/remotes/origin/*'
+          git -C gloo fetch --filter=blob:none --tags --force origin '+refs/heads/*:refs/remotes/origin/*'
       - name: Regenerate docs for all supported lines
         id: regen
         env:
@@ -87,16 +97,26 @@ jobs:
           MAIN_MINOR="${BASH_REMATCH[1]}.${BASH_REMATCH[2]}"
           echo "main line resolves to ${MAIN_MINOR} (from tag ${main_tag})"
 
-          # Supported lines, newest first. List ONLY the gloo refs - the minor and the docs
-          # directory are derived from each ref in the loop, so there is one value to maintain.
-          # ON_LTS_UPDATE - add the newest LTS branch (and drop the EOL one) when a minor is cut.
-          LINES=(
-            "main"
-            "v1.21.x"
-            "v1.20.x"
-            "v1.19.x"
-            "v1.18.x"
-          )
+          # MIN_MINOR (oldest line to build) comes from the workflow-level env at the top of the file.
+          [[ -n "${MIN_MINOR:-}" ]] || die "MIN_MINOR is not set; define it in the workflow-level env block."
+
+          # Build the line list dynamically: `main`, plus every vMAJOR.MINOR.x LTS branch from
+          # newest down to MIN_MINOR. The strict regex skips gloo's many non-release branches, and
+          # skipping a branch whose minor == MAIN_MINOR avoids a duplicate with `main` in the window
+          # after a vX.Y.x branch is cut but before `main` bumps to the next minor.
+          LINES=( "main" )
+          while read -r b; do
+            b="${b##*origin/}"
+            [[ "$b" =~ ^v([0-9]+\.[0-9]+)\.x$ ]] || continue
+            m="${BASH_REMATCH[1]}"
+            [[ "$m" == "$MAIN_MINOR" ]] && continue
+            # Keep the branch only if its minor is >= MIN_MINOR (version-aware compare).
+            [[ "$(printf '%s\n%s\n' "$MIN_MINOR" "$m" | sort -V | head -n1)" == "$MIN_MINOR" ]] || continue
+            LINES+=( "v${m}.x" )
+          done < <(git -C "$GLOO" branch -r --list 'origin/v*.x' | sort -Vr)
+
+          [[ "${#LINES[@]}" -gt 1 ]] || die "No LTS branches >= ${MIN_MINOR} found under origin/v*.x; only 'main' would be built. Were branches fetched?"
+          echo "Lines to process (>= ${MIN_MINOR}): ${LINES[*]}"
 
           summary=""
           matched=0
@@ -140,6 +160,9 @@ jobs:
             new_version="$(git -C "$GLOO" describe --tags --abbrev=0 2>/dev/null || true)"
             new_version="${new_version#v}"
 
+            # Assume we regenerate; the version checks below clear this for an unchanged LTS line.
+            regenerate=1
+
             if [[ -z "$new_version" ]]; then
               # main is always beta-tagged, so a missing tag there is suspect; a freshly cut LTS
               # branch may legitimately have none yet.
@@ -166,11 +189,24 @@ jobs:
                 echo "Bumped ${minor}.x -> ${new_version}"
               elif [[ "$after" == *"}}${new_version}{{"* ]]; then
                 echo "Conref already at ${minor}.x -> ${new_version}; nothing to bump."
+                # Tag unchanged -> regenerated per-line docs would be byte-identical, so skip the
+                # expensive docsgen. Always keep the main line, since it also writes the shared files
+                # (changelog, security scans) that can change without a gloo tag bump.
+                if [[ "$ref" != "main" ]]; then
+                  regenerate=0
+                fi
               else
                 # No field for this minor exists yet - the conref needs a human to add one.
                 warn "No ${minor}.x field found in gloo_oss*.md under assets/conrefs/versions or assets/gateway-docs/versions; the conref may need a new entry for this minor. Leaving unchanged."
               fi
               summary="${summary}- ${minor}.x → ${new_version}\n"
+            fi
+
+            if [[ "$regenerate" -eq 0 ]]; then
+              echo "Skipping docsgen for ${minor}.x - unchanged at ${new_version}."
+              summary="${summary}  (unchanged; docsgen skipped)\n"
+              echo "::endgroup::"
+              continue
             fi
 
             # Generate the reference docs for this line.
@@ -237,7 +273,7 @@ jobs:
           token: ${{ secrets.DOCS_TOKEN }}
       - name: Notify in slack of success
         if: success()
-        uses: slackapi/slack-github-action@v2.0.0
+        uses: slackapi/slack-github-action@v3.0.3
         with:
           method: chat.postMessage
           token: ${{ secrets.SLACK_BOT_TOKEN }}
@@ -257,7 +293,7 @@ jobs:
             }
       - name: Notify in slack of failure
         if: failure()
-        uses: slackapi/slack-github-action@v2.0.0
+        uses: slackapi/slack-github-action@v3.0.3
         with:
           method: chat.postMessage
           token: ${{ secrets.SLACK_BOT_TOKEN }}
@@ -292,7 +328,7 @@ jobs:
         echo "lts=${{ github.event.client_payload.lts }}" >> $GITHUB_OUTPUT
         echo "tag=${{ github.event.client_payload.tag }}" >> $GITHUB_OUTPUT
     - name: Checkout docs repo
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
       with:
         repository: "solo-io/docs"
         token: ${{ secrets.DOCS_TOKEN }}
@@ -300,7 +336,7 @@ jobs:
         fetch-depth: 0
         fetch-tags: "true"
     - name: Checkout gloo repo
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
       with:
         repository: "solo-io/gloo"
         token: ${{ secrets.DOCS_TOKEN }}
@@ -308,9 +344,11 @@ jobs:
         ref: main
         fetch-depth: 0
         fetch-tags: "true"
+        # Partial clone: full commit/tag graph for `git describe`, without the historical file blobs.
+        filter: blob:none
     - name: Fetch all gloo branches and tags
       run: |
-        git -C gloo fetch --tags --force origin '+refs/heads/*:refs/remotes/origin/*'
+        git -C gloo fetch --filter=blob:none --tags --force origin '+refs/heads/*:refs/remotes/origin/*'
     # Derive the minor/directory from the dispatch payload and check out the matching gloo ref.
     # main_minor is read from origin/main's newest tag, so nothing here is hardcoded per release.
     - name: Resolve version and check out gloo ref
@@ -490,7 +528,7 @@ jobs:
         token: ${{ secrets.DOCS_TOKEN }}
     - name: Notify in slack of success
       if: success()
-      uses: slackapi/slack-github-action@v2.0.0
+      uses: slackapi/slack-github-action@v3.0.3
       with:
         method: chat.postMessage
         token: ${{ secrets.SLACK_BOT_TOKEN }}
@@ -510,7 +548,7 @@ jobs:
           }
     - name: Notify in slack of failure
       if: failure()
-      uses: slackapi/slack-github-action@v2.0.0
+      uses: slackapi/slack-github-action@v3.0.3
       with:
         method: chat.postMessage
         token: ${{ secrets.SLACK_BOT_TOKEN }}
