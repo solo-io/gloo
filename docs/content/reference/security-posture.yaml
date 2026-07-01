@@ -44,8 +44,6 @@ extensions:
   security_posture: robust_to_untrusted_downstream
 - name: health_checkers/advanced_http
   security_posture: requires_trusted_downstream_and_upstream
-- name: transformers/xslt
-  security_posture: robust_to_untrusted_downstream
 - name: transformers/aws_lambda
   security_posture: robust_to_untrusted_downstream
 - name: filters/http/aws_lambda
