@@ -395,6 +395,11 @@ func TranslateTransformation(glooTransform *transformation.Transformation,
 		}
 	case *transformation.Transformation_TransformationTemplate:
 		{
+			// resolve the template -> staged -> settings inheritance into a local and pass it
+			// down instead of writing it back into the input template: the input is nested in
+			// route/vhost options whose sub-messages can be shared across every route
+			// referencing the same RouteOption (solo-io/solo-projects#8802), so a write-back
+			// would corrupt shared state and mask later changes to the Settings-level default.
 			escapeCharacters := typedTransformation.TransformationTemplate.GetEscapeCharacters()
 			if escapeCharacters == nil {
 				escapeCharacters = stagedEscapeCharacters
@@ -402,9 +407,8 @@ func TranslateTransformation(glooTransform *transformation.Transformation,
 			if escapeCharacters == nil {
 				escapeCharacters = settingsEscapeCharacters
 			}
-			typedTransformation.TransformationTemplate.EscapeCharacters = escapeCharacters
 
-			transformationType, err := translateTransformationTemplate(typedTransformation)
+			transformationType, err := translateTransformationTemplate(typedTransformation, escapeCharacters)
 			if err != nil {
 				return nil, err
 			}
@@ -430,7 +434,10 @@ func translateHeaderBodyTransform(in *transformation.Transformation_HeaderBodyTr
 	return out
 }
 
-func translateTransformationTemplate(in *transformation.Transformation_TransformationTemplate) (*envoytransformation.Transformation_TransformationTemplate, error) {
+// escapeCharacters is the template -> staged -> settings inheritance resolved by
+// TranslateTransformation, passed explicitly because the (potentially shared) input template
+// must not be written to.
+func translateTransformationTemplate(in *transformation.Transformation_TransformationTemplate, escapeCharacters *wrapperspb.BoolValue) (*envoytransformation.Transformation_TransformationTemplate, error) {
 	out := &envoytransformation.Transformation_TransformationTemplate{}
 	inTemplate := in.TransformationTemplate
 	outTemplate := &envoytransformation.TransformationTemplate{
@@ -438,7 +445,7 @@ func translateTransformationTemplate(in *transformation.Transformation_Transform
 		HeadersToRemove:    inTemplate.GetHeadersToRemove(),
 		IgnoreErrorOnParse: inTemplate.GetIgnoreErrorOnParse(),
 		ParseBodyBehavior:  envoytransformation.TransformationTemplate_RequestBodyParse(inTemplate.GetParseBodyBehavior()),
-		EscapeCharacters:   inTemplate.GetEscapeCharacters().GetValue(), // the inheritance is handled in TranslateTransformation
+		EscapeCharacters:   escapeCharacters.GetValue(),
 	}
 
 	if len(inTemplate.GetExtractors()) > 0 {

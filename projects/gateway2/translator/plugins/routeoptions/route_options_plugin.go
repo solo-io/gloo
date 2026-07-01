@@ -26,7 +26,6 @@ import (
 	"github.com/solo-io/gloo/projects/gateway2/reports"
 	"github.com/solo-io/gloo/projects/gateway2/translator/plugins"
 	rtoptquery "github.com/solo-io/gloo/projects/gateway2/translator/plugins/routeoptions/query"
-	"github.com/solo-io/gloo/projects/gateway2/translator/plugins/utils"
 	"github.com/solo-io/gloo/projects/gateway2/translator/routeutils"
 	"github.com/solo-io/gloo/projects/gateway2/wellknown"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/grpc/validation"
@@ -297,20 +296,15 @@ func (p *plugin) handleAttachment(
 		ctx,
 		types.NamespacedName{Name: routeCtx.HTTPRoute.Name, Namespace: routeCtx.HTTPRoute.Namespace},
 		routeCtx.Rule,
-		p.gwQueries,
 	)
 	if err != nil {
 		contextutils.LoggerFrom(ctx).Errorf("error getting RouteOptions for Route: %v", err)
-		switch {
-		case errors.Is(err, utils.ErrTypesNotEqual):
-		default:
-			routeCtx.Reporter.SetCondition(reports.RouteCondition{
-				Type:    gwv1.RouteConditionResolvedRefs,
-				Status:  metav1.ConditionFalse,
-				Reason:  gwv1.RouteReasonBackendNotFound,
-				Message: err.Error(),
-			})
-		}
+		routeCtx.Reporter.SetCondition(reports.RouteCondition{
+			Type:    gwv1.RouteConditionResolvedRefs,
+			Status:  metav1.ConditionFalse,
+			Reason:  gwv1.RouteReasonBackendNotFound,
+			Message: err.Error(),
+		})
 		return nil, nil, nil, err
 	}
 	if attachedOption == nil || attachedOption.Spec.GetOptions() == nil {
