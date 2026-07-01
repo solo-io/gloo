@@ -100,23 +100,25 @@ jobs:
           # MIN_MINOR (oldest line to build) comes from the workflow-level env at the top of the file.
           [[ -n "${MIN_MINOR:-}" ]] || die "MIN_MINOR is not set; define it in the workflow-level env block."
 
-          # Build the line list dynamically: `main`, plus every vMAJOR.MINOR.x LTS branch from
-          # newest down to MIN_MINOR. The strict regex skips gloo's many non-release branches, and
-          # skipping a branch whose minor == MAIN_MINOR avoids a duplicate with `main` in the window
-          # after a vX.Y.x branch is cut but before `main` bumps to the next minor.
+          # True if version $1 <= $2 (version-aware compare).
+          ver_le() { [[ "$(printf '%s\n%s\n' "$1" "$2" | sort -V | head -n1)" == "$1" ]]; }
+
+          # Build the line list dynamically: `main`, plus every vMAJOR.MINOR.x LTS branch whose minor
+          # is in the supported window MIN_MINOR <= minor < MAIN_MINOR. The strict regex skips gloo's
+          # many non-release branches; the lower bound drops EOL lines; and the upper bound drops both
+          # `main`'s own just-cut branch and any future/experimental line (e.g. v2.0.x while main is 1.22).
           LINES=( "main" )
           while read -r b; do
             b="${b##*origin/}"
             [[ "$b" =~ ^v([0-9]+\.[0-9]+)\.x$ ]] || continue
             m="${BASH_REMATCH[1]}"
-            [[ "$m" == "$MAIN_MINOR" ]] && continue
-            # Keep the branch only if its minor is >= MIN_MINOR (version-aware compare).
-            [[ "$(printf '%s\n%s\n' "$MIN_MINOR" "$m" | sort -V | head -n1)" == "$MIN_MINOR" ]] || continue
+            ver_le "$MIN_MINOR" "$m" || continue                       # minor >= MIN_MINOR
+            { [[ "$m" != "$MAIN_MINOR" ]] && ver_le "$m" "$MAIN_MINOR"; } || continue   # minor < MAIN_MINOR
             LINES+=( "v${m}.x" )
           done < <(git -C "$GLOO" branch -r --list 'origin/v*.x' | sort -Vr)
 
-          [[ "${#LINES[@]}" -gt 1 ]] || die "No LTS branches >= ${MIN_MINOR} found under origin/v*.x; only 'main' would be built. Were branches fetched?"
-          echo "Lines to process (>= ${MIN_MINOR}): ${LINES[*]}"
+          [[ "${#LINES[@]}" -gt 1 ]] || die "No LTS branches in [${MIN_MINOR}, ${MAIN_MINOR}) found under origin/v*.x; only 'main' would be built. Were branches fetched?"
+          echo "Lines to process (${MIN_MINOR} <= minor < ${MAIN_MINOR}): ${LINES[*]}"
 
           summary=""
           matched=0
