@@ -177,10 +177,10 @@ jobs:
             GEN="$GLOO/docs/content"
 
             # --- Per-line files: the filename/path carries the minor, so lines never collide. ---
-            cp "$GEN/static/content/osa_included.md"      "$DOCS/assets/conrefs/pages/gateway/reference/osa_included_${minor}.md"
-            cp "$GEN/static/content/osa_provided.md"      "$DOCS/assets/conrefs/pages/gateway/reference/osa_provided_${minor}.md"
-            cp "$GEN/reference/values.txt"                "$DOCS/assets/conrefs/pages/reference/helm/values_${minor}.txt"
-            cp "$GEN/static/content/glooe-values.docgen"  "$DOCS/assets/conrefs/pages/reference/helm/glooe-values_${minor}.md"
+            cp "$GEN/static/content/osa_included.md"      "$DOCS/assets/gateway-docs/pages/reference/osa_included_${minor}.md"
+            cp "$GEN/static/content/osa_provided.md"      "$DOCS/assets/gateway-docs/pages/reference/osa_provided_${minor}.md"
+            cp "$GEN/reference/values.txt"                "$DOCS/assets/gateway-docs/pages/reference/helm/values_${minor}.txt"
+            cp "$GEN/static/content/glooe-values.docgen"  "$DOCS/assets/gateway-docs/pages/reference/helm/glooe-values_${minor}.md"
 
             mkdir -p "$DOCS/content/en/gateway/${directory}/reference/cli"
             for c in glooctl_check glooctl_debug glooctl_debug_yaml glooctl_install_gateway \
@@ -189,11 +189,11 @@ jobs:
             done
 
             cp "$GEN/reference/api/github.com/solo-io/gloo/projects/gateway2/api/v1alpha1/direct_responses.md" \
-               "$DOCS/assets/conrefs/pages/gateway/reference/direct_responses_${minor}.md"
-            sed -i '1,2d' "$DOCS/assets/conrefs/pages/gateway/reference/direct_responses_${minor}.md"
+               "$DOCS/assets/gateway-docs/pages/reference/direct_responses_${minor}.md"
+            sed -i '1,2d' "$DOCS/assets/gateway-docs/pages/reference/direct_responses_${minor}.md"
             cp "$GEN/reference/api/github.com/solo-io/gloo/projects/gateway2/api/v1alpha1/gateway_parameters.md" \
-               "$DOCS/assets/conrefs/pages/gateway/reference/gateway_parameters_${minor}.md"
-            sed -i '1,2d' "$DOCS/assets/conrefs/pages/gateway/reference/gateway_parameters_${minor}.md"
+               "$DOCS/assets/gateway-docs/pages/reference/gateway_parameters_${minor}.md"
+            sed -i '1,2d' "$DOCS/assets/gateway-docs/pages/reference/gateway_parameters_${minor}.md"
 
             # --- Shared, multi-version files: written once, from the main line (the superset). ---
             if [[ "$minor" == "$MAIN_MINOR" ]]; then
