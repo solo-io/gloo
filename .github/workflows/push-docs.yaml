@@ -69,50 +69,107 @@ jobs:
           set -euo pipefail
           git config --global url."https://github_runner_solo:${GITHUB_TOKEN}@github.com".insteadOf "https://github.com"
 
-          # ON_LTS_UPDATE - main_minor is the single source of truth for the version that maps to `main`.
-          MAIN_MINOR="1.22"
-
-          # Supported lines, newest first: "<gloo-ref>|<minor>|<directory>".
-          # The main line builds from gloo `main` and represents MAIN_MINOR.
-          LINES=(
-            "main|${MAIN_MINOR}|${MAIN_MINOR}.x"
-            "v1.21.x|1.21|1.21.x"
-            "v1.20.x|1.20|1.20.x"
-            "v1.19.x|1.19|1.19.x"
-            "v1.18.x|1.18|1.18.x"
-          )
-
           DOCS="$PWD/docs"
           GLOO="$PWD/gloo"
+
+          # Fail loudly with a GitHub-annotated error, or just a warning, on version problems.
+          die()  { echo "::error::$*"; exit 1; }
+          warn() { echo "::warning::$*"; }
+
+          # The minor that gloo `main` currently represents. Derive it from the newest tag
+          # reachable from origin/main (e.g. v1.22.0-beta11 -> 1.22) rather than hardcoding it,
+          # so it can never drift from the actual branch.
+          main_tag="$(git -C "$GLOO" describe --tags --abbrev=0 origin/main 2>/dev/null || true)"
+          [[ -n "$main_tag" ]] || die "Could not read any tag from origin/main; cannot determine the main-line minor. Were gloo tags fetched?"
+          if [[ ! "$main_tag" =~ ^v?([0-9]+)\.([0-9]+)\. ]]; then
+            die "Newest tag on origin/main ('$main_tag') is not a vMAJOR.MINOR.* version; cannot derive the main-line minor."
+          fi
+          MAIN_MINOR="${BASH_REMATCH[1]}.${BASH_REMATCH[2]}"
+          echo "main line resolves to ${MAIN_MINOR} (from tag ${main_tag})"
+
+          # Supported lines, newest first. List ONLY the gloo refs - the minor and the docs
+          # directory are derived from each ref in the loop, so there is one value to maintain.
+          # ON_LTS_UPDATE - add the newest LTS branch (and drop the EOL one) when a minor is cut.
+          LINES=(
+            "main"
+            "v1.21.x"
+            "v1.20.x"
+            "v1.19.x"
+            "v1.18.x"
+          )
+
           summary=""
+          matched=0
 
-          for entry in "${LINES[@]}"; do
-            IFS='|' read -r ref minor directory <<< "$entry"
+          # Validate the manual filter up front so a typo fails fast with the valid set.
+          if [[ -n "${LINES_INPUT:-}" && "${LINES_INPUT}" != "all" ]]; then
+            valid=" ${LINES[*]} "
+            IFS=',' read -ra requested <<< "$LINES_INPUT"
+            for r in "${requested[@]}"; do
+              r="${r//[[:space:]]/}"
+              [[ -n "$r" ]] || continue
+              [[ "$valid" == *" $r "* ]] || die "Requested line '$r' is not a known line. Valid refs: ${LINES[*]}"
+            done
+          fi
 
+          for ref in "${LINES[@]}"; do
             # Optional filter from workflow_dispatch. Empty input or "all" means every line.
             if [[ -n "${LINES_INPUT:-}" && "${LINES_INPUT}" != "all" && ",${LINES_INPUT}," != *",${ref},"* ]]; then
               echo "Skipping ${ref} (not in requested lines '${LINES_INPUT}')"
               continue
             fi
+            matched=$((matched + 1))
+
+            # Derive the minor and docs directory from the ref. `main` uses MAIN_MINOR; every
+            # other line must be a vMAJOR.MINOR.x LTS branch.
+            if [[ "$ref" == "main" ]]; then
+              minor="$MAIN_MINOR"
+            elif [[ "$ref" =~ ^v([0-9]+\.[0-9]+)\.x$ ]]; then
+              minor="${BASH_REMATCH[1]}"
+            else
+              die "Unrecognized line ref '${ref}'. Expected 'main' or a 'vMAJOR.MINOR.x' branch."
+            fi
+            directory="${minor}.x"
 
             echo "::group::Regenerating ${minor}.x from gloo ${ref}"
+            git -C "$GLOO" rev-parse --verify --quiet "origin/${ref}^{commit}" >/dev/null \
+              || die "gloo ref 'origin/${ref}' does not exist. Was it fetched, and is the branch name correct?"
             git -C "$GLOO" checkout --quiet --detach "origin/${ref}"
 
             # The latest release tag reachable from the line is the newest patch for that minor.
             new_version="$(git -C "$GLOO" describe --tags --abbrev=0 2>/dev/null || true)"
             new_version="${new_version#v}"
 
-            # Bump this minor's field in the OSS version conrefs (single-line files, one field per minor).
-            if [[ -n "$new_version" ]]; then
+            if [[ -z "$new_version" ]]; then
+              # main is always beta-tagged, so a missing tag there is suspect; a freshly cut LTS
+              # branch may legitimately have none yet.
+              if [[ "$ref" == "main" ]]; then
+                warn "No tag reachable from origin/main; leaving the ${minor}.x conref unchanged."
+              else
+                echo "No release tag found for ${ref}; leaving conref unchanged."
+              fi
+              summary="${summary}- ${minor}.x → (no release tag; unchanged)\n"
+            elif [[ "$new_version" != "${minor}."* ]]; then
+              # The newest reachable tag belongs to a different minor than the branch claims -
+              # usually a mis-cut branch or a stray tag. Don't silently bump the wrong field.
+              die "Line '${ref}' resolved to tag '${new_version}', which is not a ${minor}.x patch. Refusing to bump the ${minor}.x conref with a mismatched version."
+            else
+              # Bump this minor's field in the OSS version conrefs (single-line files, one field per minor).
               minor_escaped="${minor//./\\.}"
               safe_new="${new_version//&/\\&}"
+              before="$(cat "$DOCS"/assets/conrefs/versions/gloo_oss*.md 2>/dev/null || true)"
               find "$DOCS/assets/conrefs/versions" -type f -name 'gloo_oss*.md' -exec \
                 sed -E -i "s/\}\}${minor_escaped}\.[0-9]+(-[a-zA-Z0-9]+)?\{\{/}}${safe_new}{{/g" {} \;
-              echo "Bumped ${minor}.x -> ${new_version}"
+              after="$(cat "$DOCS"/assets/conrefs/versions/gloo_oss*.md 2>/dev/null || true)"
+              if [[ "$before" != "$after" ]]; then
+                echo "Bumped ${minor}.x -> ${new_version}"
+              elif [[ "$after" == *"}}${new_version}{{"* ]]; then
+                echo "Conref already at ${minor}.x -> ${new_version}; nothing to bump."
+              else
+                # No field for this minor exists yet - the conref needs a human to add one.
+                warn "No ${minor}.x field found in assets/conrefs/versions/gloo_oss*.md; the conref may need a new entry for this minor. Leaving unchanged."
+              fi
               summary="${summary}- ${minor}.x → ${new_version}\n"
-            else
-              echo "No release tag found for ${ref}; leaving conref unchanged."
-              summary="${summary}- ${minor}.x → (no release tag; unchanged)\n"
             fi
 
             # Generate the reference docs for this line.
@@ -150,6 +207,9 @@ jobs:
             fi
             echo "::endgroup::"
           done
+
+          # Guard against a run that regenerated nothing (e.g. a filter that matched no lines).
+          [[ "$matched" -gt 0 ]] || die "No lines were regenerated. Check the 'lines' input against: ${LINES[*]}"
 
           # Expose the per-line version summary for the PR body.
           {
@@ -216,9 +276,10 @@ jobs:
             }
 
   # ---------------------------------------------------------------------------
-  # Enterprise (glooe): one release at a time, via repository_dispatch.
-  # Unchanged behavior - enterprise versions arrive in the dispatch payload and
-  # cannot be derived from gloo tags, so they are not batched.
+  # Enterprise (glooe): one release at a time, via repository_dispatch. Enterprise
+  # versions arrive in the dispatch payload (which line, which tag) and cannot be
+  # derived from gloo tags, so they are not batched like the OSS lines. The minor,
+  # docs directory, and gloo ref are derived from the payload + git, not hardcoded.
   # ---------------------------------------------------------------------------
   copy-docs-enterprise:
     if: ${{ github.event_name == 'repository_dispatch' }}
@@ -229,43 +290,6 @@ jobs:
       run: |
         echo "lts=${{ github.event.client_payload.lts }}" >> $GITHUB_OUTPUT
         echo "tag=${{ github.event.client_payload.tag }}" >> $GITHUB_OUTPUT
-    # ON_LTS_UPDATE - bump version. Main branch minor is the single source of truth for "version that maps to main".
-    - name: Set version variables
-      id: version-variables
-      run: |
-        main_minor="1.22"
-        minor=""
-        directory=""
-        if [[ "${{ steps.lts-version.outputs.lts }}" == "main" ]]; then
-          minor="${main_minor}"
-          directory="${main_minor}.x"
-        elif [[ "${{ steps.lts-version.outputs.lts }}" == "v1.22.x" ]]; then
-          minor="${main_minor}"
-          directory="${main_minor}.x"
-        elif [[ "${{ steps.lts-version.outputs.lts }}" == "v1.21.x" ]]; then
-          minor="1.21"
-          directory="1.21.x"
-        elif [[ "${{ steps.lts-version.outputs.lts }}" == "v1.20.x" ]]; then
-          minor="1.20"
-          directory="1.20.x"
-        elif [[ "${{ steps.lts-version.outputs.lts }}" == "v1.19.x" ]]; then
-          minor="1.19"
-          directory="1.19.x"
-        else
-          minor="1.18"
-          directory="1.18.x"
-        fi
-        echo "minor=${minor}" >> $GITHUB_OUTPUT
-        echo "directory=${directory}" >> $GITHUB_OUTPUT
-        echo "main_minor=${main_minor}" >> $GITHUB_OUTPUT
-    - name: Set gloo checkout ref
-      id: gloo-checkout-ref
-      run: |
-        if [[ "${{ steps.version-variables.outputs.minor }}" == "${{ steps.version-variables.outputs.main_minor }}" ]]; then
-          echo "ref=main" >> $GITHUB_OUTPUT
-        else
-          echo "ref=${{ steps.lts-version.outputs.lts }}" >> $GITHUB_OUTPUT
-        fi
     - name: Checkout docs repo
       uses: actions/checkout@v4
       with:
@@ -280,36 +304,103 @@ jobs:
         repository: "solo-io/gloo"
         token: ${{ secrets.DOCS_TOKEN }}
         path: gloo
-        ref: ${{ steps.gloo-checkout-ref.outputs.ref }}
+        ref: main
+        fetch-depth: 0
+        fetch-tags: "true"
+    - name: Fetch all gloo branches and tags
+      run: |
+        git -C gloo fetch --tags --force origin '+refs/heads/*:refs/remotes/origin/*'
+    # Derive the minor/directory from the dispatch payload and check out the matching gloo ref.
+    # main_minor is read from origin/main's newest tag, so nothing here is hardcoded per release.
+    - name: Resolve version and check out gloo ref
+      id: version-variables
+      env:
+        LTS: ${{ steps.lts-version.outputs.lts }}
+        TAG: ${{ steps.lts-version.outputs.tag }}
+      run: |
+        set -euo pipefail
+        die() { echo "::error::$*"; exit 1; }
+
+        GLOO="$PWD/gloo"
+
+        # The minor that gloo `main` currently represents (e.g. v1.22.0-beta11 -> 1.22).
+        main_tag="$(git -C "$GLOO" describe --tags --abbrev=0 origin/main 2>/dev/null || true)"
+        [[ -n "$main_tag" ]] || die "Could not read any tag from origin/main; cannot determine the main-line minor. Were gloo tags fetched?"
+        [[ "$main_tag" =~ ^v?([0-9]+)\.([0-9]+)\. ]] || die "Newest tag on origin/main ('$main_tag') is not a vMAJOR.MINOR.* version."
+        main_minor="${BASH_REMATCH[1]}.${BASH_REMATCH[2]}"
+
+        # The release minor comes from the LTS branch name; the main line carries no minor in its
+        # name, so fall back to the release tag for it.
+        if [[ "$LTS" =~ ^v([0-9]+\.[0-9]+)\.x$ ]]; then
+          minor="${BASH_REMATCH[1]}"
+        elif [[ "$LTS" == "main" ]]; then
+          [[ "$TAG" =~ ^v?([0-9]+\.[0-9]+)\. ]] || die "lts='main' but tag '$TAG' is not a vMAJOR.MINOR.* version; cannot derive the minor."
+          minor="${BASH_REMATCH[1]}"
+        else
+          die "Unrecognized lts '$LTS' from the dispatch payload. Expected 'main' or a 'vMAJOR.MINOR.x' branch."
+        fi
+        directory="${minor}.x"
+
+        # The current-development minor lives on `main` until its vX.Y.x branch is cut, so only
+        # prefer that branch once it actually exists.
+        if [[ "$LTS" == "main" || "$minor" == "$main_minor" ]]; then
+          if git -C "$GLOO" rev-parse --verify --quiet "origin/v${minor}.x^{commit}" >/dev/null; then
+            ref="v${minor}.x"
+          else
+            ref="main"
+          fi
+        else
+          ref="v${minor}.x"
+        fi
+
+        git -C "$GLOO" rev-parse --verify --quiet "origin/${ref}^{commit}" >/dev/null \
+          || die "gloo ref 'origin/${ref}' does not exist. Was it fetched, and is the branch name correct?"
+        git -C "$GLOO" checkout --quiet --detach "origin/${ref}"
+
+        echo "Resolved lts='${LTS}' tag='${TAG}' -> minor=${minor}, directory=${directory}, gloo ref=${ref} (main is ${main_minor})"
+        echo "minor=${minor}" >> "$GITHUB_OUTPUT"
+        echo "directory=${directory}" >> "$GITHUB_OUTPUT"
     # Replace the previous enterprise patch version for this minor with the newly released tag.
     - name: Bump version conrefs
       run: |
-        pushd docs || exit 1
+        set -euo pipefail
+        die()  { echo "::error::$*"; exit 1; }
+        warn() { echo "::warning::$*"; }
+
+        pushd docs || die "docs checkout is missing."
 
         MINOR_VERSION="${{ steps.version-variables.outputs.minor }}"
         NEW_VERSION="${{ steps.lts-version.outputs.tag }}"
         TARGET_DIR="assets/conrefs/versions"
 
-        # Escape periods in minor version (e.g., 1.19 → 1\.19)
+        [[ -n "$NEW_VERSION" ]] || die "Dispatch payload carried no tag; nothing to bump for ${MINOR_VERSION}."
+
+        # Normalize: strip a leading 'v' (v1.21.5 -> 1.21.5).
+        TRIMMED_NEW_VERSION="${NEW_VERSION#v}"
+
+        # The tag must belong to the minor we resolved, or we would bump the wrong field.
+        [[ "$TRIMMED_NEW_VERSION" == "${MINOR_VERSION}."* ]] \
+          || die "Release tag '${TRIMMED_NEW_VERSION}' is not a ${MINOR_VERSION}.x patch; refusing to bump the ${MINOR_VERSION} conref."
+
+        # Escape periods in the minor (1.19 -> 1\.19) and & in the replacement string for sed.
         MINOR_VERSION_ESCAPED="${MINOR_VERSION//./\\.}"
-
-        # Remove leading 'v' from new version if present
-        if [[ "$NEW_VERSION" == v* ]]; then
-          TRIMMED_NEW_VERSION="${NEW_VERSION:1}"
-        else
-          TRIMMED_NEW_VERSION="$NEW_VERSION"
-        fi
-
-        # Escape & in replacement string for sed
         SAFE_NEW_VERSION="${TRIMMED_NEW_VERSION//&/\\&}"
 
         # Enterprise releases bump the gloo_patch* conrefs.
         FILE_PATTERN="gloo_patch*.md"
 
+        before="$(cat "$TARGET_DIR"/$FILE_PATTERN 2>/dev/null || true)"
         find "$TARGET_DIR" -type f -name "$FILE_PATTERN" -exec \
           sed -E -i "s/\}\}${MINOR_VERSION_ESCAPED}\.[0-9]+(-[a-zA-Z0-9]+)?\{\{/}}${SAFE_NEW_VERSION}{{/g" {} \;
+        after="$(cat "$TARGET_DIR"/$FILE_PATTERN 2>/dev/null || true)"
 
-        echo "Replaced ${MINOR_VERSION} patch version with ${TRIMMED_NEW_VERSION} in $TARGET_DIR/$FILE_PATTERN"
+        if [[ "$before" != "$after" ]]; then
+          echo "Replaced ${MINOR_VERSION} patch version with ${TRIMMED_NEW_VERSION} in $TARGET_DIR/$FILE_PATTERN"
+        elif [[ "$after" == *"}}${TRIMMED_NEW_VERSION}{{"* ]]; then
+          echo "Conref already at ${MINOR_VERSION} -> ${TRIMMED_NEW_VERSION}; nothing to bump."
+        else
+          warn "No ${MINOR_VERSION} field found in $TARGET_DIR/$FILE_PATTERN; the conref may need a new entry for this minor. Leaving unchanged."
+        fi
 
         popd || exit 1
     - name: Generate docs
