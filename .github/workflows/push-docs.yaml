@@ -155,19 +155,20 @@ jobs:
               die "Line '${ref}' resolved to tag '${new_version}', which is not a ${minor}.x patch. Refusing to bump the ${minor}.x conref with a mismatched version."
             else
               # Bump this minor's field in the OSS version conrefs (single-line files, one field per minor).
+              # Since the docs-repo migration (#11307) the OSS conrefs live in two dirs, so bump both.
               minor_escaped="${minor//./\\.}"
               safe_new="${new_version//&/\\&}"
-              before="$(cat "$DOCS"/assets/conrefs/versions/gloo_oss*.md 2>/dev/null || true)"
-              find "$DOCS/assets/conrefs/versions" -type f -name 'gloo_oss*.md' -exec \
+              before="$(cat "$DOCS"/assets/conrefs/versions/gloo_oss*.md "$DOCS"/assets/gateway-docs/versions/gloo_oss*.md 2>/dev/null || true)"
+              find "$DOCS/assets/conrefs/versions" "$DOCS/assets/gateway-docs/versions" -type f -name 'gloo_oss*.md' -exec \
                 sed -E -i "s/\}\}${minor_escaped}\.[0-9]+(-[a-zA-Z0-9]+)?\{\{/}}${safe_new}{{/g" {} \;
-              after="$(cat "$DOCS"/assets/conrefs/versions/gloo_oss*.md 2>/dev/null || true)"
+              after="$(cat "$DOCS"/assets/conrefs/versions/gloo_oss*.md "$DOCS"/assets/gateway-docs/versions/gloo_oss*.md 2>/dev/null || true)"
               if [[ "$before" != "$after" ]]; then
                 echo "Bumped ${minor}.x -> ${new_version}"
               elif [[ "$after" == *"}}${new_version}{{"* ]]; then
                 echo "Conref already at ${minor}.x -> ${new_version}; nothing to bump."
               else
                 # No field for this minor exists yet - the conref needs a human to add one.
-                warn "No ${minor}.x field found in assets/conrefs/versions/gloo_oss*.md; the conref may need a new entry for this minor. Leaving unchanged."
+                warn "No ${minor}.x field found in gloo_oss*.md under assets/conrefs/versions or assets/gateway-docs/versions; the conref may need a new entry for this minor. Leaving unchanged."
               fi
               summary="${summary}- ${minor}.x → ${new_version}\n"
             fi
@@ -389,17 +390,18 @@ jobs:
         # Enterprise releases bump the gloo_patch* conrefs.
         FILE_PATTERN="gloo_patch*.md"
 
-        before="$(cat "$TARGET_DIR"/$FILE_PATTERN 2>/dev/null || true)"
-        find "$TARGET_DIR" -type f -name "$FILE_PATTERN" -exec \
+        # Since the docs-repo migration (#11307) enterprise conrefs are bumped in both dirs.
+        before="$(cat "$TARGET_DIR"/$FILE_PATTERN assets/gateway-docs/versions/$FILE_PATTERN 2>/dev/null || true)"
+        find "$TARGET_DIR" assets/gateway-docs/versions -type f -name "$FILE_PATTERN" -exec \
           sed -E -i "s/\}\}${MINOR_VERSION_ESCAPED}\.[0-9]+(-[a-zA-Z0-9]+)?\{\{/}}${SAFE_NEW_VERSION}{{/g" {} \;
-        after="$(cat "$TARGET_DIR"/$FILE_PATTERN 2>/dev/null || true)"
+        after="$(cat "$TARGET_DIR"/$FILE_PATTERN assets/gateway-docs/versions/$FILE_PATTERN 2>/dev/null || true)"
 
         if [[ "$before" != "$after" ]]; then
-          echo "Replaced ${MINOR_VERSION} patch version with ${TRIMMED_NEW_VERSION} in $TARGET_DIR/$FILE_PATTERN"
+          echo "Replaced ${MINOR_VERSION} patch version with ${TRIMMED_NEW_VERSION} in $TARGET_DIR and assets/gateway-docs/versions ($FILE_PATTERN)"
         elif [[ "$after" == *"}}${TRIMMED_NEW_VERSION}{{"* ]]; then
           echo "Conref already at ${MINOR_VERSION} -> ${TRIMMED_NEW_VERSION}; nothing to bump."
         else
-          warn "No ${MINOR_VERSION} field found in $TARGET_DIR/$FILE_PATTERN; the conref may need a new entry for this minor. Leaving unchanged."
+          warn "No ${MINOR_VERSION} field found in $FILE_PATTERN under $TARGET_DIR or assets/gateway-docs/versions; the conref may need a new entry for this minor. Leaving unchanged."
         fi
 
         popd || exit 1
