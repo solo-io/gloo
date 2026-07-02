@@ -242,22 +242,10 @@ func (p glooProxy) Equals(in glooProxy) bool {
 	if !proto.Equal(p.Proxy, in.Proxy) {
 		return false
 	}
-	if !maps.Equal(p.reportMap.Gateways, in.reportMap.Gateways) {
-		return false
-	}
-	if !maps.Equal(p.reportMap.ListenerSets, in.reportMap.ListenerSets) {
-		return false
-	}
-	if !maps.Equal(p.reportMap.HTTPRoutes, in.reportMap.HTTPRoutes) {
-		return false
-	}
-	if !maps.Equal(p.reportMap.TCPRoutes, in.reportMap.TCPRoutes) {
-		return false
-	}
-	if !maps.Equal(p.reportMap.TLSRoutes, in.reportMap.TLSRoutes) {
-		return false
-	}
-	return true
+	// NOTE: reportMap holds pointer-valued maps; compare by content, not pointer
+	// identity, otherwise this always reports "changed" and krt re-translates
+	// every cycle (constant CPU + memory churn). See reports.ReportMap.Equals.
+	return p.reportMap.Equals(in.reportMap)
 }
 
 func (p glooProxy) ResourceName() string {
@@ -272,24 +260,13 @@ func (r report) ResourceName() string {
 	return "report"
 }
 
-// do we really need this for a singleton?
+// Equals is required even though report is a Singleton: krt uses it as the
+// change-detection predicate, and emitting on every recompute drives a
+// status-write -> watch-event -> recompute hot loop. It must compare report
+// content (the maps hold pointers) and ignore LastTransitionTime; see
+// reports.ReportMap.Equals.
 func (r report) Equals(in report) bool {
-	if !maps.Equal(r.ReportMap.Gateways, in.ReportMap.Gateways) {
-		return false
-	}
-	if !maps.Equal(r.ReportMap.ListenerSets, in.ReportMap.ListenerSets) {
-		return false
-	}
-	if !maps.Equal(r.ReportMap.HTTPRoutes, in.ReportMap.HTTPRoutes) {
-		return false
-	}
-	if !maps.Equal(r.ReportMap.TCPRoutes, in.ReportMap.TCPRoutes) {
-		return false
-	}
-	if !maps.Equal(r.ReportMap.TLSRoutes, in.ReportMap.TLSRoutes) {
-		return false
-	}
-	return true
+	return r.ReportMap.Equals(in.ReportMap)
 }
 
 type proxyList struct {
