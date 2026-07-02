@@ -24,14 +24,13 @@ func (r *ReportMap) BuildGWStatus(ctx context.Context, gw gwv1.Gateway) *gwv1.Ga
 
 	finalListeners := make([]gwv1.ListenerStatus, 0, len(gw.Spec.Listeners))
 	for _, lis := range gw.Spec.Listeners {
-		lisReport := gwReport.listener(&lis)
-		addMissingListenerConditions(lisReport)
+		listenerStatus := listenerStatusWithDefaults(listenerReport(gwReport.listeners, lis.Name), lis.Name)
 
-		finalConditions := make([]metav1.Condition, 0, len(lisReport.Status.Conditions))
+		finalConditions := make([]metav1.Condition, 0, len(listenerStatus.Conditions))
 		oldLisStatusIndex := slices.IndexFunc(gw.Status.Listeners, func(l gwv1.ListenerStatus) bool {
 			return l.Name == lis.Name
 		})
-		for _, lisCondition := range lisReport.Status.Conditions {
+		for _, lisCondition := range listenerStatus.Conditions {
 			lisCondition.ObservedGeneration = gwReport.observedGeneration
 
 			// copy old condition from gw so LastTransitionTime is set correctly below by SetStatusCondition()
@@ -42,14 +41,12 @@ func (r *ReportMap) BuildGWStatus(ctx context.Context, gw gwv1.Gateway) *gwv1.Ga
 			}
 			meta.SetStatusCondition(&finalConditions, lisCondition)
 		}
-		lisReport.Status.Conditions = finalConditions
-		finalListeners = append(finalListeners, lisReport.Status)
+		listenerStatus.Conditions = finalConditions
+		finalListeners = append(finalListeners, listenerStatus)
 	}
 
-	addMissingGatewayConditions(r.Gateway(&gw))
-
 	finalConditions := make([]metav1.Condition, 0)
-	for _, gwCondition := range gwReport.GetConditions() {
+	for _, gwCondition := range gatewayConditionsWithDefaults(gwReport.GetConditions()) {
 		gwCondition.ObservedGeneration = gwReport.observedGeneration
 
 		// copy old condition from gw so LastTransitionTime is set correctly below by SetStatusCondition()
@@ -117,8 +114,7 @@ func (r *ReportMap) BuildRouteStatus(ctx context.Context, obj client.Object, cNa
 	// Process the parent references to build the RouteParentStatus
 	routeStatus := gwv1.RouteStatus{}
 	for _, parentRef := range parentRefs {
-		parentStatusReport := routeReport.parentRef(&parentRef)
-		addMissingParentRefConditions(parentStatusReport)
+		parentConditions := parentRefConditionsWithDefaults(parentRefReport(routeReport, &parentRef))
 
 		// Get the status of the current parentRef conditions if they exist
 		var currentParentRefConditions []metav1.Condition
@@ -129,8 +125,8 @@ func (r *ReportMap) BuildRouteStatus(ctx context.Context, obj client.Object, cNa
 			currentParentRefConditions = existingStatus.Parents[currentParentRefIdx].Conditions
 		}
 
-		finalConditions := make([]metav1.Condition, 0, len(parentStatusReport.Conditions))
-		for _, pCondition := range parentStatusReport.Conditions {
+		finalConditions := make([]metav1.Condition, 0, len(parentConditions))
+		for _, pCondition := range parentConditions {
 			pCondition.ObservedGeneration = routeReport.observedGeneration
 
 			// Copy old condition to preserve LastTransitionTime, if it exists
@@ -159,76 +155,102 @@ func (r *ReportMap) BuildRouteStatus(ctx context.Context, obj client.Object, cNa
 }
 
 // Reports will initially only contain negative conditions found during translation,
-// so all missing conditions are assumed to be positive. Here we will add all missing conditions
-// to a given report, i.e. set healthy conditions
-func addMissingGatewayConditions(gwReport *GatewayReport) {
-	if cond := meta.FindStatusCondition(gwReport.GetConditions(), string(gwv1.GatewayConditionAccepted)); cond == nil {
-		gwReport.SetCondition(GatewayCondition{
-			Type:   gwv1.GatewayConditionAccepted,
+// so all missing conditions are assumed to be positive. The helpers below add
+// those defaults to clones so status rendering does not mutate the ReportMap
+// used by krt equality.
+func gatewayConditionsWithDefaults(reportConditions []metav1.Condition) []metav1.Condition {
+	conditions := slices.Clone(reportConditions)
+	if cond := meta.FindStatusCondition(conditions, string(gwv1.GatewayConditionAccepted)); cond == nil {
+		meta.SetStatusCondition(&conditions, metav1.Condition{
+			Type:   string(gwv1.GatewayConditionAccepted),
 			Status: metav1.ConditionTrue,
-			Reason: gwv1.GatewayReasonAccepted,
+			Reason: string(gwv1.GatewayReasonAccepted),
 		})
 	}
-	if cond := meta.FindStatusCondition(gwReport.GetConditions(), string(gwv1.GatewayConditionProgrammed)); cond == nil {
-		gwReport.SetCondition(GatewayCondition{
-			Type:   gwv1.GatewayConditionProgrammed,
+	if cond := meta.FindStatusCondition(conditions, string(gwv1.GatewayConditionProgrammed)); cond == nil {
+		meta.SetStatusCondition(&conditions, metav1.Condition{
+			Type:   string(gwv1.GatewayConditionProgrammed),
 			Status: metav1.ConditionTrue,
-			Reason: gwv1.GatewayReasonProgrammed,
+			Reason: string(gwv1.GatewayReasonProgrammed),
 		})
 	}
+	return conditions
 }
 
-// Reports will initially only contain negative conditions found during translation,
-// so all missing conditions are assumed to be positive. Here we will add all missing conditions
-// to a given report, i.e. set healthy conditions
-func addMissingListenerConditions(lisReport *ListenerReport) {
+func listenerStatusWithDefaults(lisReport *ListenerReport, name gwv1.SectionName) gwv1.ListenerStatus {
+	status := gwv1.ListenerStatus{Name: name}
+	if lisReport != nil {
+		status = lisReport.Status
+		// The rendered status name is the spec listener name the caller asked for,
+		// independent of how the report happens to be keyed.
+		status.Name = name
+		status.Conditions = slices.Clone(lisReport.Status.Conditions)
+		status.SupportedKinds = slices.Clone(lisReport.Status.SupportedKinds)
+	}
 	// set healthy conditions for Condition Types not set yet (i.e. no negative status yet, we can assume positive)
-	if cond := meta.FindStatusCondition(lisReport.Status.Conditions, string(gwv1.ListenerConditionAccepted)); cond == nil {
-		lisReport.SetCondition(ListenerCondition{
-			Type:   gwv1.ListenerConditionAccepted,
+	if cond := meta.FindStatusCondition(status.Conditions, string(gwv1.ListenerConditionAccepted)); cond == nil {
+		meta.SetStatusCondition(&status.Conditions, metav1.Condition{
+			Type:   string(gwv1.ListenerConditionAccepted),
 			Status: metav1.ConditionTrue,
-			Reason: gwv1.ListenerReasonAccepted,
+			Reason: string(gwv1.ListenerReasonAccepted),
 		})
 	}
-	if cond := meta.FindStatusCondition(lisReport.Status.Conditions, string(gwv1.ListenerConditionConflicted)); cond == nil {
-		lisReport.SetCondition(ListenerCondition{
-			Type:   gwv1.ListenerConditionConflicted,
+	if cond := meta.FindStatusCondition(status.Conditions, string(gwv1.ListenerConditionConflicted)); cond == nil {
+		meta.SetStatusCondition(&status.Conditions, metav1.Condition{
+			Type:   string(gwv1.ListenerConditionConflicted),
 			Status: metav1.ConditionFalse,
-			Reason: gwv1.ListenerReasonNoConflicts,
+			Reason: string(gwv1.ListenerReasonNoConflicts),
 		})
 	}
-	if cond := meta.FindStatusCondition(lisReport.Status.Conditions, string(gwv1.ListenerConditionResolvedRefs)); cond == nil {
-		lisReport.SetCondition(ListenerCondition{
-			Type:   gwv1.ListenerConditionResolvedRefs,
+	if cond := meta.FindStatusCondition(status.Conditions, string(gwv1.ListenerConditionResolvedRefs)); cond == nil {
+		meta.SetStatusCondition(&status.Conditions, metav1.Condition{
+			Type:   string(gwv1.ListenerConditionResolvedRefs),
 			Status: metav1.ConditionTrue,
-			Reason: gwv1.ListenerReasonResolvedRefs,
+			Reason: string(gwv1.ListenerReasonResolvedRefs),
 		})
 	}
-	if cond := meta.FindStatusCondition(lisReport.Status.Conditions, string(gwv1.ListenerConditionProgrammed)); cond == nil {
-		lisReport.SetCondition(ListenerCondition{
-			Type:   gwv1.ListenerConditionProgrammed,
+	if cond := meta.FindStatusCondition(status.Conditions, string(gwv1.ListenerConditionProgrammed)); cond == nil {
+		meta.SetStatusCondition(&status.Conditions, metav1.Condition{
+			Type:   string(gwv1.ListenerConditionProgrammed),
 			Status: metav1.ConditionTrue,
-			Reason: gwv1.ListenerReasonProgrammed,
+			Reason: string(gwv1.ListenerReasonProgrammed),
 		})
 	}
+	return status
 }
 
-// Reports will initially only contain negative conditions found during translation,
-// so all missing conditions are assumed to be positive. Here we will add all missing conditions
-// to a given report, i.e. set healthy conditions
-func addMissingParentRefConditions(report *ParentRefReport) {
-	if cond := meta.FindStatusCondition(report.Conditions, string(gwv1.RouteConditionAccepted)); cond == nil {
-		report.SetCondition(RouteCondition{
-			Type:   gwv1.RouteConditionAccepted,
+func parentRefConditionsWithDefaults(report *ParentRefReport) []metav1.Condition {
+	var conditions []metav1.Condition
+	if report != nil {
+		conditions = slices.Clone(report.Conditions)
+	}
+	if cond := meta.FindStatusCondition(conditions, string(gwv1.RouteConditionAccepted)); cond == nil {
+		meta.SetStatusCondition(&conditions, metav1.Condition{
+			Type:   string(gwv1.RouteConditionAccepted),
 			Status: metav1.ConditionTrue,
-			Reason: gwv1.RouteReasonAccepted,
+			Reason: string(gwv1.RouteReasonAccepted),
 		})
 	}
-	if cond := meta.FindStatusCondition(report.Conditions, string(gwv1.RouteConditionResolvedRefs)); cond == nil {
-		report.SetCondition(RouteCondition{
-			Type:   gwv1.RouteConditionResolvedRefs,
+	if cond := meta.FindStatusCondition(conditions, string(gwv1.RouteConditionResolvedRefs)); cond == nil {
+		meta.SetStatusCondition(&conditions, metav1.Condition{
+			Type:   string(gwv1.RouteConditionResolvedRefs),
 			Status: metav1.ConditionTrue,
-			Reason: gwv1.RouteReasonResolvedRefs,
+			Reason: string(gwv1.RouteReasonResolvedRefs),
 		})
 	}
+	return conditions
+}
+
+// listenerReport returns the ListenerReport for the named listener, or nil if
+// none was recorded during translation. Indexing a nil map is safe, so callers
+// may pass a nil listeners map.
+func listenerReport(listeners map[string]*ListenerReport, name gwv1.SectionName) *ListenerReport {
+	return listeners[string(name)]
+}
+
+func parentRefReport(routeReport *RouteReport, parentRef *gwv1.ParentReference) *ParentRefReport {
+	if routeReport == nil || routeReport.Parents == nil {
+		return nil
+	}
+	return routeReport.Parents[getParentRefKey(parentRef)]
 }
