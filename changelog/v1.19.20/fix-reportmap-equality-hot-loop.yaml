@@ -1,0 +1,15 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/solo-projects/issues/8013
+    resolvesIssue: true
+    description: >-
+      Fix no-op Kubernetes Gateway report churn by comparing report maps by
+      content and keeping status rendering read-only. The report-map equality
+      checks used in change detection (glooProxy.Equals and report.Equals)
+      compared maps of pointer values, so identical translation output could be
+      reported as "changed" on every recompute; condition LastTransitionTime
+      could also prevent convergence. Status rendering also wrote default
+      conditions back into the report objects used for equality. Reports now
+      compare semantically, ignore LastTransitionTime for change detection, and
+      status rendering leaves ReportMap unchanged, allowing stable output to
+      converge without redundant report/status processing.
