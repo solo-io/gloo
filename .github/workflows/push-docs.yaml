@@ -103,10 +103,12 @@ jobs:
           # True if version $1 <= $2 (version-aware compare).
           ver_le() { [[ "$(printf '%s\n%s\n' "$1" "$2" | sort -V | head -n1)" == "$1" ]]; }
 
-          # Build the line list dynamically: `main`, plus every vMAJOR.MINOR.x LTS branch whose minor
-          # is in the supported window MIN_MINOR <= minor < MAIN_MINOR. The strict regex skips gloo's
-          # many non-release branches; the lower bound drops EOL lines; and the upper bound drops both
-          # `main`'s own just-cut branch and any future/experimental line (e.g. v2.0.x while main is 1.22).
+          # Build the line list: `main` (which represents the current in-development minor,
+          # MAIN_MINOR) plus every vMAJOR.MINOR.x LTS branch whose minor is in the window
+          # MIN_MINOR <= minor < MAIN_MINOR. The strict regex skips gloo's many non-release branches;
+          # the lower bound drops EOL lines; the upper bound drops the current dev line's own just-cut
+          # branch (main already covers MAIN_MINOR) and any future/experimental line (e.g. v2.0.x
+          # while main is 1.22).
           LINES=( "main" )
           while read -r b; do
             b="${b##*origin/}"
@@ -118,7 +120,7 @@ jobs:
           done < <(git -C "$GLOO" branch -r --list 'origin/v*.x' | sort -Vr)
 
           [[ "${#LINES[@]}" -gt 1 ]] || die "No LTS branches in [${MIN_MINOR}, ${MAIN_MINOR}) found under origin/v*.x; only 'main' would be built. Were branches fetched?"
-          echo "Lines to process (${MIN_MINOR} <= minor < ${MAIN_MINOR}): ${LINES[*]}"
+          echo "Lines to process (main=${MAIN_MINOR}, plus ${MIN_MINOR} <= minor < ${MAIN_MINOR}): ${LINES[*]}"
 
           summary=""
           matched=0
@@ -134,6 +136,18 @@ jobs:
             done
           fi
 
+          # The newest built line owns the shared, cross-version files (changelog, security scans,
+          # security-posture) and is always regenerated so they stay fresh even when no LTS patch
+          # changed. LINES is newest-first, so this is the first line this run actually processes.
+          primary_ref=""
+          for _r in "${LINES[@]}"; do
+            if [[ -z "${LINES_INPUT:-}" || "${LINES_INPUT}" == "all" || ",${LINES_INPUT}," == *",${_r},"* ]]; then
+              primary_ref="$_r"; break
+            fi
+          done
+          [[ -n "$primary_ref" ]] || die "No lines selected to process (check the 'lines' input against: ${LINES[*]})."
+          echo "Primary (shared-file) line: ${primary_ref}"
+
           for ref in "${LINES[@]}"; do
             # Optional filter from workflow_dispatch. Empty input or "all" means every line.
             if [[ -n "${LINES_INPUT:-}" && "${LINES_INPUT}" != "all" && ",${LINES_INPUT}," != *",${ref},"* ]]; then
@@ -142,8 +156,8 @@ jobs:
             fi
             matched=$((matched + 1))
 
-            # Derive the minor and docs directory from the ref. `main` uses MAIN_MINOR; every
-            # other line must be a vMAJOR.MINOR.x LTS branch.
+            # Derive the minor and docs directory from the ref. `main` represents MAIN_MINOR; every
+            # other line is a vMAJOR.MINOR.x LTS branch.
             if [[ "$ref" == "main" ]]; then
               minor="$MAIN_MINOR"
             elif [[ "$ref" =~ ^v([0-9]+\.[0-9]+)\.x$ ]]; then
@@ -192,9 +206,9 @@ jobs:
               elif [[ "$after" == *"}}${new_version}{{"* ]]; then
                 echo "Conref already at ${minor}.x -> ${new_version}; nothing to bump."
                 # Tag unchanged -> regenerated per-line docs would be byte-identical, so skip the
-                # expensive docsgen. Always keep the main line, since it also writes the shared files
-                # (changelog, security scans) that can change without a gloo tag bump.
-                if [[ "$ref" != "main" ]]; then
+                # expensive docsgen. Always keep the primary line, since it also writes the shared
+                # files (changelog, security scans) that can change without a gloo tag bump.
+                if [[ "$ref" != "$primary_ref" ]]; then
                   regenerate=0
                 fi
               else
@@ -215,6 +229,48 @@ jobs:
             ( cd "$GLOO" && make site-common -C docs )
             GEN="$GLOO/docs/content"
 
+            # If this minor has no docs directory yet (a newly supported line), seed the whole tree
+            # from the newest existing lower version, then retarget only the mechanical version
+            # labels that a diff of two adjacent version dirs shows are the *only* boilerplate
+            # differences: the _index title (`<prev>.x`), the per-minor conref reuse paths
+            # (`_<prev>.`), and the release-notes description ("<prev> release"). Everything else that
+            # differs between versions (e.g. jwt/overview, new feature pages) is genuine authored
+            # content, left as the previous version's copy for a writer to update. Prose that merely
+            # mentions the old version (e.g. "removed in 1.21") uses other patterns and is left alone.
+            # The generated reference files below then overwrite the seeded copies.
+            gw_dir="$DOCS/content/en/gateway/${directory}"
+            if [[ ! -d "$gw_dir" ]]; then
+              prev_minor="$(for d in "$DOCS"/content/en/gateway/*.x; do
+                              pb="${d##*/}"; pb="${pb%.x}"
+                              [[ "$pb" =~ ^[0-9]+\.[0-9]+$ && "$pb" != "$minor" ]] || continue
+                              ver_le "$pb" "$minor" && echo "$pb"
+                            done | sort -V | tail -1)"
+              [[ -n "$prev_minor" ]] || die "No existing gateway version directory below ${minor} to seed ${directory} from."
+              echo "Seeding new version directory ${directory} from ${prev_minor}.x, then retargeting version references."
+              cp -r "$DOCS/content/en/gateway/${prev_minor}.x" "$gw_dir"
+              prev_esc="${prev_minor//./\\.}"
+              find "$gw_dir" -type f \( -name '*.md' -o -name '*.txt' \) -exec \
+                sed -E -i "s/${prev_esc}\.x/${minor}.x/g; s/_${prev_esc}\./_${minor}./g; s/${prev_esc} release/${minor} release/g" {} \;
+              summary="${summary}  (new directory ${directory} seeded from ${prev_minor}.x - review carried-over prose)\n"
+            fi
+
+            # Stage/unstage this version. The in-development line (minor == MAIN_MINOR) is marked
+            # `draft` in its _index.md - the files exist in the repo and show only in local
+            # `hugo server -D` builds, never in the preview or prod deploys (neither builds drafts).
+            # `draft` is cascaded to the whole version tree. The flag is (re)applied every run, so when
+            # the minor is released and is no longer MAIN_MINOR it is stripped and the version
+            # publishes - "the files just get overwritten without that metadata value".
+            index_md="$gw_dir/_index.md"
+            if [[ -f "$index_md" ]]; then
+              if [[ "$minor" == "$MAIN_MINOR" ]]; then
+                grep -qE '^draft: true$'     "$index_md" || sed -E -i "1s/^---$/---\ndraft: true/" "$index_md"
+                grep -qE '^  - draft: true$' "$index_md" || sed -E -i "s/^(cascade:)$/\1\n  - draft: true/" "$index_md"
+                echo "Marked ${directory} as draft (in-development line; visible only in local -D builds)."
+              else
+                sed -E -i '/^draft: true$/d; /^  - draft: true$/d' "$index_md"
+              fi
+            fi
+
             # --- Per-line files: the filename/path carries the minor, so lines never collide. ---
             cp "$GEN/static/content/osa_included.md"      "$DOCS/assets/gateway-docs/pages/reference/osa_included_${minor}.md"
             cp "$GEN/static/content/osa_provided.md"      "$DOCS/assets/gateway-docs/pages/reference/osa_provided_${minor}.md"
@@ -234,8 +290,10 @@ jobs:
                "$DOCS/assets/gateway-docs/pages/reference/gateway_parameters_${minor}.md"
             sed -i '1,2d' "$DOCS/assets/gateway-docs/pages/reference/gateway_parameters_${minor}.md"
 
-            # --- Shared, multi-version files: written once, from the main line (the superset). ---
-            if [[ "$minor" == "$MAIN_MINOR" ]]; then
+            # --- Shared, multi-version files: written once, from the newest built (primary) line.
+            # They are cross-version (GitHub API / GCS / committed identically across branches), so
+            # any line yields the same content. ---
+            if [[ "$ref" == "$primary_ref" ]]; then
               cp "$GEN/static/content/gloo-changelog.docgen"  "$DOCS/static/changelog/gloo-changelog.docgen"
               cp "$GEN/static/content/glooe-changelog.docgen" "$DOCS/static/changelog/glooe-changelog.docgen"
               cp "$GEN/reference/security-posture.yaml"       "$DOCS/static/content/examples/manual/security-posture.yaml"
