@@ -1,0 +1,12 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/gloo/issues/8797
+    resolvesIssue: false
+    description: >-
+      Fix a bug in the gateway translator where RouteOptions referenced by a route via
+      delegateOptions were assigned by reference from the snapshot. When parent Virtual
+      Service route options were later merged into these references, the shared snapshot
+      proto was mutated, contaminating it for all other routes that referenced the same
+      RouteOption for the remainder of the translation cycle. The referenced RouteOptions
+      are now cloned before merging. The new GLOO_ISOLATE_DELEGATE_ROUTE_OPTIONS environment
+      variable (default true) can be set to false to temporarily restore the legacy behavior.

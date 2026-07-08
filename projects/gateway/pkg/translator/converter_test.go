@@ -1847,6 +1847,110 @@ func buildRouteTableWithSelector(name, namespace, prefix string, labels map[stri
 	})
 }
 
+var _ = Describe("Route converter delegateOptions isolation", func() {
+	gw := &v1.Gateway{
+		Metadata: &core.Metadata{Name: "gw1", Namespace: "gw-ns"},
+	}
+
+	// buildScenario returns a converter, snapshot and VS where:
+	//   - the snapshot owns a shared RouteOption (referenced by the route table via delegateOptions)
+	//     whose only set field is AppendXForwardedHost
+	//   - a parent VS route carries inline PrefixRewrite options and delegates to the route table
+	//   - the delegated route has no inline options and references the shared RouteOption
+	// The shared RouteOption is returned so callers can assert it is (not) mutated.
+	buildScenario := func() (translator.RouteConverter, *gloov1snap.ApiSnapshot, *v1.VirtualService, *v1.RouteOption) {
+		sharedRouteOption := &v1.RouteOption{
+			Metadata: &core.Metadata{Name: "shared-ro", Namespace: "default"},
+			Options: &gloov1.RouteOptions{
+				AppendXForwardedHost: &wrappers.BoolValue{Value: true},
+			},
+		}
+
+		rt := &v1.RouteTable{
+			Metadata: &core.Metadata{Name: "rt", Namespace: "default"},
+			Routes: []*v1.Route{{
+				Name: "delegated-route",
+				Matchers: []*matchers.Matcher{{
+					PathSpecifier: &matchers.Matcher_Prefix{Prefix: "/foo"},
+				}},
+				// No inline options: this route hits the nil-options branch and picks up
+				// the shared RouteOption by reference (pre-fix) into the snapshot.
+				ExternalOptionsConfig: &v1.Route_OptionsConfigRefs{
+					OptionsConfigRefs: &v1.DelegateOptionsRefs{
+						DelegateOptions: []*core.ResourceRef{{Name: "shared-ro", Namespace: "default"}},
+					},
+				},
+				Action: &v1.Route_DirectResponseAction{
+					DirectResponseAction: &gloov1.DirectResponseAction{Status: 200, Body: "foo"},
+				},
+			}},
+		}
+
+		vs := &v1.VirtualService{
+			Metadata: &core.Metadata{Name: "vs", Namespace: "default"},
+			VirtualHost: &v1.VirtualHost{
+				Routes: []*v1.Route{{
+					Matchers: []*matchers.Matcher{{
+						PathSpecifier: &matchers.Matcher_Prefix{Prefix: "/foo"},
+					}},
+					// Parent inline options that will be merged into the delegated child.
+					Options: &gloov1.RouteOptions{
+						PrefixRewrite: &wrappers.StringValue{Value: "/parent"},
+					},
+					Action: &v1.Route_DelegateAction{
+						DelegateAction: &v1.DelegateAction{
+							DelegationType: &v1.DelegateAction_Ref{
+								Ref: &core.ResourceRef{Name: "rt", Namespace: "default"},
+							},
+						},
+					},
+				}},
+			},
+		}
+
+		snapshot := &gloov1snap.ApiSnapshot{
+			RouteOptions: v1.RouteOptionList{sharedRouteOption},
+		}
+
+		rv := translator.NewRouteConverter(
+			translator.NewRouteTableSelector(v1.RouteTableList{rt}),
+			translator.NewRouteTableIndexer(),
+		)
+		return rv, snapshot, vs, sharedRouteOption
+	}
+
+	It("does not mutate the shared snapshot RouteOption when merging parent options (isolation on by default)", func() {
+		rv, snapshot, vs, sharedRouteOption := buildScenario()
+
+		rpt := reporter.ResourceReports{}
+		converted := rv.ConvertVirtualService(vs, gw, "proxy1", snapshot, rpt)
+		Expect(rpt).To(BeEmpty())
+		Expect(converted).To(HaveLen(1))
+
+		// The converted route must reflect the merge: its own AppendXForwardedHost plus the parent PrefixRewrite.
+		Expect(converted[0].GetOptions().GetAppendXForwardedHost().GetValue()).To(BeTrue())
+		Expect(converted[0].GetOptions().GetPrefixRewrite().GetValue()).To(Equal("/parent"))
+
+		// The shared snapshot RouteOption must be untouched: PrefixRewrite was never part of it.
+		Expect(sharedRouteOption.GetOptions().GetPrefixRewrite()).To(BeNil())
+		Expect(sharedRouteOption.GetOptions().GetAppendXForwardedHost().GetValue()).To(BeTrue())
+	})
+
+	It("mutates the shared snapshot RouteOption when isolation is disabled (legacy behavior)", func() {
+		GinkgoT().Setenv(translator.GlooIsolateDelegateRouteOptionsEnv, "false")
+
+		rv, snapshot, vs, sharedRouteOption := buildScenario()
+
+		rpt := reporter.ResourceReports{}
+		converted := rv.ConvertVirtualService(vs, gw, "proxy1", snapshot, rpt)
+		Expect(rpt).To(BeEmpty())
+		Expect(converted).To(HaveLen(1))
+
+		// With isolation off, the parent's PrefixRewrite leaks into the shared snapshot proto.
+		Expect(sharedRouteOption.GetOptions().GetPrefixRewrite().GetValue()).To(Equal("/parent"))
+	})
+})
+
 func buildRouteTableWithDelegateAction(name, namespace, prefix string, labels map[string]string, action *v1.DelegateAction) *v1.RouteTable {
 	return &v1.RouteTable{
 		Metadata: &core.Metadata{

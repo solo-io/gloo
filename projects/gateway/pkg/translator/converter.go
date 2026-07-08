@@ -2,8 +2,10 @@ package translator
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
+	"github.com/solo-io/gloo/pkg/utils/envutils"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/transformation"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 
@@ -27,7 +29,23 @@ const (
 	defaultTableWeight = 0
 	// separator for generated route names
 	sep = "_"
+
+	// GlooIsolateDelegateRouteOptionsEnv controls whether RouteOptions referenced by a route via
+	// delegateOptions are cloned before parent route options are merged into them during delegation.
+	// When enabled (the default), the shared RouteOption protos owned by the snapshot are never
+	// mutated during translation, preventing cross-route contamination. Set this to a falsy value
+	// (e.g. "false") to restore the legacy behavior of merging into the shared proto by reference.
+	GlooIsolateDelegateRouteOptionsEnv = "GLOO_ISOLATE_DELEGATE_ROUTE_OPTIONS"
 )
+
+// isolateDelegateRouteOptions returns true unless GlooIsolateDelegateRouteOptionsEnv is explicitly
+// set to a falsy value. Isolation (cloning shared RouteOptions before merging) is on by default.
+func isolateDelegateRouteOptions() bool {
+	if val, ok := os.LookupEnv(GlooIsolateDelegateRouteOptionsEnv); ok {
+		return envutils.IsTruthyValue(val)
+	}
+	return true
+}
 
 var (
 	NoActionErr          = errors.New("invalid route: route must specify an action")
@@ -206,7 +224,15 @@ func (rv *routeVisitor) visit(
 				continue
 			}
 			if routeClone.GetOptions() == nil {
-				routeClone.Options = routeOpts.GetOptions()
+				// Clone the referenced RouteOptions before assigning them. Otherwise routeClone.Options
+				// would hold a direct pointer into the snapshot's RouteOption, and a later merge of parent
+				// route options (e.g. in validateAndMergeParentRoute) would mutate that shared proto,
+				// contaminating it for every other route that references the same RouteOption.
+				if opts := routeOpts.GetOptions(); opts != nil && isolateDelegateRouteOptions() {
+					routeClone.Options = opts.Clone().(*gloov1.RouteOptions)
+				} else {
+					routeClone.Options = opts
+				}
 				continue
 			}
 			routeClone.Options, _ = utils.ShallowMergeRouteOptions(routeClone.GetOptions(), routeOpts.GetOptions())
@@ -519,8 +545,15 @@ func validateAndMergeParentRoute(child *gatewayv1.Route, parent *routeInfo) (*ga
 	}
 
 	// Merge options from parent routes
-	// If an option is defined on a parent route, it will override the child route's option
-	child.Options, _ = utils.ShallowMergeRouteOptions(child.GetOptions(), parent.options)
+	// If an option is defined on a parent route, it will override the child route's option.
+	// Defence-in-depth: ShallowMergeRouteOptions mutates its dst argument in place, so clone the
+	// child options first in case they are a shared reference into the snapshot (e.g. RouteOptions
+	// referenced via delegateOptions). This prevents contaminating the shared proto through this path.
+	childOptions := child.GetOptions()
+	if childOptions != nil && isolateDelegateRouteOptions() {
+		childOptions = childOptions.Clone().(*gloov1.RouteOptions)
+	}
+	child.Options, _ = utils.ShallowMergeRouteOptions(childOptions, parent.options)
 
 	return child, nil
 }
