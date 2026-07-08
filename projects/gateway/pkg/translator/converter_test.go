@@ -1949,6 +1949,99 @@ var _ = Describe("Route converter delegateOptions isolation", func() {
 		// With isolation off, the parent's PrefixRewrite leaks into the shared snapshot proto.
 		Expect(sharedRouteOption.GetOptions().GetPrefixRewrite().GetValue()).To(Equal("/parent"))
 	})
+
+	It("does not leak one route's parent options into a sibling route that references the same RouteOption", func() {
+		// Both delegated child routes reference the same snapshot RouteOption. Only the first
+		// route's parent carries inline options (PrefixRewrite). Pre-fix, processing the first
+		// route mutated the shared RouteOption in place, so the second route - processed later -
+		// inherited the first route's PrefixRewrite. This directly exercises the order-dependent
+		// cross-route contamination described in the PR.
+		sharedRouteOption := &v1.RouteOption{
+			Metadata: &core.Metadata{Name: "shared-ro", Namespace: "default"},
+			Options: &gloov1.RouteOptions{
+				AppendXForwardedHost: &wrappers.BoolValue{Value: true},
+			},
+		}
+
+		newRefRoute := func(prefix string) *v1.Route {
+			return &v1.Route{
+				Matchers: []*matchers.Matcher{{
+					PathSpecifier: &matchers.Matcher_Prefix{Prefix: prefix},
+				}},
+				// No inline options: picks up the shared RouteOption via delegateOptions.
+				ExternalOptionsConfig: &v1.Route_OptionsConfigRefs{
+					OptionsConfigRefs: &v1.DelegateOptionsRefs{
+						DelegateOptions: []*core.ResourceRef{{Name: "shared-ro", Namespace: "default"}},
+					},
+				},
+				Action: &v1.Route_DirectResponseAction{
+					DirectResponseAction: &gloov1.DirectResponseAction{Status: 200, Body: "foo"},
+				},
+			}
+		}
+
+		rtWithParentOptions := &v1.RouteTable{
+			Metadata: &core.Metadata{Name: "rt-with-opts", Namespace: "default"},
+			Routes:   []*v1.Route{newRefRoute("/with-opts")},
+		}
+		rtWithoutParentOptions := &v1.RouteTable{
+			Metadata: &core.Metadata{Name: "rt-without-opts", Namespace: "default"},
+			Routes:   []*v1.Route{newRefRoute("/without-opts")},
+		}
+
+		newDelegateRoute := func(prefix, rtName string, options *gloov1.RouteOptions) *v1.Route {
+			return &v1.Route{
+				Matchers: []*matchers.Matcher{{
+					PathSpecifier: &matchers.Matcher_Prefix{Prefix: prefix},
+				}},
+				Options: options,
+				Action: &v1.Route_DelegateAction{
+					DelegateAction: &v1.DelegateAction{
+						DelegationType: &v1.DelegateAction_Ref{
+							Ref: &core.ResourceRef{Name: rtName, Namespace: "default"},
+						},
+					},
+				},
+			}
+		}
+
+		vs := &v1.VirtualService{
+			Metadata: &core.Metadata{Name: "vs", Namespace: "default"},
+			VirtualHost: &v1.VirtualHost{
+				Routes: []*v1.Route{
+					// First route: parent carries inline PrefixRewrite that must NOT leak.
+					newDelegateRoute("/with-opts", "rt-with-opts", &gloov1.RouteOptions{
+						PrefixRewrite: &wrappers.StringValue{Value: "/leaked"},
+					}),
+					// Second route: parent has no options; must stay uncontaminated.
+					newDelegateRoute("/without-opts", "rt-without-opts", nil),
+				},
+			},
+		}
+
+		snapshot := &gloov1snap.ApiSnapshot{
+			RouteOptions: v1.RouteOptionList{sharedRouteOption},
+		}
+		rv := translator.NewRouteConverter(
+			translator.NewRouteTableSelector(v1.RouteTableList{rtWithParentOptions, rtWithoutParentOptions}),
+			translator.NewRouteTableIndexer(),
+		)
+
+		rpt := reporter.ResourceReports{}
+		converted := rv.ConvertVirtualService(vs, gw, "proxy1", snapshot, rpt)
+		Expect(rpt).To(BeEmpty())
+		Expect(converted).To(HaveLen(2))
+
+		// The first route correctly gets the parent's PrefixRewrite merged in.
+		Expect(converted[0].GetMatchers()[0].GetPrefix()).To(Equal("/with-opts"))
+		Expect(converted[0].GetOptions().GetPrefixRewrite().GetValue()).To(Equal("/leaked"))
+
+		// The second route references the same RouteOption but its parent had no options,
+		// so it must NOT inherit the first route's PrefixRewrite.
+		Expect(converted[1].GetMatchers()[0].GetPrefix()).To(Equal("/without-opts"))
+		Expect(converted[1].GetOptions().GetPrefixRewrite()).To(BeNil())
+		Expect(converted[1].GetOptions().GetAppendXForwardedHost().GetValue()).To(BeTrue())
+	})
 })
 
 func buildRouteTableWithDelegateAction(name, namespace, prefix string, labels map[string]string, action *v1.DelegateAction) *v1.RouteTable {
