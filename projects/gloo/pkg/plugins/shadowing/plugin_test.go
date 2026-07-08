@@ -109,6 +109,28 @@ var _ = Describe("Plugin", func() {
 		Expect(err).To(HaveInErrorChain(InvalidRouteActionError))
 	})
 
+	It("should set DisableShadowHostSuffixAppend when specified", func() {
+		p := NewPlugin()
+
+		upRef := &core.ResourceRef{
+			Name:      "some-upstream",
+			Namespace: "default",
+		}
+		in := &v1.Route{
+			Options: &v1.RouteOptions{
+				Shadowing: &shadowing.RouteShadowing{
+					Upstream:                      upRef,
+					Percentage:                    100,
+					DisableShadowHostSuffixAppend: true,
+				},
+			},
+		}
+		out := &envoy_config_route_v3.Route{}
+		err := p.ProcessRoute(plugins.RouteParams{}, in, out)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(out.GetRoute().GetRequestMirrorPolicies()[0].GetDisableShadowHostSuffixAppend()).To(BeTrue())
+	})
+
 	It("should error when given invalid specs", func() {
 		p := NewPlugin()
 

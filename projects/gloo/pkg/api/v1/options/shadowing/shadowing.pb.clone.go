@@ -43,5 +43,7 @@ func (m *RouteShadowing) Clone() proto.Message {
 
 	target.Percentage = m.GetPercentage()
 
+	target.DisableShadowHostSuffixAppend = m.GetDisableShadowHostSuffixAppend()
+
 	return target
 }

@@ -9,6 +9,8 @@ import (
 	envoy_config_route_v3 "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
 	envoy_extensions_filters_http_grpc_json_transcoder_v3 "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/http/grpc_json_transcoder/v3"
 	"github.com/envoyproxy/go-control-plane/pkg/wellknown"
+	"github.com/golang/protobuf/proto"
+	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/golang/protobuf/ptypes/any"
 	"github.com/rotisserie/eris"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
@@ -44,6 +46,9 @@ var (
 	DecodingError = func(configRef *grpc_json.GrpcJsonTranscoder_DescriptorConfigMap, key string) error {
 		return eris.Errorf("config map %s:%s contains a value for key %s but is not base64-encoded",
 			configRef.GetConfigMapRef().GetNamespace(), configRef.GetConfigMapRef().GetName(), key)
+	}
+	InvalidProtoDescriptorError = func(err error) error {
+		return eris.Wrapf(err, "protoDescriptorBin is not a valid FileDescriptorSet")
 	}
 )
 
@@ -188,10 +193,16 @@ func translateGlooToEnvoyGrpcJson(params plugins.Params, grpcJsonConf *grpc_json
 		if err != nil {
 			return nil, err
 		}
+		if err := validateFileDescriptorSet(protoDesc); err != nil {
+			return nil, err
+		}
 		envoyGrpcJsonConf.DescriptorSet = &envoy_extensions_filters_http_grpc_json_transcoder_v3.GrpcJsonTranscoder_ProtoDescriptorBin{ProtoDescriptorBin: protoDesc}
 	case *grpc_json.GrpcJsonTranscoder_ProtoDescriptor:
 		envoyGrpcJsonConf.DescriptorSet = &envoy_extensions_filters_http_grpc_json_transcoder_v3.GrpcJsonTranscoder_ProtoDescriptor{ProtoDescriptor: typedDescriptorSet.ProtoDescriptor}
 	case *grpc_json.GrpcJsonTranscoder_ProtoDescriptorBin:
+		if err := validateFileDescriptorSet(typedDescriptorSet.ProtoDescriptorBin); err != nil {
+			return nil, err
+		}
 		envoyGrpcJsonConf.DescriptorSet = &envoy_extensions_filters_http_grpc_json_transcoder_v3.GrpcJsonTranscoder_ProtoDescriptorBin{ProtoDescriptorBin: typedDescriptorSet.ProtoDescriptorBin}
 	}
 
@@ -259,4 +270,11 @@ func translateConfigMapToProtoBin(_ context.Context, snap *gloosnapshot.ApiSnaps
 	}
 
 	return decodedBytes, nil
+}
+
+func validateFileDescriptorSet(b []byte) error {
+	if err := proto.Unmarshal(b, &descriptor.FileDescriptorSet{}); err != nil {
+		return InvalidProtoDescriptorError(err)
+	}
+	return nil
 }

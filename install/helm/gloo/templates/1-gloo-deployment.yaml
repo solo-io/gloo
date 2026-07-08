@@ -216,12 +216,25 @@ spec:
                 name: {{ .Values.license_secret_name }}
                 key: license-key
 {{- end }}
-{{- if (((.Values.gloo.deployment.resources).limits).memory) }}
+{{- with .Values.gloo.deployment }}
+{{- if .goMemLimitPercent }}
+  {{- range .customEnv }}
+    {{- $name := or .name .Name }}
+    {{- if eq $name "GOMEMLIMIT" }}
+      {{- fail "goMemLimitPercent and a customEnv GOMEMLIMIT entry cannot both be set; use one or the other" }}
+    {{- end }}
+  {{- end }}
+{{- end }}
+{{- if and .goMemLimitPercent (((.resources).limits).memory) }}
+          - name: GOMEMLIMIT
+            value: {{ include "gloo.goMemLimit" (list .resources.limits.memory .goMemLimitPercent) | quote }}
+{{- else if (((.resources).limits).memory) }}
           - name: GOMEMLIMIT
             valueFrom:
               resourceFieldRef:
                 divisor: "1"
                 resource: limits.memory
+{{- end }}
 {{- end -}}
 {{- if (((.Values.gloo.deployment.resources).limits).cpu) }}
           - name: GOMAXPROCS

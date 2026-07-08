@@ -1,0 +1,7 @@
+changelog:
+  - type: NEW_FEATURE
+    issueLink: https://github.com/solo-io/solo-projects/issues/8699
+    resolvesIssue: false
+    description: >-
+      Add support for disableShadowHostSuffixAppend in the shadowing plugin, allowing users to prevent
+      the -shadow suffix from being appended to the Host header of mirrored requests.

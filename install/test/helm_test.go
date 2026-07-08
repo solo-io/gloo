@@ -3715,6 +3715,79 @@ spec:
 						Expect(gwpDepl.Spec.Template.Spec.Volumes[7]).To(Equal(corev1.Volume{Name: "workload-certs", VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}}}))
 					})
 
+					It("renders default sds readiness probe when glooMtls is enabled", func() {
+						prepareMakefile(namespace, glootestutils.HelmValues{
+							ValuesArgs: []string{
+								"global.glooMtls.enabled=true",
+							},
+						})
+
+						gwpDepl := getDeployment(testManifest, namespace, "gateway-proxy")
+						Expect(gwpDepl.Spec.Template.Spec.Containers).To(HaveLen(2))
+
+						sdsContainer := gwpDepl.Spec.Template.Spec.Containers[1]
+						Expect(sdsContainer.Name).To(Equal("sds"))
+						Expect(sdsContainer.ReadinessProbe).To(BeEquivalentTo(&corev1.Probe{
+							ProbeHandler: corev1.ProbeHandler{
+								TCPSocket: &corev1.TCPSocketAction{
+									Port: intstr.FromInt32(8234),
+								},
+							},
+							InitialDelaySeconds: 3,
+							PeriodSeconds:       10,
+							FailureThreshold:    3,
+						}))
+					})
+
+					It("renders custom sds readiness probe when overridden", func() {
+						prepareMakefile(namespace, glootestutils.HelmValues{
+							ValuesArgs: []string{
+								"global.glooMtls.enabled=true",
+								"global.glooMtls.sds.readinessProbe.tcpSocket=null",
+								"global.glooMtls.sds.readinessProbe.httpGet.path=/healthz/ready",
+								"global.glooMtls.sds.readinessProbe.httpGet.port=8234",
+								"global.glooMtls.sds.readinessProbe.httpGet.scheme=HTTP",
+								"global.glooMtls.sds.readinessProbe.initialDelaySeconds=5",
+								"global.glooMtls.sds.readinessProbe.periodSeconds=15",
+								"global.glooMtls.sds.readinessProbe.failureThreshold=5",
+							},
+						})
+
+						gwpDepl := getDeployment(testManifest, namespace, "gateway-proxy")
+						Expect(gwpDepl.Spec.Template.Spec.Containers).To(HaveLen(2))
+
+						sdsContainer := gwpDepl.Spec.Template.Spec.Containers[1]
+						Expect(sdsContainer.Name).To(Equal("sds"))
+						Expect(sdsContainer.ReadinessProbe).To(BeEquivalentTo(&corev1.Probe{
+							ProbeHandler: corev1.ProbeHandler{
+								HTTPGet: &corev1.HTTPGetAction{
+									Path:   "/healthz/ready",
+									Port:   intstr.FromInt32(8234),
+									Scheme: "HTTP",
+								},
+							},
+							InitialDelaySeconds: 5,
+							PeriodSeconds:       15,
+							FailureThreshold:    5,
+						}))
+					})
+
+					It("omits sds readiness probe when set to null", func() {
+						prepareMakefile(namespace, glootestutils.HelmValues{
+							ValuesArgs: []string{
+								"global.glooMtls.enabled=true",
+								"global.glooMtls.sds.readinessProbe=null",
+							},
+						})
+
+						gwpDepl := getDeployment(testManifest, namespace, "gateway-proxy")
+						Expect(gwpDepl.Spec.Template.Spec.Containers).To(HaveLen(2))
+
+						sdsContainer := gwpDepl.Spec.Template.Spec.Containers[1]
+						Expect(sdsContainer.Name).To(Equal("sds"))
+						Expect(sdsContainer.ReadinessProbe).To(BeNil())
+					})
+
 					DescribeTable("supports deploying the specified tag, digest, and variant of the istioProxy image", func(registry, repo, tag, digest, variant, expectedImage string) {
 						vals := []string{
 							"global.glooMtls.enabled=true",
@@ -5262,6 +5335,202 @@ metadata:
 						expectEnvVarDoesNotExist(glooContainer, "GOMAXPROCS")
 					})
 
+					It("computes GOMEMLIMIT as a static byte value when goMemLimitPercent is set alongside limits.memory", func() {
+						prepareMakefile(namespace, glootestutils.HelmValues{
+							ValuesArgs: []string{
+								"gloo.deployment.resources.limits.memory=2Gi",
+								"gloo.deployment.resources.limits.cpu=2m",
+								"gloo.deployment.goMemLimitPercent=80",
+							},
+						})
+						// 80% of 2Gi is rendered as a static byte value, not a resourceFieldRef.
+						deploy := getStructuredDeployment(testManifest, kubeutils.GlooDeploymentName)
+						glooContainer := deploy.Spec.Template.Spec.Containers[0]
+						expectEnvVarExists(glooContainer, corev1.EnvVar{
+							Name:  "GOMEMLIMIT",
+							Value: "1717986918",
+						})
+					})
+
+					It("does not set GOMEMLIMIT when goMemLimitPercent is set but limits.memory is absent", func() {
+						prepareMakefile(namespace, glootestutils.HelmValues{
+							ValuesArgs: []string{
+								"gloo.deployment.resources.requests.memory=512Mi",
+								"gloo.deployment.goMemLimitPercent=80",
+							},
+						})
+						deploy := getStructuredDeployment(testManifest, kubeutils.GlooDeploymentName)
+						glooContainer := deploy.Spec.Template.Spec.Containers[0]
+						expectEnvVarDoesNotExist(glooContainer, "GOMEMLIMIT")
+					})
+
+					Context("goMemLimitPercent validation", func() {
+						It("fails to render when goMemLimitPercent is greater than 100", func() {
+							expectRenderError(namespace, glootestutils.HelmValues{
+								ValuesArgs: []string{
+									"gloo.deployment.resources.limits.memory=2Gi",
+									"gloo.deployment.goMemLimitPercent=101",
+								},
+							})
+							Expect(renderErr).To(HaveOccurred())
+							Expect(renderErr.Error()).To(ContainSubstring("goMemLimitPercent must be between 1 and 100"))
+						})
+
+						It("fails to render when limits.memory uses an unsupported suffix", func() {
+							expectRenderError(namespace, glootestutils.HelmValues{
+								ValuesArgs: []string{
+									"gloo.deployment.resources.limits.memory=512Zi",
+									"gloo.deployment.goMemLimitPercent=80",
+								},
+							})
+							Expect(renderErr).To(HaveOccurred())
+							Expect(renderErr.Error()).To(ContainSubstring("unsupported memory quantity"))
+							Expect(renderErr.Error()).To(ContainSubstring("512Zi"))
+						})
+
+						It("fails to render when goMemLimitPercent and a customEnv GOMEMLIMIT are both set", func() {
+							expectRenderError(namespace, glootestutils.HelmValues{
+								ValuesArgs: []string{
+									"gloo.deployment.resources.limits.memory=2Gi",
+									"gloo.deployment.goMemLimitPercent=80",
+									"gloo.deployment.customEnv[0].Name=GOMEMLIMIT",
+									"gloo.deployment.customEnv[0].Value=500MiB",
+								},
+							})
+							Expect(renderErr).To(HaveOccurred())
+							Expect(renderErr.Error()).To(ContainSubstring("goMemLimitPercent and a customEnv GOMEMLIMIT entry cannot both be set"))
+						})
+					})
+
+					Context("goMemLimitPercent boundary values", func() {
+						It("falls back to valueFrom when goMemLimitPercent is 0 (default, feature disabled)", func() {
+							// 0 is falsy in Helm; `if and .goMemLimitPercent (...)` short-circuits, helper not called
+							prepareMakefile(namespace, glootestutils.HelmValues{
+								ValuesArgs: []string{
+									"gloo.deployment.resources.limits.memory=2Gi",
+									"gloo.deployment.resources.limits.cpu=2m",
+									"gloo.deployment.goMemLimitPercent=0",
+								},
+							})
+							deploy := getStructuredDeployment(testManifest, kubeutils.GlooDeploymentName)
+							glooContainer := deploy.Spec.Template.Spec.Containers[0]
+							expectEnvVarExists(glooContainer, corev1.EnvVar{
+								Name: "GOMEMLIMIT",
+								ValueFrom: &corev1.EnvVarSource{
+									ResourceFieldRef: &corev1.ResourceFieldSelector{
+										Resource: string(corev1.ResourceLimitsMemory),
+										Divisor:  resource.MustParse("1"),
+									},
+								}})
+						})
+
+						It("fails to render when goMemLimitPercent is negative", func() {
+							// -1 is non-zero (truthy), so the helper is called and its lt (int $pct) 1 guard fires
+							expectRenderError(namespace, glootestutils.HelmValues{
+								ValuesArgs: []string{
+									"gloo.deployment.resources.limits.memory=2Gi",
+									"gloo.deployment.goMemLimitPercent=-1",
+								},
+							})
+							Expect(renderErr).To(HaveOccurred())
+							Expect(renderErr.Error()).To(ContainSubstring("goMemLimitPercent must be between 1 and 100"))
+						})
+
+						It("renders GOMEMLIMIT at goMemLimitPercent=1 (lower inclusive boundary)", func() {
+							// 1% of 2Gi, rounded down to whole bytes.
+							prepareMakefile(namespace, glootestutils.HelmValues{
+								ValuesArgs: []string{
+									"gloo.deployment.resources.limits.memory=2Gi",
+									"gloo.deployment.goMemLimitPercent=1",
+								},
+							})
+							deploy := getStructuredDeployment(testManifest, kubeutils.GlooDeploymentName)
+							glooContainer := deploy.Spec.Template.Spec.Containers[0]
+							expectEnvVarExists(glooContainer, corev1.EnvVar{
+								Name:  "GOMEMLIMIT",
+								Value: "21474836",
+							})
+						})
+
+						It("renders GOMEMLIMIT at goMemLimitPercent=100 (upper inclusive boundary)", func() {
+							prepareMakefile(namespace, glootestutils.HelmValues{
+								ValuesArgs: []string{
+									"gloo.deployment.resources.limits.memory=2Gi",
+									"gloo.deployment.goMemLimitPercent=100",
+								},
+							})
+							deploy := getStructuredDeployment(testManifest, kubeutils.GlooDeploymentName)
+							glooContainer := deploy.Spec.Template.Spec.Containers[0]
+							expectEnvVarExists(glooContainer, corev1.EnvVar{
+								Name:  "GOMEMLIMIT",
+								Value: "2147483648",
+							})
+						})
+					})
+
+					Context("gloo.memToBytes quantity handling", func() {
+						It("computes GOMEMLIMIT correctly for decimal binary quantities", func() {
+							// 80% of 1.5Gi, rounded down to whole bytes.
+							prepareMakefile(namespace, glootestutils.HelmValues{
+								ValuesArgs: []string{
+									"gloo.deployment.resources.limits.memory=1.5Gi",
+									"gloo.deployment.goMemLimitPercent=80",
+								},
+							})
+							deploy := getStructuredDeployment(testManifest, kubeutils.GlooDeploymentName)
+							glooContainer := deploy.Spec.Template.Spec.Containers[0]
+							expectEnvVarExists(glooContainer, corev1.EnvVar{
+								Name:  "GOMEMLIMIT",
+								Value: "1288490188",
+							})
+						})
+
+						It("computes GOMEMLIMIT correctly for M suffix (SI megabytes)", func() {
+							prepareMakefile(namespace, glootestutils.HelmValues{
+								ValuesArgs: []string{
+									"gloo.deployment.resources.limits.memory=512M",
+									"gloo.deployment.goMemLimitPercent=80",
+								},
+							})
+							deploy := getStructuredDeployment(testManifest, kubeutils.GlooDeploymentName)
+							glooContainer := deploy.Spec.Template.Spec.Containers[0]
+							expectEnvVarExists(glooContainer, corev1.EnvVar{
+								Name:  "GOMEMLIMIT",
+								Value: "409600000",
+							})
+						})
+
+						It("computes GOMEMLIMIT correctly for G suffix (SI gigabytes)", func() {
+							prepareMakefile(namespace, glootestutils.HelmValues{
+								ValuesArgs: []string{
+									"gloo.deployment.resources.limits.memory=1G",
+									"gloo.deployment.goMemLimitPercent=80",
+								},
+							})
+							deploy := getStructuredDeployment(testManifest, kubeutils.GlooDeploymentName)
+							glooContainer := deploy.Spec.Template.Spec.Containers[0]
+							expectEnvVarExists(glooContainer, corev1.EnvVar{
+								Name:  "GOMEMLIMIT",
+								Value: "800000000",
+							})
+						})
+
+						It("computes GOMEMLIMIT correctly for large G suffix (48G)", func() {
+							prepareMakefile(namespace, glootestutils.HelmValues{
+								ValuesArgs: []string{
+									"gloo.deployment.resources.limits.memory=48G",
+									"gloo.deployment.goMemLimitPercent=80",
+								},
+							})
+							deploy := getStructuredDeployment(testManifest, kubeutils.GlooDeploymentName)
+							glooContainer := deploy.Spec.Template.Spec.Containers[0]
+							expectEnvVarExists(glooContainer, corev1.EnvVar{
+								Name:  "GOMEMLIMIT",
+								Value: "38400000000",
+							})
+						})
+					})
+
 					It("can overwrite the container image information", func() {
 						container := GetContainerSpec("gcr.io/solo-public", "gloo", version, GetPodNamespaceEnvVar(), GetPodNamespaceStats())
 						container.PullPolicy = "Always"
@@ -5554,6 +5823,37 @@ metadata:
 						// since no resource limits are set, GOMEMLIMIT and GOMAXPROCS should also not be set
 						expectEnvVarDoesNotExist(discoveryContainer, "GOMEMLIMIT")
 						expectEnvVarDoesNotExist(discoveryContainer, "GOMAXPROCS")
+					})
+
+					It("computes GOMEMLIMIT as a static byte value when goMemLimitPercent is set alongside limits.memory", func() {
+						prepareMakefile(namespace, glootestutils.HelmValues{
+							ValuesArgs: []string{
+								"discovery.enabled=true",
+								"discovery.deployment.resources.limits.memory=1Gi",
+								"discovery.deployment.resources.limits.cpu=1m",
+								"discovery.deployment.goMemLimitPercent=80",
+							},
+						})
+						// 80% of 1Gi, rounded down to whole bytes.
+						deploy := getStructuredDeployment(testManifest, kubeutils.DiscoveryDeploymentName)
+						discoveryContainer := deploy.Spec.Template.Spec.Containers[0]
+						expectEnvVarExists(discoveryContainer, corev1.EnvVar{
+							Name:  "GOMEMLIMIT",
+							Value: "858993459",
+						})
+					})
+
+					It("does not set GOMEMLIMIT when goMemLimitPercent is set but limits.memory is absent", func() {
+						prepareMakefile(namespace, glootestutils.HelmValues{
+							ValuesArgs: []string{
+								"discovery.enabled=true",
+								"discovery.deployment.resources.requests.memory=512Mi",
+								"discovery.deployment.goMemLimitPercent=80",
+							},
+						})
+						deploy := getStructuredDeployment(testManifest, kubeutils.DiscoveryDeploymentName)
+						discoveryContainer := deploy.Spec.Template.Spec.Containers[0]
+						expectEnvVarDoesNotExist(discoveryContainer, "GOMEMLIMIT")
 					})
 
 					It("can overwrite the container image information", func() {

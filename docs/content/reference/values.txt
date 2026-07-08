@@ -462,6 +462,7 @@
 |gloo.deployment.podSecurityContext.appArmorProfile.localhostProfile|string|||
 |gloo.deployment.podSecurityContext.seLinuxChangePolicy|string|||
 |gloo.deployment.podSecurityContext.mergePolicy|string||How to combine the defined security policy with the default security policy. Valid values are "", "no-merge", and "helm-merge". If defined as an empty string or "no-merge", use the defined security context as is.  If "helm-merge", merge this security context with the default security context according to the logic of [the helm 'merge' function](https://helm.sh/docs/chart_template_guide/function_list/#merge-mustmerge). This is intended to be used to modify a field in a security context, while using all other default values. Please note that due to how helm's 'merge' function works, you can not override a 'true' value with a 'false' value, and for that case you will need to define the entire security context and set this value to false. Default value is "".|
+|gloo.deployment.goMemLimitPercent|int|0|Compute GOMEMLIMIT as this percentage of resources.limits.memory at render time (1-100). 0 or unset disables the feature. Recommended 80-90%.|
 |gloo.deployment.replicas|int|1|number of instances to deploy|
 |gloo.deployment.customEnv[].name|string|||
 |gloo.deployment.customEnv[].value|string|||
@@ -595,6 +596,7 @@
 |discovery.deployment.discoveryContainerSecurityContext.appArmorProfile.type|string|||
 |discovery.deployment.discoveryContainerSecurityContext.appArmorProfile.localhostProfile|string|||
 |discovery.deployment.discoveryContainerSecurityContext.mergePolicy|string||How to combine the defined security policy with the default security policy. Valid values are "", "no-merge", and "helm-merge". If defined as an empty string or "no-merge", use the defined security context as is.  If "helm-merge", merge this security context with the default security context according to the logic of [the helm 'merge' function](https://helm.sh/docs/chart_template_guide/function_list/#merge-mustmerge). This is intended to be used to modify a field in a security context, while using all other default values. Please note that due to how helm's 'merge' function works, you can not override a 'true' value with a 'false' value, and for that case you will need to define the entire security context and set this value to false. Default value is "".|
+|discovery.deployment.goMemLimitPercent|int|0|Compute GOMEMLIMIT as this percentage of resources.limits.memory at render time (1-100). 0 or unset disables the feature. Recommended 80-90%.|
 |discovery.deployment.replicas|int|1|number of instances to deploy|
 |discovery.deployment.customEnv[].name|string|||
 |discovery.deployment.customEnv[].value|string|||
@@ -1726,6 +1728,27 @@
 |global.glooMtls.sds.sdsResources.limits.cpu|string||amount of CPUs|
 |global.glooMtls.sds.sdsResources.requests.memory|string||amount of memory|
 |global.glooMtls.sds.sdsResources.requests.cpu|string||amount of CPUs|
+|global.glooMtls.sds.readinessProbe.exec.command[]|string|||
+|global.glooMtls.sds.readinessProbe.httpGet.path|string|||
+|global.glooMtls.sds.readinessProbe.httpGet.port|int64|||
+|global.glooMtls.sds.readinessProbe.httpGet.port|int32|||
+|global.glooMtls.sds.readinessProbe.httpGet.port|string|||
+|global.glooMtls.sds.readinessProbe.httpGet.host|string|||
+|global.glooMtls.sds.readinessProbe.httpGet.scheme|string|||
+|global.glooMtls.sds.readinessProbe.httpGet.httpHeaders[].name|string|||
+|global.glooMtls.sds.readinessProbe.httpGet.httpHeaders[].value|string|||
+|global.glooMtls.sds.readinessProbe.tcpSocket.port|int64|0||
+|global.glooMtls.sds.readinessProbe.tcpSocket.port|int32|8234||
+|global.glooMtls.sds.readinessProbe.tcpSocket.port|string|||
+|global.glooMtls.sds.readinessProbe.tcpSocket.host|string|||
+|global.glooMtls.sds.readinessProbe.grpc.port|int32|||
+|global.glooMtls.sds.readinessProbe.grpc.service|string|||
+|global.glooMtls.sds.readinessProbe.initialDelaySeconds|int32|3||
+|global.glooMtls.sds.readinessProbe.timeoutSeconds|int32|0||
+|global.glooMtls.sds.readinessProbe.periodSeconds|int32|10||
+|global.glooMtls.sds.readinessProbe.successThreshold|int32|0||
+|global.glooMtls.sds.readinessProbe.failureThreshold|int32|3||
+|global.glooMtls.sds.readinessProbe.terminationGracePeriodSeconds|int64|||
 |global.glooMtls.envoy.image.tag|string|<release_version, ex: 1.2.3>|The image tag for the container.|
 |global.glooMtls.envoy.image.repository|string|gloo-envoy-wrapper|The image repository (name) for the container.|
 |global.glooMtls.envoy.image.digest|string||The container image's hash digest (e.g. 'sha256:12345...'), consumed when variant=standard.|
