@@ -73,7 +73,7 @@ func TestClearStaleRouteStatus_TransientConflictThenSuccess(t *testing.T) {
 	prev := sets.New(httpRouteKey())
 	current := sets.New[types.NamespacedName]() // route left the report
 
-	next := clearStaleRouteStatus(context.Background(), cl, testController, prev, current,
+	next := clearStaleRouteStatus(context.Background(), cl, cl, testController, sets.New[string](), prev, current,
 		"HTTPRoute", newHTTPRouteObj)
 
 	if next.Has(httpRouteKey()) {
@@ -117,7 +117,7 @@ func TestClearStaleRouteStatus_PersistentErrorRetainsThenClears(t *testing.T) {
 	current := sets.New[types.NamespacedName]()
 
 	// First pass: write fails, route must be retained for retry next cycle.
-	next := clearStaleRouteStatus(context.Background(), cl, testController, prev, current,
+	next := clearStaleRouteStatus(context.Background(), cl, cl, testController, sets.New[string](), prev, current,
 		"HTTPRoute", newHTTPRouteObj)
 	if !next.Has(httpRouteKey()) {
 		t.Fatalf("route should be retained in tracking after a failed cleanup")
@@ -129,7 +129,7 @@ func TestClearStaleRouteStatus_PersistentErrorRetainsThenClears(t *testing.T) {
 	// Next sync cycle: writes succeed; the retained route should now be cleared
 	// and dropped from tracking.
 	failWrites = false
-	next2 := clearStaleRouteStatus(context.Background(), cl, testController, next, current,
+	next2 := clearStaleRouteStatus(context.Background(), cl, cl, testController, sets.New[string](), next, current,
 		"HTTPRoute", newHTTPRouteObj)
 	if next2.Has(httpRouteKey()) {
 		t.Fatalf("route should be cleaned and dropped from tracking on the retry cycle")
@@ -141,5 +141,60 @@ func TestClearStaleRouteStatus_PersistentErrorRetainsThenClears(t *testing.T) {
 	}
 	if len(got.Status.Parents) != 0 {
 		t.Fatalf("expected our parent status cleared on retry cycle, got %d parents", len(got.Status.Parents))
+	}
+}
+
+// A route absent from the report but still referencing a live Gateway of a
+// managed class is likely mid-translation-blip, not detached: its status must
+// be kept and the route retained in tracking. Once the Gateway is gone, the
+// next cycle cleans it up.
+func TestClearStaleRouteStatus_StillReferencedGatewayKeepsStatus(t *testing.T) {
+	const className = "test-gateway-class"
+
+	route := staleHTTPRoute()
+	route.Spec.ParentRefs = []gwv1.ParentReference{{Name: "gw"}}
+	gateway := &gwv1.Gateway{
+		ObjectMeta: metav1.ObjectMeta{Namespace: "ns", Name: "gw"},
+		Spec:       gwv1.GatewaySpec{GatewayClassName: className},
+	}
+
+	cl := fake.NewClientBuilder().
+		WithScheme(schemes.GatewayScheme()).
+		WithObjects(route, gateway).
+		WithStatusSubresource(&gwv1.HTTPRoute{}).
+		Build()
+
+	allowed := sets.New(className)
+	prev := sets.New(httpRouteKey())
+	current := sets.New[types.NamespacedName]() // route left the report...
+
+	next := clearStaleRouteStatus(context.Background(), cl, cl, testController, allowed, prev, current,
+		"HTTPRoute", newHTTPRouteObj)
+	if !next.Has(httpRouteKey()) {
+		t.Fatalf("route referencing a live managed gateway should stay tracked")
+	}
+	got := &gwv1.HTTPRoute{}
+	if err := cl.Get(context.Background(), httpRouteKey(), got); err != nil {
+		t.Fatalf("get: %v", err)
+	}
+	if len(got.Status.Parents) != 1 {
+		t.Fatalf("status must not be stripped while the managed gateway exists; got %d parents", len(got.Status.Parents))
+	}
+
+	// Gateway deleted: the reference no longer resolves, so the next cycle
+	// clears the stale status and drops the route from tracking.
+	if err := cl.Delete(context.Background(), gateway); err != nil {
+		t.Fatalf("delete gateway: %v", err)
+	}
+	next2 := clearStaleRouteStatus(context.Background(), cl, cl, testController, allowed, next, current,
+		"HTTPRoute", newHTTPRouteObj)
+	if next2.Has(httpRouteKey()) {
+		t.Fatalf("route should be cleaned and dropped from tracking once the gateway is gone")
+	}
+	if err := cl.Get(context.Background(), httpRouteKey(), got); err != nil {
+		t.Fatalf("get: %v", err)
+	}
+	if len(got.Status.Parents) != 0 {
+		t.Fatalf("expected our parent status cleared after gateway deletion, got %d parents", len(got.Status.Parents))
 	}
 }
