@@ -15,6 +15,7 @@ option (extproto.clone_all) = true;
 // {{% notice note %}}
 // The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/main/ai/). It is not supported with the Gloo Edge API.
 // {{% /notice %}}
+// Test
 message SingleAuthToken {
 
   // Configuration for passthrough of the existing token.
