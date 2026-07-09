@@ -3082,6 +3082,27 @@ spec:
 							})
 							testManifest.Expect("DaemonSet", gatewayProxyDeployment.Namespace, gatewayProxyDeployment.Name).To(BeEquivalentTo(daemonSet))
 						})
+
+						It("renders a DaemonSet when kind.workloadType is DaemonSet even though kind.deployment is set", func() {
+							prepareMakefile(namespace, glootestutils.HelmValues{
+								ValuesArgs: []string{
+									"gatewayProxies.gatewayProxy.kind.workloadType=DaemonSet",
+									"gatewayProxies.gatewayProxy.kind.daemonSet.hostPort=true",
+								},
+							})
+							testManifest.Expect("DaemonSet", gatewayProxyDeployment.Namespace, gatewayProxyDeployment.Name).To(BeEquivalentTo(daemonSet))
+							testManifest.Expect("Deployment", gatewayProxyDeployment.Namespace, gatewayProxyDeployment.Name).To(BeNil())
+
+							// Assert on the raw manifest: spec.replicas is invalid on a DaemonSet, and a
+							// typed comparison silently drops it, so check the unstructured field directly.
+							testManifest.SelectResources(func(resource *unstructured.Unstructured) bool {
+								return resource.GetKind() == "DaemonSet" && resource.GetName() == "gateway-proxy"
+							}).ExpectAll(func(ds *unstructured.Unstructured) {
+								_, found, err := unstructured.NestedFieldNoCopy(ds.Object, "spec", "replicas")
+								ExpectWithOffset(1, err).NotTo(HaveOccurred())
+								ExpectWithOffset(1, found).To(BeFalse(), "DaemonSet must not have spec.replicas")
+							})
+						})
 					})
 
 					It("creates a deployment", func() {
@@ -3107,6 +3128,55 @@ spec:
 						deploy := getStructuredDeployment(testManifest, "gateway-proxy")
 						Expect(deploy.Spec.Replicas).NotTo(BeNil())
 						Expect(*deploy.Spec.Replicas).To(Equal(int32(1)))
+					})
+
+					It("renders a Deployment when kind.workloadType is Deployment even if kind.deployment is an empty object", func() {
+						prepareMakefileFromValuesFile("values/val_gwp_workload_type_deployment_empty.yaml")
+						deploy := getStructuredDeployment(testManifest, "gateway-proxy")
+						Expect(deploy).NotTo(BeNil())
+						Expect(deploy.Spec.Replicas).NotTo(BeNil())
+						Expect(*deploy.Spec.Replicas).To(Equal(int32(1)))
+						testManifest.Expect("DaemonSet", namespace, "gateway-proxy").To(BeNil())
+					})
+
+					It("renders a Deployment with no replicas and an HPA when kind.workloadType is Deployment and kind.deployment.replicas is null", func() {
+						prepareMakefile(namespace, glootestutils.HelmValues{
+							ValuesArgs: []string{
+								"gatewayProxies.gatewayProxy.kind.workloadType=Deployment",
+								"gatewayProxies.gatewayProxy.kind.deployment.replicas=null",
+								"gatewayProxies.gatewayProxy.horizontalPodAutoscaler.apiVersion=autoscaling/v2",
+								"gatewayProxies.gatewayProxy.horizontalPodAutoscaler.minReplicas=1",
+								"gatewayProxies.gatewayProxy.horizontalPodAutoscaler.maxReplicas=5",
+							},
+						})
+						deploy := getStructuredDeployment(testManifest, "gateway-proxy")
+						Expect(deploy).NotTo(BeNil())
+						Expect(deploy.Spec.Replicas).To(BeNil())
+						testManifest.Expect("DaemonSet", namespace, "gateway-proxy").To(BeNil())
+						testManifest.ExpectUnstructured("HorizontalPodAutoscaler", namespace, defaults.GatewayProxyName+"-hpa").NotTo(BeNil())
+					})
+
+					It("does not apply daemonSet pod settings when kind.workloadType is Deployment", func() {
+						prepareMakefile(namespace, glootestutils.HelmValues{
+							ValuesArgs: []string{
+								"gatewayProxies.gatewayProxy.kind.workloadType=Deployment",
+								"gatewayProxies.gatewayProxy.kind.daemonSet.hostPort=true",
+							},
+						})
+						deploy := getStructuredDeployment(testManifest, "gateway-proxy")
+						Expect(deploy).NotTo(BeNil())
+						Expect(deploy.Spec.Template.Spec.HostNetwork).To(BeFalse())
+						testManifest.Expect("DaemonSet", namespace, "gateway-proxy").To(BeNil())
+					})
+
+					It("errors when kind.workloadType is not Deployment or DaemonSet", func() {
+						expectRenderError(namespace, glootestutils.HelmValues{
+							ValuesArgs: []string{
+								"gatewayProxies.gatewayProxy.kind.workloadType=Nonsense",
+							},
+						})
+						Expect(renderErr).To(HaveOccurred())
+						Expect(renderErr.Error()).To(ContainSubstring("kind.workloadType must be"))
 					})
 
 					It("supports multiple deployments", func() {
