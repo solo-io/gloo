@@ -368,6 +368,38 @@ var _ = Describe("ValidatingAdmissionWebhook", func() {
 		})
 	})
 
+	Context("upstream validation errors", func() {
+		It("rejects an upstream with a validation error even when alwaysAccept=true", func() {
+			wh.alwaysAccept = true
+			mv.fValidateModifiedGvk = func(ctx context.Context, gvk schema.GroupVersionKind, resource resources.Resource, dryRun bool) (*validation.Reports, error) {
+				return reports(), &multierror.Error{Errors: []error{validation.UpstreamValidationErr}}
+			}
+
+			req := makeReviewRequest(srv.URL, gloov1.UpstreamCrd, gloov1.UpstreamCrd.GroupVersionKind(), v1beta1.Create, upstream)
+			res, err := srv.Client().Do(req)
+			Expect(err).NotTo(HaveOccurred())
+
+			review, err := parseReviewResponse(res)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(review.Response.Allowed).To(BeFalse())
+		})
+
+		It("accepts an upstream with no validation errors even when alwaysAccept=false", func() {
+			wh.alwaysAccept = false
+			mv.fValidateModifiedGvk = func(ctx context.Context, gvk schema.GroupVersionKind, resource resources.Resource, dryRun bool) (*validation.Reports, error) {
+				return reports(), nil
+			}
+
+			req := makeReviewRequest(srv.URL, gloov1.UpstreamCrd, gloov1.UpstreamCrd.GroupVersionKind(), v1beta1.Create, upstream)
+			res, err := srv.Client().Do(req)
+			Expect(err).NotTo(HaveOccurred())
+
+			review, err := parseReviewResponse(res)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(review.Response.Allowed).To(BeTrue())
+		})
+	})
+
 	Context("returns proxies", func() {
 		It("returns proxy if requested", func() {
 			setMockFunctions()

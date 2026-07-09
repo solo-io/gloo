@@ -44,9 +44,10 @@ type glooValidator struct {
 }
 
 type GlooValidationReport struct {
-	Proxy           *gloov1.Proxy
-	ProxyReport     *validation.ProxyReport
-	ResourceReports reporter.ResourceReports
+	Proxy                  *gloov1.Proxy
+	ProxyReport            *validation.ProxyReport
+	ResourceReports        reporter.ResourceReports
+	PreSanitizationReports reporter.ResourceReports
 }
 
 func (gv glooValidator) Validate(ctx context.Context, proxy *gloov1.Proxy, snapshot *gloosnapshot.ApiSnapshot, shouldDelete bool) []*GlooValidationReport {
@@ -81,14 +82,20 @@ func (gv glooValidator) Validate(ctx context.Context, proxy *gloov1.Proxy, snaps
 	for _, proxy := range proxiesToValidate {
 		xdsSnapshot, resourceReports, proxyReport := gv.translator.Translate(params, proxy)
 
+		preSanitizationReports := make(reporter.ResourceReports, len(resourceReports))
+		for k, v := range resourceReports {
+			preSanitizationReports[k] = v
+		}
+
 		// Sanitize routes before sending report to gateway
 		gv.xdsSanitizer.SanitizeSnapshot(ctx, snapshot, xdsSnapshot, resourceReports)
 		routeErrorToWarnings(resourceReports, proxyReport)
 
 		validationReports = append(validationReports, &GlooValidationReport{
-			Proxy:           proxy,
-			ProxyReport:     proxyReport,
-			ResourceReports: resourceReports,
+			Proxy:                  proxy,
+			ProxyReport:            proxyReport,
+			ResourceReports:        resourceReports,
+			PreSanitizationReports: preSanitizationReports,
 		})
 	}
 

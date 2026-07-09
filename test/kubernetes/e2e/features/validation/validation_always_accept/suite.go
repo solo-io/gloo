@@ -2,6 +2,7 @@ package validation_always_accept
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"os"
 
@@ -335,4 +336,18 @@ func (s *testingSuite) TestPersistInvalidVirtualService() {
 			curl.WithPort(80),
 		},
 		&testmatchers.HttpResponse{StatusCode: http.StatusNotFound})
+}
+
+// TestRejectsGrpcJsonUpstreamWithInvalidProtoDescriptor verifies that an upstream with an invalid
+// protoDescriptorBin is rejected at admission time even when alwaysAccept=true.
+func (s *testingSuite) TestRejectsGrpcJsonUpstreamWithInvalidProtoDescriptor() {
+	s.T().Cleanup(func() {
+		err := s.testInstallation.Actions.Kubectl().DeleteFileSafe(s.ctx, validation.InvalidUpstreamGrpcJson, "-n", s.testInstallation.Metadata.InstallNamespace)
+		s.Assert().NoError(err)
+	})
+
+	output, err := s.testInstallation.Actions.Kubectl().ApplyFileWithOutput(s.ctx, validation.InvalidUpstreamGrpcJson, "-n", s.testInstallation.Metadata.InstallNamespace)
+	s.Assert().Error(err, "webhook should reject upstream with invalid protoDescriptorBin even when alwaysAccept=true")
+	s.Assert().Contains(output, fmt.Sprintf(`admission webhook "gloo.%s.svc" denied the request`, s.testInstallation.Metadata.InstallNamespace))
+	s.Assert().Contains(output, "protoDescriptorBin is not a valid FileDescriptorSet")
 }

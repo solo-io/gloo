@@ -39,6 +39,7 @@ var (
 
 	// Invalid resources (allow warnings, strict, allow all)
 	InvalidUpstreamNoPort         = filepath.Join(util.MustGetThisDir(), "testdata", "invalid-resources", "invalid-upstream-no-port.yaml")
+	InvalidUpstreamGrpcJson       = filepath.Join(util.MustGetThisDir(), "testdata", "invalid-resources", "invalid-upstream-grpcjson.yaml")
 	InvalidGateway                = filepath.Join(util.MustGetThisDir(), "testdata", "invalid-resources", "gateway.yaml")
 	InvalidVirtualServiceMatcher  = filepath.Join(util.MustGetThisDir(), "testdata", "invalid-resources", "vs-method-matcher.yaml")
 	InvalidVirtualServiceTypo     = filepath.Join(util.MustGetThisDir(), "testdata", "invalid-resources", "vs-typo.yaml")

@@ -72,6 +72,7 @@ func (e SyncNotYetRunError) Error() string {
 var (
 	NotReadyErr                    = errors.Errorf("validation is not yet available. Waiting for first snapshot")
 	HasNotReceivedFirstSync        = errors.New("proxy validation called before the validation server received its first sync of resources")
+	UpstreamValidationErr          = errors.New("upstream failed validation")
 	unmarshalErrMsg                = "could not unmarshal raw object"
 	couldNotRenderProxy            = "could not render proxy"
 	failedGlooValidation           = "failed gloo validation"
@@ -345,7 +346,7 @@ func (v *validator) validateProxiesAndExtensions(ctx context.Context, snapshot *
 
 		// Get errors from the glooReports
 		// The returned value indicates whether to stop processing this proxy, but this is the end of the loop
-		err = v.getErrorsFromGlooValidation(glooReports)
+		err = v.getErrorsFromGlooValidation(glooReports, opts.Resource)
 		if err != nil {
 			err = errors.Wrap(err, failedResourceReports)
 			errs = multierror.Append(errs, err)
@@ -862,7 +863,7 @@ func (v *validator) validateResource(opts *validationOptions) (*Reports, error) 
 
 // getErrorsFromGlooValidation returns errors from the Gloo validation reports. This function uses the reporter package to
 // extract errors and warnings from the reports and manually loops over the proxyReports' warnings and errors, applying the `allowWarnings` logic.
-func (v *validator) getErrorsFromGlooValidation(reports []*gloovalidation.GlooValidationReport) error {
+func (v *validator) getErrorsFromGlooValidation(reports []*gloovalidation.GlooValidationReport, admittedResource resources.Resource) error {
 	var (
 		errs error
 	)
@@ -871,6 +872,13 @@ func (v *validator) getErrorsFromGlooValidation(reports []*gloovalidation.GlooVa
 		err := v.getErrorsFromResourceReports(report.ResourceReports)
 		if err != nil {
 			errs = multierror.Append(errs, err)
+		}
+
+		if admittedResource != nil {
+			_, upstreamReport := report.PreSanitizationReports.Find(resources.Kind(admittedResource), admittedResource.GetMetadata().Ref())
+			if upstreamReport.Errors != nil {
+				errs = multierror.Append(errs, errors.Wrap(UpstreamValidationErr, upstreamReport.Errors.Error()))
+			}
 		}
 
 		if proxyReport := report.ProxyReport; proxyReport != nil {

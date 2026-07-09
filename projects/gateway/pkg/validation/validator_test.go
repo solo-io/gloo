@@ -221,6 +221,38 @@ var _ = Describe("Validator", func() {
 				err = v.ValidateDeletedGvk(context.TODO(), gloov1.UpstreamGVK, us, false)
 				Expect(err).To(HaveOccurred())
 			})
+
+			It("rejects an upstream with a pre-sanitization error even when allowWarnings is true", func() {
+				// Simulates the sanitizer having converted an upstream error to a warning in ResourceReports.
+				// PreSanitizationReports still holds the original error and must cause rejection.
+				us := samples.SimpleUpstream()
+				v.glooValidator = func(ctx context.Context, proxy *gloov1.Proxy, resource resources.Resource, shouldDelete bool) ([]*gloovalidation.GlooValidationReport, error) {
+					preSanitization := reporter.ResourceReports{
+						us: reporter.Report{Errors: errors.New("invalid proto descriptor")},
+					}
+					postSanitization := reporter.ResourceReports{
+						us: reporter.Report{Warnings: []string{"invalid proto descriptor"}},
+					}
+					proxyReport := validationutils.MakeReport(proxy)
+					return []*gloovalidation.GlooValidationReport{
+						{
+							Proxy:                  proxy,
+							ProxyReport:            proxyReport,
+							ResourceReports:        postSanitization,
+							PreSanitizationReports: preSanitization,
+						},
+					}, nil
+				}
+				v.allowWarnings = true
+
+				snap := samples.SimpleGlooSnapshot(ns)
+				err := v.Sync(context.TODO(), snap)
+				Expect(err).NotTo(HaveOccurred())
+
+				_, err = v.ValidateModifiedGvk(context.TODO(), gloov1.UpstreamGVK, us, false)
+				Expect(err).To(HaveOccurred())
+				Expect(errors.Is(err, UpstreamValidationErr)).To(BeTrue(), "expected UpstreamValidationErr in error chain")
+			})
 		})
 
 		Context("secret deletion", func() {

@@ -1,0 +1,11 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/solo-projects/issues/8980
+    resolvesIssue: false
+    description: >-
+      In classic Edge gateway mode, reject an Upstream at admission when Gloo translation reports an
+      error for it (for example an invalid grpcJsonTranscoder protoDescriptorBin), even when
+      alwaysAccept is enabled. Previously the xDS UpstreamRemovingSanitizer downgraded upstream
+      translation errors to warnings before the gateway validator saw them, so invalid Upstreams were
+      admitted and then silently dropped from the Envoy snapshot. Does not cover Upstreams routed only
+      via HTTPRoute in Kubernetes Gateway mode.
