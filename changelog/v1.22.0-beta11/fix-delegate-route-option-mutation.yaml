@@ -1,6 +1,6 @@
 changelog:
   - type: FIX
-    issueLink: https://github.com/solo-io/solo-projects/pull/9056
+    issueLink: https://github.com/solo-io/solo-projects/issues/8797
     resolvesIssue: false
     description: >-
       Fix a bug in the gateway translator where RouteOptions referenced by a route via
