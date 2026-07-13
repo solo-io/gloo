@@ -1,0 +1,5 @@
+changelog:
+- type: NON_USER_FACING
+  issueLink: https://github.com/solo-io/gloo/pull/11318
+  resolvesIssue: false
+  description: Add a Gloo OSS end-of-life notice to the README announcing EOL on December 31st, 2026 and encouraging migration to kgateway.
