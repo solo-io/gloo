@@ -1,0 +1,16 @@
+apiVersion: gloo.solo.io/v1
+kind: Upstream
+metadata:
+  name: invalid-grpcjson-upstream
+  namespace: default
+spec:
+  static:
+    hosts:
+      - addr: "grpc-server.example.com"
+        port: 9090
+    serviceSpec:
+      grpcJsonTranscoder:
+        # aW52YWxpZA== is base64("invalid"), which is not a valid proto FileDescriptorSet
+        protoDescriptorBin: "aW52YWxpZA=="
+        services:
+          - "example.Service"

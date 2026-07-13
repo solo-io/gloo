@@ -122,6 +122,7 @@ type validator struct {
 	extensionValidator                    syncerValidation.Validator
 	allowWarnings                         bool
 	disableValidationAgainstPreviousState bool
+	kubeGatewayEnabled                    bool
 }
 
 type validationOptions struct {
@@ -144,6 +145,7 @@ type ValidatorConfig struct {
 	ExtensionValidator                    syncerValidation.Validator
 	AllowWarnings                         bool
 	DisableValidationAgainstPreviousState bool
+	KubeGatewayEnabled                    bool
 }
 
 func NewValidator(cfg ValidatorConfig) *validator {
@@ -153,6 +155,7 @@ func NewValidator(cfg ValidatorConfig) *validator {
 		translator:                            cfg.Translator,
 		allowWarnings:                         cfg.AllowWarnings,
 		disableValidationAgainstPreviousState: cfg.DisableValidationAgainstPreviousState,
+		kubeGatewayEnabled:                    cfg.KubeGatewayEnabled,
 	}
 }
 
@@ -286,9 +289,13 @@ func (v *validator) validateProxiesAndExtensions(ctx context.Context, snapshot *
 		err          error
 	)
 
-	validatingK8sGateway := isK8sGatewayProxy(opts.Resource)
+	validatingK8sGateway := isK8sGatewayProxy(opts.Resource, v.kubeGatewayEnabled)
 	if validatingK8sGateway {
-		proxies, errs = k8sgwvalidation.TranslateK8sGatewayProxies(ctx, snapshot, opts.Resource)
+		if upstream, ok := opts.Resource.(*gloov1.Upstream); ok {
+			proxies, errs = k8sgwvalidation.TranslateK8sGatewayProxiesForUpstream(ctx, snapshot, upstream)
+		} else {
+			proxies, errs = k8sgwvalidation.TranslateK8sGatewayProxies(ctx, snapshot, opts.Resource)
+		}
 	} else {
 		proxies, errs = v.translateGlooEdgeProxies(ctx, snapshot, opts.collectAllErrors)
 	}
@@ -321,13 +328,24 @@ func (v *validator) validateProxiesAndExtensions(ctx context.Context, snapshot *
 			continue
 		}
 
-		// if we are validating K8s Gateway Policy resources, we only want the errors resulting from
-		// the RouteOption/VirtualHostOption, so let's grab that here and skip the more sophisticated
-		// error aggregation below. Note that we do not care about allowWarnings, as they are not
-		// used in this case, as we do not do a full translation and use a 'dummy' proxy
+		// if we are validating K8s Gateway resources, we only want the errors resulting from the resource
+		// being admitted, so let's grab that here and skip the more sophisticated error aggregation below.
+		// Note that we do not care about allowWarnings, as they are not used in this case, as we do not do a
+		// full translation and use a 'dummy' proxy.
+		//
+		// A RouteOption or VirtualHostOption is attached to the dummy proxy, so its errors show up on the
+		// proxy report. fullEnvoyValidation errors also land on the proxy report, so the proxy check covers
+		// the Upstream case too. An Upstream's own errors (for example a ProcessUpstream failure) are reported
+		// against the Upstream rather than the proxy, and the sanitizers demote them to warnings, so we read
+		// those from the pre-sanitization reports by the Upstream's ref.
 		if validatingK8sGateway {
 			if err = k8sgwvalidation.GetSimpleErrorFromGlooValidation(glooReports, proxy); err != nil {
 				errs = multierror.Append(errs, err)
+			}
+			if upstream, ok := opts.Resource.(*gloov1.Upstream); ok {
+				if err = k8sgwvalidation.GetSimpleErrorFromGlooValidationForUpstream(glooReports, upstream); err != nil {
+					errs = multierror.Append(errs, err)
+				}
 			}
 			continue
 		}
@@ -415,13 +433,23 @@ func (v *validator) translateGlooEdgeProxies(
 	return proxies, errs
 }
 
-// isK8sGatewayProxy returns true if we are evaluating a Policy resource in the context of K8s Gateway API support.
-// Currently the only signal needed to make this decision is if the resource being evaluated is a RouteOption
-// or a VirthalHostOption, as we only directly evaluate them in the validator to support K8s Gateway API mode.
-func isK8sGatewayProxy(res resources.Resource) bool {
+// isK8sGatewayProxy returns true if we should validate the given resource using the dummy K8s Gateway API
+// proxy instead of translating the classic Gloo Edge proxies.
+//
+// RouteOption and VirtualHostOption always use this path. We only directly evaluate them in the validator
+// to support K8s Gateway API mode.
+//
+// Upstreams use this path only when K8s Gateway API is enabled. An Upstream that is routed to only via an
+// HTTPRoute is never part of a translated Edge proxy, so without this it would skip validation entirely,
+// including fullEnvoyValidation. The gate keeps the Edge path unchanged when K8s Gateway API is disabled.
+// When it is enabled, all Upstream admissions take this path, including Upstreams that are also routed to
+// by Edge proxies.
+func isK8sGatewayProxy(res resources.Resource, kubeGatewayEnabled bool) bool {
 	switch res.(type) {
 	case *sologatewayv1.RouteOption, *sologatewayv1.VirtualHostOption:
 		return true
+	case *gloov1.Upstream:
+		return kubeGatewayEnabled
 	default:
 		return false
 	}

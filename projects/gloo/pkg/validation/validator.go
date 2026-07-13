@@ -47,6 +47,10 @@ type GlooValidationReport struct {
 	Proxy           *gloov1.Proxy
 	ProxyReport     *validation.ProxyReport
 	ResourceReports reporter.ResourceReports
+	// PreSanitizationReports holds a copy of the resource reports taken before the xDS sanitizers run.
+	// The UpstreamRemovingSanitizer demotes Upstream errors to warnings, so callers that need to see the
+	// original error for a resource (for example when validating an Upstream at admission) read it here.
+	PreSanitizationReports reporter.ResourceReports
 }
 
 func (gv glooValidator) Validate(ctx context.Context, proxy *gloov1.Proxy, snapshot *gloosnapshot.ApiSnapshot, shouldDelete bool) []*GlooValidationReport {
@@ -81,14 +85,21 @@ func (gv glooValidator) Validate(ctx context.Context, proxy *gloov1.Proxy, snaps
 	for _, proxy := range proxiesToValidate {
 		xdsSnapshot, resourceReports, proxyReport := gv.translator.Translate(params, proxy)
 
+		// Capture the reports before sanitizing, as the sanitizers rewrite Upstream errors into warnings
+		preSanitizationReports := make(reporter.ResourceReports, len(resourceReports))
+		for res, report := range resourceReports {
+			preSanitizationReports[res] = report
+		}
+
 		// Sanitize routes before sending report to gateway
 		gv.xdsSanitizer.SanitizeSnapshot(ctx, snapshot, xdsSnapshot, resourceReports)
 		routeErrorToWarnings(resourceReports, proxyReport)
 
 		validationReports = append(validationReports, &GlooValidationReport{
-			Proxy:           proxy,
-			ProxyReport:     proxyReport,
-			ResourceReports: resourceReports,
+			Proxy:                  proxy,
+			ProxyReport:            proxyReport,
+			ResourceReports:        resourceReports,
+			PreSanitizationReports: preSanitizationReports,
 		})
 	}
 

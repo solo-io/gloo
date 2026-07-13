@@ -11,12 +11,16 @@ import (
 
 	. "github.com/onsi/gomega"
 
+	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	sologatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gateway2/validation"
 	"github.com/solo-io/gloo/projects/gateway2/wellknown"
 	envoybuffer "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/filters/http/buffer/v3"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/faultinjection"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/grpc_json"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/static"
 	"github.com/solo-io/gloo/projects/gloo/pkg/bootstrap"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/registry"
@@ -136,6 +140,39 @@ var _ = Describe("Kube Gateway API Policy Validation Helper", func() {
 		Expect(proxyResourceReport.Errors).NotTo(HaveOccurred())
 	})
 
+	It("validates and rejects an Upstream with an invalid grpcJsonTranscoder protoDescriptorBin", func() {
+		gv := gloovalidation.NewValidator(vc)
+
+		us := grpcUpstreamWithBadDescriptor()
+		params := plugins.Params{
+			Ctx:      ctx,
+			Snapshot: samples.SimpleGlooSnapshot("gloo-system"),
+		}
+		proxies, _ := validation.TranslateK8sGatewayProxiesForUpstream(ctx, params.Snapshot, us)
+		gv.Sync(ctx, params.Snapshot)
+		rpt, err := gv.ValidateGloo(ctx, proxies[0], us, false)
+		Expect(err).NotTo(HaveOccurred())
+		err = validation.GetSimpleErrorFromGlooValidationForUpstream(rpt, us)
+		Expect(err).To(HaveOccurred())
+		Expect(err.Error()).To(ContainSubstring("protoDescriptorBin is not a valid FileDescriptorSet"))
+	})
+
+	It("validates and accepts an Upstream with a valid grpcJsonTranscoder", func() {
+		gv := gloovalidation.NewValidator(vc)
+
+		us := grpcUpstreamWithGoodDescriptor()
+		params := plugins.Params{
+			Ctx:      ctx,
+			Snapshot: samples.SimpleGlooSnapshot("gloo-system"),
+		}
+		proxies, _ := validation.TranslateK8sGatewayProxiesForUpstream(ctx, params.Snapshot, us)
+		gv.Sync(ctx, params.Snapshot)
+		rpt, err := gv.ValidateGloo(ctx, proxies[0], us, false)
+		Expect(err).NotTo(HaveOccurred())
+		err = validation.GetSimpleErrorFromGlooValidationForUpstream(rpt, us)
+		Expect(err).NotTo(HaveOccurred())
+	})
+
 	It("validates and a rejects a bad VirtualHostOption", func() {
 		gv := gloovalidation.NewValidator(vc)
 
@@ -176,6 +213,44 @@ var _ = Describe("Kube Gateway API Policy Validation Helper", func() {
 		Expect(proxyResourceReport.Errors).NotTo(HaveOccurred())
 	})
 })
+
+func grpcUpstreamWithBadDescriptor() *v1.Upstream {
+	return &v1.Upstream{
+		Metadata: &core.Metadata{
+			Name:      "grpc-us",
+			Namespace: "gloo-system",
+		},
+		UpstreamType: &v1.Upstream_Static{
+			Static: &static.UpstreamSpec{
+				Hosts: []*static.Host{
+					{Addr: "solo.io", Port: 80},
+				},
+				ServiceSpec: &options.ServiceSpec{
+					PluginType: &options.ServiceSpec_GrpcJsonTranscoder{
+						GrpcJsonTranscoder: &grpc_json.GrpcJsonTranscoder{
+							DescriptorSet: &grpc_json.GrpcJsonTranscoder_ProtoDescriptorBin{
+								ProtoDescriptorBin: []byte("this is not a valid proto descriptor"),
+							},
+							Services: []string{"main.Bookstore"},
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
+func grpcUpstreamWithGoodDescriptor() *v1.Upstream {
+	validDescBytes, _ := proto.Marshal(&descriptor.FileDescriptorSet{
+		File: []*descriptor.FileDescriptorProto{
+			{Name: proto.String("test.proto")},
+		},
+	})
+	us := grpcUpstreamWithBadDescriptor()
+	us.GetStatic().GetServiceSpec().GetGrpcJsonTranscoder().DescriptorSet =
+		&grpc_json.GrpcJsonTranscoder_ProtoDescriptorBin{ProtoDescriptorBin: validDescBytes}
+	return us
+}
 
 func vHostOptWithBadConfig() *sologatewayv1.VirtualHostOption {
 	return &sologatewayv1.VirtualHostOption{
