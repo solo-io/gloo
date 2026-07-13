@@ -3159,11 +3159,13 @@ spec:
 					})
 
 					It("renders a Deployment when kind.workloadType is Deployment even though kind.daemonSet is set", func() {
-						// workloadType takes precedence: kind.daemonSet is set, yet workloadType=Deployment
+						// workloadType takes precedence: only kind.daemonSet is set (kind.deployment is
+						// nulled, so this config alone renders a DaemonSet), yet workloadType=Deployment
 						// still selects a Deployment and the daemonSet-only pod settings do not leak in.
 						prepareMakefile(namespace, glootestutils.HelmValues{
 							ValuesArgs: []string{
 								"gatewayProxies.gatewayProxy.kind.workloadType=Deployment",
+								"gatewayProxies.gatewayProxy.kind.deployment=null",
 								"gatewayProxies.gatewayProxy.kind.daemonSet.hostPort=true",
 							},
 						})
