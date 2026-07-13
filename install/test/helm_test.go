@@ -3084,9 +3084,13 @@ spec:
 						})
 
 						It("renders a DaemonSet when kind.workloadType is DaemonSet even though kind.deployment is set", func() {
+							// workloadType takes precedence over the kind.deployment/kind.daemonSet fields:
+							// kind.deployment is set here, but workloadType=DaemonSet still selects a DaemonSet.
+							// daemonSet.hostPort is set so the rendered manifest matches the expected daemonSet.
 							prepareMakefile(namespace, glootestutils.HelmValues{
 								ValuesArgs: []string{
 									"gatewayProxies.gatewayProxy.kind.workloadType=DaemonSet",
+									"gatewayProxies.gatewayProxy.kind.deployment.replicas=1",
 									"gatewayProxies.gatewayProxy.kind.daemonSet.hostPort=true",
 								},
 							})
