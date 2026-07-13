@@ -3095,14 +3095,25 @@ spec:
 							testManifest.Expect("DaemonSet", gatewayProxyDeployment.Namespace, gatewayProxyDeployment.Name).NotTo(BeNil())
 							testManifest.Expect("Deployment", gatewayProxyDeployment.Namespace, gatewayProxyDeployment.Name).To(BeNil())
 
-							// Assert on the raw manifest: spec.replicas is invalid on a DaemonSet, and a
-							// typed comparison silently drops it, so check the unstructured field directly.
 							testManifest.SelectResources(func(resource *unstructured.Unstructured) bool {
 								return resource.GetKind() == "DaemonSet" && resource.GetName() == "gateway-proxy"
-							}).ExpectAll(func(ds *unstructured.Unstructured) {
-								_, found, err := unstructured.NestedFieldNoCopy(ds.Object, "spec", "replicas")
+							}).ExpectAll(func(resource *unstructured.Unstructured) {
+								// spec.replicas is invalid on a DaemonSet, and a typed comparison silently
+								// drops it, so check the unstructured field directly.
+								_, found, err := unstructured.NestedFieldNoCopy(resource.Object, "spec", "replicas")
 								ExpectWithOffset(1, err).NotTo(HaveOccurred())
 								ExpectWithOffset(1, found).To(BeFalse(), "DaemonSet must not have spec.replicas")
+
+								obj, err := kuberesource.ConvertUnstructured(resource)
+								ExpectWithOffset(1, err).NotTo(HaveOccurred())
+								ds, ok := obj.(*appsv1.DaemonSet)
+								ExpectWithOffset(1, ok).To(BeTrue())
+								// A real gateway-proxy DaemonSet: it targets the gateway-proxy pods and renders
+								// the pod template, and no daemonSet-only host networking leaks in since
+								// kind.daemonSet is unset.
+								ExpectWithOffset(1, ds.Spec.Selector).To(Equal(gatewayProxyDeployment.Spec.Selector))
+								ExpectWithOffset(1, ds.Spec.Template.Spec.Containers).NotTo(BeEmpty())
+								ExpectWithOffset(1, ds.Spec.Template.Spec.HostNetwork).To(BeFalse())
 							})
 						})
 					})
