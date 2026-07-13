@@ -2,4 +2,4 @@ changelog:
 - type: NON_USER_FACING
   issueLink: https://github.com/solo-io/gloo/pull/11319
   resolvesIssue: false
-  description: Fix broken links in ai.proto comments.
+  description: Fix broken links in ai.proto.
