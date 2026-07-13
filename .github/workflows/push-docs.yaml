@@ -1,6 +1,6 @@
 # Copies the auto-generated reference documentation from the gloo repo to the solo-io/docs repo.
 #
-# OSS docs (all supported release lines) are consolidated into a SINGLE pull request by the
+# OSS docs (all supported release lines) are consolidated into a single pull request by the
 # `consolidate-oss` job. Regenerating every line in one working tree means the shared,
 # multi-version files (version conrefs, changelog, security scans) are only ever written once
 # per run, so the separate per-line PRs can no longer conflict with each other.
