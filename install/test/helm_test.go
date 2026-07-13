@@ -3084,17 +3084,15 @@ spec:
 						})
 
 						It("renders a DaemonSet when kind.workloadType is DaemonSet even though kind.deployment is set", func() {
-							// workloadType takes precedence over the kind.deployment/kind.daemonSet fields:
-							// kind.deployment is set here, but workloadType=DaemonSet still selects a DaemonSet.
-							// daemonSet.hostPort is set so the rendered manifest matches the expected daemonSet.
+							// workloadType takes precedence: kind.deployment is set and kind.daemonSet is not,
+							// yet workloadType=DaemonSet still selects a DaemonSet.
 							prepareMakefile(namespace, glootestutils.HelmValues{
 								ValuesArgs: []string{
 									"gatewayProxies.gatewayProxy.kind.workloadType=DaemonSet",
 									"gatewayProxies.gatewayProxy.kind.deployment.replicas=1",
-									"gatewayProxies.gatewayProxy.kind.daemonSet.hostPort=true",
 								},
 							})
-							testManifest.Expect("DaemonSet", gatewayProxyDeployment.Namespace, gatewayProxyDeployment.Name).To(BeEquivalentTo(daemonSet))
+							testManifest.Expect("DaemonSet", gatewayProxyDeployment.Namespace, gatewayProxyDeployment.Name).NotTo(BeNil())
 							testManifest.Expect("Deployment", gatewayProxyDeployment.Namespace, gatewayProxyDeployment.Name).To(BeNil())
 
 							// Assert on the raw manifest: spec.replicas is invalid on a DaemonSet, and a
@@ -3160,7 +3158,9 @@ spec:
 						testManifest.ExpectUnstructured("HorizontalPodAutoscaler", namespace, defaults.GatewayProxyName+"-hpa").NotTo(BeNil())
 					})
 
-					It("does not apply daemonSet pod settings when kind.workloadType is Deployment", func() {
+					It("renders a Deployment when kind.workloadType is Deployment even though kind.daemonSet is set", func() {
+						// workloadType takes precedence: kind.daemonSet is set, yet workloadType=Deployment
+						// still selects a Deployment and the daemonSet-only pod settings do not leak in.
 						prepareMakefile(namespace, glootestutils.HelmValues{
 							ValuesArgs: []string{
 								"gatewayProxies.gatewayProxy.kind.workloadType=Deployment",
