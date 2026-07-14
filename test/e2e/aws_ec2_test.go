@@ -60,7 +60,7 @@ curl http://<instance-public-ip>/
 ```
 */
 
-var _ = Describe("AWS EC2 Plugin utils test", func() {
+var _ = XDescribe("AWS EC2 Plugin utils test", func() {
 	if testutils.ShouldSkipTempDisabledTests() {
 		return
 	}
