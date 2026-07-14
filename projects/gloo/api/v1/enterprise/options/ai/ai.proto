@@ -128,7 +128,7 @@ message UpstreamSpec {
     string model = 3;
   }
 
-  // Settings for the [Azure OpenAI](https://learn.microsoft.com/en-us/azure/ai-services/openai/) LLM provider.
+  // Settings for the [Azure OpenAI](https://learn.microsoft.com/en-us/azure/foundry/) LLM provider.
   // To find the values for the endpoint, deployment name, and API version, you can check the fields of an API request, such as
   // `https://{endpoint}/openai/deployments/{deployment_name}/chat/completions?api-version={api_version}`.
   // {{% notice note %}}
@@ -148,10 +148,10 @@ message UpstreamSpec {
     // If the scheme is included, it is stripped.
     string endpoint = 2;
     // The name of the Azure OpenAI model deployment to use.
-    // For more information, see the [Azure OpenAI model docs](https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/models).
+    // For more information, see the [Azure OpenAI model docs](https://learn.microsoft.com/en-us/azure/foundry/foundry-models/concepts/models-sold-directly-by-azure).
     string deployment_name = 3;
     // The version of the Azure OpenAI API to use.
-    // For more information, see the [Azure OpenAI API version reference](https://learn.microsoft.com/en-us/azure/ai-services/openai/reference#api-specs).
+    // For more information, see the [Azure OpenAI API version reference](https://learn.microsoft.com/en-us/azure/foundry/openai/reference).
     string api_version = 4;
     // Optional: Send requests to a custom host and port or configure custom path override or hostname
     CustomHost custom_host = 5;
@@ -174,7 +174,7 @@ message UpstreamSpec {
     }
 
     // The Gemini model to use.
-    // For more information, see the [Gemini models docs](https://ai.google.dev/gemini-api/docs/models/gemini).
+    // For more information, see the [Gemini models docs](https://ai.google.dev/gemini-api/docs/models).
     string model = 2;
     // The version of the Gemini API to use.
     // For more information, see the [Gemini API version docs](https://ai.google.dev/gemini-api/docs/api-versions).
@@ -183,7 +183,7 @@ message UpstreamSpec {
     CustomHost custom_host = 4;
   }
 
-  // Settings for the [Vertex AI](https://cloud.google.com/vertex-ai/docs) LLM provider.
+  // Settings for the [Vertex AI](https://docs.cloud.google.com/gemini-enterprise-agent-platform) LLM provider.
   // To find the values for the project ID, project location, and publisher, you can check the fields of an API request, such as
   // `https://{LOCATION}-aiplatform.googleapis.com/{VERSION}/projects/{PROJECT_ID}/locations/{LOCATION}/publishers/{PROVIDER}/<model-path>`.
   // {{% notice note %}}
@@ -200,10 +200,10 @@ message UpstreamSpec {
     }
 
     // The Vertex AI model to use.
-    // For more information, see the [Vertex AI model docs](https://cloud.google.com/vertex-ai/generative-ai/docs/learn/models).
+    // For more information, see the [Vertex AI model docs](https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/google-models).
     string model = 2;
     // The version of the Vertex AI API to use.
-    // For more information, see the [Vertex AI API reference](https://cloud.google.com/vertex-ai/docs/reference#versions).
+    // For more information, see the [Vertex AI API reference](https://docs.cloud.google.com/gemini-enterprise-agent-platform/apis).
     string api_version = 3;
     // The ID of the Google Cloud Project that you use for the Vertex AI.
     string project_id = 4;
@@ -247,7 +247,7 @@ message UpstreamSpec {
     string model = 3;
   }
 
-  // Settings for the [Anthropic](https://docs.anthropic.com/en/release-notes/api) LLM provider.
+  // Settings for the [Anthropic](https://platform.claude.com/docs/en/release-notes/overview) LLM provider.
   // {{% notice note %}}
   // The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/main/ai/). It is not supported with the Gloo Edge API.
   // {{% /notice %}}
@@ -259,7 +259,7 @@ message UpstreamSpec {
     CustomHost custom_host = 2;
     // Optional: The version string used to override the `anthropic-version` header to pass to the Anthropic API.
     // Note: This does not control the api version (eg `/v1`) in the url.
-    // For more information, see the [Anthropic API versioning docs](https://docs.anthropic.com/en/api/versioning).
+    // For more information, see the [Anthropic API versioning docs](https://platform.claude.com/docs/en/api/versioning).
     string version = 3;
     // Optional: Override the model name.
     // If unset, the model name is taken from the request.
@@ -373,13 +373,13 @@ message UpstreamSpec {
         OpenAI openai = 1;
         // Configure a [Mistral AI](https://docs.mistral.ai/getting-started/quickstart/) backend.
         Mistral mistral = 2;
-        // Configure an [Anthropic](https://docs.anthropic.com/en/release-notes/api) backend.
+        // Configure an [Anthropic](https://platform.claude.com/docs/en/release-notes/overview) backend.
         Anthropic anthropic = 3;
-        // Configure an [Azure OpenAI](https://learn.microsoft.com/en-us/azure/ai-services/openai/) backend.
+        // Configure an [Azure OpenAI](https://learn.microsoft.com/en-us/azure/foundry/) backend.
         AzureOpenAI azure_openai = 4;
         // Configure a [Gemini](https://ai.google.dev/gemini-api/docs) backend.
         Gemini gemini = 5;
-        // Configure a [Vertex AI](https://cloud.google.com/vertex-ai/docs) backend.
+        // Configure a [Vertex AI](https://docs.cloud.google.com/gemini-enterprise-agent-platform) backend.
         VertexAI vertex_ai = 6;
         // Configure a [Bedrock](https://aws.amazon.com/bedrock/) backend.
         Bedrock bedrock = 7;
@@ -404,15 +404,15 @@ message UpstreamSpec {
     OpenAI openai = 1;
     // Configure a [Mistral AI](https://docs.mistral.ai/getting-started/quickstart/) backend.
     Mistral mistral = 2;
-    // Configure an [Anthropic](https://docs.anthropic.com/en/release-notes/api) backend.
+    // Configure an [Anthropic](https://platform.claude.com/docs/en/release-notes/overview) backend.
     Anthropic anthropic = 3;
-    // Configure an [Azure OpenAI](https://learn.microsoft.com/en-us/azure/ai-services/openai/) backend.
+    // Configure an [Azure OpenAI](https://learn.microsoft.com/en-us/azure/foundry/) backend.
     AzureOpenAI azure_openai = 4;
     // Configure backends for multiple LLM providers in one logical endpoint.
     MultiPool multi = 5;
     // Configure a [Gemini](https://ai.google.dev/gemini-api/docs) backend.
     Gemini gemini = 6;
-    // Configure a [Vertex AI](https://cloud.google.com/vertex-ai/docs) backend.
+    // Configure a [Vertex AI](https://docs.cloud.google.com/gemini-enterprise-agent-platform) backend.
     VertexAI vertex_ai = 7;
     // Configure a [Bedrock](https://aws.amazon.com/bedrock/) backend.
     Bedrock bedrock = 8;
@@ -552,13 +552,13 @@ message Embedding {
     }
 
     // The version of the Azure OpenAI API to use.
-    // For more information, see the [Azure OpenAI API version reference](https://learn.microsoft.com/en-us/azure/ai-services/openai/reference#api-specs).
+    // For more information, see the [Azure OpenAI API version reference](https://learn.microsoft.com/en-us/azure/foundry/openai/reference).
     string api_version = 2;
     // The endpoint for the Azure OpenAI API to use, such as `my-endpoint.openai.azure.com`.
     // If the scheme is not included, it is added.
     string endpoint = 3;
     // The name of the Azure OpenAI model deployment to use.
-    // For more information, see the [Azure OpenAI model docs](https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/models).
+    // For more information, see the [Azure OpenAI model docs](https://learn.microsoft.com/en-us/azure/foundry/foundry-models/concepts/models-sold-directly-by-azure).
     string deployment_name = 4;
   }
 

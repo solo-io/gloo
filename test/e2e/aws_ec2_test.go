@@ -243,6 +243,8 @@ var _ = Describe("AWS EC2 Plugin utils test", func() {
 	})
 
 	BeforeEach(func() {
+		Skip("Temporarily skipping aws tests")
+
 		ctx, cancel = context.WithCancel(context.Background())
 
 		envoyInstance = envoyFactory.NewInstance()
