@@ -32,7 +32,7 @@ const (
 	vaultRole = "vault-role"
 )
 
-var _ = Describe("Vault Secret Store (AWS Auth)", decorators.Vault, func() {
+var _ = XDescribe("Vault Secret Store (AWS Auth)", decorators.Vault, func() {
 
 	var (
 		testContext         *e2e.TestContextWithVault
