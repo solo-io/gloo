@@ -48,7 +48,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 )
 
-var _ = XDescribe("AWS Lambda", func() {
+var _ = Describe("AWS Lambda", func() {
 	const (
 		defaultRegion        = "us-east-1"
 		secondaryRegion      = "us-east-2"
@@ -68,6 +68,8 @@ var _ = XDescribe("AWS Lambda", func() {
 	)
 
 	BeforeEach(func() {
+		Skip("Temporarily skipping aws tests")
+
 		testutils.ValidateRequirementsAndNotifyGinkgo(testutils.AwsCredentials())
 		runOptions = &services.RunOptions{
 			NsToWrite: writeNamespace,

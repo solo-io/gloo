@@ -60,7 +60,7 @@ curl http://<instance-public-ip>/
 ```
 */
 
-var _ = XDescribe("AWS EC2 Plugin utils test", func() {
+var _ = Describe("AWS EC2 Plugin utils test", func() {
 	if testutils.ShouldSkipTempDisabledTests() {
 		return
 	}
@@ -243,6 +243,8 @@ var _ = XDescribe("AWS EC2 Plugin utils test", func() {
 	})
 
 	BeforeEach(func() {
+		Skip("Temporarily skipping aws tests")
+
 		ctx, cancel = context.WithCancel(context.Background())
 
 		envoyInstance = envoyFactory.NewInstance()
