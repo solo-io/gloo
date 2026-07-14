@@ -642,8 +642,9 @@ type GatewayProxyGatewaySettings struct {
 }
 
 type GatewayProxyKind struct {
-	Deployment *GatewayProxyDeployment `json:"deployment,omitempty" desc:"set to deploy as a kubernetes deployment, otherwise nil"`
-	DaemonSet  *DaemonSetSpec          `json:"daemonSet,omitempty" desc:"set to deploy as a kubernetes daemonset, otherwise nil"`
+	WorkloadType *string                 `json:"workloadType,omitempty" desc:"set to 'Deployment' or 'DaemonSet' to explicitly select the workload type, taking precedence over the deployment and daemonSet fields, otherwise inferred from those fields"`
+	Deployment   *GatewayProxyDeployment `json:"deployment,omitempty" desc:"set to deploy as a kubernetes deployment, otherwise nil"`
+	DaemonSet    *DaemonSetSpec          `json:"daemonSet,omitempty" desc:"set to deploy as a kubernetes daemonset, otherwise nil"`
 }
 type GatewayProxyDeployment struct {
 	*DeploymentSpecSansResources

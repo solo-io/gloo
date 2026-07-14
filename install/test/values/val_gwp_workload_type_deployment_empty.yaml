@@ -1,0 +1,7 @@
+# workloadType must select a Deployment even when kind.deployment is an empty
+# object, which some GitOps tools (e.g. FluxCD) normalize inconsistently.
+gatewayProxies:
+  gatewayProxy:
+    kind:
+      workloadType: Deployment
+      deployment: {}
