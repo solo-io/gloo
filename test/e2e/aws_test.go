@@ -68,8 +68,6 @@ var _ = Describe("AWS Lambda", func() {
 	)
 
 	BeforeEach(func() {
-		Skip("Temporarily skipping aws tests")
-
 		testutils.ValidateRequirementsAndNotifyGinkgo(testutils.AwsCredentials())
 		runOptions = &services.RunOptions{
 			NsToWrite: writeNamespace,
