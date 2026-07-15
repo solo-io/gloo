@@ -241,11 +241,12 @@ func grpcUpstreamWithBadDescriptor() *v1.Upstream {
 }
 
 func grpcUpstreamWithGoodDescriptor() *v1.Upstream {
-	validDescBytes, _ := proto.Marshal(&descriptor.FileDescriptorSet{
+	validDescBytes, err := proto.Marshal(&descriptor.FileDescriptorSet{
 		File: []*descriptor.FileDescriptorProto{
 			{Name: proto.String("test.proto")},
 		},
 	})
+	Expect(err).NotTo(HaveOccurred())
 	us := grpcUpstreamWithBadDescriptor()
 	us.GetStatic().GetServiceSpec().GetGrpcJsonTranscoder().DescriptorSet =
 		&grpc_json.GrpcJsonTranscoder_ProtoDescriptorBin{ProtoDescriptorBin: validDescBytes}

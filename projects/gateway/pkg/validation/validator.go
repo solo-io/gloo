@@ -333,11 +333,11 @@ func (v *validator) validateProxiesAndExtensions(ctx context.Context, snapshot *
 		// Note that we do not care about allowWarnings, as they are not used in this case, as we do not do a
 		// full translation and use a 'dummy' proxy.
 		//
-		// A RouteOption or VirtualHostOption is attached to the dummy proxy, so its errors show up on the
-		// proxy report. fullEnvoyValidation errors also land on the proxy report, so the proxy check covers
-		// the Upstream case too. An Upstream's own errors (for example a ProcessUpstream failure) are reported
-		// against the Upstream rather than the proxy, and the sanitizers demote them to warnings, so we read
-		// those from the pre-sanitization reports by the Upstream's ref.
+		// A RouteOption or VirtualHostOption is attached to the dummy proxy, so its errors are reported
+		// against the proxy. fullEnvoyValidation errors are also reported against the proxy, so the proxy
+		// check covers the Upstream case too. An Upstream's own errors (for example a ProcessUpstream
+		// failure) are reported against the Upstream rather than the proxy, and the sanitizers demote them
+		// to warnings, so we read those from the pre-sanitization reports by the Upstream's ref.
 		if validatingK8sGateway {
 			if err = k8sgwvalidation.GetSimpleErrorFromGlooValidation(glooReports, proxy); err != nil {
 				errs = multierror.Append(errs, err)
