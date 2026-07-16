@@ -1,0 +1,8 @@
+changelog:
+- type: NON_USER_FACING
+  resolvesIssue: false
+  description: >-
+    Fix push-docs workflow Copy Helm step on the v1.21.x branch by updating
+    destination paths from assets/conrefs/pages/ to assets/gateway-docs/pages/,
+    matching the docs repo directory structure after the migration in #11307.
+    skipCI-kube-tests:true
