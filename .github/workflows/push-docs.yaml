@@ -178,19 +178,20 @@ jobs:
     - name: Copy OSA
       run: |
         pushd docs || exit 1
-        cp ../gloo/docs/content/static/content/osa_included.md assets/conrefs/pages/gateway/reference/osa_included_${{ steps.version-variables.outputs.minor }}.md
-        cp ../gloo/docs/content/static/content/osa_provided.md assets/conrefs/pages/gateway/reference/osa_provided_${{ steps.version-variables.outputs.minor }}.md
+        cp ../gloo/docs/content/static/content/osa_included.md assets/gateway-docs/pages/reference/osa_included_${{ steps.version-variables.outputs.minor }}.md
+        cp ../gloo/docs/content/static/content/osa_provided.md assets/gateway-docs/pages/reference/osa_provided_${{ steps.version-variables.outputs.minor }}.md
         popd || exit 1
     - name: Copy Helm
       run: |
         pushd docs || exit 1
         # OSS
-        cp ../gloo/docs/content/reference/values.txt assets/conrefs/pages/reference/helm/values_${{ steps.version-variables.outputs.minor }}.txt
+        cp ../gloo/docs/content/reference/values.txt assets/gateway-docs/pages/reference/helm/values_${{ steps.version-variables.outputs.minor }}.txt
         # Enterprise
-        cp ../gloo/docs/content/static/content/glooe-values.docgen assets/conrefs/pages/reference/helm/glooe-values_${{ steps.version-variables.outputs.minor }}.md
+        cp ../gloo/docs/content/static/content/glooe-values.docgen assets/gateway-docs/pages/reference/helm/glooe-values_${{ steps.version-variables.outputs.minor }}.md
     - name: Copy CLI
       run: |
         pushd docs || exit 1
+        mkdir -p content/en/gateway/${{ steps.version-variables.outputs.directory }}/reference/cli
         cp ../gloo/docs/content/reference/cli/glooctl_check.md content/en/gateway/${{ steps.version-variables.outputs.directory }}/reference/cli/glooctl_check.md
         cp ../gloo/docs/content/reference/cli/glooctl_debug.md content/en/gateway/${{ steps.version-variables.outputs.directory }}/reference/cli/glooctl_debug.md
         cp ../gloo/docs/content/reference/cli/glooctl_debug_yaml.md content/en/gateway/${{ steps.version-variables.outputs.directory }}/reference/cli/glooctl_debug_yaml.md
@@ -202,10 +203,10 @@ jobs:
     - name: Copy API
       run: |
         pushd docs || exit 1
-        cp ../gloo/docs/content/reference/api/github.com/solo-io/gloo/projects/gateway2/api/v1alpha1/direct_responses.md assets/conrefs/pages/gateway/reference/direct_responses_${{ steps.version-variables.outputs.minor }}.md
-        sed -i '1,2d' assets/conrefs/pages/gateway/reference/direct_responses_${{ steps.version-variables.outputs.minor }}.md
-        cp ../gloo/docs/content/reference/api/github.com/solo-io/gloo/projects/gateway2/api/v1alpha1/gateway_parameters.md assets/conrefs/pages/gateway/reference/gateway_parameters_${{ steps.version-variables.outputs.minor }}.md
-        sed -i '1,2d' assets/conrefs/pages/gateway/reference/gateway_parameters_${{ steps.version-variables.outputs.minor }}.md
+        cp ../gloo/docs/content/reference/api/github.com/solo-io/gloo/projects/gateway2/api/v1alpha1/direct_responses.md assets/gateway-docs/pages/reference/direct_responses_${{ steps.version-variables.outputs.minor }}.md
+        sed -i '1,2d' assets/gateway-docs/pages/reference/direct_responses_${{ steps.version-variables.outputs.minor }}.md
+        cp ../gloo/docs/content/reference/api/github.com/solo-io/gloo/projects/gateway2/api/v1alpha1/gateway_parameters.md assets/gateway-docs/pages/reference/gateway_parameters_${{ steps.version-variables.outputs.minor }}.md
+        sed -i '1,2d' assets/gateway-docs/pages/reference/gateway_parameters_${{ steps.version-variables.outputs.minor }}.md
         popd || exit 1
     - name: Push and create PR
       uses: peter-evans/create-pull-request@v7
