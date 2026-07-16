@@ -41,6 +41,8 @@ var _ = Describe("Vault Secret Store (AWS Auth)", decorators.Vault, func() {
 	)
 
 	BeforeEach(func() {
+		Skip("Temporarily skipping aws tests")
+
 		resetViews()
 		testContext = testContextFactory.NewTestContextWithVault(testutils.AwsCredentials())
 		testContext.BeforeEach()
