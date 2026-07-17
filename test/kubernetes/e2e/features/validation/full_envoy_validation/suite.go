@@ -79,6 +79,40 @@ func (s *testingSuite) TestRejectInvalidTransformation() {
 		"header template ':status': [inja.exception.parser_error] (at 1:92) expected statement close, got '%'")
 }
 
+// TestRejectsDeleteOfInUseUpstream verifies that in a hybrid install (Edge + K8s Gateway API), deleting an
+// Upstream that a VirtualService still routes to is rejected by the webhook. Upstream admission in K8s
+// Gateway mode also validates against the real Edge proxies, so this in-use check must keep working.
+func (s *testingSuite) TestRejectsDeleteOfInUseUpstream() {
+	s.T().Cleanup(func() {
+		// Delete the VirtualService first so the Upstream is no longer in use and can be removed.
+		err := s.testInstallation.Actions.Kubectl().DeleteFileSafe(s.ctx, validation.ExampleVS, "-n", s.testInstallation.Metadata.InstallNamespace)
+		s.Assert().NoError(err)
+		err = s.testInstallation.Actions.Kubectl().DeleteFileSafe(s.ctx, validation.ExampleUpstream, "-n", s.testInstallation.Metadata.InstallNamespace)
+		s.Assert().NoError(err)
+		err = s.testInstallation.Actions.Kubectl().DeleteFileSafe(s.ctx, testdefaults.NginxPodManifest)
+		s.Assert().NoError(err)
+	})
+
+	// nginx backs the example Upstream.
+	err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, testdefaults.NginxPodManifest)
+	s.Assert().NoError(err)
+	s.testInstallation.Assertions.EventuallyPodsRunning(s.ctx, testdefaults.NginxPod.ObjectMeta.GetNamespace(), metav1.ListOptions{
+		LabelSelector: "app.kubernetes.io/name=nginx",
+	})
+
+	err = s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, validation.ExampleUpstream, "-n", s.testInstallation.Metadata.InstallNamespace)
+	s.Assert().NoError(err, "can apply the upstream")
+
+	err = s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, validation.ExampleVS, "-n", s.testInstallation.Metadata.InstallNamespace)
+	s.Assert().NoError(err, "can apply the virtual service routing to the upstream")
+
+	// Deleting the Upstream while the VirtualService still routes to it must be rejected.
+	output, err := s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, validation.ExampleUpstream, "-n", s.testInstallation.Metadata.InstallNamespace)
+	s.Assert().Error(err, "deleting an in-use upstream should be rejected")
+	s.Assert().Contains(output, "admission webhook")
+	s.Assert().Contains(output, validation.ExampleUpstreamName)
+}
+
 // TestLargeConfiguration checks webhook accepts large configuration when fullEnvoyValidation=true
 func (s *testingSuite) TestLargeConfiguration() {
 	s.T().Skip("we need to make sure we have all formats working")
