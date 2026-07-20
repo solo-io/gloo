@@ -127,6 +127,39 @@ var _ = Describe("Validator", func() {
 				Expect(warnings).To(BeEmpty())
 				Expect(errors).NotTo(HaveOccurred())
 			})
+			It("validates an upstream through the dummy proxy on create when k8s gateway is enabled", func() {
+				v.kubeGatewayEnabled = true
+				var validatedProxyNames []string
+				v.glooValidator = func(ctx context.Context, proxy *gloov1.Proxy, resource resources.Resource, shouldDelete bool) ([]*gloovalidation.GlooValidationReport, error) {
+					validatedProxyNames = append(validatedProxyNames, proxy.GetMetadata().GetName())
+					return ValidateAccept(ctx, proxy, resource, shouldDelete)
+				}
+
+				err := v.Sync(context.TODO(), samples.SimpleGlooSnapshot(ns))
+				Expect(err).NotTo(HaveOccurred())
+
+				_, err = v.ValidateModifiedGvk(context.TODO(), gloov1.UpstreamGVK, samples.SimpleUpstream(), false)
+				Expect(err).NotTo(HaveOccurred())
+				// the dummy proxy routes to the real upstream so its config is translated and validated
+				Expect(validatedProxyNames).To(ContainElement("zzz-fake-proxy-for-validation"))
+			})
+			It("skips the dummy proxy and validates the edge proxies on delete when k8s gateway is enabled", func() {
+				v.kubeGatewayEnabled = true
+				var validatedProxyNames []string
+				v.glooValidator = func(ctx context.Context, proxy *gloov1.Proxy, resource resources.Resource, shouldDelete bool) ([]*gloovalidation.GlooValidationReport, error) {
+					validatedProxyNames = append(validatedProxyNames, proxy.GetMetadata().GetName())
+					return ValidateAccept(ctx, proxy, resource, shouldDelete)
+				}
+
+				err := v.Sync(context.TODO(), samples.SimpleGlooSnapshot(ns))
+				Expect(err).NotTo(HaveOccurred())
+
+				err = v.ValidateDeletedGvk(context.TODO(), gloov1.UpstreamGVK, samples.SimpleUpstream(), false)
+				Expect(err).NotTo(HaveOccurred())
+				// deleting an upstream must use the real edge proxies (so in-use checks still run), not the dummy proxy
+				Expect(validatedProxyNames).NotTo(ContainElement("zzz-fake-proxy-for-validation"))
+				Expect(validatedProxyNames).NotTo(BeEmpty())
+			})
 			It("rejects an upstream when validation fails", func() {
 				v.glooValidator = ValidateFail
 				us := samples.SimpleUpstream()

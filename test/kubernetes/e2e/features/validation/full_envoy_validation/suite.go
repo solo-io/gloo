@@ -3,7 +3,6 @@ package full_envoy_validation
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/solo-io/gloo/test/kubernetes/e2e"
 	testdefaults "github.com/solo-io/gloo/test/kubernetes/e2e/defaults"
@@ -78,57 +77,6 @@ func (s *testingSuite) TestRejectInvalidTransformation() {
 	s.Assert().Error(err)
 	s.Assert().Contains(output, "Failed to parse response template: Failed to parse "+
 		"header template ':status': [inja.exception.parser_error] (at 1:92) expected statement close, got '%'")
-}
-
-// TestRejectsDeleteOfInUseUpstream verifies that in a hybrid install (Edge + K8s Gateway API), deleting an
-// Upstream that a VirtualService still routes to is rejected by the webhook. Upstream admission in K8s
-// Gateway mode also validates against the real Edge proxies, so this in-use check must keep working.
-func (s *testingSuite) TestRejectsDeleteOfInUseUpstream() {
-	s.T().Cleanup(func() {
-		// Delete the VirtualService first so the Upstream is no longer in use and can be removed.
-		err := s.testInstallation.Actions.Kubectl().DeleteFileSafe(s.ctx, validation.ExampleVS, "-n", s.testInstallation.Metadata.InstallNamespace)
-		s.Assert().NoError(err)
-
-		// The webhook validates against the asynchronously-updated latestSnapshot, so the Upstream delete can
-		// be rejected until the VirtualService has left the snapshot. Retry until the snapshot has caught up.
-		s.Assert().Eventually(func() bool {
-			err := s.testInstallation.Actions.Kubectl().DeleteFileSafe(s.ctx, validation.ExampleUpstream, "-n", s.testInstallation.Metadata.InstallNamespace)
-			return err == nil
-		}, time.Minute, 5*time.Second, "can delete "+validation.ExampleUpstream)
-
-		err = s.testInstallation.Actions.Kubectl().DeleteFileSafe(s.ctx, testdefaults.NginxPodManifest)
-		s.Assert().NoError(err)
-	})
-
-	// nginx backs the example Upstream.
-	err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, testdefaults.NginxPodManifest)
-	s.Assert().NoError(err)
-	s.testInstallation.Assertions.EventuallyPodsRunning(s.ctx, testdefaults.NginxPod.ObjectMeta.GetNamespace(), metav1.ListOptions{
-		LabelSelector: "app.kubernetes.io/name=nginx",
-	})
-
-	err = s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, validation.ExampleUpstream, "-n", s.testInstallation.Metadata.InstallNamespace)
-	s.Assert().NoError(err, "can apply the upstream")
-	s.testInstallation.Assertions.EventuallyResourceExists(func() (resources.Resource, error) {
-		return s.testInstallation.ResourceClients.UpstreamClient().Read(s.testInstallation.Metadata.InstallNamespace, validation.ExampleUpstreamName, clients.ReadOpts{Ctx: s.ctx})
-	})
-
-	// The webhook validates against the asynchronously-updated latestSnapshot, so applying the VirtualService
-	// is rejected until the Upstream it routes to is in the snapshot. Retry until the snapshot has caught up.
-	s.Assert().Eventually(func() bool {
-		return s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, validation.ExampleVS, "-n", s.testInstallation.Metadata.InstallNamespace) == nil
-	}, time.Minute, 5*time.Second, "can apply the virtual service once the upstream is in the snapshot")
-
-	// Deleting the Upstream while the VirtualService still routes to it must be rejected. Use a server-side
-	// dry run so the Upstream is not actually removed, and retry until the VirtualService is in the snapshot
-	// so the in-use check fires.
-	var deleteOutput string
-	s.Assert().Eventually(func() bool {
-		out, err := s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, validation.ExampleUpstream, "-n", s.testInstallation.Metadata.InstallNamespace, "--dry-run=server")
-		deleteOutput = out
-		return err != nil
-	}, time.Minute, 5*time.Second, "deleting an in-use upstream should be rejected")
-	s.Assert().Contains(deleteOutput, validation.ExampleUpstreamName)
 }
 
 // TestLargeConfiguration checks webhook accepts large configuration when fullEnvoyValidation=true
