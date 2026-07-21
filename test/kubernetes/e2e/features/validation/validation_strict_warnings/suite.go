@@ -132,6 +132,60 @@ func (s *testingSuite) TestVirtualServiceWithSecretDeletion() {
 	s.Assert().NoError(err)
 }
 
+// TestRejectsDeleteOfInUseUpstream verifies that deleting an Upstream that a VirtualService still routes to
+// is rejected by the webhook. With the K8s Gateway API enabled, Upstream admission still validates against
+// the real Edge proxies, so this in-use check must keep working and deletes must not take the dummy path.
+func (s *testingSuite) TestRejectsDeleteOfInUseUpstream() {
+	s.T().Cleanup(func() {
+		// Delete the VirtualService first so the Upstream is no longer in use.
+		err := s.testInstallation.Actions.Kubectl().DeleteFileSafe(s.ctx, validation.ExampleVS, "-n", s.testInstallation.Metadata.InstallNamespace)
+		s.Assert().NoError(err, "can delete "+validation.ExampleVS)
+
+		// Delete can fail with strict validation until the VirtualService leaves the snapshot, so retry.
+		s.Assert().Eventually(func() bool {
+			err := s.testInstallation.Actions.Kubectl().DeleteFileSafe(s.ctx, validation.ExampleUpstream, "-n", s.testInstallation.Metadata.InstallNamespace)
+			return err == nil
+		}, time.Minute, 5*time.Second, "can delete "+validation.ExampleUpstream)
+
+		err = s.testInstallation.Actions.Kubectl().DeleteFile(s.ctx, testdefaults.NginxPodManifest)
+		s.Assert().NoError(err, "can delete "+testdefaults.NginxPodManifest)
+	})
+
+	// nginx backs the example Upstream
+	err := s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, testdefaults.NginxPodManifest)
+	s.Assert().NoError(err)
+	s.testInstallation.Assertions.EventuallyPodsRunning(s.ctx, testdefaults.NginxPod.ObjectMeta.GetNamespace(), metav1.ListOptions{
+		LabelSelector: "app.kubernetes.io/name=nginx",
+	})
+
+	// apply the Upstream and give Gloo a chance to process it, so the VirtualService routing to it is accepted
+	err = s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, validation.ExampleUpstream, "-n", s.testInstallation.Metadata.InstallNamespace)
+	s.Assert().NoError(err)
+	s.testInstallation.Assertions.EventuallyResourceExists(func() (resources.Resource, error) {
+		return s.testInstallation.ResourceClients.UpstreamClient().Read(s.testInstallation.Metadata.InstallNamespace, validation.ExampleUpstreamName, clients.ReadOpts{Ctx: s.ctx})
+	})
+	s.testInstallation.Assertions.ConsistentlyResourceExists(s.ctx, func() (resources.Resource, error) {
+		return s.testInstallation.ResourceClients.UpstreamClient().Read(s.testInstallation.Metadata.InstallNamespace, validation.ExampleUpstreamName, clients.ReadOpts{Ctx: s.ctx})
+	})
+
+	// the VirtualService routes to the Upstream and should be accepted
+	err = s.testInstallation.Actions.Kubectl().ApplyFile(s.ctx, validation.ExampleVS, "-n", s.testInstallation.Metadata.InstallNamespace)
+	s.Assert().NoError(err)
+	s.testInstallation.Assertions.EventuallyResourceStatusMatchesState(
+		func() (resources.InputResource, error) {
+			return s.testInstallation.ResourceClients.VirtualServiceClient().Read(s.testInstallation.Metadata.InstallNamespace, validation.ExampleVsName, clients.ReadOpts{Ctx: s.ctx})
+		},
+		core.Status_Accepted,
+		gloo_defaults.GlooReporter,
+	)
+
+	// deleting the Upstream while the VirtualService still routes to it must be rejected
+	output, err := s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, validation.ExampleUpstream, "-n", s.testInstallation.Metadata.InstallNamespace)
+	s.Assert().Error(err, "deleting an in-use upstream should be rejected")
+	s.Assert().Contains(output, "denied the request")
+	s.Assert().Contains(output, validation.ExampleUpstreamName)
+}
+
 // TestInvalidUpstreamMissingPort tests behaviors when Gloo rejects an invalid upstream with a missing port
 func (s *testingSuite) TestInvalidUpstreamMissingPort() {
 	s.T().Cleanup(func() {

@@ -143,22 +143,20 @@ var _ = Describe("Validator", func() {
 				// the dummy proxy routes to the real upstream so its config is translated and validated
 				Expect(validatedProxyNames).To(ContainElement("zzz-fake-proxy-for-validation"))
 			})
-			It("skips the dummy proxy and validates the edge proxies on delete when k8s gateway is enabled", func() {
+			It("rejects deletion of an in-use upstream through the edge proxies when k8s gateway is enabled", func() {
+				// On delete, a kube-gateway Upstream is validated through the real edge proxies, not the dummy
+				// proxy, so an edge-path warning (as an in-use route produces) is promoted to a rejection under
+				// strict validation (allowWarnings is false via the BeforeEach). If the delete wrongly took the
+				// dummy path, its simple extractor ignores warnings and the delete would be accepted, so
+				// asserting rejection here also verifies the dispatch skips the dummy proxy on delete.
 				v.kubeGatewayEnabled = true
-				var validatedProxyNames []string
-				v.glooValidator = func(ctx context.Context, proxy *gloov1.Proxy, resource resources.Resource, shouldDelete bool) ([]*gloovalidation.GlooValidationReport, error) {
-					validatedProxyNames = append(validatedProxyNames, proxy.GetMetadata().GetName())
-					return ValidateAccept(ctx, proxy, resource, shouldDelete)
-				}
+				v.glooValidator = ValidateWarn
 
 				err := v.Sync(context.TODO(), samples.SimpleGlooSnapshot(ns))
 				Expect(err).NotTo(HaveOccurred())
 
 				err = v.ValidateDeletedGvk(context.TODO(), gloov1.UpstreamGVK, samples.SimpleUpstream(), false)
-				Expect(err).NotTo(HaveOccurred())
-				// deleting an upstream must use the real edge proxies (so in-use checks still run), not the dummy proxy
-				Expect(validatedProxyNames).NotTo(ContainElement("zzz-fake-proxy-for-validation"))
-				Expect(validatedProxyNames).NotTo(BeEmpty())
+				Expect(err).To(HaveOccurred())
 			})
 			It("rejects an upstream when validation fails", func() {
 				v.glooValidator = ValidateFail
