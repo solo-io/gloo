@@ -70,3 +70,18 @@ func (s *testingSuite) TestConfigureBackingDestinationsWithUpstream() {
 		defaults.GlooReporter,
 	)
 }
+
+// TestRejectsGrpcJsonUpstreamWithInvalidProtoDescriptor verifies that in Kubernetes Gateway API mode an
+// Upstream with an invalid grpcJsonTranscoder protoDescriptorBin is rejected by the validating webhook.
+// No HTTPRoute references the Upstream, so previously it was never translated at admission and the invalid
+// descriptor was only caught by Envoy at runtime.
+func (s *testingSuite) TestRejectsGrpcJsonUpstreamWithInvalidProtoDescriptor() {
+	s.T().Cleanup(func() {
+		err := s.testInstallation.Actions.Kubectl().DeleteFileSafe(s.ctx, invalidGrpcJsonUpstreamManifest)
+		s.NoError(err, "can delete manifest")
+	})
+
+	output, err := s.testInstallation.Actions.Kubectl().ApplyFileWithOutput(s.ctx, invalidGrpcJsonUpstreamManifest)
+	s.testInstallation.Assertions.ExpectObjectAdmitted(invalidGrpcJsonUpstreamManifest, err, output,
+		"protoDescriptorBin is not a valid FileDescriptorSet")
+}
