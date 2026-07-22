@@ -3082,6 +3082,40 @@ spec:
 							})
 							testManifest.Expect("DaemonSet", gatewayProxyDeployment.Namespace, gatewayProxyDeployment.Name).To(BeEquivalentTo(daemonSet))
 						})
+
+						It("renders a DaemonSet when kind.workloadType is DaemonSet even though kind.deployment is set", func() {
+							// workloadType takes precedence: kind.deployment is set and kind.daemonSet is not,
+							// yet workloadType=DaemonSet still selects a DaemonSet.
+							prepareMakefile(namespace, glootestutils.HelmValues{
+								ValuesArgs: []string{
+									"gatewayProxies.gatewayProxy.kind.workloadType=DaemonSet",
+									"gatewayProxies.gatewayProxy.kind.deployment.replicas=1",
+								},
+							})
+							testManifest.Expect("DaemonSet", gatewayProxyDeployment.Namespace, gatewayProxyDeployment.Name).NotTo(BeNil())
+							testManifest.Expect("Deployment", gatewayProxyDeployment.Namespace, gatewayProxyDeployment.Name).To(BeNil())
+
+							testManifest.SelectResources(func(resource *unstructured.Unstructured) bool {
+								return resource.GetKind() == "DaemonSet" && resource.GetName() == "gateway-proxy"
+							}).ExpectAll(func(resource *unstructured.Unstructured) {
+								// spec.replicas is invalid on a DaemonSet, and a typed comparison silently
+								// drops it, so check the unstructured field directly.
+								_, found, err := unstructured.NestedFieldNoCopy(resource.Object, "spec", "replicas")
+								ExpectWithOffset(1, err).NotTo(HaveOccurred())
+								ExpectWithOffset(1, found).To(BeFalse(), "DaemonSet must not have spec.replicas")
+
+								obj, err := kuberesource.ConvertUnstructured(resource)
+								ExpectWithOffset(1, err).NotTo(HaveOccurred())
+								ds, ok := obj.(*appsv1.DaemonSet)
+								ExpectWithOffset(1, ok).To(BeTrue())
+								// A real gateway-proxy DaemonSet: it targets the gateway-proxy pods and renders
+								// the pod template, and no daemonSet-only host networking leaks in since
+								// kind.daemonSet is unset.
+								ExpectWithOffset(1, ds.Spec.Selector).To(Equal(gatewayProxyDeployment.Spec.Selector))
+								ExpectWithOffset(1, ds.Spec.Template.Spec.Containers).NotTo(BeEmpty())
+								ExpectWithOffset(1, ds.Spec.Template.Spec.HostNetwork).To(BeFalse())
+							})
+						})
 					})
 
 					It("creates a deployment", func() {
@@ -3107,6 +3141,59 @@ spec:
 						deploy := getStructuredDeployment(testManifest, "gateway-proxy")
 						Expect(deploy.Spec.Replicas).NotTo(BeNil())
 						Expect(*deploy.Spec.Replicas).To(Equal(int32(1)))
+					})
+
+					It("renders a Deployment when kind.workloadType is Deployment even if kind.deployment is an empty object", func() {
+						prepareMakefileFromValuesFile("values/val_gwp_workload_type_deployment_empty.yaml")
+						deploy := getStructuredDeployment(testManifest, "gateway-proxy")
+						Expect(deploy).NotTo(BeNil())
+						Expect(deploy.Spec.Replicas).NotTo(BeNil())
+						Expect(*deploy.Spec.Replicas).To(Equal(int32(1)))
+						testManifest.Expect("DaemonSet", namespace, "gateway-proxy").To(BeNil())
+					})
+
+					It("renders a Deployment with no replicas and an HPA when kind.workloadType is Deployment and kind.deployment.replicas is null", func() {
+						prepareMakefile(namespace, glootestutils.HelmValues{
+							ValuesArgs: []string{
+								"gatewayProxies.gatewayProxy.kind.workloadType=Deployment",
+								"gatewayProxies.gatewayProxy.kind.deployment.replicas=null",
+								"gatewayProxies.gatewayProxy.horizontalPodAutoscaler.apiVersion=autoscaling/v2",
+								"gatewayProxies.gatewayProxy.horizontalPodAutoscaler.minReplicas=1",
+								"gatewayProxies.gatewayProxy.horizontalPodAutoscaler.maxReplicas=5",
+							},
+						})
+						deploy := getStructuredDeployment(testManifest, "gateway-proxy")
+						Expect(deploy).NotTo(BeNil())
+						Expect(deploy.Spec.Replicas).To(BeNil())
+						testManifest.Expect("DaemonSet", namespace, "gateway-proxy").To(BeNil())
+						testManifest.ExpectUnstructured("HorizontalPodAutoscaler", namespace, defaults.GatewayProxyName+"-hpa").NotTo(BeNil())
+					})
+
+					It("renders a Deployment when kind.workloadType is Deployment even though kind.daemonSet is set", func() {
+						// workloadType takes precedence: only kind.daemonSet is set (kind.deployment is
+						// nulled, so this config alone renders a DaemonSet), yet workloadType=Deployment
+						// still selects a Deployment and the daemonSet-only pod settings do not leak in.
+						prepareMakefile(namespace, glootestutils.HelmValues{
+							ValuesArgs: []string{
+								"gatewayProxies.gatewayProxy.kind.workloadType=Deployment",
+								"gatewayProxies.gatewayProxy.kind.deployment=null",
+								"gatewayProxies.gatewayProxy.kind.daemonSet.hostPort=true",
+							},
+						})
+						deploy := getStructuredDeployment(testManifest, "gateway-proxy")
+						Expect(deploy).NotTo(BeNil())
+						Expect(deploy.Spec.Template.Spec.HostNetwork).To(BeFalse())
+						testManifest.Expect("DaemonSet", namespace, "gateway-proxy").To(BeNil())
+					})
+
+					It("errors when kind.workloadType is not Deployment or DaemonSet", func() {
+						expectRenderError(namespace, glootestutils.HelmValues{
+							ValuesArgs: []string{
+								"gatewayProxies.gatewayProxy.kind.workloadType=Nonsense",
+							},
+						})
+						Expect(renderErr).To(HaveOccurred())
+						Expect(renderErr.Error()).To(ContainSubstring("kind.workloadType must be"))
 					})
 
 					It("supports multiple deployments", func() {

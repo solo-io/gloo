@@ -295,8 +295,11 @@ func runTestServerWithHealthReply(ctx context.Context, reply, healthReply string
 		ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 		_ = h.Shutdown(ctx)
 		cancel()
-		// close channel, the http handler may panic but this should be caught by the http code.
-		close(reqChan)
+		// Intentionally do not close reqChan here. Shutdown has a bounded timeout, so an
+		// in-flight handler may still be sending on reqChan after Shutdown returns. Closing
+		// would race with that send (and panic with "send on closed channel"). Consumers
+		// receive from this channel via select and never rely on it being closed, so we let
+		// it be garbage collected once the upstream is no longer referenced.
 	}()
 	return uint32(port), reqChan, respChan
 }
@@ -383,8 +386,11 @@ func runTestServerWithHttpHandler(ctx context.Context, tlsServer UpstreamTlsRequ
 		ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 		_ = h.Shutdown(ctx)
 		cancel()
-		// close channel, the http handler may panic but this should be caught by the http code.
-		close(reqChan)
+		// Intentionally do not close reqChan here. Shutdown has a bounded timeout, so an
+		// in-flight handler may still be sending on reqChan after Shutdown returns. Closing
+		// would race with that send (and panic with "send on closed channel"). Consumers
+		// receive from this channel via select and never rely on it being closed, so we let
+		// it be garbage collected once the upstream is no longer referenced.
 	}()
 	return uint32(port), reqChan, respChan
 }

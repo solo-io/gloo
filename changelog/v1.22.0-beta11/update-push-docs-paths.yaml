@@ -1,0 +1,5 @@
+changelog:
+- type: NON_USER_FACING
+  issueLink: https://github.com/solo-io/gloo/pull/11306
+  resolvesIssue: false
+  description: Update push-docs workflow output paths to match the current docs repo directory structure.

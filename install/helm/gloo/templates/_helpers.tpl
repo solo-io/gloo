@@ -397,6 +397,26 @@ Otherwise it will generate ["Create", "Update", "Delete"]
 {{ toJson $result }}
 {{- end -}}
 
+{{/*
+gloo.gatewayProxyKindOverride: normalize a gateway proxy `kind` map when kind.workloadType is set.
+Call once with the kind map after $spec is built and before reading .kind, so the rest of the
+templates resolve to a single workload type. workloadType takes precedence over the deployment and
+daemonSet fields: it ensures the matching field is present and removes the other one.
+*/}}
+{{- define "gloo.gatewayProxyKindOverride" -}}
+{{- $kind := . -}}
+{{- if and (kindIs "map" $kind) $kind.workloadType -}}
+{{- if eq $kind.workloadType "Deployment" -}}
+{{- if not (kindIs "map" $kind.deployment) }}{{- $_ := set $kind "deployment" dict -}}{{- end -}}
+{{- $_ := unset $kind "daemonSet" -}}
+{{- else if eq $kind.workloadType "DaemonSet" -}}
+{{- $_ := unset $kind "deployment" -}}
+{{- else -}}
+{{- fail (printf "gatewayProxies kind.workloadType must be \"Deployment\" or \"DaemonSet\", got %q" $kind.workloadType) -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+
 {{/* Additional labels added to every resource */}}
 {{- define "gloo.labels" -}}
 app: gloo
