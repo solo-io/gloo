@@ -1,0 +1,7 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >-
+      Re-enable AWS tests
+
+      skipCI-kube-tests:true
+      skipCI-docs-build:true
