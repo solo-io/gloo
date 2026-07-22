@@ -122,6 +122,7 @@ type validator struct {
 	extensionValidator                    syncerValidation.Validator
 	allowWarnings                         bool
 	disableValidationAgainstPreviousState bool
+	kubeGatewayEnabled                    bool
 }
 
 type validationOptions struct {
@@ -144,6 +145,7 @@ type ValidatorConfig struct {
 	ExtensionValidator                    syncerValidation.Validator
 	AllowWarnings                         bool
 	DisableValidationAgainstPreviousState bool
+	KubeGatewayEnabled                    bool
 }
 
 func NewValidator(cfg ValidatorConfig) *validator {
@@ -153,6 +155,7 @@ func NewValidator(cfg ValidatorConfig) *validator {
 		translator:                            cfg.Translator,
 		allowWarnings:                         cfg.AllowWarnings,
 		disableValidationAgainstPreviousState: cfg.DisableValidationAgainstPreviousState,
+		kubeGatewayEnabled:                    cfg.KubeGatewayEnabled,
 	}
 }
 
@@ -286,9 +289,46 @@ func (v *validator) validateProxiesAndExtensions(ctx context.Context, snapshot *
 		err          error
 	)
 
-	validatingK8sGateway := isK8sGatewayProxy(opts.Resource)
+	// dummyProxies marks the proxies built via a K8s Gateway dummy-proxy path, so the per-proxy loop below
+	// uses the simple error extractors for them rather than the full Edge error aggregation.
+	dummyProxies := map[*gloov1.Proxy]bool{}
+
+	validatingK8sGateway := isK8sGatewayProxy(opts.Resource, v.kubeGatewayEnabled)
 	if validatingK8sGateway {
-		proxies, errs = k8sgwvalidation.TranslateK8sGatewayProxies(ctx, snapshot, opts.Resource)
+		if upstream, ok := opts.Resource.(*gloov1.Upstream); ok {
+			// Validate the Upstream against the real Edge proxies too, so Edge usages are still checked in
+			// hybrid installs (for example a VirtualService still routing to it, or deleting an Upstream that
+			// is still in use). A pure K8s Gateway install has no Edge gateways, so this produces nothing.
+			edgeProxies, edgeErr := v.translateGlooEdgeProxies(ctx, snapshot, opts.collectAllErrors)
+			if edgeErr != nil {
+				errs = multierror.Append(errs, edgeErr)
+			}
+			proxies = append(proxies, edgeProxies...)
+
+			// Route a dummy proxy at the real Upstream so its own config is fully translated and validated,
+			// including by fullEnvoyValidation. Skip this on delete, since a deleted Upstream has nothing to
+			// validate and routing to it would only produce a warning.
+			if !opts.Delete {
+				upstreamProxies, upstreamErr := k8sgwvalidation.TranslateK8sGatewayProxiesForUpstream(ctx, snapshot, upstream)
+				if upstreamErr != nil {
+					errs = multierror.Append(errs, upstreamErr)
+				}
+				for _, p := range upstreamProxies {
+					dummyProxies[p] = true
+				}
+				proxies = append(proxies, upstreamProxies...)
+			}
+		} else {
+			// RouteOption and VirtualHostOption are validated only via the dummy proxy they are attached to.
+			policyProxies, policyErr := k8sgwvalidation.TranslateK8sGatewayProxies(ctx, snapshot, opts.Resource)
+			if policyErr != nil {
+				errs = multierror.Append(errs, policyErr)
+			}
+			for _, p := range policyProxies {
+				dummyProxies[p] = true
+			}
+			proxies = append(proxies, policyProxies...)
+		}
 	} else {
 		proxies, errs = v.translateGlooEdgeProxies(ctx, snapshot, opts.collectAllErrors)
 	}
@@ -321,13 +361,24 @@ func (v *validator) validateProxiesAndExtensions(ctx context.Context, snapshot *
 			continue
 		}
 
-		// if we are validating K8s Gateway Policy resources, we only want the errors resulting from
-		// the RouteOption/VirtualHostOption, so let's grab that here and skip the more sophisticated
-		// error aggregation below. Note that we do not care about allowWarnings, as they are not
-		// used in this case, as we do not do a full translation and use a 'dummy' proxy
-		if validatingK8sGateway {
+		// Dummy proxies (built for K8s Gateway resource validation) only carry the errors for the resource
+		// being admitted, so use the simple extractors and skip the fuller aggregation below. We do not
+		// apply allowWarnings here, as these are dummy proxies rather than a full translation. Real Edge
+		// proxies fall through to the full aggregation, which preserves the existing Edge-usage validation.
+		//
+		// A RouteOption or VirtualHostOption is attached to the dummy proxy, so its errors are reported
+		// against the proxy. fullEnvoyValidation errors are also reported against the proxy, so the proxy
+		// check covers the Upstream case too. An Upstream is the dummy proxy's route destination, and its
+		// ProcessUpstream errors are reported against the Upstream (and demoted to warnings by the
+		// sanitizers), so we read those from the pre-sanitization reports by the Upstream's ref.
+		if dummyProxies[proxy] {
 			if err = k8sgwvalidation.GetSimpleErrorFromGlooValidation(glooReports, proxy); err != nil {
 				errs = multierror.Append(errs, err)
+			}
+			if upstream, ok := opts.Resource.(*gloov1.Upstream); ok {
+				if err = k8sgwvalidation.GetSimpleErrorFromGlooValidationForUpstream(glooReports, upstream); err != nil {
+					errs = multierror.Append(errs, err)
+				}
 			}
 			continue
 		}
@@ -415,13 +466,23 @@ func (v *validator) translateGlooEdgeProxies(
 	return proxies, errs
 }
 
-// isK8sGatewayProxy returns true if we are evaluating a Policy resource in the context of K8s Gateway API support.
-// Currently the only signal needed to make this decision is if the resource being evaluated is a RouteOption
-// or a VirthalHostOption, as we only directly evaluate them in the validator to support K8s Gateway API mode.
-func isK8sGatewayProxy(res resources.Resource) bool {
+// isK8sGatewayProxy returns true if the given resource needs to be validated using the dummy K8s Gateway
+// API proxy.
+//
+// RouteOption and VirtualHostOption are validated only via the dummy proxy. We only directly evaluate them
+// in the validator to support K8s Gateway API mode.
+//
+// Upstreams need the dummy proxy when K8s Gateway API is enabled: an Upstream routed to only via an
+// HTTPRoute is never part of a translated Edge proxy, so its config (and fullEnvoyValidation) would
+// otherwise never run at admission. The dummy proxy is used in addition to the Edge proxies, not instead of
+// them, so Edge usages are still validated in hybrid installs. The gate keeps behavior unchanged when K8s
+// Gateway API is disabled.
+func isK8sGatewayProxy(res resources.Resource, kubeGatewayEnabled bool) bool {
 	switch res.(type) {
 	case *sologatewayv1.RouteOption, *sologatewayv1.VirtualHostOption:
 		return true
+	case *gloov1.Upstream:
+		return kubeGatewayEnabled
 	default:
 		return false
 	}
