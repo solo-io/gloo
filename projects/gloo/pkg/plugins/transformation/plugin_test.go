@@ -105,6 +105,28 @@ var _ = Describe("Plugin", func() {
 
 		})
 
+		It("does not mutate the input transformation when resolving escape characters", func() {
+			input := &transformation.Transformation{
+				TransformationType: &transformation.Transformation_TransformationTemplate{
+					TransformationTemplate: &transformation.TransformationTemplate{
+						HeadersToRemove: []string{"x-remove-me"},
+					},
+				},
+			}
+			snapshot := input.Clone().(*transformation.Transformation)
+
+			output, err := TranslateTransformation(input, nil, &wrapperspb.BoolValue{Value: true})
+			Expect(err).NotTo(HaveOccurred())
+			// the resolved escape characters land on the envoy output...
+			Expect(output.GetTransformationTemplate().GetEscapeCharacters()).To(BeTrue())
+			// ...but the input must stay untouched: route options share their sub-messages across
+			// every route referencing the same RouteOption (solo-io/solo-projects#8802), so
+			// writing the resolved value back into the input template would corrupt shared state
+			// and mask later changes to the Settings-level default.
+			Expect(skMatchers.MatchProto(snapshot).Match(input)).To(BeTrue(),
+				"TranslateTransformation mutated its input transformation")
+		})
+
 		It("throws error on unsupported transformation type", func() {
 			// Xslt Transformation is enterprise-only
 			input := &transformation.Transformation{
