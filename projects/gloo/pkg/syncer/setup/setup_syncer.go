@@ -892,6 +892,7 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 		GlooValidator:                         validator.ValidateGloo,
 		ExtensionValidator:                    extensionValidator,
 		DisableValidationAgainstPreviousState: disableValidationAgainstPreviousState,
+		KubeGatewayEnabled:                    opts.GlooGateway.EnableK8sGatewayController,
 	}
 	if gwOpts.Validation != nil {
 		valOpts := gwOpts.Validation

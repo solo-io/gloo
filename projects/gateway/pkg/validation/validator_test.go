@@ -127,6 +127,37 @@ var _ = Describe("Validator", func() {
 				Expect(warnings).To(BeEmpty())
 				Expect(errors).NotTo(HaveOccurred())
 			})
+			It("validates an upstream through the dummy proxy on create when k8s gateway is enabled", func() {
+				v.kubeGatewayEnabled = true
+				var validatedProxyNames []string
+				v.glooValidator = func(ctx context.Context, proxy *gloov1.Proxy, resource resources.Resource, shouldDelete bool) ([]*gloovalidation.GlooValidationReport, error) {
+					validatedProxyNames = append(validatedProxyNames, proxy.GetMetadata().GetName())
+					return ValidateAccept(ctx, proxy, resource, shouldDelete)
+				}
+
+				err := v.Sync(context.TODO(), samples.SimpleGlooSnapshot(ns))
+				Expect(err).NotTo(HaveOccurred())
+
+				_, err = v.ValidateModifiedGvk(context.TODO(), gloov1.UpstreamGVK, samples.SimpleUpstream(), false)
+				Expect(err).NotTo(HaveOccurred())
+				// the dummy proxy routes to the real upstream so its config is translated and validated
+				Expect(validatedProxyNames).To(ContainElement("zzz-fake-proxy-for-validation"))
+			})
+			It("rejects deletion of an in-use upstream through the edge proxies when k8s gateway is enabled", func() {
+				// On delete, a kube-gateway Upstream is validated through the real edge proxies, not the dummy
+				// proxy, so an edge-path warning (as an in-use route produces) is promoted to a rejection under
+				// strict validation (allowWarnings is false via the BeforeEach). If the delete wrongly took the
+				// dummy path, its simple extractor ignores warnings and the delete would be accepted, so
+				// asserting rejection here also verifies the dispatch skips the dummy proxy on delete.
+				v.kubeGatewayEnabled = true
+				v.glooValidator = ValidateWarn
+
+				err := v.Sync(context.TODO(), samples.SimpleGlooSnapshot(ns))
+				Expect(err).NotTo(HaveOccurred())
+
+				err = v.ValidateDeletedGvk(context.TODO(), gloov1.UpstreamGVK, samples.SimpleUpstream(), false)
+				Expect(err).To(HaveOccurred())
+			})
 			It("rejects an upstream when validation fails", func() {
 				v.glooValidator = ValidateFail
 				us := samples.SimpleUpstream()
