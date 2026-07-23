@@ -379,21 +379,6 @@ func (m *Transformation) Equal(that interface{}) bool {
 			}
 		}
 
-	case *Transformation_XsltTransformation:
-		if _, ok := target.TransformationType.(*Transformation_XsltTransformation); !ok {
-			return false
-		}
-
-		if h, ok := interface{}(m.GetXsltTransformation()).(equality.Equalizer); ok {
-			if !h.Equal(target.GetXsltTransformation()) {
-				return false
-			}
-		} else {
-			if !proto.Equal(m.GetXsltTransformation(), target.GetXsltTransformation()) {
-				return false
-			}
-		}
-
 	default:
 		// m is nil but target is not nil
 		if m.TransformationType != target.TransformationType {

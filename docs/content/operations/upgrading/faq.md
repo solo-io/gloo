@@ -50,81 +50,37 @@ Review the breaking changes in this release.
 
 ##### Envoy version upgrade
 
-The Envoy dependency in Gloo Gateway 1.21 was upgraded from 1.35.x to 1.36.x. This change includes the following upstream breaking changes. For more information about these changes, see the changelog documentation for [Envoy v1.36](https://www.envoyproxy.io/docs/envoy/latest/version_history/v1.36/v1.36).
+The Envoy dependency in Gloo Gateway 1.22 was upgraded from 1.36.x to 1.38.x. This change includes the following upstream breaking changes. For more information about these changes, see the changelog documentation for [Envoy v1.37](https://www.envoyproxy.io/docs/envoy/latest/version_history/v1.37/v1.37) and [Envoy v1.38](https://www.envoyproxy.io/docs/envoy/latest/version_history/v1.38/v1.38).
 
-**Envoy v1.36**:
-* **ExtProc changes**: Removed support for `fail_open` and `FULL_DUPLEX_STREAMED` configuration combinations. For more information, see the related [Envoy pull request](https://github.com/envoyproxy/envoy/pull/39740). 
+**Envoy v1.38**:
 
-* **Tracing changes**: A route refresh now results in a tracing refresh. The trace sampling decision and decoration of the new route is applied to the active span. This change can be reverted by setting the runtime guard `envoy.reloadable_features.trace_refresh_after_route_refresh` to `false`. Note, that if `pack_trace_reason` is set to `true` (default value), a request that is marked as traced cannot be unmarked as traced after the tracing refresh.
+* tls: Set [enforce_rsa_key_usage](https://www.envoyproxy.io/docs/envoy/v1.38.0/api-v3/extensions/transport_sockets/tls/v3/tls.proto.html#envoy-v3-api-field-extensions-transport-sockets-tls-v3-upstreamtlscontext-enforce-rsa-key-usage) to true by default. The handshake will fail if the keyUsage extension is present and incompatible with the TLS usage. In the next version of Envoy, this option will be removed and the enforcing behavior will always be used. 
+NOTE: This is specific to envoy's upstream tls connections, the keyUsage extension tells consumers what the certificate’s public key is allowed to be used for. If the keyUsage extension is present but does not match the TLS role, the handshake of the upstream connection will fail. While envoy allows this to set back to false, we don't expose this setting in our BackendConfigPolicy. For RSA certificates, common bits include:
 
-* **HTTP/2 default value changes**: The following default values were changed. 
-  * The maximum number of concurrent streams in HTTP/2 changed from 2147483647 to 1024. 
-  * The initial stream window size in HTTP/2 changed from 256MiB to 16MiB. 
-  * The initial connection window size in HTTP/2 was changed from 256MiB to 24MiB. 
+  * digitalSignature
+  * keyEncipherment
+  * keyCertSign for CA certs
+  * cRLSign for CA certs that sign revocation lists
 
-  You can temporarily revert this change by setting the runtime guard `envoy.reloadable_features.safe_http2_options` to `false`.
+* rbac: Fixed RBAC header matcher to validate each header value individually instead of concatenating multiple header values into a single string. This prevents potential bypasses when requests contain multiple values for the same header. The new behavior is enabled by the runtime guard envoy.reloadable_features.rbac_match_headers_individually.
 
-* **HTTP/1 CONNECT request changes**: The HTTP/1.1 proxy transport socket now generates RFC 9110 compliant `CONNECT` requests that include a Host header by default. When the proxy address is configured via endpoint metadata, the transport socket now prefers `hostname:port` format over `IP:port` when the hostname is available. The legacy behavior that allows `CONNECT` requests without a Host header can be restored by setting the runtime flag `envoy.reloadable_features.http_11_proxy_connect_legacy_format` to `true`.
+##### XSLT transformation removed
 
-
-##### XSLT transformation deprecated
-
-The XSLT transformation feature (Enterprise) is deprecated in Gloo Gateway v1.21.0 and will be removed in v1.22.0. If you use XSLT transformations, plan to use an external processing server to process this type of transformation. For more information, see [External processing]({{% versioned_link_path fromRoot="/guides/traffic_management/extproc/" %}}).  
+The XSLT transformation feature (Enterprise) was deprecated in Gloo Gateway v1.21.0 and is now removed in v1.22.0. If you use XSLT transformations, plan to use an external processing server to process this type of transformation. For more information, see [External processing]({{% versioned_link_path fromRoot="/guides/traffic_management/extproc/" %}}).  
 
 ## New features
 
-The following features were introduced. 
+The following features were introduced in envoy. 
 
-### HTTPS tunneling support for Dynamic Forward Proxy
+**Envoy v1.37**:
 
-Starting in Gloo Gateway 1.21.0, the Dynamic Forward Proxy (DFP) supports HTTPS targets via HTTP CONNECT tunneling. Previously, CONNECT requests were forwarded as regular HTTP/1.1, causing HTTPS connections to fail.
+* Added container-aware CPU detection on Linux that respects cgroup CPU limits alongside hardware thread count and CPU affinity when --concurrency is not set. Envoy now uses the minimum of hardware threads, CPU affinity, and cgroup CPU limits to size worker threads by default, improving resource utilization in cgroup-limited containers. This behavior can be disabled by setting ENVOY_CGROUP_CPU_DETECTION to false to restore the previous hardware thread and affinity-based sizing. Uses conservative floor rounding to leave capacity for non-worker threads, which may reduce the total number of connections.
 
-To support this feature, a new `connectTerminate` field was introduced in the VirtualService. When set, Envoy terminates the `CONNECT` request and forwards the raw TCP payload to the upstream.
+**Envoy v1.38**:
 
-For configuration examples and verification steps, see [HTTPS tunneling with Dynamic Forward Proxy]({{% versioned_link_path fromRoot="/guides/traffic_management/listener_configuration/http_connection_manager/dfp/#https-tunneling-with-dynamic-forward-proxy" %}}).
-
-### Multiple extProc filter variants
-
-Starting in Gloo Gateway Enterprise v1.21.0, you can configure up to three external processing (extProc) filters that run at different positions in the Envoy filter chain. Previously, only a single `extProc` filter was supported.
-
-| Field | Position in filter chain |
-|---|---|
-| `extProcEarly` | Early in the filter chain. Stage is configurable via `filterStage`. |
-| `extProc` | Middle of the filter chain. Stage is configurable via `filterStage`. |
-| `extProcLate` | Final filter before a request leaves Envoy; first filter when a response enters Envoy. Always runs as an `upstream_http_filter` regardless of `filterStage`. |
-
-All three fields are available at the global Settings, HttpListenerOptions, VirtualHostOptions, and RouteOptions levels. You can enable or disable individual variants at the listener level with `disableExtProcEarly` and `disableExtProcLate`.
-
-For more information, see [ExtProc filter variants]({{% versioned_link_path fromRoot="/guides/traffic_management/extproc/about/#extproc-filter-variants" %}}) and the [Header manipulation]({{% versioned_link_path fromRoot="/guides/traffic_management/extproc/header-manipulation/" %}}) guide. 
-
-### Regex matching for JWT claims
-
-Starting in Gloo Gateway Enterprise v1.21.0, you can match JWT claims against regular expressions (regex) instead of the default exact string comparison. To enable regex matching, set the `matcher` field to `REGEX_MATCH` in the `jwtPrincipal` of your RBAC policy, and provide a regex pattern as the claim value. For example, to match an `email` claim against a pattern:
-
-```yaml
-rbac:
-  policies:
-    viewer:
-      principals:
-      - jwtPrincipal:
-          claims:
-            email: "dev[0-1]@solo\\.io"
-          matcher: REGEX_MATCH
-```
-
-For more information and additional examples, see [Matching JWT claims with regex]({{% versioned_link_path fromRoot="/guides/security/auth/jwt/access_control/access_control_examples/#regex" %}}).
-
-
-
-<!-- TODO confirm 1.20 k8s and istio testing support before uncommenting these
-### Kubernetes 1.33 support 
-
-Starting in version 1.20.0, Gloo Gateway can now run on Kubernetes 1.33. For more information about supported Kubernetes, Envoy, and Istio versions, see [Supported versions]({{% versioned_link_path fromRoot="/reference/support/" %}}).
-
-### Istio 1.26 support
-
-Starting in version 1.20.0, Gloo Gateway can now run with Istio 1.26. For more information about supported Kubernetes, Envoy, and Istio versions, see [Supported versions]({{% versioned_link_path fromRoot="/reference/support/" %}}).
--->
+* conn_pool: Added new upstream_rq_active_overflow counter incremented when a request is rejected due to the max_requests circuit breaker being exhausted in attachStreamToClient(). Previously this condition incorrectly incremented upstream_rq_pending_overflow, making it impossible to distinguish pending queue saturation from active request saturation via metrics alone. The new counter is now the authoritative signal for this path by default; set runtime flag envoy.reloadable_features.skip_pending_overflow_count_on_active_rq to false to also increment upstream_rq_pending_overflow on this path, preserving backwards compatibility with existing dashboards and alerts.
+NOTE: upstream_rq_pending_overflow might drop lower after upgrade
+* memory: Replaced the custom timer-based tcmalloc memory release with tcmalloc’s native ProcessBackgroundActions and SetBackgroundReleaseRate APIs. This provides more comprehensive background memory management including per-CPU cache reclamation, cache shuffling, and size class resizing, in addition to memory release. The tcmalloc.released_by_timer stat has been removed.
 
 ### Changelogs
 
