@@ -25,6 +25,8 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/syncer/setup"
 	"github.com/solo-io/gloo/projects/gloo/pkg/xds"
 	rlkubev1a1 "github.com/solo-io/solo-apis/pkg/api/ratelimit.solo.io/v1alpha1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/sets"
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/common"
@@ -103,6 +105,13 @@ type ProxySyncer struct {
 	allowedGatewayClasses sets.Set[string]
 
 	waitForSync []cache.InformerSynced
+
+	// prevRouteKeys tracks, per route kind, the routes most recently present in
+	// the status report, so stale route status can be garbage-collected (#7086).
+	// It must only be touched from the single status-sync goroutine in Start:
+	// a mutex alone would not make concurrent use safe, because correctness
+	// also depends on reports being applied in order.
+	prevRouteKeys map[string]sets.Set[types.NamespacedName]
 }
 
 type GatewayInputChannels struct {
@@ -559,7 +568,10 @@ func (s *ProxySyncer) Start(ctx context.Context) error {
 	// caches are warm, now we can do registrations
 	s.statusReport.Register(func(o krt.Event[report]) {
 		if o.Event == controllers.EventDelete {
-			// TODO: handle garbage collection (see: https://github.com/solo-io/solo-projects/issues/7086)
+			// The merged status report is a Singleton, so a delete here means the
+			// whole report collection went away (shutdown); there is no per-object
+			// report to act on. Stale per-route status GC for routes that leave the
+			// report is handled in syncRouteStatus -> gcStaleRouteStatus (#7086).
 			return
 		}
 		latestReportQueue.Enqueue(o.Latest().ReportMap)
@@ -614,17 +626,47 @@ func (s *ProxySyncer) Start(ctx context.Context) error {
 		}
 	}()
 
+	// Evict the xds snapshot once the last stream for a unique client is gone
+	// (uniqueClients is refcounted per proxyKey, so a delete here really means
+	// no connected envoy still needs it; if a client with the same key
+	// reconnects, the snapshot is rebuilt and re-set). Without this, the xds
+	// SnapshotCache grows unbounded under client churn: each new
+	// role+labels+namespace key leaves a snapshot behind forever. See
+	// solo-projects#7086.
+	//
+	// Eviction deliberately does NOT hang off perclientSnapCollection deletes:
+	// that derived collection also emits deletes for still-connected clients
+	// whenever snapshotPerClient transiently returns nil (translation blips,
+	// the defer-building-snapshot hack), and clearing then would withdraw a
+	// live envoy's last coherent config and force-close its open watches.
+	s.uniqueClients.Register(func(o krt.Event[krtcollections.UniqlyConnectedClient]) {
+		if o.Event != controllers.EventDelete {
+			return
+		}
+		key := o.Latest().ResourceName()
+		// ClearSnapshot nil-derefs the cache's status entry when it is absent
+		// (the entry is created by the first CreateWatch and deleted only by
+		// ClearSnapshot itself), so guard on the status entry — not on
+		// GetSnapshot, which both checks the wrong map for that panic and
+		// deep-clones the entire snapshot just to test existence.
+		if s.proxyTranslator.xdsCache.GetStatusInfo(key) != nil {
+			s.proxyTranslator.xdsCache.ClearSnapshot(key)
+		}
+	})
+
 	s.perclientSnapCollection.RegisterBatch(func(o []krt.Event[XdsSnapWrapper]) {
 		for _, e := range o {
-			if e.Event != controllers.EventDelete {
-				snapWrap := e.Latest()
-				s.proxyTranslator.syncXds(ctx, snapWrap.snap, snapWrap.proxyKey)
-			} else {
-				// key := e.Latest().proxyKey
-				// if _, err := s.proxyTranslator.xdsCache.GetSnapshot(key); err == nil {
-				// 	s.proxyTranslator.xdsCache.ClearSnapshot(e.Latest().proxyKey)
-				// }
+			if e.Event == controllers.EventDelete {
+				// Skip deletes: this derived collection emits them transiently for
+				// still-connected clients (snapshotPerClient returns nil during
+				// translation blips and the defer-building-snapshot hack), so a
+				// delete here does not mean the client is gone. Snapshot eviction
+				// for genuinely disconnected clients hangs off the uniqueClients
+				// delete handler registered above.
+				continue
 			}
+			snapWrap := e.Latest()
+			s.proxyTranslator.syncXds(ctx, snapWrap.snap, snapWrap.proxyKey)
 		}
 	}, true)
 
@@ -995,6 +1037,195 @@ func (s *ProxySyncer) syncRouteStatus(ctx context.Context, rm reports.ReportMap)
 			logger.Errorw("all attempts failed at updating TLSRoute status", "error", err, "route", rnn)
 		}
 	}
+
+	// Garbage-collect status from routes that are no longer in the report
+	// (detached or deleted) but to which we previously wrote status. See #7086.
+	s.gcStaleRouteStatus(ctx, rm)
+}
+
+// gcStaleRouteStatus clears status this controller previously wrote to routes
+// that are no longer present in the report. Without this, stale conditions
+// (e.g. Accepted/ResolvedRefs) linger on a route forever once it detaches from
+// the gateway, since the normal sync path only iterates routes still in the
+// report. See https://github.com/solo-io/solo-projects/issues/7086.
+//
+// Must only be called from the single status-sync goroutine in Start (see the
+// prevRouteKeys field comment).
+func (s *ProxySyncer) gcStaleRouteStatus(ctx context.Context, rm reports.ReportMap) {
+	if s.prevRouteKeys == nil {
+		s.prevRouteKeys = make(map[string]sets.Set[types.NamespacedName], 3)
+	}
+
+	// Reads go through the API reader (not the informer cache): a cached Get
+	// could miss our own just-written status (dropping a route from tracking
+	// with its stale status left behind) and would defeat the fresh-Get retry
+	// on write conflicts. Writes still go through the manager client. The
+	// stale set is empty on steady-state syncs, so this adds no API load then.
+	reader := s.mgr.GetAPIReader()
+	cl := s.mgr.GetClient()
+	for _, rt := range []struct {
+		kind    string
+		current sets.Set[types.NamespacedName]
+		newObj  func() client.Object
+	}{
+		{wellknown.HTTPRouteKind, sets.KeySet(rm.HTTPRoutes), func() client.Object { return new(gwv1.HTTPRoute) }},
+		{wellknown.TCPRouteKind, sets.KeySet(rm.TCPRoutes), func() client.Object { return new(gwv1a2.TCPRoute) }},
+		{wellknown.TLSRouteKind, sets.KeySet(rm.TLSRoutes), func() client.Object { return new(gwv1a2.TLSRoute) }},
+	} {
+		s.prevRouteKeys[rt.kind] = clearStaleRouteStatus(ctx, reader, cl, s.controllerName, s.allowedGatewayClasses,
+			s.prevRouteKeys[rt.kind], rt.current, rt.kind, rt.newObj)
+	}
+}
+
+// Retry settings for stale-status GC writes; vars (not consts) so tests can
+// shrink the delay.
+var (
+	statusGCRetryAttempts uint = 5
+	statusGCRetryDelay         = 100 * time.Millisecond
+)
+
+// errRouteStillReferenced signals that a route absent from the report still
+// references a live Gateway of a class this syncer manages, so its absence is
+// likely a transient translation failure rather than a detach; stripping
+// status then would wipe valid conditions from an attached route.
+var errRouteStillReferenced = errors.New("route still references a managed gateway")
+
+// clearStaleRouteStatus removes controllerName's parent status from every route
+// in prev that is no longer in current. It returns the tracking set for the next
+// round: routes still in the report, plus any stale route whose cleanup could
+// not (yet) be completed — a still-standing managed-gateway reference, or a
+// write failure that outlasts the in-line retry — so the next sync retries it
+// instead of silently leaking stale status.
+//
+// Note: tracking is in-memory, so a crash between a route leaving the report and
+// its GC drops that route from tracking; such a route's stale status is not
+// revisited until it is reconciled again. Full robustness would require listing
+// routes at startup and reclaiming ones bearing our controller's status.
+func clearStaleRouteStatus(
+	ctx context.Context,
+	reader client.Reader,
+	cl client.Client,
+	controllerName string,
+	allowedGatewayClasses sets.Set[string],
+	prev, current sets.Set[types.NamespacedName],
+	routeType string,
+	newObj func() client.Object,
+) sets.Set[types.NamespacedName] {
+	logger := contextutils.LoggerFrom(ctx)
+
+	// Start from the routes still in the report; re-add any we fail to clean.
+	// Clone rather than adopt: mutating the caller's set on failure would
+	// corrupt a reused current set (the failure path inserts into next).
+	next := current.Clone()
+
+	for rnn := range prev.Difference(current) {
+		err := retry.Do(func() error {
+			// Re-Get inside the retry so each attempt has a fresh resourceVersion
+			// (reader bypasses the informer cache); otherwise a conflict just
+			// repeats forever.
+			route := newObj()
+			if err := reader.Get(ctx, rnn, route); err != nil {
+				if apierrors.IsNotFound(err) {
+					return nil // route deleted; status went with it
+				}
+				return err
+			}
+			if routeStillReferencesManagedGateway(ctx, reader, route, allowedGatewayClasses) {
+				return errRouteStillReferenced
+			}
+			if !removeControllerRouteStatus(route, controllerName) {
+				return nil // we held no status on this route
+			}
+			return cl.Status().Update(ctx, route)
+		},
+			retry.Attempts(statusGCRetryAttempts),
+			retry.Delay(statusGCRetryDelay),
+			retry.DelayType(retry.BackOffDelay),
+			// Only conflicts are worth retrying in-line (the re-Get above clears
+			// them). Other errors fail fast and are retried on the next sync.
+			retry.RetryIf(apierrors.IsConflict),
+			retry.LastErrorOnly(true),
+		)
+		switch {
+		case errors.Is(err, errRouteStillReferenced):
+			logger.Debugw("route absent from report but still references a managed gateway; keeping status",
+				"type", routeType, "route", rnn)
+			next.Insert(rnn)
+		case err != nil:
+			logger.Errorw("failed to clear stale route status; will retry next sync",
+				"error", err, "type", routeType, "route", rnn)
+			next.Insert(rnn)
+		default:
+			logger.Debugf("cleared stale %s status from %s", routeType, rnn)
+		}
+	}
+	return next
+}
+
+// routeStillReferencesManagedGateway reports whether the route's spec still has
+// a parentRef to an existing Gateway whose class this syncer manages. A route
+// can be missing from the report while still attached — most commonly when a
+// transient translation failure drops its Gateway's proxy from the report — and
+// its status must not be stripped then; it stays tracked and is re-evaluated on
+// later syncs (the normal sync path re-adopts it once translation recovers).
+func routeStillReferencesManagedGateway(
+	ctx context.Context,
+	reader client.Reader,
+	route client.Object,
+	allowedGatewayClasses sets.Set[string],
+) bool {
+	var parentRefs []gwv1.ParentReference
+	switch r := route.(type) {
+	case *gwv1.HTTPRoute:
+		parentRefs = r.Spec.ParentRefs
+	case *gwv1a2.TCPRoute:
+		parentRefs = r.Spec.ParentRefs
+	case *gwv1a2.TLSRoute:
+		parentRefs = r.Spec.ParentRefs
+	default:
+		return false
+	}
+	for _, pr := range parentRefs {
+		if pr.Group != nil && string(*pr.Group) != gwv1.GroupName {
+			continue
+		}
+		if pr.Kind != nil && string(*pr.Kind) != wellknown.GatewayKind {
+			continue
+		}
+		ns := route.GetNamespace()
+		if pr.Namespace != nil {
+			ns = string(*pr.Namespace)
+		}
+		gw := new(gwv1.Gateway)
+		if err := reader.Get(ctx, types.NamespacedName{Namespace: ns, Name: string(pr.Name)}, gw); err != nil {
+			continue // gateway gone (or unreadable): not a reason to keep status
+		}
+		if allowedGatewayClasses.Has(string(gw.Spec.GatewayClassName)) {
+			return true
+		}
+	}
+	return false
+}
+
+// removeControllerRouteStatus removes RouteParentStatus entries owned by
+// controllerName. It returns true if the route's status was modified.
+func removeControllerRouteStatus(route client.Object, controllerName string) bool {
+	var rs *gwv1.RouteStatus
+	switch r := route.(type) {
+	case *gwv1.HTTPRoute:
+		rs = &r.Status.RouteStatus
+	case *gwv1a2.TCPRoute:
+		rs = &r.Status.RouteStatus
+	case *gwv1a2.TLSRoute:
+		rs = &r.Status.RouteStatus
+	default:
+		return false
+	}
+	before := len(rs.Parents)
+	rs.Parents = slices.DeleteFunc(rs.Parents, func(p gwv1.RouteParentStatus) bool {
+		return string(p.ControllerName) == controllerName
+	})
+	return len(rs.Parents) != before
 }
 
 // syncGatewayStatus will build and update status for all Gateways in a reportMap
