@@ -59,8 +59,13 @@ func TranslateGatewayHTTPRouteRules(
 
 	delegationChain := list.New()
 
+	// routeBudget bounds the total number of routes this top-level HTTPRoute may
+	// flatten into, so a combinatorial (non-cyclic) delegation graph cannot OOM
+	// the control plane. See delegation_limits.go.
+	routeBudget := maxDelegatedRoutes
+
 	translateGatewayHTTPRouteRulesUtil(
-		ctx, pluginRegistry, gwListener, routeInfo, reporter, baseReporter, &finalRoutes, routesVisited, hostnames, delegationChain)
+		ctx, pluginRegistry, gwListener, routeInfo, reporter, baseReporter, &finalRoutes, routesVisited, hostnames, delegationChain, &routeBudget)
 	return finalRoutes
 }
 
@@ -77,10 +82,18 @@ func translateGatewayHTTPRouteRulesUtil(
 	routesVisited sets.Set[types.NamespacedName],
 	hostnames []gwv1.Hostname,
 	delegationChain *list.List,
+	routeBudget *int,
 ) {
 	// Only HTTPRoute types should be translated.
 	route, ok := routeInfo.Object.(*gwv1.HTTPRoute)
 	if !ok {
+		return
+	}
+
+	// Stop expanding once the flattened-route budget is exhausted. This bounds
+	// the total work for a combinatorial delegation graph; the offending parent
+	// edge is flagged where the limit is detected (see flattenDelegatedRoutes).
+	if *routeBudget <= 0 {
 		return
 	}
 
@@ -105,6 +118,7 @@ func translateGatewayHTTPRouteRulesUtil(
 			routesVisited,
 			hostnames,
 			delegationChain,
+			routeBudget,
 		)
 		for _, outputRoute := range outputRoutes {
 			// The above function will return a nil route if a matcher fails to apply plugins
@@ -132,6 +146,7 @@ func translateGatewayHTTPRouteRule(
 	routesVisited sets.Set[types.NamespacedName],
 	hostnames []gwv1.Hostname,
 	delegationChain *list.List,
+	routeBudget *int,
 ) []*v1.Route {
 	routes := make([]*v1.Route, len(rule.Matches))
 
@@ -171,6 +186,7 @@ func translateGatewayHTTPRouteRule(
 				&delegatedRoutes,
 				routesVisited,
 				delegationChain,
+				routeBudget,
 			)
 		}
 
@@ -225,6 +241,8 @@ func translateGatewayHTTPRouteRule(
 		if outputRoute.GetAction() != nil {
 			outputRoute.Matchers = []*matchers.Matcher{translateGlooMatcher(match)}
 			routes[idx] = outputRoute
+			// Count each finalized leaf route against the flattening budget.
+			*routeBudget--
 		}
 	}
 	return routes
@@ -321,6 +339,7 @@ func setRouteAction(
 	outputs *[]*v1.Route,
 	routesVisited sets.Set[types.NamespacedName],
 	delegationChain *list.List,
+	routeBudget *int,
 ) bool {
 	var weightedDestinations []*v1.WeightedDestination
 	backendRefs := rule.BackendRefs
@@ -344,6 +363,7 @@ func setRouteAction(
 				outputs,
 				routesVisited,
 				delegationChain,
+				routeBudget,
 			)
 			if err != nil {
 				query.ProcessBackendError(err, reporter)
