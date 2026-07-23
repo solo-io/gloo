@@ -553,15 +553,6 @@ spec:
                                                     type: object
                                                 type: object
                                             type: object
-                                          xsltTransformation:
-                                            properties:
-                                              nonXmlTransform:
-                                                type: boolean
-                                              setContentType:
-                                                type: string
-                                              xslt:
-                                                type: string
-                                            type: object
                                         type: object
                                       responseTransformation:
                                         properties:
@@ -677,15 +668,6 @@ spec:
                                                         type: string
                                                     type: object
                                                 type: object
-                                            type: object
-                                          xsltTransformation:
-                                            properties:
-                                              nonXmlTransform:
-                                                type: boolean
-                                              setContentType:
-                                                type: string
-                                              xslt:
-                                                type: string
                                             type: object
                                         type: object
                                     type: object
@@ -822,15 +804,6 @@ spec:
                                                         type: string
                                                     type: object
                                                 type: object
-                                            type: object
-                                          xsltTransformation:
-                                            properties:
-                                              nonXmlTransform:
-                                                type: boolean
-                                              setContentType:
-                                                type: string
-                                              xslt:
-                                                type: string
                                             type: object
                                         type: object
                                     type: object
@@ -1008,15 +981,6 @@ spec:
                                                     type: object
                                                 type: object
                                             type: object
-                                          xsltTransformation:
-                                            properties:
-                                              nonXmlTransform:
-                                                type: boolean
-                                              setContentType:
-                                                type: string
-                                              xslt:
-                                                type: string
-                                            type: object
                                         type: object
                                       responseTransformation:
                                         properties:
@@ -1132,15 +1096,6 @@ spec:
                                                         type: string
                                                     type: object
                                                 type: object
-                                            type: object
-                                          xsltTransformation:
-                                            properties:
-                                              nonXmlTransform:
-                                                type: boolean
-                                              setContentType:
-                                                type: string
-                                              xslt:
-                                                type: string
                                             type: object
                                         type: object
                                     type: object
@@ -1277,15 +1232,6 @@ spec:
                                                         type: string
                                                     type: object
                                                 type: object
-                                            type: object
-                                          xsltTransformation:
-                                            properties:
-                                              nonXmlTransform:
-                                                type: boolean
-                                              setContentType:
-                                                type: string
-                                              xslt:
-                                                type: string
                                             type: object
                                         type: object
                                     type: object
@@ -1455,15 +1401,6 @@ spec:
                                                     type: object
                                                 type: object
                                             type: object
-                                          xsltTransformation:
-                                            properties:
-                                              nonXmlTransform:
-                                                type: boolean
-                                              setContentType:
-                                                type: string
-                                              xslt:
-                                                type: string
-                                            type: object
                                         type: object
                                       responseTransformation:
                                         properties:
@@ -1579,15 +1516,6 @@ spec:
                                                         type: string
                                                     type: object
                                                 type: object
-                                            type: object
-                                          xsltTransformation:
-                                            properties:
-                                              nonXmlTransform:
-                                                type: boolean
-                                              setContentType:
-                                                type: string
-                                              xslt:
-                                                type: string
                                             type: object
                                         type: object
                                     type: object
@@ -1725,15 +1653,6 @@ spec:
                                                     type: object
                                                 type: object
                                             type: object
-                                          xsltTransformation:
-                                            properties:
-                                              nonXmlTransform:
-                                                type: boolean
-                                              setContentType:
-                                                type: string
-                                              xslt:
-                                                type: string
-                                            type: object
                                         type: object
                                     type: object
                                   type: array
@@ -1858,15 +1777,6 @@ spec:
                                           type: object
                                       type: object
                                   type: object
-                                xsltTransformation:
-                                  properties:
-                                    nonXmlTransform:
-                                      type: boolean
-                                    setContentType:
-                                      type: string
-                                    xslt:
-                                      type: string
-                                  type: object
                               type: object
                             responseTransformation:
                               properties:
@@ -1982,15 +1892,6 @@ spec:
                                               type: string
                                           type: object
                                       type: object
-                                  type: object
-                                xsltTransformation:
-                                  properties:
-                                    nonXmlTransform:
-                                      type: boolean
-                                    setContentType:
-                                      type: string
-                                    xslt:
-                                      type: string
                                   type: object
                               type: object
                           type: object

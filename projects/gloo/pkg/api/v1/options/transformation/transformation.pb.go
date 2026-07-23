@@ -11,7 +11,6 @@ import (
 	sync "sync"
 	unsafe "unsafe"
 
-	xslt "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/transformers/xslt"
 	matchers "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
 	_ "github.com/solo-io/protoc-gen-ext/extproto"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
@@ -507,7 +506,6 @@ type Transformation struct {
 	//
 	//	*Transformation_TransformationTemplate
 	//	*Transformation_HeaderBodyTransform
-	//	*Transformation_XsltTransformation
 	TransformationType isTransformation_TransformationType `protobuf_oneof:"transformation_type"`
 	// When enabled, log request/response body and headers before and after this transformation is applied.
 	LogRequestResponseInfo bool `protobuf:"varint,4,opt,name=log_request_response_info,json=logRequestResponseInfo,proto3" json:"log_request_response_info,omitempty"`
@@ -570,15 +568,6 @@ func (x *Transformation) GetHeaderBodyTransform() *HeaderBodyTransform {
 	return nil
 }
 
-func (x *Transformation) GetXsltTransformation() *xslt.XsltTransformation {
-	if x != nil {
-		if x, ok := x.TransformationType.(*Transformation_XsltTransformation); ok {
-			return x.XsltTransformation
-		}
-	}
-	return nil
-}
-
 func (x *Transformation) GetLogRequestResponseInfo() bool {
 	if x != nil {
 		return x.LogRequestResponseInfo
@@ -603,17 +592,9 @@ type Transformation_HeaderBodyTransform struct {
 	HeaderBodyTransform *HeaderBodyTransform `protobuf:"bytes,2,opt,name=header_body_transform,json=headerBodyTransform,proto3,oneof"`
 }
 
-type Transformation_XsltTransformation struct {
-	// Deprecated: The XSLT Transformation feature of Gloo Gateway will be removed in a future release.
-	// (Enterprise Only): Xslt Transformation
-	XsltTransformation *xslt.XsltTransformation `protobuf:"bytes,3,opt,name=xslt_transformation,json=xsltTransformation,proto3,oneof"`
-}
-
 func (*Transformation_TransformationTemplate) isTransformation_TransformationType() {}
 
 func (*Transformation_HeaderBodyTransform) isTransformation_TransformationType() {}
-
-func (*Transformation_XsltTransformation) isTransformation_TransformationType() {}
 
 // Extractions can be used to extract information from the request/response.
 // The extracted information can then be referenced in template fields.
@@ -1521,7 +1502,7 @@ var File_github_com_solo_io_gloo_projects_gloo_api_v1_options_transformation_tra
 
 const file_github_com_solo_io_gloo_projects_gloo_api_v1_options_transformation_transformation_proto_rawDesc = "" +
 	"\n" +
-	"Xgithub.com/solo-io/gloo/projects/gloo/api/v1/options/transformation/transformation.proto\x12#transformation.options.gloo.solo.io\x1a\x1bgoogle/protobuf/empty.proto\x1a\x1egoogle/protobuf/wrappers.proto\x1aIgithub.com/solo-io/gloo/projects/gloo/api/v1/core/matchers/matchers.proto\x1algithub.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/transformers/xslt/xslt_transformer.proto\x1a\x12extproto/ext.proto\"\xf8\x01\n" +
+	"Xgithub.com/solo-io/gloo/projects/gloo/api/v1/options/transformation/transformation.proto\x12#transformation.options.gloo.solo.io\x1a\x1bgoogle/protobuf/empty.proto\x1a\x1egoogle/protobuf/wrappers.proto\x1aIgithub.com/solo-io/gloo/projects/gloo/api/v1/core/matchers/matchers.proto\x1a\x12extproto/ext.proto\"\xf8\x01\n" +
 	"\rResponseMatch\x12E\n" +
 	"\bmatchers\x18\x01 \x03(\v2).matchers.core.gloo.solo.io.HeaderMatcherR\bmatchers\x122\n" +
 	"\x15response_code_details\x18\x02 \x01(\tR\x13responseCodeDetails\x12l\n" +
@@ -1544,13 +1525,12 @@ const file_github_com_solo_io_gloo_projects_gloo_api_v1_options_transformation_t
 	"\fpost_routing\x18\x06 \x01(\v2C.transformation.options.gloo.solo.io.RequestResponseTransformationsR\vpostRouting\x125\n" +
 	"\x16inherit_transformation\x18\x03 \x01(\bR\x15inheritTransformation\x12U\n" +
 	"\x19log_request_response_info\x18\x04 \x01(\v2\x1a.google.protobuf.BoolValueR\x16logRequestResponseInfo\x12G\n" +
-	"\x11escape_characters\x18\x05 \x01(\v2\x1a.google.protobuf.BoolValueR\x10escapeCharacters\"\xb3\x03\n" +
+	"\x11escape_characters\x18\x05 \x01(\v2\x1a.google.protobuf.BoolValueR\x10escapeCharacters\"\xe5\x02\n" +
 	"\x0eTransformation\x12v\n" +
 	"\x17transformation_template\x18\x01 \x01(\v2;.transformation.options.gloo.solo.io.TransformationTemplateH\x00R\x16transformationTemplate\x12n\n" +
-	"\x15header_body_transform\x18\x02 \x01(\v28.transformation.options.gloo.solo.io.HeaderBodyTransformH\x00R\x13headerBodyTransform\x12g\n" +
-	"\x13xslt_transformation\x18\x03 \x01(\v24.envoy.config.transformer.xslt.v2.XsltTransformationH\x00R\x12xsltTransformation\x129\n" +
+	"\x15header_body_transform\x18\x02 \x01(\v28.transformation.options.gloo.solo.io.HeaderBodyTransformH\x00R\x13headerBodyTransform\x129\n" +
 	"\x19log_request_response_info\x18\x04 \x01(\bR\x16logRequestResponseInfoB\x15\n" +
-	"\x13transformation_type\"\xdd\x02\n" +
+	"\x13transformation_typeJ\x04\b\x03\x10\x04R\x13xslt_transformation\"\xdd\x02\n" +
 	"\n" +
 	"Extraction\x12\x18\n" +
 	"\x06header\x18\x01 \x01(\tH\x00R\x06header\x12,\n" +
@@ -1653,13 +1633,12 @@ var file_github_com_solo_io_gloo_projects_gloo_api_v1_options_transformation_tra
 	(*TransformationTemplate_DynamicMetadataValue)(nil), // 18: transformation.options.gloo.solo.io.TransformationTemplate.DynamicMetadataValue
 	(*TransformationTemplate_SpanTransformer)(nil),      // 19: transformation.options.gloo.solo.io.TransformationTemplate.SpanTransformer
 	(*MergeJsonKeys_OverridableTemplate)(nil),           // 20: transformation.options.gloo.solo.io.MergeJsonKeys.OverridableTemplate
-	nil,                             // 21: transformation.options.gloo.solo.io.MergeJsonKeys.JsonKeysEntry
-	(*matchers.HeaderMatcher)(nil),  // 22: matchers.core.gloo.solo.io.HeaderMatcher
-	(*matchers.Matcher)(nil),        // 23: matchers.core.gloo.solo.io.Matcher
-	(*wrapperspb.BoolValue)(nil),    // 24: google.protobuf.BoolValue
-	(*xslt.XsltTransformation)(nil), // 25: envoy.config.transformer.xslt.v2.XsltTransformation
-	(*emptypb.Empty)(nil),           // 26: google.protobuf.Empty
-	(*wrapperspb.StringValue)(nil),  // 27: google.protobuf.StringValue
+	nil,                            // 21: transformation.options.gloo.solo.io.MergeJsonKeys.JsonKeysEntry
+	(*matchers.HeaderMatcher)(nil), // 22: matchers.core.gloo.solo.io.HeaderMatcher
+	(*matchers.Matcher)(nil),       // 23: matchers.core.gloo.solo.io.Matcher
+	(*wrapperspb.BoolValue)(nil),   // 24: google.protobuf.BoolValue
+	(*emptypb.Empty)(nil),          // 25: google.protobuf.Empty
+	(*wrapperspb.StringValue)(nil), // 26: google.protobuf.StringValue
 }
 var file_github_com_solo_io_gloo_projects_gloo_api_v1_options_transformation_transformation_proto_depIdxs = []int32{
 	22, // 0: transformation.options.gloo.solo.io.ResponseMatch.matchers:type_name -> matchers.core.gloo.solo.io.HeaderMatcher
@@ -1678,34 +1657,33 @@ var file_github_com_solo_io_gloo_projects_gloo_api_v1_options_transformation_tra
 	24, // 13: transformation.options.gloo.solo.io.TransformationStages.escape_characters:type_name -> google.protobuf.BoolValue
 	9,  // 14: transformation.options.gloo.solo.io.Transformation.transformation_template:type_name -> transformation.options.gloo.solo.io.TransformationTemplate
 	14, // 15: transformation.options.gloo.solo.io.Transformation.header_body_transform:type_name -> transformation.options.gloo.solo.io.HeaderBodyTransform
-	25, // 16: transformation.options.gloo.solo.io.Transformation.xslt_transformation:type_name -> envoy.config.transformer.xslt.v2.XsltTransformation
-	26, // 17: transformation.options.gloo.solo.io.Extraction.body:type_name -> google.protobuf.Empty
-	27, // 18: transformation.options.gloo.solo.io.Extraction.replacement_text:type_name -> google.protobuf.StringValue
-	0,  // 19: transformation.options.gloo.solo.io.Extraction.mode:type_name -> transformation.options.gloo.solo.io.Extraction.Mode
-	15, // 20: transformation.options.gloo.solo.io.TransformationTemplate.extractors:type_name -> transformation.options.gloo.solo.io.TransformationTemplate.ExtractorsEntry
-	16, // 21: transformation.options.gloo.solo.io.TransformationTemplate.headers:type_name -> transformation.options.gloo.solo.io.TransformationTemplate.HeadersEntry
-	17, // 22: transformation.options.gloo.solo.io.TransformationTemplate.headers_to_append:type_name -> transformation.options.gloo.solo.io.TransformationTemplate.HeaderToAppend
-	10, // 23: transformation.options.gloo.solo.io.TransformationTemplate.body:type_name -> transformation.options.gloo.solo.io.InjaTemplate
-	11, // 24: transformation.options.gloo.solo.io.TransformationTemplate.passthrough:type_name -> transformation.options.gloo.solo.io.Passthrough
-	12, // 25: transformation.options.gloo.solo.io.TransformationTemplate.merge_extractors_to_body:type_name -> transformation.options.gloo.solo.io.MergeExtractorsToBody
-	13, // 26: transformation.options.gloo.solo.io.TransformationTemplate.merge_json_keys:type_name -> transformation.options.gloo.solo.io.MergeJsonKeys
-	1,  // 27: transformation.options.gloo.solo.io.TransformationTemplate.parse_body_behavior:type_name -> transformation.options.gloo.solo.io.TransformationTemplate.RequestBodyParse
-	18, // 28: transformation.options.gloo.solo.io.TransformationTemplate.dynamic_metadata_values:type_name -> transformation.options.gloo.solo.io.TransformationTemplate.DynamicMetadataValue
-	24, // 29: transformation.options.gloo.solo.io.TransformationTemplate.escape_characters:type_name -> google.protobuf.BoolValue
-	19, // 30: transformation.options.gloo.solo.io.TransformationTemplate.span_transformer:type_name -> transformation.options.gloo.solo.io.TransformationTemplate.SpanTransformer
-	21, // 31: transformation.options.gloo.solo.io.MergeJsonKeys.json_keys:type_name -> transformation.options.gloo.solo.io.MergeJsonKeys.JsonKeysEntry
-	8,  // 32: transformation.options.gloo.solo.io.TransformationTemplate.ExtractorsEntry.value:type_name -> transformation.options.gloo.solo.io.Extraction
-	10, // 33: transformation.options.gloo.solo.io.TransformationTemplate.HeadersEntry.value:type_name -> transformation.options.gloo.solo.io.InjaTemplate
-	10, // 34: transformation.options.gloo.solo.io.TransformationTemplate.HeaderToAppend.value:type_name -> transformation.options.gloo.solo.io.InjaTemplate
-	10, // 35: transformation.options.gloo.solo.io.TransformationTemplate.DynamicMetadataValue.value:type_name -> transformation.options.gloo.solo.io.InjaTemplate
-	10, // 36: transformation.options.gloo.solo.io.TransformationTemplate.SpanTransformer.name:type_name -> transformation.options.gloo.solo.io.InjaTemplate
-	10, // 37: transformation.options.gloo.solo.io.MergeJsonKeys.OverridableTemplate.tmpl:type_name -> transformation.options.gloo.solo.io.InjaTemplate
-	20, // 38: transformation.options.gloo.solo.io.MergeJsonKeys.JsonKeysEntry.value:type_name -> transformation.options.gloo.solo.io.MergeJsonKeys.OverridableTemplate
-	39, // [39:39] is the sub-list for method output_type
-	39, // [39:39] is the sub-list for method input_type
-	39, // [39:39] is the sub-list for extension type_name
-	39, // [39:39] is the sub-list for extension extendee
-	0,  // [0:39] is the sub-list for field type_name
+	25, // 16: transformation.options.gloo.solo.io.Extraction.body:type_name -> google.protobuf.Empty
+	26, // 17: transformation.options.gloo.solo.io.Extraction.replacement_text:type_name -> google.protobuf.StringValue
+	0,  // 18: transformation.options.gloo.solo.io.Extraction.mode:type_name -> transformation.options.gloo.solo.io.Extraction.Mode
+	15, // 19: transformation.options.gloo.solo.io.TransformationTemplate.extractors:type_name -> transformation.options.gloo.solo.io.TransformationTemplate.ExtractorsEntry
+	16, // 20: transformation.options.gloo.solo.io.TransformationTemplate.headers:type_name -> transformation.options.gloo.solo.io.TransformationTemplate.HeadersEntry
+	17, // 21: transformation.options.gloo.solo.io.TransformationTemplate.headers_to_append:type_name -> transformation.options.gloo.solo.io.TransformationTemplate.HeaderToAppend
+	10, // 22: transformation.options.gloo.solo.io.TransformationTemplate.body:type_name -> transformation.options.gloo.solo.io.InjaTemplate
+	11, // 23: transformation.options.gloo.solo.io.TransformationTemplate.passthrough:type_name -> transformation.options.gloo.solo.io.Passthrough
+	12, // 24: transformation.options.gloo.solo.io.TransformationTemplate.merge_extractors_to_body:type_name -> transformation.options.gloo.solo.io.MergeExtractorsToBody
+	13, // 25: transformation.options.gloo.solo.io.TransformationTemplate.merge_json_keys:type_name -> transformation.options.gloo.solo.io.MergeJsonKeys
+	1,  // 26: transformation.options.gloo.solo.io.TransformationTemplate.parse_body_behavior:type_name -> transformation.options.gloo.solo.io.TransformationTemplate.RequestBodyParse
+	18, // 27: transformation.options.gloo.solo.io.TransformationTemplate.dynamic_metadata_values:type_name -> transformation.options.gloo.solo.io.TransformationTemplate.DynamicMetadataValue
+	24, // 28: transformation.options.gloo.solo.io.TransformationTemplate.escape_characters:type_name -> google.protobuf.BoolValue
+	19, // 29: transformation.options.gloo.solo.io.TransformationTemplate.span_transformer:type_name -> transformation.options.gloo.solo.io.TransformationTemplate.SpanTransformer
+	21, // 30: transformation.options.gloo.solo.io.MergeJsonKeys.json_keys:type_name -> transformation.options.gloo.solo.io.MergeJsonKeys.JsonKeysEntry
+	8,  // 31: transformation.options.gloo.solo.io.TransformationTemplate.ExtractorsEntry.value:type_name -> transformation.options.gloo.solo.io.Extraction
+	10, // 32: transformation.options.gloo.solo.io.TransformationTemplate.HeadersEntry.value:type_name -> transformation.options.gloo.solo.io.InjaTemplate
+	10, // 33: transformation.options.gloo.solo.io.TransformationTemplate.HeaderToAppend.value:type_name -> transformation.options.gloo.solo.io.InjaTemplate
+	10, // 34: transformation.options.gloo.solo.io.TransformationTemplate.DynamicMetadataValue.value:type_name -> transformation.options.gloo.solo.io.InjaTemplate
+	10, // 35: transformation.options.gloo.solo.io.TransformationTemplate.SpanTransformer.name:type_name -> transformation.options.gloo.solo.io.InjaTemplate
+	10, // 36: transformation.options.gloo.solo.io.MergeJsonKeys.OverridableTemplate.tmpl:type_name -> transformation.options.gloo.solo.io.InjaTemplate
+	20, // 37: transformation.options.gloo.solo.io.MergeJsonKeys.JsonKeysEntry.value:type_name -> transformation.options.gloo.solo.io.MergeJsonKeys.OverridableTemplate
+	38, // [38:38] is the sub-list for method output_type
+	38, // [38:38] is the sub-list for method input_type
+	38, // [38:38] is the sub-list for extension type_name
+	38, // [38:38] is the sub-list for extension extendee
+	0,  // [0:38] is the sub-list for field type_name
 }
 
 func init() {
@@ -1718,7 +1696,6 @@ func file_github_com_solo_io_gloo_projects_gloo_api_v1_options_transformation_tr
 	file_github_com_solo_io_gloo_projects_gloo_api_v1_options_transformation_transformation_proto_msgTypes[5].OneofWrappers = []any{
 		(*Transformation_TransformationTemplate)(nil),
 		(*Transformation_HeaderBodyTransform)(nil),
-		(*Transformation_XsltTransformation)(nil),
 	}
 	file_github_com_solo_io_gloo_projects_gloo_api_v1_options_transformation_transformation_proto_msgTypes[6].OneofWrappers = []any{
 		(*Extraction_Header)(nil),
