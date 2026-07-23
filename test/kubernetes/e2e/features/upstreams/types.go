@@ -19,6 +19,10 @@ var (
 	routeWithUpstreamManifest = filepath.Join(util.MustGetThisDir(), "inputs/route-with-upstream.yaml")
 	upstreamManifest          = filepath.Join(util.MustGetThisDir(), "inputs/upstream-for-route.yaml")
 
+	// invalidGrpcJsonUpstreamManifest is an Upstream with an invalid grpcJsonTranscoder protoDescriptorBin.
+	// The filename contains "webhook-reject", so ExpectObjectAdmitted asserts it is rejected at admission.
+	invalidGrpcJsonUpstreamManifest = filepath.Join(util.MustGetThisDir(), "inputs/upstream-grpcjson-webhook-reject.yaml")
+
 	// Proxy resource to be translated
 	glooProxyObjectMeta = metav1.ObjectMeta{
 		Name:      "gloo-proxy-gw",
