@@ -1,0 +1,9 @@
+changelog:
+  - type: HELM
+    issueLink: https://github.com/solo-io/solo-projects/issues/8948
+    resolvesIssue: true
+    description: >-
+      Add gatewayProxies.NAME.kind.workloadType to explicitly select the gateway proxy workload type
+      ("Deployment" or "DaemonSet"). When set, it takes precedence over the kind.deployment and
+      kind.daemonSet fields, avoiding the ambiguity of an empty kind.deployment object that some GitOps
+      tools normalize inconsistently; any other value fails at render time. When unset, behavior is unchanged.

@@ -158,11 +158,11 @@ The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://
 | ----- | ---- | ----------- | 
 | `openai` | [.ai.options.gloo.solo.io.UpstreamSpec.OpenAI](../ai.proto.sk/#openai) | Configure an [OpenAI](https://platform.openai.com/docs/overview) backend. Only one of `openai`, `mistral`, `anthropic`, `azureOpenai`, `multi`, `gemini`, `vertexAi`, or `bedrock` can be set. |
 | `mistral` | [.ai.options.gloo.solo.io.UpstreamSpec.Mistral](../ai.proto.sk/#mistral) | Configure a [Mistral AI](https://docs.mistral.ai/getting-started/quickstart/) backend. Only one of `mistral`, `openai`, `anthropic`, `azureOpenai`, `multi`, `gemini`, `vertexAi`, or `bedrock` can be set. |
-| `anthropic` | [.ai.options.gloo.solo.io.UpstreamSpec.Anthropic](../ai.proto.sk/#anthropic) | Configure an [Anthropic](https://docs.anthropic.com/en/release-notes/api) backend. Only one of `anthropic`, `openai`, `mistral`, `azureOpenai`, `multi`, `gemini`, `vertexAi`, or `bedrock` can be set. |
-| `azureOpenai` | [.ai.options.gloo.solo.io.UpstreamSpec.AzureOpenAI](../ai.proto.sk/#azureopenai) | Configure an [Azure OpenAI](https://learn.microsoft.com/en-us/azure/ai-services/openai/) backend. Only one of `azureOpenai`, `openai`, `mistral`, `anthropic`, `multi`, `gemini`, `vertexAi`, or `bedrock` can be set. |
+| `anthropic` | [.ai.options.gloo.solo.io.UpstreamSpec.Anthropic](../ai.proto.sk/#anthropic) | Configure an [Anthropic](https://platform.claude.com/docs/en/release-notes/overview) backend. Only one of `anthropic`, `openai`, `mistral`, `azureOpenai`, `multi`, `gemini`, `vertexAi`, or `bedrock` can be set. |
+| `azureOpenai` | [.ai.options.gloo.solo.io.UpstreamSpec.AzureOpenAI](../ai.proto.sk/#azureopenai) | Configure an [Azure OpenAI](https://learn.microsoft.com/en-us/azure/foundry/) backend. Only one of `azureOpenai`, `openai`, `mistral`, `anthropic`, `multi`, `gemini`, `vertexAi`, or `bedrock` can be set. |
 | `multi` | [.ai.options.gloo.solo.io.UpstreamSpec.MultiPool](../ai.proto.sk/#multipool) | Configure backends for multiple LLM providers in one logical endpoint. Only one of `multi`, `openai`, `mistral`, `anthropic`, `azureOpenai`, `gemini`, `vertexAi`, or `bedrock` can be set. |
 | `gemini` | [.ai.options.gloo.solo.io.UpstreamSpec.Gemini](../ai.proto.sk/#gemini) | Configure a [Gemini](https://ai.google.dev/gemini-api/docs) backend. Only one of `gemini`, `openai`, `mistral`, `anthropic`, `azureOpenai`, `multi`, `vertexAi`, or `bedrock` can be set. |
-| `vertexAi` | [.ai.options.gloo.solo.io.UpstreamSpec.VertexAI](../ai.proto.sk/#vertexai) | Configure a [Vertex AI](https://cloud.google.com/vertex-ai/docs) backend. Only one of `vertexAi`, `openai`, `mistral`, `anthropic`, `azureOpenai`, `multi`, `gemini`, or `bedrock` can be set. |
+| `vertexAi` | [.ai.options.gloo.solo.io.UpstreamSpec.VertexAI](../ai.proto.sk/#vertexai) | Configure a [Vertex AI](https://docs.cloud.google.com/gemini-enterprise-agent-platform) backend. Only one of `vertexAi`, `openai`, `mistral`, `anthropic`, `azureOpenai`, `multi`, `gemini`, or `bedrock` can be set. |
 | `bedrock` | [.ai.options.gloo.solo.io.UpstreamSpec.Bedrock](../ai.proto.sk/#bedrock) | Configure a [Bedrock](https://aws.amazon.com/bedrock/) backend. Only one of `bedrock`, `openai`, `mistral`, `anthropic`, `azureOpenai`, `multi`, `gemini`, or `vertexAi` can be set. |
 
 
@@ -246,7 +246,7 @@ The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://
 ### AzureOpenAI {#azureopenai}
 
  
-Settings for the [Azure OpenAI](https://learn.microsoft.com/en-us/azure/ai-services/openai/) LLM provider.
+Settings for the [Azure OpenAI](https://learn.microsoft.com/en-us/azure/foundry/) LLM provider.
 To find the values for the endpoint, deployment name, and API version, you can check the fields of an API request, such as
 `https://{endpoint}/openai/deployments/{deployment_name}/chat/completions?api-version={api_version}`.
 {{% notice note %}}
@@ -266,8 +266,8 @@ The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://
 | ----- | ---- | ----------- | 
 | `authToken` | [.ai.options.gloo.solo.io.SingleAuthToken](../ai.proto.sk/#singleauthtoken) | The authorization token that the AI gateway uses to access the Azure OpenAI API. This token is automatically sent in the `api-key` header of the request. |
 | `endpoint` | `string` | The endpoint for the Azure OpenAI API to use, such as `my-endpoint.openai.azure.com`. If the scheme is included, it is stripped. |
-| `deploymentName` | `string` | The name of the Azure OpenAI model deployment to use. For more information, see the [Azure OpenAI model docs](https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/models). |
-| `apiVersion` | `string` | The version of the Azure OpenAI API to use. For more information, see the [Azure OpenAI API version reference](https://learn.microsoft.com/en-us/azure/ai-services/openai/reference#api-specs). |
+| `deploymentName` | `string` | The name of the Azure OpenAI model deployment to use. For more information, see the [Azure OpenAI model docs](https://learn.microsoft.com/en-us/azure/foundry/foundry-models/concepts/models-sold-directly-by-azure). |
+| `apiVersion` | `string` | The version of the Azure OpenAI API to use. For more information, see the [Azure OpenAI API version reference](https://learn.microsoft.com/en-us/azure/foundry/openai/reference). |
 | `customHost` | [.ai.options.gloo.solo.io.UpstreamSpec.CustomHost](../ai.proto.sk/#customhost) | Optional: Send requests to a custom host and port or configure custom path override or hostname. |
 
 
@@ -295,7 +295,7 @@ The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
 | `authToken` | [.ai.options.gloo.solo.io.SingleAuthToken](../ai.proto.sk/#singleauthtoken) | The authorization token that the AI gateway uses to access the Gemini API. This token is automatically sent in the `x-goog-api-key` header of the request. |
-| `model` | `string` | The Gemini model to use. For more information, see the [Gemini models docs](https://ai.google.dev/gemini-api/docs/models/gemini). |
+| `model` | `string` | The Gemini model to use. For more information, see the [Gemini models docs](https://ai.google.dev/gemini-api/docs/models). |
 | `apiVersion` | `string` | The version of the Gemini API to use. For more information, see the [Gemini API version docs](https://ai.google.dev/gemini-api/docs/api-versions). |
 | `customHost` | [.ai.options.gloo.solo.io.UpstreamSpec.CustomHost](../ai.proto.sk/#customhost) | Optional: Send requests to a custom host and port or configure custom path override or hostname. |
 
@@ -306,7 +306,7 @@ The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://
 ### VertexAI {#vertexai}
 
  
-Settings for the [Vertex AI](https://cloud.google.com/vertex-ai/docs) LLM provider.
+Settings for the [Vertex AI](https://docs.cloud.google.com/gemini-enterprise-agent-platform) LLM provider.
 To find the values for the project ID, project location, and publisher, you can check the fields of an API request, such as
 `https://{LOCATION}-aiplatform.googleapis.com/{VERSION}/projects/{PROJECT_ID}/locations/{LOCATION}/publishers/{PROVIDER}/<model-path>`.
 {{% notice note %}}
@@ -329,8 +329,8 @@ The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
 | `authToken` | [.ai.options.gloo.solo.io.SingleAuthToken](../ai.proto.sk/#singleauthtoken) | The authorization token that the AI gateway uses to access the Vertex AI API. This token is automatically sent in the `key` header of the request. |
-| `model` | `string` | The Vertex AI model to use. For more information, see the [Vertex AI model docs](https://cloud.google.com/vertex-ai/generative-ai/docs/learn/models). |
-| `apiVersion` | `string` | The version of the Vertex AI API to use. For more information, see the [Vertex AI API reference](https://cloud.google.com/vertex-ai/docs/reference#versions). |
+| `model` | `string` | The Vertex AI model to use. For more information, see the [Vertex AI model docs](https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/google-models). |
+| `apiVersion` | `string` | The version of the Vertex AI API to use. For more information, see the [Vertex AI API reference](https://docs.cloud.google.com/gemini-enterprise-agent-platform/apis). |
 | `projectId` | `string` | The ID of the Google Cloud Project that you use for the Vertex AI. |
 | `location` | `string` | The location of the Google Cloud Project that you use for the Vertex AI. |
 | `modelPath` | `string` | Optional: The model path to route to. Defaults to the Gemini model path, `generateContent`. |
@@ -386,7 +386,7 @@ The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://
 ### Anthropic {#anthropic}
 
  
-Settings for the [Anthropic](https://docs.anthropic.com/en/release-notes/api) LLM provider.
+Settings for the [Anthropic](https://platform.claude.com/docs/en/release-notes/overview) LLM provider.
 {{% notice note %}}
 The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/main/ai/). It is not supported with the Gloo Edge API.
 {{% /notice %}}
@@ -403,7 +403,7 @@ The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://
 | ----- | ---- | ----------- | 
 | `authToken` | [.ai.options.gloo.solo.io.SingleAuthToken](../ai.proto.sk/#singleauthtoken) | The authorization token that the AI gateway uses to access the Anthropic API. This token is automatically sent in the `x-api-key` header of the request. |
 | `customHost` | [.ai.options.gloo.solo.io.UpstreamSpec.CustomHost](../ai.proto.sk/#customhost) | Optional: Send requests to a custom host and port or configure custom path override or hostname. |
-| `version` | `string` | Optional: The version string used to override the `anthropic-version` header to pass to the Anthropic API. Note: This does not control the api version (eg `/v1`) in the url. For more information, see the [Anthropic API versioning docs](https://docs.anthropic.com/en/api/versioning). |
+| `version` | `string` | Optional: The version string used to override the `anthropic-version` header to pass to the Anthropic API. Note: This does not control the api version (eg `/v1`) in the url. For more information, see the [Anthropic API versioning docs](https://platform.claude.com/docs/en/api/versioning). |
 | `model` | `string` | Optional: Override the model name. If unset, the model name is taken from the request. This setting can be useful when testing model failover scenarios. |
 
 
@@ -560,10 +560,10 @@ The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://
 | ----- | ---- | ----------- | 
 | `openai` | [.ai.options.gloo.solo.io.UpstreamSpec.OpenAI](../ai.proto.sk/#openai) | Configure an [OpenAI](https://platform.openai.com/docs/overview) backend. Only one of `openai`, `mistral`, `anthropic`, `azureOpenai`, `gemini`, `vertexAi`, or `bedrock` can be set. |
 | `mistral` | [.ai.options.gloo.solo.io.UpstreamSpec.Mistral](../ai.proto.sk/#mistral) | Configure a [Mistral AI](https://docs.mistral.ai/getting-started/quickstart/) backend. Only one of `mistral`, `openai`, `anthropic`, `azureOpenai`, `gemini`, `vertexAi`, or `bedrock` can be set. |
-| `anthropic` | [.ai.options.gloo.solo.io.UpstreamSpec.Anthropic](../ai.proto.sk/#anthropic) | Configure an [Anthropic](https://docs.anthropic.com/en/release-notes/api) backend. Only one of `anthropic`, `openai`, `mistral`, `azureOpenai`, `gemini`, `vertexAi`, or `bedrock` can be set. |
-| `azureOpenai` | [.ai.options.gloo.solo.io.UpstreamSpec.AzureOpenAI](../ai.proto.sk/#azureopenai) | Configure an [Azure OpenAI](https://learn.microsoft.com/en-us/azure/ai-services/openai/) backend. Only one of `azureOpenai`, `openai`, `mistral`, `anthropic`, `gemini`, `vertexAi`, or `bedrock` can be set. |
+| `anthropic` | [.ai.options.gloo.solo.io.UpstreamSpec.Anthropic](../ai.proto.sk/#anthropic) | Configure an [Anthropic](https://platform.claude.com/docs/en/release-notes/overview) backend. Only one of `anthropic`, `openai`, `mistral`, `azureOpenai`, `gemini`, `vertexAi`, or `bedrock` can be set. |
+| `azureOpenai` | [.ai.options.gloo.solo.io.UpstreamSpec.AzureOpenAI](../ai.proto.sk/#azureopenai) | Configure an [Azure OpenAI](https://learn.microsoft.com/en-us/azure/foundry/) backend. Only one of `azureOpenai`, `openai`, `mistral`, `anthropic`, `gemini`, `vertexAi`, or `bedrock` can be set. |
 | `gemini` | [.ai.options.gloo.solo.io.UpstreamSpec.Gemini](../ai.proto.sk/#gemini) | Configure a [Gemini](https://ai.google.dev/gemini-api/docs) backend. Only one of `gemini`, `openai`, `mistral`, `anthropic`, `azureOpenai`, `vertexAi`, or `bedrock` can be set. |
-| `vertexAi` | [.ai.options.gloo.solo.io.UpstreamSpec.VertexAI](../ai.proto.sk/#vertexai) | Configure a [Vertex AI](https://cloud.google.com/vertex-ai/docs) backend. Only one of `vertexAi`, `openai`, `mistral`, `anthropic`, `azureOpenai`, `gemini`, or `bedrock` can be set. |
+| `vertexAi` | [.ai.options.gloo.solo.io.UpstreamSpec.VertexAI](../ai.proto.sk/#vertexai) | Configure a [Vertex AI](https://docs.cloud.google.com/gemini-enterprise-agent-platform) backend. Only one of `vertexAi`, `openai`, `mistral`, `anthropic`, `azureOpenai`, `gemini`, or `bedrock` can be set. |
 | `bedrock` | [.ai.options.gloo.solo.io.UpstreamSpec.Bedrock](../ai.proto.sk/#bedrock) | Configure a [Bedrock](https://aws.amazon.com/bedrock/) backend. Only one of `bedrock`, `openai`, `mistral`, `anthropic`, `azureOpenai`, `gemini`, or `vertexAi` can be set. |
 
 
@@ -776,9 +776,9 @@ The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
 | `authToken` | [.ai.options.gloo.solo.io.SingleAuthToken](../ai.proto.sk/#singleauthtoken) | The authorization token that the AI gateway uses to access the Azure OpenAI API. This token is automatically sent in the `api-key` header of the request. |
-| `apiVersion` | `string` | The version of the Azure OpenAI API to use. For more information, see the [Azure OpenAI API version reference](https://learn.microsoft.com/en-us/azure/ai-services/openai/reference#api-specs). |
+| `apiVersion` | `string` | The version of the Azure OpenAI API to use. For more information, see the [Azure OpenAI API version reference](https://learn.microsoft.com/en-us/azure/foundry/openai/reference). |
 | `endpoint` | `string` | The endpoint for the Azure OpenAI API to use, such as `my-endpoint.openai.azure.com`. If the scheme is not included, it is added. |
-| `deploymentName` | `string` | The name of the Azure OpenAI model deployment to use. For more information, see the [Azure OpenAI model docs](https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/models). |
+| `deploymentName` | `string` | The name of the Azure OpenAI model deployment to use. For more information, see the [Azure OpenAI model docs](https://learn.microsoft.com/en-us/azure/foundry/foundry-models/concepts/models-sold-directly-by-azure). |
 
 
 

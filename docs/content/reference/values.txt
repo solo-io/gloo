@@ -873,6 +873,7 @@
 |gateway.persistProxySpec|bool||Enable writing Proxy CRD to etcd. Disabled by default for performance.|
 |gateway.translateEmptyGateways|bool|false|If true, the gateways will be translated into Envoy listeners even if no VirtualServices exist.|
 |gateway.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
+|gatewayProxies.NAME.kind.workloadType|string||set to 'Deployment' or 'DaemonSet' to explicitly select the workload type, taking precedence over the deployment and daemonSet fields, otherwise inferred from those fields|
 |gatewayProxies.NAME.kind.deployment.replicas|int||number of instances to deploy|
 |gatewayProxies.NAME.kind.deployment.customEnv[].name|string|||
 |gatewayProxies.NAME.kind.deployment.customEnv[].value|string|||
@@ -1132,6 +1133,7 @@
 |gatewayProxies.NAME.disableCoreDumps|bool||If set to true, Envoy will not generate core dumps in the event of a crash. Defaults to false|
 |gatewayProxies.NAME.disableExtauthSidecar|bool||If set to true, this gateway proxy will not come up with an extauth sidecar container when global.extAuth.envoySidecar is enabled. This setting has no effect otherwise. Defaults to false|
 |gatewayProxies.NAME.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
+|gatewayProxies.gatewayProxy.kind.workloadType|string||set to 'Deployment' or 'DaemonSet' to explicitly select the workload type, taking precedence over the deployment and daemonSet fields, otherwise inferred from those fields|
 |gatewayProxies.gatewayProxy.kind.deployment.replicas|int|1|number of instances to deploy|
 |gatewayProxies.gatewayProxy.kind.deployment.customEnv[].name|string|||
 |gatewayProxies.gatewayProxy.kind.deployment.customEnv[].value|string|||

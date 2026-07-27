@@ -702,7 +702,7 @@ var _ = Describe("AWS Lambda", func() {
 
 			It("should be able to call lambda with request and response transforms", testProxyWithRequestAndResponseTransforms)
 		})
-		Context("With gateawy translation", func() {
+		Context("With gateway translation", func() {
 			BeforeEach(func() {
 				setupEnvoy(false)
 				addCredentials()

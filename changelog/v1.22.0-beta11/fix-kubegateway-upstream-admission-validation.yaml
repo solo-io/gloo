@@ -1,0 +1,8 @@
+changelog:
+- type: FIX
+  issueLink: https://github.com/solo-io/solo-projects/issues/8980
+  resolvesIssue: false
+  description: >-
+    Validate Upstreams at admission when using the Kubernetes Gateway API, so invalid configuration
+    such as a corrupt grpcJsonTranscoder protoDescriptorBin is caught instead of causing Envoy to NACK
+    at runtime.

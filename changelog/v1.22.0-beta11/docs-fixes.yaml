@@ -1,0 +1,6 @@
+changelog:
+  - type: NON_USER_FACING
+    resolvesIssue: false
+    description: >-
+      Consolidates PRs created by the push-docs.yaml workflow.
+      skipCI-kube-tests:true

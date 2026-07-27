@@ -684,12 +684,12 @@ type UpstreamSpec_Mistral_ struct {
 }
 
 type UpstreamSpec_Anthropic_ struct {
-	// Configure an [Anthropic](https://docs.anthropic.com/en/release-notes/api) backend.
+	// Configure an [Anthropic](https://platform.claude.com/docs/en/release-notes/overview) backend.
 	Anthropic *UpstreamSpec_Anthropic `protobuf:"bytes,3,opt,name=anthropic,proto3,oneof"`
 }
 
 type UpstreamSpec_AzureOpenai struct {
-	// Configure an [Azure OpenAI](https://learn.microsoft.com/en-us/azure/ai-services/openai/) backend.
+	// Configure an [Azure OpenAI](https://learn.microsoft.com/en-us/azure/foundry/) backend.
 	AzureOpenai *UpstreamSpec_AzureOpenAI `protobuf:"bytes,4,opt,name=azure_openai,json=azureOpenai,proto3,oneof"`
 }
 
@@ -704,7 +704,7 @@ type UpstreamSpec_Gemini_ struct {
 }
 
 type UpstreamSpec_VertexAi struct {
-	// Configure a [Vertex AI](https://cloud.google.com/vertex-ai/docs) backend.
+	// Configure a [Vertex AI](https://docs.cloud.google.com/gemini-enterprise-agent-platform) backend.
 	VertexAi *UpstreamSpec_VertexAI `protobuf:"bytes,7,opt,name=vertex_ai,json=vertexAi,proto3,oneof"`
 }
 
@@ -1745,7 +1745,7 @@ func (x *UpstreamSpec_OpenAI) GetModel() string {
 	return ""
 }
 
-// Settings for the [Azure OpenAI](https://learn.microsoft.com/en-us/azure/ai-services/openai/) LLM provider.
+// Settings for the [Azure OpenAI](https://learn.microsoft.com/en-us/azure/foundry/) LLM provider.
 // To find the values for the endpoint, deployment name, and API version, you can check the fields of an API request, such as
 // `https://{endpoint}/openai/deployments/{deployment_name}/chat/completions?api-version={api_version}`.
 // {{% notice note %}}
@@ -1764,10 +1764,10 @@ type UpstreamSpec_AzureOpenAI struct {
 	// If the scheme is included, it is stripped.
 	Endpoint string `protobuf:"bytes,2,opt,name=endpoint,proto3" json:"endpoint,omitempty"`
 	// The name of the Azure OpenAI model deployment to use.
-	// For more information, see the [Azure OpenAI model docs](https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/models).
+	// For more information, see the [Azure OpenAI model docs](https://learn.microsoft.com/en-us/azure/foundry/foundry-models/concepts/models-sold-directly-by-azure).
 	DeploymentName string `protobuf:"bytes,3,opt,name=deployment_name,json=deploymentName,proto3" json:"deployment_name,omitempty"`
 	// The version of the Azure OpenAI API to use.
-	// For more information, see the [Azure OpenAI API version reference](https://learn.microsoft.com/en-us/azure/ai-services/openai/reference#api-specs).
+	// For more information, see the [Azure OpenAI API version reference](https://learn.microsoft.com/en-us/azure/foundry/openai/reference).
 	ApiVersion string `protobuf:"bytes,4,opt,name=api_version,json=apiVersion,proto3" json:"api_version,omitempty"`
 	// Optional: Send requests to a custom host and port or configure custom path override or hostname
 	CustomHost    *UpstreamSpec_CustomHost `protobuf:"bytes,5,opt,name=custom_host,json=customHost,proto3" json:"custom_host,omitempty"`
@@ -1877,7 +1877,7 @@ type UpstreamSpec_Gemini struct {
 	//	*UpstreamSpec_Gemini_AuthToken
 	AuthTokenSource isUpstreamSpec_Gemini_AuthTokenSource `protobuf_oneof:"auth_token_source"`
 	// The Gemini model to use.
-	// For more information, see the [Gemini models docs](https://ai.google.dev/gemini-api/docs/models/gemini).
+	// For more information, see the [Gemini models docs](https://ai.google.dev/gemini-api/docs/models).
 	Model string `protobuf:"bytes,2,opt,name=model,proto3" json:"model,omitempty"`
 	// The version of the Gemini API to use.
 	// For more information, see the [Gemini API version docs](https://ai.google.dev/gemini-api/docs/api-versions).
@@ -1967,7 +1967,7 @@ type UpstreamSpec_Gemini_AuthToken struct {
 
 func (*UpstreamSpec_Gemini_AuthToken) isUpstreamSpec_Gemini_AuthTokenSource() {}
 
-// Settings for the [Vertex AI](https://cloud.google.com/vertex-ai/docs) LLM provider.
+// Settings for the [Vertex AI](https://docs.cloud.google.com/gemini-enterprise-agent-platform) LLM provider.
 // To find the values for the project ID, project location, and publisher, you can check the fields of an API request, such as
 // `https://{LOCATION}-aiplatform.googleapis.com/{VERSION}/projects/{PROJECT_ID}/locations/{LOCATION}/publishers/{PROVIDER}/<model-path>`.
 // {{% notice note %}}
@@ -1983,10 +1983,10 @@ type UpstreamSpec_VertexAI struct {
 	//	*UpstreamSpec_VertexAI_AuthToken
 	AuthTokenSource isUpstreamSpec_VertexAI_AuthTokenSource `protobuf_oneof:"auth_token_source"`
 	// The Vertex AI model to use.
-	// For more information, see the [Vertex AI model docs](https://cloud.google.com/vertex-ai/generative-ai/docs/learn/models).
+	// For more information, see the [Vertex AI model docs](https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/google-models).
 	Model string `protobuf:"bytes,2,opt,name=model,proto3" json:"model,omitempty"`
 	// The version of the Vertex AI API to use.
-	// For more information, see the [Vertex AI API reference](https://cloud.google.com/vertex-ai/docs/reference#versions).
+	// For more information, see the [Vertex AI API reference](https://docs.cloud.google.com/gemini-enterprise-agent-platform/apis).
 	ApiVersion string `protobuf:"bytes,3,opt,name=api_version,json=apiVersion,proto3" json:"api_version,omitempty"`
 	// The ID of the Google Cloud Project that you use for the Vertex AI.
 	ProjectId string `protobuf:"bytes,4,opt,name=project_id,json=projectId,proto3" json:"project_id,omitempty"`
@@ -2189,7 +2189,7 @@ func (x *UpstreamSpec_Mistral) GetModel() string {
 	return ""
 }
 
-// Settings for the [Anthropic](https://docs.anthropic.com/en/release-notes/api) LLM provider.
+// Settings for the [Anthropic](https://platform.claude.com/docs/en/release-notes/overview) LLM provider.
 // {{% notice note %}}
 // The AI API is supported only in [Gloo Gateway (Kubernetes Gateway API)](https://docs.solo.io/gateway/main/ai/). It is not supported with the Gloo Edge API.
 // {{% /notice %}}
@@ -2202,7 +2202,7 @@ type UpstreamSpec_Anthropic struct {
 	CustomHost *UpstreamSpec_CustomHost `protobuf:"bytes,2,opt,name=custom_host,json=customHost,proto3" json:"custom_host,omitempty"`
 	// Optional: The version string used to override the `anthropic-version` header to pass to the Anthropic API.
 	// Note: This does not control the api version (eg `/v1`) in the url.
-	// For more information, see the [Anthropic API versioning docs](https://docs.anthropic.com/en/api/versioning).
+	// For more information, see the [Anthropic API versioning docs](https://platform.claude.com/docs/en/api/versioning).
 	Version string `protobuf:"bytes,3,opt,name=version,proto3" json:"version,omitempty"`
 	// Optional: Override the model name.
 	// If unset, the model name is taken from the request.
@@ -2731,12 +2731,12 @@ type UpstreamSpec_MultiPool_Backend_Mistral struct {
 }
 
 type UpstreamSpec_MultiPool_Backend_Anthropic struct {
-	// Configure an [Anthropic](https://docs.anthropic.com/en/release-notes/api) backend.
+	// Configure an [Anthropic](https://platform.claude.com/docs/en/release-notes/overview) backend.
 	Anthropic *UpstreamSpec_Anthropic `protobuf:"bytes,3,opt,name=anthropic,proto3,oneof"`
 }
 
 type UpstreamSpec_MultiPool_Backend_AzureOpenai struct {
-	// Configure an [Azure OpenAI](https://learn.microsoft.com/en-us/azure/ai-services/openai/) backend.
+	// Configure an [Azure OpenAI](https://learn.microsoft.com/en-us/azure/foundry/) backend.
 	AzureOpenai *UpstreamSpec_AzureOpenAI `protobuf:"bytes,4,opt,name=azure_openai,json=azureOpenai,proto3,oneof"`
 }
 
@@ -2746,7 +2746,7 @@ type UpstreamSpec_MultiPool_Backend_Gemini struct {
 }
 
 type UpstreamSpec_MultiPool_Backend_VertexAi struct {
-	// Configure a [Vertex AI](https://cloud.google.com/vertex-ai/docs) backend.
+	// Configure a [Vertex AI](https://docs.cloud.google.com/gemini-enterprise-agent-platform) backend.
 	VertexAi *UpstreamSpec_VertexAI `protobuf:"bytes,6,opt,name=vertex_ai,json=vertexAi,proto3,oneof"`
 }
 
@@ -2902,13 +2902,13 @@ type Embedding_AzureOpenAI struct {
 	//	*Embedding_AzureOpenAI_AuthToken
 	AuthTokenSource isEmbedding_AzureOpenAI_AuthTokenSource `protobuf_oneof:"auth_token_source"`
 	// The version of the Azure OpenAI API to use.
-	// For more information, see the [Azure OpenAI API version reference](https://learn.microsoft.com/en-us/azure/ai-services/openai/reference#api-specs).
+	// For more information, see the [Azure OpenAI API version reference](https://learn.microsoft.com/en-us/azure/foundry/openai/reference).
 	ApiVersion string `protobuf:"bytes,2,opt,name=api_version,json=apiVersion,proto3" json:"api_version,omitempty"`
 	// The endpoint for the Azure OpenAI API to use, such as `my-endpoint.openai.azure.com`.
 	// If the scheme is not included, it is added.
 	Endpoint string `protobuf:"bytes,3,opt,name=endpoint,proto3" json:"endpoint,omitempty"`
 	// The name of the Azure OpenAI model deployment to use.
-	// For more information, see the [Azure OpenAI model docs](https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/models).
+	// For more information, see the [Azure OpenAI model docs](https://learn.microsoft.com/en-us/azure/foundry/foundry-models/concepts/models-sold-directly-by-azure).
 	DeploymentName string `protobuf:"bytes,4,opt,name=deployment_name,json=deploymentName,proto3" json:"deployment_name,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache

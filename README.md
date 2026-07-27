@@ -6,6 +6,17 @@
   An Envoy-Powered API Gateway
 </h1>
 
+## Gloo OSS — End of Life Notice
+Gloo OSS will reach end of life on December 31st, 2026. After that date, it will no longer receive releases, bug fixes, or security patches.
+
+Gloo OSS has had an incredible journey as the Kubernetes-native API gateway, built on top of Envoy Proxy. In late 2024, we donated Gloo OSS, rebranded as **kgateway**, to the Cloud Native Computing Foundation (CNCF), giving the project a new home in the broader open source ecosystem. Since then, we have continued providing regular releases across all supported versions to give users time to plan their migration. With the EOL date now set, we encourage all users to complete that migration before December 31st, 2026.
+
+The move to kgateway represents everything Gloo OSS was, and more: full alignment with the Kubernetes Gateway API standard, a thriving open source community under the CNCF umbrella, and a roadmap built around the next generation of cloud-native networking. It is the natural successor to Gloo OSS, and we believe it is the right home for this project's future.
+
+If you are still running Gloo OSS, we strongly encourage you to migrate to kgateway: https://kgateway.dev
+
+Thanks to everyone who contributed to Gloo OSS over the years, the issues raised, the PRs merged, the docs improved, and the community built around it. None of this would have been possible without you.
+ 
 ## Important Update
 
 > **Important**
