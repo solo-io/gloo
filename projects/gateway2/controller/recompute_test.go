@@ -9,36 +9,36 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	discoveryv1 "k8s.io/api/discovery/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/utils/ptr"
 )
 
-var _ = Describe("Proxy recomputation", func() {
-	const (
-		timeout  = 10 * time.Second
-		interval = 100 * time.Millisecond
-	)
+var _ = Describe("Proxy recomputation", Ordered, func() {
+	const timeout = 10 * time.Second
 
-	It("does not kick for Pod or EndpointSlice events", func() {
+	It("does not kick proxy translation for endpoint-only events", func() {
 		suffix := fmt.Sprintf("%d", time.Now().UnixNano())
+		serviceName := "kick-control-" + suffix
 
-		// Verify the callback is wired through a controller that still requires
-		// full proxy recomputation.
-		service := &corev1.Service{
+		beforeService := kickCount.Load()
+		Expect(k8sClient.Create(ctx, &corev1.Service{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      "recompute-control-" + suffix,
+				Name:      serviceName,
 				Namespace: "default",
 			},
 			Spec: corev1.ServiceSpec{
-				Ports: []corev1.ServicePort{{Port: 8080}},
+				Ports: []corev1.ServicePort{{
+					Name: "http",
+					Port: 8080,
+				}},
 			},
-		}
-		beforeService := kickCount.Load()
-		Expect(k8sClient.Create(ctx, service)).To(Succeed())
-		Eventually(kickCount.Load, timeout, interval).Should(BeNumerically(">", beforeService))
+		})).To(Succeed())
+		Eventually(kickCount.Load, timeout).Should(BeNumerically(">", beforeService),
+			"the positive control should prove that Kick is wired to the controller")
 
-		beforeEndpoints := kickCount.Load()
-		pod := &corev1.Pod{
+		baseline := kickCount.Load()
+		Expect(k8sClient.Create(ctx, &corev1.Pod{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      "no-recompute-" + suffix,
+				Name:      "no-kick-pod-" + suffix,
 				Namespace: "default",
 			},
 			Spec: corev1.PodSpec{
@@ -47,20 +47,25 @@ var _ = Describe("Proxy recomputation", func() {
 					Image: "test",
 				}},
 			},
-		}
-		endpointSlice := &discoveryv1.EndpointSlice{
+		})).To(Succeed())
+		Expect(k8sClient.Create(ctx, &discoveryv1.EndpointSlice{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      "no-recompute-" + suffix,
+				Name:      "no-kick-slice-" + suffix,
 				Namespace: "default",
+				Labels: map[string]string{
+					discoveryv1.LabelServiceName: serviceName,
+				},
 			},
 			AddressType: discoveryv1.AddressTypeIPv4,
 			Endpoints: []discoveryv1.Endpoint{{
 				Addresses: []string{"10.0.0.1"},
 			}},
-		}
+			Ports: []discoveryv1.EndpointPort{{
+				Name: ptr.To("http"),
+				Port: ptr.To(int32(8080)),
+			}},
+		})).To(Succeed())
 
-		Expect(k8sClient.Create(ctx, pod)).To(Succeed())
-		Expect(k8sClient.Create(ctx, endpointSlice)).To(Succeed())
-		Consistently(kickCount.Load, time.Second, interval).Should(Equal(beforeEndpoints))
+		Consistently(kickCount.Load, time.Second).Should(Equal(baseline))
 	})
 })
