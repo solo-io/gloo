@@ -1,11 +1,7 @@
 changelog:
-  - type: NEW_FEATURE
+  - type: NON_USER_FACING
     issueLink: https://github.com/solo-io/solo-projects/issues/9051
     resolvesIssue: false
     description: >-
-      Add `allowedClientHeadersOnSuccess` to the HTTP passthrough auth API
-      (`PassThroughHttp.Response`). When set, authorization response headers in this list are
-      added to the response to the downstream client when the auth request is successful. Only
-      headers present on the passthrough auth server's response are added, and an existing
-      client response header with the same name is overwritten. When unset, behavior is
-      unchanged.
+      Add the `allowedClientHeadersOnSuccess` field to the HTTP passthrough auth API
+      (`PassThroughHttp.Response`).
