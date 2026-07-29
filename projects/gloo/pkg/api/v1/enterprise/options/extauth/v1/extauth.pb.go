@@ -7743,8 +7743,14 @@ type PassThroughHttp_Response struct {
 	// If this and allowed_upstream_headers are empty, by default, no authorization response headers will be added to the upstream request.
 	// Header names may not be included in both allowed_upstream_headers and allowed_upstream_headers_to_overwrite.
 	AllowedUpstreamHeadersToOverwrite []string `protobuf:"bytes,4,rep,name=allowed_upstream_headers_to_overwrite,json=allowedUpstreamHeadersToOverwrite,proto3" json:"allowed_upstream_headers_to_overwrite,omitempty"`
-	unknownFields                     protoimpl.UnknownFields
-	sizeCache                         protoimpl.SizeCache
+	// When this is set, authorization response headers in this list will be added to the response to the downstream client
+	// when the auth request is successful. Only headers that are present on the authorization response are added; if the
+	// response header already exists on the client response, it will be overwritten.
+	// If this is empty, by default, no authorization response headers will be added to the response to the downstream client
+	// on success.
+	AllowedClientHeadersOnSuccess []string `protobuf:"bytes,5,rep,name=allowed_client_headers_on_success,json=allowedClientHeadersOnSuccess,proto3" json:"allowed_client_headers_on_success,omitempty"`
+	unknownFields                 protoimpl.UnknownFields
+	sizeCache                     protoimpl.SizeCache
 }
 
 func (x *PassThroughHttp_Response) Reset() {
@@ -7801,6 +7807,13 @@ func (x *PassThroughHttp_Response) GetReadStateFromResponse() bool {
 func (x *PassThroughHttp_Response) GetAllowedUpstreamHeadersToOverwrite() []string {
 	if x != nil {
 		return x.AllowedUpstreamHeadersToOverwrite
+	}
+	return nil
+}
+
+func (x *PassThroughHttp_Response) GetAllowedClientHeadersOnSuccess() []string {
+	if x != nil {
+		return x.AllowedClientHeadersOnSuccess
 	}
 	return nil
 }
@@ -8409,7 +8422,7 @@ const file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extau
 	"\x12connection_timeout\x18\x02 \x01(\v2\x19.google.protobuf.DurationR\x11connectionTimeout\x12P\n" +
 	"\n" +
 	"tls_config\x18\x03 \x01(\v21.enterprise.gloo.solo.io.PassThroughGrpcTLSConfigR\ttlsConfig\x12G\n" +
-	"\fretry_policy\x18\x04 \x01(\v2$.enterprise.gloo.solo.io.RetryPolicyR\vretryPolicy\"\x91\n" +
+	"\fretry_policy\x18\x04 \x01(\v2$.enterprise.gloo.solo.io.RetryPolicyR\vretryPolicy\"\xdb\n" +
 	"\n" +
 	"\x0fPassThroughHttp\x12\x10\n" +
 	"\x03url\x18\x01 \x01(\tR\x03url\x12J\n" +
@@ -8429,12 +8442,13 @@ const file_github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extau
 	"\x11pass_through_body\x18\x05 \x01(\bR\x0fpassThroughBody\x1a?\n" +
 	"\x11HeadersToAddEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a\x97\x02\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a\xe1\x02\n" +
 	"\bResponse\x128\n" +
 	"\x18allowed_upstream_headers\x18\x01 \x03(\tR\x16allowedUpstreamHeaders\x12F\n" +
 	" allowed_client_headers_on_denied\x18\x02 \x03(\tR\x1callowedClientHeadersOnDenied\x127\n" +
 	"\x18read_state_from_response\x18\x03 \x01(\bR\x15readStateFromResponse\x12P\n" +
-	"%allowed_upstream_headers_to_overwrite\x18\x04 \x03(\tR!allowedUpstreamHeadersToOverwrite\x1ak\n" +
+	"%allowed_upstream_headers_to_overwrite\x18\x04 \x03(\tR!allowedUpstreamHeadersToOverwrite\x12H\n" +
+	"!allowed_client_headers_on_success\x18\x05 \x03(\tR\x1dallowedClientHeadersOnSuccess\x1ak\n" +
 	"\x0eConnectionPool\x12\x1b\n" +
 	"\tmax_conns\x18\x01 \x01(\rR\bmaxConns\x12<\n" +
 	"\fidle_timeout\x18\x02 \x01(\v2\x19.google.protobuf.DurationR\vidleTimeout\"\x9b\x01\n" +
