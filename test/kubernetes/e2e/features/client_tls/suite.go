@@ -2,6 +2,7 @@ package client_tls
 
 import (
 	"context"
+	"time"
 
 	"github.com/onsi/gomega"
 	"github.com/stretchr/testify/suite"
@@ -75,8 +76,7 @@ func (s *clientTlsTestingSuite) TestRouteSecureRequestToUpstream() {
 
 	err := s.testInstallation.Actions.Kubectl().Apply(s.ctx, NginxUpstreamsYaml)
 	s.NoError(err, "can apply upstream manifest file")
-	err = s.testInstallation.Actions.Kubectl().Apply(s.ctx, VSTargetingUpstreamYaml, "-n", ns)
-	s.NoError(err, "can apply vs targeting upstream manifest file")
+	s.eventuallyApply(VSTargetingUpstreamYaml, "can apply vs targeting upstream manifest file", "-n", ns)
 
 	s.assertEventualResponseForPath("nginx", expectedHealthyResponse)
 
@@ -106,8 +106,7 @@ func (s *clientTlsTestingSuite) TestRouteSecureRequestToAnnotatedService() {
 
 	err := s.testInstallation.Actions.Kubectl().Apply(s.ctx, NginxAnnotatedServicesYaml)
 	s.NoError(err, "can apply services manifest file")
-	err = s.testInstallation.Actions.Kubectl().Apply(s.ctx, VSTargetingKubeYaml, "-n", ns)
-	s.NoError(err, "can apply vs targeting services manifest file")
+	s.eventuallyApply(VSTargetingKubeYaml, "can apply vs targeting services manifest file", "-n", ns)
 
 	s.assertEventualResponseForPath("nginx", expectedHealthyResponse)
 
@@ -186,6 +185,27 @@ func (s *clientTlsTestingSuite) TestOneWayTlsDoesNotRequestClientCertificate() {
 		g.Expect(output).NotTo(gomega.ContainSubstring("Certificate Request"),
 			"TLS handshake should not contain Certificate Request when oneWayTls is true")
 	}).WithContext(s.ctx).Should(gomega.Succeed())
+}
+
+// eventuallyApply applies a manifest, retrying for as long as the Edge validating admission
+// webhook rejects it.
+//
+// TestRouteSecureRequestToUpstream and TestRouteSecureRequestToAnnotatedService each create a
+// VirtualService that claims the nginx.example.com domain, and each deletes its VirtualService
+// during cleanup. Deleting a VirtualService removes it from the validator's in-memory snapshot,
+// but a snapshot that was already in flight when the delete happened can transiently re-add it
+// (see Sync in projects/gateway/pkg/validation/validator.go, which replaces latestSnapshot
+// wholesale). Until that settles, applying the other VirtualService is rejected with a domain
+// conflict against a VirtualService that no longer exists in the cluster.
+func (s *clientTlsTestingSuite) eventuallyApply(manifest []byte, description string, extraArgs ...string) {
+	s.testInstallation.AssertionsT(s.T()).Gomega.Eventually(func(g gomega.Gomega) {
+		err := s.testInstallation.Actions.Kubectl().Apply(s.ctx, manifest, extraArgs...)
+		g.Expect(err).NotTo(gomega.HaveOccurred(), description)
+	}).
+		WithContext(s.ctx).
+		WithTimeout(time.Minute).
+		WithPolling(time.Second).
+		Should(gomega.Succeed(), description)
 }
 
 func (s *clientTlsTestingSuite) assertEventualResponseForPath(path string, matcher *matchers.HttpResponse) {
