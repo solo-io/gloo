@@ -7744,8 +7744,10 @@ type PassThroughHttp_Response struct {
 	// Header names may not be included in both allowed_upstream_headers and allowed_upstream_headers_to_overwrite.
 	AllowedUpstreamHeadersToOverwrite []string `protobuf:"bytes,4,rep,name=allowed_upstream_headers_to_overwrite,json=allowedUpstreamHeadersToOverwrite,proto3" json:"allowed_upstream_headers_to_overwrite,omitempty"`
 	// When this is set, authorization response headers in this list will be added to the response to the downstream client
-	// when the auth request is successful. Only headers that are present on the authorization response are added; if the
-	// response header already exists on the client response, it will be overwritten.
+	// when the auth request is successful. Only headers that are present on the authorization response are added.
+	// If an added header already exists on the client response, it will be overwritten.
+	// If a listed header is absent from the authorization response, the client response is not modified: an existing
+	// client response header with the same name is preserved, not cleared.
 	// If this is empty, by default, no authorization response headers will be added to the response to the downstream client
 	// on success.
 	AllowedClientHeadersOnSuccess []string `protobuf:"bytes,5,rep,name=allowed_client_headers_on_success,json=allowedClientHeadersOnSuccess,proto3" json:"allowed_client_headers_on_success,omitempty"`
