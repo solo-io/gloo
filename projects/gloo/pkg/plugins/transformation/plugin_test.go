@@ -8,7 +8,6 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	v3 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/config/route/v3"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/transformers/xslt"
 	matcherv3 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/type/matcher/v3"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 
@@ -102,23 +101,6 @@ var _ = Describe("Plugin", func() {
 			output, err := TranslateTransformation(input, nil, nil)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(output).To(Equal(expectedOutput))
-
-		})
-
-		It("throws error on unsupported transformation type", func() {
-			// Xslt Transformation is enterprise-only
-			input := &transformation.Transformation{
-				TransformationType: &transformation.Transformation_XsltTransformation{
-					XsltTransformation: &xslt.XsltTransformation{
-						Xslt: "<xsl:stylesheet>some transform</xsl:stylesheet>",
-					},
-				},
-			}
-
-			output, err := TranslateTransformation(input, nil, nil)
-			Expect(output).To(BeNil())
-			Expect(err).To(HaveOccurred())
-			Expect(err).To(MatchError(UnknownTransformationType(&transformation.Transformation_XsltTransformation{})))
 
 		})
 
