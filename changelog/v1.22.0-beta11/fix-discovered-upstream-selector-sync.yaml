@@ -1,0 +1,15 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/solo-projects/issues/9078
+    resolvesIssue: false
+    description: >-
+      Keep a discovered Upstream's kube.selector in sync with its Kubernetes Service. The
+      selector was previously written only when the Upstream was first discovered and then
+      preserved on every resync, so changing a Service's spec.selector left the Upstream
+      pointing at the old pod labels. EDS filters endpoints against that selector, so the
+      Upstream could be left with no endpoints at all, which broke blue/green deployments
+      that shift traffic by editing the Service selector. Note that discovery now owns this
+      field: manual edits to the selector on a discovered Upstream are replaced on the next
+      resync. To customize the selector through gloo.solo.io/upstream_config, also set
+      gloo.solo.io/upstream_config.deep_merge: "true" when providing only kube.selector, or
+      create a user-managed Upstream instead.
