@@ -1,0 +1,7 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/solo-projects/issues/9051
+    resolvesIssue: false
+    description: >-
+      Add the `allowedClientHeadersOnSuccess` field to the HTTP passthrough auth API
+      (`PassThroughHttp.Response`).
