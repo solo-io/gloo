@@ -254,22 +254,6 @@ jobs:
               summary="${summary}  (new directory ${directory} seeded from ${prev_minor}.x - review carried-over prose)\n"
             fi
 
-            # Stage/unstage this version. The in-development line (minor == MAIN_MINOR) is marked
-            # `draft` in its _index.md - the files exist in the repo and show only in local
-            # `hugo server -D` builds, never in the preview or prod deploys (neither builds drafts).
-            # `draft` is cascaded to the whole version tree. The flag is (re)applied every run, so when
-            # the minor is released and is no longer MAIN_MINOR it is stripped and the version
-            # publishes - "the files just get overwritten without that metadata value".
-            index_md="$gw_dir/_index.md"
-            if [[ -f "$index_md" ]]; then
-              if [[ "$minor" == "$MAIN_MINOR" ]]; then
-                grep -qE '^draft: true$'     "$index_md" || sed -E -i "1s/^---$/---\ndraft: true/" "$index_md"
-                grep -qE '^  - draft: true$' "$index_md" || sed -E -i "s/^(cascade:)$/\1\n  - draft: true/" "$index_md"
-                echo "Marked ${directory} as draft (in-development line; visible only in local -D builds)."
-              else
-                sed -E -i '/^draft: true$/d; /^  - draft: true$/d' "$index_md"
-              fi
-            fi
 
             # --- Per-line files: the filename/path carries the minor, so lines never collide. ---
             cp "$GEN/static/content/osa_included.md"      "$DOCS/assets/gateway-docs/pages/reference/osa_included_${minor}.md"
