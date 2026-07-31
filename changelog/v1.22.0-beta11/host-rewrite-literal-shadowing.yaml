@@ -1,0 +1,7 @@
+changelog:
+  - type: NEW_FEATURE
+    issueLink: https://github.com/solo-io/solo-projects/issues/9092
+    resolvesIssue: false
+    description: >-
+      Add support for hostRewriteLiteral in the shadowing plugin, allowing users to replace the Host
+      header of mirrored requests with a specific value.
