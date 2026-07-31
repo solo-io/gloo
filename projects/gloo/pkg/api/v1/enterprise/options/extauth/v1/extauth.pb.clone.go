@@ -2970,6 +2970,15 @@ func (m *PassThroughHttp_Response) Clone() proto.Message {
 		}
 	}
 
+	if m.GetAllowedClientHeadersOnSuccess() != nil {
+		target.AllowedClientHeadersOnSuccess = make([]string, len(m.GetAllowedClientHeadersOnSuccess()))
+		for idx, v := range m.GetAllowedClientHeadersOnSuccess() {
+
+			target.AllowedClientHeadersOnSuccess[idx] = v
+
+		}
+	}
+
 	return target
 }
 

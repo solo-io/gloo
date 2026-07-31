@@ -21,6 +21,8 @@ To enable traffic shadowing in Gloo Gateway, we need to add a route option to th
 
 * `upstream` : Indicates the upstream to which to send the shadowed traffic.
 * `percentage` : Percent of traffic to shadow (must be an integer between 0 and 100).
+* `disableShadowHostSuffixAppend` : If `true`, the shadowed `Host` header keeps its original value instead of having `-shadow` appended.
+* `hostRewriteLiteral` : Replaces the shadowed `Host` header with this value. Setting it implies `disableShadowHostSuffixAppend`.
 
 In the example below, all traffic going to `petstore` is also forwarded to `petstore-v2`.
 {{< highlight yaml "hl_lines=19-23" >}}

@@ -4093,6 +4093,37 @@ var _ = Describe("Translator", func() {
 			Expect(mirrorPolicies).To(HaveLen(1))
 			Expect(mirrorPolicies[0].GetDisableShadowHostSuffixAppend()).To(BeFalse())
 		})
+
+		It("should translate shadowing with HostRewriteLiteral", func() {
+			routes[0].Options = &v1.RouteOptions{
+				Shadowing: &shadowing.RouteShadowing{
+					Upstream:           upstream.Metadata.Ref(),
+					Percentage:         100,
+					HostRewriteLiteral: "shadow-svc.internal:8080",
+				},
+			}
+
+			translate()
+
+			mirrorPolicies := routeConfiguration.VirtualHosts[0].Routes[0].GetRoute().GetRequestMirrorPolicies()
+			Expect(mirrorPolicies).To(HaveLen(1))
+			Expect(mirrorPolicies[0].GetHostRewriteLiteral()).To(Equal("shadow-svc.internal:8080"))
+		})
+
+		It("should translate shadowing without HostRewriteLiteral by default", func() {
+			routes[0].Options = &v1.RouteOptions{
+				Shadowing: &shadowing.RouteShadowing{
+					Upstream:   upstream.Metadata.Ref(),
+					Percentage: 100,
+				},
+			}
+
+			translate()
+
+			mirrorPolicies := routeConfiguration.VirtualHosts[0].Routes[0].GetRoute().GetRequestMirrorPolicies()
+			Expect(mirrorPolicies).To(HaveLen(1))
+			Expect(mirrorPolicies[0].GetHostRewriteLiteral()).To(BeEmpty())
+		})
 	})
 
 	Context("Protocol Upgrades - CONNECT", func() {

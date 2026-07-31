@@ -64,5 +64,9 @@ func (m *RouteShadowing) Equal(that interface{}) bool {
 		return false
 	}
 
+	if strings.Compare(m.GetHostRewriteLiteral(), target.GetHostRewriteLiteral()) != 0 {
+		return false
+	}
+
 	return true
 }

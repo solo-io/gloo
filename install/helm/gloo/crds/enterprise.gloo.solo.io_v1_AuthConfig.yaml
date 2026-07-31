@@ -999,6 +999,10 @@ spec:
                                   items:
                                     type: string
                                   type: array
+                                allowedClientHeadersOnSuccess:
+                                  items:
+                                    type: string
+                                  type: array
                                 allowedUpstreamHeaders:
                                   items:
                                     type: string
