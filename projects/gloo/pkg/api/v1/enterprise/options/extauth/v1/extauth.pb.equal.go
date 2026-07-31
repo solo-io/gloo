@@ -5088,6 +5088,17 @@ func (m *PassThroughHttp_Response) Equal(that interface{}) bool {
 
 	}
 
+	if len(m.GetAllowedClientHeadersOnSuccess()) != len(target.GetAllowedClientHeadersOnSuccess()) {
+		return false
+	}
+	for idx, v := range m.GetAllowedClientHeadersOnSuccess() {
+
+		if strings.Compare(v, target.GetAllowedClientHeadersOnSuccess()[idx]) != 0 {
+			return false
+		}
+
+	}
+
 	return true
 }
 

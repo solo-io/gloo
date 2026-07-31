@@ -6718,6 +6718,23 @@ func (m *PassThroughHttp_Response) HashUnique(hasher hash.Hash64) (uint64, error
 
 	}
 
+	if _, err = hasher.Write([]byte("AllowedClientHeadersOnSuccess")); err != nil {
+		return 0, err
+	}
+	for i, v := range m.GetAllowedClientHeadersOnSuccess() {
+		if _, err = hasher.Write([]byte(strconv.Itoa(i))); err != nil {
+			return 0, err
+		}
+
+		if _, err = hasher.Write([]byte("v")); err != nil {
+			return 0, err
+		}
+		if _, err = hasher.Write([]byte(v)); err != nil {
+			return 0, err
+		}
+
+	}
+
 	return hasher.Sum64(), nil
 }
 
