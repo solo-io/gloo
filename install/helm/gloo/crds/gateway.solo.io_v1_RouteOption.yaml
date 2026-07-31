@@ -1892,6 +1892,8 @@ spec:
                     properties:
                       disableShadowHostSuffixAppend:
                         type: boolean
+                      hostRewriteLiteral:
+                        type: string
                       percentage:
                         type: number
                       upstream:

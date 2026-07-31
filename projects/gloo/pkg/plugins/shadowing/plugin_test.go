@@ -131,6 +131,76 @@ var _ = Describe("Plugin", func() {
 		Expect(out.GetRoute().GetRequestMirrorPolicies()[0].GetDisableShadowHostSuffixAppend()).To(BeTrue())
 	})
 
+	It("should set HostRewriteLiteral when specified", func() {
+		p := NewPlugin()
+
+		upRef := &core.ResourceRef{
+			Name:      "some-upstream",
+			Namespace: "default",
+		}
+		in := &v1.Route{
+			Options: &v1.RouteOptions{
+				Shadowing: &shadowing.RouteShadowing{
+					Upstream:           upRef,
+					Percentage:         100,
+					HostRewriteLiteral: "shadow-svc.internal:8080",
+				},
+			},
+		}
+		out := &envoy_config_route_v3.Route{}
+		err := p.ProcessRoute(plugins.RouteParams{}, in, out)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(out.GetRoute().GetRequestMirrorPolicies()[0].GetHostRewriteLiteral()).To(Equal("shadow-svc.internal:8080"))
+	})
+
+	It("should not set HostRewriteLiteral by default", func() {
+		p := NewPlugin()
+
+		upRef := &core.ResourceRef{
+			Name:      "some-upstream",
+			Namespace: "default",
+		}
+		in := &v1.Route{
+			Options: &v1.RouteOptions{
+				Shadowing: &shadowing.RouteShadowing{
+					Upstream:   upRef,
+					Percentage: 100,
+				},
+			},
+		}
+		out := &envoy_config_route_v3.Route{}
+		err := p.ProcessRoute(plugins.RouteParams{}, in, out)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(out.GetRoute().GetRequestMirrorPolicies()[0].GetHostRewriteLiteral()).To(BeEmpty())
+	})
+
+	// Envoy implicitly disables the -shadow suffix when host_rewrite_literal is set, so we pass both
+	// through as configured rather than reconciling them here.
+	It("should pass through both HostRewriteLiteral and DisableShadowHostSuffixAppend", func() {
+		p := NewPlugin()
+
+		upRef := &core.ResourceRef{
+			Name:      "some-upstream",
+			Namespace: "default",
+		}
+		in := &v1.Route{
+			Options: &v1.RouteOptions{
+				Shadowing: &shadowing.RouteShadowing{
+					Upstream:                      upRef,
+					Percentage:                    100,
+					DisableShadowHostSuffixAppend: false,
+					HostRewriteLiteral:            "shadow-svc.internal",
+				},
+			},
+		}
+		out := &envoy_config_route_v3.Route{}
+		err := p.ProcessRoute(plugins.RouteParams{}, in, out)
+		Expect(err).NotTo(HaveOccurred())
+		mirrorPolicy := out.GetRoute().GetRequestMirrorPolicies()[0]
+		Expect(mirrorPolicy.GetHostRewriteLiteral()).To(Equal("shadow-svc.internal"))
+		Expect(mirrorPolicy.GetDisableShadowHostSuffixAppend()).To(BeFalse())
+	})
+
 	It("should error when given invalid specs", func() {
 		p := NewPlugin()
 
