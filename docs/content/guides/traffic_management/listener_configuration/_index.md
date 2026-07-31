@@ -90,6 +90,32 @@ metadata: # collapsed for brevity
 
 ---
 
+## IPv4-only environments {#ipv4-only}
+
+By default, Gloo Gateway binds listeners to the IPv6 wildcard address `::`, which listens for traffic on all interfaces. In IPv4-only Kubernetes environments, this causes gateways to fail to bind and proxies to receive an invalid xDS fallback configuration. Use the `gatewayProxies.<NAME>.gatewaySettings.ipv4Only` Helm value to switch the Gateway spec's `bindAddress` to `0.0.0.0` instead.
+
+1. Get the current Helm values for your installation and save them to a file.
+   ```sh
+   helm get values gloo -n gloo-system -o yaml > gloo-gateway.yaml
+   open gloo-gateway.yaml
+   ```
+
+2. Add the following value to your Helm values file. Replace `<NAME>` with the name of your gateway proxy, such as `gatewayProxy`.
+   ```yaml
+   gatewayProxies:
+     <NAME>:
+       gatewaySettings:
+         ipv4Only: true
+   ```
+
+3. Upgrade your Gloo Gateway installation with the updated values.
+   ```sh
+   helm upgrade -n gloo-system gloo gloo/gloo \
+     -f gloo-gateway.yaml
+   ```
+
+---
+
 ## Next Steps
 
 The guide above showed some basics on how to manipulate settings for the gateway listener in Gloo Gateway. The following guides provide additional detail around what you may want to change in the gateway CR and how to do so.
