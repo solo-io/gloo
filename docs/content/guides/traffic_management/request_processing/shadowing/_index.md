@@ -21,6 +21,8 @@ To enable traffic shadowing in Gloo Gateway, we need to add a route option to th
 
 * `upstream` : Indicates the upstream to which to send the shadowed traffic.
 * `percentage` : Percent of traffic to shadow (must be an integer between 0 and 100).
+* `disableShadowHostSuffixAppend` : If `true`, the shadowed `Host` header keeps its original value instead of having `-shadow` appended.
+* `hostRewriteLiteral` : Replaces the shadowed `Host` header with this value. Setting it implies `disableShadowHostSuffixAppend`.
 
 In the example below, all traffic going to `petstore` is also forwarded to `petstore-v2`.
 {{< highlight yaml "hl_lines=19-23" >}}
@@ -54,3 +56,10 @@ spec:
 When your new service gets a copy of a live-traffic message (ie, the copy), how can your service know that this is indeed a copy? This could be valuable information in how your service deals with the message, especially if this is a stateful service. For example, if you can detect this is a shadowed message, you can rollback any stateful transactions that may be associated with the processing of the message. 
 
 With Gloo Gateway, since it's based on Envoy, the `Host` or `Authority` header includes a `-shadow` postfix to it. For example, if we're sending traffic to `foo.bar.com` the `Host` value will then be `foo.bar.com-shadow`. From there, the service can detect this and response accordingly. See this blog [on advanced traffic shadowing patterns](https://blog.christianposta.com/microservices/advanced-traffic-shadowing-patterns-for-microservices-with-istio-service-mesh/) for more.
+
+Some shadow destinations reject the modified header, for example when they enforce strict host-based routing. Two options change this behavior:
+
+* Set `disableShadowHostSuffixAppend: true` to leave the original `Host` value untouched.
+* Set `hostRewriteLiteral` to send a specific `Host` value instead. The whole header is replaced, so include a port if the shadow destination needs one, and note that the port from the original host is not carried over. This option implies `disableShadowHostSuffixAppend`, so setting both is redundant. Requires Envoy 1.36 or newer.
+
+If your service relies on the `-shadow` suffix to detect shadowed traffic, changing either option means it needs another way to tell the copy apart.

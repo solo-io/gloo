@@ -36,6 +36,7 @@ See here for additional information on Envoy's shadowing capabilities: https://w
 "upstream": .core.solo.io.ResourceRef
 "percentage": float
 "disableShadowHostSuffixAppend": bool
+"hostRewriteLiteral": string
 
 ```
 
@@ -44,6 +45,7 @@ See here for additional information on Envoy's shadowing capabilities: https://w
 | `upstream` | [.core.solo.io.ResourceRef](../../../../../../../../solo-kit/api/v1/ref.proto.sk/#resourceref) | The upstream to which the shadowed traffic should be sent. |
 | `percentage` | `float` | This should be a value between 0.0 and 100.0, with up to 6 significant digits. |
 | `disableShadowHostSuffixAppend` | `bool` | If true, the host/authority header of the shadow request will not have `-shadow` appended. Useful when the shadow destination has strict host-based routing rules that would reject the modified header. See https://www.envoyproxy.io/docs/envoy/latest/api-v3/config/route/v3/route_components.proto#envoy-v3-api-field-config-route-v3-routeaction-requestmirrorpolicy-disable-shadow-host-suffix-append. |
+| `hostRewriteLiteral` | `string` | If set, the host/authority header of the shadow request is replaced with this value. The whole value is replaced, so include a port if the shadow destination needs one. Implies disable_shadow_host_suffix_append. Requires Envoy 1.36 or newer. See https://www.envoyproxy.io/docs/envoy/latest/api-v3/config/route/v3/route_components.proto#envoy-v3-api-field-config-route-v3-routeaction-requestmirrorpolicy-host-rewrite-literal. |
 
 
 
