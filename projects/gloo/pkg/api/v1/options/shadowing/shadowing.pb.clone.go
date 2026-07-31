@@ -45,5 +45,7 @@ func (m *RouteShadowing) Clone() proto.Message {
 
 	target.DisableShadowHostSuffixAppend = m.GetDisableShadowHostSuffixAppend()
 
+	target.HostRewriteLiteral = m.GetHostRewriteLiteral()
+
 	return target
 }
