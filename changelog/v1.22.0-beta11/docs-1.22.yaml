@@ -1,0 +1,6 @@
+changelog:
+  - type: NON_USER_FACING
+    resolvesIssue: false
+    description: >-
+      Prepares 1.22 docs.
+      skipCI-kube-tests:true
