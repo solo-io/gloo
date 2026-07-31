@@ -39,8 +39,13 @@ type RouteShadowing struct {
 	// Useful when the shadow destination has strict host-based routing rules that would reject the modified header.
 	// See https://www.envoyproxy.io/docs/envoy/latest/api-v3/config/route/v3/route_components.proto#envoy-v3-api-field-config-route-v3-routeaction-requestmirrorpolicy-disable-shadow-host-suffix-append
 	DisableShadowHostSuffixAppend bool `protobuf:"varint,3,opt,name=disable_shadow_host_suffix_append,json=disableShadowHostSuffixAppend,proto3" json:"disable_shadow_host_suffix_append,omitempty"`
-	unknownFields                 protoimpl.UnknownFields
-	sizeCache                     protoimpl.SizeCache
+	// If set, the host/authority header of the shadow request is replaced with this value.
+	// The whole value is replaced, so include a port if the shadow destination needs one.
+	// Implies disable_shadow_host_suffix_append. Requires Envoy 1.36 or newer.
+	// See https://www.envoyproxy.io/docs/envoy/latest/api-v3/config/route/v3/route_components.proto#envoy-v3-api-field-config-route-v3-routeaction-requestmirrorpolicy-host-rewrite-literal
+	HostRewriteLiteral string `protobuf:"bytes,4,opt,name=host_rewrite_literal,json=hostRewriteLiteral,proto3" json:"host_rewrite_literal,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
 }
 
 func (x *RouteShadowing) Reset() {
@@ -94,17 +99,25 @@ func (x *RouteShadowing) GetDisableShadowHostSuffixAppend() bool {
 	return false
 }
 
+func (x *RouteShadowing) GetHostRewriteLiteral() string {
+	if x != nil {
+		return x.HostRewriteLiteral
+	}
+	return ""
+}
+
 var File_github_com_solo_io_gloo_projects_gloo_api_v1_options_shadowing_shadowing_proto protoreflect.FileDescriptor
 
 const file_github_com_solo_io_gloo_projects_gloo_api_v1_options_shadowing_shadowing_proto_rawDesc = "" +
 	"\n" +
-	"Ngithub.com/solo-io/gloo/projects/gloo/api/v1/options/shadowing/shadowing.proto\x12\x1eshadowing.options.gloo.solo.io\x1a,github.com/solo-io/solo-kit/api/v1/ref.proto\x1a\x12extproto/ext.proto\"\xb1\x01\n" +
+	"Ngithub.com/solo-io/gloo/projects/gloo/api/v1/options/shadowing/shadowing.proto\x12\x1eshadowing.options.gloo.solo.io\x1a,github.com/solo-io/solo-kit/api/v1/ref.proto\x1a\x12extproto/ext.proto\"\xe3\x01\n" +
 	"\x0eRouteShadowing\x125\n" +
 	"\bupstream\x18\x01 \x01(\v2\x19.core.solo.io.ResourceRefR\bupstream\x12\x1e\n" +
 	"\n" +
 	"percentage\x18\x02 \x01(\x02R\n" +
 	"percentage\x12H\n" +
-	"!disable_shadow_host_suffix_append\x18\x03 \x01(\bR\x1ddisableShadowHostSuffixAppendBP\xb8\xf5\x04\x01\xc0\xf5\x04\x01\xd0\xf5\x04\x01ZBgithub.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/shadowingb\x06proto3"
+	"!disable_shadow_host_suffix_append\x18\x03 \x01(\bR\x1ddisableShadowHostSuffixAppend\x120\n" +
+	"\x14host_rewrite_literal\x18\x04 \x01(\tR\x12hostRewriteLiteralBP\xb8\xf5\x04\x01\xc0\xf5\x04\x01\xd0\xf5\x04\x01ZBgithub.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/shadowingb\x06proto3"
 
 var (
 	file_github_com_solo_io_gloo_projects_gloo_api_v1_options_shadowing_shadowing_proto_rawDescOnce sync.Once
