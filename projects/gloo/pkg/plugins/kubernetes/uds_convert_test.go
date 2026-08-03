@@ -148,6 +148,46 @@ var _ = Describe("UdsConvert", func() {
 				Expect(up.GetUseHttp2().GetValue()).To(BeFalse())
 			})
 
+			It("should keep an annotation-provided selector over the Service selector and a manual edit", func() {
+				svc := &corev1.Service{
+					Spec: corev1.ServiceSpec{
+						Selector: map[string]string{"app": "echo", "version": "blue"},
+					},
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "test",
+						Namespace: "test-ns",
+						Annotations: map[string]string{
+							serviceconverter.DeepMergeAnnotationPrefix: "true",
+							serviceconverter.GlooAnnotationPrefix: `{
+								"kube": {
+									"selector": {
+										"app": "echo",
+										"version": "green"
+									}
+								}
+							}`,
+						},
+					},
+				}
+
+				port := corev1.ServicePort{Port: 123}
+				desired := uc.CreateUpstream(context.TODO(), svc, port)
+
+				// Simulate a user editing the discovered Upstream. Cloning desired ensures the
+				// selector is the only difference, so didChange is tied to that field.
+				original := desired.Clone().(*v1.Upstream)
+				original.GetKube().Selector = map[string]string{"app": "echo", "version": "red"}
+
+				updated, err := UpdateUpstream(original, desired)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(updated).To(BeTrue())
+
+				Expect(desired.GetKube().GetSelector()).To(Equal(map[string]string{"app": "echo", "version": "green"}))
+				Expect(desired.GetKube().GetServiceName()).To(Equal("test"))
+				Expect(desired.GetKube().GetServiceNamespace()).To(Equal("test-ns"))
+				Expect(desired.GetKube().GetServicePort()).To(Equal(uint32(123)))
+			})
+
 			Describe("Should create upstream with SSL Config when annotations exist", testSetSslConfig)
 
 			expectAnnotationsToProduceUpstreamConfig := func(annotations map[string]string, expectedCfg *v1.Upstream) {
