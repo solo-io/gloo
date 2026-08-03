@@ -404,12 +404,11 @@ type TransformationStages struct {
 	// 3. `clear_route_cache` does NOT work in this stage as the routing decision is already made.
 	// Enterprise only
 	PostRouting *RequestResponseTransformations `protobuf:"bytes,6,opt,name=post_routing,json=postRouting,proto3" json:"post_routing,omitempty"`
-	// Inherit transformation config from parent. This has no affect on VirtualHost level transformations.
-	// If a RouteTable or Route wants to inherit transformations from it's parent RouteTable or VirtualHost,
-	// this should be set to true, else transformations from parents will not be inherited.
-	// Transformations are ordered so the child's transformation gets priority, so in the case where a child
-	// and parent's transformation matchers are the same, only the child's transformation will run because
-	// only one transformation will run per stage.
+	// Inherit transformation config from the parent route. This field has no effect on VirtualHost-level transformations.
+	// If a RouteTable or Route wants to inherit transformations from its parent Route,
+	// set this value to true, else transformations from parents are not inherited.
+	// Inherited parent route transformations are appended. This way, if both the child and parent route matchers are the same,
+	// only the child's transformation runs, because only one transformation runs per stage.
 	// Defaults to false.
 	InheritTransformation bool `protobuf:"varint,3,opt,name=inherit_transformation,json=inheritTransformation,proto3" json:"inherit_transformation,omitempty"`
 	// When enabled, log request/response body and headers before and after all transformations defined here are applied.\
