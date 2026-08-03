@@ -33,16 +33,14 @@ virtualHost:
 
 #### Inheritance rules
 
-By default, a transformation defined on a Virtual Service attribute is **inherited** by all the child attributes:
+When a child attribute has no `stagedTransformations` block of its own, it automatically inherits the transformation from its parent:
 
-- transformations defined on `VirtualHosts` are inherited by `Route`s and `WeightedDestination`s.
+- transformations defined on `VirtualHosts` are inherited by `Route`s and `WeightedDestination`s within the same VirtualService.
 - transformations defined on `Route`s are inherited by `WeightedDestination`s.
 
-If a child attribute defines its own transformation, it overrides the configuration on its parent.
-However, if `inheritTransformation` is set to true on the `stagedTransformations` for a Route, it can inherit transformations
-from its parent as illustrated below.
+If a child attribute defines its own `stagedTransformations` block, it overrides the parent's configuration by default. Set `inheritTransformation: true` on the child's `stagedTransformations` to also apply the parent route's transformations.
 
-Let's define the `virtualHost` and its child route is defined as follows:
+Consider the following example where a transformation is defined on the `virtualHost` and the child route: 
 {{< highlight yaml "hl_lines=7-13 20-27" >}}
 # This snippet has been abridged for brevity, and only includes transformation-relevant config
 virtualHost:
@@ -72,7 +70,7 @@ virtualHost:
                       text: 'baz'
 {{< /highlight >}}
 
-Because `inheritTransformation` is set to `true` on the child route, the parent `virtualHost` transformation config is merged into the child. The child route's transformations look like the following.
+Because `inheritTransformation` is set to `true` on the child route, the parent `virtualHost` transformation config is appended to the child's transformation list. The child route's transformations look like the following.
 
 {{< highlight yaml "hl_lines=8-22" >}}
 # This snippet has been abridged for brevity, and only includes transformation-relevant config
@@ -98,9 +96,77 @@ routes:
                 text: 'bar'
 {{< /highlight >}}
 
-As stated above, the route's configuration overrides its parent's, but now it also inherits the parent's transformations. So in this case,
-routes matching `/parent` are also transformed. If `inheritTransformation` were set to `false`, the matching `/parent` routes would not be transformed.
-Note that only the first matched transformation runs, so if both the child and the parent had the same matchers, the child's transformation would run.
+The route's own transformations come first in the list; the parent's routes are appended after. Because only the **first matched transformation runs per stage**, the child transformation always wins when both have the same matcher. Note that if you set `inheritTransformation` to `false` (default), the parent's transformations are not inherited and only the child's transformations apply.
+
+##### Inheritance rules for delegated RouteTables
+
+Transformation inheritance behaves differently when you use route delegation with `delegateAction`. The key difference is that delegated RouteTables inherit only from the **delegating route's** options, not from the VirtualHost's options.
+
+Even if you set a transformation on the VirtualHost and set `inheritTransformation: true` on the delegated RouteTable, the RouteTable does not pick up the VirtualHost transformation. The `inheritTransformation` flag only controls inheritance from the parent **route**, not from the VirtualHost.
+
+The following table summarizes all delegation inheritance scenarios:
+
+| Parent's transformation location | Delegated RouteTable has own transformation? | `inheritTransformation` on delegated RouteTable | Outcome |
+|---|---|---|---|
+| VirtualHost options | — | `false` or `true` | Never inherited; VirtualHost transformations are not visible to delegated RouteTables |
+| Route options | No | `false` (default) | Parent route transformation does not apply |
+| Route options | No | `true` | Parent route transformation applies |
+| Route options | Yes, at a different pipeline stage (`early` vs `regular`) | `true` | Both apply; parent route transformation is appended after the delegated RouteTable's transformation |
+| Route options | Yes, at a different pipeline stage (`early` vs `regular`) | `false` (default) | Only the delegated RouteTable's transformation applies |
+| Route options | Yes, at the same pipeline stage with the same matcher | — | Delegated RouteTable's transformation always wins |
+
+In the following example, a VirtualHost delegates to a RouteTable. The VirtualHost has a transformation, and the delegating route also has a transformation. Only the delegating route's transformation is visible to the RouteTable when `inheritTransformation: true` is set.
+
+```yaml
+# VirtualHost delegates to a RouteTable
+virtualHost:
+  options:
+    stagedTransformations:
+      regular:
+        requestTransforms:
+        - requestTransformation:
+            transformationTemplate:
+              headers:
+                x-vhost-transform:
+                  text: 'set-by-vhost'   # NOT inherited by the RouteTable
+  routes:
+  - matchers:
+    - prefix: /api
+    options:
+      stagedTransformations:
+        regular:
+          requestTransforms:
+          - requestTransformation:
+              transformationTemplate:
+                headers:
+                  x-route-transform:
+                    text: 'set-by-delegating-route'   # Inherited by RouteTable when inheritTransformation: true
+    delegateAction:
+      ref:
+        name: my-route-table
+        namespace: gloo-system
+---
+# RouteTable inherits from the delegating route, not the VirtualHost
+apiVersion: gateway.solo.io/v1
+kind: RouteTable
+metadata:
+  name: my-route-table
+  namespace: gloo-system
+spec:
+  routes:
+  - matchers:
+    - prefix: /api/v1
+    options:
+      stagedTransformations:
+        inheritTransformation: true   # Inherits x-route-transform from delegating route; x-vhost-transform is not inherited
+        regular:
+          requestTransforms:
+          - requestTransformation:
+              transformationTemplate:
+                headers:
+                  x-child-transform:
+                    text: 'set-by-routetable'
+```
 
 ### Configuration format
 Learn more about the properties that you can set in the `stagedTransformations` {{< protobuf display="object" name="transformation.options.gloo.solo.io.TransformationStages" >}} section of your YAML file.

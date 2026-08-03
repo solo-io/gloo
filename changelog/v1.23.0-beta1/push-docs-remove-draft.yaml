@@ -1,0 +1,7 @@
+changelog:
+  - type: NON_USER_FACING
+    resolvesIssue: false
+    description: >-
+      Stops the push-docs.yaml workflow from managing the draft front matter of a
+      version's _index.md, so publishing a docs version stays a manual decision.
+      skipCI-kube-tests:true

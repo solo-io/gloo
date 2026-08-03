@@ -55,11 +55,78 @@ spec:
 
 When your new service gets a copy of a live-traffic message (ie, the copy), how can your service know that this is indeed a copy? This could be valuable information in how your service deals with the message, especially if this is a stateful service. For example, if you can detect this is a shadowed message, you can rollback any stateful transactions that may be associated with the processing of the message. 
 
-With Gloo Gateway, since it's based on Envoy, the `Host` or `Authority` header includes a `-shadow` postfix to it. For example, if we're sending traffic to `foo.bar.com` the `Host` value will then be `foo.bar.com-shadow`. From there, the service can detect this and response accordingly. See this blog [on advanced traffic shadowing patterns](https://blog.christianposta.com/microservices/advanced-traffic-shadowing-patterns-for-microservices-with-istio-service-mesh/) for more.
+With Gloo Gateway, since it's based on Envoy, the `Host` or `Authority` header includes a `-shadow` postfix to it. For example, if we're sending traffic to `foo.bar.com` the `Host` value will then be `foo.bar.com-shadow`. From there, the service can detect this and response accordingly. See this blog [on advanced traffic shadowing patterns](https://blog.christianposta.com/microservices/advanced-traffic-shadowing-patterns-for-microservices-with-istio-service-mesh/) for more. If your shadow destination has strict host-based routing rules that reject the modified header, you can [disable the `-shadow` suffix](#disable-shadow-suffix) or [rewrite the Host header to a specific value](#host-rewrite-literal).
 
-Some shadow destinations reject the modified header, for example when they enforce strict host-based routing. Two options change this behavior:
+### Disable the `-shadow` host suffix {#disable-shadow-suffix}
 
-* Set `disableShadowHostSuffixAppend: true` to leave the original `Host` value untouched.
-* Set `hostRewriteLiteral` to send a specific `Host` value instead. The whole header is replaced, so include a port if the shadow destination needs one, and note that the port from the original host is not carried over. This option implies `disableShadowHostSuffixAppend`, so setting both is redundant. Requires Envoy 1.36 or newer.
+By default, Envoy appends `-shadow` to the `Host`/`:authority` header of mirrored requests so the shadow destination can identify shadowed traffic. If your shadow destination has strict host-based routing rules that reject the modified header, set `disableShadowHostSuffixAppend: true` in the route options to send the original `Host` header unchanged.
 
-If your service relies on the `-shadow` suffix to detect shadowed traffic, changing either option means it needs another way to tell the copy apart.
+{{< highlight yaml "hl_lines=19-24" >}}
+apiVersion: gateway.solo.io/v1
+kind: VirtualService
+metadata:
+  name: 'default'
+  namespace: 'gloo-system'
+spec:
+  virtualHost:
+    domains:
+    - '*'
+    routes:
+    - matchers:
+       - prefix: '/petstore'
+      routeAction:
+        single:
+          upstream:
+            name: 'petstore'
+            namespace: 'gloo-system'
+      options:
+        shadowing:
+          upstream:
+            name: 'petstore-v2'
+            namespace: 'gloo-system'
+          percentage: 100
+          disableShadowHostSuffixAppend: true
+{{< /highlight >}}
+
+| Setting | Description |
+|---------|-------------|
+| `shadowing.disableShadowHostSuffixAppend` | If `true`, the `-shadow` suffix is not appended to the `Host`/`:authority` header of mirrored requests. Defaults to `false`. |
+
+### Rewrite the Host header for shadow traffic {#host-rewrite-literal}
+
+If your shadow destination requires a specific `Host`/`:authority` value, such as a different hostname or a hostname with a port, you can use the `hostRewriteLiteral` field to replace the header entirely. The full header value is replaced, so include a port if the shadow destination needs one. The port from the original request is not carried over automatically.
+
+{{% notice note %}}
+Setting `hostRewriteLiteral` implies the `disableShadowHostSuffixAppend: true` setting. You do not need to set `disableShadowHostSuffixAppend: true` in addition to the `hostRewriteLiteral` field
+{{% /notice %}}
+
+{{< highlight yaml "hl_lines=19-25" >}}
+apiVersion: gateway.solo.io/v1
+kind: VirtualService
+metadata:
+  name: 'default'
+  namespace: 'gloo-system'
+spec:
+  virtualHost:
+    domains:
+    - '*'
+    routes:
+    - matchers:
+       - prefix: '/petstore'
+      routeAction:
+        single:
+          upstream:
+            name: 'petstore'
+            namespace: 'gloo-system'
+      options:
+        shadowing:
+          upstream:
+            name: 'petstore-v2'
+            namespace: 'gloo-system'
+          percentage: 100
+          hostRewriteLiteral: "petstore-v2.example.com"
+{{< /highlight >}}
+
+| Setting | Description |
+|---------|-------------|
+| `shadowing.hostRewriteLiteral` | Replaces the `Host`/`:authority` header of mirrored requests with this value. Include a port if the shadow destination needs one. Enables the `disableShadowHostSuffixAppend: true` setting for you. |
