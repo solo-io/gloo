@@ -19,7 +19,7 @@ When a VirtualService delegates traffic to RouteTables via the `delegateAction.s
 
 ### Distinct weights
 
-When each matched RouteTable has a unique `weight` value, Gloo Gateway processes RouteTables in ascending weight order. Lower weights are assigned higher priority. Routes within each RouteTable appear in the final Envoy list exactly as you wrote them in the YAML, from top to bottom. When building the merged list, Gloo Gateway concatenates the RouteTables in weight order without sorting individual routes across RouteTable boundaries. This means that no route from a higher-weight RouteTable can appear before a route from a lower-weight RouteTable.
+When each matched RouteTable has a unique `weight` value, Gloo Gateway processes RouteTables in ascending weight order. Lower weights are assigned higher priority, with `0` being the highest priority weight that you can set. Routes within each RouteTable appear in the final Envoy list exactly as you wrote them in the YAML, from top to bottom. When building the merged list, Gloo Gateway concatenates the RouteTables in weight order without sorting individual routes across RouteTable boundaries. This means that no route from a higher-weight RouteTable can appear before a route from a lower-weight RouteTable.
 
 The `weight` field defaults to `0` when not set. 
 

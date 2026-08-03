@@ -97,7 +97,7 @@ spec:
 If your shadow destination requires a specific `Host`/`:authority` value, such as a different hostname or a hostname with a port, you can use the `hostRewriteLiteral` field to replace the header entirely. The full header value is replaced, so include a port if the shadow destination needs one. The port from the original request is not carried over automatically.
 
 {{% notice note %}}
-Setting `hostRewriteLiteral` implies the `disableShadowHostSuffixAppend: true` setting. 
+Setting `hostRewriteLiteral` implies the `disableShadowHostSuffixAppend: true` setting. You do not need to set `disableShadowHostSuffixAppend: true` in addition to the `hostRewriteLiteral` field
 {{% /notice %}}
 
 {{< highlight yaml "hl_lines=19-25" >}}
@@ -129,4 +129,4 @@ spec:
 
 | Setting | Description |
 |---------|-------------|
-| `shadowing.hostRewriteLiteral` | Replaces the `Host`/`:authority` header of mirrored requests with this value. Include a port if the shadow destination needs one. Implies `disableShadowHostSuffixAppend: true`.  |
+| `shadowing.hostRewriteLiteral` | Replaces the `Host`/`:authority` header of mirrored requests with this value. Include a port if the shadow destination needs one. Enables the `disableShadowHostSuffixAppend: true` setting for you. |
