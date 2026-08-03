@@ -40,7 +40,7 @@ When a child attribute has no `stagedTransformations` block of its own, it autom
 
 If a child attribute defines its own `stagedTransformations` block, it overrides the parent's configuration by default. Set `inheritTransformation: true` on the child's `stagedTransformations` to also apply the parent route's transformations.
 
-Let's define the `virtualHost` and its child route is defined as follows:
+Consider the following example where a transformation is defined on the `virtualHost` and the child route: 
 {{< highlight yaml "hl_lines=7-13 20-27" >}}
 # This snippet has been abridged for brevity, and only includes transformation-relevant config
 virtualHost:
@@ -96,13 +96,24 @@ routes:
                 text: 'bar'
 {{< /highlight >}}
 
-The route's own transformations come first in the list; the parent's are appended after. Because only the **first matched transformation runs per stage**, the child transformation always wins when both have the same matcher. Note that if you set `inheritTransformation` to `false` (default), the parent's transformations are not inherited and only the child's transformations apply.
+The route's own transformations come first in the list; the parent's routes are appended after. Because only the **first matched transformation runs per stage**, the child transformation always wins when both have the same matcher. Note that if you set `inheritTransformation` to `false` (default), the parent's transformations are not inherited and only the child's transformations apply.
 
 ##### Inheritance rules for delegated RouteTables
 
 Transformation inheritance behaves differently when you use route delegation with `delegateAction`. The key difference is that delegated RouteTables inherit only from the **delegating route's** options, not from the VirtualHost's options.
 
 Even if you set a transformation on the VirtualHost and set `inheritTransformation: true` on the delegated RouteTable, the RouteTable does not pick up the VirtualHost transformation. The `inheritTransformation` flag only controls inheritance from the parent **route**, not from the VirtualHost.
+
+The following table summarizes all delegation inheritance scenarios:
+
+| Parent's transformation location | Delegated RouteTable has own transformation? | `inheritTransformation` on delegated RouteTable | Outcome |
+|---|---|---|---|
+| VirtualHost options | — | `false` or `true` | Never inherited; VirtualHost transformations are not visible to delegated RouteTables |
+| Route options | No | `false` (default) | Parent route transformation does not apply |
+| Route options | No | `true` | Parent route transformation applies |
+| Route options | Yes, at a different pipeline stage (`early` vs `regular`) | `true` | Both apply; parent route transformation is appended after the delegated RouteTable's transformation |
+| Route options | Yes, at a different pipeline stage (`early` vs `regular`) | `false` (default) | Only the delegated RouteTable's transformation applies |
+| Route options | Yes, at the same pipeline stage with the same matcher | — | Delegated RouteTable's transformation always wins |
 
 In the following example, a VirtualHost delegates to a RouteTable. The VirtualHost has a transformation, and the delegating route also has a transformation. Only the delegating route's transformation is visible to the RouteTable when `inheritTransformation: true` is set.
 
