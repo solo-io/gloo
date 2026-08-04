@@ -7,3 +7,9 @@ changelog:
     dependencyOwner: solo-io
     dependencyRepo: go-utils
     dependencyTag: v0.30.1
+  - type: NON_USER_FACING
+    resolvesIssue: false
+    description: >-
+      Download the envtest binaries once during install-go-tools so the parallel
+      projects/gateway2 test packages no longer race to populate the shared
+      setup-envtest store.
