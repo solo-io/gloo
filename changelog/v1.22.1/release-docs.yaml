@@ -1,5 +1,0 @@
-changelog:
-  - type: NON_USER_FACING
-    resolvesIssue: false
-    description: >-
-      Add maintainer release process documentation and link it from the README.
