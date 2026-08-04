@@ -252,7 +252,7 @@ require (
 	github.com/iancoleman/strcase v0.3.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 // indirect
-	github.com/jmespath/go-jmespath v0.3.0 // indirect
+	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/jmoiron/sqlx v1.4.0 // indirect
 	github.com/jonboulle/clockwork v0.5.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
@@ -342,7 +342,7 @@ require (
 	golang.org/x/term v0.44.0 // indirect
 	golang.org/x/text v0.39.0 // indirect
 	golang.org/x/time v0.14.0 // indirect
-	golang.org/x/xerrors v0.0.0-20231012003039-104605ab7028 // indirect
+	golang.org/x/xerrors v0.0.0-20240903120638-7835f813f4da // indirect
 	gomodules.xyz/jsonpatch/v2 v2.5.0 // indirect
 	gopkg.in/evanphx/json-patch.v4 v4.13.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
@@ -368,8 +368,6 @@ require (
 )
 
 replace (
-	// pin go-control-plane/envoy version to match the actual envoy version used
-	github.com/envoyproxy/go-control-plane/envoy => github.com/envoyproxy/go-control-plane/envoy v1.36.1-0.20260108162445-88062bc404b3
 	// pin to the jwt-go fork to fix CVE.
 	// using the pseudo version of github.com/form3tech-oss/jwt-go@v3.2.3 instead of the version directly,
 	// to avoid error about it being used for two different module paths
@@ -377,6 +375,8 @@ replace (
 	// Updated to fix CVE-2025-15558
 	github.com/docker/cli => github.com/docker/cli v29.2.0+incompatible
 	github.com/docker/docker => github.com/moby/moby v28.2.2+incompatible
+	// pin go-control-plane/envoy version to match the actual envoy version used
+	github.com/envoyproxy/go-control-plane/envoy => github.com/envoyproxy/go-control-plane/envoy v1.36.1-0.20260108162445-88062bc404b3
 	// go.uber.org/mock => go.uber.org/mock v0.5.2
 
 	// Newer versions result in changes to the names of generated metrics
