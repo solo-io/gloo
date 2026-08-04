@@ -27,6 +27,16 @@ ENVTEST_K8S_VERSION = 1.31
 envtest-path:
 	@$(ENVTEST) use $(ENVTEST_K8S_VERSION) -p path --arch=amd64
 
+# Populates the shared setup-envtest store ahead of the test run.
+# The test packages under projects/gateway2 run in parallel and each shell out to
+# envtest-path, so against a cold store they race to unpack the same
+# version-platform directory: setup-envtest wipes that directory before extracting,
+# so one process deletes the binaries out from under the other. Once the version is
+# on disk, envtest-path resolves it locally and no longer writes to the store.
+.PHONY: envtest-download
+envtest-download:
+	@$(ENVTEST) use $(ENVTEST_K8S_VERSION) --arch=amd64 -p path > /dev/null
+
 ENVTEST = $(DEPSGOBIN)/setup-envtest
 
 DEPSGOBIN:=$(shell pwd)/.bin
@@ -36,3 +46,4 @@ export GOBIN:=$(DEPSGOBIN)
 install-go-tools:
 	mkdir -p $(DEPSGOBIN)
 	test -s $(ENVTEST) || go install sigs.k8s.io/controller-runtime/tools/setup-envtest@e4c1c38bcbdb
+	$(MAKE) envtest-download
