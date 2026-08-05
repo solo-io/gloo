@@ -1,0 +1,6 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/solo-projects/issues/8980
+    resolvesIssue: false
+    description: >-
+      Revert "fix: validate upstreams at admission in k8s gateway api mode (#11322)" which has a breaking change behavior that needs further consideration
