@@ -355,8 +355,6 @@ require (
 )
 
 replace (
-        // pin go-control-plane version to match envoy version
-	github.com/envoyproxy/go-control-plane/envoy => github.com/envoyproxy/go-control-plane/envoy v1.35.0
 
 	github.com/apache/thrift => github.com/apache/thrift v0.14.0
 	github.com/census-instrumentation/opencensus-proto => github.com/census-instrumentation/opencensus-proto v0.2.0 // indirect
@@ -370,6 +368,8 @@ replace (
 	// Updated to fix CVE-2025-15558
 	github.com/docker/cli => github.com/docker/cli v29.2.0+incompatible
 	github.com/docker/docker => github.com/moby/moby v28.2.2+incompatible
+	// pin go-control-plane version to match envoy version
+	github.com/envoyproxy/go-control-plane/envoy => github.com/envoyproxy/go-control-plane/envoy v1.36.0
 	// https://github.com/fsnotify/fsnotify/issues/672
 	github.com/fsnotify/fsnotify => github.com/fsnotify/fsnotify v1.7.0
 
