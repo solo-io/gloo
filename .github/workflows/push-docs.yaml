@@ -119,21 +119,46 @@ jobs:
           # Build the line list: `main` (which represents the current in-development minor,
           # MAIN_MINOR) plus every vMAJOR.MINOR.x LTS branch whose minor is in the window
           # MIN_MINOR <= minor < MAIN_MINOR. The strict regex skips gloo's many non-release branches;
-          # the lower bound drops EOL lines; the upper bound drops the current dev line's own just-cut
-          # branch (main already covers MAIN_MINOR) and any future/experimental line (e.g. v2.0.x
-          # while main is 1.22).
-          LINES=( "main" )
+          # the lower bound drops EOL lines; the upper bound drops any future/experimental line
+          # (e.g. v2.0.x while main is 1.22).
+          #
+          # MAIN_MINOR normally has no branch of its own yet (main hasn't been branched off for
+          # it), which is what "< MAIN_MINOR" for LTS branches and including main unconditionally
+          # assumes. But there is a real gap between "the vMAIN_MINOR.x branch gets cut" and "main
+          # gets its first tag past that point" (main keeps existing, untagged, until whatever
+          # comes next is ready) - during that gap main_tag (and so MAIN_MINOR) still reflects the
+          # now-superseded pre-cut version, even though the branch has since moved on with its own
+          # newer patches. If origin/vMAIN_MINOR.x already exists, that branch - not main - owns
+          # MAIN_MINOR's versioning now; main is skipped this run (it has nothing new to
+          # contribute until it gets a tag past the cut, which will naturally advance MAIN_MINOR
+          # on a later run).
+          main_branch_cut=0
+          if git -C "$GLOO" rev-parse --verify --quiet "origin/v${MAIN_MINOR}.x^{commit}" >/dev/null; then
+            main_branch_cut=1
+            warn "origin/v${MAIN_MINOR}.x already exists but main's newest tag (${main_tag}) is still ${MAIN_MINOR}.x - main hasn't been tagged past the branch cut yet. Skipping main this run; v${MAIN_MINOR}.x now owns ${MAIN_MINOR}.x's versioning."
+          fi
+
+          LINES=()
+          [[ "$main_branch_cut" -eq 0 ]] && LINES+=( "main" )
           while read -r b; do
             b="${b##*origin/}"
             [[ "$b" =~ ^v([0-9]+\.[0-9]+)\.x$ ]] || continue
             m="${BASH_REMATCH[1]}"
             ver_le "$MIN_MINOR" "$m" || continue                       # minor >= MIN_MINOR
-            { [[ "$m" != "$MAIN_MINOR" ]] && ver_le "$m" "$MAIN_MINOR"; } || continue   # minor < MAIN_MINOR
+            if [[ "$m" == "$MAIN_MINOR" ]]; then
+              [[ "$main_branch_cut" -eq 1 ]] || continue                # only the just-cut branch, not main's own not-yet-cut line
+            else
+              ver_le "$m" "$MAIN_MINOR" || continue                     # minor < MAIN_MINOR
+            fi
             LINES+=( "v${m}.x" )
           done < <(git -C "$GLOO" branch -r --list 'origin/v*.x' | sort -Vr)
 
-          [[ "${#LINES[@]}" -gt 1 ]] || die "No LTS branches in [${MIN_MINOR}, ${MAIN_MINOR}) found under origin/v*.x; only 'main' would be built. Were branches fetched?"
-          echo "Lines to process (main=${MAIN_MINOR}, plus ${MIN_MINOR} <= minor < ${MAIN_MINOR}): ${LINES[*]}"
+          [[ "${#LINES[@]}" -gt 0 ]] || die "No lines to process at all (checked main plus LTS branches in [${MIN_MINOR}, ${MAIN_MINOR}]). Were branches and tags fetched?"
+          if [[ "$main_branch_cut" -eq 1 ]]; then
+            echo "Lines to process (main skipped - v${MAIN_MINOR}.x already cut and owns ${MAIN_MINOR}.x - plus ${MIN_MINOR} <= minor < ${MAIN_MINOR}): ${LINES[*]}"
+          else
+            echo "Lines to process (main=${MAIN_MINOR}, plus ${MIN_MINOR} <= minor < ${MAIN_MINOR}): ${LINES[*]}"
+          fi
 
           # Validate the manual filter up front so a typo fails fast with the valid set.
           if [[ -n "${LINES_INPUT:-}" && "${LINES_INPUT}" != "all" ]]; then
@@ -377,9 +402,13 @@ jobs:
             cp "$GEN/static/content/gloo-changelog.docgen"  "$DOCS/static/changelog/gloo-changelog.docgen"
             cp "$GEN/static/content/glooe-changelog.docgen" "$DOCS/static/changelog/glooe-changelog.docgen"
             cp "$GEN/reference/security-posture.yaml"       "$DOCS/static/content/examples/manual/security-posture.yaml"
-            for s in gloo-security-scan gloo-security-scan-0 gloo-security-scan-1 gloo-security-scan-2 gloo-security-scan-3 gloo-security-scan-4 \
-                     glooe-security-scan glooe-security-scan-0 glooe-security-scan-1 glooe-security-scan-2 glooe-security-scan-3 glooe-security-scan-4; do
-              [ -f "$GEN/static/content/${s}.docgen" ] && cp "$GEN/static/content/${s}.docgen" "$DOCS/static/content/gg-security-updates/${s}.docgen" || true
+            # Glob rather than a fixed index list: the number of split files tracks how many
+            # images/CVEs are in the scan and grows over time (currently 8 splits per report,
+            # already past a previously hardcoded 0-4 here - which silently dropped every split
+            # beyond -4 without any error, since a missing higher index in a fixed list just
+            # isn't attempted at all).
+            for f in "$GEN"/static/content/gloo-security-scan*.docgen "$GEN"/static/content/glooe-security-scan*.docgen; do
+              [ -f "$f" ] && cp "$f" "$DOCS/static/content/gg-security-updates/$(basename "$f")"
             done
           fi
 
