@@ -419,15 +419,28 @@ jobs:
           cd "$DOCS"
           git add -A
           if git diff --cached --quiet; then
-            die "docsgen for ${REF} produced no changed files under docs/ - something is wrong."
+            # `prepare-oss` decides "needs a refresh" from a version-conref probe that isn't
+            # scoped to this line's own include-if block (it also matches this minor's version
+            # number wherever it appears in the shared next/previous-version display fields), so
+            # it can schedule a line whose actual reference content - the files copied above -
+            # is already fully in sync (e.g. a patch that touched no CLI/API/values/OSA content).
+            # That's a legitimate no-op for a non-primary line: nothing to upload, but nothing
+            # wrong either. The primary line is different - it always rewrites the shared
+            # changelog/security-scan files, so an empty diff there is still a real problem.
+            if [[ "$IS_PRIMARY" == "true" ]]; then
+              die "docsgen for ${REF} (primary line) produced no changed files under docs/ - the shared changelog/security-scan files should always change. Something is wrong."
+            fi
+            echo "::notice::docsgen for ${REF} produced no changed files under docs/ - already in sync for this patch. Nothing to upload for this line."
+          else
+            git diff --cached --name-only -z | tar -czf "/tmp/docsgen-${DIRECTORY}.tar.gz" --null -T -
           fi
-          git diff --cached --name-only -z | tar -czf "/tmp/docsgen-${DIRECTORY}.tar.gz" --null -T -
       - name: Upload this line's generated docs
         uses: actions/upload-artifact@v4
         with:
           name: docsgen-${{ matrix.directory }}
           path: /tmp/docsgen-${{ matrix.directory }}.tar.gz
           retention-days: 1
+          if-no-files-found: ignore
 
   # ---------------------------------------------------------------------------
   # OSS, step 3: assemble every line's artifact onto one fresh docs checkout,
