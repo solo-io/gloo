@@ -3,6 +3,7 @@ package krtcollections
 import (
 	"context"
 	"testing"
+	"time"
 
 	envoy_config_core_v3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	endpointv3 "github.com/envoyproxy/go-control-plane/envoy/config/endpoint/v3"
@@ -20,6 +21,107 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/utils/ptr"
 )
+
+func TestEndpointInputsRecomputeEndpoints(t *testing.T) {
+	g := gomega.NewWithT(t)
+	ctx, cancel := context.WithCancel(context.Background())
+	t.Cleanup(cancel)
+
+	upstream := UpstreamWrapper{
+		Inner: &gloov1.Upstream{
+			Metadata: &core.Metadata{Name: "upstream", Namespace: "ns"},
+			UpstreamType: &gloov1.Upstream_Kube{
+				Kube: &kubernetes.UpstreamSpec{
+					ServiceName:      "svc",
+					ServiceNamespace: "ns",
+					ServicePort:      8080,
+				},
+			},
+		},
+	}
+	service := &corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{Name: "svc", Namespace: "ns"},
+		Spec: corev1.ServiceSpec{
+			Ports: []corev1.ServicePort{{
+				Name: "http",
+				Port: 8080,
+			}},
+		},
+	}
+	endpointSlice := &discoveryv1.EndpointSlice{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "svc-abcde",
+			Namespace: "ns",
+			Labels: map[string]string{
+				discoveryv1.LabelServiceName: "svc",
+			},
+		},
+		AddressType: discoveryv1.AddressTypeIPv4,
+		Endpoints: []discoveryv1.Endpoint{{
+			Addresses: []string{"10.0.0.1"},
+			TargetRef: &corev1.ObjectReference{
+				Kind:      "Pod",
+				Name:      "pod",
+				Namespace: "ns",
+			},
+		}},
+		Ports: []discoveryv1.EndpointPort{{
+			Name: ptr.To("http"),
+			Port: ptr.To(int32(8080)),
+		}},
+	}
+	pod := LocalityPod{
+		Named:           krt.Named{Name: "pod", Namespace: "ns"},
+		AugmentedLabels: map[string]string{"version": "v1"},
+		Addresses:       []string{"10.0.0.1"},
+	}
+
+	upstreams := krt.NewStaticCollection(nil, []UpstreamWrapper{upstream})
+	services := krt.NewStaticCollection(nil, []*corev1.Service{service})
+	endpointSlices := krt.NewStaticCollection(nil, []*discoveryv1.EndpointSlice{endpointSlice})
+	pods := krt.NewStaticCollection(nil, []LocalityPod{pod})
+	endpointSettings := krt.NewStatic(&EndpointsSettings{}, true)
+	endpointSlicesByService := krt.NewIndex(endpointSlices, "TestRecomputeEndpointSlicesByService", func(es *discoveryv1.EndpointSlice) []types.NamespacedName {
+		return []types.NamespacedName{{
+			Namespace: es.Namespace,
+			Name:      es.Labels[discoveryv1.LabelServiceName],
+		}}
+	})
+
+	endpoints := NewGlooK8sEndpoints(ctx, EndpointsInputs{
+		Upstreams:               upstreams,
+		EndpointSlices:          endpointSlices,
+		EndpointSlicesByService: endpointSlicesByService,
+		Pods:                    pods,
+		EndpointsSettings:       endpointSettings,
+		Services:                services,
+	})
+	g.Eventually(endpoints.List, time.Second).Should(HaveLen(1))
+	initialHash := endpoints.List()[0].LbEpsEqualityHash
+
+	updatedEndpointSlice := endpointSlice.DeepCopy()
+	updatedEndpointSlice.Endpoints[0].Addresses = []string{"10.0.0.2"}
+	endpointSlices.Reset([]*discoveryv1.EndpointSlice{updatedEndpointSlice})
+	g.Eventually(func() []uint64 {
+		current := endpoints.List()
+		if len(current) != 1 {
+			return nil
+		}
+		return []uint64{current[0].LbEpsEqualityHash}
+	}, time.Second).Should(SatisfyAll(HaveLen(1), Not(ContainElement(initialHash))))
+	endpointSliceHash := endpoints.List()[0].LbEpsEqualityHash
+
+	updatedPod := pod
+	updatedPod.AugmentedLabels = map[string]string{"version": "v2"}
+	pods.Reset([]LocalityPod{updatedPod})
+	g.Eventually(func() []uint64 {
+		current := endpoints.List()
+		if len(current) != 1 {
+			return nil
+		}
+		return []uint64{current[0].LbEpsEqualityHash}
+	}, time.Second).Should(SatisfyAll(HaveLen(1), Not(ContainElement(endpointSliceHash))))
+}
 
 func TestEndpointsForUpstreamOrderDoesntMatter(t *testing.T) {
 	g := gomega.NewWithT(t)
