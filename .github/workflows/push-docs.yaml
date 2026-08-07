@@ -365,12 +365,19 @@ jobs:
           # The generated reference files below then overwrite the seeded copies.
           gw_dir="$DOCS/content/en/gateway/${DIRECTORY}"
           if [[ ! -d "$gw_dir" ]]; then
+            # The `|| true` guards against a `pipefail` trap: when no candidate matches, the `for`
+            # loop's last iteration ends on a false `ver_le ... && echo` and exits non-zero, which
+            # (with pipefail) makes the whole `| sort -V | tail -1` pipeline non-zero too. Assigning
+            # that failing command substitution straight to `prev_minor=` would then trip `set -e`
+            # and kill the step right here with no output at all, before the intended `die` below
+            # ever runs - exactly what happened when MIN_MINOR still included v1.18.x, which has no
+            # content/en/gateway/1.18.x and nothing older to seed from either.
             prev_minor="$(for d in "$DOCS"/content/en/gateway/*.x; do
                             pb="${d##*/}"; pb="${pb%.x}"
                             [[ "$pb" =~ ^[0-9]+\.[0-9]+$ && "$pb" != "$MINOR" ]] || continue
                             ver_le "$pb" "$MINOR" && echo "$pb"
-                          done | sort -V | tail -1)"
-            [[ -n "$prev_minor" ]] || die "No existing gateway version directory below ${MINOR} to seed ${DIRECTORY} from."
+                          done | sort -V | tail -1 || true)"
+            [[ -n "$prev_minor" ]] || die "No existing gateway version directory below ${MINOR} to seed ${DIRECTORY} from. Is MIN_MINOR set too low for what's actually hosted in content/en/gateway/?"
             echo "Seeding new version directory ${DIRECTORY} from ${prev_minor}.x, then retargeting version references."
             cp -r "$DOCS/content/en/gateway/${prev_minor}.x" "$gw_dir"
             prev_esc="${prev_minor//./\\.}"
