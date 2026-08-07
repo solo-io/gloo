@@ -106,6 +106,38 @@ func ShallowMergeListenerOptions(dst, src *v1.ListenerOptions) (*v1.ListenerOpti
 	return dst, overwrote
 }
 
+// ShallowCopyRouteOptions returns a new RouteOptions whose top-level fields point at the
+// same sub-messages as src, without deep-copying them.
+//
+// It is the single-argument analogue of the dst==nil case of ShallowMergeRouteOptions: that
+// case deep-clones src on every call, which (for routes carrying large transformation
+// templates) dominates translation heap because every translated route receives its own deep
+// copy of an identical RouteOption. This helper instead shares the immutable sub-messages by
+// pointer, which is consistent with how ShallowMergeRouteOptions already shares src's fields
+// into a non-nil dst.
+//
+// The returned RouteOptions is a distinct top-level message, so callers may freely reassign its
+// top-level fields (as the route plugins do) without affecting src. Callers must NOT mutate the
+// shared sub-messages in place.
+func ShallowCopyRouteOptions(src *v1.RouteOptions) *v1.RouteOptions {
+	if src == nil {
+		return nil
+	}
+
+	out := &v1.RouteOptions{}
+	outValue, srcValue := reflect.ValueOf(out).Elem(), reflect.ValueOf(src).Elem()
+	for i := range srcValue.NumField() {
+		dstField, srcField := outValue.Field(i), srcValue.Field(i)
+		// CanSet is false for the unexported proto-internal fields (state, sizeCache,
+		// unknownFields), so the loop copies only the exported message/scalar fields.
+		if dstField.CanSet() {
+			dstField.Set(srcField)
+		}
+	}
+
+	return out
+}
+
 // ShallowMergeRouteOptions merges the top-level fields of src into dst.
 // The fields in dst that have non-zero values will not be overwritten.
 // It performs a shallow merge of top-level fields only.
