@@ -46,10 +46,12 @@ concurrency:
 
 env:
   # Oldest LTS minor to regenerate reference docs for. LTS branches (vMAJOR.MINOR.x) newer than or
-  # equal to this are built automatically; older lines are EOL for docsgen and stay frozen in the
-  # docs repo (e.g. 1.17.x is hosted but no longer refreshed). *** Bump this when the oldest
-  # supported line goes EOL - it is the only version value maintained by hand. ***
-  MIN_MINOR: "1.18"
+  # equal to this are built automatically; older lines are EOL for docsgen and are no longer hosted
+  # in the docs repo at all (as of 2026-08, hugo-gateway.toml's oldest listed version is 1.19.x;
+  # there is no content/en/gateway/1.18.x, and 1.18.x was never added, so regen-oss had nothing to
+  # seed it from and failed on every run). *** Bump this when the oldest supported line goes EOL -
+  # it is the only version value maintained by hand. ***
+  MIN_MINOR: "1.19"
 
 jobs:
   # ---------------------------------------------------------------------------
