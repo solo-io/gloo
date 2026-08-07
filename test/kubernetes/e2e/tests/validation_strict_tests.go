@@ -9,8 +9,17 @@ import (
 
 // ValidationStrictSuiteRunnerAll is used to run all the validation tests, including ones that depend on the helm chart/values/helpers
 // This is the function that should be used to run the validation tests in this repo
+//
+// These suites are ordered so that "ValidationSplitWebhook" always runs last. That suite mutates
+// the ValidatingWebhookConfiguration (failurePolicy, matchConditions) via `helm upgrade` and then
+// reverts it with `helm rollback`. However, the ValidatingWebhookConfiguration is a helm hook
+// resource ("helm.sh/hook": pre-install, pre-upgrade), so it is not part of the release manifest
+// and `helm rollback` does not restore it. The values it installs - notably the
+// `kubeCoreMatchConditions` that skip validation of secrets - therefore outlive the suite and
+// silently disable validation for any suite that runs after it.
 func ValidationStrictSuiteRunnerAll() e2e.SuiteRunner {
-	validationSuiteRunner := ValidationStrictSuiteRunner()
+	validationSuiteRunner := e2e.NewSuiteRunner(true)
+	registerValidationStrictSuites(validationSuiteRunner)
 	validationSuiteRunner.Register("ValidationSplitWebhook", split_webhook.NewTestingSuite)
 
 	return validationSuiteRunner
@@ -23,9 +32,12 @@ func ValidationStrictSuiteRunnerAll() e2e.SuiteRunner {
 // If more tests are added that depend on the helm chart/values/helpers, the above issue should be resolved instead of using this approach
 func ValidationStrictSuiteRunner() e2e.SuiteRunner {
 	validationSuiteRunner := e2e.NewSuiteRunner(false)
-
-	validationSuiteRunner.Register("ValidationStrictWarnings", validation_strict_warnings.NewTestingSuite)
-	validationSuiteRunner.Register("ValidationRejectInvalid", validation_reject_invalid.NewTestingSuite)
+	registerValidationStrictSuites(validationSuiteRunner)
 
 	return validationSuiteRunner
+}
+
+func registerValidationStrictSuites(validationSuiteRunner e2e.SuiteRunner) {
+	validationSuiteRunner.Register("ValidationStrictWarnings", validation_strict_warnings.NewTestingSuite)
+	validationSuiteRunner.Register("ValidationRejectInvalid", validation_reject_invalid.NewTestingSuite)
 }
