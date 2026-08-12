@@ -1,0 +1,9 @@
+changelog:
+- type: NON_USER_FACING
+  resolvesIssue: false
+  description: >-
+    Backport push-docs workflow fixes: correct asset destination paths
+    (assets/conrefs/pages -> assets/gateway-docs/pages) and downgrade the
+    hard failure when the primary line produces no doc changes to a notice,
+    since a nightly run can legitimately find the docs already in sync.
+    skipCI-kube-tests:true
