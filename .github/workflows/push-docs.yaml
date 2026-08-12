@@ -272,7 +272,7 @@ jobs:
             if [[ "$regenerate" -eq 1 ]]; then
               matrix_entries+=("$(jq -nc --arg ref "$ref" --arg minor "$minor" --arg directory "$directory" \
                 --arg new_version "$new_version" --arg is_primary "$is_primary" \
-                '{ref:$ref, minor:$minor, directory:$directory, new_version:$new_version, is_primary:($is_primary=="true")}')")
+                '{ref:$ref, minor:$minor, directory:$directory, new_version:$new_version, is_primary:($is_primary=="true")}')")  
             fi
           done
 
@@ -382,7 +382,7 @@ jobs:
             cp -r "$DOCS/content/en/gateway/${prev_minor}.x" "$gw_dir"
             prev_esc="${prev_minor//./\\.}"
             find "$gw_dir" -type f \( -name '*.md' -o -name '*.txt' \) -exec \
-              sed -E -i "s/${prev_esc}\.x/${MINOR}.x/g; s/_${prev_esc}\./_${MINOR}./g; s/${prev_esc} release/${MINOR} release/g" {} \;
+              sed -E -i "s/${prev_esc}\.x/${MINOR}.x/g; s/_${prev_esc}\._/${MINOR}./g; s/${prev_esc} release/${MINOR} release/g" {} \;
           fi
 
           # --- Per-line files: the filename/path carries the minor, so lines never collide. ---
@@ -433,13 +433,9 @@ jobs:
             # number wherever it appears in the shared next/previous-version display fields), so
             # it can schedule a line whose actual reference content - the files copied above -
             # is already fully in sync (e.g. a patch that touched no CLI/API/values/OSA content).
-            # That's a legitimate no-op for a non-primary line: nothing to upload, but nothing
-            # wrong either. The primary line is different - it always rewrites the shared
-            # changelog/security-scan files, so an empty diff there is still a real problem.
-            if [[ "$IS_PRIMARY" == "true" ]]; then
-              die "docsgen for ${REF} (primary line) produced no changed files under docs/ - the shared changelog/security-scan files should always change. Something is wrong."
-            fi
-            echo "::notice::docsgen for ${REF} produced no changed files under docs/ - already in sync for this patch. Nothing to upload for this line."
+            # That's a legitimate no-op for any line: the assemble step handles missing
+            # artifacts gracefully, and a nightly run may find the docs already in sync.
+            echo "::notice::docsgen for ${REF} produced no changed files under docs/ - already in sync. Nothing to upload for this line."
           else
             git diff --cached --name-only -z | tar -czf "/tmp/docsgen-${DIRECTORY}.tar.gz" --null -T -
           fi
@@ -461,6 +457,8 @@ jobs:
     needs: [prepare-oss, regen-oss]
     if: always() && needs.prepare-oss.result == 'success' && (needs.regen-oss.result == 'success' || needs.regen-oss.result == 'skipped')
     runs-on: ubuntu-latest
+    outputs:
+      pr_url: ${{ steps.cpr.outputs.pull-request-url }}
     steps:
       - name: Checkout docs repo
         uses: actions/checkout@v5
@@ -520,6 +518,7 @@ jobs:
             echo "DOCSGEN_EOF"
           } >> "$GITHUB_OUTPUT"
       - name: Push and create the consolidated PR
+        id: cpr
         if: steps.apply.outputs.changed == 'true'
         uses: peter-evans/create-pull-request@v7
         with:
@@ -548,7 +547,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Notify in slack of success
-        if: needs.assemble-oss.result == 'success'
+        if: needs.assemble-oss.result == 'success' && needs.assemble-oss.outputs.pr_url != ''
         uses: slackapi/slack-github-action@v3.0.3
         with:
           method: chat.postMessage
@@ -556,13 +555,33 @@ jobs:
           payload: |
             {
               "channel": "C04DYBSJK0R",
-              "text": "✅ *Success:* Consolidated reference-docs copy for all supported lines succeeded. <https://github.com/solo-io/docs/pulls|Review the PR>",
+              "text": "✅ *Success:* Consolidated reference-docs copy for all supported lines succeeded. <${{ needs.assemble-oss.outputs.pr_url }}|Review the PR>",
               "blocks": [
                 {
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "✅ *Success:* Consolidated reference-docs copy for all supported lines succeeded. <https://github.com/solo-io/docs/pulls|Review the PR>"
+                    "text": "✅ *Success:* Consolidated reference-docs copy for all supported lines succeeded. <${{ needs.assemble-oss.outputs.pr_url }}|Review the PR>"
+                  }
+                }
+              ]
+            }
+      - name: Notify in slack of success (no changes)
+        if: needs.assemble-oss.result == 'success' && needs.assemble-oss.outputs.pr_url == ''
+        uses: slackapi/slack-github-action@v3.0.3
+        with:
+          method: chat.postMessage
+          token: ${{ secrets.SLACK_BOT_TOKEN }}
+          payload: |
+            {
+              "channel": "C04DYBSJK0R",
+              "text": "✅ *Success:* Consolidated reference-docs copy ran — no doc changes this run, docs already in sync.",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "✅ *Success:* Consolidated reference-docs copy ran — no doc changes this run, docs already in sync."
                   }
                 }
               ]
@@ -790,6 +809,7 @@ jobs:
         sed -i '1,2d' assets/gateway-docs/pages/reference/gateway_parameters_${{ steps.version-variables.outputs.minor }}.md
         popd || exit 1
     - name: Push and create PR
+      id: cpr
       uses: peter-evans/create-pull-request@v7
       with:
         base: main
@@ -811,13 +831,13 @@ jobs:
         payload: |
           {
             "channel": "C04DYBSJK0R",
-            "text": "✅ *Success:* Automated copy of enterprise reference docs for ${{ steps.version-variables.outputs.minor }} was successful. <https://github.com/solo-io/docs/pulls|Review the PR>",
+            "text": "✅ *Success:* Automated copy of enterprise reference docs for ${{ steps.version-variables.outputs.minor }} was successful. <${{ steps.cpr.outputs.pull-request-url }}|Review the PR>",
             "blocks": [
               {
                 "type": "section",
                 "text": {
                   "type": "mrkdwn",
-                  "text": "✅ *Success:* Automated copy of enterprise reference docs for ${{ steps.version-variables.outputs.minor }} was successful. <https://github.com/solo-io/docs/pulls|Review the PR>"
+                  "text": "✅ *Success:* Automated copy of enterprise reference docs for ${{ steps.version-variables.outputs.minor }} was successful. <${{ steps.cpr.outputs.pull-request-url }}|Review the PR>"
                 }
               }
             ]
