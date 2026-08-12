@@ -81,6 +81,8 @@ jobs:
           path: gloo
           fetch-depth: 0
           fetch-tags: "true"
+          # Treeless-of-blobs (partial) clone: full commit/tag graph so `git describe` works, but
+          # skip the ~300MB of historical file blobs; blobs for each checked-out tip fetch on demand.
           filter: blob:none
       - name: Fetch all supported gloo branches and tags
         run: |
@@ -95,9 +97,13 @@ jobs:
           DOCS="$PWD/docs"
           GLOO="$PWD/gloo"
 
+          # Fail loudly with a GitHub-annotated error, or just a warning, on version problems.
           die()  { echo "::error::$*"; exit 1; }
           warn() { echo "::warning::$*"; }
 
+          # The minor that gloo `main` currently represents. Derive it from the newest tag
+          # reachable from origin/main (e.g. v1.22.0-beta11 -> 1.22) rather than hardcoding it,
+          # so it can never drift from the actual branch.
           main_tag="$(git -C "$GLOO" describe --tags --abbrev=0 origin/main 2>/dev/null || true)"
           [[ -n "$main_tag" ]] || die "Could not read any tag from origin/main; cannot determine the main-line minor. Were gloo tags fetched?"
           if [[ ! "$main_tag" =~ ^v?([0-9]+)\.([0-9]+)\. ]]; then
@@ -106,10 +112,28 @@ jobs:
           MAIN_MINOR="${BASH_REMATCH[1]}.${BASH_REMATCH[2]}"
           echo "main line resolves to ${MAIN_MINOR} (from tag ${main_tag})"
 
+          # MIN_MINOR (oldest line to build) comes from the workflow-level env at the top of the file.
           [[ -n "${MIN_MINOR:-}" ]] || die "MIN_MINOR is not set; define it in the workflow-level env block."
 
+          # True if version $1 <= $2 (version-aware compare).
           ver_le() { [[ "$(printf '%s\n%s\n' "$1" "$2" | sort -V | head -n1)" == "$1" ]]; }
 
+          # Build the line list: `main` (which represents the current in-development minor,
+          # MAIN_MINOR) plus every vMAJOR.MINOR.x LTS branch whose minor is in the window
+          # MIN_MINOR <= minor < MAIN_MINOR. The strict regex skips gloo's many non-release branches;
+          # the lower bound drops EOL lines; the upper bound drops any future/experimental line
+          # (e.g. v2.0.x while main is 1.22).
+          #
+          # MAIN_MINOR normally has no branch of its own yet (main hasn't been branched off for
+          # it), which is what "< MAIN_MINOR" for LTS branches and including main unconditionally
+          # assumes. But there is a real gap between "the vMAIN_MINOR.x branch gets cut" and "main
+          # gets its first tag past that point" (main keeps existing, untagged, until whatever
+          # comes next is ready) - during that gap main_tag (and so MAIN_MINOR) still reflects the
+          # now-superseded pre-cut version, even though the branch has since moved on with its own
+          # newer patches. If origin/vMAIN_MINOR.x already exists, that branch - not main - owns
+          # MAIN_MINOR's versioning now; main is skipped this run (it has nothing new to
+          # contribute until it gets a tag past the cut, which will naturally advance MAIN_MINOR
+          # on a later run).
           main_branch_cut=0
           if git -C "$GLOO" rev-parse --verify --quiet "origin/v${MAIN_MINOR}.x^{commit}" >/dev/null; then
             main_branch_cut=1
@@ -122,17 +146,23 @@ jobs:
             b="${b##*origin/}"
             [[ "$b" =~ ^v([0-9]+\.[0-9]+)\.x$ ]] || continue
             m="${BASH_REMATCH[1]}"
-            ver_le "$MIN_MINOR" "$m" || continue
+            ver_le "$MIN_MINOR" "$m" || continue                       # minor >= MIN_MINOR
             if [[ "$m" == "$MAIN_MINOR" ]]; then
-              [[ "$main_branch_cut" -eq 1 ]] || continue
+              [[ "$main_branch_cut" -eq 1 ]] || continue                # only the just-cut branch, not main's own not-yet-cut line
             else
-              ver_le "$m" "$MAIN_MINOR" || continue
+              ver_le "$m" "$MAIN_MINOR" || continue                     # minor < MAIN_MINOR
             fi
             LINES+=( "v${m}.x" )
           done < <(git -C "$GLOO" branch -r --list 'origin/v*.x' | sort -Vr)
 
           [[ "${#LINES[@]}" -gt 0 ]] || die "No lines to process at all (checked main plus LTS branches in [${MIN_MINOR}, ${MAIN_MINOR}]). Were branches and tags fetched?"
+          if [[ "$main_branch_cut" -eq 1 ]]; then
+            echo "Lines to process (main skipped - v${MAIN_MINOR}.x already cut and owns ${MAIN_MINOR}.x - plus ${MIN_MINOR} <= minor < ${MAIN_MINOR}): ${LINES[*]}"
+          else
+            echo "Lines to process (main=${MAIN_MINOR}, plus ${MIN_MINOR} <= minor < ${MAIN_MINOR}): ${LINES[*]}"
+          fi
 
+          # Validate the manual filter up front so a typo fails fast with the valid set.
           if [[ -n "${LINES_INPUT:-}" && "${LINES_INPUT}" != "all" ]]; then
             valid=" ${LINES[*]} "
             IFS=',' read -ra requested <<< "$LINES_INPUT"
@@ -143,6 +173,9 @@ jobs:
             done
           fi
 
+          # The newest built line owns the shared, cross-version files (changelog, security scans,
+          # security-posture) and is always regenerated so they stay fresh even when no LTS patch
+          # changed. LINES is newest-first, so this is the first line this run actually processes.
           primary_ref=""
           for _r in "${LINES[@]}"; do
             if [[ -z "${LINES_INPUT:-}" || "${LINES_INPUT}" == "all" || ",${LINES_INPUT}," == *",${_r},"* ]]; then
@@ -150,56 +183,82 @@ jobs:
             fi
           done
           [[ -n "$primary_ref" ]] || die "No lines selected to process (check the 'lines' input against: ${LINES[*]})."
+          echo "Primary (shared-file) line: ${primary_ref}"
 
           matched=0
           matrix_entries=()
           all_lines_json="[]"
 
           for ref in "${LINES[@]}"; do
+            # Optional filter from workflow_dispatch. Empty input or "all" means every line.
             if [[ -n "${LINES_INPUT:-}" && "${LINES_INPUT}" != "all" && ",${LINES_INPUT}," != *",${ref},"* ]]; then
+              echo "Skipping ${ref} (not in requested lines '${LINES_INPUT}')"
               continue
             fi
             matched=$((matched + 1))
 
+            # Derive the minor and docs directory from the ref. `main` represents MAIN_MINOR; every
+            # other line is a vMAJOR.MINOR.x LTS branch.
             if [[ "$ref" == "main" ]]; then
               minor="$MAIN_MINOR"
             elif [[ "$ref" =~ ^v([0-9]+\.[0-9]+)\.x$ ]]; then
               minor="${BASH_REMATCH[1]}"
             else
-              die "Unrecognized line ref '${ref}'."
+              die "Unrecognized line ref '${ref}'. Expected 'main' or a 'vMAJOR.MINOR.x' branch."
             fi
             directory="${minor}.x"
             is_primary="false"; [[ "$ref" == "$primary_ref" ]] && is_primary="true"
 
             git -C "$GLOO" rev-parse --verify --quiet "origin/${ref}^{commit}" >/dev/null \
-              || die "gloo ref 'origin/${ref}' does not exist."
+              || die "gloo ref 'origin/${ref}' does not exist. Was it fetched, and is the branch name correct?"
 
+            # The latest release tag reachable from the line is the newest patch for that minor.
             new_version="$(git -C "$GLOO" describe --tags --abbrev=0 "origin/${ref}" 2>/dev/null || true)"
             new_version="${new_version#v}"
 
+            # Assume we regenerate; the version checks below clear this for an unchanged LTS line.
             regenerate=1
             reason=""
 
             if [[ -z "$new_version" ]]; then
-              [[ "$ref" != "main" ]] || warn "No tag reachable from origin/main; leaving the ${minor}.x conref unchanged."
+              # main is always beta-tagged, so a missing tag there is suspect; a freshly cut LTS
+              # branch may legitimately have none yet.
+              if [[ "$ref" == "main" ]]; then
+                warn "No tag reachable from origin/main; leaving the ${minor}.x conref unchanged."
+              else
+                echo "No release tag found for ${ref}; leaving conref unchanged."
+              fi
+              # No `reason` here: the PR-summary line already renders new_version=="" as
+              # "(no release tag; unchanged)" by itself - setting reason too would just repeat it.
             elif [[ "$new_version" != "${minor}."* ]]; then
-              die "Line '${ref}' resolved to tag '${new_version}', which is not a ${minor}.x patch."
+              # The newest reachable tag belongs to a different minor than the branch claims -
+              # usually a mis-cut branch or a stray tag. Don't silently bump the wrong field.
+              die "Line '${ref}' resolved to tag '${new_version}', which is not a ${minor}.x patch. Refusing to bump the ${minor}.x conref with a mismatched version."
             else
+              # Try the bump on this throwaway checkout just to decide whether it would be a
+              # no-op (LTS line already at this version, so docsgen would be byte-identical and
+              # can be skipped). The real, persisted bump happens once more in `assemble-oss`,
+              # on the checkout that actually gets pushed.
               minor_escaped="${minor//./\\.}"
               safe_new="${new_version//&/\\&}"
               before="$(cat "$DOCS"/assets/conrefs/versions/gloo_oss*.md "$DOCS"/assets/gateway-docs/versions/gloo_oss*.md 2>/dev/null || true)"
               find "$DOCS/assets/conrefs/versions" "$DOCS/assets/gateway-docs/versions" -type f -name 'gloo_oss*.md' -exec \
-                sed -E -i "s/\\}\\}${minor_escaped}\\.[0-9]+(-[a-zA-Z0-9]+)?\\{\\{/}}${safe_new}{{/g" {} \;
+                sed -E -i "s/\}\}${minor_escaped}\.[0-9]+(-[a-zA-Z0-9]+)?\{\{/}}${safe_new}{{/g" {} \;
               after="$(cat "$DOCS"/assets/conrefs/versions/gloo_oss*.md "$DOCS"/assets/gateway-docs/versions/gloo_oss*.md 2>/dev/null || true)"
               if [[ "$before" != "$after" ]]; then
                 echo "Will bump ${minor}.x -> ${new_version}"
               elif [[ "$after" == *"}}${new_version}{{"* ]]; then
+                echo "Conref already at ${minor}.x -> ${new_version}; nothing to bump."
+                # Tag unchanged -> regenerated per-line docs would be byte-identical, so skip the
+                # expensive docsgen. Always keep the primary line, since it also writes the shared
+                # files (changelog, security scans) that can change without a gloo tag bump.
                 if [[ "$ref" != "$primary_ref" ]]; then
                   regenerate=0
                   reason="unchanged; docsgen skipped"
                 fi
               else
-                warn "No ${minor}.x field found in gloo_oss*.md; the conref may need a new entry."
+                # No field for this minor exists yet - the conref needs a human to add one.
+                warn "No ${minor}.x field found in gloo_oss*.md under assets/conrefs/versions or assets/gateway-docs/versions; the conref may need a new entry for this minor. Leaving unchanged."
                 reason="no conref field for ${minor}.x; unchanged"
               fi
             fi
@@ -213,10 +272,12 @@ jobs:
             if [[ "$regenerate" -eq 1 ]]; then
               matrix_entries+=("$(jq -nc --arg ref "$ref" --arg minor "$minor" --arg directory "$directory" \
                 --arg new_version "$new_version" --arg is_primary "$is_primary" \
-                '{ref:$ref, minor:$minor, directory:$directory, new_version:$new_version, is_primary:($is_primary=="true")}')")            fi
+                '{ref:$ref, minor:$minor, directory:$directory, new_version:$new_version, is_primary:($is_primary=="true")}')")  
+            fi
           done
 
-          [[ "$matched" -gt 0 ]] || die "No lines were selected."
+          # Guard against a run that planned nothing (e.g. a filter that matched no lines).
+          [[ "$matched" -gt 0 ]] || die "No lines were selected. Check the 'lines' input against: ${LINES[*]}"
 
           if [[ "${#matrix_entries[@]}" -gt 0 ]]; then
             matrix_json="$(printf '%s\n' "${matrix_entries[@]}" | jq -sc .)"
@@ -231,8 +292,16 @@ jobs:
           else
             echo "has_matrix=true" >> "$GITHUB_OUTPUT"
           fi
+
+          echo "Plan:"
           echo "$all_lines_json" | jq .
 
+  # ---------------------------------------------------------------------------
+  # OSS, step 2: the actual docsgen, fanned out one job per line so each stays
+  # well under any external per-job duration limit instead of running all
+  # lines sequentially in one job. Each leg uploads only the files it changed;
+  # nothing here is pushed directly.
+  # ---------------------------------------------------------------------------
   regen-oss:
     needs: prepare-oss
     if: needs.prepare-oss.result == 'success' && needs.prepare-oss.outputs.has_matrix == 'true'
@@ -273,6 +342,10 @@ jobs:
           GLOO="$PWD/gloo"
           ver_le() { [[ "$(printf '%s\n%s\n' "$1" "$2" | sort -V | head -n1)" == "$1" ]]; }
 
+          # Generate the reference docs for this line. Captured explicitly (rather than relying
+          # on `set -e` to propagate a bare failure) so a failure here is annotated with which
+          # line failed and the exit code, instead of the runner's generic "Process completed
+          # with exit code 1" with no other diagnostic output.
           echo "Disk space before docsgen for ${REF}: $(df -h "$PWD" | awk 'NR==2{print $4" free of "$2}')"
           ( cd "$GLOO" && make site-common -C docs ) || rc=$?
           if [[ "${rc:-0}" -ne 0 ]]; then
@@ -281,20 +354,38 @@ jobs:
           unset rc
           GEN="$GLOO/docs/content"
 
+          # If this minor has no docs directory yet (a newly supported line), seed the whole tree
+          # from the newest existing lower version, then retarget only the mechanical version
+          # labels that a diff of two adjacent version dirs shows are the *only* boilerplate
+          # differences: the _index title (`<prev>.x`), the per-minor conref reuse paths
+          # (`_<prev>.`), and the release-notes description ("<prev> release"). Everything else that
+          # differs between versions (e.g. jwt/overview, new feature pages) is genuine authored
+          # content, left as the previous version's copy for a writer to update. Prose that merely
+          # mentions the old version (e.g. "removed in 1.21") uses other patterns and is left alone.
+          # The generated reference files below then overwrite the seeded copies.
           gw_dir="$DOCS/content/en/gateway/${DIRECTORY}"
           if [[ ! -d "$gw_dir" ]]; then
+            # The `|| true` guards against a `pipefail` trap: when no candidate matches, the `for`
+            # loop's last iteration ends on a false `ver_le ... && echo` and exits non-zero, which
+            # (with pipefail) makes the whole `| sort -V | tail -1` pipeline non-zero too. Assigning
+            # that failing command substitution straight to `prev_minor=` would then trip `set -e`
+            # and kill the step right here with no output at all, before the intended `die` below
+            # ever runs - exactly what happened when MIN_MINOR still included v1.18.x, which has no
+            # content/en/gateway/1.18.x and nothing older to seed from either.
             prev_minor="$(for d in "$DOCS"/content/en/gateway/*.x; do
                             pb="${d##*/}"; pb="${pb%.x}"
                             [[ "$pb" =~ ^[0-9]+\.[0-9]+$ && "$pb" != "$MINOR" ]] || continue
                             ver_le "$pb" "$MINOR" && echo "$pb"
                           done | sort -V | tail -1 || true)"
-            [[ -n "$prev_minor" ]] || die "No existing gateway version directory below ${MINOR} to seed ${DIRECTORY} from."
+            [[ -n "$prev_minor" ]] || die "No existing gateway version directory below ${MINOR} to seed ${DIRECTORY} from. Is MIN_MINOR set too low for what's actually hosted in content/en/gateway/?"
+            echo "Seeding new version directory ${DIRECTORY} from ${prev_minor}.x, then retargeting version references."
             cp -r "$DOCS/content/en/gateway/${prev_minor}.x" "$gw_dir"
             prev_esc="${prev_minor//./\\.}"
             find "$gw_dir" -type f \( -name '*.md' -o -name '*.txt' \) -exec \
               sed -E -i "s/${prev_esc}\.x/${MINOR}.x/g; s/_${prev_esc}\._/${MINOR}./g; s/${prev_esc} release/${MINOR} release/g" {} \;
           fi
 
+          # --- Per-line files: the filename/path carries the minor, so lines never collide. ---
           cp "$GEN/static/content/osa_included.md"      "$DOCS/assets/gateway-docs/pages/reference/osa_included_${MINOR}.md"
           cp "$GEN/static/content/osa_provided.md"      "$DOCS/assets/gateway-docs/pages/reference/osa_provided_${MINOR}.md"
           cp "$GEN/reference/values.txt"                "$DOCS/assets/gateway-docs/pages/reference/helm/values_${MINOR}.txt"
@@ -313,18 +404,35 @@ jobs:
              "$DOCS/assets/gateway-docs/pages/reference/gateway_parameters_${MINOR}.md"
           sed -i '1,2d' "$DOCS/assets/gateway-docs/pages/reference/gateway_parameters_${MINOR}.md"
 
+          # --- Shared, multi-version files: written once, from the newest built (primary) line.
+          # They are cross-version (GitHub API / GCS / committed identically across branches), so
+          # any line yields the same content. ---
           if [[ "$IS_PRIMARY" == "true" ]]; then
             cp "$GEN/static/content/gloo-changelog.docgen"  "$DOCS/static/changelog/gloo-changelog.docgen"
             cp "$GEN/static/content/glooe-changelog.docgen" "$DOCS/static/changelog/glooe-changelog.docgen"
             cp "$GEN/reference/security-posture.yaml"       "$DOCS/static/content/examples/manual/security-posture.yaml"
+            # Glob rather than a fixed index list: the number of split files tracks how many
+            # images/CVEs are in the scan and grows over time (currently 8 splits per report,
+            # already past a previously hardcoded 0-4 here - which silently dropped every split
+            # beyond -4 without any error, since a missing higher index in a fixed list just
+            # isn't attempted at all).
             for f in "$GEN"/static/content/gloo-security-scan*.docgen "$GEN"/static/content/glooe-security-scan*.docgen; do
               [ -f "$f" ] && cp "$f" "$DOCS/static/content/gg-security-updates/$(basename "$f")"
             done
           fi
 
+          # Package exactly the files this leg added or modified, so the artifact can be
+          # overlaid onto a fresh docs checkout in `assemble-oss` without clobbering any other
+          # line's edits - each line's files live at unique, minor-suffixed paths, except the
+          # primary line's shared files, and only one line is ever primary.
           cd "$DOCS"
           git add -A
           if git diff --cached --quiet; then
+            # `prepare-oss` decides "needs a refresh" from a version-conref probe that isn't
+            # scoped to this line's own include-if block (it also matches this minor's version
+            # number wherever it appears in the shared next/previous-version display fields), so
+            # it can schedule a line whose actual reference content - the files copied above -
+            # is already fully in sync (e.g. a patch that touched no CLI/API/values/OSA content).
             # That's a legitimate no-op for any line: the assemble step handles missing
             # artifacts gracefully, and a nightly run may find the docs already in sync.
             echo "::notice::docsgen for ${REF} produced no changed files under docs/ - already in sync. Nothing to upload for this line."
@@ -339,6 +447,12 @@ jobs:
           retention-days: 1
           if-no-files-found: ignore
 
+  # ---------------------------------------------------------------------------
+  # OSS, step 3: assemble every line's artifact onto one fresh docs checkout,
+  # re-apply the version-conref bumps `prepare-oss` decided on, and open the
+  # single consolidated PR. Runs only if every regen-oss leg succeeded (or
+  # regen-oss was skipped outright because nothing needed regenerating).
+  # ---------------------------------------------------------------------------
   assemble-oss:
     needs: [prepare-oss, regen-oss]
     if: always() && needs.prepare-oss.result == 'success' && (needs.regen-oss.result == 'success' || needs.regen-oss.result == 'skipped')
@@ -366,19 +480,26 @@ jobs:
         run: |
           set -euo pipefail
           cd docs
+
+          # Re-apply the exact same conref bump `prepare-oss` already decided on (it only tried
+          # it on a throwaway checkout, to work out the regenerate flags) - this is the checkout
+          # that actually gets pushed.
           while IFS=$'\t' read -r minor new_version; do
             [[ -n "$new_version" ]] || continue
             minor_escaped="${minor//./\\.}"
             safe_new="${new_version//&/\\&}"
             find "assets/conrefs/versions" "assets/gateway-docs/versions" -type f -name 'gloo_oss*.md' -exec \
-              sed -E -i "s/\\}\\}${minor_escaped}\\.[0-9]+(-[a-zA-Z0-9]+)?\\{\\{/}}${safe_new}{{/g" {} \;
+              sed -E -i "s/\}\}${minor_escaped}\.[0-9]+(-[a-zA-Z0-9]+)?\{\{/}}${safe_new}{{/g" {} \;
           done < <(echo "$ALL_LINES" | jq -r '.[] | [.minor, .new_version] | @tsv')
+
+          # Overlay each regenerated line's files.
           shopt -s nullglob
           for f in ../artifacts/*.tar.gz; do
             echo "Applying $f"
             tar -xzf "$f"
           done
           shopt -u nullglob
+
           if [[ -n "$(git status --porcelain)" ]]; then
             echo "changed=true" >> "$GITHUB_OUTPUT"
           else
@@ -413,6 +534,10 @@ jobs:
           team-reviewers: solo-io/solo-docs
           token: ${{ secrets.DOCS_TOKEN }}
 
+  # ---------------------------------------------------------------------------
+  # OSS, step 4: one Slack notification for the whole run, regardless of which
+  # of the three jobs above failed.
+  # ---------------------------------------------------------------------------
   notify-oss:
     needs: [prepare-oss, regen-oss, assemble-oss]
     if: always() && github.event_name != 'repository_dispatch'
@@ -428,7 +553,15 @@ jobs:
             {
               "channel": "C04DYBSJK0R",
               "text": "✅ *Success:* Consolidated reference-docs copy for all supported lines succeeded. <https://github.com/solo-io/docs/pulls|Review the PR>",
-              "blocks": [{"type": "section", "text": {"type": "mrkdwn", "text": "✅ *Success:* Consolidated reference-docs copy for all supported lines succeeded. <https://github.com/solo-io/docs/pulls|Review the PR>"}}]
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "✅ *Success:* Consolidated reference-docs copy for all supported lines succeeded. <https://github.com/solo-io/docs/pulls|Review the PR>"
+                  }
+                }
+              ]
             }
       - name: Notify in slack of failure
         if: needs.assemble-oss.result != 'success'
@@ -440,9 +573,23 @@ jobs:
             {
               "channel": "C04DYBSJK0R",
               "text": "❌ *Failure*: Consolidated reference-docs copy failed. <https://github.com/solo-io/gloo/actions/runs/${{ github.run_id }}|Review the workflow failure>",
-              "blocks": [{"type": "section", "text": {"type": "mrkdwn", "text": "❌ *Failure*: Consolidated reference-docs copy failed. <https://github.com/solo-io/gloo/actions/runs/${{ github.run_id }}|Review the workflow failure>"}}]
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "❌ *Failure*: Consolidated reference-docs copy failed. <https://github.com/solo-io/gloo/actions/runs/${{ github.run_id }}|Review the workflow failure>"
+                  }
+                }
+              ]
             }
 
+  # ---------------------------------------------------------------------------
+  # Enterprise (glooe): one release at a time, via repository_dispatch. Enterprise
+  # versions arrive in the dispatch payload (which line, which tag) and cannot be
+  # derived from gloo tags, so they are not batched like the OSS lines. The minor,
+  # docs directory, and gloo ref are derived from the payload + git, not hardcoded.
+  # ---------------------------------------------------------------------------
   copy-docs-enterprise:
     if: ${{ github.event_name == 'repository_dispatch' }}
     runs-on: ubuntu-latest
@@ -469,10 +616,13 @@ jobs:
         ref: main
         fetch-depth: 0
         fetch-tags: "true"
+        # Partial clone: full commit/tag graph for `git describe`, without the historical file blobs.
         filter: blob:none
     - name: Fetch all gloo branches and tags
       run: |
         git -C gloo fetch --filter=blob:none --tags --force origin '+refs/heads/*:refs/remotes/origin/*'
+    # Derive the minor/directory from the dispatch payload and check out the matching gloo ref.
+    # main_minor is read from origin/main's newest tag, so nothing here is hardcoded per release.
     - name: Resolve version and check out gloo ref
       id: version-variables
       env:
@@ -481,20 +631,29 @@ jobs:
       run: |
         set -euo pipefail
         die() { echo "::error::$*"; exit 1; }
+
         GLOO="$PWD/gloo"
+
+        # The minor that gloo `main` currently represents (e.g. v1.22.0-beta11 -> 1.22).
         main_tag="$(git -C "$GLOO" describe --tags --abbrev=0 origin/main 2>/dev/null || true)"
-        [[ -n "$main_tag" ]] || die "Could not read any tag from origin/main."
+        [[ -n "$main_tag" ]] || die "Could not read any tag from origin/main; cannot determine the main-line minor. Were gloo tags fetched?"
         [[ "$main_tag" =~ ^v?([0-9]+)\.([0-9]+)\. ]] || die "Newest tag on origin/main ('$main_tag') is not a vMAJOR.MINOR.* version."
         main_minor="${BASH_REMATCH[1]}.${BASH_REMATCH[2]}"
+
+        # The release minor comes from the LTS branch name; the main line carries no minor in its
+        # name, so fall back to the release tag for it.
         if [[ "$LTS" =~ ^v([0-9]+\.[0-9]+)\.x$ ]]; then
           minor="${BASH_REMATCH[1]}"
         elif [[ "$LTS" == "main" ]]; then
-          [[ "$TAG" =~ ^v?([0-9]+\.[0-9]+)\. ]] || die "lts='main' but tag '$TAG' is not a vMAJOR.MINOR.* version."
+          [[ "$TAG" =~ ^v?([0-9]+\.[0-9]+)\. ]] || die "lts='main' but tag '$TAG' is not a vMAJOR.MINOR.* version; cannot derive the minor."
           minor="${BASH_REMATCH[1]}"
         else
-          die "Unrecognized lts '$LTS'."
+          die "Unrecognized lts '$LTS' from the dispatch payload. Expected 'main' or a 'vMAJOR.MINOR.x' branch."
         fi
         directory="${minor}.x"
+
+        # The current-development minor lives on `main` until its vX.Y.x branch is cut, so only
+        # prefer that branch once it actually exists.
         if [[ "$LTS" == "main" || "$minor" == "$main_minor" ]]; then
           if git -C "$GLOO" rev-parse --verify --quiet "origin/v${minor}.x^{commit}" >/dev/null; then
             ref="v${minor}.x"
@@ -504,38 +663,57 @@ jobs:
         else
           ref="v${minor}.x"
         fi
+
         git -C "$GLOO" rev-parse --verify --quiet "origin/${ref}^{commit}" >/dev/null \
-          || die "gloo ref 'origin/${ref}' does not exist."
+          || die "gloo ref 'origin/${ref}' does not exist. Was it fetched, and is the branch name correct?"
         git -C "$GLOO" checkout --quiet --detach "origin/${ref}"
+
+        echo "Resolved lts='${LTS}' tag='${TAG}' -> minor=${minor}, directory=${directory}, gloo ref=${ref} (main is ${main_minor})"
         echo "minor=${minor}" >> "$GITHUB_OUTPUT"
         echo "directory=${directory}" >> "$GITHUB_OUTPUT"
+    # Replace the previous enterprise patch version for this minor with the newly released tag.
     - name: Bump version conrefs
       run: |
         set -euo pipefail
         die()  { echo "::error::$*"; exit 1; }
         warn() { echo "::warning::$*"; }
+
         pushd docs || die "docs checkout is missing."
+
         MINOR_VERSION="${{ steps.version-variables.outputs.minor }}"
         NEW_VERSION="${{ steps.lts-version.outputs.tag }}"
         TARGET_DIR="assets/conrefs/versions"
-        [[ -n "$NEW_VERSION" ]] || die "Dispatch payload carried no tag."
+
+        [[ -n "$NEW_VERSION" ]] || die "Dispatch payload carried no tag; nothing to bump for ${MINOR_VERSION}."
+
+        # Normalize: strip a leading 'v' (v1.21.5 -> 1.21.5).
         TRIMMED_NEW_VERSION="${NEW_VERSION#v}"
+
+        # The tag must belong to the minor we resolved, or we would bump the wrong field.
         [[ "$TRIMMED_NEW_VERSION" == "${MINOR_VERSION}."* ]] \
-          || die "Release tag '${TRIMMED_NEW_VERSION}' is not a ${MINOR_VERSION}.x patch."
+          || die "Release tag '${TRIMMED_NEW_VERSION}' is not a ${MINOR_VERSION}.x patch; refusing to bump the ${MINOR_VERSION} conref."
+
+        # Escape periods in the minor (1.19 -> 1\.19) and & in the replacement string for sed.
         MINOR_VERSION_ESCAPED="${MINOR_VERSION//./\\.}"
         SAFE_NEW_VERSION="${TRIMMED_NEW_VERSION//&/\\&}"
+
+        # Enterprise releases bump the gloo_patch* conrefs.
         FILE_PATTERN="gloo_patch*.md"
+
+        # Since the docs-repo migration (#11307) enterprise conrefs are bumped in both dirs.
         before="$(cat "$TARGET_DIR"/$FILE_PATTERN assets/gateway-docs/versions/$FILE_PATTERN 2>/dev/null || true)"
         find "$TARGET_DIR" assets/gateway-docs/versions -type f -name "$FILE_PATTERN" -exec \
-          sed -E -i "s/\\}\\}${MINOR_VERSION_ESCAPED}\\.[0-9]+(-[a-zA-Z0-9]+)?\\{\\{/}}${SAFE_NEW_VERSION}{{/g" {} \;
+          sed -E -i "s/\}\}${MINOR_VERSION_ESCAPED}\.[0-9]+(-[a-zA-Z0-9]+)?\{\{/}}${SAFE_NEW_VERSION}{{/g" {} \;
         after="$(cat "$TARGET_DIR"/$FILE_PATTERN assets/gateway-docs/versions/$FILE_PATTERN 2>/dev/null || true)"
+
         if [[ "$before" != "$after" ]]; then
-          echo "Replaced ${MINOR_VERSION} patch version with ${TRIMMED_NEW_VERSION}."
+          echo "Replaced ${MINOR_VERSION} patch version with ${TRIMMED_NEW_VERSION} in $TARGET_DIR and assets/gateway-docs/versions ($FILE_PATTERN)"
         elif [[ "$after" == *"}}${TRIMMED_NEW_VERSION}{{"* ]]; then
           echo "Conref already at ${MINOR_VERSION} -> ${TRIMMED_NEW_VERSION}; nothing to bump."
         else
-          warn "No ${MINOR_VERSION} field found in $FILE_PATTERN; the conref may need a new entry."
+          warn "No ${MINOR_VERSION} field found in $FILE_PATTERN under $TARGET_DIR or assets/gateway-docs/versions; the conref may need a new entry for this minor. Leaving unchanged."
         fi
+
         popd || exit 1
     - name: Generate docs
       env:
@@ -554,12 +732,14 @@ jobs:
     - name: Copy security scans
       run: |
         pushd docs || exit 1
+        # OSS
         [ -f ../gloo/docs/content/static/content/gloo-security-scan.docgen ] && cp ../gloo/docs/content/static/content/gloo-security-scan.docgen static/content/gg-security-updates/gloo-security-scan.docgen
         [ -f ../gloo/docs/content/static/content/gloo-security-scan-0.docgen ] && cp ../gloo/docs/content/static/content/gloo-security-scan-0.docgen static/content/gg-security-updates/gloo-security-scan-0.docgen
         [ -f ../gloo/docs/content/static/content/gloo-security-scan-1.docgen ] && cp ../gloo/docs/content/static/content/gloo-security-scan-1.docgen static/content/gg-security-updates/gloo-security-scan-1.docgen
         [ -f ../gloo/docs/content/static/content/gloo-security-scan-2.docgen ] && cp ../gloo/docs/content/static/content/gloo-security-scan-2.docgen static/content/gg-security-updates/gloo-security-scan-2.docgen
         [ -f ../gloo/docs/content/static/content/gloo-security-scan-3.docgen ] && cp ../gloo/docs/content/static/content/gloo-security-scan-3.docgen static/content/gg-security-updates/gloo-security-scan-3.docgen
         [ -f ../gloo/docs/content/static/content/gloo-security-scan-4.docgen ] && cp ../gloo/docs/content/static/content/gloo-security-scan-4.docgen static/content/gg-security-updates/gloo-security-scan-4.docgen
+        # Enterprise
         [ -f ../gloo/docs/content/static/content/glooe-security-scan.docgen ] && cp ../gloo/docs/content/static/content/glooe-security-scan.docgen static/content/gg-security-updates/glooe-security-scan.docgen
         [ -f ../gloo/docs/content/static/content/glooe-security-scan-0.docgen ] && cp ../gloo/docs/content/static/content/glooe-security-scan-0.docgen static/content/gg-security-updates/glooe-security-scan-0.docgen
         [ -f ../gloo/docs/content/static/content/glooe-security-scan-1.docgen ] && cp ../gloo/docs/content/static/content/glooe-security-scan-1.docgen static/content/gg-security-updates/glooe-security-scan-1.docgen
@@ -581,7 +761,9 @@ jobs:
     - name: Copy Helm
       run: |
         pushd docs || exit 1
+        # OSS
         cp ../gloo/docs/content/reference/values.txt assets/gateway-docs/pages/reference/helm/values_${{ steps.version-variables.outputs.minor }}.txt
+        # Enterprise
         cp ../gloo/docs/content/static/content/glooe-values.docgen assets/gateway-docs/pages/reference/helm/glooe-values_${{ steps.version-variables.outputs.minor }}.md
     - name: Copy CLI
       run: |
@@ -626,7 +808,15 @@ jobs:
           {
             "channel": "C04DYBSJK0R",
             "text": "✅ *Success:* Automated copy of enterprise reference docs for ${{ steps.version-variables.outputs.minor }} was successful. <https://github.com/solo-io/docs/pulls|Review the PR>",
-            "blocks": [{"type": "section", "text": {"type": "mrkdwn", "text": "✅ *Success:* Automated copy of enterprise reference docs for ${{ steps.version-variables.outputs.minor }} was successful. <https://github.com/solo-io/docs/pulls|Review the PR>"}}]
+            "blocks": [
+              {
+                "type": "section",
+                "text": {
+                  "type": "mrkdwn",
+                  "text": "✅ *Success:* Automated copy of enterprise reference docs for ${{ steps.version-variables.outputs.minor }} was successful. <https://github.com/solo-io/docs/pulls|Review the PR>"
+                }
+              }
+            ]
           }
     - name: Notify in slack of failure
       if: failure()
@@ -638,5 +828,13 @@ jobs:
           {
             "channel": "C04DYBSJK0R",
             "text": "❌ *Failure*: Automated copy of enterprise reference docs in the gloo repo failed. <https://github.com/solo-io/gloo/actions/runs/${{ github.run_id }}|Review the workflow failure>",
-            "blocks": [{"type": "section", "text": {"type": "mrkdwn", "text": "❌ *Failure*: Automated copy of enterprise reference docs in the gloo repo failed. <https://github.com/solo-io/gloo/actions/runs/${{ github.run_id }}|Review the workflow failure>"}}]
+            "blocks": [
+              {
+                "type": "section",
+                "text": {
+                  "type": "mrkdwn",
+                  "text": "❌ *Failure*: Automated copy of enterprise reference docs in the gloo repo failed. <https://github.com/solo-io/gloo/actions/runs/${{ github.run_id }}|Review the workflow failure>"
+                }
+              }
+            ]
           }
