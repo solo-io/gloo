@@ -13,3 +13,9 @@ changelog:
       Download the envtest binaries once during install-go-tools so the parallel
       projects/gateway2 test packages no longer race to populate the shared
       setup-envtest store.
+  - type: NON_USER_FACING
+    resolvesIssue: false
+    description: >-
+      Regenerate the nginx test certificate embedded in nginx_pod.yaml, which
+      expired on 2026-08-07 and broke the client_tls e2e suite with
+      CERTIFICATE_VERIFY_FAILED. The replacement is valid until 2048.
