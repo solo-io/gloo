@@ -547,12 +547,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Notify in slack of success
-        if: needs.assemble-oss.result == 'success'
-        env:
-          # Falls back to the pulls list only for the edge case where nothing changed and no PR
-          # was created this run (create-pull-request still outputs a URL when it updates an
-          # existing open PR, so this is the normal link on every run that has real changes).
-          PR_URL: ${{ needs.assemble-oss.outputs.pr_url || 'https://github.com/solo-io/docs/pulls' }}
+        if: needs.assemble-oss.result == 'success' && needs.assemble-oss.outputs.pr_url != ''
         uses: slackapi/slack-github-action@v3.0.3
         with:
           method: chat.postMessage
@@ -560,13 +555,33 @@ jobs:
           payload: |
             {
               "channel": "C04DYBSJK0R",
-              "text": "✅ *Success:* Consolidated reference-docs copy for all supported lines succeeded. <${{ env.PR_URL }}|Review the PR>",
+              "text": "✅ *Success:* Consolidated reference-docs copy for all supported lines succeeded. <${{ needs.assemble-oss.outputs.pr_url }}|Review the PR>",
               "blocks": [
                 {
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "✅ *Success:* Consolidated reference-docs copy for all supported lines succeeded. <${{ env.PR_URL }}|Review the PR>"
+                    "text": "✅ *Success:* Consolidated reference-docs copy for all supported lines succeeded. <${{ needs.assemble-oss.outputs.pr_url }}|Review the PR>"
+                  }
+                }
+              ]
+            }
+      - name: Notify in slack of success (no changes)
+        if: needs.assemble-oss.result == 'success' && needs.assemble-oss.outputs.pr_url == ''
+        uses: slackapi/slack-github-action@v3.0.3
+        with:
+          method: chat.postMessage
+          token: ${{ secrets.SLACK_BOT_TOKEN }}
+          payload: |
+            {
+              "channel": "C04DYBSJK0R",
+              "text": "✅ *Success:* Consolidated reference-docs copy ran — no doc changes this run, docs already in sync.",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "✅ *Success:* Consolidated reference-docs copy ran — no doc changes this run, docs already in sync."
                   }
                 }
               ]
