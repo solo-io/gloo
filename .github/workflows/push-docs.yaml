@@ -457,6 +457,8 @@ jobs:
     needs: [prepare-oss, regen-oss]
     if: always() && needs.prepare-oss.result == 'success' && (needs.regen-oss.result == 'success' || needs.regen-oss.result == 'skipped')
     runs-on: ubuntu-latest
+    outputs:
+      pr_url: ${{ steps.cpr.outputs.pull-request-url }}
     steps:
       - name: Checkout docs repo
         uses: actions/checkout@v5
@@ -516,6 +518,7 @@ jobs:
             echo "DOCSGEN_EOF"
           } >> "$GITHUB_OUTPUT"
       - name: Push and create the consolidated PR
+        id: cpr
         if: steps.apply.outputs.changed == 'true'
         uses: peter-evans/create-pull-request@v7
         with:
@@ -545,6 +548,11 @@ jobs:
     steps:
       - name: Notify in slack of success
         if: needs.assemble-oss.result == 'success'
+        env:
+          # Falls back to the pulls list only for the edge case where nothing changed and no PR
+          # was created this run (create-pull-request still outputs a URL when it updates an
+          # existing open PR, so this is the normal link on every run that has real changes).
+          PR_URL: ${{ needs.assemble-oss.outputs.pr_url || 'https://github.com/solo-io/docs/pulls' }}
         uses: slackapi/slack-github-action@v3.0.3
         with:
           method: chat.postMessage
@@ -552,13 +560,13 @@ jobs:
           payload: |
             {
               "channel": "C04DYBSJK0R",
-              "text": "✅ *Success:* Consolidated reference-docs copy for all supported lines succeeded. <https://github.com/solo-io/docs/pulls|Review the PR>",
+              "text": "✅ *Success:* Consolidated reference-docs copy for all supported lines succeeded. <${{ env.PR_URL }}|Review the PR>",
               "blocks": [
                 {
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "✅ *Success:* Consolidated reference-docs copy for all supported lines succeeded. <https://github.com/solo-io/docs/pulls|Review the PR>"
+                    "text": "✅ *Success:* Consolidated reference-docs copy for all supported lines succeeded. <${{ env.PR_URL }}|Review the PR>"
                   }
                 }
               ]
@@ -786,6 +794,7 @@ jobs:
         sed -i '1,2d' assets/gateway-docs/pages/reference/gateway_parameters_${{ steps.version-variables.outputs.minor }}.md
         popd || exit 1
     - name: Push and create PR
+      id: cpr
       uses: peter-evans/create-pull-request@v7
       with:
         base: main
@@ -807,13 +816,13 @@ jobs:
         payload: |
           {
             "channel": "C04DYBSJK0R",
-            "text": "✅ *Success:* Automated copy of enterprise reference docs for ${{ steps.version-variables.outputs.minor }} was successful. <https://github.com/solo-io/docs/pulls|Review the PR>",
+            "text": "✅ *Success:* Automated copy of enterprise reference docs for ${{ steps.version-variables.outputs.minor }} was successful. <${{ steps.cpr.outputs.pull-request-url }}|Review the PR>",
             "blocks": [
               {
                 "type": "section",
                 "text": {
                   "type": "mrkdwn",
-                  "text": "✅ *Success:* Automated copy of enterprise reference docs for ${{ steps.version-variables.outputs.minor }} was successful. <https://github.com/solo-io/docs/pulls|Review the PR>"
+                  "text": "✅ *Success:* Automated copy of enterprise reference docs for ${{ steps.version-variables.outputs.minor }} was successful. <${{ steps.cpr.outputs.pull-request-url }}|Review the PR>"
                 }
               }
             ]
