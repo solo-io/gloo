@@ -1,0 +1,9 @@
+changelog:
+- type: NON_USER_FACING
+  resolvesIssue: false
+  description: >-
+    Fix push-docs workflow failing on nightly runs when the primary line
+    produces no doc changes. The guard that required the primary line to always
+    produce a diff was too strict; a nightly run can legitimately find the docs
+    repo already in sync. Downgraded the hard failure to a notice.
+    skipCI-kube-tests:true
