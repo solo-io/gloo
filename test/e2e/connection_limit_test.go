@@ -111,7 +111,7 @@ var _ = Describe("Connection Limit", func() {
 				defer GinkgoRecover()
 				defer wg.Done()
 				_, err := httpClient.Do(requestBuilder.Build())
-				Expect(err).Should(MatchError(ContainSubstring("EOF")), "The connection should close")
+				Expect(err).Should(MatchError(matchers.BeClosedConnectionError()), "The connection should close")
 			}
 
 			wg.Add(2)
