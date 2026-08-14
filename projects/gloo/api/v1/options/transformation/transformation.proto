@@ -6,7 +6,6 @@ option go_package = "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/tr
 import "google/protobuf/empty.proto";
 import "google/protobuf/wrappers.proto";
 import "github.com/solo-io/gloo/projects/gloo/api/v1/core/matchers/matchers.proto";
-import "github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/transformers/xslt/xslt_transformer.proto";
 
 import "extproto/ext.proto";
 option (extproto.hash_all) = true;
@@ -64,12 +63,11 @@ message TransformationStages {
     // 3. `clear_route_cache` does NOT work in this stage as the routing decision is already made.
     // Enterprise only
     RequestResponseTransformations post_routing = 6;
-    // Inherit transformation config from parent. This has no affect on VirtualHost level transformations.
-    // If a RouteTable or Route wants to inherit transformations from it's parent RouteTable or VirtualHost,
-    // this should be set to true, else transformations from parents will not be inherited.
-    // Transformations are ordered so the child's transformation gets priority, so in the case where a child
-    // and parent's transformation matchers are the same, only the child's transformation will run because
-    // only one transformation will run per stage.
+    // Inherit transformation config from the parent route. This field has no effect on VirtualHost-level transformations.
+    // If a RouteTable or Route wants to inherit transformations from its parent Route,
+    // set this value to true, else transformations from parents are not inherited.
+    // Inherited parent route transformations are appended. This way, if both the child and parent route matchers are the same,
+    // only the child's transformation runs, because only one transformation runs per stage.
     // Defaults to false.
     bool inherit_transformation = 3;
 
@@ -96,13 +94,14 @@ message Transformation {
         // 'headers', containing the headers, and 'body', containing the original
         // body.
         HeaderBodyTransform header_body_transform = 2;
-        // Deprecated: The XSLT Transformation feature of Gloo Gateway will be removed in a future release.
-        // (Enterprise Only): Xslt Transformation
-        envoy.config.transformer.xslt.v2.XsltTransformation xslt_transformation = 3;
-
     }
     // When enabled, log request/response body and headers before and after this transformation is applied.
     bool log_request_response_info = 4;
+
+    // Removed: The XSLT Transformation feature of Gloo Gateway is removed in v1.22 release.
+    // 3 used to be at the oneof transformation_type level but reserve has to be at the top message level.
+    reserved 3;
+    reserved "xslt_transformation";
 }
 
 // Extractions can be used to extract information from the request/response.

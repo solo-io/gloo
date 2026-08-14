@@ -12,11 +12,10 @@ Gloo Gateway Enterprise offers `n-3` patching support for bug and critical secur
 
 | Gloo Gateway | Kubernetes | Envoy | Helm | Istio`†`    |
 |------|----------|---------|--------|-------------|
+| 1.22.x | 1.31 - 1.36 | v3 xDS API | >= 3.19 | 1.26 - 1.30 | 
 | 1.21.x | 1.31 - 1.35 | v3 xDS API | >= 3.19 | 1.25 - 1.29 | 
 | 1.20.x | 1.29 - 1.34 | v3 xDS API | >= 3.12 | 1.23 - 1.27 |
 | 1.19.x | 1.28 - 1.32 | v3 xDS API | >= 3.12 | 1.18 - 1.25 | 
-| 1.18.x | 1.27 - 1.31 | v3 xDS API | >= 3.12 | 1.18 - 1.23 |
-
 
 {{% notice note %}}`†` **Istio versions**: Istio must run on a compatible version of Kubernetes. For example, Istio 1.22 is tested, but not supported, on Kubernetes 1.26. For more information, see the [Istio docs](https://istio.io/latest/docs/releases/supported-releases/). If you want hardened `n-4` versions of Istio for particular requirements such as FIPS, consider using [Gloo Mesh Enterprise](https://www.solo.io/products/gloo-mesh/), which includes ingress gateway and service mesh components.
 

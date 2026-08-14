@@ -37,8 +37,6 @@ const (
 // The External Processing filter allows for calling out to an external gRPC service at a specified
 // point within a HTTP filter chain. The external service may access and modify various parts of the
 // request or response, and may terminate processing.
-// Envoy's External Processing Filter is considered a work in progress and has an unknown security posture.
-// Users should take care to understand the risks of using this extension before proceeding.
 type Settings struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Required. Configuration for the gRPC service that the filter will communicate with.

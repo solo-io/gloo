@@ -1,0 +1,11 @@
+changelog:
+  - type: NON_USER_FACING
+    resolvesIssue: false
+    description: >-
+      Fix the push-docs.yaml workflow, which was failing on every run with no error message.
+      The per-line docsgen job could die silently (a pipefail interaction with a failed shell
+      pipeline assigned to a variable under set -e) before its own diagnostic message ever ran,
+      and MIN_MINOR still included v1.18.x, which is no longer hosted in solo-io/docs and has
+      nothing older to seed from. Bumped MIN_MINOR to 1.19.x (the oldest line actually hosted)
+      and fixed the silent failure so any future occurrence surfaces a clear error instead.
+      skipCI-kube-tests:true

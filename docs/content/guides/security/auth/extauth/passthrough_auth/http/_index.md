@@ -289,11 +289,22 @@ spec:
           # { "state": map[string]object }.
           # If the state fails to be set for any reason, the auth request will be denied and an error will be logged in the ext-auth-service pod. 
           readStateFromResponse: bool
-          # When set, authorization response headers that have a header in this list are added to the original client request and sent to the upstream
-          # when the auth request is successful. These overwrite any request headers that already exist.
-          # If this and allowed_upstream_headers are empty, by default, no authorization response headers are added to the upstream request.
-          # Header names cannot be included in both allowed_upstream_headers and allowed_upstream_headers_to_overwrite.
-          allowedClientHeadersOnDenied: string[]
+          # This is a list of headers that will be included from the authorization response and sent back to the client in the http response when the auth request is successful.
+          # Headers that are already present on the client response are overwritten.
+          allowedClientHeadersOnSuccess: string[]
+        # Maximum time to wait for the auth server to begin sending response headers after the request is fully written.
+        # Independent from connectionTimeout (the overall request budget) — whichever fires first wins.
+        # Defaults to 0 (unset; only connectionTimeout applies).
+        responseHeaderTimeout: duration
+        # Connection pool tuning for the HTTP client that calls the passthrough auth server.
+        # If unset, defaults apply (maxConns=100, idleTimeout=0).
+        connectionPool:
+          # Maximum total concurrent connections to the auth server, including in-flight requests.
+          # When reached, additional requests block until a slot frees. Defaults to 100.
+          maxConns: uint32
+          # How long an idle (keep-alive) connection remains in the pool before being closed.
+          # Defaults to 0 (no idle expiry).
+          idleTimeout: duration
         # Configure simple or mutual TLS when connecting to the passthrough server. To configure simple TLS, use tlsConfig: {}. 
         tlsConfig: 
           # The reference to the Kubernetes secret with the mutual TLS credentials. 
