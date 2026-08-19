@@ -153,7 +153,7 @@ var _ = Describe("Local Rate Limit", func() {
 				// We use a new client every time as TCP connections are cached and this needs to be avoided in order to test L4 rate limiting
 				httpClient := testutils.DefaultClientBuilder().Build()
 				_, err := httpClient.Do(requestBuilder.Build())
-				ExpectWithOffset(1, err).Should(MatchError(ContainSubstring("EOF")), "The connection be limited")
+				ExpectWithOffset(1, err).Should(MatchError(matchers.BeClosedConnectionError()), "The connection be limited")
 			}
 
 			// The rate limit is 1

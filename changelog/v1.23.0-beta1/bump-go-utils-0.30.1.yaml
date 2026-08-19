@@ -1,0 +1,29 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    resolvesIssue: false
+    description: >-
+      Bump go-utils to v0.30.1 so Trivy scan templates use the required .tpl
+      extension and remain compatible with Trivy v0.70.0 and later.
+    dependencyOwner: solo-io
+    dependencyRepo: go-utils
+    dependencyTag: v0.30.1
+  - type: NON_USER_FACING
+    resolvesIssue: false
+    description: >-
+      Download the envtest binaries once during install-go-tools so the parallel
+      projects/gateway2 test packages no longer race to populate the shared
+      setup-envtest store.
+  - type: NON_USER_FACING
+    resolvesIssue: false
+    description: >-
+      Regenerate the nginx test certificate embedded in nginx_pod.yaml, which
+      expired on 2026-08-07 and broke the client_tls e2e suite with
+      CERTIFICATE_VERIFY_FAILED. The replacement is valid until 2048.
+  - type: NON_USER_FACING
+    resolvesIssue: false
+    description: >-
+      Accept either "EOF" or "http: server closed idle connection" when
+      asserting that Envoy dropped a connection in the connection limit and L4
+      local rate limit e2e tests. Which one net/http surfaces is a race, so
+      matching only EOF made the tests fail whenever Envoy closed the
+      connection before the request was written.

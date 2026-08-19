@@ -18,7 +18,11 @@ jobs:
     steps:
       - name: Install Trivy (latest)
         run: |
-          TRIVY_VERSION=$(curl --silent "https://api.github.com/repos/aquasecurity/trivy/releases/latest" | grep '"tag_name":' | sed -E 's/.*"v([^"]+)".*/\1/')
+          TRIVY_VERSION=$(curl --silent -H "Authorization: Bearer ${GITHUB_TOKEN}" "https://api.github.com/repos/aquasecurity/trivy/releases/latest" | grep '"tag_name":' | sed -E 's/.*"v([^"]+)".*/\1/')
+          if [ -z "${TRIVY_VERSION}" ]; then
+            echo "::error::Failed to resolve latest Trivy version from GitHub API"
+            exit 1
+          fi
           echo Using Trivy v${TRIVY_VERSION}
           wget https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/trivy_${TRIVY_VERSION}_Linux-64bit.deb
           sudo dpkg -i trivy_${TRIVY_VERSION}_Linux-64bit.deb

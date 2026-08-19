@@ -113,8 +113,8 @@ func UpdateUpstream(original, desired *v1.Upstream) (didChange bool, err error) 
 	}
 	// copy service spec, we don't want to overwrite that
 	desiredSpec.Kube.ServiceSpec = originalSpec.Kube.GetServiceSpec()
-	// copy labels; user may have written them over. cannot be auto-discovered
-	desiredSpec.Kube.Selector = originalSpec.Kube.GetSelector()
+
+	// Keep the selector produced during Service conversion instead of preserving a stale value.
 
 	utils.UpdateUpstream(original, desired)
 

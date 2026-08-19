@@ -24,7 +24,7 @@ func TestDiscoveryWatchlabels(t *testing.T) {
 		t,
 		&gloogateway.Context{
 			InstallNamespace:          installNs,
-			ProfileValuesManifestFile: e2e.KubernetesGatewayProfilePath,
+			ProfileValuesManifestFile: e2e.EdgeGatewayProfilePath,
 			ValuesManifestFile:        filepath.Join(util.MustGetThisDir(), "manifests", "discovery-watchlabels-test-helm.yaml"),
 		},
 	)
