@@ -9,7 +9,7 @@ on:
 
 env:
   SLACK_DEBUG_TESTING: false   # when set to "true", send notifications to #slack-integration-testing.  Otherwise, post to #edge-team-bots
-  GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
   scan-images:
