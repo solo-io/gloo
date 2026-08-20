@@ -44,13 +44,17 @@ jobs:
           project_id: solo-public
       - name: Run and Push Security Scan Files to Google Cloud Bucket
         env:
-          # The enterprise release lookup requires access to the private solo-projects repository.
-          GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          # The enterprise release lookup requires the existing cross-repository credential.
+          GITHUB_TOKEN: ${{ secrets.DOCS_TOKEN }}
           SCAN_DIR: _output/scans
           IMAGE_REGISTRY: quay.io/solo-io
           # ON_LTS_UPDATE - bump lts version in the repo variables
           MIN_SCANNED_VERSION: ${{ vars.LATEST_STABLE_MINUS_THREE_BRANCH }}  # ⚠️ you should also change trivy-analysis-scheduled.yaml ⚠️
         run: |
+          if [[ -z "$GITHUB_TOKEN" ]]; then
+            echo "::error::The cross-repository scan credential is not configured"
+            exit 1
+          fi
           mkdir -p "$SCAN_DIR"
           make run-security-scan
           make publish-security-scan
