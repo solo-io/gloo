@@ -1,0 +1,13 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/solo-projects/issues/8013
+    resolvesIssue: false
+    description: >-
+      Report a status on Kubernetes Gateway resources that are rejected without changing the proxy
+      config. XdsSnapWrapper.Equals compared only the Envoy snapshot, so a translation whose only
+      change was a new report was treated as no change: rejecting an invalid option leaves the last
+      good config in place, which makes the snapshots identical. Change detection dropped that
+      update along with the plugin registry holding the rejected resource, so the status plugins
+      never saw it and the resource kept an empty status. Change detection now also compares the
+      proxy report, which is a deterministic function of translation and carries no timestamps, so
+      stable output still converges without redundant report processing.
