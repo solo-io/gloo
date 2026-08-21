@@ -9,7 +9,7 @@ on:
 
 env:
   SLACK_DEBUG_TESTING: false   # when set to "true", send notifications to #slack-integration-testing.  Otherwise, post to #edge-team-bots
-  GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
   scan-images:
@@ -18,14 +18,16 @@ jobs:
     steps:
       - name: Install Trivy (latest)
         run: |
-          TRIVY_VERSION=$(curl --silent -H "Authorization: Bearer ${GITHUB_TOKEN}" "https://api.github.com/repos/aquasecurity/trivy/releases/latest" | grep '"tag_name":' | sed -E 's/.*"v([^"]+)".*/\1/')
-          if [ -z "${TRIVY_VERSION}" ]; then
-            echo "::error::Failed to resolve latest Trivy version from GitHub API"
+          TRIVY_RELEASE_URL=$(curl --silent --show-error --fail --location --output /dev/null --write-out '%{url_effective}' \
+            "https://github.com/aquasecurity/trivy/releases/latest")
+          TRIVY_VERSION=${TRIVY_RELEASE_URL##*/v}
+          if [[ ! "${TRIVY_VERSION}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Failed to resolve latest Trivy version from ${TRIVY_RELEASE_URL}"
             exit 1
           fi
-          echo Using Trivy v${TRIVY_VERSION}
-          wget https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/trivy_${TRIVY_VERSION}_Linux-64bit.deb
-          sudo dpkg -i trivy_${TRIVY_VERSION}_Linux-64bit.deb
+          echo "Using Trivy v${TRIVY_VERSION}"
+          wget "https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/trivy_${TRIVY_VERSION}_Linux-64bit.deb"
+          sudo dpkg -i "trivy_${TRIVY_VERSION}_Linux-64bit.deb"
       - name: Check out code into the Go module directory
         uses: actions/checkout@v4
       - uses: ./.github/workflows/composite-actions/prep-go-runner
