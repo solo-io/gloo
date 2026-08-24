@@ -1,0 +1,9 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/solo-projects/issues/8013
+    resolvesIssue: false
+    description: >-
+      Prevent Pod and EndpointSlice events from triggering full Kubernetes
+      Gateway proxy retranslation. Endpoint changes continue to update xDS
+      through the KRT endpoint pipeline, reducing unnecessary CPU and memory
+      churn in event-heavy clusters.
