@@ -357,10 +357,13 @@ spec:
         - name: http-monitoring
           containerPort: 9091
         {{- end }}
-        readinessProbe:
+{{- if hasKey $global.glooMtls.sds "readinessProbe" }}
 {{- if $global.glooMtls.sds.readinessProbe }}
+        readinessProbe:
 {{ toYaml $global.glooMtls.sds.readinessProbe | indent 10}}
+{{- end }}
 {{- else }}
+        readinessProbe:
           tcpSocket:
             port: 8234
           initialDelaySeconds: 3
