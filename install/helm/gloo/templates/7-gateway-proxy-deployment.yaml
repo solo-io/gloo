@@ -357,9 +357,15 @@ spec:
         - name: http-monitoring
           containerPort: 9091
         {{- end }}
-{{- with $global.glooMtls.sds.readinessProbe }}
         readinessProbe:
-{{ toYaml . | indent 10}}
+{{- if $global.glooMtls.sds.readinessProbe }}
+{{ toYaml $global.glooMtls.sds.readinessProbe | indent 10}}
+{{- else }}
+          tcpSocket:
+            port: 8234
+          initialDelaySeconds: 3
+          periodSeconds: 10
+          failureThreshold: 3
 {{- end }} {{/*  $global.glooMtls.sds.readinessProbe */}}
 {{- end }} {{- /* or $global.glooMtls.enabled (or $.Values.istioSDS.enabled $global.istioIntegration.enabled) */}}
 {{- if or $global.istioSDS.enabled $global.istioIntegration.enabled }}
