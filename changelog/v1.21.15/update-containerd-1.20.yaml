@@ -1,9 +1,0 @@
-changelog:
-- type: DEPENDENCY_BUMP
-  dependencyOwner: helm.sh
-  dependencyRepo: helm
-  dependencyTag: v3.19.2
-  issueLink: https://github.com/solo-io/solo-projects/issues/8680
-  resolvesIssue: false
-  description: >-
-    Bump helm to 3.19.2 to fix CVEs
