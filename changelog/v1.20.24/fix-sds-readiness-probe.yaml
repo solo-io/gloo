@@ -1,0 +1,10 @@
+changelog:
+  - type: HELM
+    issueLink: https://github.com/solo-io/gloo/issues/11389
+    resolvesIssue: true
+    description: >-
+      Fix the SDS container's readinessProbe so it falls back to the default probe only when
+      `global.glooMtls.sds.readinessProbe` is unset, instead of always requiring a value from
+      values-template.yaml. This lets users fully disable the probe by explicitly setting it to
+      null/empty, and lets a partial override apply on top of an explicit probe without silently
+      losing the default when none is provided.
