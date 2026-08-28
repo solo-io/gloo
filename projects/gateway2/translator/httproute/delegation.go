@@ -39,12 +39,46 @@ func flattenDelegatedRoutes(
 	outputs *[]*v1.Route,
 	routesVisited sets.Set[types.NamespacedName],
 	delegationChain *list.List,
+	routeBudget *int,
 ) error {
 	parentRoute, ok := parent.Object.(*gwv1.HTTPRoute)
 	if !ok {
 		return eris.Errorf("unsupported route type: %T", parent.Object)
 	}
 	parentRef := types.NamespacedName{Namespace: parentRoute.Namespace, Name: parentRoute.Name}
+
+	// Cycle detection prevents infinite recursion, but a non-cyclic delegation
+	// graph can still expand combinatorially. Bound the depth so a deep
+	// diamond/lattice cannot blow up exponentially. delegationChain holds the
+	// ancestors visited so far, so its length is the current delegation depth.
+	if delegationChain.Len() >= maxDelegationDepth {
+		msg := fmt.Sprintf("delegation depth limit (%d) exceeded at parent route %s; not expanding further delegated routes",
+			maxDelegationDepth, parentRef)
+		contextutils.LoggerFrom(ctx).Warn(msg)
+		parentReporter.SetCondition(reports.RouteCondition{
+			Type:    gwv1.RouteConditionAccepted,
+			Status:  metav1.ConditionFalse,
+			Reason:  RouteReasonMaxDelegationDepthExceeded,
+			Message: msg,
+		})
+		return nil
+	}
+
+	// Bound the total number of flattened routes (catches wide/shallow lattices
+	// that the depth cap alone would miss).
+	if *routeBudget <= 0 {
+		msg := fmt.Sprintf("delegated route limit (%d) exceeded at parent route %s; not expanding further delegated routes",
+			maxDelegatedRoutes, parentRef)
+		contextutils.LoggerFrom(ctx).Warn(msg)
+		parentReporter.SetCondition(reports.RouteCondition{
+			Type:    gwv1.RouteConditionAccepted,
+			Status:  metav1.ConditionFalse,
+			Reason:  RouteReasonMaxDelegatedRoutesExceeded,
+			Message: msg,
+		})
+		return nil
+	}
+
 	routesVisited.Insert(parentRef)
 	defer routesVisited.Delete(parentRef)
 
@@ -110,7 +144,7 @@ func flattenDelegatedRoutes(
 		}
 
 		translateGatewayHTTPRouteRulesUtil(
-			ctx, pluginRegistry, gwListener, child, reporter, baseReporter, outputs, routesVisited, hostnames, delegationChain)
+			ctx, pluginRegistry, gwListener, child, reporter, baseReporter, outputs, routesVisited, hostnames, delegationChain, routeBudget)
 	}
 
 	return nil
