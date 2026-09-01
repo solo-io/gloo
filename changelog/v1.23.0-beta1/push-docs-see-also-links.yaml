@@ -1,0 +1,11 @@
+changelog:
+  - type: NON_USER_FACING
+    resolvesIssue: false
+    description: >-
+      Filter unpublished commands out of the SEE ALSO section of the generated glooctl
+      reference pages before push-docs copies them into solo-io/docs. Cobra links the parent
+      command and every sibling subcommand, but only seven glooctl commands are published, so
+      the remaining bullets pointed at pages that do not exist and broke the docs link check
+      on every gateway version tree at once. Drops the bullets that reference an unpublished
+      command, and the SEE ALSO heading when nothing is left under it.
+      skipCI-kube-tests:true
