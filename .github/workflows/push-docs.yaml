@@ -392,10 +392,50 @@ jobs:
           cp "$GEN/static/content/glooe-values.docgen"  "$DOCS/assets/gateway-docs/pages/reference/helm/glooe-values_${MINOR}.md"
 
           mkdir -p "$DOCS/content/en/gateway/${DIRECTORY}/reference/cli"
-          for c in glooctl_check glooctl_debug glooctl_debug_yaml glooctl_install_gateway \
-                   glooctl_install_gateway_enterprise glooctl_uninstall glooctl_upgrade; do
+          CLI_CMDS="glooctl_check glooctl_debug glooctl_debug_yaml glooctl_install_gateway
+                    glooctl_install_gateway_enterprise glooctl_uninstall glooctl_upgrade"
+          for c in $CLI_CMDS; do
             cp "$GEN/reference/cli/${c}.md" "$DOCS/content/en/gateway/${DIRECTORY}/reference/cli/${c}.md"
           done
+
+          # Cobra emits a "SEE ALSO" section linking the parent command and every
+          # sibling subcommand. Only the commands listed above are published, so
+          # those bullets point at pages that do not exist and break the docs link
+          # check on every gateway version at once (13 errors as of 2026-08-31 —
+          # ../glooctl, ../glooctl_install, ../glooctl_debug_logs). Drop the
+          # bullets that reference an unpublished command, and drop the SEE ALSO
+          # heading if nothing is left under it. Filtering here rather than in the
+          # docs repo because these files are regenerated on every run.
+          python3 - "$DOCS/content/en/gateway/${DIRECTORY}/reference/cli" $CLI_CMDS <<'PYEOF'
+          import os, re, sys
+          cli_dir, published = sys.argv[1], set(sys.argv[2:])
+          bullet = re.compile(r'^\* \[[^\]]*\]\(\.\./([A-Za-z0-9_.-]+)\)')
+          for name in sorted(os.listdir(cli_dir)):
+              if not name.endswith('.md'):
+                  continue
+              path = os.path.join(cli_dir, name)
+              kept, dropped = [], 0
+              for line in open(path).read().splitlines():
+                  m = bullet.match(line)
+                  if m and m.group(1) not in published:
+                      dropped += 1
+                      continue
+                  kept.append(line)
+              if not dropped:
+                  continue
+              # Remove a SEE ALSO heading that no longer has any bullets under it.
+              out = []
+              for i, line in enumerate(kept):
+                  if line.strip().upper() == '### SEE ALSO':
+                      rest = kept[i + 1:]
+                      if not any(r.startswith('* [') for r in rest[:5]):
+                          continue
+                  out.append(line)
+              while out and not out[-1].strip():
+                  out.pop()
+              open(path, 'w').write('\n'.join(out) + '\n')
+              print(f'  {name}: dropped {dropped} unpublished SEE ALSO link(s)')
+          PYEOF
 
           cp "$GEN/reference/api/github.com/solo-io/gloo/projects/gateway2/api/v1alpha1/direct_responses.md" \
              "$DOCS/assets/gateway-docs/pages/reference/direct_responses_${MINOR}.md"
