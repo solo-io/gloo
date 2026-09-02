@@ -42,7 +42,17 @@ func (p XdsSnapWrapper) WithSnapshot(snap *xds.EnvoySnapshot) XdsSnapWrapper {
 var _ krt.ResourceNamer = XdsSnapWrapper{}
 
 func (p XdsSnapWrapper) Equals(in XdsSnapWrapper) bool {
-	return p.snap.Equal(in.snap)
+	// The proxy report is compared alongside the snapshot because a translation can change what
+	// gets reported about a resource without changing the xDS output at all: rejecting an invalid
+	// option leaves the last good config in place, so the two snapshots are identical. Comparing
+	// only the snapshot dropped those updates, and with them the plugin registry that carries the
+	// status for the newly rejected resource, so the resource never got a status written at all.
+	//
+	// The proxy report is a deterministic function of translation and carries no timestamps, so
+	// including it here does not reintroduce the no-op report churn that stable output used to
+	// cause.
+	return p.snap.Equal(in.snap) &&
+		proto.Equal(p.proxyWithReport.Reports.ProxyReport, in.proxyWithReport.Reports.ProxyReport)
 }
 
 func (p XdsSnapWrapper) ResourceName() string {
