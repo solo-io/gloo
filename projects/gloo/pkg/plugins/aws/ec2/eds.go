@@ -92,6 +92,7 @@ func (c *edsWatcher) updateEndpointsList(endpointsChan chan v1.EndpointList, err
 	for _, ns := range c.secretNamespaces {
 		nsSecrets, err := c.secretClient.List(ns, clients.ListOpts{Ctx: c.watchContext})
 		if err != nil {
+			contextutils.LoggerFrom(c.watchContext).Errorw("failed to list secrets for EC2 upstream discovery", "namespace", ns, "error", err)
 			errs <- err
 			return
 		}
@@ -100,6 +101,7 @@ func (c *edsWatcher) updateEndpointsList(endpointsChan chan v1.EndpointList, err
 
 	allEndpoints, err := getLatestEndpoints(c.watchContext, c.ec2InstanceLister, secrets, c.writeNamespace, c.upstreams)
 	if err != nil {
+		contextutils.LoggerFrom(c.watchContext).Errorw("failed to fetch EC2 instances for upstream discovery", "error", err)
 		errs <- err
 		return
 	}
