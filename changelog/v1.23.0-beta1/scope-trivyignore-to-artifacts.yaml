@@ -1,0 +1,8 @@
+changelog:
+  - type: NON_USER_FACING
+    resolvesIssue: false
+    description: >-
+      Convert .trivyignore to Trivy's YAML ignore format and scope the kubectl job
+      image entries to that binary, so the same CVE reported against a binary we
+      build is no longer suppressed. The scan targets name the file explicitly via
+      TRIVY_IGNOREFILE, since Trivy only auto-discovers a file named .trivyignore.

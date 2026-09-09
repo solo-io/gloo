@@ -1277,6 +1277,11 @@ sync-gateway-api: ## Syncronize the Gateway API version used by the repo with th
 
 SCAN_DIR ?= $(OUTPUT_DIR)/scans
 SCAN_BUCKET ?= solo-gloo-security-scans
+# Trivy picks its parser from the file extension and only auto-discovers a file named
+# ".trivyignore", so our YAML ignore list has to be named explicitly. Override this to scan
+# with an ignore list kept outside the working tree.
+TRIVY_IGNOREFILE ?= .trivyignore.yaml
+export TRIVY_IGNOREFILE
 # The minimum version to scan with trivy
 # ON_LTS_UPDATE - bump version
 MIN_SCANNED_VERSION ?= v1.18.0
