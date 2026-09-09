@@ -1,0 +1,103 @@
+# Trivy ignore list for all Gloo image scans.
+#
+# The scheduled scan (.github/workflows/scheduled-trivy-analysis.yaml) checks out main and
+# scans every supported branch's images from here, so this is the single ignore list for
+# OSS and enterprise alike.
+#
+# Trivy selects its parser from the file extension and only auto-discovers a file named
+# ".trivyignore", so this file is wired up explicitly via TRIVY_IGNOREFILE in that
+# workflow, and local scans need --ignorefile. If that wiring is ever lost the entries
+# below stop applying and the findings reappear in the alert, which is the safe direction
+# to fail.
+#
+# Scope an entry with `paths` whenever the finding is only acceptable in one artifact.
+# An unscoped entry suppresses that CVE in every image, including binaries we build, which
+# would hide a real regression.
+vulnerabilities:
+  # Very old istio.io/istio CVEs whose patches are already merged. These are false
+  # positives: we pin istio to a go pseudo-version because its tags do not follow strict
+  # semver, so trivy cannot tell the pinned commit already carries the fix. Deliberately
+  # unscoped, since the pin is in our own module graph and can surface in any image.
+  - id: CVE-2019-14993
+    statement: False positive from the istio.io/istio pseudo-version pin; the fix is in the pinned commit.
+  - id: CVE-2021-39155
+    statement: False positive from the istio.io/istio pseudo-version pin; the fix is in the pinned commit.
+  - id: CVE-2021-39156
+    statement: False positive from the istio.io/istio pseudo-version pin; the fix is in the pinned commit.
+  - id: CVE-2022-23635
+    statement: False positive from the istio.io/istio pseudo-version pin; the fix is in the pinned commit.
+
+  # https://github.com/advisories/GHSA-6m8w-jc87-6cr7
+  # Unscoped: applies to enterprise images built outside this repo.
+  - id: CVE-2025-46569
+    statement: >-
+      Only affects OPA run as an exposed standalone server, not OPA used as a library by
+      extauth or as an unexposed sidecar.
+
+  # https://github.com/advisories/GHSA-pwhc-rpq9-4c8w
+  - id: CVE-2024-25621
+    statement: Affects the installable, not the library we consume.
+
+  # https://github.com/solo-io/gloo/issues/11400
+  #
+  # Reported against the kubectl binary in the kubectl job image. That binary is copied
+  # from the upstream rancher/kubectl image rather than built here, so we cannot patch it,
+  # and no published tag fixes it: the newest, v1.36.2, ships Go 1.26.4, x/net v0.49.0 and
+  # x/text v0.33.0, all below the fixed versions, and govulncheck reports the same 18
+  # findings for it as for the v1.35.6 we use.
+  #
+  # govulncheck confirms the vulnerable symbols are compiled into that binary, so this is a
+  # containment argument rather than a reachability one. In this image kubectl only runs as
+  # a short-lived client in the chart's Helm hook Jobs (resource rollout, rollout check,
+  # cleanup and migration). It listens on no port and serves no traffic, so no untrusted
+  # party can hand it input; its inputs are argument lists fixed in the chart templates,
+  # manifests the chart renders into a mounted ConfigMap, and responses from the
+  # authenticated in-cluster API server. Reaching any of these findings therefore requires
+  # already controlling the API server, cluster DNS, or the operator's own chart values,
+  # and the worst case is a hung or panicking hook Job: a visibly failed install or
+  # upgrade, under a ServiceAccount scoped to gloo/gateway CRs plus read access to
+  # deployments and jobs, rather than a persistent compromise or an escalation over what
+  # such an attacker already holds.
+  #
+  # Each entry is scoped to the kubectl binary, so the same CVE reported against a binary
+  # we build stays visible. Remove these once jobs/kubectl/Dockerfile picks up a
+  # rancher/kubectl built with Go 1.26.6+, x/net v0.56.0+ and x/text v0.39.0+.
+  - id: CVE-2026-25681
+    paths: ["usr/local/bin/kubectl"]
+    statement: x/net/html parsing; kubectl parses no untrusted HTML here.
+  - id: CVE-2026-27136
+    paths: ["usr/local/bin/kubectl"]
+    statement: x/net/html parsing; kubectl parses no untrusted HTML here.
+  - id: CVE-2026-33814
+    paths: ["usr/local/bin/kubectl"]
+    statement: HTTP/2 client transport loop; would require a malicious API server.
+  - id: CVE-2026-39821
+    paths: ["usr/local/bin/kubectl"]
+    statement: IDNA hostname handling; the API server address comes from chart values, not an attacker.
+  - id: CVE-2026-46600
+    paths: ["usr/local/bin/kubectl"]
+    statement: DNS SVCB/HTTPS parsing panic; would require malicious cluster DNS and only fails the hook Job.
+  - id: CVE-2026-56852
+    paths: ["usr/local/bin/kubectl"]
+    statement: x/text normalization loop on invalid UTF-8; inputs are chart-rendered manifests.
+  - id: CVE-2026-33818
+    paths: ["usr/local/bin/kubectl"]
+    statement: encoding/asn1 recursion; would require a malicious certificate chain from the API server.
+  - id: CVE-2026-39822
+    paths: ["usr/local/bin/kubectl"]
+    statement: os.Root symlink escape; kubectl is not handed untrusted paths here.
+  - id: CVE-2026-56853
+    paths: ["usr/local/bin/kubectl"]
+    statement: net/http server-side HTTP/2 preface timeout; kubectl runs no server.
+  - id: CVE-2026-56858
+    paths: ["usr/local/bin/kubectl"]
+    statement: html/template escaping; kubectl renders only its own output templates.
+  - id: CVE-2026-56859
+    paths: ["usr/local/bin/kubectl"]
+    statement: encoding/xml recursion; inputs here are JSON/YAML manifests from the chart.
+  - id: CVE-2026-56860
+    paths: ["usr/local/bin/kubectl"]
+    statement: net/url quadratic path resolution; only slows a short-lived hook Job.
+  - id: CVE-2026-56862
+    paths: ["usr/local/bin/kubectl"]
+    statement: crypto/tls post-handshake KeyUpdate flood against a TLS server; kubectl is a client.
