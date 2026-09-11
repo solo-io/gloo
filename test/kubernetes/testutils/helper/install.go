@@ -224,13 +224,12 @@ func (h *SoloTestHelper) InstallGloo(ctx context.Context, timeout time.Duration,
 	if h.Verbose {
 		glooctlCommand = append(glooctlCommand, "-v")
 	}
-	variant := os.Getenv(test_runtime.ImageVariantEnv)
-	if variant != "" {
-		variantValuesFile, err := GenerateVariantValuesFile(variant)
-		if err != nil {
-			return err
-		}
-		options = append(options, WithExtraArgs("--values", variantValuesFile))
+	variantOption, err := imageVariantOption()
+	if err != nil {
+		return err
+	}
+	if variantOption != nil {
+		options = append(options, variantOption)
 	}
 
 	opts := h.generateOpts(glooctlCommand, options...)
@@ -369,6 +368,17 @@ func (h *SoloTestHelper) UpgradeGloo(ctx context.Context, timeout time.Duration,
 	if h.Verbose {
 		helmCommand = append(helmCommand, "--debug")
 	}
+
+	// A helm upgrade only applies the values it is given, so the image variant has to be supplied here
+	// as well as on install, otherwise the upgrade reverts distroless installations to the standard images.
+	variantOption, err := imageVariantOption()
+	if err != nil {
+		return nil, err
+	}
+	if variantOption != nil {
+		options = append(options, variantOption)
+	}
+
 	opts := h.generateOpts(helmCommand, options...)
 
 	if err := runWithTimeout(h.RootDir, opts, timeout, "upgrade"); err != nil {
@@ -493,6 +503,22 @@ func validateConfig(config TestConfig) error {
 		}
 	}
 	return nil
+}
+
+// imageVariantOption returns an option that installs the image variant named by the IMAGE_VARIANT
+// environment variable. It returns a nil option when no variant is requested, which leaves the chart
+// defaults in place.
+func imageVariantOption() (OptionsMutator, error) {
+	variant := os.Getenv(test_runtime.ImageVariantEnv)
+	if variant == "" {
+		return nil, nil
+	}
+
+	variantValuesFile, err := GenerateVariantValuesFile(variant)
+	if err != nil {
+		return nil, err
+	}
+	return WithExtraArgs("--values", variantValuesFile), nil
 }
 
 func GenerateVariantValuesFile(variant string) (string, error) {
