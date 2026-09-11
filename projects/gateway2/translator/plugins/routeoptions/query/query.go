@@ -65,16 +65,36 @@ func (r *routeOptionQueries) GetRouteOptionForRouteRule(
 	var sources []*gloov1.SourceMetadata_SourceRef
 	merged := &solokubev1.RouteOption{}
 
+	// mergeAttachment folds a single RouteOption attachment into the accumulated `merged` result,
+	// recording it as a source if any of its fields were used.
+	//
+	// The first attachment seeds `merged` with a shallow copy (sharing the attachment's immutable
+	// sub-messages by pointer) rather than a deep clone. Deep-cloning the first attachment per route
+	// is what dominated translation heap, since every route referencing the same RouteOption received
+	// its own deep copy of identical (and often large) transformation templates. `merged.Spec.Options`
+	// is a distinct top-level message per route, so downstream route plugins can still reassign its
+	// top-level fields safely; they must not mutate the shared sub-messages in place.
+	mergeAttachment := func(opt *solokubev1.RouteOption) {
+		optionUsed := false
+		if merged.Spec.GetOptions() == nil {
+			if src := opt.Spec.GetOptions(); src != nil {
+				merged.Spec.Options = glooutils.ShallowCopyRouteOptions(src)
+				optionUsed = true
+			}
+		} else {
+			merged.Spec.Options, optionUsed = glooutils.ShallowMergeRouteOptions(merged.Spec.GetOptions(), opt.Spec.GetOptions())
+		}
+		if optionUsed {
+			sources = append(sources, routeOptionToSourceRef(opt))
+		}
+	}
+
 	filterAttachments, err := lookupFilterAttachments(ctx, route, rule, gwQueries)
 	if err != nil {
 		return nil, nil, err
 	}
 	for _, opt := range filterAttachments {
-		optionUsed := false
-		merged.Spec.Options, optionUsed = glooutils.ShallowMergeRouteOptions(merged.Spec.GetOptions(), opt.Spec.GetOptions())
-		if optionUsed {
-			sources = append(sources, routeOptionToSourceRef(opt))
-		}
+		mergeAttachment(opt)
 	}
 
 	var list solokubev1.RouteOptionList
@@ -97,11 +117,7 @@ func (r *routeOptionQueries) GetRouteOptionForRouteRule(
 	}
 	gwutils.SortByCreationTime(out)
 	for _, opt := range out {
-		optionUsed := false
-		merged.Spec.Options, optionUsed = glooutils.ShallowMergeRouteOptions(merged.Spec.GetOptions(), opt.Spec.GetOptions())
-		if optionUsed {
-			sources = append(sources, routeOptionToSourceRef(opt))
-		}
+		mergeAttachment(opt)
 	}
 
 	return nilOptionIfEmpty(merged), sources, nil

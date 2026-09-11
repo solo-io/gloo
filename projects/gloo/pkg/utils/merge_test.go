@@ -58,4 +58,45 @@ var _ = Describe("Merge", func() {
 		Expect(actual).To(Equal(expected))
 		Expect(overwrote).To(BeTrue())
 	})
+
+	Describe("ShallowCopyRouteOptions", func() {
+		It("returns nil for a nil source", func() {
+			Expect(ShallowCopyRouteOptions(nil)).To(BeNil())
+		})
+
+		It("copies top-level fields by value without deep-copying sub-messages", func() {
+			src := &v1.RouteOptions{
+				PrefixRewrite: &wrappers.StringValue{Value: "rewrite-me"},
+				Retries: &retries.RetryPolicy{
+					RetryOn:    "5XX",
+					NumRetries: 3,
+				},
+			}
+
+			out := ShallowCopyRouteOptions(src)
+
+			// The copy is a distinct top-level message that compares equal by value.
+			Expect(out).NotTo(BeIdenticalTo(src))
+			Expect(out).To(Equal(src))
+
+			// Sub-messages are shared by pointer rather than deep-cloned: this is the
+			// allocation saving that keeps translation heap bounded when many routes
+			// reference the same RouteOption.
+			Expect(out.GetRetries()).To(BeIdenticalTo(src.GetRetries()))
+			Expect(out.GetPrefixRewrite()).To(BeIdenticalTo(src.GetPrefixRewrite()))
+		})
+
+		It("isolates top-level field reassignment on the copy from the source", func() {
+			src := &v1.RouteOptions{
+				PrefixRewrite: &wrappers.StringValue{Value: "original"},
+			}
+
+			out := ShallowCopyRouteOptions(src)
+			// Route plugins reassign top-level fields on the merged options; this must not
+			// leak back into the shared source RouteOption.
+			out.PrefixRewrite = &wrappers.StringValue{Value: "changed"}
+
+			Expect(src.GetPrefixRewrite().GetValue()).To(Equal("original"))
+		})
+	})
 })
