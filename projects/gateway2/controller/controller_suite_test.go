@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"sync/atomic"
 	"testing"
 
 	"sigs.k8s.io/controller-runtime/pkg/config"
@@ -45,6 +46,7 @@ var (
 	cancel    context.CancelFunc
 
 	kubeconfig string
+	kickCount  atomic.Int64
 
 	gwClasses = sets.New(gatewayClassName, altGatewayClassName)
 )
@@ -124,7 +126,7 @@ var _ = BeforeSuite(func() {
 		ControllerName: gatewayControllerName,
 		GWClasses:      gwClasses,
 		AutoProvision:  true,
-		Kick:           func(ctx context.Context) { return },
+		Kick:           func(ctx context.Context) { kickCount.Add(1) },
 		Extensions:     exts,
 	}
 	err = controller.NewBaseGatewayController(ctx, cfg)

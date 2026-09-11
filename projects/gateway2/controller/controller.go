@@ -6,7 +6,6 @@ import (
 	"fmt"
 
 	corev1 "k8s.io/api/core/v1"
-	discoveryv1 "k8s.io/api/discovery/v1"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -93,8 +92,8 @@ func NewBaseGatewayController(ctx context.Context, cfg GatewayConfig) error {
 		controllerBuilder.watchVirtualHostOptions,
 		controllerBuilder.watchUpstreams,
 		controllerBuilder.watchServices,
-		controllerBuilder.watchEndpointSlices,
-		controllerBuilder.watchPods,
+		// Pod and EndpointSlice updates flow through the KRT endpoint collections.
+		// Watching them here would unnecessarily rebuild every Gateway proxy.
 		controllerBuilder.watchSecrets,
 		controllerBuilder.addIndexes,
 		controllerBuilder.addHttpLisOptIndexes,
@@ -472,18 +471,6 @@ func (c *controllerBuilder) watchDirectResponses(_ context.Context) error {
 		Complete(reconcile.Func(c.reconciler.ReconcileDirectResponses))
 }
 
-func (c *controllerBuilder) watchPods(ctx context.Context) error {
-	return ctrl.NewControllerManagedBy(c.cfg.Mgr).
-		For(&corev1.Pod{}).
-		Complete(reconcile.Func(c.reconciler.ReconcilePods))
-}
-
-func (c *controllerBuilder) watchEndpointSlices(ctx context.Context) error {
-	return ctrl.NewControllerManagedBy(c.cfg.Mgr).
-		For(&discoveryv1.EndpointSlice{}).
-		Complete(reconcile.Func(c.reconciler.ReconcileEndpointSlices))
-}
-
 func (c *controllerBuilder) watchSecrets(ctx context.Context) error {
 	return ctrl.NewControllerManagedBy(c.cfg.Mgr).
 		For(&corev1.Secret{}).
@@ -541,18 +528,6 @@ func (r *controllerReconciler) ReconcileUpstreams(ctx context.Context, req ctrl.
 func (r *controllerReconciler) ReconcileServices(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	// eventually reconcile only effected listeners etc
 	// https://github.com/solo-io/gloo/issues/9997.
-	r.kick(ctx)
-	return ctrl.Result{}, nil
-}
-
-func (r *controllerReconciler) ReconcilePods(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	// eventually reconcile only effected listeners etc
-	r.kick(ctx)
-	return ctrl.Result{}, nil
-}
-
-func (r *controllerReconciler) ReconcileEndpointSlices(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	// eventually reconcile only effected listeners etc
 	r.kick(ctx)
 	return ctrl.Result{}, nil
 }
