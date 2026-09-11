@@ -3,7 +3,9 @@ package gloomtls
 import (
 	"context"
 	"encoding/json"
+	"os"
 	"path/filepath"
+	"regexp"
 	"time"
 
 	"github.com/onsi/gomega"
@@ -15,6 +17,7 @@ import (
 	"github.com/solo-io/gloo/test/kubernetes/e2e"
 	testdefaults "github.com/solo-io/gloo/test/kubernetes/e2e/defaults"
 	"github.com/solo-io/gloo/test/kubernetes/e2e/tests/base"
+	test_runtime "github.com/solo-io/gloo/test/kubernetes/testutils/runtime"
 	"github.com/solo-io/skv2/codegen/util"
 	"github.com/stretchr/testify/suite"
 	corev1 "k8s.io/api/core/v1"
@@ -103,12 +106,33 @@ func (s *gloomtlsK8sGatewayTestingSuite) getMtlsCerts(namespace string) *corev1.
 }
 
 func (s *gloomtlsK8sGatewayTestingSuite) rotateMtlsCerts() {
+	certgenManifest := s.certgenManifest()
+
 	// Delete the job if it still exists after completion. This ensures that the job will run and the certs rotated
-	s.TestInstallation.Actions.Kubectl().DeleteFile(s.Ctx, filepath.Join(util.MustGetThisDir(), "testdata/certgen.yaml"), "-n", s.TestInstallation.Metadata.InstallNamespace)
-	err := s.TestInstallation.Actions.Kubectl().ApplyFile(s.Ctx, filepath.Join(util.MustGetThisDir(), "testdata/certgen.yaml"), "-n", s.TestInstallation.Metadata.InstallNamespace)
+	s.TestInstallation.Actions.Kubectl().Delete(s.Ctx, certgenManifest, "-n", s.TestInstallation.Metadata.InstallNamespace)
+	err := s.TestInstallation.Actions.Kubectl().Apply(s.Ctx, certgenManifest, "-n", s.TestInstallation.Metadata.InstallNamespace)
 	s.NoError(err)
 
 	// Wait until the job has completed and the certs have been rotated
 	s.TestInstallation.Actions.Kubectl().RunCommand(s.Ctx, "-n", s.TestInstallation.Metadata.InstallNamespace, "wait", "--for=condition=complete", "job", "gloo-mtls-certgen", "--timeout=600s")
 
+}
+
+// certgenImage matches the certgen image reference in the certgen job manifest
+var certgenImage = regexp.MustCompile(`quay\.io/solo-io/certgen:\S+`)
+
+// certgenManifest returns the certgen job manifest with an image reference for the variant under test.
+// This job is applied directly instead of through helm, so the tag suffix that the chart appends for
+// the distroless variant has to be applied here as well.
+func (s *gloomtlsK8sGatewayTestingSuite) certgenManifest() []byte {
+	manifest, err := os.ReadFile(filepath.Join(util.MustGetThisDir(), "testdata/certgen.yaml"))
+	s.NoError(err)
+
+	if os.Getenv(test_runtime.ImageVariantEnv) == "distroless" {
+		manifest = certgenImage.ReplaceAllFunc(manifest, func(image []byte) []byte {
+			return []byte(string(image) + "-distroless")
+		})
+	}
+
+	return manifest
 }
