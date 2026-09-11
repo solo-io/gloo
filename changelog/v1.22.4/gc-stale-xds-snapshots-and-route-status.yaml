@@ -1,0 +1,12 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/solo-projects/issues/7086
+    resolvesIssue: true
+    description: >-
+      Fix two garbage-collection gaps in the Kubernetes Gateway proxy syncer:
+      cached envoy xds snapshots are now evicted when the last stream for a
+      unique client disconnects (previously the snapshot cache grew unbounded
+      under client churn), and route status written by the controller is now
+      cleared from HTTPRoutes/TCPRoutes/TLSRoutes that detach from their
+      gateway (previously stale Accepted/ResolvedRefs conditions lingered
+      forever).
