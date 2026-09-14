@@ -7,7 +7,9 @@ import (
 	"github.com/onsi/gomega"
 	"github.com/stretchr/testify/suite"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 
+	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gateway/pkg/defaults"
 	"github.com/solo-io/gloo/test/gomega/matchers"
 	testdefaults "github.com/solo-io/gloo/test/kubernetes/e2e/defaults"
@@ -69,6 +71,11 @@ func (s *clientTlsTestingSuite) TestRouteSecureRequestToUpstream() {
 		err := s.testInstallation.Actions.Kubectl().Delete(s.ctx, VSTargetingUpstreamYaml, "-n", ns)
 		s.NoError(err, "can delete vs targeting upstream manifest file")
 		s.testInstallation.AssertionsT(s.T()).EventuallyObjectsNotExist(s.ctx, vSTargetingUpstreamObject(ns))
+		// Waiting for the object to leave Gloo's snapshot, and not just the Kubernetes API, is
+		// what keeps this test from leaking into the next one: this VirtualService shares the
+		// nginx.example.com domain with vs-targeting-kube, so a VirtualService applied while
+		// the deleted one is still in the snapshot is rejected for a domain conflict.
+		s.eventuallyNotInSnapshot(gatewayv1.VirtualServiceGVK, vSTargetingUpstreamObject(ns).ObjectMeta)
 
 		err = s.testInstallation.Actions.Kubectl().Delete(s.ctx, NginxUpstreamsYaml)
 		s.NoError(err, "can delete upstream manifest file")
@@ -99,6 +106,10 @@ func (s *clientTlsTestingSuite) TestRouteSecureRequestToAnnotatedService() {
 		err := s.testInstallation.Actions.Kubectl().Delete(s.ctx, VSTargetingKubeYaml, "-n", ns)
 		s.NoError(err, "can delete vs targeting services manifest file")
 		s.testInstallation.AssertionsT(s.T()).EventuallyObjectsNotExist(s.ctx, vSTargetingKubeObject(ns))
+		// See the note in TestRouteSecureRequestToUpstream: this VirtualService shares the
+		// nginx.example.com domain with vs-targeting-upstream, which runs next, so it has to be
+		// out of Gloo's snapshot before that test applies its own VirtualService.
+		s.eventuallyNotInSnapshot(gatewayv1.VirtualServiceGVK, vSTargetingKubeObject(ns).ObjectMeta)
 
 		err = s.testInstallation.Actions.Kubectl().Delete(s.ctx, NginxAnnotatedServicesYaml)
 		s.NoError(err, "can delete services manifest file")
@@ -132,6 +143,10 @@ func (s *clientTlsTestingSuite) TestOneWayTlsDoesNotRequestClientCertificate() {
 		err := s.testInstallation.Actions.Kubectl().Delete(s.ctx, VSOnewayDownstreamTlsYaml, "-n", ns)
 		s.NoError(err, "can delete vs oneway downstream tls manifest file")
 		s.testInstallation.AssertionsT(s.T()).EventuallyObjectsNotExist(s.ctx, vs)
+		// This VirtualService has its own domain, but it still has to leave Gloo's snapshot
+		// before the upstream it references is deleted below, so the snapshot never holds a
+		// VirtualService pointing at a missing upstream.
+		s.eventuallyNotInSnapshot(gatewayv1.VirtualServiceGVK, vs.ObjectMeta)
 
 		err = s.testInstallation.Actions.Kubectl().Delete(s.ctx, NginxUpstreamsYaml)
 		s.NoError(err, "can delete upstream manifest file")
@@ -219,6 +234,21 @@ func (s *clientTlsTestingSuite) assertEventualResponseForPath(path string, match
 			curl.WithPath(path),
 		},
 		matcher)
+}
+
+// eventuallyNotInSnapshot waits until Gloo's input snapshot no longer holds the given object.
+// Deletes are confirmed against the Kubernetes API first, but the admission webhook validates
+// against Gloo's snapshot, which trails it, so a test that only waits on the API can leave a
+// deleted resource behind for the next one to collide with.
+func (s *clientTlsTestingSuite) eventuallyNotInSnapshot(gvk schema.GroupVersionKind, meta metav1.ObjectMeta) {
+	s.testInstallation.AssertionsT(s.T()).AssertGlooAdminApi(
+		s.ctx,
+		metav1.ObjectMeta{
+			Name:      kubeutils.GlooDeploymentName,
+			Namespace: s.testInstallation.Metadata.InstallNamespace,
+		},
+		s.testInstallation.AssertionsT(s.T()).InputSnapshotDoesNotContainElement(gvk, meta),
+	)
 }
 
 func (s *clientTlsTestingSuite) eventuallySecretInSnapshot(meta metav1.ObjectMeta) {
