@@ -26,7 +26,7 @@ on:
     - cron: "0 6 * * 1" # monday    @ 06:00 UTC, run expanded tests against v1.21.x
     - cron: "0 7 * * 1" # monday    @ 07:00 UTC, run expanded tests against v1.20.x
     - cron: "0 8 * * 1" # monday    @ 08:00 UTC, run expanded tests against v1.19.x
-    - cron: "0 9 * * 1" # monday    @ 09:00 UTC, run expanded tests against v1.18.x
+    - cron: "0 9 * * 1" # monday    @ 09:00 UTC, run expanded tests against v1.22.x
   workflow_dispatch:
     inputs:
       branch:
@@ -39,7 +39,7 @@ on:
           - v1.21.x
           - v1.20.x
           - v1.19.x
-          - v1.18.x
+          - v1.22.x
           - workflow_initiating_branch
       run-regression:
         description: "Run regression tests"
@@ -378,9 +378,9 @@ jobs:
           istio-version: ${{ steps.dotenv.outputs.istio_version }}
           matrix-label: ${{ matrix.version-files.label }}
 
-  end_to_end_tests_v1_18_x:
-    name: End-to-End (branch=v1.18.x, cluster=${{ matrix.test.cluster-name }}, version=${{ matrix.version-files.label }} )
-    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-kubernetes-end-to-end && inputs.branch == 'v1.18.x' ) || github.event.schedule == '0 9 * * 1' }}
+  end_to_end_tests_v1_22_x:
+    name: End-to-End (branch=v1.22.x, cluster=${{ matrix.test.cluster-name }}, version=${{ matrix.version-files.label }} )
+    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-kubernetes-end-to-end && inputs.branch == 'v1.22.x') || github.event.schedule == '0 9 * * 1' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 180
     strategy:
@@ -406,7 +406,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: v1.18.x
+          ref: v1.22.x
       # The dotenv action is used to load key-value pairs from files.
       # In this case, the file is specified in the matrix and will contain the versions of the tools to use
       - name: Dotenv Action
@@ -565,9 +565,9 @@ jobs:
         ref: v1.19.x
     - uses: ./.github/workflows/composite-actions/regression-tests
 
-  regression_tests_v1_18_x:
-    name: v1.18.x regression tests (${{ matrix.kube-e2e-test-type }} - ${{ matrix.kube-version.kubectl }})
-    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-regression && inputs.branch == 'v1.18.x' ) || github.event.schedule == '0 9 * * 1' }}
+  regression_tests_v1_22_x:
+    name: v1.22.x regression tests (${{ matrix.kube-e2e-test-type }} - ${{ matrix.kube-version.kubectl }})
+    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-regression && inputs.branch == 'v1.22.x') || github.event.schedule == '0 9 * * 1' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     # Previously, there was an environment variable, RELEASED_VERSION="LATEST" set.  This made use of some internal code:
@@ -591,7 +591,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: v1.18.x
+          ref: v1.22.x
       - uses: ./.github/workflows/composite-actions/regression-tests
 
   performance_tests_on_demand:
@@ -665,17 +665,17 @@ jobs:
       - uses: ./.github/workflows/composite-actions/prep-go-runner
       - uses: ./.github/workflows/composite-actions/performance-tests
 
-  performance_tests_v1_18_x:
-    name: v1.18.x performance tests"
+  performance_tests_v1_22_x:
+    name: v1.22.x performance tests
     # Instead of false, we would want to define: env.ENABLE_PERFORMANCE_TESTS == 'true'
     # Due to https://github.com/actions/runner/issues/1189#issuecomment-880110759, we cannot use env variables in job.if
-    if: ${{ false && ((github.event_name == 'workflow_dispatch' && inputs.run-performance && inputs.branch == 'v1.18.x' ) || github.event.schedule == '0 9 * * 1') }}
+    if: ${{ false && ((github.event_name == 'workflow_dispatch' && inputs.run-performance && inputs.branch == 'v1.22.x') || github.event.schedule == '0 9 * * 1') }}
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: v1.18.x
+          ref: v1.22.x
       - uses: ./.github/workflows/composite-actions/prep-go-runner
       - uses: ./.github/workflows/composite-actions/performance-tests
 
@@ -831,28 +831,36 @@ jobs:
         helm-version: ${{ matrix.kube-version.helm }}
         image-variant: ${{ matrix.image-variant }}
 
-  kube_gateway_api_conformance_tests_v1_18_x:
-    name: Conformance (branch=v1.18.x, type=Kubernetes Gateway API, version=${{matrix.kube-version.node}} )
-    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-conformance && inputs.branch == 'v1.18.x' ) || github.event.schedule == '0 9 * * 1' }}
+  kube_gateway_api_conformance_tests_v1_22_x:
+    name: Conformance (branch=v1.22.x, type=Kubernetes Gateway API, version-file=${{matrix.version-files.label}})
+    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run-conformance && inputs.branch == 'v1.22.x') || github.event.schedule == '0 9 * * 1' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
-        kube-version: [ { node: 'v1.27.3@sha256:3966ac761ae0136263ffdb6cfd4db23ef8a83cba8a463690e98317add2c9ba72', kubectl: 'v1.27.3', kind: 'v0.20.0', helm: 'v3.13.2' },
-                        { node: 'v1.31.0@sha256:53df588e04085fd41ae12de0c3fe4c72f7013bba32a20e7325357a1ac94ba865', kubectl: 'v1.31.0', kind: 'v0.24.0', helm: 'v3.14.4' }]
+        version-files:
+          - label: 'min'
+            file: './.github/workflows/.env/nightly-tests/min_versions.env'
+          - label: 'max'
+            file: './.github/workflows/.env/nightly-tests/max_versions.env'
         image-variant:
           - standard
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: v1.18.x
+          ref: v1.22.x
+      - id: dotenv
+        uses: falti/dotenv-action@v1.1.4
+        with:
+          path: ${{ matrix.version-files.file }}
+          log-variables: true
       - uses: ./.github/workflows/composite-actions/kube-gateway-api-conformance-tests
         with:
-          kind-node-version: ${{ matrix.kube-version.node }}
-          kind-version: ${{ matrix.kube-version.kind }}
-          kubectl-version: ${{ matrix.kube-version.kubectl }}
-          helm-version: ${{ matrix.kube-version.helm }}
+          kind-node-version: ${{ steps.dotenv.outputs.node_version }}
+          kind-version: ${{ steps.dotenv.outputs.kind_version }}
+          kubectl-version: ${{ steps.dotenv.outputs.kubectl_version }}
+          helm-version: ${{ steps.dotenv.outputs.helm_version }}
           image-variant: ${{ matrix.image-variant }}
 
   publish_results:
@@ -864,22 +872,22 @@ jobs:
       - end_to_end_tests_v1_21_x
       - end_to_end_tests_v1_20_x
       - end_to_end_tests_v1_19_x
-      - end_to_end_tests_v1_18_x
+      - end_to_end_tests_v1_22_x
       - regression_tests_main
       - regression_tests_v1_21_x
       - regression_tests_v1_20_x
       - regression_tests_v1_19_x
-      - regression_tests_v1_18_x
+      - regression_tests_v1_22_x
       - performance_tests_main
       - performance_tests_v1_21_x
       - performance_tests_v1_20_x
       - performance_tests_v1_19_x
-      - performance_tests_v1_18_x
+      - performance_tests_v1_22_x
       - kube_gateway_api_conformance_tests_main
       - kube_gateway_api_conformance_tests_v1_21_x
       - kube_gateway_api_conformance_tests_v1_20_x
       - kube_gateway_api_conformance_tests_v1_19_x
-      - kube_gateway_api_conformance_tests_v1_18_x
+      - kube_gateway_api_conformance_tests_v1_22_x
       - end_to_end_tests_on_demand
       - regression_tests_on_demand
       - performance_tests_on_demand
@@ -909,7 +917,7 @@ jobs:
             branch="v1.19.x"
           elif [[ ${{github.event.schedule == '0 9 * * 1'}} = true ]]; then
             trigger="Gloo OSS weeklies"
-            branch="v1.18.x"
+            branch="v1.22.x"
           fi
           preamble="$trigger ($branch)"
           echo "Setting PREAMBLE as $preamble"
