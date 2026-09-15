@@ -300,7 +300,7 @@ func (h *httpRouteConfigurationTranslator) setAction(
 		}
 
 		if err := h.setRouteAction(params, action.RouteAction, out.GetAction().(*envoy_config_route_v3.Route_Route).Route, routeReport, in, out.GetName()); err != nil {
-			reportRouteActionProcessingError(routeReport, out, err)
+			reportRouteActionProcessingError(params.Params, routeReport, out, err)
 		}
 		h.runRoutePlugins(params, routeReport, in, out)
 		h.runRouteActionPlugins(params, routeReport, in, out)
