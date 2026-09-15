@@ -2,6 +2,7 @@ package translator
 
 import (
 	"context"
+	stderrors "errors"
 	"fmt"
 	"hash/fnv"
 	"os"
@@ -16,8 +17,10 @@ import (
 	envoy_config_listener_v3 "github.com/envoyproxy/go-control-plane/envoy/config/listener/v3"
 	envoy_config_route_v3 "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
 	"github.com/golang/protobuf/proto"
+
 	errors "github.com/rotisserie/eris"
 	envoyvalidation "github.com/solo-io/gloo/pkg/utils/envoyutils/validation"
+	"github.com/solo-io/gloo/projects/envoyinit/pkg/runner"
 	validationapi "github.com/solo-io/gloo/projects/gloo/pkg/api/grpc/validation"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
@@ -165,8 +168,14 @@ func (t *translatorInstance) Translate(
 		return xdsSnapshot, reports, proxyReport
 	}
 
+	// Validating the full proxy forks envoy and can be interrupted. Interruptions are recorded on
+	// params instead of the report. See plugins.ValidationInterruptions.
 	if err := envoyvalidation.ValidateSnapshot(ctx, xdsSnapshot); err != nil {
-		reports.AddError(proxy, err)
+		if stderrors.Is(err, runner.ErrValidationInterrupted) {
+			params.ValidationInterruptions.Add(err)
+		} else {
+			reports.AddError(proxy, err)
+		}
 	}
 
 	return xdsSnapshot, reports, proxyReport
