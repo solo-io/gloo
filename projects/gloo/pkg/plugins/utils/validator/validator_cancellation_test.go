@@ -13,7 +13,7 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/transformation"
 )
 
-// Regression tests for https://github.com/solo-io/solo-projects/issues/9168
+// Regression tests for https://github.com/kgateway-dev/kgateway/issues/14730
 //
 // A fake envoy script replaces the real binary so this runs anywhere. It drains stdin and reports
 // the config as OK, optionally sleeping first so the test can cancel mid-run.

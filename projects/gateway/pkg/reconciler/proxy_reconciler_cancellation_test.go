@@ -25,7 +25,7 @@ import (
 	"go.uber.org/zap/zaptest/observer"
 )
 
-// Regression tests for https://github.com/solo-io/solo-projects/issues/9168
+// Regression tests for https://github.com/kgateway-dev/kgateway/issues/14730
 //
 // ReconcileProxies checks its own context rather than relying on the gloo validator to report the
 // interruption, so these tests stub the worst case: a validation server that answers successfully

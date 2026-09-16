@@ -26,7 +26,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 )
 
-// Regression tests for https://github.com/solo-io/solo-projects/issues/9168 on the kube gateway path.
+// Regression tests for https://github.com/kgateway-dev/kgateway/issues/14730 on the kube gateway path.
 // An interrupted translation must not reach xDS or proxy status.
 
 const testProxyName = "test-proxy"

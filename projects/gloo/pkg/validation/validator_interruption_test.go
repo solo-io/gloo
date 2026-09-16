@@ -20,7 +20,7 @@ import (
 	skreporter "github.com/solo-io/solo-kit/pkg/api/v2/reporter"
 )
 
-// Regression tests for https://github.com/solo-io/solo-projects/issues/9168
+// Regression tests for https://github.com/kgateway-dev/kgateway/issues/14730
 //
 // These specs run a real translator so they exercise the actual path a plugin error takes into a
 // report.
