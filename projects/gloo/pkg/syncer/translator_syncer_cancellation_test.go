@@ -27,7 +27,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
 )
 
-// Regression tests for https://github.com/kgateway-dev/kgateway/issues/14730
+// Regression tests for interrupted validation
 //
 // A sync whose context ended, or whose envoy validation was interrupted, must not write to the xDS
 // cache, through SetSnapshot or through garbage collection.
