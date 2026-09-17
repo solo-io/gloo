@@ -3,6 +3,7 @@ package proxy_syncer
 import (
 	"context"
 
+	"github.com/rotisserie/eris"
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
@@ -23,6 +24,8 @@ import (
 
 // buildXdsSnapshot will translate from a gloov1.Proxy to xdsSnapshot using the supplied api snapshot.
 // This method returns the generated xdsSnapshot along with a combined report of proxy->xds translation and extension processing on the Proxy.
+// A non-nil error means an envoy validation fork was interrupted. The interruption is kept off the
+// reports, so they could read as a clean proxy and must be discarded along with the snapshot.
 // NOTE: Extensions are NOT actually synced here as use a NoOp snapshot when running the extension syncers.
 // The actual syncing of the extensions and the status of the extension resources (e.g. AuthConfigs, RLCs) is still handled by the legacy syncer.
 func (s *ProxyTranslator) buildXdsSnapshot(
@@ -30,7 +33,7 @@ func (s *ProxyTranslator) buildXdsSnapshot(
 	ctx context.Context,
 	proxy *v1.Proxy,
 	snap *v1snap.ApiSnapshot,
-) (cache.Snapshot, reporter.ResourceReports, *validation.ProxyReport) {
+) (cache.Snapshot, reporter.ResourceReports, *validation.ProxyReport, error) {
 	metaKey := xds.SnapshotCacheKey(proxy)
 	ctx = contextutils.WithLogger(ctx, "kube-gateway-xds-snapshot")
 	logger := contextutils.LoggerFrom(ctx).With("proxy", metaKey)
@@ -58,13 +61,22 @@ func (s *ProxyTranslator) buildXdsSnapshot(
 	ctx = settingsutil.WithSettings(ctx, settings)
 
 	params := plugins.Params{
-		Ctx:      ctx,
-		Settings: settings,
-		Snapshot: snap,
-		Messages: map[*core.ResourceRef][]string{},
+		Ctx:                     ctx,
+		Settings:                settings,
+		Snapshot:                snap,
+		Messages:                map[*core.ResourceRef][]string{},
+		ValidationInterruptions: &plugins.ValidationInterruptions{},
 	}
 
 	xdsSnapshot, reports, proxyReport := s.translator.NewTranslator(ctx, settings).Translate(params, proxy)
+
+	// Return an error so the caller discards this translation. The next recomputation re-runs the
+	// validation, which is never cached when interrupted.
+	if interrupted := params.ValidationInterruptions; interrupted.Any() {
+		return nil, nil, nil, eris.Wrapf(interrupted.Err(),
+			"envoy config validation was interrupted translating proxy %s (%d interruptions)",
+			metaKey, interrupted.Count())
+	}
 
 	// Messages are aggregated during translation, and need to be added to reports
 	for _, messages := range params.Messages {
@@ -84,7 +96,7 @@ func (s *ProxyTranslator) buildXdsSnapshot(
 		allReports.Merge(intermediateReports)
 	}
 
-	return xdsSnapshot, allReports, proxyReport
+	return xdsSnapshot, allReports, proxyReport, nil
 }
 
 func (s *ProxyTranslator) syncXds(
