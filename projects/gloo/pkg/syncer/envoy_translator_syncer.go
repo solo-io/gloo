@@ -105,7 +105,15 @@ func (s *translatorSyncer) syncEnvoy(ctx context.Context, snap *v1snap.ApiSnapsh
 	snapHash := hashutils.MustHash(snap)
 	logger.Infof("begin sync %v (%d edge proxies, %d upstreams, %d endpoints, %d secrets, %d artifacts, %d auth configs, %d rate limit configs)", snapHash,
 		len(nonKubeProxies), len(snap.Upstreams), len(snap.Endpoints), len(snap.Secrets), len(snap.Artifacts), len(snap.AuthConfigs), len(snap.Ratelimitconfigs))
-	defer logger.Infof("end sync %v", snapHash)
+	// Set when the sync returns early without visiting every proxy, so the closing log line does not read as a completed sync.
+	syncAborted := false
+	defer func() {
+		if syncAborted {
+			logger.Infof("aborted sync %v", snapHash)
+			return
+		}
+		logger.Infof("end sync %v", snapHash)
+	}()
 
 	// stringifying the snapshot may be an expensive operation, so we'd like to avoid building the large
 	// string if we're not even going to log it anyway
@@ -154,7 +162,7 @@ func (s *translatorSyncer) syncEnvoy(ctx context.Context, snap *v1snap.ApiSnapsh
 	}
 
 	// sync non-kube gw proxies
-	for _, proxy := range nonKubeProxies {
+	for i, proxy := range nonKubeProxies {
 		proxyCtx := ctx
 		metaKey := xds.SnapshotCacheKey(proxy)
 		if ctxWithTags, err := tag.New(proxyCtx, tag.Insert(syncerstats.ProxyNameKey, metaKey)); err == nil {
@@ -162,13 +170,37 @@ func (s *translatorSyncer) syncEnvoy(ctx context.Context, snap *v1snap.ApiSnapsh
 		}
 
 		params := plugins.Params{
-			Ctx:      proxyCtx,
-			Settings: s.settings,
-			Snapshot: snap,
-			Messages: map[*core.ResourceRef][]string{},
+			Ctx:                     proxyCtx,
+			Settings:                s.settings,
+			Snapshot:                snap,
+			Messages:                map[*core.ResourceRef][]string{},
+			ValidationInterruptions: &plugins.ValidationInterruptions{},
 		}
 
 		xdsSnapshot, reports, _ := s.translator.Translate(params, proxy)
+
+		// The xDS cache outlives this setup loop, so a translation whose context ended must not
+		// overwrite it. The context is shared by every proxy in this loop, so abandon the whole sync.
+		if ctxErr := ctx.Err(); ctxErr != nil {
+			syncAborted = true
+			logger.Warnw("aborting sync: context ended, skipping xDS cache updates for this proxy and all remaining proxies",
+				zap.Any("proxy", proxy.GetMetadata().Ref()),
+				zap.Int("proxiesSkipped", len(nonKubeProxies)-i),
+				zap.Error(ctxErr))
+			return
+		}
+
+		// The fork died with a live context. Leave this proxy's current xDS snapshot in place and
+		// continue to the next proxy, which forks separately.
+		if interrupted := params.ValidationInterruptions; interrupted.Any() {
+			logger.Warnw("skipping xDS cache update for proxy: envoy config validation was interrupted",
+				zap.Any("proxy", proxy.GetMetadata().Ref()),
+				zap.Int("interruptions", interrupted.Count()),
+				zap.Error(interrupted.Err()))
+			statsutils.MeasureOne(proxyCtx, syncerstats.InterruptedValidationSkips)
+			delete(allReports, proxy)
+			continue
+		}
 
 		// Messages are aggregated during translation, and need to be added to reports
 		for _, messages := range params.Messages {

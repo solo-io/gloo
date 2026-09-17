@@ -183,6 +183,7 @@ func RunGlooGatewayUdsFds(ctx context.Context, runOptions *RunOptions) TestClien
 	testClients := getTestClients(ctx, bootstrapOpts)
 	testClients.GlooPort = int(runOptions.ports.Gloo)
 	testClients.RestXdsPort = int(runOptions.ports.RestXds)
+	testClients.ValidationPort = int(runOptions.ports.Validation)
 	return testClients
 }
 
@@ -487,6 +488,8 @@ type TestClients struct {
 
 	GlooPort    int
 	RestXdsPort int
+	// ValidationPort is the port the GlooValidationService gRPC server listens on
+	ValidationPort int
 }
 
 // WriteSnapshot writes all resources in the ApiSnapshot to the cache

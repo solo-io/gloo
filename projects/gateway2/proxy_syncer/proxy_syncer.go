@@ -10,6 +10,7 @@ import (
 	"slices"
 	"time"
 
+	"go.opencensus.io/tag"
 	"go.uber.org/zap"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -57,6 +58,7 @@ import (
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	extauthv1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/syncer"
+	syncerstats "github.com/solo-io/gloo/projects/gloo/pkg/syncer/stats"
 	kubeupstreams "github.com/solo-io/gloo/projects/gloo/pkg/upstreams/kubernetes"
 	"github.com/solo-io/go-utils/contextutils"
 	envoycache "github.com/solo-io/solo-kit/pkg/api/v1/control-plane/cache"
@@ -768,7 +770,29 @@ func (s *ProxySyncer) translateProxy(
 	}
 	latestSnap.Upstreams = gupstreams
 
-	xdsSnapshot, reports, proxyReport := s.proxyTranslator.buildXdsSnapshot(kctx, ctx, proxy.Proxy, &latestSnap)
+	xdsSnapshot, reports, proxyReport, err := s.proxyTranslator.buildXdsSnapshot(kctx, ctx, proxy.Proxy, &latestSnap)
+	if err != nil {
+		// Returning nil drops this proxy from the collection. The xDS handler treats the delete as a
+		// no-op and the proxy status ticker no longer lists it, so Envoy keeps the last good snapshot
+		// and the last proxy status stands. Gateway and route statuses come from glooProxies and are
+		// unaffected.
+		if ctxErr := ctx.Err(); ctxErr != nil {
+			// A cancelled context means the syncer is shutting down, not that this proxy's validation
+			// keeps dying, so the skip is not counted.
+			logger.Warnw("skipping xDS snapshot update for proxy: context ended during translation",
+				zap.String("proxy", proxy.ResourceName()),
+				zap.Error(ctxErr))
+			return nil
+		}
+
+		// The fork died with a live context, so the next recomputation may be interrupted again.
+		logger.Warnw("skipping xDS snapshot update for proxy: envoy config validation was interrupted",
+			zap.String("proxy", proxy.ResourceName()),
+			zap.Error(err))
+		statsutils.MeasureOne(ctx, syncerstats.InterruptedValidationSkips,
+			tag.Insert(syncerstats.ProxyNameKey, proxy.ResourceName()))
+		return nil
+	}
 
 	// TODO(Law): now we not able to merge reports after translation!
 

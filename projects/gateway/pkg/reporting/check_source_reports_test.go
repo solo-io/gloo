@@ -49,4 +49,25 @@ var _ = Describe("CheckSourceReports", func() {
 		Expect(err).NotTo(HaveOccurred())
 		Expect(accepted).To(BeTrue())
 	})
+
+	It("returns the kind, ref and error of each rejected source", func() {
+		testErr := errors.Errorf("resource rejected")
+		gwReport := reports[snap.Gateways[0]]
+		gwReport.Errors = testErr
+		reports[snap.Gateways[0]] = gwReport
+
+		gw := snap.Gateways[0]
+		sourceErrors, err := SourceErrors(reports, proxy.Listeners[0])
+		Expect(err).NotTo(HaveOccurred())
+		Expect(sourceErrors).To(HaveLen(1))
+		Expect(sourceErrors[0].ResourceKind).To(Equal("*v1.Gateway"))
+		Expect(sourceErrors[0].Ref.GetName()).To(Equal(gw.GetMetadata().GetName()))
+		Expect(sourceErrors[0].Ref.GetNamespace()).To(Equal(gw.GetMetadata().GetNamespace()))
+		Expect(sourceErrors[0].Err).To(MatchError(testErr))
+
+		// listener 2 has a different source: no errors to attribute
+		sourceErrors, err = SourceErrors(reports, proxy.Listeners[1])
+		Expect(err).NotTo(HaveOccurred())
+		Expect(sourceErrors).To(BeEmpty())
+	})
 })
