@@ -122,6 +122,15 @@ func (s *translatorSyncer) Sync(ctx context.Context, snap *v1snap.ApiSnapshot) e
 		}
 	}
 
+	// The context may have ended before this sync began (the event loop can deliver a queued snapshot
+	// after a setup restart) or during translation. Either way, skip the xDS sync: its garbage
+	// collection would treat the unwritten, possibly empty, proxy list as authoritative and replace
+	// live xDS cache entries with empty snapshots.
+	if ctxErr := ctx.Err(); ctxErr != nil {
+		multiErr = multierror.Append(multiErr, eris.Wrap(ctxErr, "skipping xDS sync: context ended before or during proxy translation"))
+		return multiErr.ErrorOrNil()
+	}
+
 	// Reports used to aggregate results from xds and extension translation.
 	// Will contain reports for `Gloo` components (i.e. Proxies, Upstreams, AuthConfigs, etc.)
 	reports := make(reporter.ResourceReports)

@@ -3,16 +3,23 @@ package runner
 import (
 	"bytes"
 	"context"
+	"errors"
+	"fmt"
+	"io/fs"
 	"log"
 	"os"
+	"os/exec"
 	"syscall"
 	"time"
 
-	"github.com/rotisserie/eris"
 	"github.com/solo-io/gloo/pkg/utils/cmdutils"
 	"github.com/solo-io/gloo/projects/envoyinit/pkg/downward"
 	"github.com/solo-io/go-utils/contextutils"
 )
+
+// ErrValidationInterrupted means the envoy validation process was killed by context cancellation or
+// an outside signal. It says nothing about the validity of the config.
+var ErrValidationInterrupted = errors.New("envoy validation process was interrupted before it completed")
 
 const (
 	// Environment variable for the file that is used to inject input configuration used to bootstrap envoy
@@ -40,14 +47,24 @@ func RunEnvoyValidate(ctx context.Context, envoyExecutable, bootstrapConfig stri
 	logger.Debugf("envoy validation of %d size completed in %s", len(bootstrapConfig), time.Since(start))
 
 	if err != nil {
-		if os.IsNotExist(err) {
+		if errors.Is(err, fs.ErrNotExist) {
 			// log a warning and return nil; will allow users to continue to run Gloo locally without
 			// relying on the Gloo container with Envoy already published to the expected directory
 			logger.Warnf("Unable to validate envoy configuration using envoy at %v; "+
 				"skipping additional validation of Gloo config.", envoyExecutable)
 			return nil
 		}
-		return eris.Errorf("envoy validation mode output: %v, error: %v", err.OutputString(), err.Error())
+
+		// A kill from context cancellation or an outside signal (exit code -1) means validation did not complete.
+		var exitErr *exec.ExitError
+		if ctx.Err() != nil || (errors.As(err, &exitErr) && exitErr.ExitCode() == -1) {
+			// Consumers flatten this error into report strings, so include the cause in the message.
+			if ctxErr := ctx.Err(); ctxErr != nil {
+				return fmt.Errorf("%w (ctxErr=%v): %v", ErrValidationInterrupted, ctxErr, err)
+			}
+			return fmt.Errorf("%w: %v", ErrValidationInterrupted, err)
+		}
+		return fmt.Errorf("envoy validation mode output: %v, error: %v", err.OutputString(), err.Error())
 	}
 
 	return nil
