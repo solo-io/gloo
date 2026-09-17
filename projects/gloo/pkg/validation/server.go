@@ -195,7 +195,12 @@ func (s *validator) Validate(ctx context.Context, req *validation.GlooValidation
 	applyRequestToSnapshot(&snapCopy, req)
 	contextutils.LoggerFrom(ctx).Infof("received proxy validation request")
 
-	reports := s.validator.Validate(ctx, req.GetProxy(), &snapCopy, false)
+	reports, err := s.validator.Validate(ctx, req.GetProxy(), &snapCopy, false)
+	// Rejected config comes back as reports. A non-nil err means validation did not complete and
+	// there is nothing for the caller to act on.
+	if err != nil {
+		return nil, err
+	}
 
 	var validationReports []*validation.ValidationReport
 	// convert the reports for the gRPC response
@@ -261,7 +266,7 @@ func (s *validator) ValidateGloo(ctx context.Context, proxy *v1.Proxy, resource 
 		}
 	}
 
-	return s.validator.Validate(ctx, proxy, &snapCopy, shouldDelete), nil
+	return s.validator.Validate(ctx, proxy, &snapCopy, shouldDelete)
 }
 
 // updates the given snapshot with the resources from the request

@@ -2,11 +2,15 @@ package reconciler
 
 import (
 	"context"
+	"fmt"
 	"sort"
+	"strings"
 
+	"github.com/hashicorp/go-multierror"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 
 	"github.com/solo-io/gloo/projects/gateway/pkg/reporting"
+	"github.com/solo-io/gloo/projects/gateway/pkg/translator"
 	"github.com/solo-io/gloo/projects/gateway/pkg/utils"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/grpc/validation"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
@@ -50,6 +54,12 @@ const proxyValidationErrMsg = "internal err: communication with proxy validation
 func (s *proxyReconciler) ReconcileProxies(ctx context.Context, proxiesToWrite GeneratedProxies, writeNamespace string, labelSelectorOptions clients.ListOpts) error {
 	if err := s.addProxyValidationResults(ctx, proxiesToWrite); err != nil {
 		return errors.Wrapf(err, "failed to add proxy validation results to reports")
+	}
+
+	// A cancelled context may have killed the envoy validation forks behind the results above, so
+	// they cannot be trusted. Abort instead of stripping listeners based on them.
+	if ctxErr := ctx.Err(); ctxErr != nil {
+		return errors.Wrapf(ctxErr, "aborting proxy reconcile: context ended before or during proxy validation")
 	}
 
 	proxiesToWrite, err := stripInvalidListenersAndVirtualHosts(ctx, proxiesToWrite)
@@ -123,10 +133,6 @@ func (s *proxyReconciler) addProxyValidationResults(ctx context.Context, proxies
 			return errors.Wrapf(err, proxyValidationErrMsg)
 		}
 
-		if validateErr := reports.ValidateStrict(); validateErr != nil {
-			logger.Warnw("Proxy had invalid config", zap.Any("proxy", proxy.GetMetadata().Ref()), zap.Error(validateErr))
-		}
-
 		// We only sent one proxy in the GlooValidationServiceRequest - we should only get one report back in response.
 		if len(glooValidationResponse.GetValidationReports()) != 1 {
 			return errors.Errorf("Expected Gloo validation response to contain 1 report, but contained %d", len(glooValidationResponse.GetValidationReports()))
@@ -136,6 +142,10 @@ func (s *proxyReconciler) addProxyValidationResults(ctx context.Context, proxies
 		if err := reporting.AddProxyValidationResult(reports, proxy, glooValidationResponse.GetValidationReports()[0].GetProxyReport()); err != nil {
 			// should never happen
 			return err
+		}
+
+		if validateErr := reports.ValidateStrict(); validateErr != nil {
+			logger.Warnw("Proxy had invalid config", zap.String("proxy", proxy.GetMetadata().Ref().Key()), zap.Error(validateErr))
 		}
 	}
 
@@ -161,7 +171,10 @@ func stripInvalidListenersAndVirtualHosts(ctx context.Context, proxiesToWrite Ge
 			if accepted {
 				validListeners = append(validListeners, listener)
 			} else {
-				logger.Warnw("stripping invalid listener from proxy", zap.Any("proxy", proxy.GetMetadata().Ref()), zap.String("listener", listener.GetName()))
+				logger.Warnw("stripping invalid listener from proxy",
+					zap.String("proxy", proxy.GetMetadata().Ref().Key()),
+					zap.String("listener", listener.GetName()),
+					zap.Any("rejectedResources", rejectedResourcesForLog(reports, listener)))
 			}
 		}); err != nil {
 			return nil, err
@@ -231,6 +244,62 @@ func stripInvalidListenersAndVirtualHosts(ctx context.Context, proxiesToWrite Ge
 	return strippedProxies, nil
 }
 
+// rejectedSource is one rejected config resource, as logged when a listener or virtual host is stripped.
+type rejectedSource struct {
+	Kind   string   `json:"kind"`
+	Ref    string   `json:"ref"`
+	Errors []string `json:"errors"`
+}
+
+// rejectedResourcesForLog renders the rejected config resources that caused a listener or virtual
+// host to be stripped, for the warning log: kinds as they appear in the user's config, and one flat
+// message per error.
+func rejectedResourcesForLog(reports reporter.ResourceReports, configObj translator.ObjectWithMetadata) any {
+	sourceErrors, err := reporting.SourceErrors(reports, configObj)
+	if err != nil {
+		// Cannot happen when AllSourcesAccepted succeeded (both parse the same metadata), but logging
+		// must not break the reconcile.
+		return fmt.Sprintf("failed to collect rejected resources: %v", err)
+	}
+
+	rejected := make([]rejectedSource, 0, len(sourceErrors))
+	for _, sourceError := range sourceErrors {
+		rejected = append(rejected, rejectedSource{
+			Kind:   kindForLog(sourceError.ResourceKind),
+			Ref:    sourceError.Ref.Key(),
+			Errors: errorMessages(sourceError.Err),
+		})
+	}
+
+	return rejected
+}
+
+// kindForLog turns a Go type name from source metadata, e.g. "*v1.VirtualService", into the kind as
+// it appears in user config.
+func kindForLog(resourceKind string) string {
+	if lastDot := strings.LastIndex(resourceKind, "."); lastDot >= 0 {
+		return resourceKind[lastDot+1:]
+	}
+	return strings.TrimPrefix(resourceKind, "*")
+}
+
+// errorMessages splits a report's accumulated errors into one message each. multierror's rendering
+// ("N errors occurred:" plus indented bullets) lands in a JSON log field as escaped tabs and newlines.
+func errorMessages(err error) []string {
+	// Reports accumulate errors via multierror.Append, so anything else is a report whose Errors
+	// were assigned directly.
+	multiErr, ok := err.(*multierror.Error)
+	if !ok {
+		return []string{err.Error()}
+	}
+
+	messages := make([]string, 0, len(multiErr.WrappedErrors()))
+	for _, wrapped := range multiErr.WrappedErrors() {
+		messages = append(messages, wrapped.Error())
+	}
+	return messages
+}
+
 func validHostsFromHttpListener(httpListener *gloov1.HttpListener, reports reporter.ResourceReports, proxy *gloov1.Proxy, lis *gloov1.Listener, logger *zap.SugaredLogger) ([]*gloov1.VirtualHost, error) {
 	var validVhosts []*gloov1.VirtualHost
 
@@ -238,7 +307,11 @@ func validHostsFromHttpListener(httpListener *gloov1.HttpListener, reports repor
 		if accepted {
 			validVhosts = append(validVhosts, vhost)
 		} else {
-			logger.Warnw("stripping invalid virtualhost from proxy", zap.Any("proxy", proxy.GetMetadata().Ref()), zap.String("listener", lis.GetName()), zap.String("virtual host", vhost.GetName()))
+			logger.Warnw("stripping invalid virtualhost from proxy",
+				zap.String("proxy", proxy.GetMetadata().Ref().Key()),
+				zap.String("listener", lis.GetName()),
+				zap.String("virtualHost", vhost.GetName()),
+				zap.Any("rejectedResources", rejectedResourcesForLog(reports, vhost)))
 		}
 	}); err != nil {
 		return nil, err

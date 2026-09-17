@@ -2,6 +2,7 @@ package validation
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/grpc/validation"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
@@ -19,7 +20,9 @@ const GlooGroup = "gloo.solo.io"
 
 // GlooValidator is used to validate solo.io.gloo resources
 type GlooValidator interface {
-	Validate(ctx context.Context, proxy *gloov1.Proxy, snapshot *gloosnapshot.ApiSnapshot, shouldDelete bool) []*GlooValidationReport
+	// Validate returns an error only when validation did not complete, for example an interrupted
+	// envoy validation. Invalid resources are reported in the returned reports, not as an error.
+	Validate(ctx context.Context, proxy *gloov1.Proxy, snapshot *gloosnapshot.ApiSnapshot, shouldDelete bool) ([]*GlooValidationReport, error)
 }
 
 type GlooValidatorConfig struct {
@@ -49,7 +52,7 @@ type GlooValidationReport struct {
 	ResourceReports reporter.ResourceReports
 }
 
-func (gv glooValidator) Validate(ctx context.Context, proxy *gloov1.Proxy, snapshot *gloosnapshot.ApiSnapshot, shouldDelete bool) []*GlooValidationReport {
+func (gv glooValidator) Validate(ctx context.Context, proxy *gloov1.Proxy, snapshot *gloosnapshot.ApiSnapshot, shouldDelete bool) ([]*GlooValidationReport, error) {
 	ctx = contextutils.WithLogger(ctx, "proxy-validator")
 
 	var validationReports []*GlooValidationReport
@@ -68,18 +71,27 @@ func (gv glooValidator) Validate(ctx context.Context, proxy *gloov1.Proxy, snaps
 		// even if they are semantically incorrect.
 		// This log line is attempting to identify these situations
 		contextutils.LoggerFrom(ctx).Warnf("found no proxies to validate, accepting update without translating Gloo resources")
-		return validationReports
+		return validationReports, nil
 	}
 
-	params := plugins.Params{
-		Ctx:      ctx,
-		Snapshot: snapshot,
-		Settings: gv.settings,
-	}
 	// Validation with gateway occurs in /projects/gateway/pkg/validation/validator.go, where validation for the Gloo
 	// resources occurs in the following for loop.
 	for _, proxy := range proxiesToValidate {
+		// Params struct per proxy so ValidationInterruptions is new for each proxy.
+		params := plugins.Params{
+			Ctx:                     ctx,
+			Snapshot:                snapshot,
+			Settings:                gv.settings,
+			ValidationInterruptions: &plugins.ValidationInterruptions{},
+		}
+
 		xdsSnapshot, resourceReports, proxyReport := gv.translator.Translate(params, proxy)
+
+		// Return an error rather than a report, since the proxy's validity is unknown.
+		if interrupted := params.ValidationInterruptions; interrupted.Any() {
+			return nil, fmt.Errorf("cannot validate proxy %s: envoy config validation was interrupted (%d interruptions): %w",
+				proxy.GetMetadata().Ref().Key(), interrupted.Count(), interrupted.Err())
+		}
 
 		// Sanitize routes before sending report to gateway
 		gv.xdsSanitizer.SanitizeSnapshot(ctx, snapshot, xdsSnapshot, resourceReports)
@@ -92,5 +104,5 @@ func (gv glooValidator) Validate(ctx context.Context, proxy *gloov1.Proxy, snaps
 		})
 	}
 
-	return validationReports
+	return validationReports, nil
 }

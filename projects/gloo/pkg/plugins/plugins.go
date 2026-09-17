@@ -43,6 +43,45 @@ type Params struct {
 	Settings *v1.Settings
 	Snapshot *v1snap.ApiSnapshot
 	Messages map[*core.ResourceRef][]string
+	// ValidationInterruptions collects envoy validations interrupted during this translation. Only
+	// callers of Translate need to set it; nil is allowed elsewhere.
+	ValidationInterruptions *ValidationInterruptions
+}
+
+// ValidationInterruptions records envoy config validations that did not complete. An interruption
+// says nothing about the config, so it is kept off reports and callers of Translate must discard the
+// translation when any are recorded.
+type ValidationInterruptions struct {
+	errs []error
+}
+
+// Add records an interrupted validation. A nil recorder discards it.
+func (v *ValidationInterruptions) Add(err error) {
+	if v == nil {
+		return
+	}
+	v.errs = append(v.errs, err)
+}
+
+// Any reports whether any validation during this translation was interrupted.
+func (v *ValidationInterruptions) Any() bool {
+	return v != nil && len(v.errs) > 0
+}
+
+// Count returns how many validations were interrupted.
+func (v *ValidationInterruptions) Count() int {
+	if v == nil {
+		return 0
+	}
+	return len(v.errs)
+}
+
+// Err returns the first recorded interruption, or nil if there was none.
+func (v *ValidationInterruptions) Err() error {
+	if !v.Any() {
+		return nil
+	}
+	return v.errs[0]
 }
 
 // CopyWithoutContext returns a version of params without ctx
@@ -50,9 +89,10 @@ type Params struct {
 // Still copies pointer to snapshot.
 func (p Params) CopyWithoutContext() Params {
 	out := Params{
-		Ctx:      context.Background(),
-		Snapshot: p.Snapshot,
-		Messages: map[*core.ResourceRef][]string{},
+		Ctx:                     context.Background(),
+		Snapshot:                p.Snapshot,
+		Messages:                map[*core.ResourceRef][]string{},
+		ValidationInterruptions: p.ValidationInterruptions,
 	}
 
 	for k, v := range p.Messages {
