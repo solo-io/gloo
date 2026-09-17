@@ -2,9 +2,12 @@ package validator
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"hash"
 
 	"github.com/solo-io/gloo/pkg/utils/statsutils"
+	"github.com/solo-io/gloo/projects/envoyinit/pkg/runner"
 	"github.com/solo-io/gloo/projects/gloo/pkg/bootstrap"
 	"github.com/solo-io/go-utils/contextutils"
 	"go.opencensus.io/stats"
@@ -15,7 +18,7 @@ import (
 // DefaultCacheSize defines the default size of the LRU cache used by the validator
 const DefaultCacheSize int = 1024
 
-// Validator validates an envoy config by running it by envoy in validate mode. This requires the envoy binary to be present at $ENVOY_BINARY_PATH (defaults to /usr/local/bin/envoy).
+// Validator validates an envoy config by running it by envoy in validate mode. This requires the envoy binary to be present at $ENVOY_BINARY (defaults to /usr/local/bin/envoy).
 // Results are cached via an LRU cache for performance
 type Validator interface {
 	// ValidateConfig validates the given envoy config and returns any out and error from envoy. Returns nil if the envoy binary is not found.
@@ -77,6 +80,10 @@ func (v validator) ValidateConfig(ctx context.Context, config HashableProtoMessa
 	)
 
 	err = bootstrap.ValidateBootstrap(ctx, v.filterName, config)
+	if errors.Is(err, runner.ErrValidationInterrupted) {
+		// The validation did not complete, so the result says nothing about the config and is not cached.
+		return fmt.Errorf("envoy validation of %s config was interrupted: %w", v.filterName, err)
+	}
 	v.lruCache.Add(hash, err)
 	return err
 }

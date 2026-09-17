@@ -20,6 +20,7 @@ import (
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
+	"github.com/solo-io/gloo/projects/envoyinit/pkg/runner"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
 
@@ -61,6 +62,10 @@ var (
 
 	mGatewayResourcesAccepted = statsutils.MakeSumCounter("validation.gateway.solo.io/resources_accepted", "The number of resources accepted")
 	mGatewayResourcesRejected = statsutils.MakeSumCounter("validation.gateway.solo.io/resources_rejected", "The number of resources rejected")
+	// mGatewayResourcesValidationIncomplete counts validation interruptions during admission requests
+	// because an envoy validation fork was interrupted. The resource is not admitted, but counting it
+	// as rejected would make a restart storm look like a config problem.
+	mGatewayResourcesValidationIncomplete = statsutils.MakeSumCounter("validation.gateway.solo.io/resources_validation_incomplete", "The number of resources whose validation could not complete")
 
 	unmarshalErrMsg     = "could not unmarshal raw object"
 	UnmarshalErr        = errors.New(unmarshalErrMsg)
@@ -395,16 +400,36 @@ func (wh *gatewayValidationWebhook) makeAdmissionResponse(ctx context.Context, r
 		}
 	}
 
-	incrementMetric(ctx, gvk.String(), ref, mGatewayResourcesRejected)
-	logger.Errorf("Validation failed: %v", validationErrs)
-
-	finalErr := errors.Errorf("resource incompatible with current Gloo snapshot: %v", validationErrs.Errors)
 	details := &metav1.StatusDetails{
 		Name:   req.Name,
 		Group:  gvk.Group,
 		Kind:   gvk.Kind,
 		Causes: getFailureCauses(validationErrs),
 	}
+
+	// Not admitted, but not a rejection either. A retry runs validation again.
+	if errors.Is(validationErrs, runner.ErrValidationInterrupted) {
+		incrementMetric(ctx, gvk.String(), ref, mGatewayResourcesValidationIncomplete)
+		logger.Errorf("Validation could not complete: %v", validationErrs)
+
+		return &AdmissionResponseWithProxies{
+			AdmissionResponse: &v1beta1.AdmissionResponse{
+				Result: &metav1.Status{
+					Reason: metav1.StatusReasonInternalError,
+					Message: fmt.Sprintf(
+						"gloo validation of this resource could not complete, so it was not admitted; retry: %v",
+						validationErrs.Errors),
+					Details: details,
+				},
+			},
+			Proxies: reports.GetProxies(),
+		}
+	}
+
+	incrementMetric(ctx, gvk.String(), ref, mGatewayResourcesRejected)
+	logger.Errorf("Validation failed: %v", validationErrs)
+
+	finalErr := errors.Errorf("resource incompatible with current Gloo snapshot: %v", validationErrs.Errors)
 
 	return &AdmissionResponseWithProxies{
 		AdmissionResponse: &v1beta1.AdmissionResponse{
