@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	envoy_config_route_v3 "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
+	"github.com/solo-io/gloo/projects/envoyinit/pkg/runner"
 	validationapi "github.com/solo-io/gloo/projects/gloo/pkg/api/grpc/validation"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
@@ -66,6 +67,7 @@ func reportRoutePluginProcessingError(
 }
 
 func reportRouteActionProcessingError(
+	params plugins.Params,
 	routeReport *validationapi.RouteReport,
 	out *envoy_config_route_v3.Route,
 	err error,
@@ -85,7 +87,7 @@ func reportRouteActionProcessingError(
 		)
 	}
 
-	reportPluginProcessingErrorOrWarning(err, doReportErr, doReportWarning)
+	reportPluginProcessingErrorOrWarning(params, err, doReportErr, doReportWarning)
 }
 
 func reportRouteActionPluginProcessingError(
@@ -163,7 +165,7 @@ func reportPluginProcessingError(
 		}
 	}
 
-	reportPluginProcessingErrorOrWarning(err, doReportErr, doReportWarning)
+	reportPluginProcessingErrorOrWarning(params, err, doReportErr, doReportWarning)
 }
 
 // reportPluginProcessingErrorOrWarning captures the error that is returned by a plugin, and executes an action with that error
@@ -171,10 +173,17 @@ func reportPluginProcessingError(
 // This function has some complex logic, with some technical debt, so we intentionally split it off from other
 // code to more easily isolate and test changes to it
 func reportPluginProcessingErrorOrWarning(
+	params plugins.Params,
 	err error,
 	doReportErr func(),
 	doReportWarning func(),
 ) {
+	// Interruptions are recorded on params instead of the report. See plugins.ValidationInterruptions.
+	if errors.Is(err, runner.ErrValidationInterrupted) {
+		params.ValidationInterruptions.Add(err)
+		return
+	}
+
 	var configurationError plugins.ConfigurationError
 	isConfigurationError := errors.As(err, &configurationError)
 
@@ -227,7 +236,7 @@ func reportHTTPListenerProcessingError(
 			err.Error())
 	}
 
-	reportPluginProcessingErrorOrWarning(err, doReportErr, doReportWarning)
+	reportPluginProcessingErrorOrWarning(params, err, doReportErr, doReportWarning)
 }
 
 func reportTCPListenerProcessingError(
@@ -247,5 +256,5 @@ func reportTCPListenerProcessingError(
 			err.Error())
 	}
 
-	reportPluginProcessingErrorOrWarning(err, doReportErr, doReportWarning)
+	reportPluginProcessingErrorOrWarning(params, err, doReportErr, doReportWarning)
 }

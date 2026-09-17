@@ -10,6 +10,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/rotisserie/eris"
+	"github.com/solo-io/gloo/projects/envoyinit/pkg/runner"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/pluginutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
@@ -26,7 +27,9 @@ var _ = Describe("Reporting", func() {
 				errCount, warningCount int
 			)
 
+			params := plugins.Params{ValidationInterruptions: &plugins.ValidationInterruptions{}}
 			reportPluginProcessingErrorOrWarning(
+				params,
 				err,
 				func() { errCount++ },
 				func() { warningCount++ })
@@ -38,6 +41,8 @@ var _ = Describe("Reporting", func() {
 				Expect(errCount).To(Equal(1))
 				Expect(warningCount).To(Equal(0))
 			}
+
+			Expect(params.ValidationInterruptions.Any()).To(BeFalse())
 		},
 		Entry("generic error",
 			eris.New("generic error"),
@@ -64,4 +69,42 @@ var _ = Describe("Reporting", func() {
 			false,
 		),
 	)
+
+	Describe("an interrupted envoy validation", func() {
+		var (
+			params                 plugins.Params
+			errCount, warningCount int
+		)
+
+		BeforeEach(func() {
+			params = plugins.Params{ValidationInterruptions: &plugins.ValidationInterruptions{}}
+			errCount, warningCount = 0, 0
+		})
+
+		report := func(err error) {
+			reportPluginProcessingErrorOrWarning(
+				params,
+				err,
+				func() { errCount++ },
+				func() { warningCount++ })
+		}
+
+		It("is recorded rather than reported", func() {
+			report(eris.Wrap(runner.ErrValidationInterrupted, "envoy validation of waf config was interrupted"))
+
+			Expect(errCount).To(Equal(0))
+			Expect(warningCount).To(Equal(0))
+			Expect(params.ValidationInterruptions.Err()).To(MatchError(runner.ErrValidationInterrupted))
+		})
+
+		It("takes precedence over a configuration error returned with it", func() {
+			report(multierror.Append(
+				plugins.NewConfigurationError("configuration-error"),
+				eris.Wrap(runner.ErrValidationInterrupted, "interrupted")))
+
+			Expect(errCount).To(Equal(0))
+			Expect(warningCount).To(Equal(0))
+			Expect(params.ValidationInterruptions.Any()).To(BeTrue())
+		})
+	})
 })
