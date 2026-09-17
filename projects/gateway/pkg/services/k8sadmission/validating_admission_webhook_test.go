@@ -19,11 +19,14 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/faultinjection"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/headers"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/static"
+	"go.opencensus.io/stats"
+	"go.opencensus.io/stats/view"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.com/solo-io/gloo/projects/envoyinit/pkg/runner"
 	v1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gateway/pkg/defaults"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
@@ -187,6 +190,37 @@ var _ = Describe("ValidatingAdmissionWebhook", func() {
 		Entry("upstream deletion, rejected", gloov1.UpstreamCrd, gloov1.UpstreamCrd.GroupVersionKind(), v1beta1.Delete, upstream.GetMetadata().Ref()),
 		Entry("secret deletion, rejected", gloov1.SecretCrd, gloov1.SecretCrd.GroupVersionKind(), v1beta1.Delete, secret.GetMetadata().Ref()),
 	)
+
+	It("reports an interrupted validation as an internal error rather than a rejected resource", func() {
+		rejectedBefore := sumCounter(mGatewayResourcesRejected)
+		incompleteBefore := sumCounter(mGatewayResourcesValidationIncomplete)
+
+		mv.fValidateModifiedGvk = func(context.Context, schema.GroupVersionKind, resources.Resource, bool) (*validation.Reports, error) {
+			return reports(), fmt.Errorf("validating *v1.Gateway failed: %w", runner.ErrValidationInterrupted)
+		}
+		req := makeReviewRequest(srv.URL, v1.GatewayCrd, v1.GatewayCrd.GroupVersionKind(), v1beta1.Create, gateway)
+
+		res, err := srv.Client().Do(req)
+		Expect(err).NotTo(HaveOccurred())
+
+		review, err := parseReviewResponse(res)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(review.Response).NotTo(BeNil())
+
+		Expect(review.Response.Allowed).To(BeFalse(), "validation did not complete, so the resource is not admitted")
+		Expect(review.Response.Result).NotTo(BeNil())
+		Expect(review.Response.Result.Reason).To(Equal(metav1.StatusReasonInternalError))
+		Expect(review.Response.Result.Message).To(ContainSubstring("could not complete"))
+		Expect(review.Response.Result.Message).NotTo(ContainSubstring("incompatible with current Gloo snapshot"))
+
+		Eventually(func() float64 {
+			return sumCounter(mGatewayResourcesValidationIncomplete)
+		}).Should(Equal(incompleteBefore+1), "an incomplete validation must be visible to an operator")
+		Consistently(func() float64 {
+			return sumCounter(mGatewayResourcesRejected)
+		}).Should(Equal(rejectedBefore),
+			"counting this as a rejection would make a restart storm read as a config problem")
+	})
 
 	DescribeTable("processes status updates with auto-fail validator", func(expectAllowed bool, crd crd.Crd, gvk schema.GroupVersionKind, op v1beta1.Operation, resource resources.InputResource) {
 		setMockFunctions()
@@ -671,6 +705,18 @@ func (v *mockValidator) ValidateList(ctx context.Context, ul *unstructured.Unstr
 		return reports(), nil
 	}
 	return v.fValidateList(ctx, ul, dryRun)
+}
+
+// sumCounter totals every tagged row of a sum counter's view. The counts persist across tests, so compare against a baseline.
+func sumCounter(counter *stats.Int64Measure) float64 {
+	rows, err := view.RetrieveData(counter.Name())
+	ExpectWithOffset(1, err).NotTo(HaveOccurred())
+
+	var total float64
+	for _, row := range rows {
+		total += row.Data.(*view.SumData).Value
+	}
+	return total
 }
 
 func reports() *validation.Reports {

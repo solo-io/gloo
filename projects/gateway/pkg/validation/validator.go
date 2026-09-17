@@ -60,13 +60,20 @@ func (e GlooValidationResponseLengthError) Error() string {
 	return fmt.Sprintf("Expected Gloo validation response to contain 1 report, but contained %d", e.reportLength)
 }
 
-// This error is a struct so it can be checked with errors.As
-type SyncNotYetRunError struct {
+// ValidationIncompleteError means gloo validation did not complete: the validation server had not
+// received its first sync, or an envoy validation fork was interrupted. It is a struct so it can be
+// checked with errors.As.
+type ValidationIncompleteError struct {
 	err error
 }
 
-func (e SyncNotYetRunError) Error() string {
+func (e ValidationIncompleteError) Error() string {
 	return errors.Wrap(e.err, failedGlooValidation).Error()
+}
+
+// Unwrap keeps the wrapped cause reachable through errors.Is and errors.As.
+func (e ValidationIncompleteError) Unwrap() error {
+	return e.err
 }
 
 var (
@@ -302,13 +309,12 @@ func (v *validator) validateProxiesAndExtensions(ctx context.Context, snapshot *
 			resourceToModify = nil
 		}
 
-		// The error returned here will occur when the function is run before the first sync of resources
-		// If we encounter this error we can `continue` even if collecting all errors, as we know
-		// the revalidation will fail due to the presence of this error
+		// Validation errors come back in glooReports. A non-nil err means validation did not complete,
+		// so findBreakingErrors will abandon the comparison against the unmodified snapshot. Nothing
+		// collected afterwards is usable, hence the `continue` even when collecting all errors.
 		glooReports, err := v.glooValidator(ctx, proxy, resourceToModify, opts.Delete)
 		if err != nil {
-			err = SyncNotYetRunError{err: err}
-			errs = multierror.Append(errs, err)
+			errs = multierror.Append(errs, ValidationIncompleteError{err: err})
 			continue
 		}
 
@@ -706,16 +712,16 @@ func compareProxies(proxy1, proxy2 []*gloov1.Proxy) bool {
 	return sameProxies
 }
 
-// findBreakingErrors looks for errors that are not due to the snapshot itself,
-// for example if Sync has not yet been run. These errors make comparision of snapshot validation output
-// invalid for the purposes of determining if an alteration created a new error or warning.
+// findBreakingErrors reports whether errs contains an error not caused by the snapshot itself, such as
+// validation that could not complete. Comparing validation output across snapshots is meaningless
+// when one side has such an error.
 func findBreakingErrors(errs error) bool {
 	var lengthError GlooValidationResponseLengthError
-	var syncError SyncNotYetRunError
+	var incompleteError ValidationIncompleteError
 
 	breakingErrorTypes := []error{
 		&lengthError,
-		&syncError,
+		&incompleteError,
 	}
 
 	for _, err := range breakingErrorTypes {
