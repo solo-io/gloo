@@ -1,0 +1,10 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/solo-projects/issues/9168
+    resolvesIssue: false
+    description: >-
+      Fix issue when interrupted validation of Envoy configuration (cancelled context, killed Envoy process) was treated as a validation failure,
+      leading to caching of errors for valid config. The side effects of this can be as severe as dropping a listener if the interruption happened
+      during WAF plugin validation, with no way to recover. The per-proxy `validation_interruption_skips` metric has been added to track persistent
+      validation interruptions, and incomplete validation attempts during admission requests are now counted in the new `validation.gateway.solo.io/resources_validation_incomplete`
+      metric instead of `resources_rejected`.

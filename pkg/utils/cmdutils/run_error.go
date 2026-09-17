@@ -57,6 +57,14 @@ func (e *RunError) Cause() error {
 	return e.stackTrace
 }
 
+// Unwrap exposes the underlying error to errors.Is / errors.As.
+func (e *RunError) Unwrap() error {
+	if e == nil {
+		return nil
+	}
+	return e.inner
+}
+
 // PrettyCommand takes arguments identical to Cmder.Command,
 // it returns a pretty printed command that could be pasted into a shell
 func PrettyCommand(name string, args ...string) string {

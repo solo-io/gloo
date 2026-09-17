@@ -13,6 +13,7 @@ import (
 	. "github.com/onsi/gomega"
 	errors "github.com/rotisserie/eris"
 	"github.com/solo-io/gloo/pkg/utils/statsutils"
+	"github.com/solo-io/gloo/projects/envoyinit/pkg/runner"
 	v1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gateway/pkg/translator"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/grpc/validation"
@@ -457,6 +458,7 @@ var _ = Describe("Validator", func() {
 			},
 				Entry("Sync not run error", ValidateNoGlooSync, gloovalidation.SyncNotCalledError.Error()),
 				Entry("Validation Length Response Error", ValidateResponseLengthError, GlooValidationResponseLengthError{}.Error()),
+				Entry("Interrupted envoy validation", ValidateInterrupted, runner.ErrValidationInterrupted.Error()),
 			)
 		})
 
@@ -1451,6 +1453,10 @@ func ValidateNoGlooSync(ctx context.Context, proxy *gloov1.Proxy, resource resou
 
 func ValidateResponseLengthError(ctx context.Context, proxy *gloov1.Proxy, resource resources.Resource, shouldDelete bool) ([]*gloovalidation.GlooValidationReport, error) {
 	return nil, GlooValidationResponseLengthError{}
+}
+
+func ValidateInterrupted(ctx context.Context, proxy *gloov1.Proxy, resource resources.Resource, shouldDelete bool) ([]*gloovalidation.GlooValidationReport, error) {
+	return nil, errors.Wrapf(runner.ErrValidationInterrupted, "cannot validate proxy %s", proxy.GetMetadata().Ref().Key())
 }
 
 // type Translator interface {
