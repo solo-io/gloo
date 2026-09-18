@@ -1,0 +1,16 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: solo-kit
+    dependencyTag: v0.41.2-0.20260917153629-e125a504c3d7
+    resolvesIssue: false
+    description: >-
+      Update solo-kit to fix generic xDS snapshot cloning and rendering, add
+      suppressed-response metrics, and provide opt-in retention of unanswered
+      xDS watches via EXP_FIX=on. Watch retention remains disabled by default.
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: hashicorp
+    dependencyRepo: vault/api
+    dependencyTag: v1.22.0
+    resolvesIssue: false
+    description: Update the Vault API client as required by solo-kit.
