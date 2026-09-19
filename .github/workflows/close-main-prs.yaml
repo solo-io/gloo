@@ -1,0 +1,26 @@
+name: Close PRs to main
+# Gloo is reaching end of life and main takes no more changes.
+on:
+  pull_request_target:
+    types:
+      - opened
+      - reopened
+      - synchronize
+    branches:
+      - main
+jobs:
+  close:
+    name: Close PR
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      pull-requests: write
+    if: ${{ github.event.pull_request.state == 'open' }}
+    steps:
+      - name: Comment and close
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: |
+          gh pr comment "$PR_URL" --body "Thank you for the contribution! Gloo is reaching end of life and this repository no longer accepts changes to \`main\`, so this pull request is being closed automatically. Active development has moved to kgateway: https://github.com/kgateway-dev/kgateway — please check it out!"
+          gh pr close "$PR_URL"

@@ -1,0 +1,6 @@
+changelog:
+  - type: NON_USER_FACING
+    resolvesIssue: false
+    description: >-
+      Adds a workflow that comments on and closes every pull request opened against
+      main: Gloo is reaching end of life and development continues in kgateway.
