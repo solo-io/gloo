@@ -15,3 +15,7 @@ changelog:
       gateway.enableGatewayController removes only Edge-owned Proxies. Toggling
       gateway.persistProxySpec without a config source preserves the active
       memory store.
+      Retain the latest complete Gateway API Proxy snapshot so updates and
+      deletions are replayed after setup handoffs, even if the previous run
+      read them before its writes were fenced out. Retry failed reconciliation
+      without waiting for another Gateway API input change.

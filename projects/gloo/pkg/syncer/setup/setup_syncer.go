@@ -1506,7 +1506,7 @@ func constructIstioBootstrapOpts(settings *v1.Settings) bootstrap.IstioValues {
 	return istioValues
 }
 
-func runQueue(ctx context.Context, proxyReconcileQueue ggv2utils.AsyncQueue[gloov1.ProxyList], writeNamespace string, proxyClient gloov1.ProxyClient) {
+func runQueue(ctx context.Context, proxyReconcileQueue *ggv2utils.Latest[gloov1.ProxyList], writeNamespace string, proxyClient gloov1.ProxyClient) {
 	// labels used to uniquely identify Proxies that are managed by the kube gateway controller
 	var kubeGatewayProxyLabels = map[string]string{
 		// the proxy type key/value must stay in sync with the one defined in projects/gateway2/translator/gateway_translator.go
@@ -1516,15 +1516,18 @@ func runQueue(ctx context.Context, proxyReconcileQueue ggv2utils.AsyncQueue[gloo
 	logger := contextutils.LoggerFrom(ctx)
 
 	proxyReconciler := gloov1.NewProxyReconciler(proxyClient, statusutils.NewNoOpStatusClient())
+	// Each setup run starts at zero, so a canceled or superseded consumer cannot
+	// consume an update on behalf of its replacement. Advance only after success.
+	var applied uint64
 	for {
-		proxyList, err := proxyReconcileQueue.Dequeue(ctx)
+		proxyList, version, err := proxyReconcileQueue.Wait(ctx, applied)
 		if err != nil {
 			return
 		}
 		// Proxy CR is located in the writeNamespace, which may be different from the originating Gateway CR
 		err = proxyReconciler.Reconcile(
 			writeNamespace,
-			proxyList,
+			proxyList.Clone(),
 			func(original, desired *gloov1.Proxy) (bool, error) {
 				// only reconcile if proxies are not equal
 				// we reconcile so ggv2 proxies can be used in extension syncing and debug snap storage
@@ -1535,11 +1538,19 @@ func runQueue(ctx context.Context, proxyReconcileQueue ggv2utils.AsyncQueue[gloo
 				Selector: kubeGatewayProxyLabels,
 			})
 		if err != nil {
-			// A write error to our cache should not impact translation
-			// We will emit a message, and continue
 			logger.Error(err)
+			// Keep this version pending, but avoid spinning on a backend failure.
+			// Wait will return a newer snapshot if one arrives before the retry.
+			timer := time.NewTimer(100 * time.Millisecond)
+			select {
+			case <-ctx.Done():
+				timer.Stop()
+				return
+			case <-timer.C:
+			}
+			continue
 		}
-
+		applied = version
 	}
 
 }

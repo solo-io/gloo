@@ -44,7 +44,7 @@ func startSetupLoop(ctx context.Context) error {
 	// start gw if needed, get the proxy reconcile q
 	// pass that in to the setup func
 	if k8sgw {
-		setupOpts.ProxyReconcileQueue = ggv2utils.NewAsyncQueue[gloov1.ProxyList]()
+		setupOpts.ProxyReconcileQueue = ggv2utils.NewLatest[gloov1.ProxyList]()
 		go ggv2setup.StartGGv2(ctx, setupOpts, builder, extensions.NewK8sGatewayExtensions, registry.GetPluginRegistryFactory)
 	}
 
