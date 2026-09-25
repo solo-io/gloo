@@ -1164,17 +1164,17 @@ func (f *proxyWriteFence) admit(generation uint64, write func() error) error {
 
 // fencedMemoryFactory builds in-memory clients whose writes pass through a fence.
 type fencedMemoryFactory struct {
-	cache      memory.InMemoryResourceCache
+	*factory.MemoryResourceClientFactory
 	fence      *proxyWriteFence
 	generation uint64
 }
 
-func (f *fencedMemoryFactory) NewResourceClient(_ context.Context, params factory.NewResourceClientParams) (clients.ResourceClient, error) {
-	return &fencedResourceClient{
-		ResourceClient: memory.NewResourceClient(f.cache, params.ResourceType),
-		fence:          f.fence,
-		generation:     f.generation,
-	}, nil
+func (f *fencedMemoryFactory) NewResourceClient(ctx context.Context, params factory.NewResourceClientParams) (clients.ResourceClient, error) {
+	client, err := f.MemoryResourceClientFactory.NewResourceClient(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+	return &fencedResourceClient{ResourceClient: client, fence: f.fence, generation: f.generation}, nil
 }
 
 type fencedResourceClient struct {
@@ -1211,7 +1211,7 @@ func (c *fencedResourceClient) ApplyStatus(statusClient resources.StatusClient, 
 // cannot reconcile, before its API emitter can observe them. Proxies are
 // retained across setup runs so that a quiet cluster, where the Gateway API
 // controller republishes only on a real input change, keeps them. Call it only
-// after proxyFence.advance, so no earlier run can write behind it.
+// from retainedProxyFactory, after the fence has shut out earlier runs.
 func reseedRetainedProxies(ctx context.Context, params constructOptsParams, proxiesRetained, gatewayMode bool) error {
 	if params.memCache == nil {
 		return nil
@@ -1252,6 +1252,25 @@ func reseedRetainedProxies(ctx context.Context, params constructOptsParams, prox
 		}
 	}
 	return nil
+}
+
+// retainedProxyFactory supersedes earlier setup runs, drops the retained Proxies
+// this run cannot reconcile, and, if this run reads Proxies from memCache,
+// returns a factory whose writes only this run can make.
+func retainedProxyFactory(ctx context.Context, params constructOptsParams, proxyFactory factory.ResourceClientFactory, gatewayMode bool) (factory.ResourceClientFactory, error) {
+	// Only a run that reads Proxies from memCache can reuse what earlier runs left
+	// there. Without a config source, ConfigFactoryForSettings returns memCache too.
+	memProxies, ok := proxyFactory.(*factory.MemoryResourceClientFactory)
+	proxiesRetained := ok && memProxies.Cache == params.memCache
+	// Shut out earlier runs before dropping what this run cannot reconcile.
+	generation := params.proxyFence.advance()
+	if err := reseedRetainedProxies(ctx, params, proxiesRetained, gatewayMode); err != nil {
+		return nil, errors.Wrapf(err, "reseeding retained proxies")
+	}
+	if !proxiesRetained {
+		return proxyFactory, nil
+	}
+	return &fencedMemoryFactory{MemoryResourceClientFactory: memProxies, fence: params.proxyFence, generation: generation}, nil
 }
 
 // constructs bootstrap opts from settings
@@ -1401,17 +1420,9 @@ func constructOpts(ctx context.Context, setup *bootstrap.SetupOpts, params const
 		gatewayMode = true
 	}
 
-	// Only a run that reads Proxies from memCache can reuse what earlier runs left
-	// there. Without a config source, ConfigFactoryForSettings returns memCache too.
-	memProxies, ok := proxyFactory.(*factory.MemoryResourceClientFactory)
-	proxiesRetained := ok && memProxies.Cache == params.memCache
-	// Shut out earlier runs before dropping what this run cannot reconcile.
-	generation := params.proxyFence.advance()
-	if err := reseedRetainedProxies(ctx, params, proxiesRetained, gatewayMode); err != nil {
-		return bootstrap.Opts{}, errors.Wrapf(err, "reseeding retained proxies")
-	}
-	if proxiesRetained {
-		proxyFactory = &fencedMemoryFactory{cache: params.memCache, fence: params.proxyFence, generation: generation}
+	proxyFactory, err = retainedProxyFactory(ctx, params, proxyFactory, gatewayMode)
+	if err != nil {
+		return bootstrap.Opts{}, err
 	}
 
 	if validationServerEnabled && gatewayMode {
@@ -1506,6 +1517,11 @@ func constructIstioBootstrapOpts(settings *v1.Settings) bootstrap.IstioValues {
 	return istioValues
 }
 
+const (
+	proxyReconcileMinRetry = 100 * time.Millisecond
+	proxyReconcileMaxRetry = 30 * time.Second
+)
+
 func runQueue(ctx context.Context, proxyReconcileQueue *ggv2utils.Latest[gloov1.ProxyList], writeNamespace string, proxyClient gloov1.ProxyClient) {
 	// labels used to uniquely identify Proxies that are managed by the kube gateway controller
 	var kubeGatewayProxyLabels = map[string]string{
@@ -1519,6 +1535,7 @@ func runQueue(ctx context.Context, proxyReconcileQueue *ggv2utils.Latest[gloov1.
 	// Each setup run starts at zero, so a canceled or superseded consumer cannot
 	// consume an update on behalf of its replacement. Advance only after success.
 	var applied uint64
+	retryDelay := proxyReconcileMinRetry
 	for {
 		proxyList, version, err := proxyReconcileQueue.Wait(ctx, applied)
 		if err != nil {
@@ -1539,18 +1556,18 @@ func runQueue(ctx context.Context, proxyReconcileQueue *ggv2utils.Latest[gloov1.
 			})
 		if err != nil {
 			logger.Error(err)
-			// Keep this version pending, but avoid spinning on a backend failure.
-			// Wait will return a newer snapshot if one arrives before the retry.
-			timer := time.NewTimer(100 * time.Millisecond)
+			// Keep this version pending and retry with backoff. The retry picks up
+			// a newer snapshot if one was published in the meantime.
 			select {
 			case <-ctx.Done():
-				timer.Stop()
 				return
-			case <-timer.C:
+			case <-time.After(retryDelay):
 			}
+			retryDelay = min(2*retryDelay, proxyReconcileMaxRetry)
 			continue
 		}
 		applied = version
+		retryDelay = proxyReconcileMinRetry
 	}
 
 }
