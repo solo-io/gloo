@@ -227,7 +227,7 @@ func testScenariosWithCRDs(
 	// start ggv2
 	// (note: we don't have gloo-edge working, so nothing will reconcile the proxies.
 	// that's mostly ok, as we don't test the features that require these proxies in gloo-edge)
-	setupOpts.ProxyReconcileQueue = ggv2utils.NewAsyncQueue[gloov1.ProxyList]()
+	setupOpts.ProxyReconcileQueue = ggv2utils.NewLatest[gloov1.ProxyList]()
 
 	wg.Add(1)
 	go func() {

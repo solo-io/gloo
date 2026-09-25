@@ -30,8 +30,10 @@ import (
 )
 
 type SetupOpts struct {
-	Cache               cache.SnapshotCache
-	ProxyReconcileQueue ggv2utils.AsyncQueue[v1.ProxyList]
+	Cache cache.SnapshotCache
+	// ProxyReconcileQueue retains the latest complete Gateway API snapshot so
+	// replacement setup runs can replay state read by a superseded consumer.
+	ProxyReconcileQueue *ggv2utils.Latest[v1.ProxyList]
 	ExtraGatewayClasses []string
 	ExtraCallbacks      xdsserver.Callbacks
 
@@ -108,7 +110,7 @@ type Opts struct {
 	Identity leaderelector.Identity
 
 	GlooGateway         GlooGateway
-	ProxyReconcileQueue ggv2utils.AsyncQueue[v1.ProxyList]
+	ProxyReconcileQueue *ggv2utils.Latest[v1.ProxyList]
 	KrtDebugger         *krt.DebugHandler
 }
 

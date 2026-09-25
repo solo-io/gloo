@@ -1,0 +1,21 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/solo-projects/issues/9126
+    resolvesIssue: false
+    description: >-
+      Preserve in-memory Proxies across control-plane setup re-runs caused by
+      Settings or watched namespace changes. This prevents rate-limit configuration
+      from losing its descriptors when Gateway API Proxies have not changed and
+      the controller therefore does not republish them. As with persisted
+      Proxies, a Gloo Edge listener or virtual host that the new Settings reject
+      keeps its last accepted configuration instead of being removed. Proxies a
+      run can no longer reconcile are dropped at startup instead of being
+      retained: changing discoveryNamespace or switching to a persisted Proxy
+      backend clears the in-memory Proxies, and disabling
+      gateway.enableGatewayController removes only Edge-owned Proxies. Toggling
+      gateway.persistProxySpec without a config source preserves the active
+      memory store.
+      Retain the latest complete Gateway API Proxy snapshot so updates and
+      deletions are replayed after setup handoffs, even if the previous run
+      read them before its writes were fenced out. Retry failed reconciliation
+      without waiting for another Gateway API input change.
