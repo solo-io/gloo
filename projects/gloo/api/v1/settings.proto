@@ -685,6 +685,16 @@ message GlooOptions {
     // reached, gloo will panic. If unset, Gloo defaults to 5 minutes.
     google.protobuf.Duration endpoints_warming_timeout = 4;
 
+    // Maximum time each legacy setup run waits for the first complete Gateway API Proxy
+    // snapshot to be successfully reconciled before starting the legacy API loop.
+    // Defaults to 15 seconds. Set to zero to start without waiting. Must be non-negative.
+    // If the timeout expires, the API loop starts and Proxy reconciliation continues in
+    // the background. This favors availability but may temporarily publish rate-limit
+    // configuration with missing descriptors until Gateway API initialization completes.
+    // Only applies when the Gateway API controller is enabled.
+    google.protobuf.Duration gateway_proxy_initialization_timeout = 20;
+
+
     message AWSOptions {
 
         oneof credentials_fetcher {

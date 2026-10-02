@@ -695,6 +695,16 @@ func (m *GlooOptions) Equal(that interface{}) bool {
 		}
 	}
 
+	if h, ok := interface{}(m.GetGatewayProxyInitializationTimeout()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetGatewayProxyInitializationTimeout()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetGatewayProxyInitializationTimeout(), target.GetGatewayProxyInitializationTimeout()) {
+			return false
+		}
+	}
+
 	if h, ok := interface{}(m.GetAwsOptions()).(equality.Equalizer); ok {
 		if !h.Equal(target.GetAwsOptions()) {
 			return false

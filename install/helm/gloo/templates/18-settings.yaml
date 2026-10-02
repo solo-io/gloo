@@ -29,6 +29,9 @@ spec:
 {{- end }}
     proxyDebugBindAddr: "0.0.0.0:{{ .Values.gloo.deployment.proxyDebugPort }}"
     enableRestEds: {{ .Values.settings.enableRestEds | default false }}
+{{- if hasKey .Values.settings "gatewayProxyInitializationTimeout" }}
+    gatewayProxyInitializationTimeout: {{ .Values.settings.gatewayProxyInitializationTimeout | quote }}
+{{- end }}
 {{- /* .Values.settings.replaceInvalidRoutes for backwards compatibility */}}
 {{- if or (.Values.settings.invalidConfigPolicy) (.Values.settings.replaceInvalidRoutes) }}
     invalidConfigPolicy:

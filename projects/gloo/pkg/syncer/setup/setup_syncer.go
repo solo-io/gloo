@@ -20,6 +20,7 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/control-plane/cache"
 
+	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/duration"
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_zap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
@@ -510,6 +511,17 @@ func RunGloo(opts bootstrap.Opts) error {
 //
 // This function is called directly by GlooEE
 func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
+	// The timeout only applies when the Gateway API controller is enabled, so an
+	// invalid value must not fail Edge-only setup.
+	var proxyInitializationTimeout time.Duration
+	if opts.GatewayProxySnapshots != nil {
+		var err error
+		proxyInitializationTimeout, err = gatewayProxyInitializationTimeout(opts.Settings)
+		if err != nil {
+			return err
+		}
+	}
+
 	if err := extensions.Validate(); err != nil {
 		return err
 	}
@@ -763,9 +775,12 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 		}()
 		opts.ControlPlane.StartGrpcServer = false
 	}
+	// The debug server survives setup runs; its reader must follow the new store.
+	if opts.ProxyDebugServer.Server != nil {
+		opts.ProxyDebugServer.Server.RegisterProxyReader(proxyClient)
+	}
 	if opts.ProxyDebugServer.StartGrpcServer {
 		proxyDebugServer := opts.ProxyDebugServer
-		proxyDebugServer.Server.RegisterProxyReader(proxyClient)
 		proxyDebugServer.Server.Register(proxyDebugServer.GrpcServer)
 		lis, err := net.Listen(opts.ProxyDebugServer.BindAddr.Network(), opts.ProxyDebugServer.BindAddr.String())
 		if err != nil {
@@ -909,8 +924,10 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 
 	startFuncs["admin-server"] = AdminServerStartFunc(snapshotHistory, opts.KrtDebugger)
 
-	if opts.ProxyReconcileQueue != nil {
-		go runQueue(watchOpts.Ctx, opts.ProxyReconcileQueue, opts.WriteNamespace, proxyClient)
+	var proxiesReady chan struct{}
+	if opts.GatewayProxySnapshots != nil {
+		proxiesReady = make(chan struct{})
+		go runGatewayProxySnapshots(watchOpts.Ctx, opts.GatewayProxySnapshots, opts.WriteNamespace, proxyClient, proxiesReady)
 	}
 
 	// MARK: build translator syncer
@@ -963,11 +980,18 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 	}
 
 	apiEventLoop := v1snap.NewApiEventLoop(apiEmitter, syncers)
-	apiEventLoopErrs, err := apiEventLoop.Run(opts.WatchNamespaces, watchOpts)
-	if err != nil {
+	if err := startApiLoopAfterProxies(watchOpts.Ctx, proxiesReady, proxyInitializationTimeout, func(attemptCtx context.Context) error {
+		attemptOpts := watchOpts
+		attemptOpts.Ctx = attemptCtx
+		apiEventLoopErrs, err := apiEventLoop.Run(opts.WatchNamespaces, attemptOpts)
+		if err != nil {
+			return err
+		}
+		go errutils.AggregateErrs(attemptCtx, errs, apiEventLoopErrs, "event_loop.gloo")
+		return nil
+	}, errs); err != nil {
 		return err
 	}
-	go errutils.AggregateErrs(watchOpts.Ctx, errs, apiEventLoopErrs, "event_loop.gloo")
 
 	go func() {
 		for {
@@ -1162,20 +1186,18 @@ func constructOpts(ctx context.Context, setup *bootstrap.SetupOpts, params const
 		return bootstrap.Opts{}, err
 	}
 
-	var proxyFactory factory.ResourceClientFactory
+	// Each setup run owns its memory store. Gateway API state is replayed before
+	// the API loop can publish configuration from this replacement store.
+	var proxyFactory factory.ResourceClientFactory = &factory.MemoryResourceClientFactory{Cache: memory.NewInMemoryResourceCache()}
 	// Delete proxies that may have been left from prior to an upgrade or from previously having set persistProxySpec
 	// Ignore errors because gloo will still work with stray proxies.
 	proxyCleanup := func() {
 		doProxyCleanup(ctx, factoryParams, params.settings, params.writeNamespace)
 	}
-	if params.settings.GetGateway().GetPersistProxySpec().GetValue() {
+	if params.settings.GetGateway().GetPersistProxySpec().GetValue() && params.settings.GetConfigSource() != nil {
 		proxyFactory, err = bootstrap_clients.ConfigFactoryForSettings(factoryParams, v1.ProxyCrd)
 		if err != nil {
 			return bootstrap.Opts{}, err
-		}
-	} else {
-		proxyFactory = &factory.MemoryResourceClientFactory{
-			Cache: memory.NewInMemoryResourceCache(),
 		}
 	}
 
@@ -1273,6 +1295,7 @@ func constructOpts(ctx context.Context, setup *bootstrap.SetupOpts, params const
 	} else {
 		gatewayMode = true
 	}
+
 	if validationServerEnabled && gatewayMode {
 		alwaysAcceptResources := AcceptAllResourcesByDefault
 
@@ -1341,7 +1364,7 @@ func constructOpts(ctx context.Context, setup *bootstrap.SetupOpts, params const
 		GatewayControllerEnabled:     gatewayMode,
 		ProxyCleanup:                 proxyCleanup,
 		GlooGateway:                  constructGlooGatewayBootstrapOpts(params.settings),
-		ProxyReconcileQueue:          setup.ProxyReconcileQueue,
+		GatewayProxySnapshots:        setup.GatewayProxySnapshots,
 	}, nil
 }
 
@@ -1365,7 +1388,78 @@ func constructIstioBootstrapOpts(settings *v1.Settings) bootstrap.IstioValues {
 	return istioValues
 }
 
-func runQueue(ctx context.Context, proxyReconcileQueue ggv2utils.AsyncQueue[gloov1.ProxyList], writeNamespace string, proxyClient gloov1.ProxyClient) {
+const (
+	proxyReconcileMinRetry = 100 * time.Millisecond
+	proxyReconcileMaxRetry = 30 * time.Second
+)
+
+const defaultGatewayProxyInitializationTimeout = 15 * time.Second
+
+func gatewayProxyInitializationTimeout(settings *gloov1.Settings) (time.Duration, error) {
+	configured := settings.GetGloo().GetGatewayProxyInitializationTimeout()
+	if configured == nil {
+		return defaultGatewayProxyInitializationTimeout, nil
+	}
+	timeout, err := ptypes.Duration(configured)
+	if err != nil {
+		return 0, fmt.Errorf("invalid gloo.gatewayProxyInitializationTimeout: %w", err)
+	}
+	if timeout < 0 {
+		return 0, fmt.Errorf("gloo.gatewayProxyInitializationTimeout must be non-negative")
+	}
+	return timeout, nil
+}
+
+// startApiLoopAfterProxies delays API publication until replay succeeds or the
+// configured timeout expires. Replay continues independently after the timeout.
+// A nil ready channel preserves synchronous startup without Gateway API integration.
+func startApiLoopAfterProxies(ctx context.Context, ready <-chan struct{}, timeout time.Duration, start func(context.Context) error, errs chan<- error) error {
+	if ready == nil {
+		return start(ctx)
+	}
+	go func() {
+		timer := time.NewTimer(timeout)
+		defer timer.Stop()
+		select {
+		case <-ctx.Done():
+			return
+		case <-ready:
+		case <-timer.C:
+			if ctx.Err() != nil {
+				return
+			}
+			contextutils.LoggerFrom(ctx).Warnf("Gateway API Proxy initialization did not complete within %s; starting the legacy API loop while reconciliation continues. Rate-limit configuration may be incomplete until initialization finishes", timeout)
+		}
+		retryDelay := proxyReconcileMinRetry
+		for ctx.Err() == nil {
+			// Snapshot emitter startup can open some watches before another fails.
+			// Cancel that attempt before retrying so partial watches cannot leak.
+			attemptCtx, cancel := context.WithCancel(ctx)
+			if err := start(attemptCtx); err != nil {
+				cancel()
+				select {
+				case errs <- err:
+				case <-ctx.Done():
+					return
+				}
+			} else {
+				// A successful attempt owns live watches until this setup run ends.
+				<-ctx.Done()
+				cancel()
+				return
+			}
+			select {
+			case <-ctx.Done():
+				return
+			case <-time.After(retryDelay):
+			}
+			retryDelay = min(2*retryDelay, proxyReconcileMaxRetry)
+		}
+	}()
+	return nil
+}
+
+func runGatewayProxySnapshots(ctx context.Context, gatewayProxySnapshots *ggv2utils.GatewayProxySnapshotStore, writeNamespace string, proxyClient gloov1.ProxyClient, ready chan<- struct{}) {
 	// labels used to uniquely identify Proxies that are managed by the kube gateway controller
 	var kubeGatewayProxyLabels = map[string]string{
 		// the proxy type key/value must stay in sync with the one defined in projects/gateway2/translator/gateway_translator.go
@@ -1375,8 +1469,12 @@ func runQueue(ctx context.Context, proxyReconcileQueue ggv2utils.AsyncQueue[gloo
 	logger := contextutils.LoggerFrom(ctx)
 
 	proxyReconciler := gloov1.NewProxyReconciler(proxyClient, statusutils.NewNoOpStatusClient())
+	// Each setup run starts at zero, so a canceled or superseded consumer cannot
+	// consume an update on behalf of its replacement. Advance only after success.
+	var applied uint64
+	retryDelay := proxyReconcileMinRetry
 	for {
-		proxyList, err := proxyReconcileQueue.Dequeue(ctx)
+		proxyList, version, err := gatewayProxySnapshots.WaitForNewer(ctx, applied)
 		if err != nil {
 			return
 		}
@@ -1394,11 +1492,23 @@ func runQueue(ctx context.Context, proxyReconcileQueue ggv2utils.AsyncQueue[gloo
 				Selector: kubeGatewayProxyLabels,
 			})
 		if err != nil {
-			// A write error to our cache should not impact translation
-			// We will emit a message, and continue
 			logger.Error(err)
+			// Retry this state after backoff, or wake immediately for newer state.
+			retryCtx, cancelRetry := context.WithTimeout(ctx, retryDelay)
+			_, _, _ = gatewayProxySnapshots.WaitForNewer(retryCtx, version)
+			cancelRetry()
+			if ctx.Err() != nil {
+				return
+			}
+			retryDelay = min(2*retryDelay, proxyReconcileMaxRetry)
+			continue
 		}
-
+		if ready != nil {
+			close(ready)
+			ready = nil
+		}
+		applied = version
+		retryDelay = proxyReconcileMinRetry
 	}
 
 }

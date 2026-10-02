@@ -1,0 +1,16 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/solo-projects/issues/9126
+    resolvesIssue: false
+    description: >-
+      Replay the latest complete Gateway API Proxy snapshot after control-plane
+      setup re-runs caused by Settings or watched namespace changes. Wait up to
+      15 seconds for successful reconciliation before starting the legacy API loop,
+      configurable with Settings.spec.gloo.gatewayProxyInitializationTimeout
+      (Helm: settings.gatewayProxyInitializationTimeout). A successful replay
+      starts the loop immediately. On timeout the loop starts and reconciliation
+      continues, favoring availability but permitting temporarily incomplete
+      rate-limit configuration. Set 0s to skip waiting. Retry failed reconciliation
+      without requiring another input change, and replay intentional empty
+      snapshots so deletions take effect. Recover from API watch startup failures
+      and keep Proxy debug reads pointed at the active store.

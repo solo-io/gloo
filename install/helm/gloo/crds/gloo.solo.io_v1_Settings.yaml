@@ -1054,6 +1054,8 @@ spec:
                     type: string
                   failoverUpstreamDnsPollingInterval:
                     type: string
+                  gatewayProxyInitializationTimeout:
+                    type: string
                   invalidConfigPolicy:
                     properties:
                       invalidRouteResponseBody:
