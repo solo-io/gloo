@@ -5,6 +5,9 @@ import (
 	"testing"
 	"time"
 
+	debugapi "github.com/solo-io/gloo/projects/gloo/pkg/api/grpc/debug"
+	"github.com/solo-io/gloo/projects/gloo/pkg/debug"
+
 	"github.com/solo-io/gloo/pkg/bootstrap/leaderelector/singlereplica"
 	"github.com/solo-io/gloo/pkg/utils/settingsutil"
 	gatewayextensions "github.com/solo-io/gloo/projects/gateway2/extensions"
@@ -36,12 +39,14 @@ func TestSetupPublishesOnlyInitializedProxySnapshots(t *testing.T) {
 	t.Setenv("VALIDATION_MUST_START", "false")
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	latest := ggv2utils.NewLatest[v1.ProxyList]()
+	latest := ggv2utils.NewGatewayProxySnapshotStore()
 	opts := bootstrap.NewSetupOpts(xds.NewAdsSnapshotCache(ctx), nil)
-	opts.ProxyReconcileQueue = latest
+	opts.GatewayProxySnapshots = latest
 	cache := memory.NewInMemoryResourceCache()
 	var publications chan int
+	var debugServer debug.ProxyEndpointServer
 	setup := NewSetupFuncWithRunAndExtensions(func(o bootstrap.Opts) error {
+		debugServer = o.ProxyDebugServer.Server
 		observer := &proxyPublicationObserver{snapshots: publications}
 		return RunGlooWithExtensions(o, Extensions{
 			K8sGatewayExtensionsFactory: gatewayextensions.NewK8sGatewayExtensions,
@@ -103,6 +108,10 @@ func TestSetupPublishesOnlyInitializedProxySnapshots(t *testing.T) {
 			}
 		case <-time.After(5 * time.Second):
 			t.Fatalf("run %d did not publish", run)
+		}
+		got, err := debugServer.GetProxies(runCtx, &debugapi.ProxyEndpointRequest{Namespace: "gloo-system"})
+		if err != nil || len(got.GetProxies()) != want {
+			t.Fatalf("run %d debug store: %v, %v", run, got, err)
 		}
 	}
 }

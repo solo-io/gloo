@@ -14,7 +14,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 )
 
-// Pause after runQueue has read the snapshot but before its first mutation.
+// Pause after the consumer has read the snapshot but before its first mutation.
 // Capturing the list before pausing also makes deletion exercise a stale delete.
 type handoffClient struct {
 	clients.ResourceClient
@@ -45,13 +45,13 @@ func (c *handoffClient) Delete(namespace, name string, opts clients.DeleteOpts) 
 	return err
 }
 
-func startHandoffConsumer(t *testing.T, latest *ggv2utils.Latest[v1.ProxyList], client v1.ProxyClient) context.CancelFunc {
+func startHandoffConsumer(t *testing.T, latest *ggv2utils.GatewayProxySnapshotStore, client v1.ProxyClient) context.CancelFunc {
 	t.Helper()
 	ctx, cancel := context.WithCancel(context.Background())
 	done := make(chan struct{})
 	go func() {
 		defer close(done)
-		runQueue(ctx, latest, "gloo-system", client, nil)
+		runGatewayProxySnapshots(ctx, latest, "gloo-system", client, nil)
 	}()
 	t.Cleanup(func() {
 		cancel()
@@ -116,7 +116,7 @@ func TestProxyHandoffReplaysSupersededUpdate(t *testing.T) {
 			r := newProxyCacheRun(t, baseSettings("gloo-system"))
 			r.run()
 			r.write(revisionProxy("original"))
-			latest := ggv2utils.NewLatest[v1.ProxyList]()
+			latest := ggv2utils.NewGatewayProxySnapshotStore()
 			desired := v1.ProxyList{revisionProxy("updated")}
 			want := "updated"
 			if tc.delete {
@@ -178,7 +178,7 @@ func (c *failFirstProxyWrite) Write(resource resources.Resource, opts clients.Wr
 func TestProxyHandoffRetriesWithoutPublication(t *testing.T) {
 	r := newProxyCacheRun(t, baseSettings("gloo-system"))
 	r.run()
-	latest := ggv2utils.NewLatest[v1.ProxyList]()
+	latest := ggv2utils.NewGatewayProxySnapshotStore()
 	latest.Publish(v1.ProxyList{revisionProxy("retried")})
 	client := v1.NewProxyClientWithBase(&failFirstProxyWrite{ResourceClient: r.client.BaseClient()})
 	startHandoffConsumer(t, latest, client)

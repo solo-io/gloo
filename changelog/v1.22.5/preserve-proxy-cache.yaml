@@ -9,4 +9,6 @@ changelog:
       rate-limit publication from observing an uninitialized Proxy store even
       when Gateway API inputs have not changed. Retry failed reconciliation
       without requiring another input change, and replay intentional empty
-      snapshots so deletions take effect.
+      snapshots so deletions take effect. Recover from API watch startup failures,
+      keep Proxy debug reads pointed at the active store, and stop the process
+      if the Gateway API controller exits unexpectedly.

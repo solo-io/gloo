@@ -102,13 +102,7 @@ func Main(opts SetupOpts) error {
 	if err != nil {
 		return err
 	}
-	for err := range errs {
-		if opts.ExitOnError {
-			contextutils.LoggerFrom(ctx).Fatalf("error in setup: %v", err)
-		}
-		contextutils.LoggerFrom(ctx).Errorf("error in setup: %v", err)
-	}
-	return nil
+	return waitForSetupErrors(ctx, errs, opts.ExitOnError)
 }
 
 func fileOrKubeSettingsClient(ctx context.Context, setupNamespace, settingsDir string) (v1.SettingsClient, error) {

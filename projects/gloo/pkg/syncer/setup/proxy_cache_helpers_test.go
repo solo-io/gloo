@@ -73,11 +73,11 @@ func (r *proxyCacheRun) write(proxy *v1.Proxy) {
 	}
 }
 
-// assertRetained checks the Proxies in the current run's store, across all
+// assertProxies checks the Proxies in the current run's store, across all
 // namespaces, as "namespace/name".
-func (r *proxyCacheRun) assertRetained(want ...string) {
+func (r *proxyCacheRun) assertProxies(want ...string) {
 	r.t.Helper()
-	r.assertNames(r.client, "retained", want)
+	r.assertNames(r.client, "current", want)
 }
 
 func (r *proxyCacheRun) assertNames(client v1.ProxyClient, store string, want []string) {

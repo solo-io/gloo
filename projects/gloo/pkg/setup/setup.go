@@ -13,7 +13,6 @@ import (
 	ggv2setup "github.com/solo-io/gloo/projects/gateway2/setup"
 	ggv2utils "github.com/solo-io/gloo/projects/gateway2/utils"
 	"github.com/solo-io/gloo/projects/gloo/constants"
-	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/bootstrap"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/registry"
 	"github.com/solo-io/gloo/projects/gloo/pkg/syncer/setup"
@@ -41,38 +40,42 @@ func startSetupLoop(ctx context.Context) error {
 		uniqueClientCallbacks, builder = krtcollections.NewUniquelyConnectedClients()
 	}
 	setupOpts := bootstrap.NewSetupOpts(xds.NewAdsSnapshotCache(ctx), uniqueClientCallbacks)
-	// start gw if needed, get the proxy reconcile q
-	// pass that in to the setup func
+	// Retain complete Gateway API snapshots across legacy setup runs.
+	var startGateway func(context.Context) error
 	if k8sgw {
-		setupOpts.ProxyReconcileQueue = ggv2utils.NewLatest[gloov1.ProxyList]()
-		go ggv2setup.StartGGv2(ctx, setupOpts, builder, extensions.NewK8sGatewayExtensions, registry.GetPluginRegistryFactory)
+		setupOpts.GatewayProxySnapshots = ggv2utils.NewGatewayProxySnapshotStore()
+		startGateway = func(ctx context.Context) error {
+			return ggv2setup.StartGGv2(ctx, setupOpts, builder, extensions.NewK8sGatewayExtensions, registry.GetPluginRegistryFactory)
+		}
 	}
 
-	return setuputils.Main(setuputils.SetupOpts{
-		LoggerName:  glooComponentName,
-		Version:     version.Version,
-		SetupFunc:   newSetupFunc(setupOpts),
-		ExitOnError: true,
-		CustomCtx:   ctx,
+	return ggv2setup.RunWithGateway(ctx, startGateway, func(ctx context.Context) error {
+		return setuputils.Main(setuputils.SetupOpts{
+			LoggerName:  glooComponentName,
+			Version:     version.Version,
+			SetupFunc:   newSetupFunc(setupOpts),
+			ExitOnError: true,
+			CustomCtx:   ctx,
 
-		ElectionConfig: &leaderelector.ElectionConfig{
-			Id:        glooComponentName,
-			Namespace: namespaces.GetPodNamespace(),
-			// no-op all the callbacks for now
-			// at the moment, leadership functionality is performed within components
-			// in the future we could pull that out and let these callbacks change configuration
-			OnStartedLeading: func(c context.Context) {
-				contextutils.LoggerFrom(c).Info("starting leadership")
+			ElectionConfig: &leaderelector.ElectionConfig{
+				Id:        glooComponentName,
+				Namespace: namespaces.GetPodNamespace(),
+				// no-op all the callbacks for now
+				// at the moment, leadership functionality is performed within components
+				// in the future we could pull that out and let these callbacks change configuration
+				OnStartedLeading: func(c context.Context) {
+					contextutils.LoggerFrom(c).Info("starting leadership")
+				},
+				OnNewLeader: func(leaderId string) {
+					contextutils.LoggerFrom(ctx).Infof("new leader elected with ID: %s", leaderId)
+				},
+				OnStoppedLeading: func() {
+					// Don't die if we fall from grace. Instead we can retry leader election
+					// Ref: https://github.com/solo-io/gloo/issues/7346
+					contextutils.LoggerFrom(ctx).Errorf("lost leadership")
+				},
 			},
-			OnNewLeader: func(leaderId string) {
-				contextutils.LoggerFrom(ctx).Infof("new leader elected with ID: %s", leaderId)
-			},
-			OnStoppedLeading: func() {
-				// Don't die if we fall from grace. Instead we can retry leader election
-				// Ref: https://github.com/solo-io/gloo/issues/7346
-				contextutils.LoggerFrom(ctx).Errorf("lost leadership")
-			},
-		},
+		})
 	})
 }
 

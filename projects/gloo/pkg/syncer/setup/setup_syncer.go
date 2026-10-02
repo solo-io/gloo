@@ -763,9 +763,12 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 		}()
 		opts.ControlPlane.StartGrpcServer = false
 	}
+	// The debug server survives setup runs; its reader must follow the new store.
+	if opts.ProxyDebugServer.Server != nil {
+		opts.ProxyDebugServer.Server.RegisterProxyReader(proxyClient)
+	}
 	if opts.ProxyDebugServer.StartGrpcServer {
 		proxyDebugServer := opts.ProxyDebugServer
-		proxyDebugServer.Server.RegisterProxyReader(proxyClient)
 		proxyDebugServer.Server.Register(proxyDebugServer.GrpcServer)
 		lis, err := net.Listen(opts.ProxyDebugServer.BindAddr.Network(), opts.ProxyDebugServer.BindAddr.String())
 		if err != nil {
@@ -910,9 +913,9 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 	startFuncs["admin-server"] = AdminServerStartFunc(snapshotHistory, opts.KrtDebugger)
 
 	var proxiesReady chan struct{}
-	if opts.ProxyReconcileQueue != nil {
+	if opts.GatewayProxySnapshots != nil {
 		proxiesReady = make(chan struct{})
-		go runQueue(watchOpts.Ctx, opts.ProxyReconcileQueue, opts.WriteNamespace, proxyClient, proxiesReady)
+		go runGatewayProxySnapshots(watchOpts.Ctx, opts.GatewayProxySnapshots, opts.WriteNamespace, proxyClient, proxiesReady)
 	}
 
 	// MARK: build translator syncer
@@ -965,12 +968,14 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 	}
 
 	apiEventLoop := v1snap.NewApiEventLoop(apiEmitter, syncers)
-	if err := startApiLoopAfterProxies(watchOpts.Ctx, proxiesReady, func() error {
-		apiEventLoopErrs, err := apiEventLoop.Run(opts.WatchNamespaces, watchOpts)
+	if err := startApiLoopAfterProxies(watchOpts.Ctx, proxiesReady, func(attemptCtx context.Context) error {
+		attemptOpts := watchOpts
+		attemptOpts.Ctx = attemptCtx
+		apiEventLoopErrs, err := apiEventLoop.Run(opts.WatchNamespaces, attemptOpts)
 		if err != nil {
 			return err
 		}
-		go errutils.AggregateErrs(watchOpts.Ctx, errs, apiEventLoopErrs, "event_loop.gloo")
+		go errutils.AggregateErrs(attemptCtx, errs, apiEventLoopErrs, "event_loop.gloo")
 		return nil
 	}, errs); err != nil {
 		return err
@@ -1177,7 +1182,7 @@ func constructOpts(ctx context.Context, setup *bootstrap.SetupOpts, params const
 	proxyCleanup := func() {
 		doProxyCleanup(ctx, factoryParams, params.settings, params.writeNamespace)
 	}
-	if params.settings.GetGateway().GetPersistProxySpec().GetValue() {
+	if params.settings.GetGateway().GetPersistProxySpec().GetValue() && params.settings.GetConfigSource() != nil {
 		proxyFactory, err = bootstrap_clients.ConfigFactoryForSettings(factoryParams, v1.ProxyCrd)
 		if err != nil {
 			return bootstrap.Opts{}, err
@@ -1347,7 +1352,7 @@ func constructOpts(ctx context.Context, setup *bootstrap.SetupOpts, params const
 		GatewayControllerEnabled:     gatewayMode,
 		ProxyCleanup:                 proxyCleanup,
 		GlooGateway:                  constructGlooGatewayBootstrapOpts(params.settings),
-		ProxyReconcileQueue:          setup.ProxyReconcileQueue,
+		GatewayProxySnapshots:        setup.GatewayProxySnapshots,
 	}, nil
 }
 
@@ -1378,9 +1383,9 @@ const (
 
 // startApiLoopAfterProxies delays API publication until replay succeeds.
 // A nil ready channel preserves synchronous startup without Gateway API integration.
-func startApiLoopAfterProxies(ctx context.Context, ready <-chan struct{}, start func() error, errs chan<- error) error {
+func startApiLoopAfterProxies(ctx context.Context, ready <-chan struct{}, start func(context.Context) error, errs chan<- error) error {
 	if ready == nil {
-		return start()
+		return start(ctx)
 	}
 	go func() {
 		select {
@@ -1388,20 +1393,36 @@ func startApiLoopAfterProxies(ctx context.Context, ready <-chan struct{}, start 
 			return
 		case <-ready:
 		}
-		if ctx.Err() != nil {
-			return
-		}
-		if err := start(); err != nil {
-			select {
-			case errs <- err:
-			case <-ctx.Done():
+		retryDelay := proxyReconcileMinRetry
+		for ctx.Err() == nil {
+			// Snapshot emitter startup can open some watches before another fails.
+			// Cancel that attempt before retrying so partial watches cannot leak.
+			attemptCtx, cancel := context.WithCancel(ctx)
+			if err := start(attemptCtx); err != nil {
+				cancel()
+				select {
+				case errs <- err:
+				case <-ctx.Done():
+					return
+				}
+			} else {
+				// A successful attempt owns live watches until this setup run ends.
+				<-ctx.Done()
+				cancel()
+				return
 			}
+			select {
+			case <-ctx.Done():
+				return
+			case <-time.After(retryDelay):
+			}
+			retryDelay = min(2*retryDelay, proxyReconcileMaxRetry)
 		}
 	}()
 	return nil
 }
 
-func runQueue(ctx context.Context, proxyReconcileQueue *ggv2utils.Latest[gloov1.ProxyList], writeNamespace string, proxyClient gloov1.ProxyClient, ready chan<- struct{}) {
+func runGatewayProxySnapshots(ctx context.Context, gatewayProxySnapshots *ggv2utils.GatewayProxySnapshotStore, writeNamespace string, proxyClient gloov1.ProxyClient, ready chan<- struct{}) {
 	// labels used to uniquely identify Proxies that are managed by the kube gateway controller
 	var kubeGatewayProxyLabels = map[string]string{
 		// the proxy type key/value must stay in sync with the one defined in projects/gateway2/translator/gateway_translator.go
@@ -1416,14 +1437,14 @@ func runQueue(ctx context.Context, proxyReconcileQueue *ggv2utils.Latest[gloov1.
 	var applied uint64
 	retryDelay := proxyReconcileMinRetry
 	for {
-		proxyList, version, err := proxyReconcileQueue.Wait(ctx, applied)
+		proxyList, version, err := gatewayProxySnapshots.WaitForNewer(ctx, applied)
 		if err != nil {
 			return
 		}
 		// Proxy CR is located in the writeNamespace, which may be different from the originating Gateway CR
 		err = proxyReconciler.Reconcile(
 			writeNamespace,
-			proxyList.Clone(),
+			proxyList,
 			func(original, desired *gloov1.Proxy) (bool, error) {
 				// only reconcile if proxies are not equal
 				// we reconcile so ggv2 proxies can be used in extension syncing and debug snap storage
@@ -1435,12 +1456,12 @@ func runQueue(ctx context.Context, proxyReconcileQueue *ggv2utils.Latest[gloov1.
 			})
 		if err != nil {
 			logger.Error(err)
-			// Keep this version pending and retry with backoff. The retry picks up
-			// a newer snapshot if one was published in the meantime.
-			select {
-			case <-ctx.Done():
+			// Retry this state after backoff, or wake immediately for newer state.
+			retryCtx, cancelRetry := context.WithTimeout(ctx, retryDelay)
+			_, _, _ = gatewayProxySnapshots.WaitForNewer(retryCtx, version)
+			cancelRetry()
+			if ctx.Err() != nil {
 				return
-			case <-time.After(retryDelay):
 			}
 			retryDelay = min(2*retryDelay, proxyReconcileMaxRetry)
 			continue

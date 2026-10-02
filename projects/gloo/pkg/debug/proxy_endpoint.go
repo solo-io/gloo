@@ -2,6 +2,7 @@ package debug
 
 import (
 	"context"
+	"sync"
 
 	"github.com/rotisserie/eris"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/grpc/debug"
@@ -26,6 +27,8 @@ type ProxyEndpointServer interface {
 }
 
 type proxyEndpointServer struct {
+	// mu guards proxyReader, which setup replaces on each run while requests are served.
+	mu          sync.RWMutex
 	proxyReader v1.ProxyReader
 }
 
@@ -39,7 +42,15 @@ func (p *proxyEndpointServer) Register(grpcServer *grpc.Server) {
 }
 
 func (p *proxyEndpointServer) RegisterProxyReader(proxyReader v1.ProxyReader) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
 	p.proxyReader = proxyReader
+}
+
+func (p *proxyEndpointServer) reader() v1.ProxyReader {
+	p.mu.RLock()
+	defer p.mu.RUnlock()
+	return p.proxyReader
 }
 
 // GetProxies returns the list of Proxies that match the criteria of a given ProxyEndpointRequest
@@ -60,11 +71,12 @@ func (p *proxyEndpointServer) GetProxies(ctx context.Context, req *debug.ProxyEn
 }
 
 func (p *proxyEndpointServer) getOne(ctx context.Context, namespace, name string) (*v1.Proxy, error) {
-	if p.proxyReader == nil {
+	proxyReader := p.reader()
+	if proxyReader == nil {
 		return nil, eris.Errorf("a ProxyReader must be registered before calling the proxy endpoint")
 	}
 
-	proxy, err := p.proxyReader.Read(namespace, name, clients.ReadOpts{Ctx: ctx})
+	proxy, err := proxyReader.Read(namespace, name, clients.ReadOpts{Ctx: ctx})
 	if err != nil {
 		return nil, err
 	}
@@ -72,7 +84,8 @@ func (p *proxyEndpointServer) getOne(ctx context.Context, namespace, name string
 }
 
 func (p *proxyEndpointServer) getMany(ctx context.Context, namespace string, selector map[string]string, expressionSelector string) (v1.ProxyList, error) {
-	if p.proxyReader == nil {
+	proxyReader := p.reader()
+	if proxyReader == nil {
 		return nil, eris.Errorf("a ProxyReader must be registered before calling the proxy endpoint")
 	}
 
@@ -84,7 +97,7 @@ func (p *proxyEndpointServer) getMany(ctx context.Context, namespace string, sel
 	} else if len(selector) > 0 {
 		listOpts.Selector = selector
 	}
-	proxyList, err := p.proxyReader.List(namespace, listOpts)
+	proxyList, err := proxyReader.List(namespace, listOpts)
 	if err != nil {
 		return nil, err
 	}
