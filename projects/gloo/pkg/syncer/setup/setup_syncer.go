@@ -11,7 +11,6 @@ import (
 	"sort"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/solo-io/gloo/pkg/utils/settingsutil"
@@ -45,7 +44,6 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/control-plane/server"
 	xdsserver "github.com/solo-io/solo-kit/pkg/api/v1/control-plane/server"
 	"github.com/solo-io/solo-kit/pkg/api/v1/control-plane/types"
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/utils/prototime"
@@ -143,9 +141,8 @@ func NewSetupFuncWithRunAndExtensions(runFunc RunFunc, setupOpts *bootstrap.Setu
 			serverOpts = append(serverOpts, options...)
 			return grpc.NewServer(serverOpts...)
 		},
-		runFunc:    runFunc,
-		setupOpts:  setupOpts,
-		proxyFence: &proxyWriteFence{},
+		runFunc:   runFunc,
+		setupOpts: setupOpts,
 	}
 	return s.Setup
 }
@@ -171,8 +168,6 @@ type setupSyncer struct {
 	validationServer         bootstrap.ValidationServer
 	proxyDebugServer         bootstrap.ProxyDebugServer
 	callbacks                xdsserver.Callbacks
-	// proxyFence outlives setup runs, like the in-memory cache it guards.
-	proxyFence *proxyWriteFence
 }
 
 func NewControlPlane(ctx context.Context, snapshotCache cache.SnapshotCache, grpcServer *grpc.Server, bindAddr net.Addr, kubeControlPlaneCfg bootstrap.KubernetesControlPlaneConfig,
@@ -331,7 +326,6 @@ func (s *setupSyncer) Setup(ctx context.Context, kubeCache kube.SharedCache, mem
 			consulClient:       consulClient,
 			vaultClientInitMap: vaultInitMap,
 			memCache:           memCache,
-			proxyFence:         s.proxyFence,
 			settings:           settings,
 			writeNamespace:     writeNamespace,
 		},
@@ -915,8 +909,10 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 
 	startFuncs["admin-server"] = AdminServerStartFunc(snapshotHistory, opts.KrtDebugger)
 
+	var proxiesReady chan struct{}
 	if opts.ProxyReconcileQueue != nil {
-		go runQueue(watchOpts.Ctx, opts.ProxyReconcileQueue, opts.WriteNamespace, proxyClient)
+		proxiesReady = make(chan struct{})
+		go runQueue(watchOpts.Ctx, opts.ProxyReconcileQueue, opts.WriteNamespace, proxyClient, proxiesReady)
 	}
 
 	// MARK: build translator syncer
@@ -969,11 +965,16 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 	}
 
 	apiEventLoop := v1snap.NewApiEventLoop(apiEmitter, syncers)
-	apiEventLoopErrs, err := apiEventLoop.Run(opts.WatchNamespaces, watchOpts)
-	if err != nil {
+	if err := startApiLoopAfterProxies(watchOpts.Ctx, proxiesReady, func() error {
+		apiEventLoopErrs, err := apiEventLoop.Run(opts.WatchNamespaces, watchOpts)
+		if err != nil {
+			return err
+		}
+		go errutils.AggregateErrs(watchOpts.Ctx, errs, apiEventLoopErrs, "event_loop.gloo")
+		return nil
+	}, errs); err != nil {
 		return err
 	}
-	go errutils.AggregateErrs(watchOpts.Ctx, errs, apiEventLoopErrs, "event_loop.gloo")
 
 	go func() {
 		for {
@@ -1130,147 +1131,8 @@ type constructOptsParams struct {
 	consulClient       *consulapi.Client
 	vaultClientInitMap map[int]vault.VaultClientInitFunc
 	memCache           memory.InMemoryResourceCache
-	proxyFence         *proxyWriteFence
 	settings           *v1.Settings
 	writeNamespace     string
-}
-
-// proxyWriteFence admits writes to the Proxies retained in memCache only from
-// the newest setup run. The setup loop cancels a run without waiting for it, and
-// the in-memory client ignores cancellation, so a run that is still finishing a
-// sync could otherwise write back Proxies that reseedRetainedProxies just dropped.
-type proxyWriteFence struct {
-	mu         sync.RWMutex
-	generation uint64
-}
-
-// advance supersedes every earlier run. It waits for their in-flight writes and
-// rejects any they attempt afterwards.
-func (f *proxyWriteFence) advance() uint64 {
-	f.mu.Lock()
-	defer f.mu.Unlock()
-	f.generation++
-	return f.generation
-}
-
-func (f *proxyWriteFence) admit(generation uint64, write func() error) error {
-	f.mu.RLock()
-	defer f.mu.RUnlock()
-	if f.generation != generation {
-		return errors.Errorf("dropping write to retained in-memory Proxies from a superseded setup run")
-	}
-	return write()
-}
-
-// fencedMemoryFactory builds in-memory clients whose writes pass through a fence.
-type fencedMemoryFactory struct {
-	*factory.MemoryResourceClientFactory
-	fence      *proxyWriteFence
-	generation uint64
-}
-
-func (f *fencedMemoryFactory) NewResourceClient(ctx context.Context, params factory.NewResourceClientParams) (clients.ResourceClient, error) {
-	client, err := f.MemoryResourceClientFactory.NewResourceClient(ctx, params)
-	if err != nil {
-		return nil, err
-	}
-	return &fencedResourceClient{ResourceClient: client, fence: f.fence, generation: f.generation}, nil
-}
-
-type fencedResourceClient struct {
-	clients.ResourceClient
-	fence      *proxyWriteFence
-	generation uint64
-}
-
-func (c *fencedResourceClient) Write(resource resources.Resource, opts clients.WriteOpts) (resources.Resource, error) {
-	var written resources.Resource
-	err := c.fence.admit(c.generation, func() (err error) {
-		written, err = c.ResourceClient.Write(resource, opts)
-		return err
-	})
-	return written, err
-}
-
-func (c *fencedResourceClient) Delete(namespace, name string, opts clients.DeleteOpts) error {
-	return c.fence.admit(c.generation, func() error {
-		return c.ResourceClient.Delete(namespace, name, opts)
-	})
-}
-
-func (c *fencedResourceClient) ApplyStatus(statusClient resources.StatusClient, inputResource resources.InputResource, opts clients.ApplyStatusOpts) (resources.Resource, error) {
-	var updated resources.Resource
-	err := c.fence.admit(c.generation, func() (err error) {
-		updated, err = c.ResourceClient.ApplyStatus(statusClient, inputResource, opts)
-		return err
-	})
-	return updated, err
-}
-
-// reseedRetainedProxies drops the Proxies retained in memCache that this run
-// cannot reconcile, before its API emitter can observe them. Proxies are
-// retained across setup runs so that a quiet cluster, where the Gateway API
-// controller republishes only on a real input change, keeps them. Call it only
-// from retainedProxyFactory, after the fence has shut out earlier runs.
-func reseedRetainedProxies(ctx context.Context, params constructOptsParams, proxiesRetained, gatewayMode bool) error {
-	if params.memCache == nil {
-		return nil
-	}
-	proxyClient, err := v1.NewProxyClient(ctx, &factory.MemoryResourceClientFactory{Cache: params.memCache})
-	if err != nil {
-		return err
-	}
-	// The in-memory client treats the empty namespace as every namespace, which
-	// is what finds Proxies stranded in a previous run's write namespace.
-	retained, err := proxyClient.List("", clients.ListOpts{Ctx: ctx})
-	if err != nil {
-		return err
-	}
-	for _, proxy := range retained {
-		meta := proxy.GetMetadata()
-		// Keep a Proxy only if all of these hold:
-		//   - This run reads Proxies from memCache. Otherwise the copy here stops
-		//     being updated, and a later switch back must not adopt it.
-		//   - It is in the write namespace, the only one this run's reconcilers
-		//     list and prune. This also drops Gateway API Proxies after a runtime
-		//     discoveryNamespace change: the Gateway API controller keeps the write
-		//     namespace it read at startup (gateway2/controller/start.go) until the
-		//     process restarts.
-		//   - Its translator runs. With the Gloo Edge translator disabled, nothing
-		//     prunes Edge Proxies; other owners manage their own Proxies.
-		keep := proxiesRetained &&
-			meta.GetNamespace() == params.writeNamespace &&
-			(gatewayMode || !slices.Contains(utils.GlooEdgeProxyValues, utils.GetTranslatorValue(meta)))
-		if keep {
-			continue
-		}
-		if err := proxyClient.Delete(meta.GetNamespace(), meta.GetName(), clients.DeleteOpts{
-			Ctx:            ctx,
-			IgnoreNotExist: true,
-		}); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-// retainedProxyFactory supersedes earlier setup runs, drops the retained Proxies
-// this run cannot reconcile, and, if this run reads Proxies from memCache,
-// returns a factory whose writes only this run can make.
-func retainedProxyFactory(ctx context.Context, params constructOptsParams, proxyFactory factory.ResourceClientFactory, gatewayMode bool) (factory.ResourceClientFactory, error) {
-	// Only a run that reads Proxies from memCache can reuse what earlier runs left
-	// there. Without a config source, ConfigFactoryForSettings returns memCache too.
-	memProxies, ok := proxyFactory.(*factory.MemoryResourceClientFactory)
-	proxiesRetained := ok && memProxies.Cache == params.memCache
-	// Shut out earlier runs before dropping what this run cannot reconcile.
-	generation := params.proxyFence.advance()
-	if err := reseedRetainedProxies(ctx, params, proxiesRetained, gatewayMode); err != nil {
-		return nil, errors.Wrapf(err, "reseeding retained proxies")
-	}
-	if !proxiesRetained {
-		return proxyFactory, nil
-	}
-	return &fencedMemoryFactory{MemoryResourceClientFactory: memProxies, fence: params.proxyFence, generation: generation}, nil
 }
 
 // constructs bootstrap opts from settings
@@ -1307,10 +1169,9 @@ func constructOpts(ctx context.Context, setup *bootstrap.SetupOpts, params const
 		return bootstrap.Opts{}, err
 	}
 
-	// In-memory Proxies live in the process-lifetime memCache, so they survive
-	// setup re-runs. Gateway API translation outlives those re-runs and enqueues
-	// only changed Proxies, so a fresh store would stay empty on a quiet cluster.
-	var proxyFactory factory.ResourceClientFactory = &factory.MemoryResourceClientFactory{Cache: params.memCache}
+	// Each setup run owns its memory store. Gateway API state is replayed before
+	// the API loop can publish configuration from this replacement store.
+	var proxyFactory factory.ResourceClientFactory = &factory.MemoryResourceClientFactory{Cache: memory.NewInMemoryResourceCache()}
 	// Delete proxies that may have been left from prior to an upgrade or from previously having set persistProxySpec
 	// Ignore errors because gloo will still work with stray proxies.
 	proxyCleanup := func() {
@@ -1321,8 +1182,6 @@ func constructOpts(ctx context.Context, setup *bootstrap.SetupOpts, params const
 		if err != nil {
 			return bootstrap.Opts{}, err
 		}
-	} else if params.memCache == nil {
-		return bootstrap.Opts{}, errors.Errorf("internal error: shared cache cannot be nil")
 	}
 
 	secretFactory, err := bootstrap_clients.SecretFactoryForSettings(ctx,
@@ -1418,11 +1277,6 @@ func constructOpts(ctx context.Context, setup *bootstrap.SetupOpts, params const
 		gatewayMode = params.settings.GetGateway().GetEnableGatewayController().GetValue()
 	} else {
 		gatewayMode = true
-	}
-
-	proxyFactory, err = retainedProxyFactory(ctx, params, proxyFactory, gatewayMode)
-	if err != nil {
-		return bootstrap.Opts{}, err
 	}
 
 	if validationServerEnabled && gatewayMode {
@@ -1522,7 +1376,32 @@ const (
 	proxyReconcileMaxRetry = 30 * time.Second
 )
 
-func runQueue(ctx context.Context, proxyReconcileQueue *ggv2utils.Latest[gloov1.ProxyList], writeNamespace string, proxyClient gloov1.ProxyClient) {
+// startApiLoopAfterProxies delays API publication until replay succeeds.
+// A nil ready channel preserves synchronous startup without Gateway API integration.
+func startApiLoopAfterProxies(ctx context.Context, ready <-chan struct{}, start func() error, errs chan<- error) error {
+	if ready == nil {
+		return start()
+	}
+	go func() {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ready:
+		}
+		if ctx.Err() != nil {
+			return
+		}
+		if err := start(); err != nil {
+			select {
+			case errs <- err:
+			case <-ctx.Done():
+			}
+		}
+	}()
+	return nil
+}
+
+func runQueue(ctx context.Context, proxyReconcileQueue *ggv2utils.Latest[gloov1.ProxyList], writeNamespace string, proxyClient gloov1.ProxyClient, ready chan<- struct{}) {
 	// labels used to uniquely identify Proxies that are managed by the kube gateway controller
 	var kubeGatewayProxyLabels = map[string]string{
 		// the proxy type key/value must stay in sync with the one defined in projects/gateway2/translator/gateway_translator.go
@@ -1565,6 +1444,10 @@ func runQueue(ctx context.Context, proxyReconcileQueue *ggv2utils.Latest[gloov1.
 			}
 			retryDelay = min(2*retryDelay, proxyReconcileMaxRetry)
 			continue
+		}
+		if ready != nil {
+			close(ready)
+			ready = nil
 		}
 		applied = version
 		retryDelay = proxyReconcileMinRetry

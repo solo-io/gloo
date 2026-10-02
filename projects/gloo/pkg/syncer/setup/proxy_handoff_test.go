@@ -3,7 +3,6 @@ package setup
 import (
 	"context"
 	"fmt"
-	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -52,7 +51,7 @@ func startHandoffConsumer(t *testing.T, latest *ggv2utils.Latest[v1.ProxyList], 
 	done := make(chan struct{})
 	go func() {
 		defer close(done)
-		runQueue(ctx, latest, "gloo-system", client)
+		runQueue(ctx, latest, "gloo-system", client, nil)
 	}()
 	t.Cleanup(func() {
 		cancel()
@@ -134,7 +133,7 @@ func TestProxyHandoffReplaysSupersededUpdate(t *testing.T) {
 			t.Cleanup(unblock)
 			waitHandoffSignal(t, old.listed)
 
-			// Advance the generation while the old consumer holds the update.
+			// Replace the store while the old consumer holds the update.
 			r.run()
 			if tc.newer {
 				latest.Publish(v1.ProxyList{revisionProxy("newest")})
@@ -143,13 +142,13 @@ func TestProxyHandoffReplaysSupersededUpdate(t *testing.T) {
 			startHandoffConsumer(t, latest, r.client)
 			awaitProxyRevision(t, r.client, want)
 			// The replacement has already applied the snapshot before the old
-			// mutation is released. Rejecting it must not lose or restore state.
+			// mutation is released. Its isolated write must not change the new store.
 			stopOld()
 			unblock()
 			select {
 			case err := <-old.mutated:
-				if err == nil || !strings.Contains(err.Error(), "superseded setup run") {
-					t.Fatalf("expected generation fence rejection, got %v", err)
+				if err != nil {
+					t.Fatalf("old store mutation failed: %v", err)
 				}
 			case <-time.After(5 * time.Second):
 				t.Fatal("old consumer did not attempt its mutation")

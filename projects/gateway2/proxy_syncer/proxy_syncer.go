@@ -1120,7 +1120,8 @@ func (s *ProxySyncer) syncListenerSetStatus(ctx context.Context, rm reports.Repo
 // 2. For debug tooling, notably the debug.ProxyEndpointServer
 func (s *ProxySyncer) reconcileProxies(proxyList gloov1.ProxyList) {
 	// gloo edge v1 will read from this queue
-	s.proxyReconcileQueue.Publish(proxyList)
+	// Publish a copy: krt keeps the original, and proxyList.Equals sorts it in place.
+	s.proxyReconcileQueue.Publish(proxyList.Clone())
 }
 
 func applyPostTranslationPlugins(ctx context.Context, pluginRegistry registry.PluginRegistry, translationContext *gwplugins.PostTranslationContext) {
