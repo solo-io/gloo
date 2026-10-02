@@ -7,6 +7,8 @@ import (
 	"testing"
 	"time"
 
+	"google.golang.org/protobuf/types/known/durationpb"
+
 	ggv2utils "github.com/solo-io/gloo/projects/gateway2/utils"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
@@ -47,7 +49,7 @@ func TestApiPublicationWaitsForProxyReplay(t *testing.T) {
 			ready, done := make(chan struct{}), make(chan struct{})
 			published := make(chan v1.ProxyList, 1)
 			errs := make(chan error, 1)
-			if err := startApiLoopAfterProxies(ctx, ready, func(context.Context) error {
+			if err := startApiLoopAfterProxies(ctx, ready, time.Minute, func(context.Context) error {
 				list, err := r.client.List("gloo-system", clients.ListOpts{})
 				if err == nil {
 					published <- list
@@ -104,7 +106,7 @@ func TestApiPublicationWaitsForProxyReplay(t *testing.T) {
 func TestApiLoopInitializationLifecycle(t *testing.T) {
 	sentinel := errors.New("startup failed")
 	t.Run("no handoff returns startup error synchronously", func(t *testing.T) {
-		if err := startApiLoopAfterProxies(context.Background(), nil, func(context.Context) error { return sentinel }, nil); err != sentinel {
+		if err := startApiLoopAfterProxies(context.Background(), nil, time.Minute, func(context.Context) error { return sentinel }, nil); err != sentinel {
 			t.Fatalf("got %v", err)
 		}
 	})
@@ -113,7 +115,7 @@ func TestApiLoopInitializationLifecycle(t *testing.T) {
 		defer cancel()
 		ready := make(chan struct{})
 		errs := make(chan error, 1)
-		if err := startApiLoopAfterProxies(ctx, ready, func(context.Context) error { return sentinel }, errs); err != nil {
+		if err := startApiLoopAfterProxies(ctx, ready, time.Minute, func(context.Context) error { return sentinel }, errs); err != nil {
 			t.Fatal(err)
 		}
 		close(ready)
@@ -149,7 +151,7 @@ func TestApiLoopInitializationLifecycle(t *testing.T) {
 		ready := make(chan struct{})
 		close(ready)
 		started := make(chan struct{}, 1)
-		if err := startApiLoopAfterProxies(ctx, ready, func(context.Context) error { started <- struct{}{}; return nil }, nil); err != nil {
+		if err := startApiLoopAfterProxies(ctx, ready, time.Minute, func(context.Context) error { started <- struct{}{}; return nil }, nil); err != nil {
 			t.Fatal(err)
 		}
 		select {
@@ -169,7 +171,7 @@ func TestApiStartupRetriesAndCancelsFailedWatches(t *testing.T) {
 	started := make(chan context.Context, 1)
 	var failed context.Context
 	attempts := 0
-	err := startApiLoopAfterProxies(ctx, ready, func(attemptCtx context.Context) error {
+	err := startApiLoopAfterProxies(ctx, ready, time.Minute, func(attemptCtx context.Context) error {
 		attempts++
 		if attempts == 1 {
 			failed = attemptCtx
@@ -232,4 +234,104 @@ func TestNewSnapshotInterruptsReplayBackoff(t *testing.T) {
 		t.Fatal("new snapshot waited for old backoff")
 	}
 	awaitProxyRevision(t, r.client, "new")
+}
+
+func TestGatewayProxyInitializationTimeoutSetting(t *testing.T) {
+	for _, tc := range []struct {
+		name       string
+		configured *durationpb.Duration
+		want       time.Duration
+		wantError  bool
+	}{
+		{name: "default", want: 15 * time.Second},
+		{name: "custom", configured: durationpb.New(2 * time.Second), want: 2 * time.Second},
+		{name: "zero skips wait", configured: durationpb.New(0)},
+		{name: "negative", configured: durationpb.New(-time.Second), wantError: true},
+		{name: "invalid protobuf", configured: &durationpb.Duration{Nanos: 1_000_000_000}, wantError: true},
+		{name: "overflow", configured: &durationpb.Duration{Seconds: 315576000000}, wantError: true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			settings := &v1.Settings{Gloo: &v1.GlooOptions{GatewayProxyInitializationTimeout: tc.configured}}
+			got, err := gatewayProxyInitializationTimeout(settings)
+			if (err != nil) != tc.wantError || got != tc.want {
+				t.Fatalf("got %s, %v; want %s, error=%t", got, err, tc.want, tc.wantError)
+			}
+		})
+	}
+}
+
+func TestApiLoopProxyInitializationBoundedWait(t *testing.T) {
+	for _, tc := range []struct {
+		name    string
+		ready   bool
+		timeout time.Duration
+	}{
+		{"ready does not wait for deadline", true, time.Hour},
+		{"stalled producer eventually starts", false, 20 * time.Millisecond},
+		{"zero skips wait", false, 0},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			ctx, cancel := context.WithCancel(context.Background())
+			defer cancel()
+			ready := make(chan struct{})
+			if tc.ready {
+				close(ready)
+			}
+			started := make(chan struct{}, 2)
+			startedAt := time.Now()
+			if err := startApiLoopAfterProxies(ctx, ready, tc.timeout, func(context.Context) error { started <- struct{}{}; return nil }, nil); err != nil {
+				t.Fatal(err)
+			}
+			select {
+			case <-started:
+			case <-time.After(time.Second):
+				t.Fatal("API loop did not start")
+			}
+			if !tc.ready {
+				if time.Since(startedAt) < tc.timeout {
+					t.Fatal("API loop started before the configured deadline")
+				}
+				close(ready) // Late initialization must not start a second API loop.
+				select {
+				case <-started:
+					t.Fatal("API loop started twice")
+				case <-time.After(20 * time.Millisecond):
+				}
+			}
+		})
+	}
+}
+
+func TestProxyReplayRecoversAfterInitializationTimeout(t *testing.T) {
+	r := newProxyCacheRun(t, baseSettings("gloo-system"))
+	r.run()
+	ctx, cancel := context.WithCancel(r.ctx)
+	defer cancel()
+	snapshots := ggv2utils.NewGatewayProxySnapshotStore()
+	snapshots.Publish(v1.ProxyList{revisionProxy("delayed")})
+	client := &failingReplayClient{ResourceClient: r.client.BaseClient(), attempted: make(chan struct{}, 1)}
+	client.fail.Store(true)
+	ready, done := make(chan struct{}), make(chan struct{})
+	go func() {
+		defer close(done)
+		runGatewayProxySnapshots(ctx, snapshots, "gloo-system", v1.NewProxyClientWithBase(client), ready)
+	}()
+	defer func() { cancel(); waitHandoffSignal(t, done) }()
+	waitHandoffSignal(t, client.attempted)
+	started := make(chan struct{})
+	if err := startApiLoopAfterProxies(ctx, ready, 20*time.Millisecond, func(context.Context) error { close(started); return nil }, nil); err != nil {
+		t.Fatal(err)
+	}
+	waitHandoffSignal(t, started)
+	select {
+	case <-ready:
+		t.Fatal("failed replay reported readiness")
+	default:
+	}
+	client.fail.Store(false)
+	// No new publication: the background retry must apply the retained snapshot.
+	waitHandoffSignal(t, ready)
+	awaitProxyRevision(t, r.client, "delayed")
+	snapshots.Publish(nil)
+	awaitProxyRevision(t, r.client, "")
 }

@@ -20,6 +20,7 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/control-plane/cache"
 
+	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/duration"
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_zap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
@@ -510,6 +511,11 @@ func RunGloo(opts bootstrap.Opts) error {
 //
 // This function is called directly by GlooEE
 func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
+	proxyInitializationTimeout, err := gatewayProxyInitializationTimeout(opts.Settings)
+	if err != nil {
+		return err
+	}
+
 	if err := extensions.Validate(); err != nil {
 		return err
 	}
@@ -968,7 +974,7 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 	}
 
 	apiEventLoop := v1snap.NewApiEventLoop(apiEmitter, syncers)
-	if err := startApiLoopAfterProxies(watchOpts.Ctx, proxiesReady, func(attemptCtx context.Context) error {
+	if err := startApiLoopAfterProxies(watchOpts.Ctx, proxiesReady, proxyInitializationTimeout, func(attemptCtx context.Context) error {
 		attemptOpts := watchOpts
 		attemptOpts.Ctx = attemptCtx
 		apiEventLoopErrs, err := apiEventLoop.Run(opts.WatchNamespaces, attemptOpts)
@@ -1381,17 +1387,42 @@ const (
 	proxyReconcileMaxRetry = 30 * time.Second
 )
 
-// startApiLoopAfterProxies delays API publication until replay succeeds.
+const defaultGatewayProxyInitializationTimeout = 15 * time.Second
+
+func gatewayProxyInitializationTimeout(settings *gloov1.Settings) (time.Duration, error) {
+	configured := settings.GetGloo().GetGatewayProxyInitializationTimeout()
+	if configured == nil {
+		return defaultGatewayProxyInitializationTimeout, nil
+	}
+	timeout, err := ptypes.Duration(configured)
+	if err != nil {
+		return 0, fmt.Errorf("invalid gloo.gatewayProxyInitializationTimeout: %w", err)
+	}
+	if timeout < 0 {
+		return 0, fmt.Errorf("gloo.gatewayProxyInitializationTimeout must be non-negative")
+	}
+	return timeout, nil
+}
+
+// startApiLoopAfterProxies delays API publication until replay succeeds or the
+// configured timeout expires. Replay continues independently after the timeout.
 // A nil ready channel preserves synchronous startup without Gateway API integration.
-func startApiLoopAfterProxies(ctx context.Context, ready <-chan struct{}, start func(context.Context) error, errs chan<- error) error {
+func startApiLoopAfterProxies(ctx context.Context, ready <-chan struct{}, timeout time.Duration, start func(context.Context) error, errs chan<- error) error {
 	if ready == nil {
 		return start(ctx)
 	}
 	go func() {
+		timer := time.NewTimer(timeout)
+		defer timer.Stop()
 		select {
 		case <-ctx.Done():
 			return
 		case <-ready:
+		case <-timer.C:
+			if ctx.Err() != nil {
+				return
+			}
+			contextutils.LoggerFrom(ctx).Warnf("Gateway API Proxy initialization did not complete within %s; starting the legacy API loop while reconciliation continues. Rate-limit configuration may be incomplete until initialization finishes", timeout)
 		}
 		retryDelay := proxyReconcileMinRetry
 		for ctx.Err() == nil {

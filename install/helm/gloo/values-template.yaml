@@ -62,6 +62,8 @@ kubeGateway:
     enabled: false
 
 settings:
+  # Maximum wait for Gateway API Proxy initialization. Defaults to 15s; 0s skips waiting.
+  # gatewayProxyInitializationTimeout: 15s
   # if this is set to false, default settings will be created by pods upon boot
   create: true
   linkerd: false

@@ -36,6 +36,14 @@ func (o *proxyPublicationObserver) Sync(ctx context.Context, snap *v1snap.ApiSna
 }
 
 func TestSetupPublishesOnlyInitializedProxySnapshots(t *testing.T) {
+	testSetupProxyPublication(t, false)
+}
+
+func TestSetupPublishesAfterProxyInitializationTimeout(t *testing.T) {
+	testSetupProxyPublication(t, true)
+}
+
+func testSetupProxyPublication(t *testing.T, timeoutFallback bool) {
 	t.Setenv("VALIDATION_MUST_START", "false")
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -61,6 +69,9 @@ func TestSetupPublishesOnlyInitializedProxySnapshots(t *testing.T) {
 	settings := baseSettings("gloo-system")
 	settings.Gloo.RestXdsBindAddr = "127.0.0.1:0"
 	settings.Gloo.EndpointsWarmingTimeout = prototime.DurationToProto(0)
+	if timeoutFallback {
+		settings.Gloo.GatewayProxyInitializationTimeout = prototime.DurationToProto(20 * time.Millisecond)
+	}
 	settings.RefreshRate = prototime.DurationToProto(time.Hour)
 	var stop context.CancelFunc
 	defer func() {
@@ -89,10 +100,21 @@ func TestSetupPublishesOnlyInitializedProxySnapshots(t *testing.T) {
 			t.Fatal(err)
 		}
 		if run == 0 {
-			select {
-			case n := <-publications:
-				t.Fatalf("published %d Proxies before initialization", n)
-			case <-time.After(50 * time.Millisecond):
+			if timeoutFallback {
+				select {
+				case n := <-publications:
+					if n != 0 {
+						t.Fatalf("published %d Proxies before the producer started", n)
+					}
+				case <-time.After(5 * time.Second):
+					t.Fatal("configured timeout did not start API publication")
+				}
+			} else {
+				select {
+				case n := <-publications:
+					t.Fatalf("published %d Proxies before initialization", n)
+				case <-time.After(50 * time.Millisecond):
+				}
 			}
 			latest.Publish(v1.ProxyList{revisionProxy("current")})
 		}

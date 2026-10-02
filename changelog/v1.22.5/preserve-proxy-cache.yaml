@@ -4,10 +4,13 @@ changelog:
     resolvesIssue: false
     description: >-
       Replay the latest complete Gateway API Proxy snapshot after control-plane
-      setup re-runs caused by Settings or watched namespace changes. Wait for
-      successful reconciliation before starting the legacy API loop, preventing
-      rate-limit publication from observing an uninitialized Proxy store even
-      when Gateway API inputs have not changed. Retry failed reconciliation
+      setup re-runs caused by Settings or watched namespace changes. Wait up to
+      15 seconds for successful reconciliation before starting the legacy API loop,
+      configurable with Settings.spec.gloo.gatewayProxyInitializationTimeout
+      (Helm: settings.gatewayProxyInitializationTimeout). A successful replay
+      starts the loop immediately. On timeout the loop starts and reconciliation
+      continues, favoring availability but permitting temporarily incomplete
+      rate-limit configuration. Set 0s to skip waiting. Retry failed reconciliation
       without requiring another input change, and replay intentional empty
       snapshots so deletions take effect. Recover from API watch startup failures,
       keep Proxy debug reads pointed at the active store, and stop the process

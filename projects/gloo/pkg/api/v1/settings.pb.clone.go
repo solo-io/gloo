@@ -468,6 +468,12 @@ func (m *GlooOptions) Clone() proto.Message {
 		target.EndpointsWarmingTimeout = proto.Clone(m.GetEndpointsWarmingTimeout()).(*google_golang_org_protobuf_types_known_durationpb.Duration)
 	}
 
+	if h, ok := interface{}(m.GetGatewayProxyInitializationTimeout()).(clone.Cloner); ok {
+		target.GatewayProxyInitializationTimeout = h.Clone().(*google_golang_org_protobuf_types_known_durationpb.Duration)
+	} else {
+		target.GatewayProxyInitializationTimeout = proto.Clone(m.GetGatewayProxyInitializationTimeout()).(*google_golang_org_protobuf_types_known_durationpb.Duration)
+	}
+
 	if h, ok := interface{}(m.GetAwsOptions()).(clone.Cloner); ok {
 		target.AwsOptions = h.Clone().(*GlooOptions_AWSOptions)
 	} else {
