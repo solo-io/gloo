@@ -137,3 +137,41 @@ func testSetupProxyPublication(t *testing.T, timeoutFallback bool) {
 		}
 	}
 }
+
+func TestInvalidProxyInitializationTimeoutOnlyFailsGatewaySetup(t *testing.T) {
+	t.Setenv("VALIDATION_MUST_START", "false")
+	for _, tc := range []struct {
+		name    string
+		gateway bool
+	}{{"edge only", false}, {"gateway api", true}} {
+		t.Run(tc.name, func(t *testing.T) {
+			ctx, cancel := context.WithCancel(context.Background())
+			defer cancel()
+			opts := bootstrap.NewSetupOpts(xds.NewAdsSnapshotCache(ctx), nil)
+			if tc.gateway {
+				opts.GatewayProxySnapshots = ggv2utils.NewGatewayProxySnapshotStore()
+			}
+			setup := NewSetupFuncWithRunAndExtensions(func(o bootstrap.Opts) error {
+				return RunGlooWithExtensions(o, Extensions{
+					K8sGatewayExtensionsFactory: gatewayextensions.NewK8sGatewayExtensions,
+					PluginRegistryFactory:       registry.GetPluginRegistryFactory(registry.FromBootstrap(o)),
+					SyncerExtensions:            []syncer.TranslatorSyncerExtensionFactory{},
+					ApiEmitterChannel:           make(chan struct{}),
+					SnapshotHistoryFactory:      iosnapshot.GetHistoryFactory(),
+				})
+			}, opts, nil)
+			settings := baseSettings("gloo-system")
+			settings.Gloo.RestXdsBindAddr = "127.0.0.1:0"
+			settings.Gloo.EndpointsWarmingTimeout = prototime.DurationToProto(0)
+			settings.Gloo.GatewayProxyInitializationTimeout = prototime.DurationToProto(-time.Second)
+			settings.RefreshRate = prototime.DurationToProto(time.Hour)
+			err := setup(settingsutil.WithSettings(ctx, settings), nil, memory.NewInMemoryResourceCache(), settings, singlereplica.Identity())
+			if tc.gateway && err == nil {
+				t.Fatal("negative timeout accepted with the Gateway API controller enabled")
+			}
+			if !tc.gateway && err != nil {
+				t.Fatalf("Edge-only setup failed on an unused setting: %v", err)
+			}
+		})
+	}
+}

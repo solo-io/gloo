@@ -511,9 +511,15 @@ func RunGloo(opts bootstrap.Opts) error {
 //
 // This function is called directly by GlooEE
 func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
-	proxyInitializationTimeout, err := gatewayProxyInitializationTimeout(opts.Settings)
-	if err != nil {
-		return err
+	// The timeout only applies when the Gateway API controller is enabled, so an
+	// invalid value must not fail Edge-only setup.
+	var proxyInitializationTimeout time.Duration
+	if opts.GatewayProxySnapshots != nil {
+		var err error
+		proxyInitializationTimeout, err = gatewayProxyInitializationTimeout(opts.Settings)
+		if err != nil {
+			return err
+		}
 	}
 
 	if err := extensions.Validate(); err != nil {
