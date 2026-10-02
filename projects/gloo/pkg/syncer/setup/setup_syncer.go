@@ -909,8 +909,17 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 
 	startFuncs["admin-server"] = AdminServerStartFunc(snapshotHistory, opts.KrtDebugger)
 
-	if opts.ProxyReconcileQueue != nil {
-		go runQueue(watchOpts.Ctx, opts.ProxyReconcileQueue, opts.WriteNamespace, proxyClient)
+	if opts.GatewayProxySnapshots != nil {
+		var appliedVersion uint64
+		// Seed the private cache before the API emitter starts watching it.
+		if _, inMemory := opts.Proxies.(*factory.MemoryResourceClientFactory); inMemory {
+			var err error
+			appliedVersion, err = replayGatewayProxies(watchOpts.Ctx, opts.GatewayProxySnapshots, opts.WriteNamespace, proxyClient)
+			if err != nil {
+				logger.Error(err)
+			}
+		}
+		go runGatewayProxySnapshots(watchOpts.Ctx, opts.GatewayProxySnapshots, opts.WriteNamespace, proxyClient, appliedVersion)
 	}
 
 	// MARK: build translator syncer
@@ -1162,20 +1171,18 @@ func constructOpts(ctx context.Context, setup *bootstrap.SetupOpts, params const
 		return bootstrap.Opts{}, err
 	}
 
-	var proxyFactory factory.ResourceClientFactory
+	// Give every setup run a private Proxy cache. The Gateway API controller's
+	// complete desired list is replayed into it before the API loop starts.
+	var proxyFactory factory.ResourceClientFactory = &factory.MemoryResourceClientFactory{Cache: memory.NewInMemoryResourceCache()}
 	// Delete proxies that may have been left from prior to an upgrade or from previously having set persistProxySpec
 	// Ignore errors because gloo will still work with stray proxies.
 	proxyCleanup := func() {
 		doProxyCleanup(ctx, factoryParams, params.settings, params.writeNamespace)
 	}
-	if params.settings.GetGateway().GetPersistProxySpec().GetValue() {
+	if params.settings.GetGateway().GetPersistProxySpec().GetValue() && params.settings.GetConfigSource() != nil {
 		proxyFactory, err = bootstrap_clients.ConfigFactoryForSettings(factoryParams, v1.ProxyCrd)
 		if err != nil {
 			return bootstrap.Opts{}, err
-		}
-	} else {
-		proxyFactory = &factory.MemoryResourceClientFactory{
-			Cache: memory.NewInMemoryResourceCache(),
 		}
 	}
 
@@ -1273,6 +1280,7 @@ func constructOpts(ctx context.Context, setup *bootstrap.SetupOpts, params const
 	} else {
 		gatewayMode = true
 	}
+
 	if validationServerEnabled && gatewayMode {
 		alwaysAcceptResources := AcceptAllResourcesByDefault
 
@@ -1341,7 +1349,7 @@ func constructOpts(ctx context.Context, setup *bootstrap.SetupOpts, params const
 		GatewayControllerEnabled:     gatewayMode,
 		ProxyCleanup:                 proxyCleanup,
 		GlooGateway:                  constructGlooGatewayBootstrapOpts(params.settings),
-		ProxyReconcileQueue:          setup.ProxyReconcileQueue,
+		GatewayProxySnapshots:        setup.GatewayProxySnapshots,
 	}, nil
 }
 
@@ -1365,42 +1373,65 @@ func constructIstioBootstrapOpts(settings *v1.Settings) bootstrap.IstioValues {
 	return istioValues
 }
 
-func runQueue(ctx context.Context, proxyReconcileQueue ggv2utils.AsyncQueue[gloov1.ProxyList], writeNamespace string, proxyClient gloov1.ProxyClient) {
+// replayGatewayProxies seeds a new run from the controller's complete desired
+// list. A failed reconciliation leaves version zero so the consumer retries it.
+func replayGatewayProxies(ctx context.Context, snapshots *ggv2utils.GatewayProxySnapshotStore, writeNamespace string, proxyClient gloov1.ProxyClient) (uint64, error) {
+	proxies, version, published := snapshots.Current()
+	if !published {
+		return 0, nil
+	}
+	if err := reconcileGatewayProxies(ctx, writeNamespace, proxyClient, proxies); err != nil {
+		return 0, err
+	}
+	return version, nil
+}
+
+func reconcileGatewayProxies(ctx context.Context, writeNamespace string, proxyClient gloov1.ProxyClient, proxyList gloov1.ProxyList) error {
 	// labels used to uniquely identify Proxies that are managed by the kube gateway controller
 	var kubeGatewayProxyLabels = map[string]string{
 		// the proxy type key/value must stay in sync with the one defined in projects/gateway2/translator/gateway_translator.go
 		utils.ProxyTypeKey: utils.GatewayApiProxyValue,
 	}
+	proxyReconciler := gloov1.NewProxyReconciler(proxyClient, statusutils.NewNoOpStatusClient())
+	// Proxy CRs are located in the writeNamespace, which may be different
+	// from their originating Gateway CRs.
+	return proxyReconciler.Reconcile(
+		writeNamespace,
+		proxyList,
+		func(original, desired *gloov1.Proxy) (bool, error) {
+			return !proto.Equal(original, desired), nil
+		},
+		clients.ListOpts{Ctx: ctx, Selector: kubeGatewayProxyLabels},
+	)
+}
+
+func runGatewayProxySnapshots(ctx context.Context, snapshots *ggv2utils.GatewayProxySnapshotStore, writeNamespace string, proxyClient gloov1.ProxyClient, appliedVersion uint64) {
+	const initialRetryDelay = 100 * time.Millisecond
+	const maxRetryDelay = 30 * time.Second
+
 	ctx = contextutils.WithLogger(ctx, "proxyCache")
 	logger := contextutils.LoggerFrom(ctx)
-
-	proxyReconciler := gloov1.NewProxyReconciler(proxyClient, statusutils.NewNoOpStatusClient())
+	retryDelay := initialRetryDelay
 	for {
-		proxyList, err := proxyReconcileQueue.Dequeue(ctx)
+		proxyList, version, err := snapshots.WaitForNewer(ctx, appliedVersion)
 		if err != nil {
 			return
 		}
-		// Proxy CR is located in the writeNamespace, which may be different from the originating Gateway CR
-		err = proxyReconciler.Reconcile(
-			writeNamespace,
-			proxyList,
-			func(original, desired *gloov1.Proxy) (bool, error) {
-				// only reconcile if proxies are not equal
-				// we reconcile so ggv2 proxies can be used in extension syncing and debug snap storage
-				return !proto.Equal(original, desired), nil
-			},
-			clients.ListOpts{
-				Ctx:      ctx,
-				Selector: kubeGatewayProxyLabels,
-			})
-		if err != nil {
-			// A write error to our cache should not impact translation
-			// We will emit a message, and continue
+		if err := reconcileGatewayProxies(ctx, writeNamespace, proxyClient, proxyList); err != nil {
 			logger.Error(err)
+			// Do not advance the version on failure. Retry the latest complete
+			// state, including an empty list that deletes stale Proxies.
+			select {
+			case <-ctx.Done():
+				return
+			case <-time.After(retryDelay):
+			}
+			retryDelay = min(retryDelay*2, maxRetryDelay)
+			continue
 		}
-
+		appliedVersion = version
+		retryDelay = initialRetryDelay
 	}
-
 }
 
 func multiCallbacks(cb ...xdsserver.Callbacks) xdsserver.Callbacks {

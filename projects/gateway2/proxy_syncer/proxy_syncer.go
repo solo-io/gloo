@@ -92,7 +92,7 @@ type ProxySyncer struct {
 	augmentedPods krt.Collection[krtcollections.LocalityPod]
 	uniqueClients krt.Collection[krtcollections.UniqlyConnectedClient]
 
-	proxyReconcileQueue ggv2utils.AsyncQueue[gloov1.ProxyList]
+	gatewayProxySnapshots *ggv2utils.GatewayProxySnapshotStore
 
 	statusReport            krt.Singleton[report]
 	mostXdsSnapshots        krt.Collection[XdsSnapWrapper]
@@ -140,22 +140,22 @@ func NewProxySyncer(
 	xdsCache envoycache.SnapshotCache,
 	syncerExtensions []syncer.TranslatorSyncerExtension,
 	glooReporter reporter.StatusReporter,
-	proxyReconcileQueue ggv2utils.AsyncQueue[gloov1.ProxyList],
+	gatewayProxySnapshots *ggv2utils.GatewayProxySnapshotStore,
 	allowedGatewayClasses sets.Set[string],
 ) *ProxySyncer {
 	return &ProxySyncer{
-		initialSettings:     initialSettings,
-		controllerName:      controllerName,
-		writeNamespace:      writeNamespace,
-		inputs:              inputs,
-		mgr:                 mgr,
-		restCfg:             restCfg,
-		k8sGwExtensions:     k8sGwExtensions,
-		proxyTranslator:     NewProxyTranslator(translator, xdsCache, settings, syncerExtensions, glooReporter),
-		istioClient:         client,
-		augmentedPods:       augmentedPods,
-		uniqueClients:       uniqueClients,
-		proxyReconcileQueue: proxyReconcileQueue,
+		initialSettings:       initialSettings,
+		controllerName:        controllerName,
+		writeNamespace:        writeNamespace,
+		inputs:                inputs,
+		mgr:                   mgr,
+		restCfg:               restCfg,
+		k8sGwExtensions:       k8sGwExtensions,
+		proxyTranslator:       NewProxyTranslator(translator, xdsCache, settings, syncerExtensions, glooReporter),
+		istioClient:           client,
+		augmentedPods:         augmentedPods,
+		uniqueClients:         uniqueClients,
+		gatewayProxySnapshots: gatewayProxySnapshots,
 		// we would want to instantiate the translator here, but
 		// current we plugins do not assume they may be called concurrently, which could be the case
 		// with individual object translation.
@@ -1108,19 +1108,12 @@ func (s *ProxySyncer) syncListenerSetStatus(ctx context.Context, rm reports.Repo
 	logger.Debugf("synced listener sets status for %d listener set in %s", len(rm.ListenerSets), duration.String())
 }
 
-// reconcileProxies persists the provided proxies by reconciling them with the proxyReconciler.
-// as the Kube GW impl does not support reading Proxies from etcd, the expectation is these prox ies are
-// written and persisted to the in-memory cache.
-// The list MUST contain all valid kube Gw proxies, as the edge reconciler expects the full set; proxies that
-// are not added to this list will be garbage collected by the solo-kit base reconciler, so this list must be the
-// full SotW.
-// The Gloo Xds translator_syncer will receive these proxies via List() using a MultiResourceClient.
-// There are two reasons we must make these proxies available to legacy syncer:
-// 1. To allow Rate Limit extensions to work, as it only syncs RL configs it finds used on Proxies in the snapshots
-// 2. For debug tooling, notably the debug.ProxyEndpointServer
+// reconcileProxies publishes the complete Gateway API Proxy set for the Gloo
+// API snapshot loop. Each setup run replays it into its own Proxy client so
+// rate-limit extension syncing and Proxy debug tooling can read those Proxies.
+// An empty list is a complete state and removes previously generated Proxies.
 func (s *ProxySyncer) reconcileProxies(proxyList gloov1.ProxyList) {
-	// gloo edge v1 will read from this queue
-	s.proxyReconcileQueue.Enqueue(proxyList)
+	s.gatewayProxySnapshots.Publish(proxyList)
 }
 
 func applyPostTranslationPlugins(ctx context.Context, pluginRegistry registry.PluginRegistry, translationContext *gwplugins.PostTranslationContext) {
