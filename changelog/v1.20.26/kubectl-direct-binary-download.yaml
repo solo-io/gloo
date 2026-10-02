@@ -1,0 +1,14 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    description: >-
+      The kubectl job image no longer pulls the entire rancher/kubectl image
+      just to copy the kubectl binary out of it. It now downloads the kubectl
+      binary directly from the official Kubernetes release channel
+      (dl.k8s.io) for the target build architecture, removing the dependency
+      on rancher's image and its CVE patch cadence. The kubectl version is no
+      longer pinned in the Dockerfile: the Makefile now resolves it at build
+      time to the latest patch release of the pinned kubectl minor version
+      (currently v1.35.9).
+    dependencyOwner: kubernetes
+    dependencyRepo: kubernetes
+    dependencyTag: v1.35.9
