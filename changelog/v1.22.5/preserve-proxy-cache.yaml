@@ -12,6 +12,5 @@ changelog:
       continues, favoring availability but permitting temporarily incomplete
       rate-limit configuration. Set 0s to skip waiting. Retry failed reconciliation
       without requiring another input change, and replay intentional empty
-      snapshots so deletions take effect. Recover from API watch startup failures,
-      keep Proxy debug reads pointed at the active store, and stop the process
-      if the Gateway API controller exits unexpectedly.
+      snapshots so deletions take effect. Recover from API watch startup failures
+      and keep Proxy debug reads pointed at the active store.

@@ -59,14 +59,15 @@ func createKubeClient(restConfig *rest.Config) (istiokube.Client, error) {
 	return client, nil
 }
 
-func getInitialSettings(ctx context.Context, c istiokube.Client, nns types.NamespacedName) (*glookubev1.Settings, error) {
+func getInitialSettings(ctx context.Context, c istiokube.Client, nns types.NamespacedName) *glookubev1.Settings {
 	// get initial settings
 	logger := contextutils.LoggerFrom(ctx)
 	logger.Infof("getting initial settings. gvr: %v", settingsGVR)
 
 	i, err := c.Dynamic().Resource(settingsGVR).Namespace(nns.Namespace).Get(ctx, nns.Name, metav1.GetOptions{})
 	if err != nil {
-		return nil, fmt.Errorf("getting initial settings: %w", err)
+		logger.Panicf("failed to get initial settings: %v", err)
+		return nil
 	}
 	logger.Infof("got initial settings")
 
@@ -74,9 +75,10 @@ func getInitialSettings(ctx context.Context, c istiokube.Client, nns types.Names
 	out := &empty
 	err = runtime.DefaultUnstructuredConverter.FromUnstructured(i.UnstructuredContent(), out)
 	if err != nil {
-		return nil, fmt.Errorf("converting initial settings: %w", err)
+		logger.Panicf("failed converting unstructured into settings: %v", i)
+		return nil
 	}
-	return out, nil
+	return out
 }
 
 // checkGlooMtlsEnabled checks if gloo mtls is enabled by looking at the gloo deployment and checking if the sds container is present
@@ -90,10 +92,8 @@ func StartGGv2(ctx context.Context,
 	extensionsFactory extensions.K8sGatewayExtensionsFactory,
 	pluginRegistryFactory func(opts registry.PluginOpts) plugins.PluginRegistryFactory,
 ) error {
-	restConfig, err := ctrl.GetConfig()
-	if err != nil {
-		return fmt.Errorf("getting Gateway API Kubernetes config: %w", err)
-	}
+	restConfig := ctrl.GetConfigOrDie()
+
 	return StartGGv2WithConfig(ctx, setupOpts, restConfig, uccBuilder, extensionsFactory, pluginRegistryFactory, setuputils.SetupNamespaceName())
 }
 
@@ -115,9 +115,9 @@ func StartGGv2WithConfig(ctx context.Context,
 		return err
 	}
 
-	initialSettings, err := getInitialSettings(ctx, kubeClient, settingsNns)
-	if err != nil {
-		return err
+	initialSettings := getInitialSettings(ctx, kubeClient, settingsNns)
+	if initialSettings == nil {
+		return fmt.Errorf("initial settings not found")
 	}
 
 	logger.Info("creating krt collections")

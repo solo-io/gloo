@@ -41,41 +41,36 @@ func startSetupLoop(ctx context.Context) error {
 	}
 	setupOpts := bootstrap.NewSetupOpts(xds.NewAdsSnapshotCache(ctx), uniqueClientCallbacks)
 	// Retain complete Gateway API snapshots across legacy setup runs.
-	var startGateway func(context.Context) error
 	if k8sgw {
 		setupOpts.GatewayProxySnapshots = ggv2utils.NewGatewayProxySnapshotStore()
-		startGateway = func(ctx context.Context) error {
-			return ggv2setup.StartGGv2(ctx, setupOpts, builder, extensions.NewK8sGatewayExtensions, registry.GetPluginRegistryFactory)
-		}
+		go ggv2setup.StartGGv2(ctx, setupOpts, builder, extensions.NewK8sGatewayExtensions, registry.GetPluginRegistryFactory)
 	}
 
-	return ggv2setup.RunWithGateway(ctx, startGateway, func(ctx context.Context) error {
-		return setuputils.Main(setuputils.SetupOpts{
-			LoggerName:  glooComponentName,
-			Version:     version.Version,
-			SetupFunc:   newSetupFunc(setupOpts),
-			ExitOnError: true,
-			CustomCtx:   ctx,
+	return setuputils.Main(setuputils.SetupOpts{
+		LoggerName:  glooComponentName,
+		Version:     version.Version,
+		SetupFunc:   newSetupFunc(setupOpts),
+		ExitOnError: true,
+		CustomCtx:   ctx,
 
-			ElectionConfig: &leaderelector.ElectionConfig{
-				Id:        glooComponentName,
-				Namespace: namespaces.GetPodNamespace(),
-				// no-op all the callbacks for now
-				// at the moment, leadership functionality is performed within components
-				// in the future we could pull that out and let these callbacks change configuration
-				OnStartedLeading: func(c context.Context) {
-					contextutils.LoggerFrom(c).Info("starting leadership")
-				},
-				OnNewLeader: func(leaderId string) {
-					contextutils.LoggerFrom(ctx).Infof("new leader elected with ID: %s", leaderId)
-				},
-				OnStoppedLeading: func() {
-					// Don't die if we fall from grace. Instead we can retry leader election
-					// Ref: https://github.com/solo-io/gloo/issues/7346
-					contextutils.LoggerFrom(ctx).Errorf("lost leadership")
-				},
+		ElectionConfig: &leaderelector.ElectionConfig{
+			Id:        glooComponentName,
+			Namespace: namespaces.GetPodNamespace(),
+			// no-op all the callbacks for now
+			// at the moment, leadership functionality is performed within components
+			// in the future we could pull that out and let these callbacks change configuration
+			OnStartedLeading: func(c context.Context) {
+				contextutils.LoggerFrom(c).Info("starting leadership")
 			},
-		})
+			OnNewLeader: func(leaderId string) {
+				contextutils.LoggerFrom(ctx).Infof("new leader elected with ID: %s", leaderId)
+			},
+			OnStoppedLeading: func() {
+				// Don't die if we fall from grace. Instead we can retry leader election
+				// Ref: https://github.com/solo-io/gloo/issues/7346
+				contextutils.LoggerFrom(ctx).Errorf("lost leadership")
+			},
+		},
 	})
 }
 
