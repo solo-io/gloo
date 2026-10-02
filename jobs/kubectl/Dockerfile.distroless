@@ -1,9 +1,20 @@
 ARG BASE_IMAGE
+# KUBECTL_VERSION is supplied by the Makefile (resolved from the pinned
+# kubectl minor version to the latest published patch release).
+ARG KUBECTL_VERSION
 
-FROM rancher/kubectl:v1.34.9 as kubectl
+FROM alpine:3 as kubectl
+ARG TARGETARCH
+ARG KUBECTL_VERSION
+RUN apk add --no-cache curl \
+    && curl -fsSL "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/${TARGETARCH}/kubectl" -o /usr/local/bin/kubectl \
+    && curl -fsSL "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/${TARGETARCH}/kubectl.sha256" -o /usr/local/bin/kubectl.sha256 \
+    && echo "$(cat /usr/local/bin/kubectl.sha256)  /usr/local/bin/kubectl" | sha256sum -c - \
+    && rm /usr/local/bin/kubectl.sha256 \
+    && chmod +x /usr/local/bin/kubectl
 
 FROM $BASE_IMAGE
 
-COPY --from=kubectl /bin/kubectl /usr/local/bin/
+COPY --from=kubectl /usr/local/bin/kubectl /usr/local/bin/
 
 USER 10101
