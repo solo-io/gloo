@@ -30,10 +30,10 @@ import (
 )
 
 type SetupOpts struct {
-	Cache               cache.SnapshotCache
-	ProxyReconcileQueue ggv2utils.AsyncQueue[v1.ProxyList]
-	ExtraGatewayClasses []string
-	ExtraCallbacks      xdsserver.Callbacks
+	Cache                 cache.SnapshotCache
+	GatewayProxySnapshots *ggv2utils.GatewayProxySnapshotStore
+	ExtraGatewayClasses   []string
+	ExtraCallbacks        xdsserver.Callbacks
 
 	KrtDebugger  *krt.DebugHandler
 	DeployerOpts []deployer.Option
@@ -107,9 +107,9 @@ type Opts struct {
 
 	Identity leaderelector.Identity
 
-	GlooGateway         GlooGateway
-	ProxyReconcileQueue ggv2utils.AsyncQueue[v1.ProxyList]
-	KrtDebugger         *krt.DebugHandler
+	GlooGateway           GlooGateway
+	GatewayProxySnapshots *ggv2utils.GatewayProxySnapshotStore
+	KrtDebugger           *krt.DebugHandler
 }
 
 type IstioValues struct {
