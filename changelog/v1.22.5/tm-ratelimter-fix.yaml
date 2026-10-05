@@ -1,0 +1,6 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/solo-projects/issues/9126
+    resolvesIssue: false
+    description: >-
+      simple fix for Proxies resource from GW API Controller missing on setup re-run
