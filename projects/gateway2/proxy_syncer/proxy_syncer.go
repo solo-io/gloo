@@ -280,8 +280,8 @@ func (p proxyList) ResourceName() string {
 }
 
 func (p proxyList) Equals(in proxyList) bool {
-	sorted := p.list.Sort()
-	sortedIn := in.list.Sort()
+	sorted := slices.Clone(p.list).Sort()
+	sortedIn := slices.Clone(in.list).Sort()
 	return slices.EqualFunc(sorted, sortedIn, func(x, y *gloov1.Proxy) bool {
 		return proto.Equal(x, y)
 	})
