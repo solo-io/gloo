@@ -63,8 +63,9 @@ var (
 	// gloo-gateway-translator removed in 1.17
 	// gateway removed in 1.12
 	proxyLabelSelectorOptions = clients.ListOpts{
-		Selector:           proxyLabelsToWrite,
-		ExpressionSelector: glooutils.GetTranslatorSelectorExpression(glooutils.GlooEdgeProxyValues...),
+		Selector: proxyLabelsToWrite,
+		ExpressionSelector: glooutils.GetTranslatorSelectorExpression(glooutils.GlooEdgeProxyValue,
+			"gloo-gateway-translator", "gateway"),
 	}
 )
 
