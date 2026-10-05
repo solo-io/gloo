@@ -3,4 +3,4 @@ changelog:
     issueLink: https://github.com/solo-io/solo-projects/issues/9126
     resolvesIssue: false
     description: >-
-      simple fix for Proxies resource from GW API Controller missing on setup re-run
+      Replay the Gateway API controller’s latest complete Proxy list into each new setup run, preventing rate-limit rules from disappearing after a Settings or namespace change when Gateway API resources are unchanged.
