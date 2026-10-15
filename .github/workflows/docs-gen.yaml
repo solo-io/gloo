@@ -43,7 +43,7 @@ jobs:
         if: ${{ github.event.pull_request.draft }}
         run: echo "value=true" >> $GITHUB_OUTPUT
       - id: checkout-code
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           # We require gathering the branch and tag history since we rely on a `git diff`
           # which compares the state of two branches
@@ -96,15 +96,15 @@ jobs:
     timeout-minutes: 60
     steps:
     - name: Check out code into the Go module directory
-      uses: actions/checkout@v4
+      uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       with:
         ref: main
     - name: Override main checkout if deploying PR test
       if: ${{ github.event_name == 'pull_request' }}
-      uses: actions/checkout@v4
+      uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
     - uses: ./.github/workflows/composite-actions/prep-go-runner
     - name: Setup Hugo
-      uses: peaceiris/actions-hugo@v3
+      uses: peaceiris/actions-hugo@2752ce1d29631191ea3f27c23495fa06139a5b78 # v3.2.1
       with:
         hugo-version: '0.81.0'
     - name: Generate versioned docs site
@@ -117,7 +117,7 @@ jobs:
       # Do not publish docs if this workflow was triggered by a pull request
       # Only deploy if this was triggered by a push to main, or a successful trivy workflow_run
       if: ${{ github.event_name != 'pull_request' }}
-      uses: FirebaseExtended/action-hosting-deploy@v0
+      uses: FirebaseExtended/action-hosting-deploy@500ac625ca2dd40cbd15f7659af953801858032a # v0.11.0
       with:
         repoToken: ${{ secrets.GITHUB_TOKEN }}
         firebaseServiceAccount: ${{ secrets.GC_FIREBASE_GHA_SA_JSON_KEY }}
@@ -128,7 +128,7 @@ jobs:
     - name: Deploy to Firebase (preview)
       # Generate live preview of docs for PRs to main
       if: ${{ github.event_name == 'pull_request' }}
-      uses: FirebaseExtended/action-hosting-deploy@v0
+      uses: FirebaseExtended/action-hosting-deploy@500ac625ca2dd40cbd15f7659af953801858032a # v0.11.0
       with:
         repoToken: ${{ secrets.GITHUB_TOKEN }}
         firebaseServiceAccount: ${{ secrets.GC_FIREBASE_GHA_SA_JSON_KEY }}
