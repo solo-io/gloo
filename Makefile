@@ -514,8 +514,12 @@ $(DISTROLESS_OUTPUT_DIR)/Dockerfile: $(DISTROLESS_DIR)/Dockerfile
 	mkdir -p $(DISTROLESS_OUTPUT_DIR)
 	cp $< $@
 
+$(DISTROLESS_OUTPUT_DIR)/sync-packages.sh: $(DISTROLESS_DIR)/sync-packages.sh
+	mkdir -p $(DISTROLESS_OUTPUT_DIR)
+	cp $< $@
+
 .PHONY: distroless-docker
-distroless-docker: $(DISTROLESS_OUTPUT_DIR)/Dockerfile
+distroless-docker: $(DISTROLESS_OUTPUT_DIR)/Dockerfile $(DISTROLESS_OUTPUT_DIR)/sync-packages.sh
 	docker buildx build $(LOAD_OR_PUSH) $(PLATFORM_MULTIARCH) $(DISTROLESS_OUTPUT_DIR) -f $(DISTROLESS_OUTPUT_DIR)/Dockerfile \
 		--build-arg PACKAGE_DONOR_IMAGE=$(PACKAGE_DONOR_IMAGE) \
 		--build-arg BASE_IMAGE=$(DISTROLESS_BASE_IMAGE) \
