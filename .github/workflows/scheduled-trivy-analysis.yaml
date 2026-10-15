@@ -32,14 +32,14 @@ jobs:
           wget "https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/trivy_${TRIVY_VERSION}_Linux-64bit.deb"
           sudo dpkg -i "trivy_${TRIVY_VERSION}_Linux-64bit.deb"
       - name: Check out code into the Go module directory
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: ./.github/workflows/composite-actions/prep-go-runner
       - name: Setup - gcloud / gsutil
-        uses: 'google-github-actions/auth@v3'
+        uses: 'google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093' # v3.0.0
         with:
           credentials_json: '${{ secrets.GLOO_VULN_REPORTER }}'
       - name: Setup Google Cloud SDK
-        uses: google-github-actions/setup-gcloud@v3
+        uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3.0.1
         with:
           project_id: solo-public
       - name: Run and Push Security Scan Files to Google Cloud Bucket
@@ -60,7 +60,7 @@ jobs:
           make publish-security-scan
       - name: Alert on workflow failure
         if: ${{ failure() }}
-        uses: slackapi/slack-github-action@v4
+        uses: slackapi/slack-github-action@dcb1066f776dd043e64d0e8ba94ca15cc7e1875d # v4.0.0
         with:
           errors: true
           method: chat.postMessage
