@@ -22,6 +22,11 @@ func (p *Provider) AssertEnvoyAdminApi(
 ) {
 	// Before opening a port-forward, we assert that there is at least one Pod that is ready
 	p.EventuallyRunningReplicas(ctx, envoyDeployment, BeNumerically(">=", 1))
+	// Also wait for any in-progress rollout to finish. Otherwise the port-forward may target a Pod that is
+	// being replaced, and the connection is dropped once that Pod terminates.
+	err := p.clusterContext.Cli.DeploymentRolloutStatus(ctx, envoyDeployment.GetName(),
+		"-n", envoyDeployment.GetNamespace(), "--timeout", "2m")
+	p.Require.NoError(err, "deployment rollout completes")
 
 	portForwarder, err := p.clusterContext.Cli.StartPortForward(ctx,
 		portforward.WithDeployment(envoyDeployment.GetName(), envoyDeployment.GetNamespace()),
