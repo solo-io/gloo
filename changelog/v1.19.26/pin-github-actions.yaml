@@ -1,0 +1,8 @@
+changelog:
+  - type: NON_USER_FACING
+    resolvesIssue: false
+    description: >-
+      Pin the GitHub Actions used by the workflows and composite actions to full
+      commit SHAs, keeping the original version as a trailing comment. Nothing
+      changes in what runs: each SHA is the commit the previous tag or branch
+      already resolved to.
