@@ -54,3 +54,6 @@ jobs:
         skip-cache: true
         skip-save-cache: true
         only-new-issues: false
+        # Skip `golangci-lint config verify`, which fetches the config JSON schema from golangci-lint.run
+        # and fails the job when that request times out
+        verify: false
