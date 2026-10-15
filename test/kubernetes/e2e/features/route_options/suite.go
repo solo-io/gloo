@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"strings"
+	"time"
 
 	. "github.com/onsi/gomega"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
@@ -140,10 +141,12 @@ func (s *testingSuite) TestConfigureRouteOptionsWithFilterExtension() {
 
 func (s *testingSuite) TestConfigureInvalidRouteOptionsWithTargetRef() {
 	// Check status is rejected on RouteOption
+	// Use a longer timeout as the status may take a while to be written on a busy cluster
 	s.testInstallation.AssertionsT(s.T()).EventuallyResourceStatusMatchesState(
 		s.getterForMeta(&badRtoTargetRefMeta),
 		core.Status_Rejected,
 		defaults.KubeGatewayReporter,
+		time.Minute,
 	)
 }
 

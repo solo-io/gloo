@@ -56,7 +56,13 @@ type webhookFailurePolicyTest struct {
 }
 
 func (s *testingSuite) TearDownSuite() {
-	// nothing at the moment
+	// The ValidatingWebhookConfiguration is a helm pre-install/pre-upgrade hook, so the `helm rollback` in AfterTest
+	// does not re-render it and the webhook keeps the failurePolicy/matchConditions of the last test that ran.
+	// Leaving it in that state breaks later suites (eg: the skip-secrets matchCondition lets in-use secrets be deleted),
+	// so upgrade with the restored values to re-render the webhook configuration.
+	_, err := s.testHelper.UpgradeGloo(s.ctx, 600*time.Second, helper.WithExtraArgs("--reuse-values"))
+	s.testInstallation.Assertions.Require.NoError(err)
+	s.validateCaBundles()
 }
 func (s *testingSuite) SetupSuite() {
 	// nothing at the moment

@@ -4,6 +4,7 @@ import (
 	"context"
 	"path/filepath"
 
+	"github.com/onsi/gomega"
 	"github.com/stretchr/testify/suite"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -69,6 +70,8 @@ func (s *k8sGatewaySuite) TestConfigureRoutingHeadlessSvc() {
 	s.NoError(err, "can setup k8s routing manifest")
 
 	s.testInstallation.Assertions.EventuallyObjectsExist(s.ctx, k8sApiProxyDeployment, k8sApiProxyService)
+	// Wait for the proxy pod to be ready before sending traffic, as startup can be slow (eg: when an istio sidecar is injected)
+	s.testInstallation.Assertions.EventuallyRunningReplicas(s.ctx, k8sApiProxyDeployment.ObjectMeta, gomega.Equal(1))
 
 	s.testInstallation.Assertions.AssertEventualCurlResponse(
 		s.ctx,
