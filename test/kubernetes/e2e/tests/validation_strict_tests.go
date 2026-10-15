@@ -11,6 +11,8 @@ import (
 // This is the function that should be used to run the validation tests in this repo
 func ValidationStrictSuiteRunnerAll() e2e.SuiteRunner {
 	validationSuiteRunner := ValidationStrictSuiteRunner()
+	// ValidationSplitWebhook upgrades the helm release to modify the validation webhook configuration,
+	// so it is registered last (the runner is ordered) to avoid affecting the other validation suites
 	validationSuiteRunner.Register("ValidationSplitWebhook", split_webhook.NewTestingSuite)
 
 	return validationSuiteRunner
@@ -22,7 +24,7 @@ func ValidationStrictSuiteRunnerAll() e2e.SuiteRunner {
 // https://github.com/k8sgateway/k8sgateway/issues/10374 has been created to create a fix for this.
 // If more tests are added that depend on the helm chart/values/helpers, the above issue should be resolved instead of using this approach
 func ValidationStrictSuiteRunner() e2e.SuiteRunner {
-	validationSuiteRunner := e2e.NewSuiteRunner(false)
+	validationSuiteRunner := e2e.NewSuiteRunner(true)
 
 	validationSuiteRunner.Register("ValidationStrictWarnings", validation_strict_warnings.NewTestingSuite)
 	validationSuiteRunner.Register("ValidationRejectInvalid", validation_reject_invalid.NewTestingSuite)

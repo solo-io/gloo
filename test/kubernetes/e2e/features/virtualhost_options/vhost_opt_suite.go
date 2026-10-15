@@ -3,6 +3,7 @@ package virtualhost_options
 import (
 	"context"
 	"net/http"
+	"time"
 
 	"github.com/onsi/gomega"
 	"github.com/onsi/gomega/gstruct"
@@ -181,10 +182,12 @@ func (s *testingSuite) TestConfigureInvalidVirtualHostOptions() {
 	s.NoError(err, "can apply "+manifestVhoRemoveXBar)
 
 	// Check status is accepted on VirtualHostOption
+	// Use a longer timeout as the status may take a while to be written on a busy cluster
 	s.TestInstallation.AssertionsT(s.T()).EventuallyResourceStatusMatchesState(
 		s.getterForMeta(&vhoRemoveXBar),
 		core.Status_Accepted,
 		defaults.KubeGatewayReporter,
+		time.Minute,
 	)
 
 	output, err := s.TestInstallation.Actions.Kubectl().ApplyFileWithOutput(s.Ctx, manifestVhoWebhookReject)

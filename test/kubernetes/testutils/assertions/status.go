@@ -101,7 +101,7 @@ func getResourceNamespacedStatus(getter helpers.InputResourceGetter) (*core.Name
 	// In newer versions of Gloo Edge we provide a default "empty" status, which allows us to patch it to perform updates
 	// As a result, a nil check isn't enough to determine that that status hasn't been reported
 	if namespacedStatuses == nil || namespacedStatuses.GetStatuses() == nil {
-		return &core.NamespacedStatuses{}, errors.Wrapf(err, "waiting for %v status to be non-empty", resource.GetMetadata().GetName())
+		return &core.NamespacedStatuses{}, errors.Errorf("waiting for %v status to be non-empty", resource.GetMetadata().GetName())
 	}
 
 	return namespacedStatuses, nil
