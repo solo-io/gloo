@@ -67,14 +67,14 @@ jobs:
       all_lines: ${{ steps.plan.outputs.all_lines }}
     steps:
       - name: Checkout docs repo
-        uses: actions/checkout@v5
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
           repository: "solo-io/docs"
           token: ${{ secrets.DOCS_TOKEN }}
           path: docs
           fetch-depth: 1
       - name: Checkout gloo repo
-        uses: actions/checkout@v5
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
           repository: "solo-io/gloo"
           token: ${{ secrets.DOCS_TOKEN }}
@@ -312,14 +312,14 @@ jobs:
         include: ${{ fromJson(needs.prepare-oss.outputs.matrix) }}
     steps:
       - name: Checkout docs repo (read-only reference for seeding new version directories)
-        uses: actions/checkout@v5
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
           repository: "solo-io/docs"
           token: ${{ secrets.DOCS_TOKEN }}
           path: docs
           fetch-depth: 1
       - name: Checkout gloo repo at this line's ref
-        uses: actions/checkout@v5
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
           repository: "solo-io/gloo"
           token: ${{ secrets.DOCS_TOKEN }}
@@ -440,7 +440,7 @@ jobs:
             git diff --cached --name-only -z | tar -czf "/tmp/docsgen-${DIRECTORY}.tar.gz" --null -T -
           fi
       - name: Upload this line's generated docs
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: docsgen-${{ matrix.directory }}
           path: /tmp/docsgen-${{ matrix.directory }}.tar.gz
@@ -461,7 +461,7 @@ jobs:
       pr_url: ${{ steps.cpr.outputs.pull-request-url }}
     steps:
       - name: Checkout docs repo
-        uses: actions/checkout@v5
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
           repository: "solo-io/docs"
           token: ${{ secrets.DOCS_TOKEN }}
@@ -469,7 +469,7 @@ jobs:
           fetch-depth: 0
           fetch-tags: "true"
       - name: Download per-line generated docs
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           pattern: docsgen-*
           path: artifacts
@@ -520,7 +520,7 @@ jobs:
       - name: Push and create the consolidated PR
         id: cpr
         if: steps.apply.outputs.changed == 'true'
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@22a9089034f40e5a961c8808d113e2c98fb63676 # v7.0.11
         with:
           base: main
           path: docs
@@ -548,7 +548,7 @@ jobs:
     steps:
       - name: Notify in slack of success
         if: needs.assemble-oss.result == 'success' && needs.assemble-oss.outputs.pr_url != ''
-        uses: slackapi/slack-github-action@v3.0.3
+        uses: slackapi/slack-github-action@45a88b9581bfab2566dc881e2cd66d334e621e2c # v3.0.3
         with:
           method: chat.postMessage
           token: ${{ secrets.SLACK_BOT_TOKEN }}
@@ -568,7 +568,7 @@ jobs:
             }
       - name: Notify in slack of success (no changes)
         if: needs.assemble-oss.result == 'success' && needs.assemble-oss.outputs.pr_url == ''
-        uses: slackapi/slack-github-action@v3.0.3
+        uses: slackapi/slack-github-action@45a88b9581bfab2566dc881e2cd66d334e621e2c # v3.0.3
         with:
           method: chat.postMessage
           token: ${{ secrets.SLACK_BOT_TOKEN }}
@@ -588,7 +588,7 @@ jobs:
             }
       - name: Notify in slack of failure
         if: needs.assemble-oss.result != 'success'
-        uses: slackapi/slack-github-action@v3.0.3
+        uses: slackapi/slack-github-action@45a88b9581bfab2566dc881e2cd66d334e621e2c # v3.0.3
         with:
           method: chat.postMessage
           token: ${{ secrets.SLACK_BOT_TOKEN }}
@@ -623,7 +623,7 @@ jobs:
         echo "lts=${{ github.event.client_payload.lts }}" >> $GITHUB_OUTPUT
         echo "tag=${{ github.event.client_payload.tag }}" >> $GITHUB_OUTPUT
     - name: Checkout docs repo
-      uses: actions/checkout@v5
+      uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
       with:
         repository: "solo-io/docs"
         token: ${{ secrets.DOCS_TOKEN }}
@@ -631,7 +631,7 @@ jobs:
         fetch-depth: 0
         fetch-tags: "true"
     - name: Checkout gloo repo
-      uses: actions/checkout@v5
+      uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
       with:
         repository: "solo-io/gloo"
         token: ${{ secrets.DOCS_TOKEN }}
@@ -810,7 +810,7 @@ jobs:
         popd || exit 1
     - name: Push and create PR
       id: cpr
-      uses: peter-evans/create-pull-request@v7
+      uses: peter-evans/create-pull-request@22a9089034f40e5a961c8808d113e2c98fb63676 # v7.0.11
       with:
         base: main
         body: 'Copy auto-generated enterprise docs from the gloo repo, post-release of Gloo Gateway Enterprise ${{ steps.version-variables.outputs.minor }}'
@@ -824,7 +824,7 @@ jobs:
         token: ${{ secrets.DOCS_TOKEN }}
     - name: Notify in slack of success
       if: success()
-      uses: slackapi/slack-github-action@v3.0.3
+      uses: slackapi/slack-github-action@45a88b9581bfab2566dc881e2cd66d334e621e2c # v3.0.3
       with:
         method: chat.postMessage
         token: ${{ secrets.SLACK_BOT_TOKEN }}
@@ -844,7 +844,7 @@ jobs:
           }
     - name: Notify in slack of failure
       if: failure()
-      uses: slackapi/slack-github-action@v3.0.3
+      uses: slackapi/slack-github-action@45a88b9581bfab2566dc881e2cd66d334e621e2c # v3.0.3
       with:
         method: chat.postMessage
         token: ${{ secrets.SLACK_BOT_TOKEN }}
