@@ -18,7 +18,7 @@ jobs:
           echo "IS_COMMUNITY_PR=true" >> $GITHUB_OUTPUT
 
       - name: Add PR label
-        uses: christianvuerings/add-labels@v1
+        uses: christianvuerings/add-labels@b3cc83b6b466869c556a6623c93f1321485dbda0 # v1
         if: ${{ !steps.community-pr-check.outputs.IS_COMMUNITY_PR }}
         with:
           labels: |
