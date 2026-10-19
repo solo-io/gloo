@@ -59,4 +59,12 @@ runs:
     - name: Install Dependencies
       if: steps.cache.outputs.cache-hit != 'true'
       shell: bash
-      run: make mod-download
+      # Retry as the go module proxy can intermittently fail (eg: "stream error ... INTERNAL_ERROR")
+      # when many jobs download modules at the same time on a cache miss
+      run: |
+        for attempt in 1 2 3; do
+          make mod-download && exit 0
+          echo "make mod-download failed (attempt ${attempt}/3), retrying in $((attempt * 15))s"
+          sleep $((attempt * 15))
+        done
+        exit 1
