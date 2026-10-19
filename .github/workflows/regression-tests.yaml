@@ -16,11 +16,11 @@ jobs:
       should-auto-succeed-regression-tests: ${{ steps.run-strategy.outputs.auto_succeed }}
     steps:
     - name: Cancel Previous Actions
-      uses: styfle/cancel-workflow-action@0.12.1
+      uses: styfle/cancel-workflow-action@85880fa0301c86cca9da44039ee3bb12d3bedbfa # 0.12.1
       with:
         access_token: ${{ github.token }}
     - id: checkout-code
-      uses: actions/checkout@v4
+      uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       with:
         # We require gathering the branch and tag history since we rely on a `git diff`
         # which compares the state of two branches
@@ -59,7 +59,7 @@ jobs:
           - merge-to-main: true
             kube-e2e-test-type: upgrade
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
     - id: run-tests
       if: needs.prepare_env.outputs.should-auto-succeed-regression-tests != 'true'
       uses: ./.github/workflows/composite-actions/regression-tests
@@ -83,7 +83,7 @@ jobs:
         image-variant:
           - standard
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
     - id: auto-succeed-tests
       if: needs.prepare_env.outputs.should-auto-succeed-regression-tests == 'true'
       run: |
