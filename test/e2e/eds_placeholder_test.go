@@ -148,7 +148,7 @@ var _ = Describe("EDS placeholder assignments", Label(), func() {
 		// NewControlPlane builds the xDS server but does not attach it; without
 		// this the proxy connects to a gRPC server that serves no discovery
 		// service and silently receives nothing.
-		xds.SetupEnvoyXds(grpcServer, controlPlane.XDSServer, snapshots, false)
+		xds.SetupEnvoyXds(grpcServer, controlPlane.XDSServer, snapshots)
 		go func() {
 			defer GinkgoRecover()
 			_ = grpcServer.Serve(listener)
