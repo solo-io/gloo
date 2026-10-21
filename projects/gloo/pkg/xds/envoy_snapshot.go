@@ -155,14 +155,25 @@ func (s *EnvoySnapshot) MakeConsistent() {
 	for _, endpoint := range s.Endpoints.Items {
 		persistedEndpointNameSet[endpoint.Self().Name] = struct{}{}
 	}
-	for childEndpointName, cluster := range childEndpoints {
+	for childEndpointName := range childEndpoints {
 		if _, exists := persistedEndpointNameSet[childEndpointName]; exists {
 			continue
 		}
 		// add placeholder
+		//
+		// The assignment has to name the resource it is filed under, not the
+		// cluster that referenced it. Those are only the same when a cluster
+		// serves EDS under its own name; Gloo's clusters point at
+		// "<cluster>-<upstream hash>", so naming the cluster here produced an
+		// assignment whose ClusterName matched nothing the proxy had asked for.
+		// It was still delivered -- the cache selects resources by map key, and
+		// the key is right -- so the proxy received an assignment it could not
+		// match to a subscription, silently kept the endpoints it already had,
+		// and never recovered, because from the cache's side the subscription
+		// was satisfied.
 		s.Endpoints.Items[childEndpointName] = resource.NewEnvoyResource(
 			&envoy_config_endpoint_v3.ClusterLoadAssignment{
-				ClusterName: cluster.Self().Name,
+				ClusterName: childEndpointName,
 				Endpoints:   []*envoy_config_endpoint_v3.LocalityLbEndpoints{},
 			})
 	}
