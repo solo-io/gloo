@@ -1,0 +1,13 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/solo-projects/issues/9151
+    resolvesIssue: false
+    description: >-
+      Name the placeholder EDS assignment MakeConsistent adds after the resource it
+      is filed under rather than after the cluster that referenced it. Gloo clusters
+      serve EDS under "<cluster>-<upstream hash>", never under their own name, so
+      the placeholder carried a ClusterName matching nothing the proxy had
+      subscribed to. It was still delivered, because the cache selects resources by
+      map key and the key was correct, so a proxy received an assignment it could
+      not match to a subscription, silently kept the endpoints it already held, and
+      never recovered.
