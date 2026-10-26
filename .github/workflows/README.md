@@ -56,8 +56,8 @@ Docs generation builds the docs that power https://docs.solo.io/gloo-edge/latest
 This Github Action will not run by default on a Draft Pull Request. After a Pull Request is marked as `Ready for Review`
 it will trigger the action to run.
 
-## [Trivy Vulnerability Scanning](./trivy-analysis-scheduled.yaml)
-A scheduled job which scans images released from both the Open Source and Enterprise repositories.
+## [Trivy Vulnerability Scanning](./scheduled-trivy-analysis.yaml)
+A manually triggered job which scans images released from both the Open Source and Enterprise repositories. The weekly scheduled scan runs in the Enterprise repo.
 
 To run the vulnerability locally, check out [the security scanner README](https://github.com/solo-io/gloo/tree/main/docs/cmd/securityscanutils)
 

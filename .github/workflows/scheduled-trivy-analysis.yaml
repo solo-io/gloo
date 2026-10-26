@@ -1,11 +1,9 @@
 name: Scheduled Security Scan
 
+# The weekly scheduled scan runs in solo-io/solo-projects; running it here too files duplicate issues.
 on:
   # allow for version to be manually specified under actions page
   workflow_dispatch: {}
-  schedule:
-    # Monday 4am EST so as to hope for this to complete prior to a 9 AM check
-    - cron: "0 8 * * 1"
 
 env:
   SLACK_DEBUG_TESTING: false   # When true, use the test notification destination.
