@@ -109,10 +109,10 @@ jobs:
             done
             return 1
           }
-          # Newest first. createTime is filtered server-side; the rest client-side.
+          # Newest first. tags and createTime are filtered server-side; the rest client-side.
           existing="$(gcloud builds list \
             --project solo-public \
-            --filter="substitutions.TAG_NAME~\"^${TAG//./\\.}\$\" AND substitutions.COMMIT_SHA=\"${SHA}\" AND serviceAccount=\"projects/solo-public/serviceAccounts/${GLOO_RELEASE_SA}\" AND createTime>-P30D" \
+            --filter="tags=\"gloo\" AND substitutions.TAG_NAME~\"^${TAG//./\\.}\$\" AND substitutions.COMMIT_SHA=\"${SHA}\" AND serviceAccount=\"projects/solo-public/serviceAccounts/${GLOO_RELEASE_SA}\" AND createTime>-P30D" \
             --limit=1 \
             --format='value(id,status)')"
           build_id=""
