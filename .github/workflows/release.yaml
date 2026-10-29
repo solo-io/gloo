@@ -206,15 +206,17 @@ jobs:
       - name: Generate and publish artifacts.yaml
         run: |
           set -euo pipefail
-          images=(gloo discovery gloo-envoy-wrapper sds certgen ingress access-logger kubectl)
-          std=()
-          distroless=()
-          for img in "${images[@]}"; do
-            std+=("quay.io/solo-io/${img}:${VERSION}")
-            distroless+=("quay.io/solo-io/${img}:${VERSION}-distroless")
-          done
-          std_refs="$(IFS=,; echo "${std[*]}")"
-          distroless_refs="$(IFS=,; echo "${distroless[*]}")"
-          ci artifacts generate images -p gloo -v "${TAG}" --category core --multiarch --ref "${std_refs}"
-          ci artifacts generate images -p gloo -v "${TAG}" --category core --multiarch --variants distroless --ref "${distroless_refs}"
+          # The Makefile builds certgen and kubectl for amd64 and arm64, the rest for amd64 only.
+          refs() {
+            local suffix="$1" img out=()
+            shift
+            for img in "$@"; do out+=("quay.io/solo-io/${img}:${VERSION}${suffix}"); done
+            (IFS=,; echo "${out[*]}")
+          }
+          amd64=(gloo discovery gloo-envoy-wrapper sds ingress access-logger)
+          multiarch=(certgen kubectl)
+          ci artifacts generate images -p gloo -v "${TAG}" --category core --ref "$(refs '' "${amd64[@]}")"
+          ci artifacts generate images -p gloo -v "${TAG}" --category core --multiarch --ref "$(refs '' "${multiarch[@]}")"
+          ci artifacts generate images -p gloo -v "${TAG}" --category core --variants distroless --ref "$(refs -distroless "${amd64[@]}")"
+          ci artifacts generate images -p gloo -v "${TAG}" --category core --multiarch --variants distroless --ref "$(refs -distroless "${multiarch[@]}")"
           ci artifacts publish -p gloo -v "${TAG}" --build-type "${BUILD_TYPE}"
