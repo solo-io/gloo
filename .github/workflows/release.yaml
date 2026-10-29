@@ -51,10 +51,10 @@ jobs:
             echo "::error::Tag ${TAG} (${sha}) is not on origin/${branch}"
             exit 1
           fi
-          if [[ "${TAG}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-patch[0-9]+)?$ ]]; then
-            build_type=release
-          else
+          if [[ "${TAG}" =~ -(alpha|beta|rc|pre|dev|nightly)[0-9]*(-|$) ]]; then
             build_type=pre-release
+          else
+            build_type=release
           fi
           {
             echo "tag=${TAG}"
