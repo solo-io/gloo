@@ -1,0 +1,222 @@
+# Publishes a release when a GitHub release is published for a v1.19-v1.29 tag.
+# Publishing runs only after approval in environment "release".
+# Repository variables: GLOO_RELEASE_WIF_PROVIDER (workload identity provider),
+# GLOO_RELEASE_SA (service account email in solo-public).
+name: Release
+
+on:
+  release:
+    types: [published]
+
+permissions: {}
+
+concurrency:
+  group: release-${{ github.event.release.tag_name }}
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    name: Validate tag
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    outputs:
+      tag: ${{ steps.check.outputs.tag }}
+      sha: ${{ steps.check.outputs.sha }}
+      version: ${{ steps.check.outputs.version }}
+      build_type: ${{ steps.check.outputs.build_type }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          ref: refs/tags/${{ github.event.release.tag_name }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Check tag and branch
+        id: check
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          set -euo pipefail
+          if [[ ! "${TAG}" =~ ^v1\.(19|2[0-9])\.[0-9]+(-[a-z]+)*(-[a-z]+[0-9]*)?$ ]]; then
+            echo "::error::Tag ${TAG} does not match v1.<minor>.<patch>[-suffix] for a supported release line"
+            exit 1
+          fi
+          minor="${BASH_REMATCH[1]}"
+          branch="v1.${minor}.x"
+          sha="$(git rev-parse "refs/tags/${TAG}^{commit}")"
+          if ! git merge-base --is-ancestor "${sha}" "origin/${branch}"; then
+            echo "::error::Tag ${TAG} (${sha}) is not on origin/${branch}"
+            exit 1
+          fi
+          if [[ "${TAG}" =~ -(alpha|beta|rc|pre|dev|nightly)[0-9]*(-|$) ]]; then
+            build_type=pre-release
+          else
+            build_type=release
+          fi
+          {
+            echo "tag=${TAG}"
+            echo "sha=${sha}"
+            echo "version=${TAG#v}"
+            echo "build_type=${build_type}"
+          } >> "${GITHUB_OUTPUT}"
+
+  build:
+    name: Build and publish images and chart
+    needs: [validate]
+    runs-on: ubuntu-latest
+    timeout-minutes: 135
+    environment: release
+    permissions:
+      id-token: write
+      contents: read
+    env:
+      TAG: ${{ needs.validate.outputs.tag }}
+      SHA: ${{ needs.validate.outputs.sha }}
+      GLOO_RELEASE_SA: ${{ vars.GLOO_RELEASE_SA }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          ref: ${{ needs.validate.outputs.sha }}
+          persist-credentials: false
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
+        with:
+          workload_identity_provider: ${{ vars.GLOO_RELEASE_WIF_PROVIDER }}
+          service_account: ${{ vars.GLOO_RELEASE_SA }}
+
+      - name: Set up gcloud
+        uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3.0.1
+
+      - name: Submit and wait for Cloud Build
+        run: |
+          set -euo pipefail
+          # A re-run attaches to the tag's existing publish build rather than
+          # publishing twice.
+          describe() {
+            local i out
+            for i in 1 2 3 4 5; do
+              if out="$(gcloud builds describe "$1" --project solo-public --format="${2:-value(status)}")"; then
+                printf '%s\n' "${out}"
+                return 0
+              fi
+              echo "gcloud builds describe failed (attempt ${i}/5)" >&2
+              if [[ "${i}" -lt 5 ]]; then sleep 10; fi
+            done
+            return 1
+          }
+          # The API lists newest first. tags and createTime are filtered server-side; the rest client-side.
+          existing="$(gcloud builds list \
+            --project solo-public \
+            --filter="tags=\"gloo\" AND substitutions.TAG_NAME~\"^${TAG//./\\.}\$\" AND substitutions.COMMIT_SHA=\"${SHA}\" AND serviceAccount=\"projects/solo-public/serviceAccounts/${GLOO_RELEASE_SA}\" AND createTime>-P30D" \
+            --limit=1 \
+            --format='value(id,status)')"
+          build_id=""
+          if [[ -n "${existing}" ]]; then
+            read -r existing_id existing_status <<< "${existing}"
+            case "${existing_status}" in
+              QUEUED|PENDING|WORKING)
+                echo "Attaching to existing publish build ${existing_id} (${existing_status})"
+                build_id="${existing_id}"
+                ;;
+              SUCCESS)
+                echo "Tag ${TAG} already published by Cloud Build ${existing_id}"
+                exit 0
+                ;;
+            esac
+          fi
+          if [[ -z "${build_id}" ]]; then
+            # A user-specified service account needs a logging option; build-bot's
+            # PR builds share the config and keep streaming logs from GCS.
+            yq '.options.logging = "CLOUD_LOGGING_ONLY"' ci/cloudbuild/publish-artifacts.yaml > "${RUNNER_TEMP}/publish-artifacts.yaml"
+            build_id="$(gcloud builds submit \
+              --project solo-public \
+              --no-source \
+              --config "${RUNNER_TEMP}/publish-artifacts.yaml" \
+              --service-account "projects/solo-public/serviceAccounts/${GLOO_RELEASE_SA}" \
+              --substitutions "COMMIT_SHA=${SHA},REPO_NAME=gloo,TAG_NAME=${TAG},_PR_NUM=" \
+              --async \
+              --format='value(id)')"
+          fi
+          echo "Cloud Build ${build_id}"
+          {
+            echo "Cloud Build \`${build_id}\`: $(describe "${build_id}" 'value(logUrl)')"
+            echo
+            echo "Cancelling this run does not stop the build. To stop a mistaken release: \`gcloud builds cancel ${build_id} --project solo-public\`"
+          } >> "${GITHUB_STEP_SUMMARY}"
+          while true; do
+            status="$(describe "${build_id}")"
+            echo "status: ${status}"
+            case "${status}" in
+              SUCCESS|FAILURE|INTERNAL_ERROR|TIMEOUT|CANCELLED|EXPIRED) break ;;
+            esac
+            sleep 30
+          done
+          echo "Logs: $(describe "${build_id}" 'value(logUrl)')"
+          if [[ "${status}" != "SUCCESS" ]]; then
+            echo "::error::Cloud Build ${build_id} ended ${status}"
+            exit 1
+          fi
+
+  glooctl:
+    name: Upload glooctl release assets
+    needs: [validate, build]
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          ref: ${{ needs.validate.outputs.sha }}
+          persist-credentials: false
+
+      - name: Set up Go
+        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
+        with:
+          go-version-file: go.mod
+
+      - name: Build and upload glooctl
+        env:
+          TAGGED_VERSION: ${{ needs.validate.outputs.tag }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: make publish-glooctl
+
+  register:
+    name: Register release in solo-ci
+    needs: [validate, build]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    env:
+      TAG: ${{ needs.validate.outputs.tag }}
+      VERSION: ${{ needs.validate.outputs.version }}
+      BUILD_TYPE: ${{ needs.validate.outputs.build_type }}
+    steps:
+      - uses: solo-io/solo-tools/.github/actions/setup-security-scan-artifacts@2a6fe07c99986682062ca53375944d9982f31f8e # main
+        with:
+          gcp_creds: ${{ secrets.GLOO_VULN_REPORTER }}
+
+      - name: Generate and publish artifacts.yaml
+        run: |
+          set -euo pipefail
+          # The Makefile builds certgen and kubectl for amd64 and arm64, the rest for amd64 only.
+          refs() {
+            local suffix="$1" img out=()
+            shift
+            for img in "$@"; do out+=("quay.io/solo-io/${img}:${VERSION}${suffix}"); done
+            (IFS=,; echo "${out[*]}")
+          }
+          amd64=(gloo discovery gloo-envoy-wrapper sds ingress access-logger)
+          multiarch=(certgen kubectl)
+          ci artifacts generate images -p gloo -v "${TAG}" --category core --ref "$(refs '' "${amd64[@]}")"
+          ci artifacts generate images -p gloo -v "${TAG}" --category core --multiarch --ref "$(refs '' "${multiarch[@]}")"
+          ci artifacts generate images -p gloo -v "${TAG}" --category core --variants distroless --ref "$(refs -distroless "${amd64[@]}")"
+          ci artifacts generate images -p gloo -v "${TAG}" --category core --multiarch --variants distroless --ref "$(refs -distroless "${multiarch[@]}")"
+          ci artifacts publish -p gloo -v "${TAG}" --build-type "${BUILD_TYPE}"
