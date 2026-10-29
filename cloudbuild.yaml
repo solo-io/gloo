@@ -1,13 +1,15 @@
 steps:
 
 - name: 'gcr.io/cloud-builders/gcloud'
+  entrypoint: 'bash'
   args:
-  - 'builds'
-  - 'submit'
-  - '--config'
-  - 'ci/cloudbuild/publish-artifacts.yaml'
-  - '--substitutions'
-  - 'COMMIT_SHA=$COMMIT_SHA,REPO_NAME=$REPO_NAME,TAG_NAME=$TAG_NAME,_PR_NUM=$_PR_NUM'
+  - '-c'
+  - |
+    if [ -n "$TAG_NAME" ]; then
+      echo "Tag builds no longer publish; releases publish from .github/workflows/release.yaml after approval in environment release."
+      exit 0
+    fi
+    gcloud builds submit --config ci/cloudbuild/publish-artifacts.yaml --substitutions COMMIT_SHA=$COMMIT_SHA,REPO_NAME=$REPO_NAME,TAG_NAME=$TAG_NAME,_PR_NUM=$_PR_NUM
   waitFor:
   - '-'
   id: 'publish-artifacts'
