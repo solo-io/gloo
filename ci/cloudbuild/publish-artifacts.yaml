@@ -134,7 +134,6 @@ tags:
 
 options:
   machineType: 'N1_HIGHCPU_32'
-  logging: CLOUD_LOGGING_ONLY
   env:
   - 'DOCKER_CONFIG=/workspace/docker-config'
   - 'TAGGED_VERSION=$TAG_NAME'

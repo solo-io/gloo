@@ -130,10 +130,13 @@ jobs:
             esac
           fi
           if [[ -z "${build_id}" ]]; then
+            # A user-specified service account needs a logging option; build-bot's
+            # PR builds share the config and keep streaming logs from GCS.
+            yq '.options.logging = "CLOUD_LOGGING_ONLY"' ci/cloudbuild/publish-artifacts.yaml > "${RUNNER_TEMP}/publish-artifacts.yaml"
             build_id="$(gcloud builds submit \
               --project solo-public \
               --no-source \
-              --config ci/cloudbuild/publish-artifacts.yaml \
+              --config "${RUNNER_TEMP}/publish-artifacts.yaml" \
               --service-account "projects/solo-public/serviceAccounts/${GLOO_RELEASE_SA}" \
               --substitutions "COMMIT_SHA=${SHA},REPO_NAME=gloo,TAG_NAME=${TAG},_PR_NUM=" \
               --async \
