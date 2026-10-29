@@ -127,6 +127,7 @@ availableSecrets:
     env: QUAY_IO_PASSWORD
 
 timeout: '3600s'
+queueTtl: '3600s'
 
 tags:
 - 'gloo'
