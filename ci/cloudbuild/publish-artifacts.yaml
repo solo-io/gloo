@@ -97,8 +97,8 @@ steps:
   id: 'release-chart'
   dir: *dir
   args:
-  - 'publish-helm-chart'
   - 'build-cli'
+  - 'publish-helm-chart'
   env:
   - 'HELM_REPOSITORY_CACHE=/builder/home/.cache/helm/registry'
   - 'GCLOUD_PROJECT_ID=$PROJECT_ID'
