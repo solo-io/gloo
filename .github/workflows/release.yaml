@@ -1,0 +1,176 @@
+# Publishes a release when a GitHub release is published for a v1.19-v1.29 tag.
+# Publishing runs only after approval in environment "release".
+# Repository variables: GLOO_RELEASE_WIF_PROVIDER (workload identity provider),
+# GLOO_RELEASE_SA (service account email in solo-public).
+name: Release
+
+on:
+  release:
+    types: [published]
+
+permissions: {}
+
+concurrency:
+  group: release-${{ github.event.release.tag_name }}
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    name: Validate tag
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    outputs:
+      tag: ${{ steps.check.outputs.tag }}
+      sha: ${{ steps.check.outputs.sha }}
+      version: ${{ steps.check.outputs.version }}
+      build_type: ${{ steps.check.outputs.build_type }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          ref: refs/tags/${{ github.event.release.tag_name }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Check tag and branch
+        id: check
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          set -euo pipefail
+          if [[ ! "${TAG}" =~ ^v1\.(19|2[0-9])\.[0-9]+(-[a-z]+[0-9]*)*$ ]]; then
+            echo "::error::Tag ${TAG} does not match v1.<minor>.<patch>[-suffix] for a supported release line"
+            exit 1
+          fi
+          minor="${BASH_REMATCH[1]}"
+          branch="v1.${minor}.x"
+          sha="$(git rev-parse "refs/tags/${TAG}^{commit}")"
+          if ! git merge-base --is-ancestor "${sha}" "origin/${branch}"; then
+            echo "::error::Tag ${TAG} (${sha}) is not on origin/${branch}"
+            exit 1
+          fi
+          if [[ "${TAG}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            build_type=release
+          else
+            build_type=pre-release
+          fi
+          {
+            echo "tag=${TAG}"
+            echo "sha=${sha}"
+            echo "version=${TAG#v}"
+            echo "build_type=${build_type}"
+          } >> "${GITHUB_OUTPUT}"
+
+  build:
+    name: Build and publish images and chart
+    needs: [validate]
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    environment: release
+    permissions:
+      id-token: write
+      contents: read
+    env:
+      TAG: ${{ needs.validate.outputs.tag }}
+      SHA: ${{ needs.validate.outputs.sha }}
+      GLOO_RELEASE_SA: ${{ vars.GLOO_RELEASE_SA }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          ref: ${{ needs.validate.outputs.sha }}
+          persist-credentials: false
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
+        with:
+          workload_identity_provider: ${{ vars.GLOO_RELEASE_WIF_PROVIDER }}
+          service_account: ${{ vars.GLOO_RELEASE_SA }}
+
+      - name: Set up gcloud
+        uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3.0.1
+
+      - name: Submit and wait for Cloud Build
+        run: |
+          set -euo pipefail
+          build_id="$(gcloud builds submit \
+            --project solo-public \
+            --no-source \
+            --config ci/cloudbuild/publish-artifacts.yaml \
+            --service-account "projects/solo-public/serviceAccounts/${GLOO_RELEASE_SA}" \
+            --substitutions "COMMIT_SHA=${SHA},REPO_NAME=gloo,TAG_NAME=${TAG},_PR_NUM=" \
+            --async \
+            --format='value(id)')"
+          echo "Cloud Build ${build_id}"
+          while true; do
+            status="$(gcloud builds describe "${build_id}" --project solo-public --format='value(status)')"
+            echo "status: ${status}"
+            case "${status}" in
+              SUCCESS|FAILURE|INTERNAL_ERROR|TIMEOUT|CANCELLED|EXPIRED) break ;;
+            esac
+            sleep 30
+          done
+          echo "Logs: $(gcloud builds describe "${build_id}" --project solo-public --format='value(logUrl)')"
+          if [[ "${status}" != "SUCCESS" ]]; then
+            echo "::error::Cloud Build ${build_id} ended ${status}"
+            exit 1
+          fi
+
+  glooctl:
+    name: Upload glooctl release assets
+    needs: [validate, build]
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    environment: release
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          ref: ${{ needs.validate.outputs.sha }}
+          persist-credentials: false
+
+      - name: Set up Go
+        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
+        with:
+          go-version-file: go.mod
+
+      - name: Build and upload glooctl
+        env:
+          TAGGED_VERSION: ${{ needs.validate.outputs.tag }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: make publish-glooctl
+
+  register:
+    name: Register release in solo-ci
+    needs: [validate, build]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    env:
+      VERSION: ${{ needs.validate.outputs.version }}
+      BUILD_TYPE: ${{ needs.validate.outputs.build_type }}
+    steps:
+      - uses: solo-io/solo-tools/.github/actions/setup-security-scan-artifacts@3be607a7f56b236a3668afccd0a9e25102ec0dea # main
+        with:
+          gcp_creds: ${{ secrets.GLOO_VULN_REPORTER }}
+
+      - name: Generate and publish artifacts.yaml
+        run: |
+          set -euo pipefail
+          images=(gloo discovery gloo-envoy-wrapper sds certgen ingress access-logger kubectl)
+          std=()
+          distroless=()
+          for img in "${images[@]}"; do
+            std+=("quay.io/solo-io/${img}:${VERSION}")
+            distroless+=("quay.io/solo-io/${img}:${VERSION}-distroless")
+          done
+          std_refs="$(IFS=,; echo "${std[*]}")"
+          distroless_refs="$(IFS=,; echo "${distroless[*]}")"
+          ci artifacts generate images -p gloo -v "${VERSION}" --category core --multiarch --ref "${std_refs}"
+          ci artifacts generate images -p gloo -v "${VERSION}" --category core --multiarch --variants distroless --ref "${distroless_refs}"
+          ci artifacts publish -p gloo -v "${VERSION}" --build-type "${BUILD_TYPE}"
