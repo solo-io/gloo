@@ -109,25 +109,13 @@ jobs:
             done
             return 1
           }
-          find_existing() {
-            local i out
-            for i in 1 2 3 4 5; do
-              if out="$(gcloud builds list \
-                --project solo-public \
-                --filter="substitutions.TAG_NAME=${TAG} AND serviceAccount:${GLOO_RELEASE_SA}" \
-                --sort-by=~createTime \
-                --limit=1 \
-                --format='value(id,status)')"; then
-                printf '%s\n' "${out}"
-                return 0
-              fi
-              echo "gcloud builds list failed (attempt ${i}/5)" >&2
-              if [[ "${i}" -lt 5 ]]; then sleep 10; fi
-            done
-            return 1
-          }
+          # Newest first. createTime is filtered server-side; the rest client-side.
+          existing="$(gcloud builds list \
+            --project solo-public \
+            --filter="substitutions.TAG_NAME~\"^${TAG//./\\.}\$\" AND substitutions.COMMIT_SHA=\"${SHA}\" AND serviceAccount=\"projects/solo-public/serviceAccounts/${GLOO_RELEASE_SA}\" AND createTime>-P30D" \
+            --limit=1 \
+            --format='value(id,status)')"
           build_id=""
-          existing="$(find_existing)"
           if [[ -n "${existing}" ]]; then
             read -r existing_id existing_status <<< "${existing}"
             case "${existing_status}" in
@@ -152,6 +140,11 @@ jobs:
               --format='value(id)')"
           fi
           echo "Cloud Build ${build_id}"
+          {
+            echo "Cloud Build \`${build_id}\`: $(describe "${build_id}" 'value(logUrl)')"
+            echo
+            echo "Cancelling this run does not stop the build. To stop a mistaken release: \`gcloud builds cancel ${build_id} --project solo-public\`"
+          } >> "${GITHUB_STEP_SUMMARY}"
           while true; do
             status="$(describe "${build_id}")"
             echo "status: ${status}"
@@ -203,7 +196,7 @@ jobs:
       VERSION: ${{ needs.validate.outputs.version }}
       BUILD_TYPE: ${{ needs.validate.outputs.build_type }}
     steps:
-      - uses: solo-io/solo-tools/.github/actions/setup-security-scan-artifacts@3be607a7f56b236a3668afccd0a9e25102ec0dea # main
+      - uses: solo-io/solo-tools/.github/actions/setup-security-scan-artifacts@2a6fe07c99986682062ca53375944d9982f31f8e # main
         with:
           gcp_creds: ${{ secrets.GLOO_VULN_REPORTER }}
 
