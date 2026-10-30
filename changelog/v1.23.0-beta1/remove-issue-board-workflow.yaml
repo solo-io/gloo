@@ -7,4 +7,4 @@ changelog:
       ORG_CROSS_REPO_TROIS personal access token. The Gloo Edge RFEs Priority
       board (project 22) is no longer used, and `Type: Docs` issues still reach
       the Docs board (project 24) through that board's built-in auto-add rule
-      for this repository and the daily issue sync in solo-io/docs.
+      for this repository and the docs team's daily issue sync.
