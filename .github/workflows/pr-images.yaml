@@ -1,0 +1,69 @@
+# Publishes PR images when a PR to a supported release branch has the label
+# publish-pr-images. Publishing runs only after approval in environment "release".
+# The runner checks out the base commit only; the PR's code runs inside Cloud Build.
+# Repository variables: GLOO_RELEASE_WIF_PROVIDER (workload identity provider),
+# GLOO_PR_BUILD_SA (service account email in solo-public).
+name: PR images
+
+on:
+  pull_request_target:
+    types: [labeled, synchronize]
+    branches:
+      - v1.19.x
+      - v1.20.x
+      - v1.21.x
+      - v1.22.x
+
+permissions: {}
+
+concurrency:
+  group: pr-images-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build and publish PR images
+    if: >-
+      (github.event.action == 'labeled' && github.event.label.name == 'publish-pr-images') ||
+      (github.event.action == 'synchronize' && contains(github.event.pull_request.labels.*.name, 'publish-pr-images'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    environment: release
+    permissions:
+      id-token: write
+      contents: read
+    env:
+      HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+      PR_NUM: ${{ github.event.pull_request.number }}
+      GLOO_PR_BUILD_SA: ${{ vars.GLOO_PR_BUILD_SA }}
+    steps:
+      - name: Checkout base
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          persist-credentials: false
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
+        with:
+          workload_identity_provider: ${{ vars.GLOO_RELEASE_WIF_PROVIDER }}
+          service_account: ${{ vars.GLOO_PR_BUILD_SA }}
+
+      - name: Set up gcloud
+        uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3.0.1
+
+      - name: Submit and wait for Cloud Build
+        run: |
+          set -euo pipefail
+          # A user-specified service account needs a logging option.
+          yq '.options.logging = "CLOUD_LOGGING_ONLY"' ci/cloudbuild/publish-artifacts.yaml > "${RUNNER_TEMP}/publish-artifacts.yaml"
+          build_id="$(gcloud builds submit \
+            --project solo-public \
+            --no-source \
+            --config "${RUNNER_TEMP}/publish-artifacts.yaml" \
+            --service-account "projects/solo-public/serviceAccounts/${GLOO_PR_BUILD_SA}" \
+            --substitutions "COMMIT_SHA=${HEAD_SHA},REPO_NAME=gloo,TAG_NAME=,_PR_NUM=${PR_NUM}" \
+            --async \
+            --format='value(id)')"
+          echo "Cloud Build ${build_id}"
+          ci/cloudbuild/wait-for-build.sh "${build_id}"
