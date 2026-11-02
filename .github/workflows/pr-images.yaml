@@ -5,6 +5,7 @@
 # Repository variables: GLOO_RELEASE_WIF_PROVIDER (workload identity provider),
 # GLOO_PR_BUILD_SA (service account email in solo-public).
 name: PR images
+run-name: "PR images #${{ github.event.pull_request.number }} at ${{ github.event.pull_request.head.sha }}"
 
 on:
   pull_request_target:
