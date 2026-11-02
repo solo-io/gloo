@@ -97,18 +97,6 @@ jobs:
           set -euo pipefail
           # A re-run attaches to the tag's existing publish build rather than
           # publishing twice.
-          describe() {
-            local i out
-            for i in 1 2 3 4 5; do
-              if out="$(gcloud builds describe "$1" --project solo-public --format="${2:-value(status)}")"; then
-                printf '%s\n' "${out}"
-                return 0
-              fi
-              echo "gcloud builds describe failed (attempt ${i}/5)" >&2
-              if [[ "${i}" -lt 5 ]]; then sleep 10; fi
-            done
-            return 1
-          }
           # The API lists newest first. tags and createTime are filtered server-side; the rest client-side.
           existing="$(gcloud builds list \
             --project solo-public \
@@ -130,8 +118,7 @@ jobs:
             esac
           fi
           if [[ -z "${build_id}" ]]; then
-            # A user-specified service account needs a logging option; build-bot's
-            # PR builds share the config and keep streaming logs from GCS.
+            # A user-specified service account needs a logging option.
             yq '.options.logging = "CLOUD_LOGGING_ONLY"' ci/cloudbuild/publish-artifacts.yaml > "${RUNNER_TEMP}/publish-artifacts.yaml"
             build_id="$(gcloud builds submit \
               --project solo-public \
@@ -143,24 +130,7 @@ jobs:
               --format='value(id)')"
           fi
           echo "Cloud Build ${build_id}"
-          {
-            echo "Cloud Build \`${build_id}\`: $(describe "${build_id}" 'value(logUrl)')"
-            echo
-            echo "Cancelling this run does not stop the build. To stop a mistaken release: \`gcloud builds cancel ${build_id} --project solo-public\`"
-          } >> "${GITHUB_STEP_SUMMARY}"
-          while true; do
-            status="$(describe "${build_id}")"
-            echo "status: ${status}"
-            case "${status}" in
-              SUCCESS|FAILURE|INTERNAL_ERROR|TIMEOUT|CANCELLED|EXPIRED) break ;;
-            esac
-            sleep 30
-          done
-          echo "Logs: $(describe "${build_id}" 'value(logUrl)')"
-          if [[ "${status}" != "SUCCESS" ]]; then
-            echo "::error::Cloud Build ${build_id} ended ${status}"
-            exit 1
-          fi
+          ci/cloudbuild/wait-for-build.sh "${build_id}"
 
   glooctl:
     name: Upload glooctl release assets
