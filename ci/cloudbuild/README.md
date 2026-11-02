@@ -26,4 +26,4 @@ To get images for a PR, the PR author adds the label `publish-pr-images`. A labe
 
 The build runs the PR's code with the quay.io robot logged in, so approvers check the PR's Makefile, `ci/` and Dockerfile changes first. The run title shows the PR head commit; approve only if it is the commit you reviewed. Approvers must not be the PR author or have pushed commits to the PR (prevent self-review only blocks whoever started the run).
 
-Images are tagged `<version>-<PR number>`. A push to a labelled PR asks for approval again. PR builds that don't push (`run-tests.yaml`, including the glooctl build) still run from build-bot without approval.
+Images are tagged `<version>-<PR number>`. A push by the PR author asks for approval again. Pushes by anyone else, including the `keep pr updated` base merges, don't rebuild, so the images can lag the PR head. PR builds that don't push (`run-tests.yaml`, including the glooctl build) still run from build-bot without approval.
