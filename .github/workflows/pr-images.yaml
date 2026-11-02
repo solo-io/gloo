@@ -29,7 +29,7 @@ jobs:
       group: pr-images-${{ github.event.pull_request.number }}
       cancel-in-progress: false
     runs-on: ubuntu-latest
-    timeout-minutes: 75
+    timeout-minutes: 135
     environment: release
     permissions:
       id-token: write

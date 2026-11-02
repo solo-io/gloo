@@ -27,7 +27,7 @@ if [[ -n "${GITHUB_STEP_SUMMARY:-}" ]]; then
   {
     echo "Cloud Build \`${build_id}\`: $(describe "${build_id}" 'value(logUrl)')"
     echo
-    echo "Cancelling this run does not stop the build. To stop a mistaken release: \`gcloud builds cancel ${build_id} --project solo-public\`"
+    echo "Cancelling this run does not stop the build. To stop it:\`gcloud builds cancel ${build_id} --project solo-public\`"
   } >> "${GITHUB_STEP_SUMMARY}"
 fi
 
