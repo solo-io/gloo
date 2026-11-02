@@ -3,6 +3,7 @@
 # Repository variables: GLOO_RELEASE_WIF_PROVIDER (workload identity provider),
 # GLOO_RELEASE_SA (service account email in solo-public).
 name: Release
+run-name: "Release ${{ github.event.release.tag_name }}"
 
 on:
   release:
