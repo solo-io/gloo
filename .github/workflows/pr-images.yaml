@@ -1,5 +1,6 @@
 # Publishes PR images when a PR to a supported release branch has the label
 # publish-pr-images. Publishing runs only after approval in environment "release".
+# Only the PR author's label or push starts a run, so the author can't approve it.
 # The runner checks out the base commit only; the PR's code runs inside Cloud Build.
 # Repository variables: GLOO_RELEASE_WIF_PROVIDER (workload identity provider),
 # GLOO_PR_BUILD_SA (service account email in solo-public).
@@ -24,8 +25,9 @@ jobs:
   build:
     name: Build and publish PR images
     if: >-
-      (github.event.action == 'labeled' && github.event.label.name == 'publish-pr-images') ||
-      (github.event.action == 'synchronize' && contains(github.event.pull_request.labels.*.name, 'publish-pr-images'))
+      ((github.event.action == 'labeled' && github.event.label.name == 'publish-pr-images') ||
+      (github.event.action == 'synchronize' && contains(github.event.pull_request.labels.*.name, 'publish-pr-images'))) &&
+      github.triggering_actor == github.event.pull_request.user.login
     runs-on: ubuntu-latest
     timeout-minutes: 75
     environment: release
