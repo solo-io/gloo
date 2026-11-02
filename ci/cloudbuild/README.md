@@ -22,7 +22,7 @@ To stop a mistaken release, cancel the Cloud Build: `gcloud builds cancel <id> -
 
 ## PR images
 
-To get images for a PR, add the label `publish-pr-images`. [`pr-images.yaml`](../../.github/workflows/pr-images.yaml) then waits for a second person to approve in environment `release` before it submits [Publish Artifacts](publish-artifacts.yaml) as the PR build service account.
+To get images for a PR, the PR author adds the label `publish-pr-images`. A label or push by anyone else doesn't start a build. [`pr-images.yaml`](../../.github/workflows/pr-images.yaml) then waits for a second person (not the author) to approve in environment `release` before it submits [Publish Artifacts](publish-artifacts.yaml) as the PR build service account. Fork PRs whose author can't add labels get no PR images.
 
 The build runs the PR's code with the quay.io robot logged in, so approvers check the PR's Makefile, `ci/` and Dockerfile changes first.
 
