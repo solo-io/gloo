@@ -1174,8 +1174,10 @@ func constructOpts(ctx context.Context, setup *bootstrap.SetupOpts, params const
 			return bootstrap.Opts{}, err
 		}
 	} else {
+		// The process-level cache outlives a settings-triggered setup re-run, so the gateway reconciler
+		// still sees last run's Proxy and keeps its listeners when a Gateway is newly rejected.
 		proxyFactory = &factory.MemoryResourceClientFactory{
-			Cache: memory.NewInMemoryResourceCache(),
+			Cache: params.memCache,
 		}
 	}
 

@@ -9,3 +9,12 @@ changelog:
       the hold on or off (default off); GLOO_SETUP_FIRST_SYNC_TIMEOUT (default 10m) bounds
       the wait if the first sync never returns. Other components that share the setup loop
       are not affected.
+  - type: FIX
+    issueLink: https://github.com/solo-io/solo-projects/issues/9168
+    resolvesIssue: false
+    description: >-
+      Keep the in-memory Proxy store for the life of the process instead of recreating it each time
+      a namespace matching watchNamespaceSelectors re-runs gloo setup. The gateway reconciler keeps a
+      previously written listener when its Gateway is newly rejected only if it can read the previous
+      Proxy; with a fresh store per run, the first reconcile after a re-run stripped the listener.
+      persistProxySpec=true is unchanged.
