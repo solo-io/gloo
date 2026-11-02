@@ -92,9 +92,11 @@ func Main(opts SetupOpts) error {
 
 	// settings come from the ResourceClient in the settingsClient
 	// the eventLoop will Watch the emitter's settingsClient to receive settings from the ResourceClient
-	emitter := v1.NewSetupEmitter(settingsClient, namespaceClient)
+	// forceEmit lets the syncer re-deliver a snapshot whose sync it deferred
+	forceEmit := make(chan struct{})
+	emitter := v1.NewSetupEmitterWithEmit(settingsClient, namespaceClient, forceEmit)
 	settingsRef := &core.ResourceRef{Namespace: setupNamespace, Name: setupName}
-	eventLoop := v1.NewSetupEventLoop(emitter, NewSetupSyncer(settingsRef, opts.SetupFunc, identity))
+	eventLoop := v1.NewSetupEventLoop(emitter, NewSetupSyncer(settingsRef, opts.SetupFunc, identity, forceEmit))
 	errs, err := eventLoop.Run([]string{setupNamespace}, clients.WatchOpts{
 		Ctx:         ctx,
 		RefreshRate: time.Second,

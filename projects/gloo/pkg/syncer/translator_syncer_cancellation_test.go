@@ -37,38 +37,18 @@ var _ = Describe("Translator syncer with a cancelled context", func() {
 		ctx    context.Context
 		cancel context.CancelFunc
 
-		ns          = "cancel-ns"
-		proxy       *v1.Proxy
-		snap        *v1snap.ApiSnapshot
-		proxyClient v1.ProxyClient
+		proxy *v1.Proxy
+		snap  *v1snap.ApiSnapshot
 	)
 
 	newSyncer := func(translator glootranslator.Translator, xdsCache envoycache.SnapshotCache) v1snap.ApiSyncer {
-		resourceClientFactory := &factory.MemoryResourceClientFactory{
-			Cache: memory.NewInMemoryResourceCache(),
-		}
-		proxyClient, _ = v1.NewProxyClient(ctx, resourceClientFactory)
-		upstreamClient, err := resourceClientFactory.NewResourceClient(ctx, factory.NewResourceClientParams{ResourceType: &v1.Upstream{}})
-		Expect(err).NotTo(HaveOccurred())
-
-		settings := &v1.Settings{}
-		statusClient := statusutils.GetStatusClientFromEnvOrDefault(ns)
-		statusMetrics, err := metrics.NewConfigStatusMetrics(metrics.GetDefaultConfigStatusOptions())
-		Expect(err).NotTo(HaveOccurred())
-		rep := reporter.NewReporter("cancel-test", statusClient, proxyClient.BaseClient(), upstreamClient)
-		history := iosnapshot.GetHistoryFactory()(iosnapshot.HistoryFactoryParameters{
-			Settings: settings,
-			Cache:    xdsCache,
-		})
-
-		return NewTranslatorSyncer(ctx, translator, xdsCache, &MockXdsSanitizer{}, rep, false, nil, settings,
-			statusMetrics, nil, proxyClient, ns, singlereplica.Identity(), history)
+		return newTestTranslatorSyncer(ctx, translator, xdsCache)
 	}
 
 	BeforeEach(func() {
 		ctx, cancel = context.WithCancel(context.Background())
 		proxy = &v1.Proxy{
-			Metadata: &core.Metadata{Namespace: ns, Name: "cancel-proxy"},
+			Metadata: &core.Metadata{Namespace: cancelTestNamespace, Name: "cancel-proxy"},
 		}
 		snap = &v1snap.ApiSnapshot{Proxies: v1.ProxyList{proxy}}
 	})
@@ -122,6 +102,32 @@ var _ = Describe("Translator syncer with a cancelled context", func() {
 			"a translation that could not validate its config must not reach the xDS cache")
 	})
 })
+
+const cancelTestNamespace = "cancel-ns"
+
+// newTestTranslatorSyncer builds a translator syncer on in-memory clients.
+func newTestTranslatorSyncer(ctx context.Context, translator glootranslator.Translator, xdsCache envoycache.SnapshotCache) v1snap.ApiSyncer {
+	resourceClientFactory := &factory.MemoryResourceClientFactory{
+		Cache: memory.NewInMemoryResourceCache(),
+	}
+	proxyClient, err := v1.NewProxyClient(ctx, resourceClientFactory)
+	Expect(err).NotTo(HaveOccurred())
+	upstreamClient, err := resourceClientFactory.NewResourceClient(ctx, factory.NewResourceClientParams{ResourceType: &v1.Upstream{}})
+	Expect(err).NotTo(HaveOccurred())
+
+	settings := &v1.Settings{}
+	statusClient := statusutils.GetStatusClientFromEnvOrDefault(cancelTestNamespace)
+	statusMetrics, err := metrics.NewConfigStatusMetrics(metrics.GetDefaultConfigStatusOptions())
+	Expect(err).NotTo(HaveOccurred())
+	rep := reporter.NewReporter("cancel-test", statusClient, proxyClient.BaseClient(), upstreamClient)
+	history := iosnapshot.GetHistoryFactory()(iosnapshot.HistoryFactoryParameters{
+		Settings: settings,
+		Cache:    xdsCache,
+	})
+
+	return NewTranslatorSyncer(ctx, translator, xdsCache, &MockXdsSanitizer{}, rep, false, nil, settings,
+		statusMetrics, nil, proxyClient, cancelTestNamespace, singlereplica.Identity(), history)
+}
 
 // interruptedReason is the validator's wrap of runner.ErrValidationInterrupted as a string. The real
 // translator keeps interruptions off reports. The stubs below put this text on theirs to prove the

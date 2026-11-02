@@ -2,10 +2,15 @@ package setuputils
 
 import (
 	"context"
+	"os"
 	"slices"
 	"strings"
+	"sync"
+	"sync/atomic"
+	"time"
 
 	"github.com/solo-io/gloo/pkg/bootstrap/leaderelector"
+	"github.com/solo-io/gloo/pkg/utils/envutils"
 	"github.com/solo-io/gloo/pkg/utils/statsutils"
 	"go.opencensus.io/tag"
 
@@ -33,20 +38,80 @@ type SetupFunc func(ctx context.Context,
 	settings *v1.Settings,
 	identity leaderelector.Identity) error
 
+const (
+	// HoldRestartsEnv turns the first-sync hold on or off ("true"/"false"); unset uses holdRestartsDefault.
+	HoldRestartsEnv = "GLOO_HOLD_SETUP_RESTART_UNTIL_FIRST_SYNC"
+	// FirstSyncTimeoutEnv is a Go duration ("10m") bounding how long a held restart waits for the first sync.
+	FirstSyncTimeoutEnv = "GLOO_SETUP_FIRST_SYNC_TIMEOUT"
+
+	holdRestartsDefault     = false
+	defaultFirstSyncTimeout = 10 * time.Minute
+)
+
+func holdRestartsEnabled() bool {
+	if value, ok := os.LookupEnv(HoldRestartsEnv); ok {
+		return envutils.IsTruthyValue(value)
+	}
+	return holdRestartsDefault
+}
+
+func firstSyncTimeout() time.Duration {
+	if d, err := time.ParseDuration(os.Getenv(FirstSyncTimeoutEnv)); err == nil && d > 0 {
+		return d
+	}
+	return defaultFirstSyncTimeout
+}
+
+type firstSyncGateKey struct{}
+
+// firstSyncGate is placed on each setup run's ctx; a component arms it via HoldRestartsUntilFirstSync.
+type firstSyncGate struct {
+	held    atomic.Bool
+	ready   chan struct{}
+	release func()
+}
+
+func newFirstSyncGate() *firstSyncGate {
+	gate := &firstSyncGate{ready: make(chan struct{})}
+	gate.release = sync.OnceFunc(func() { close(gate.ready) })
+	return gate
+}
+
+// HoldRestartsUntilFirstSync holds settings and namespace restarts of the setup run owning ctx until the
+// returned func is called. Callers in the same run share one release, so the first call frees the hold.
+// Outside a setup run, or with the hold turned off by env, it returns a no-op.
+func HoldRestartsUntilFirstSync(ctx context.Context) func() {
+	gate, ok := ctx.Value(firstSyncGateKey{}).(*firstSyncGate)
+	if !ok || !holdRestartsEnabled() {
+		return func() {}
+	}
+	gate.held.Store(true)
+	return gate.release
+}
+
 type SetupSyncer struct {
 	settingsRef         *core.ResourceRef
 	setupFunc           SetupFunc
 	inMemoryCache       memory.InMemoryResourceCache
 	identity            leaderelector.Identity
 	currentSettingsHash uint64
+
+	// forceEmit re-sends the current snapshot through the setup emitter; nil disables deferral.
+	forceEmit chan<- struct{}
+	// gate belongs to the current setup run; restarts are held while it is armed and not yet released.
+	gate *firstSyncGate
+	// restartDeferred is set once a change has been deferred for the current gate, so only one emitWhenReady runs per setup run.
+	restartDeferred bool
 }
 
-func NewSetupSyncer(settingsRef *core.ResourceRef, setupFunc SetupFunc, identity leaderelector.Identity) *SetupSyncer {
+// NewSetupSyncer builds the syncer; forceEmit is the setup emitter's emit channel and may be nil.
+func NewSetupSyncer(settingsRef *core.ResourceRef, setupFunc SetupFunc, identity leaderelector.Identity, forceEmit chan<- struct{}) *SetupSyncer {
 	return &SetupSyncer{
 		settingsRef:   settingsRef,
 		setupFunc:     setupFunc,
 		inMemoryCache: memory.NewInMemoryResourceCache(),
 		identity:      identity,
+		forceEmit:     forceEmit,
 	}
 }
 
@@ -78,8 +143,12 @@ func (s *SetupSyncer) Sync(ctx context.Context, snap *v1.SetupSnapshot) error {
 		mSetupsRun,
 	)
 
+	s.gate, s.restartDeferred = newFirstSyncGate(), false
+	ctx = context.WithValue(ctx, firstSyncGateKey{}, s.gate)
+
 	err = s.setupFunc(ctx, kube.NewKubeCache(ctx), s.inMemoryCache, settings, s.identity)
 	if err != nil {
+		s.gate = nil // a failed run holds nothing; the next change restarts it at once
 		return err
 	}
 
@@ -90,7 +159,55 @@ func (s *SetupSyncer) Sync(ctx context.Context, snap *v1.SetupSnapshot) error {
 // ShouldSync compares two snapshots and determines whether a sync is needed based on the following conditions
 // 1. The settings CR has changed
 // 2. A namespace is added / deleted / modified that changes the namespaces to watch
+// If the running setup holds restarts (HoldRestartsUntilFirstSync), a needed sync is deferred until it
+// releases them, so that setup publishes xDS at least once. The snapshot is then re-delivered via forceEmit.
 func (s *SetupSyncer) ShouldSync(ctx context.Context, oldSnapshot, newSnapshot *v1.SetupSnapshot) bool {
+	if !s.snapshotChanged(ctx, oldSnapshot, newSnapshot) {
+		return false
+	}
+	// Sync now before the first run, when deferral is disabled, after a failed run, or when nothing holds restarts.
+	if s.forceEmit == nil || s.gate == nil || !s.gate.held.Load() {
+		return true
+	}
+	// The hold has been released, so the restart can go ahead.
+	select {
+	case <-s.gate.ready:
+		return true
+	default:
+	}
+	// Defer the change. Later changes during the same hold are covered by the one re-send, which delivers the latest snapshot.
+	if !s.restartDeferred {
+		s.restartDeferred = true
+		contextutils.LoggerFrom(ctx).Infow("deferring setup restart until the current setup has run its first sync")
+		go s.emitWhenReady(ctx, s.gate)
+	}
+	return false
+}
+
+// emitWhenReady waits until the setup releases its hold (or the timeout passes), then re-sends the
+// snapshot so the event loop calls ShouldSync again for the deferred change.
+func (s *SetupSyncer) emitWhenReady(ctx context.Context, gate *firstSyncGate) {
+	timeout := firstSyncTimeout()
+	timer := time.NewTimer(timeout)
+	defer timer.Stop()
+	select {
+	case <-gate.ready:
+	case <-timer.C:
+		contextutils.LoggerFrom(ctx).Warnw("setup did not finish its first sync before the timeout; restarting setup anyway",
+			zap.Duration("timeout", timeout))
+		// Drop the hold so ShouldSync lets the re-sent snapshot restart setup.
+		gate.held.Store(false)
+	case <-ctx.Done():
+		return
+	}
+	// The emitter may be busy, so the send also gives up on shutdown.
+	select {
+	case s.forceEmit <- struct{}{}:
+	case <-ctx.Done():
+	}
+}
+
+func (s *SetupSyncer) snapshotChanged(ctx context.Context, oldSnapshot, newSnapshot *v1.SetupSnapshot) bool {
 	// Basic sanity checks. Return a true if there is an error to ensure a sync to get into a good state
 	if oldSnapshot == nil || newSnapshot == nil {
 		return true

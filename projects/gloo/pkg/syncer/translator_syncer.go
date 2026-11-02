@@ -18,6 +18,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
 
 	"github.com/solo-io/gloo/pkg/bootstrap/leaderelector"
+	"github.com/solo-io/gloo/pkg/utils/setuputils"
 	gwsyncer "github.com/solo-io/gloo/projects/gateway/pkg/syncer"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	v1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
@@ -48,6 +49,8 @@ type translatorSyncer struct {
 	snapshotHistory iosnapshot.History
 
 	statusSyncer *statusSyncer
+	// firstSyncDone releases the setup loop's hold on restarts after the first Sync.
+	firstSyncDone func()
 }
 
 type statusSyncer struct {
@@ -97,6 +100,7 @@ func NewTranslatorSyncer(
 			reportsLock:         sync.RWMutex{},
 		},
 		snapshotHistory: snapshotHistory,
+		firstSyncDone:   setuputils.HoldRestartsUntilFirstSync(ctx),
 	}
 	if devMode {
 		// TODO(ilackarms): move this somewhere else?
@@ -110,6 +114,7 @@ func NewTranslatorSyncer(
 }
 
 func (s *translatorSyncer) Sync(ctx context.Context, snap *v1snap.ApiSnapshot) error {
+	defer s.firstSyncDone()
 	logger := contextutils.LoggerFrom(ctx)
 	var multiErr *multierror.Error
 

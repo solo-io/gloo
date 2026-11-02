@@ -1,0 +1,11 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/solo-projects/issues/9349
+    resolvesIssue: false
+    description: >-
+      With watchNamespaceSelectors, a namespace or Settings change no longer restarts the
+      gloo setup loop before the running setup has attempted its first xDS sync. The change
+      is re-delivered once that sync has run. GLOO_HOLD_SETUP_RESTART_UNTIL_FIRST_SYNC turns
+      the hold on or off (default off); GLOO_SETUP_FIRST_SYNC_TIMEOUT (default 10m) bounds
+      the wait if the first sync never returns. Other components that share the setup loop
+      are not affected.
