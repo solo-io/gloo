@@ -17,10 +17,6 @@ on:
 
 permissions: {}
 
-concurrency:
-  group: pr-images-${{ github.event.pull_request.number }}
-  cancel-in-progress: false
-
 jobs:
   build:
     name: Build and publish PR images
@@ -28,6 +24,9 @@ jobs:
       ((github.event.action == 'labeled' && github.event.label.name == 'publish-pr-images') ||
       (github.event.action == 'synchronize' && contains(github.event.pull_request.labels.*.name, 'publish-pr-images'))) &&
       github.triggering_actor == github.event.pull_request.user.login
+    concurrency:
+      group: pr-images-${{ github.event.pull_request.number }}
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     timeout-minutes: 75
     environment: release
