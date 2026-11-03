@@ -697,6 +697,10 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 			}
 			logger.Panicw("failed warming up endpoints - consider adjusting endpointsWarmingTimeout", "warmTimeoutDuration", warmTimeoutDuration)
 		}
+	} else if len(opts.Settings.GetWatchNamespaceSelectors()) > 0 {
+		// Setup restarts are held only until the first sync, which may run before endpoints are discovered.
+		logger.Warnw("endpointsWarmingTimeout is 0s with watchNamespaceSelectors: a setup run's first sync can publish " +
+			"clusters with no endpoints, and if a namespace changed during setup, that sync is also the run's last")
 	}
 
 	// We are ready!
@@ -1184,6 +1188,13 @@ func constructOpts(ctx context.Context, setup *bootstrap.SetupOpts, params const
 		if err != nil {
 			return bootstrap.Opts{}, err
 		}
+	} else {
+		// The process-level cache outlives a settings-triggered setup re-run, so the gateway reconciler
+		// still sees last run's Proxy and keeps its listeners when a Gateway is newly rejected.
+		// deleteUnreconciledMemoryProxies removes the Proxies this run will not reconcile.
+		proxyFactory = &factory.MemoryResourceClientFactory{
+			Cache: params.memCache,
+		}
 	}
 
 	secretFactory, err := bootstrap_clients.SecretFactoryForSettings(ctx,
@@ -1280,7 +1291,12 @@ func constructOpts(ctx context.Context, setup *bootstrap.SetupOpts, params const
 	} else {
 		gatewayMode = true
 	}
-
+	if !params.settings.GetGateway().GetPersistProxySpec().GetValue() {
+		// Gloo still works with stray Proxies, so a failed delete is logged and setup continues.
+		if err := deleteUnreconciledMemoryProxies(ctx, proxyFactory, params.writeNamespace, gatewayMode); err != nil {
+			contextutils.LoggerFrom(ctx).Warnw("failed to delete in-memory Proxies left by a previous setup run", zap.Error(err))
+		}
+	}
 	if validationServerEnabled && gatewayMode {
 		alwaysAcceptResources := AcceptAllResourcesByDefault
 
