@@ -168,6 +168,9 @@ type setupSyncer struct {
 	validationServer         bootstrap.ValidationServer
 	proxyDebugServer         bootstrap.ProxyDebugServer
 	callbacks                xdsserver.Callbacks
+	// previousProxyCache is the in-memory Proxy cache of the most recent setup run. The next Setup copies
+	// its Edge Proxies into the new run's cache, then points this field at the new cache.
+	previousProxyCache memory.InMemoryResourceCache
 }
 
 func NewControlPlane(ctx context.Context, snapshotCache cache.SnapshotCache, grpcServer *grpc.Server, bindAddr net.Addr, kubeControlPlaneCfg bootstrap.KubernetesControlPlaneConfig,
@@ -332,6 +335,20 @@ func (s *setupSyncer) Setup(ctx context.Context, kubeCache kube.SharedCache, mem
 	)
 	if err != nil {
 		return err
+	}
+
+	// The gateway reconciler keeps a serving listener whose Gateway is newly rejected only when it can
+	// read the previous Proxy, so a fresh per-run store starts with the Edge Proxies the last run wrote.
+	// With the gateway controller disabled no Edge reconcile runs, so none are copied.
+	if mem, ok := opts.Proxies.(*factory.MemoryResourceClientFactory); ok {
+		if opts.GatewayControllerEnabled {
+			if err := copyEdgeProxies(ctx, s.previousProxyCache, mem.Cache, writeNamespace); err != nil {
+				contextutils.LoggerFrom(ctx).Warnw("could not carry Edge Proxies into the new setup run", zap.Error(err))
+			}
+		}
+		s.previousProxyCache = mem.Cache
+	} else {
+		s.previousProxyCache = nil
 	}
 
 	// get xds host/port to pass to ControlPlane below, only if we're running in k8s
@@ -1188,13 +1205,6 @@ func constructOpts(ctx context.Context, setup *bootstrap.SetupOpts, params const
 		if err != nil {
 			return bootstrap.Opts{}, err
 		}
-	} else {
-		// The process-level cache outlives a settings-triggered setup re-run, so the gateway reconciler
-		// still sees last run's Proxy and keeps its listeners when a Gateway is newly rejected.
-		// deleteUnreconciledMemoryProxies removes the Proxies this run will not reconcile.
-		proxyFactory = &factory.MemoryResourceClientFactory{
-			Cache: params.memCache,
-		}
 	}
 
 	secretFactory, err := bootstrap_clients.SecretFactoryForSettings(ctx,
@@ -1291,12 +1301,7 @@ func constructOpts(ctx context.Context, setup *bootstrap.SetupOpts, params const
 	} else {
 		gatewayMode = true
 	}
-	if !params.settings.GetGateway().GetPersistProxySpec().GetValue() {
-		// Gloo still works with stray Proxies, so a failed delete is logged and setup continues.
-		if err := deleteUnreconciledMemoryProxies(ctx, proxyFactory, params.writeNamespace, gatewayMode); err != nil {
-			contextutils.LoggerFrom(ctx).Warnw("failed to delete in-memory Proxies left by a previous setup run", zap.Error(err))
-		}
-	}
+
 	if validationServerEnabled && gatewayMode {
 		alwaysAcceptResources := AcceptAllResourcesByDefault
 
@@ -1387,6 +1392,39 @@ func constructIstioBootstrapOpts(settings *v1.Settings) bootstrap.IstioValues {
 	}
 
 	return istioValues
+}
+
+// copyEdgeProxies copies the Gloo Edge Proxies in writeNamespace from the previous run's Proxy cache
+// into the new run's cache, without their status. A nil previous cache copies nothing. Gateway API
+// Proxies are not copied; replayGatewayProxies seeds those from the controller's own store.
+func copyEdgeProxies(ctx context.Context, previous, next memory.InMemoryResourceCache, writeNamespace string) error {
+	if previous == nil {
+		return nil
+	}
+	src, err := gloov1.NewProxyClient(ctx, &factory.MemoryResourceClientFactory{Cache: previous})
+	if err != nil {
+		return err
+	}
+	dst, err := gloov1.NewProxyClient(ctx, &factory.MemoryResourceClientFactory{Cache: next})
+	if err != nil {
+		return err
+	}
+	proxies, err := src.List(writeNamespace, clients.ListOpts{
+		Ctx:      ctx,
+		Selector: map[string]string{utils.ProxyTypeKey: utils.GlooEdgeProxyValue},
+	})
+	if err != nil {
+		return err
+	}
+	for _, proxy := range proxies {
+		// The copy gives the reconciler the previous spec; the new run reports its own status. List
+		// returns clones, so clearing the status here does not change the previous cache.
+		proxy.NamespacedStatuses = nil
+		if _, err := dst.Write(proxy, clients.WriteOpts{Ctx: ctx}); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // replayGatewayProxies seeds a new run from the controller's complete desired

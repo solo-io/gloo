@@ -17,7 +17,8 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
 )
 
-// After a restart the in-memory Proxy store is empty, so a reconcile that fails lists no Proxies.
+// The store below starts empty and the stub reconciler writes nothing, so a reconcile that fails
+// lists no Proxies.
 var _ = Describe("Translator syncer after a failed proxy reconcile", func() {
 	var (
 		ctx       context.Context
