@@ -18,7 +18,7 @@ Publishing a GitHub release starts [`release.yaml`](../../.github/workflows/rele
 
 Before approving, check that the tag's commit is on its `v1.<minor>.x` branch. The workflow file runs from the tagged commit, so its own checks are not a guarantee.
 
-To stop a mistaken release, cancel the Cloud Build: `gcloud builds cancel <id> --project solo-public`. The run summary prints the id. Cancelling the workflow run does not stop the build.
+To stop a mistaken release, cancel the Cloud Build: `gcloud builds cancel <id> --project solo-public`. The log of the "Submit and wait for Cloud Build" step prints the id and the command as soon as the build starts; the run summary shows them only after the job ends. Cancelling the workflow run does not stop the build.
 
 Only a version with no suffix or `-patchN` is a regular release. Mark every other suffix (for example `-beta1`, `-rc1`, `-fips`) as a pre-release when creating the release. Validation fails otherwise, so edit the release and re-run the failed jobs.
 
