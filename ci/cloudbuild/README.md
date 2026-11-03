@@ -20,6 +20,10 @@ Before approving, check that the tag's commit is on its `v1.<minor>.x` branch. T
 
 To stop a mistaken release, cancel the Cloud Build: `gcloud builds cancel <id> --project solo-public`. The run summary prints the id. Cancelling the workflow run does not stop the build.
 
+Only a version with no suffix or `-patchN` is a regular release. Mark every other suffix (for example `-beta1`, `-rc1`, `-fips`) as a pre-release when creating the release. Validation fails otherwise, so edit the release and re-run the failed jobs.
+
+For a new release line (for example `v1.23.x`), release-owners create the branch from the newest line, so it carries the workflows. A repo admin adds the exact branch name to the deployment branches of environment `release`, and IT adds it to the PR-images branch list of the `gloo` workload identity provider. Branch names are listed exactly; patterns come later. `release.yaml` accepts tags up to `v1.29`.
+
 ## PR images
 
 To get images for a PR, the PR author adds the label `publish-pr-images`. A label or push by anyone else doesn't start a build. [`pr-images.yaml`](../../.github/workflows/pr-images.yaml) then waits for a second person (not the author) to approve in environment `release` before it submits [Publish Artifacts](publish-artifacts.yaml) as the PR build service account. Fork PRs whose author can't add labels get no PR images.

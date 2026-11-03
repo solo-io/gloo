@@ -52,10 +52,11 @@ jobs:
             echo "::error::Tag ${TAG} (${sha}) is not on origin/${branch}"
             exit 1
           fi
-          if [[ "${TAG}" =~ -(alpha|beta|rc|pre|dev|nightly)[0-9]*(-|$) ]]; then
-            build_type=pre-release
-          else
+          # Regular release only for no suffix or -patchN; every other suffix is a pre-release.
+          if [[ "${TAG}" =~ ^v[0-9.]+(-patch\.?[0-9]+)?$ ]]; then
             build_type=release
+          else
+            build_type=pre-release
           fi
           {
             echo "tag=${TAG}"
@@ -63,6 +64,23 @@ jobs:
             echo "version=${TAG#v}"
             echo "build_type=${build_type}"
           } >> "${GITHUB_OUTPUT}"
+
+      - name: Check pre-release flag
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.check.outputs.tag }}
+          BUILD_TYPE: ${{ steps.check.outputs.build_type }}
+        run: |
+          set -euo pipefail
+          is_pre="$(gh release view "${TAG}" --repo "${GITHUB_REPOSITORY}" --json isPrerelease --jq .isPrerelease)"
+          if [[ "${BUILD_TYPE}" == "pre-release" && "${is_pre}" != "true" ]]; then
+            echo "::error::Release ${TAG} must be marked pre-release. Only no suffix or -patchN is a regular release. Edit the release and use Re-run failed jobs."
+            exit 1
+          fi
+          if [[ "${BUILD_TYPE}" == "release" && "${is_pre}" != "false" ]]; then
+            echo "::error::Release ${TAG} must not be marked pre-release. Only no suffix or -patchN is a regular release. Edit the release and use Re-run failed jobs."
+            exit 1
+          fi
 
   build:
     name: Build and publish images and chart
