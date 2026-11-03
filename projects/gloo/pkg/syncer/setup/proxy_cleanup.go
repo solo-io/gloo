@@ -8,7 +8,6 @@ import (
 	bootstrap "github.com/solo-io/gloo/projects/gloo/pkg/bootstrap/clients"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 )
 
 func deleteUnusedProxies(ctx context.Context, namespace string, proxyClient v1.ProxyClient) error {
@@ -53,30 +52,4 @@ func doProxyCleanup(ctx context.Context, params bootstrap.ConfigFactoryParams, s
 		return err
 	}
 	return deleteUnusedProxies(ctx, namespace, proxyClient)
-}
-
-// deleteUnreconciledMemoryProxies deletes the in-memory Proxies that no reconcile in this setup run will list.
-// The in-memory store outlives setup runs, and gloo serves every Proxy in it. The Edge and Gateway API
-// reconcilers each list their own Proxies in writeNamespace, and the Edge reconciler runs only when the
-// gateway controller is enabled.
-func deleteUnreconciledMemoryProxies(ctx context.Context, proxyFactory factory.ResourceClientFactory, writeNamespace string, gatewayControllerEnabled bool) error {
-	proxyClient, err := v1.NewProxyClient(ctx, proxyFactory)
-	if err != nil {
-		return err
-	}
-	proxies, err := proxyClient.List("", clients.ListOpts{Ctx: ctx})
-	if err != nil {
-		return err
-	}
-	var deleteErrs []error
-	for _, proxy := range proxies {
-		isEdge := proxy.GetMetadata().GetLabels()[utils.ProxyTypeKey] == utils.GlooEdgeProxyValue
-		if proxy.GetMetadata().GetNamespace() == writeNamespace && (gatewayControllerEnabled || !isEdge) {
-			continue
-		}
-		if err := proxyClient.Delete(proxy.GetMetadata().GetNamespace(), proxy.GetMetadata().GetName(), clients.DeleteOpts{Ctx: ctx, IgnoreNotExist: true}); err != nil {
-			deleteErrs = append(deleteErrs, err)
-		}
-	}
-	return errors.Join(deleteErrs...)
 }
