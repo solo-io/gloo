@@ -9,6 +9,7 @@ import (
 	"github.com/solo-io/gloo/pkg/bootstrap/leaderelector"
 	"github.com/solo-io/gloo/pkg/bootstrap/leaderelector/singlereplica"
 	"github.com/solo-io/gloo/pkg/utils/settingsutil"
+	"github.com/solo-io/gloo/projects/gloo/constants"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -210,7 +211,7 @@ var _ = Describe("SetupSyncer", func() {
 			)
 
 			BeforeEach(func() {
-				GinkgoT().Setenv(HoldRestartsEnv, "true")
+				GinkgoT().Setenv(constants.DiscardInterruptedTranslationEnv, "true")
 				forceEmit = make(chan struct{})
 				hold = true
 				setupErr = nil
@@ -293,7 +294,7 @@ var _ = Describe("SetupSyncer", func() {
 			})
 
 			When("the hold is turned off by env", func() {
-				BeforeEach(func() { GinkgoT().Setenv(HoldRestartsEnv, "false") })
+				BeforeEach(func() { GinkgoT().Setenv(constants.DiscardInterruptedTranslationEnv, "false") })
 
 				It("syncs a settings change immediately", func() {
 					newSnapshot := snapshot.Clone()
@@ -313,7 +314,7 @@ var _ = Describe("SetupSyncer", func() {
 		}
 
 		It("does not restart setup for a namespace change until the running setup has run its first sync", func() {
-			GinkgoT().Setenv(HoldRestartsEnv, "true")
+			GinkgoT().Setenv(constants.DiscardInterruptedTranslationEnv, "true")
 			ctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
 

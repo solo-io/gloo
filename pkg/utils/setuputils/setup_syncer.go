@@ -15,6 +15,7 @@ import (
 	"go.opencensus.io/tag"
 
 	"github.com/solo-io/gloo/pkg/utils/settingsutil"
+	"github.com/solo-io/gloo/projects/gloo/constants"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
@@ -39,20 +40,15 @@ type SetupFunc func(ctx context.Context,
 	identity leaderelector.Identity) error
 
 const (
-	// HoldRestartsEnv turns the first-sync hold on or off ("true"/"false"); unset uses holdRestartsDefault.
-	HoldRestartsEnv = "GLOO_HOLD_SETUP_RESTART_UNTIL_FIRST_SYNC"
 	// FirstSyncTimeoutEnv is a Go duration ("10m") bounding how long a held restart waits for the first sync.
 	FirstSyncTimeoutEnv = "GLOO_SETUP_FIRST_SYNC_TIMEOUT"
 
-	holdRestartsDefault     = false
 	defaultFirstSyncTimeout = 10 * time.Minute
 )
 
+// holdRestartsEnabled reports whether constants.DiscardInterruptedTranslationEnv turns the first-sync hold on.
 func holdRestartsEnabled() bool {
-	if value, ok := os.LookupEnv(HoldRestartsEnv); ok {
-		return envutils.IsTruthyValue(value)
-	}
-	return holdRestartsDefault
+	return envutils.IsEnvTruthy(constants.DiscardInterruptedTranslationEnv)
 }
 
 func firstSyncTimeout() time.Duration {

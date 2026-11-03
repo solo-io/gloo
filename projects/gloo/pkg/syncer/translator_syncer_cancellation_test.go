@@ -14,6 +14,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/solo-io/gloo/pkg/utils/statusutils"
 	"github.com/solo-io/gloo/projects/envoyinit/pkg/runner"
+	"github.com/solo-io/gloo/projects/gloo/constants"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/grpc/validation"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	v1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
@@ -46,6 +47,7 @@ var _ = Describe("Translator syncer with a cancelled context", func() {
 	}
 
 	BeforeEach(func() {
+		GinkgoT().Setenv(constants.DiscardInterruptedTranslationEnv, "true")
 		ctx, cancel = context.WithCancel(context.Background())
 		proxy = &v1.Proxy{
 			Metadata: &core.Metadata{Namespace: cancelTestNamespace, Name: "cancel-proxy"},
@@ -100,6 +102,31 @@ var _ = Describe("Translator syncer with a cancelled context", func() {
 		Expect(ctx.Err()).To(Succeed(), "this spec is only meaningful while the context is live")
 		Expect(xdsCache.Called).To(BeFalse(),
 			"a translation that could not validate its config must not reach the xDS cache")
+	})
+
+	When("DiscardInterruptedTranslationEnv is off", func() {
+		BeforeEach(func() {
+			GinkgoT().Setenv(constants.DiscardInterruptedTranslationEnv, "false")
+		})
+
+		It("sets xDS snapshots for a translation the context ended during", func() {
+			xdsCache := &MockXdsCache{}
+			syncer := newSyncer(&cancellingTranslator{cancel: cancel}, xdsCache)
+
+			_ = syncer.Sync(ctx, snap)
+
+			Expect(xdsCache.Called).To(BeTrue())
+		})
+
+		It("runs the xDS sync when the context has already ended", func() {
+			xdsCache := &MockXdsCache{}
+			syncer := newSyncer(&cancellingTranslator{}, xdsCache)
+
+			cancel()
+			_ = syncer.Sync(ctx, snap)
+
+			Expect(xdsCache.Called).To(BeTrue())
+		})
 	})
 })
 

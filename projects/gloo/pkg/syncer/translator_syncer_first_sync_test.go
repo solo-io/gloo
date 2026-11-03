@@ -8,6 +8,7 @@ import (
 	"github.com/solo-io/gloo/pkg/bootstrap/leaderelector"
 	"github.com/solo-io/gloo/pkg/bootstrap/leaderelector/singlereplica"
 	"github.com/solo-io/gloo/pkg/utils/setuputils"
+	"github.com/solo-io/gloo/projects/gloo/constants"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/grpc/validation"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	v1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
@@ -22,7 +23,7 @@ import (
 
 var _ = Describe("Translator syncer in a setup run", func() {
 	It("holds setup restarts until its first Sync", func() {
-		GinkgoT().Setenv(setuputils.HoldRestartsEnv, "true")
+		GinkgoT().Setenv(constants.DiscardInterruptedTranslationEnv, "true")
 		ctx, cancel := context.WithCancel(context.Background())
 		DeferCleanup(cancel)
 

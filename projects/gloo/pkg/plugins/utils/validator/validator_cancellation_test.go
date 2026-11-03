@@ -2,6 +2,7 @@ package validator
 
 import (
 	"context"
+	"errors"
 	"os"
 	"path/filepath"
 	"sync"
@@ -9,6 +10,7 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.com/solo-io/gloo/projects/envoyinit/pkg/runner"
 	"github.com/solo-io/gloo/projects/gloo/constants"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/transformation"
 )
@@ -22,6 +24,10 @@ var _ = Describe("Validator with a cancelled context", func() {
 	var (
 		validConfig = &transformation.TransformationStages{InheritTransformation: true}
 	)
+
+	BeforeEach(func() {
+		GinkgoT().Setenv(constants.DiscardInterruptedTranslationEnv, "true")
+	})
 
 	writeFakeEnvoy := func(sleepSeconds string) {
 		dir := GinkgoT().TempDir()
@@ -161,5 +167,34 @@ var _ = Describe("Validator with a cancelled context", func() {
 		writeFakeEnvoy("0")
 		Expect(v.ValidateConfig(context.Background(), validConfig)).To(Succeed(),
 			"healthy translation was served the cached cancellation error")
+	})
+
+	When("DiscardInterruptedTranslationEnv is off", func() {
+		BeforeEach(func() {
+			GinkgoT().Setenv(constants.DiscardInterruptedTranslationEnv, "false")
+		})
+
+		It("returns and caches a validation interrupted by a cancelled context as a config error", func() {
+			writeFakeEnvoy("0")
+			v := New("off-cancel-before", "off-cancel-before")
+
+			cancelled, cancel := context.WithCancel(context.Background())
+			cancel()
+
+			err := v.ValidateConfig(cancelled, validConfig)
+			Expect(err).To(HaveOccurred())
+			Expect(errors.Is(err, runner.ErrValidationInterrupted)).To(BeFalse())
+			Expect(v.CacheLength()).To(Equal(1))
+		})
+
+		It("returns and caches a validation killed by an outside signal as a config error", func() {
+			writeFakeEnvoySignalKilled()
+			v := New("off-signal-killed", "off-signal-killed")
+
+			err := v.ValidateConfig(context.Background(), validConfig)
+			Expect(err).To(HaveOccurred())
+			Expect(errors.Is(err, runner.ErrValidationInterrupted)).To(BeFalse())
+			Expect(v.CacheLength()).To(Equal(1))
+		})
 	})
 })

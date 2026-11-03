@@ -13,7 +13,9 @@ import (
 	"time"
 
 	"github.com/solo-io/gloo/pkg/utils/cmdutils"
+	"github.com/solo-io/gloo/pkg/utils/envutils"
 	"github.com/solo-io/gloo/projects/envoyinit/pkg/downward"
+	"github.com/solo-io/gloo/projects/gloo/constants"
 	"github.com/solo-io/go-utils/contextutils"
 )
 
@@ -56,8 +58,10 @@ func RunEnvoyValidate(ctx context.Context, envoyExecutable, bootstrapConfig stri
 		}
 
 		// A kill from context cancellation or an outside signal (exit code -1) means validation did not complete.
+		// With the env var unset, an interruption is returned as an ordinary validation failure.
 		var exitErr *exec.ExitError
-		if ctx.Err() != nil || (errors.As(err, &exitErr) && exitErr.ExitCode() == -1) {
+		interrupted := ctx.Err() != nil || (errors.As(err, &exitErr) && exitErr.ExitCode() == -1)
+		if interrupted && envutils.IsEnvTruthy(constants.DiscardInterruptedTranslationEnv) {
 			// Consumers flatten this error into report strings, so include the cause in the message.
 			if ctxErr := ctx.Err(); ctxErr != nil {
 				return fmt.Errorf("%w (ctxErr=%v): %v", ErrValidationInterrupted, ctxErr, err)

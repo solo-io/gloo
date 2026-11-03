@@ -18,8 +18,10 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
 
 	"github.com/solo-io/gloo/pkg/bootstrap/leaderelector"
+	"github.com/solo-io/gloo/pkg/utils/envutils"
 	"github.com/solo-io/gloo/pkg/utils/setuputils"
 	gwsyncer "github.com/solo-io/gloo/projects/gateway/pkg/syncer"
+	"github.com/solo-io/gloo/projects/gloo/constants"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	v1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
 	"github.com/solo-io/gloo/projects/gloo/pkg/syncer/sanitizer"
@@ -131,7 +133,7 @@ func (s *translatorSyncer) Sync(ctx context.Context, snap *v1snap.ApiSnapshot) e
 	// after a setup restart) or during translation. Either way, skip the xDS sync: its garbage
 	// collection would treat the unwritten, possibly empty, proxy list as authoritative and replace
 	// live xDS cache entries with empty snapshots.
-	if ctxErr := ctx.Err(); ctxErr != nil {
+	if ctxErr := ctx.Err(); ctxErr != nil && envutils.IsEnvTruthy(constants.DiscardInterruptedTranslationEnv) {
 		multiErr = multierror.Append(multiErr, eris.Wrap(ctxErr, "skipping xDS sync: context ended before or during proxy translation"))
 		return multiErr.ErrorOrNil()
 	}

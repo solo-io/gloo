@@ -8,6 +8,7 @@ import (
 	"github.com/solo-io/gloo/pkg/utils/statusutils"
 	. "github.com/solo-io/gloo/projects/gateway/pkg/reconciler"
 	"github.com/solo-io/gloo/projects/gateway/pkg/translator"
+	"github.com/solo-io/gloo/projects/gloo/constants"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/grpc/validation"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	gloov1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
@@ -56,6 +57,7 @@ var _ = Describe("ReconcileProxies with a context cancelled during validation", 
 	)
 
 	BeforeEach(func() {
+		GinkgoT().Setenv(constants.DiscardInterruptedTranslationEnv, "true")
 		var err error
 		ctx, cancel = context.WithCancel(context.Background())
 
@@ -141,5 +143,21 @@ var _ = Describe("ReconcileProxies with a context cancelled during validation", 
 			"the multierror preamble should be flattened into one message per error")
 		Expect(line).NotTo(ContainSubstring(`\n`),
 			"no field should carry escaped newlines into the log line")
+	})
+
+	When("DiscardInterruptedTranslationEnv is off", func() {
+		BeforeEach(func() {
+			GinkgoT().Setenv(constants.DiscardInterruptedTranslationEnv, "false")
+		})
+
+		It("strips the listener and writes the proxy when the context is cancelled during validation", func() {
+			reconciler := NewProxyReconciler(interruptedValidation(true), proxyClient, statusClient)
+
+			Expect(reconciler.ReconcileProxies(ctx, proxyToWrite, ns, clients.ListOpts{Selector: map[string]string{}})).To(Succeed())
+
+			written, err := proxyClient.Read(ns, proxy.GetMetadata().GetName(), clients.ReadOpts{})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(written.GetListeners()).To(HaveLen(len(proxy.GetListeners()) - 1))
+		})
 	})
 })

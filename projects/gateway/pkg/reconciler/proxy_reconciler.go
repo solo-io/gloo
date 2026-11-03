@@ -9,9 +9,11 @@ import (
 	"github.com/hashicorp/go-multierror"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 
+	"github.com/solo-io/gloo/pkg/utils/envutils"
 	"github.com/solo-io/gloo/projects/gateway/pkg/reporting"
 	"github.com/solo-io/gloo/projects/gateway/pkg/translator"
 	"github.com/solo-io/gloo/projects/gateway/pkg/utils"
+	"github.com/solo-io/gloo/projects/gloo/constants"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/grpc/validation"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/go-utils/contextutils"
@@ -58,7 +60,7 @@ func (s *proxyReconciler) ReconcileProxies(ctx context.Context, proxiesToWrite G
 
 	// A cancelled context may have killed the envoy validation forks behind the results above, so
 	// they cannot be trusted. Abort instead of stripping listeners based on them.
-	if ctxErr := ctx.Err(); ctxErr != nil {
+	if ctxErr := ctx.Err(); ctxErr != nil && envutils.IsEnvTruthy(constants.DiscardInterruptedTranslationEnv) {
 		return errors.Wrapf(ctxErr, "aborting proxy reconcile: context ended before or during proxy validation")
 	}
 
