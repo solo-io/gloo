@@ -10,6 +10,8 @@ if [[ $# -ne 1 ]]; then
 fi
 build_id="$1"
 
+echo "Cloud Build ${build_id}. Cancelling this run does not stop the build. To stop it: gcloud builds cancel ${build_id} --project solo-public"
+
 describe() {
   local i out
   for i in 1 2 3 4 5; do
@@ -27,7 +29,7 @@ if [[ -n "${GITHUB_STEP_SUMMARY:-}" ]]; then
   {
     echo "Cloud Build \`${build_id}\`: $(describe "${build_id}" 'value(logUrl)')"
     echo
-    echo "Cancelling this run does not stop the build. To stop it:\`gcloud builds cancel ${build_id} --project solo-public\`"
+    echo "Cancelling this run does not stop the build. To stop it: \`gcloud builds cancel ${build_id} --project solo-public\`"
   } >> "${GITHUB_STEP_SUMMARY}"
 fi
 
