@@ -18,7 +18,7 @@ Publishing a GitHub release starts [`release.yaml`](../../.github/workflows/rele
 
 Before approving, check that the tag's commit is on its `v1.<minor>.x` branch. The workflow file runs from the tagged commit, so its own checks are not a guarantee.
 
-To stop a mistaken release, cancel the Cloud Build: `gcloud builds cancel <id> --project solo-public`. The log of the "Submit and wait for Cloud Build" step prints the id and the command as soon as the build starts; the run summary shows them only after the job ends. Cancelling the workflow run does not stop the build.
+To stop a mistaken release, cancel the Cloud Build: `gcloud builds cancel <id> --project solo-public`. The log of the "Submit and wait for Cloud Build" step prints the id and the command as soon as the build is submitted, so you can cancel it while it is queued; the run summary shows them only after the job ends. Cancelling the workflow run does not stop the build.
 
 Only a version with no suffix or `-patchN` is a regular release. Mark every other suffix (for example `-beta1`, `-rc1`, `-fips`) as a pre-release when creating the release. Validation fails otherwise, so edit the release and re-run the failed jobs.
 
@@ -26,7 +26,7 @@ For a new release line (for example `v1.23.x`), release-owners create the branch
 
 ## PR images
 
-To get images for a PR, the PR author adds the label `publish-pr-images`. A label or push by anyone else doesn't start a build. [`pr-images.yaml`](../../.github/workflows/pr-images.yaml) then waits for a second person (not the author) to approve in environment `release` before it submits [Publish Artifacts](publish-artifacts.yaml) as the PR build service account. Fork PRs whose author can't add labels get no PR images.
+To get images for a PR, the PR author adds the label `publish-pr-images`. A label, push or re-run by anyone else is skipped, so after a failed build only the author can re-run it. [`pr-images.yaml`](../../.github/workflows/pr-images.yaml) then waits for a second person (not the author) to approve in environment `release` before it submits [Publish Artifacts](publish-artifacts.yaml) as the PR build service account. Fork PRs whose author can't add labels get no PR images.
 
 The build runs the PR's code with the quay.io robot logged in, so approvers check the PR's Makefile, `ci/` and Dockerfile changes first. The run title shows the PR head commit; approve only if it is the commit you reviewed. Approvers must not be the PR author or have pushed commits to the PR (prevent self-review only blocks whoever started the run).
 
