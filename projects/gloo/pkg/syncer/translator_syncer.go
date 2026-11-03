@@ -120,9 +120,9 @@ func (s *translatorSyncer) Sync(ctx context.Context, snap *v1snap.ApiSnapshot) e
 
 	// If gateway controller is enabled, run the gateway translation to generate proxies.
 	// Use the ProxyClient interface to persist them either to an in-memory store or etcd as configured at startup.
-	// A failed reconcile may have written only some Proxies, or none: after a restart the in-memory store
-	// starts empty. The listed Proxies are then still translated and published, but nothing is removed
-	// or rebuilt because it is missing from the list.
+	// A failed reconcile may have written only some Proxies, or none. After a pod restart the in-memory
+	// store starts empty; after a setup re-run it holds the previous run's Edge Proxies. The listed Proxies
+	// are still translated and published, but nothing is removed or rebuilt because it is missing from the list.
 	proxyListComplete := true
 	if s.gatewaySyncer != nil {
 		logger.Debugf("getting proxies from gateway translation")
