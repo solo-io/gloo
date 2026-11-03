@@ -120,10 +120,15 @@ func (s *translatorSyncer) Sync(ctx context.Context, snap *v1snap.ApiSnapshot) e
 
 	// If gateway controller is enabled, run the gateway translation to generate proxies.
 	// Use the ProxyClient interface to persist them either to an in-memory store or etcd as configured at startup.
+	// A failed reconcile may have written only some Proxies, or none: after a restart the in-memory store
+	// starts empty. The listed Proxies are then still translated and published, but nothing is removed
+	// or rebuilt because it is missing from the list.
+	proxyListComplete := true
 	if s.gatewaySyncer != nil {
 		logger.Debugf("getting proxies from gateway translation")
 		if err := s.translateProxies(ctx, snap); err != nil {
 			multiErr = multierror.Append(multiErr, eris.Wrapf(err, "translating proxies"))
+			proxyListComplete = false
 		}
 	}
 
@@ -142,11 +147,16 @@ func (s *translatorSyncer) Sync(ctx context.Context, snap *v1snap.ApiSnapshot) e
 
 	// Execute the EnvoySyncer
 	// This will update the xDS SnapshotCache for each entry that corresponds to a non-kube gw Proxy in the API Snapshot
-	s.syncEnvoy(ctx, snap, reports)
+	s.syncEnvoy(ctx, snap, reports, proxyListComplete)
 
 	// Execute the SyncerExtensions
 	// Each of these are responsible for updating a single entry in the SnapshotCache
-	s.syncExtensions(ctx, snap, reports)
+	// Their config is built from the listed Proxies, so they keep their last snapshot when the list may be incomplete.
+	if proxyListComplete {
+		s.syncExtensions(ctx, snap, reports)
+	} else {
+		logger.Warnw("proxy reconcile failed; skipping xDS garbage collection and extension syncs until a reconcile succeeds")
+	}
 
 	// reset the resource metrics before we write the new statuses, this ensures that
 	// deleted resources are removed from the metrics

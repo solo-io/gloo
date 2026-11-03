@@ -27,12 +27,9 @@ var _ = Describe("Translator syncer in a setup run", func() {
 
 		settings := &v1.Settings{Metadata: &core.Metadata{Name: "default", Namespace: "gloo-system"}}
 		snapshot := &v1.SetupSnapshot{Settings: v1.SettingsList{settings}}
-		changed := snapshot.Clone()
-		changed.Settings[0].DiscoveryNamespace = "new"
 
-		var translatorSyncer v1snap.ApiSyncer
+		translatorSyncers := make(chan v1snap.ApiSyncer, 1)
 		probe := &probeTranslator{}
-		forceEmit := make(chan struct{}, 1)
 		setupSyncer := setuputils.NewSetupSyncer(
 			settings.GetMetadata().Ref(),
 			func(
@@ -41,26 +38,28 @@ var _ = Describe("Translator syncer in a setup run", func() {
 				inMemoryCache memory.InMemoryResourceCache,
 				settings *v1.Settings,
 				identity leaderelector.Identity) error {
-				translatorSyncer = newTestTranslatorSyncer(ctx, probe, &MockXdsCache{})
+				translatorSyncers <- newTestTranslatorSyncer(ctx, probe, &MockXdsCache{})
 				return nil
 			},
-			singlereplica.Identity(),
-			forceEmit)
+			singlereplica.Identity())
+
+		// The setup event loop cannot restart setup until Sync returns.
+		setupDone := make(chan error, 1)
+		go func() { setupDone <- setupSyncer.Sync(ctx, snapshot) }()
+		var translatorSyncer v1snap.ApiSyncer
+		Eventually(translatorSyncers, "2s").Should(Receive(&translatorSyncer))
+		Consistently(setupDone, "500ms").ShouldNot(Receive(), "a restart before the first translator Sync must be held")
+
 		var translated, heldDuringTranslate bool
 		probe.onTranslate = func() {
 			translated = true
-			heldDuringTranslate = !setupSyncer.ShouldSync(ctx, snapshot, &changed)
+			heldDuringTranslate = len(setupDone) == 0
 		}
-
-		Expect(setupSyncer.Sync(ctx, snapshot)).To(Succeed())
-		Expect(setupSyncer.ShouldSync(ctx, snapshot, &changed)).To(BeFalse(), "a restart before the first translator Sync must be held")
-
 		proxy := &v1.Proxy{Metadata: &core.Metadata{Namespace: cancelTestNamespace, Name: "first-sync-proxy"}}
 		Expect(translatorSyncer.Sync(ctx, &v1snap.ApiSnapshot{Proxies: v1.ProxyList{proxy}})).To(Succeed())
 		Expect(translated).To(BeTrue())
 		Expect(heldDuringTranslate).To(BeTrue(), "a restart while the first Sync translates, before its xDS write, must be held")
-		Eventually(forceEmit, "2s").Should(Receive())
-		Expect(setupSyncer.ShouldSync(ctx, snapshot, &changed)).To(BeTrue())
+		Eventually(setupDone, "2s").Should(Receive(BeNil()))
 	})
 })
 

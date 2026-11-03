@@ -43,7 +43,7 @@ var _ = Describe("SetupSyncer", func() {
 				actualSettings = expectedSettings
 				return nil
 			},
-			singlereplica.Identity(), nil)
+			singlereplica.Identity())
 		err := setupSyncer.Sync(context.TODO(), &v1.SetupSnapshot{
 			Settings: v1.SettingsList{expectedSettings},
 		})
@@ -120,7 +120,7 @@ var _ = Describe("SetupSyncer", func() {
 					identity leaderelector.Identity) error {
 					return nil
 				},
-				singlereplica.Identity(), nil)
+				singlereplica.Identity())
 		})
 
 		BeforeEach(func() {
@@ -199,96 +199,100 @@ var _ = Describe("SetupSyncer", func() {
 				Expect(setupSyncer.ShouldSync(context.TODO(), snapshot, &newSnapshot)).To(BeFalse())
 			})
 		})
+	})
 
-		When("a forceEmit channel is set", func() {
-			var (
-				forceEmit     chan struct{}
-				hold          bool
-				setupErr      error
-				firstSyncDone func()
-				secondRelease func()
-			)
+	When("a component in the setup run holds restarts", func() {
+		var (
+			settings    *v1.Settings
+			snapshot    *v1.SetupSnapshot
+			hold        bool
+			setupErr    error
+			releases    chan [2]func()
+			setupSyncer *SetupSyncer
+		)
 
-			BeforeEach(func() {
-				forceEmit = make(chan struct{})
-				hold = true
-				setupErr = nil
-				setupSyncer = NewSetupSyncer(
-					settings.Metadata.Ref(),
-					func(
-						ctx context.Context,
-						kubeCache kube.SharedCache,
-						inMemoryCache memory.InMemoryResourceCache,
-						settings *v1.Settings,
-						identity leaderelector.Identity) error {
-						if hold {
-							firstSyncDone = HoldRestartsUntilFirstSync(ctx)
-							secondRelease = HoldRestartsUntilFirstSync(ctx)
-						}
-						return setupErr
-					},
-					singlereplica.Identity(),
-					forceEmit)
+		BeforeEach(func() {
+			settings = &v1.Settings{Metadata: &core.Metadata{Name: "hello", Namespace: "goodbye"}}
+			snapshot = &v1.SetupSnapshot{Settings: v1.SettingsList{settings}}
+			hold = true
+			setupErr = nil
+			releases = make(chan [2]func(), 1)
+			setupSyncer = NewSetupSyncer(
+				settings.Metadata.Ref(),
+				func(
+					ctx context.Context,
+					kubeCache kube.SharedCache,
+					inMemoryCache memory.InMemoryResourceCache,
+					settings *v1.Settings,
+					identity leaderelector.Identity) error {
+					if hold {
+						// Two components in the same run each hold restarts.
+						releases <- [2]func(){HoldRestartsUntilFirstSync(ctx), HoldRestartsUntilFirstSync(ctx)}
+					}
+					return setupErr
+				},
+				singlereplica.Identity())
+		})
+
+		// startSync runs Sync in the background and returns a channel that receives its error.
+		startSync := func(ctx context.Context) <-chan error {
+			done := make(chan error, 1)
+			go func() { done <- setupSyncer.Sync(ctx, snapshot) }()
+			return done
+		}
+		// release receives the setup run's release funcs and calls the first.
+		release := func() [2]func() {
+			var r [2]func()
+			Eventually(releases, "2s").Should(Receive(&r))
+			r[0]()
+			return r
+		}
+
+		It("returns from Sync once the hold is released", func() {
+			done := startSync(context.Background())
+			Consistently(done, "500ms").ShouldNot(Receive())
+
+			release()
+			Eventually(done, "2s").Should(Receive(BeNil()))
+		})
+
+		It("returns from Sync after the configured timeout if the hold is never released", func() {
+			GinkgoT().Setenv(FirstSyncTimeoutEnv, "200ms")
+			done := startSync(context.Background())
+			Eventually(done, "2s").Should(Receive(BeNil()))
+		})
+
+		It("returns from Sync when its context ends", func() {
+			ctx, cancel := context.WithCancel(context.Background())
+			done := startSync(ctx)
+			Consistently(done, "200ms").ShouldNot(Receive())
+
+			cancel()
+			Eventually(done, "2s").Should(Receive(BeNil()))
+		})
+
+		It("shares one release between callers in the same run", func() {
+			done := startSync(context.Background())
+			Consistently(done, "200ms").ShouldNot(Receive())
+
+			r := release()
+			Expect(r[1]).NotTo(Panic())
+			Eventually(done, "2s").Should(Receive(BeNil()))
+		})
+
+		When("the setup fails", func() {
+			BeforeEach(func() { setupErr = errors.New("setup failed") })
+
+			It("returns the error without waiting", func() {
+				Eventually(startSync(context.Background()), "2s").Should(Receive(MatchError(setupErr)))
 			})
+		})
 
-			JustBeforeEach(func() {
-				err := setupSyncer.Sync(context.TODO(), snapshot)
-				if setupErr != nil {
-					Expect(err).To(MatchError(setupErr))
-				} else {
-					Expect(err).NotTo(HaveOccurred())
-				}
-			})
+		When("the setup does not hold restarts", func() {
+			BeforeEach(func() { hold = false })
 
-			It("defers a settings change until the setup releases its hold, then re-emits", func() {
-				newSnapshot := snapshot.Clone()
-				newSnapshot.Settings[0].DiscoveryNamespace = "new"
-				Expect(setupSyncer.ShouldSync(context.TODO(), snapshot, &newSnapshot)).To(BeFalse())
-				Consistently(forceEmit, "500ms").ShouldNot(Receive())
-
-				firstSyncDone()
-				Eventually(forceEmit, "2s").Should(Receive())
-				Expect(setupSyncer.ShouldSync(context.TODO(), snapshot, &newSnapshot)).To(BeTrue())
-			})
-
-			It("re-emits after the configured timeout if the hold is never released", func() {
-				GinkgoT().Setenv(FirstSyncTimeoutEnv, "200ms")
-				newSnapshot := snapshot.Clone()
-				newSnapshot.Settings[0].DiscoveryNamespace = "new"
-				Expect(setupSyncer.ShouldSync(context.TODO(), snapshot, &newSnapshot)).To(BeFalse())
-				Eventually(forceEmit, "2s").Should(Receive())
-				Expect(setupSyncer.ShouldSync(context.TODO(), snapshot, &newSnapshot)).To(BeTrue())
-			})
-
-			It("shares one release between callers in the same run", func() {
-				newSnapshot := snapshot.Clone()
-				newSnapshot.Settings[0].DiscoveryNamespace = "new"
-				Expect(setupSyncer.ShouldSync(context.TODO(), snapshot, &newSnapshot)).To(BeFalse())
-
-				firstSyncDone()
-				Expect(secondRelease).NotTo(Panic())
-				Eventually(forceEmit, "2s").Should(Receive())
-				Expect(setupSyncer.ShouldSync(context.TODO(), snapshot, &newSnapshot)).To(BeTrue())
-			})
-
-			When("the setup fails", func() {
-				BeforeEach(func() { setupErr = errors.New("setup failed") })
-
-				It("syncs a settings change immediately", func() {
-					newSnapshot := snapshot.Clone()
-					newSnapshot.Settings[0].DiscoveryNamespace = "new"
-					Expect(setupSyncer.ShouldSync(context.TODO(), snapshot, &newSnapshot)).To(BeTrue())
-				})
-			})
-
-			When("the setup does not hold restarts", func() {
-				BeforeEach(func() { hold = false })
-
-				It("syncs a settings change immediately", func() {
-					newSnapshot := snapshot.Clone()
-					newSnapshot.Settings[0].DiscoveryNamespace = "new"
-					Expect(setupSyncer.ShouldSync(context.TODO(), snapshot, &newSnapshot)).To(BeTrue())
-				})
+			It("returns from Sync without waiting", func() {
+				Eventually(startSync(context.Background()), "2s").Should(Receive(BeNil()))
 			})
 		})
 	})
@@ -338,8 +342,7 @@ var _ = Describe("SetupSyncer", func() {
 				defer mu.Unlock()
 				return append([]setupCall(nil), calls...)
 			}
-			forceEmit := make(chan struct{})
-			emitter := v1.NewSetupEmitterWithEmit(settingsClient, namespaceClient, forceEmit)
+			emitter := v1.NewSetupEmitter(settingsClient, namespaceClient)
 			setupSyncer := NewSetupSyncer(
 				settings.GetMetadata().Ref(),
 				func(
@@ -357,8 +360,7 @@ var _ = Describe("SetupSyncer", func() {
 					})
 					return nil
 				},
-				singlereplica.Identity(),
-				forceEmit)
+				singlereplica.Identity())
 			errs, err := v1.NewSetupEventLoop(emitter, setupSyncer).Run([]string{"gloo-system"}, clients.WatchOpts{
 				Ctx:         ctx,
 				RefreshRate: 100 * time.Millisecond,
@@ -377,12 +379,17 @@ var _ = Describe("SetupSyncer", func() {
 			Consistently(func(g Gomega) {
 				g.Expect(first.ctx.Err()).NotTo(HaveOccurred(), "setup ctx cancelled before its first sync")
 				g.Expect(getCalls()).To(HaveLen(1))
-			}, "3s").Should(Succeed())
+			}, "2s").Should(Succeed())
+			writeWatchedNamespace("ns-3")
+			Consistently(getCalls, "1s").Should(HaveLen(1))
 
+			// Both changes made during the hold restart setup once, with the latest namespaces.
 			first.firstSyncDone()
 			Eventually(first.ctx.Done(), "5s").Should(BeClosed())
 			Eventually(getCalls, "5s").Should(HaveLen(2))
-			Expect(getCalls()[1].namespaces).To(ConsistOf("gloo-system", "ns-1", "ns-2"))
+			Expect(getCalls()[1].namespaces).To(ConsistOf("gloo-system", "ns-1", "ns-2", "ns-3"))
+			getCalls()[1].firstSyncDone()
+			Consistently(getCalls, "1s").Should(HaveLen(2))
 		})
 	})
 })

@@ -14,6 +14,9 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/solo-io/gloo/pkg/utils/statusutils"
 	"github.com/solo-io/gloo/projects/envoyinit/pkg/runner"
+	gwreconciler "github.com/solo-io/gloo/projects/gateway/pkg/reconciler"
+	gwsyncer "github.com/solo-io/gloo/projects/gateway/pkg/syncer"
+	gwtranslator "github.com/solo-io/gloo/projects/gateway/pkg/translator"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/grpc/validation"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	v1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
@@ -107,6 +110,24 @@ const cancelTestNamespace = "cancel-ns"
 
 // newTestTranslatorSyncer builds a translator syncer on in-memory clients.
 func newTestTranslatorSyncer(ctx context.Context, translator glootranslator.Translator, xdsCache envoycache.SnapshotCache) v1snap.ApiSyncer {
+	return newTestTranslatorSyncerWithGateway(ctx, translator, xdsCache, nil, nil)
+}
+
+// testGateway is the gateway translation a test translator syncer runs before its own.
+type testGateway struct {
+	translator gwtranslator.Translator
+	reconciler gwreconciler.ProxyReconciler
+}
+
+// newTestTranslatorSyncerWithGateway builds a translator syncer on in-memory clients. With gw set, it
+// runs gateway translation first and lists Proxies from its in-memory store.
+func newTestTranslatorSyncerWithGateway(
+	ctx context.Context,
+	translator glootranslator.Translator,
+	xdsCache envoycache.SnapshotCache,
+	gw *testGateway,
+	extensions []TranslatorSyncerExtension,
+) v1snap.ApiSyncer {
 	resourceClientFactory := &factory.MemoryResourceClientFactory{
 		Cache: memory.NewInMemoryResourceCache(),
 	}
@@ -125,8 +146,14 @@ func newTestTranslatorSyncer(ctx context.Context, translator glootranslator.Tran
 		Cache:    xdsCache,
 	})
 
-	return NewTranslatorSyncer(ctx, translator, xdsCache, &MockXdsSanitizer{}, rep, false, nil, settings,
-		statusMetrics, nil, proxyClient, cancelTestNamespace, singlereplica.Identity(), history)
+	var gatewaySyncer *gwsyncer.TranslatorSyncer
+	if gw != nil {
+		gatewaySyncer = gwsyncer.NewTranslatorSyncer(ctx, cancelTestNamespace, proxyClient, gw.reconciler, rep,
+			gw.translator, statusClient, statusMetrics, singlereplica.Identity())
+	}
+
+	return NewTranslatorSyncer(ctx, translator, xdsCache, &MockXdsSanitizer{}, rep, false, extensions, settings,
+		statusMetrics, gatewaySyncer, proxyClient, cancelTestNamespace, singlereplica.Identity(), history)
 }
 
 // interruptedReason is the validator's wrap of runner.ErrValidationInterrupted as a string. The real
