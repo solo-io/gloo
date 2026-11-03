@@ -22,7 +22,7 @@ To stop a mistaken release, cancel the Cloud Build: `gcloud builds cancel <id> -
 
 Only a version with no suffix or `-patchN` is a regular release. Mark every other suffix (for example `-beta1`, `-rc1`, `-fips`) as a pre-release when creating the release. Validation fails otherwise, so edit the release and re-run the failed jobs.
 
-For a new release line (for example `v1.23.x`), release-owners create the branch from the newest line, so it carries the workflows. A repo admin adds the exact branch name to the deployment branches of environment `release`, and IT adds it to the PR-images branch list of the `gloo` workload identity provider. Branch names are listed exactly; patterns come later. `release.yaml` accepts tags up to `v1.29`.
+For a new release line (for example `v1.23.x`), release-owners create the branch from the newest line, so it carries the workflows. On the new branch, add it to `on.pull_request_target.branches` in `.github/workflows/pr-images.yaml`. A repo admin adds the exact branch name to the deployment branches of environment `release`, and IT adds it to the PR-images branch list of the `gloo` workload identity provider. Branch names are listed exactly; patterns come later. `release.yaml` accepts tags up to `v1.29`.
 
 ## PR images
 
