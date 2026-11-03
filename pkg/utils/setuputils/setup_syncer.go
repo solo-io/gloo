@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/solo-io/gloo/pkg/bootstrap/leaderelector"
-	"github.com/solo-io/gloo/pkg/utils/envutils"
 	"github.com/solo-io/gloo/pkg/utils/statsutils"
 	"go.opencensus.io/tag"
 
@@ -39,21 +38,11 @@ type SetupFunc func(ctx context.Context,
 	identity leaderelector.Identity) error
 
 const (
-	// HoldRestartsEnv turns the first-sync hold on or off ("true"/"false"); unset uses holdRestartsDefault.
-	HoldRestartsEnv = "GLOO_HOLD_SETUP_RESTART_UNTIL_FIRST_SYNC"
 	// FirstSyncTimeoutEnv is a Go duration ("10m") bounding how long a held restart waits for the first sync.
 	FirstSyncTimeoutEnv = "GLOO_SETUP_FIRST_SYNC_TIMEOUT"
 
-	holdRestartsDefault     = false
 	defaultFirstSyncTimeout = 10 * time.Minute
 )
-
-func holdRestartsEnabled() bool {
-	if value, ok := os.LookupEnv(HoldRestartsEnv); ok {
-		return envutils.IsTruthyValue(value)
-	}
-	return holdRestartsDefault
-}
 
 func firstSyncTimeout() time.Duration {
 	if d, err := time.ParseDuration(os.Getenv(FirstSyncTimeoutEnv)); err == nil && d > 0 {
@@ -79,10 +68,10 @@ func newFirstSyncGate() *firstSyncGate {
 
 // HoldRestartsUntilFirstSync holds settings and namespace restarts of the setup run owning ctx until the
 // returned func is called. Callers in the same run share one release, so the first call frees the hold.
-// Outside a setup run, or with the hold turned off by env, it returns a no-op.
+// Outside a setup run it returns a no-op.
 func HoldRestartsUntilFirstSync(ctx context.Context) func() {
 	gate, ok := ctx.Value(firstSyncGateKey{}).(*firstSyncGate)
-	if !ok || !holdRestartsEnabled() {
+	if !ok {
 		return func() {}
 	}
 	gate.held.Store(true)

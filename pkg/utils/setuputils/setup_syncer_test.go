@@ -210,7 +210,6 @@ var _ = Describe("SetupSyncer", func() {
 			)
 
 			BeforeEach(func() {
-				GinkgoT().Setenv(HoldRestartsEnv, "true")
 				forceEmit = make(chan struct{})
 				hold = true
 				setupErr = nil
@@ -291,16 +290,6 @@ var _ = Describe("SetupSyncer", func() {
 					Expect(setupSyncer.ShouldSync(context.TODO(), snapshot, &newSnapshot)).To(BeTrue())
 				})
 			})
-
-			When("the hold is turned off by env", func() {
-				BeforeEach(func() { GinkgoT().Setenv(HoldRestartsEnv, "false") })
-
-				It("syncs a settings change immediately", func() {
-					newSnapshot := snapshot.Clone()
-					newSnapshot.Settings[0].DiscoveryNamespace = "new"
-					Expect(setupSyncer.ShouldSync(context.TODO(), snapshot, &newSnapshot)).To(BeTrue())
-				})
-			})
 		})
 	})
 
@@ -313,7 +302,6 @@ var _ = Describe("SetupSyncer", func() {
 		}
 
 		It("does not restart setup for a namespace change until the running setup has run its first sync", func() {
-			GinkgoT().Setenv(HoldRestartsEnv, "true")
 			ctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
 

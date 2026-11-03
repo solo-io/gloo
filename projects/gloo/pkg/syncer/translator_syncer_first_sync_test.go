@@ -22,7 +22,6 @@ import (
 
 var _ = Describe("Translator syncer in a setup run", func() {
 	It("holds setup restarts until its first Sync", func() {
-		GinkgoT().Setenv(setuputils.HoldRestartsEnv, "true")
 		ctx, cancel := context.WithCancel(context.Background())
 		DeferCleanup(cancel)
 
