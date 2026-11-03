@@ -1,0 +1,10 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/solo-projects/issues/9349
+    resolvesIssue: false
+    description: >-
+      When an envoy validation process is killed while gloo is still running, or the gateway proxy
+      reconcile fails, gloo translates the latest inputs again after a backoff (1s, doubling to a
+      30s cap) instead of waiting for a resource to change. Envoy keeps its last xDS snapshot until
+      a translation succeeds. A successful translation resets the backoff. Pending retries stop
+      when the setup run or controller ends, or when the Gateway API proxy is deleted.

@@ -936,6 +936,7 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 		opts.WriteNamespace,
 		opts.Identity,
 		snapshotHistory,
+		extensions.ApiEmitterChannel,
 	)
 
 	// MARK: build & run api snap loop

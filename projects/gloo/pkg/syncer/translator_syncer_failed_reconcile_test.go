@@ -3,6 +3,7 @@ package syncer_test
 import (
 	"context"
 	"errors"
+	"time"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -42,11 +43,13 @@ var _ = Describe("Translator syncer after a failed proxy reconcile", func() {
 		cancel()
 	})
 
-	sync := func() error {
-		syncer := newTestTranslatorSyncerWithGateway(ctx, &cancellingTranslator{}, xdsCache,
+	newSyncer := func(emit ...chan<- struct{}) v1snap.ApiSyncer {
+		return newTestTranslatorSyncerWithGateway(ctx, &cancellingTranslator{}, xdsCache,
 			&testGateway{translator: &stubGatewayTranslator{}, reconciler: reconcile},
-			[]TranslatorSyncerExtension{extension})
-		return syncer.Sync(ctx, snap)
+			[]TranslatorSyncerExtension{extension}, emit...)
+	}
+	sync := func() error {
+		return newSyncer().Sync(ctx, snap)
 	}
 
 	It("does not garbage collect xDS snapshots or run extension syncs", func() {
@@ -57,6 +60,21 @@ var _ = Describe("Translator syncer after a failed proxy reconcile", func() {
 		Expect(err).To(MatchError(ContainSubstring("translating proxies")))
 		Expect(xdsCache.setKeys).NotTo(HaveKey("connected-node"), "a node missing from an incomplete Proxy list must keep its snapshot")
 		Expect(extension.called).To(BeFalse(), "extension config is built from the Proxy list and must not be rebuilt from an incomplete one")
+	})
+
+	It("retries the sync until a reconcile succeeds", func() {
+		emit := make(chan struct{})
+		syncer := newSyncer(emit)
+		reconcile.err = errors.New("validation process was killed")
+
+		Expect(syncer.Sync(ctx, snap)).To(MatchError(ContainSubstring("translating proxies")))
+		Eventually(emit, 3*time.Second).Should(Receive(), "a failed reconcile must request another sync")
+
+		reconcile.err = nil
+		Expect(syncer.Sync(ctx, snap)).To(Succeed())
+		Expect(xdsCache.setKeys).To(HaveKey("connected-node"))
+		Expect(extension.called).To(BeTrue())
+		Consistently(emit, 1200*time.Millisecond).ShouldNot(Receive(), "a clean sync must stop the retries")
 	})
 
 	It("garbage collects xDS snapshots and runs extension syncs when the reconcile succeeds (sanity check of this setup)", func() {

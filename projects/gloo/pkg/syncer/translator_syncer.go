@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/solo-io/gloo/pkg/utils/statsutils/metrics"
+	"github.com/solo-io/gloo/pkg/utils/translationretry"
 	"github.com/solo-io/gloo/projects/gloo/pkg/servers/iosnapshot"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 
@@ -51,6 +52,8 @@ type translatorSyncer struct {
 	statusSyncer *statusSyncer
 	// firstSyncDone releases the setup loop's hold on restarts after the first Sync.
 	firstSyncDone func()
+
+	translationRetry *translationretry.Scheduler
 }
 
 type statusSyncer struct {
@@ -65,6 +68,8 @@ type statusSyncer struct {
 	latestReports       reporter.ResourceReports
 }
 
+// NewTranslatorSyncer optionally accepts the API emitter channel to retry
+// interrupted translations against fresh inputs without a resource change.
 func NewTranslatorSyncer(
 	ctx context.Context,
 	translator translator.Translator,
@@ -80,6 +85,7 @@ func NewTranslatorSyncer(
 	writeNamespace string,
 	identity leaderelector.Identity,
 	snapshotHistory iosnapshot.History,
+	retryEmit ...chan<- struct{},
 ) v1snap.ApiSyncer {
 	s := &translatorSyncer{
 		translator:       translator,
@@ -102,6 +108,14 @@ func NewTranslatorSyncer(
 		snapshotHistory: snapshotHistory,
 		firstSyncDone:   setuputils.HoldRestartsUntilFirstSync(ctx),
 	}
+	if len(retryEmit) > 0 && retryEmit[0] != nil {
+		s.translationRetry = translationretry.New(ctx, func(ctx context.Context, _ string) {
+			select {
+			case retryEmit[0] <- struct{}{}:
+			case <-ctx.Done():
+			}
+		})
+	}
 	if devMode {
 		// TODO(ilackarms): move this somewhere else?
 		go func() {
@@ -118,6 +132,20 @@ func (s *translatorSyncer) Sync(ctx context.Context, snap *v1snap.ApiSnapshot) e
 	logger := contextutils.LoggerFrom(ctx)
 	var multiErr *multierror.Error
 
+	// A failed reconcile or an interrupted envoy validation schedules another sync of the latest inputs,
+	// even if no resource changes. A clean sync resets the backoff.
+	retryNeeded := false
+	defer func() {
+		if ctx.Err() != nil {
+			return
+		}
+		if retryNeeded {
+			s.translationRetry.Schedule("api")
+		} else {
+			s.translationRetry.Reset("api")
+		}
+	}()
+
 	// If gateway controller is enabled, run the gateway translation to generate proxies.
 	// Use the ProxyClient interface to persist them either to an in-memory store or etcd as configured at startup.
 	// A failed reconcile may have written only some Proxies, or none: after a restart the in-memory store
@@ -129,6 +157,7 @@ func (s *translatorSyncer) Sync(ctx context.Context, snap *v1snap.ApiSnapshot) e
 		if err := s.translateProxies(ctx, snap); err != nil {
 			multiErr = multierror.Append(multiErr, eris.Wrapf(err, "translating proxies"))
 			proxyListComplete = false
+			retryNeeded = true
 		}
 	}
 
@@ -147,7 +176,9 @@ func (s *translatorSyncer) Sync(ctx context.Context, snap *v1snap.ApiSnapshot) e
 
 	// Execute the EnvoySyncer
 	// This will update the xDS SnapshotCache for each entry that corresponds to a non-kube gw Proxy in the API Snapshot
-	s.syncEnvoy(ctx, snap, reports, proxyListComplete)
+	if s.syncEnvoy(ctx, snap, reports, proxyListComplete) {
+		retryNeeded = true
+	}
 
 	// Execute the SyncerExtensions
 	// Each of these are responsible for updating a single entry in the SnapshotCache

@@ -79,7 +79,8 @@ func measureResource(ctx context.Context, resource string, length int) {
 // syncEnvoy will translate, sanitize, and set the xds snapshot for each of the proxies in the provided api snapshot.
 // Reports from translation attempts on every Proxy will be merged into allReports.
 // With collectGarbage false, cache entries for proxies missing from snap are left in place.
-func (s *translatorSyncer) syncEnvoy(ctx context.Context, snap *v1snap.ApiSnapshot, allReports reporter.ResourceReports, collectGarbage bool) {
+// It returns true if it skipped a proxy because its envoy validation was interrupted.
+func (s *translatorSyncer) syncEnvoy(ctx context.Context, snap *v1snap.ApiSnapshot, allReports reporter.ResourceReports, collectGarbage bool) (retryNeeded bool) {
 	ctx, span := trace.StartSpan(ctx, "gloo.syncer.Sync")
 	defer span.End()
 	stopwatch := statsutils.NewTranslatorStopWatch("EnvoySyncer")
@@ -200,6 +201,7 @@ func (s *translatorSyncer) syncEnvoy(ctx context.Context, snap *v1snap.ApiSnapsh
 				zap.Error(interrupted.Err()))
 			statsutils.MeasureOne(proxyCtx, syncerstats.InterruptedValidationSkips)
 			delete(allReports, proxy)
+			retryNeeded = true
 			continue
 		}
 
@@ -246,6 +248,7 @@ func (s *translatorSyncer) syncEnvoy(ctx context.Context, snap *v1snap.ApiSnapsh
 	}
 
 	logger.Debugf("gloo reports to be written: %v", allReports)
+	return retryNeeded
 }
 
 // ServeXdsSnapshots exposes Gloo configuration as an API when `devMode` in Settings is True.

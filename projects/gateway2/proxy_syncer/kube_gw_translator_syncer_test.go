@@ -2,7 +2,10 @@ package proxy_syncer
 
 import (
 	"context"
+	"fmt"
+	"sync/atomic"
 	"testing"
+	"time"
 
 	envoy_config_route_v3 "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
 	"github.com/onsi/gomega"
@@ -22,8 +25,12 @@ import (
 	gloopluginregistry "github.com/solo-io/gloo/projects/gloo/pkg/plugins/registry"
 	"github.com/solo-io/gloo/projects/gloo/pkg/syncer/setup"
 	"github.com/solo-io/gloo/projects/gloo/pkg/syncer/stats"
+	"github.com/solo-io/gloo/projects/gloo/pkg/xds"
 	rlkubev1a1 "github.com/solo-io/solo-apis/pkg/api/ratelimit.solo.io/v1alpha1"
+	envoycache "github.com/solo-io/solo-kit/pkg/api/v1/control-plane/cache"
+	"github.com/solo-io/solo-kit/pkg/api/v1/control-plane/types"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+	"istio.io/istio/pkg/kube/controllers"
 )
 
 // Regression tests for interrupted validation on the kube gateway path.
@@ -94,6 +101,88 @@ func TestTranslateProxySkipsInterruptedValidation(t *testing.T) {
 		"the skip must be counted so a proxy whose xDS updates are stalled is visible")
 }
 
+// Exercise the actual krt dependency graph: no input is updated after startup.
+func TestTranslateProxyRetriesWithoutInputChanges(t *testing.T) {
+	for _, existing := range []bool{false, true} {
+		t.Run(fmt.Sprintf("existing=%v", existing), func(t *testing.T) {
+			g := gomega.NewWithT(t)
+			ctx, cancel := context.WithCancel(context.Background())
+			defer cancel()
+			var attempts atomic.Int32
+			pt := newTestProxyTranslator(nil)
+			pt.xdsCache = xds.NewAdsSnapshotCache(ctx)
+			key := testProxyResourceName()
+			old := &xds.EnvoySnapshot{Clusters: envoycache.Resources{Version: "last-good"}}
+			if existing {
+				pt.xdsCache.SetSnapshot(key, old)
+			}
+			pt.translator.PluginRegistry = func(context.Context) plugins.PluginRegistry {
+				var err error
+				if attempts.Add(1) <= 2 {
+					err = interruptedValidationErr()
+				}
+				return gloopluginregistry.NewPluginRegistry([]plugins.Plugin{&failingPlugin{err: err}})
+			}
+			s := &ProxySyncer{proxyTranslator: pt}
+			proxies := krt.NewStaticCollection[glooProxy](nil, []glooProxy{{Proxy: testProxy()}})
+			s.initTranslationRetries(ctx, proxies)
+			snapshots := krt.NewCollection(proxies, func(kctx krt.HandlerContext, p glooProxy) *XdsSnapWrapper {
+				return translateTestProxyWithHandler(ctx, kctx, s, &p)
+			}, krt.WithStop(ctx.Done()))
+			snapshots.Register(func(e krt.Event[XdsSnapWrapper]) {
+				if e.Event != controllers.EventDelete {
+					p := e.Latest()
+					s.proxyTranslator.syncXds(ctx, p.snap, p.proxyKey)
+				}
+			})
+			g.Eventually(attempts.Load).Should(gomega.Equal(int32(1)))
+			current, err := pt.xdsCache.GetSnapshot(key)
+			if existing {
+				g.Expect(err).NotTo(gomega.HaveOccurred())
+				g.Expect(current.GetResources(types.ClusterTypeV3).Version).To(gomega.Equal("last-good"))
+			} else {
+				g.Expect(err).To(gomega.HaveOccurred())
+			}
+			g.Eventually(func() bool {
+				current, err := pt.xdsCache.GetSnapshot(key)
+				return err == nil && current.GetResources(types.ClusterTypeV3).Version != "last-good"
+			}, 8*time.Second).Should(gomega.BeTrue())
+			g.Expect(attempts.Load()).To(gomega.Equal(int32(3)))
+			g.Consistently(attempts.Load, 1200*time.Millisecond).Should(gomega.Equal(int32(3)))
+		})
+	}
+}
+
+func TestTranslateProxyStopsRetryingAfterDeletionOrShutdown(t *testing.T) {
+	for _, shutdown := range []bool{false, true} {
+		t.Run(fmt.Sprintf("shutdown=%v", shutdown), func(t *testing.T) {
+			g := gomega.NewWithT(t)
+			ctx, cancel := context.WithCancel(context.Background())
+			defer cancel()
+			var attempts atomic.Int32
+			pt := newTestProxyTranslator(nil)
+			pt.translator.PluginRegistry = func(context.Context) plugins.PluginRegistry {
+				attempts.Add(1)
+				return gloopluginregistry.NewPluginRegistry([]plugins.Plugin{&failingPlugin{err: interruptedValidationErr()}})
+			}
+			s := &ProxySyncer{proxyTranslator: pt}
+			proxies := krt.NewStaticCollection[glooProxy](nil, []glooProxy{{Proxy: testProxy()}})
+			s.initTranslationRetries(ctx, proxies)
+			snapshots := krt.NewCollection(proxies, func(kctx krt.HandlerContext, p glooProxy) *XdsSnapWrapper {
+				return translateTestProxyWithHandler(ctx, kctx, s, &p)
+			}, krt.WithStop(ctx.Done()))
+			g.Eventually(snapshots.HasSynced).Should(gomega.BeTrue())
+			g.Expect(attempts.Load()).To(gomega.Equal(int32(1)))
+			if shutdown {
+				cancel()
+			} else {
+				proxies.DeleteObjects(func(glooProxy) bool { return true })
+			}
+			g.Consistently(attempts.Load, 1500*time.Millisecond).Should(gomega.Equal(int32(1)))
+		})
+	}
+}
+
 func TestTranslateProxyDoesNotCountSkipsFromAnEndedContext(t *testing.T) {
 	g := gomega.NewWithT(t)
 
@@ -131,11 +220,15 @@ func translateTestProxy(s *ProxySyncer) *XdsSnapWrapper {
 }
 
 func translateTestProxyWithCtx(ctx context.Context, s *ProxySyncer) *XdsSnapWrapper {
+	return translateTestProxyWithHandler(ctx, krt.TestingDummyContext{}, s, &glooProxy{Proxy: testProxy()})
+}
+
+func translateTestProxyWithHandler(ctx context.Context, kctx krt.HandlerContext, s *ProxySyncer, p *glooProxy) *XdsSnapWrapper {
 	return s.translateProxy(
 		ctx,
-		krt.TestingDummyContext{},
+		kctx,
 		zap.NewNop().Sugar(),
-		&glooProxy{Proxy: testProxy()},
+		p,
 		krt.NewStaticCollection[*corev1.ConfigMap](nil, nil),
 		krt.NewStaticCollection[EndpointResources](nil, nil),
 		krt.NewStaticCollection[RedactedSecret](nil, nil),

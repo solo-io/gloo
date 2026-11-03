@@ -8,6 +8,7 @@ import (
 	"maps"
 	"reflect"
 	"slices"
+	"sync"
 	"time"
 
 	"go.opencensus.io/tag"
@@ -46,6 +47,7 @@ import (
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/solo-io/gloo/pkg/utils/settingsutil"
 	"github.com/solo-io/gloo/pkg/utils/statsutils"
+	"github.com/solo-io/gloo/pkg/utils/translationretry"
 	"github.com/solo-io/gloo/projects/gateway2/extensions"
 	"github.com/solo-io/gloo/projects/gateway2/krtcollections"
 	"github.com/solo-io/gloo/projects/gateway2/reports"
@@ -99,6 +101,8 @@ type ProxySyncer struct {
 	perclientSnapCollection krt.Collection[XdsSnapWrapper]
 	proxiesToReconcile      krt.Singleton[proxyList]
 	proxyTrigger            *krt.RecomputeTrigger
+	xdsRetryTriggers        sync.Map // proxy key -> *krt.RecomputeTrigger
+	translationRetry        *translationretry.Scheduler
 
 	destRules             DestinationRuleIndex
 	translator            setup.TranslatorFactory
@@ -420,8 +424,8 @@ func (s *ProxySyncer) Init(ctx context.Context, dbg *krt.DebugHandler) error {
 		proxy := s.buildProxy(proxyCtx, gw)
 		return proxy
 	}, withDebug, krt.WithName("GlooProxies"))
+	s.initTranslationRetries(ctx, glooProxies)
 	s.mostXdsSnapshots = krt.NewCollection(glooProxies, func(kctx krt.HandlerContext, proxy glooProxy) *XdsSnapWrapper {
-		// we are recomputing xds snapshots as proxies have changed, signal that we need to sync xds with these new snapshots
 		xdsSnap := s.translateProxy(
 			ctx,
 			kctx,
@@ -704,6 +708,22 @@ func (s *ProxySyncer) buildProxy(ctx context.Context, gw *gwv1.Gateway) *glooPro
 	}
 }
 
+// Register retries against xDS translation, since rebuilding an equal Gloo
+// Proxy does not propagate an update through krt.
+func (s *ProxySyncer) initTranslationRetries(ctx context.Context, glooProxies krt.Collection[glooProxy]) {
+	s.translationRetry = translationretry.New(ctx, func(_ context.Context, key string) {
+		if trigger, ok := s.xdsRetryTriggers.Load(key); ok {
+			trigger.(*krt.RecomputeTrigger).TriggerRecomputation()
+		}
+	})
+	glooProxies.Register(func(e krt.Event[glooProxy]) {
+		if e.Event == controllers.EventDelete {
+			s.translationRetry.Reset(e.Latest().ResourceName())
+			s.xdsRetryTriggers.Delete(e.Latest().ResourceName())
+		}
+	})
+}
+
 func (s *ProxySyncer) translateProxy(
 	ctx context.Context,
 	kctx krt.HandlerContext,
@@ -716,6 +736,14 @@ func (s *ProxySyncer) translateProxy(
 	authConfigs krt.Collection[*extauthkubev1.AuthConfig],
 	rlConfigs krt.Collection[*rlkubev1a1.RateLimitConfig],
 ) *XdsSnapWrapper {
+	if s.translationRetry != nil {
+		key := proxy.ResourceName()
+		trigger, ok := s.xdsRetryTriggers.Load(key)
+		if !ok {
+			trigger, _ = s.xdsRetryTriggers.LoadOrStore(key, krt.NewRecomputeTrigger(true, krt.WithStop(ctx.Done())))
+		}
+		trigger.(*krt.RecomputeTrigger).MarkDependant(kctx)
+	}
 	cfgmaps := krt.Fetch(kctx, kcm)
 	endpoints := krt.Fetch(kctx, kep)
 	secrets := krt.Fetch(kctx, ks)
@@ -785,14 +813,16 @@ func (s *ProxySyncer) translateProxy(
 			return nil
 		}
 
-		// The fork died with a live context, so the next recomputation may be interrupted again.
+		// The fork died with a live context. Retry even if no inputs change.
 		logger.Warnw("skipping xDS snapshot update for proxy: envoy config validation was interrupted",
 			zap.String("proxy", proxy.ResourceName()),
 			zap.Error(err))
 		statsutils.MeasureOne(ctx, syncerstats.InterruptedValidationSkips,
 			tag.Insert(syncerstats.ProxyNameKey, proxy.ResourceName()))
+		s.translationRetry.Schedule(proxy.ResourceName())
 		return nil
 	}
+	s.translationRetry.Reset(proxy.ResourceName())
 
 	// TODO(Law): now we not able to merge reports after translation!
 
