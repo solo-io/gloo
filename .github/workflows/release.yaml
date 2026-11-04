@@ -39,8 +39,14 @@ jobs:
         id: check
         env:
           TAG: ${{ github.event.release.tag_name }}
+          SENDER_TYPE: ${{ github.event.sender.type }}
         run: |
           set -euo pipefail
+          # Prevent self-review blocks only the publisher, so the publisher must be a person, not an App.
+          if [[ "${SENDER_TYPE}" != "User" ]]; then
+            echo "::error::Release ${TAG} was published by a ${SENDER_TYPE}; a person must publish releases."
+            exit 1
+          fi
           if [[ ! "${TAG}" =~ ^v1\.(19|2[0-9])\.[0-9]+(-[a-z]+)*(-[a-z]+[0-9]*)?$ ]]; then
             echo "::error::Tag ${TAG} does not match v1.<minor>.<patch>[-suffix] for a supported release line"
             exit 1
