@@ -5,7 +5,7 @@ steps:
   args:
   - '-c'
   - |
-    echo "Tag builds publish from .github/workflows/release.yaml; PR images from .github/workflows/pr-images.yaml (label publish-pr-images, approval in environment release)."
+    echo "Tag builds publish from .github/workflows/release.yaml; PR images from .github/workflows/pr-images.yaml (/build-pr-images comment or dispatch, approval in environment release)."
   waitFor:
   - '-'
   id: 'publish-artifacts'
