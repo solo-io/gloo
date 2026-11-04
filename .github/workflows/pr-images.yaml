@@ -22,6 +22,11 @@ on:
         description: GitHub login that asked for the build
         required: true
         type: string
+      comment_id:
+        description: ID of the /build-pr-images comment, set by the comment relay
+        required: false
+        type: string
+        default: ''
 
 permissions: {}
 
@@ -32,12 +37,14 @@ jobs:
     timeout-minutes: 5
     permissions:
       pull-requests: read
+      issues: read
     outputs:
       author: ${{ steps.check.outputs.author }}
     env:
       PR: ${{ inputs.pr }}
       SHA: ${{ inputs.sha }}
       REQUESTER: ${{ inputs.requester }}
+      COMMENT_ID: ${{ inputs.comment_id }}
       ACTOR: ${{ github.actor }}
       GH_TOKEN: ${{ github.token }}
     steps:
@@ -96,6 +103,36 @@ jobs:
             exit 1
           fi
 
+          # A bot-actor run proves its requester by the comment, because any
+          # workflow's GITHUB_TOKEN can dispatch as github-actions[bot].
+          if [ "${ACTOR}" = "github-actions[bot]" ]; then
+            if ! [[ "${COMMENT_ID}" =~ ^[0-9]+$ ]]; then
+              echo "::error::comment_id must be the ID of the /build-pr-images comment."
+              exit 1
+            fi
+            comment_json="$(gh api "repos/${GITHUB_REPOSITORY}/issues/comments/${COMMENT_ID}")"
+            if [ "$(jq -r '.user.login | ascii_downcase' <<<"${comment_json}")" != "${REQUESTER,,}" ]; then
+              echo "::error::Comment ${COMMENT_ID} was not written by ${REQUESTER}."
+              exit 1
+            fi
+            if [[ "$(jq -r '.issue_url' <<<"${comment_json}")" != */issues/"${PR}" ]]; then
+              echo "::error::Comment ${COMMENT_ID} is not on PR #${PR}."
+              exit 1
+            fi
+            if [[ "$(jq -r '.body' <<<"${comment_json}")" != "/build-pr-images"* ]]; then
+              echo "::error::Comment ${COMMENT_ID} does not start with /build-pr-images."
+              exit 1
+            fi
+            created="$(date -u -d "$(jq -r '.created_at' <<<"${comment_json}")" +%s)"
+            if [ $(( $(date -u +%s) - created )) -gt 900 ]; then
+              echo "::error::Comment ${COMMENT_ID} is older than 15 minutes; comment again."
+              exit 1
+            fi
+          elif [ -n "${COMMENT_ID}" ]; then
+            echo "::error::comment_id is only for comment-relayed runs; leave it empty."
+            exit 1
+          fi
+
           echo "author=${author}" >> "${GITHUB_OUTPUT}"
           {
             echo "- PR: #${PR}"
@@ -117,6 +154,7 @@ jobs:
       id-token: write
       contents: read
       actions: read
+      pull-requests: read
     env:
       HEAD_SHA: ${{ inputs.sha }}
       PR_NUM: ${{ inputs.pr }}
@@ -143,6 +181,19 @@ jobs:
               exit 1
             fi
           done <<<"${approvers}"
+
+      - name: Check the PR is unchanged
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          pr_json="$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUM}")"
+          state="$(jq -r '.state' <<<"${pr_json}")"
+          head="$(jq -r '.head.sha' <<<"${pr_json}")"
+          if [ "${state}" != "open" ] || [ "${head}" != "${HEAD_SHA}" ]; then
+            echo "::error::PR #${PR_NUM} changed while waiting for approval (state ${state}, head now ${head}); request a new build."
+            exit 1
+          fi
 
       - name: Checkout release branch
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
