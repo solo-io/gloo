@@ -123,6 +123,11 @@ jobs:
               echo "::error::Comment ${COMMENT_ID} does not start with /build-pr-images."
               exit 1
             fi
+            # Writers can edit others' comments, so an edited comment proves nothing.
+            if [ "$(jq -r '.updated_at' <<<"${comment_json}")" != "$(jq -r '.created_at' <<<"${comment_json}")" ]; then
+              echo "::error::Comment ${COMMENT_ID} was edited; comment /build-pr-images again."
+              exit 1
+            fi
             created="$(date -u -d "$(jq -r '.created_at' <<<"${comment_json}")" +%s)"
             if [ $(( $(date -u +%s) - created )) -gt 900 ]; then
               echo "::error::Comment ${COMMENT_ID} is older than 15 minutes; comment again."
