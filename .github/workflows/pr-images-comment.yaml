@@ -21,6 +21,7 @@ jobs:
     env:
       PR: ${{ github.event.issue.number }}
       COMMENTER: ${{ github.event.comment.user.login }}
+      COMMENT_ID: ${{ github.event.comment.id }}
       GH_TOKEN: ${{ github.token }}
     steps:
       - name: Check and dispatch
@@ -51,7 +52,7 @@ jobs:
           fi
 
           gh workflow run pr-images.yaml --repo "${GITHUB_REPOSITORY}" --ref "${base}" \
-            -f pr="${PR}" -f sha="${head}" -f requester="${COMMENTER}"
+            -f pr="${PR}" -f sha="${head}" -f requester="${COMMENTER}" -f comment_id="${COMMENT_ID}"
           {
             echo "Dispatched PR images for #${PR} at ${head} on ${base}, requested by ${COMMENTER}."
             echo "It waits for approval in environment release: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/workflows/pr-images.yaml"

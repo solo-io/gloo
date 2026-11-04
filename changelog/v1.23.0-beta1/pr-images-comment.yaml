@@ -2,4 +2,4 @@ changelog:
   - type: NON_USER_FACING
     resolvesIssue: false
     description: >-
-      Relays /build-pr-images PR comments to the PR images workflow on the PR's release branch.
+      Relays /build-pr-images PR comments to the PR images workflow on the PR's release branch, and adds a stub pr-images.yaml so that workflow can be dispatched there.

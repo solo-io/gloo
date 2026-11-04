@@ -1,0 +1,39 @@
+# Registers the workflow so it can be dispatched on release branches (GitHub
+# requires the file on the default branch). The real pr-images.yaml runs on
+# those branches; this copy does nothing.
+name: PR images
+run-name: "PR images #${{ inputs.pr }} at ${{ inputs.sha }} for ${{ inputs.requester }}"
+
+on:
+  workflow_dispatch:
+    inputs:
+      pr:
+        description: PR number
+        required: true
+        type: string
+      sha:
+        description: PR head commit to build
+        required: true
+        type: string
+      requester:
+        description: GitHub login that asked for the build
+        required: true
+        type: string
+      comment_id:
+        description: ID of the /build-pr-images comment, set by the comment relay
+        required: false
+        type: string
+        default: ''
+
+permissions: {}
+
+jobs:
+  wrong-branch:
+    name: Wrong branch
+    runs-on: ubuntu-latest
+    timeout-minutes: 1
+    steps:
+      - name: Fail
+        run: |
+          echo "::error::Run PR images on the PR's base release branch (v1.<minor>.x), not main."
+          exit 1
