@@ -18,7 +18,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 )
 
-func TestGatewayProxiesReplayIntoFreshSetupCache(t *testing.T) {
+func TestGatewayProxiesReplayIntoSetupCache(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	store := ggv2utils.NewGatewayProxySnapshotStore()
@@ -68,15 +68,11 @@ func TestGatewayProxiesReplayIntoFreshSetupCache(t *testing.T) {
 	current = nil
 	newClient := run() // No Gateway API input changed; the retained list is replayed.
 	check(newClient, 1)
-	if _, err := old.Write(&v1.Proxy{Metadata: &core.Metadata{Name: "old-only", Namespace: "gloo-system"}}, clients.WriteOpts{}); err != nil {
-		t.Fatal(err)
-	}
-	check(newClient, 1)           // A late old-run write cannot enter the new cache.
 	store.Publish(v1.ProxyList{}) // A complete empty list represents deletion.
 	check(run(), 0)
 	settings.Gateway = &v1.GatewayOptions{PersistProxySpec: &wrappers.BoolValue{Value: true}}
 	store.Publish(v1.ProxyList{proxy})
-	check(run(), 1) // No configured source: still a private memory cache.
+	check(run(), 1) // No configured source: still the in-memory cache.
 	check(run(), 1)
 }
 

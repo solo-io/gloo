@@ -95,6 +95,15 @@ var _ = Describe("Proxy client across setup runs", func() {
 		Expect(listAll(run2)).To(BeEmpty(), "no reconcile lists Proxies outside the write namespace")
 	})
 
+	It("deletes the previous run's Proxies when persistProxySpec is set without a config source", func() {
+		writeFirstRunProxies()
+
+		run2 := newRunProxyClient(&v1.Settings{
+			Gateway: &v1.GatewayOptions{PersistProxySpec: &wrapperspb.BoolValue{Value: true}},
+		}, "new-write-namespace")
+		Expect(listAll(run2)).To(BeEmpty(), "without a config source the Proxy store is still in memory")
+	})
+
 	It("deletes the previous run's Edge Proxies when the gateway controller is disabled", func() {
 		writeFirstRunProxies()
 

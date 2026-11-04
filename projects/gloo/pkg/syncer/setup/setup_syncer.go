@@ -915,7 +915,7 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 
 	if opts.GatewayProxySnapshots != nil {
 		var appliedVersion uint64
-		// Seed the private cache before the API emitter starts watching it.
+		// Seed the in-memory cache before the API emitter starts watching it.
 		if _, inMemory := opts.Proxies.(*factory.MemoryResourceClientFactory); inMemory {
 			var err error
 			appliedVersion, err = replayGatewayProxies(watchOpts.Ctx, opts.GatewayProxySnapshots, opts.WriteNamespace, proxyClient)
@@ -1175,9 +1175,7 @@ func constructOpts(ctx context.Context, setup *bootstrap.SetupOpts, params const
 		return bootstrap.Opts{}, err
 	}
 
-	// Give every setup run a private Proxy cache. The Gateway API controller's
-	// complete desired list is replayed into it before the API loop starts.
-	var proxyFactory factory.ResourceClientFactory = &factory.MemoryResourceClientFactory{Cache: memory.NewInMemoryResourceCache()}
+	var proxyFactory factory.ResourceClientFactory
 	// Delete proxies that may have been left from prior to an upgrade or from previously having set persistProxySpec
 	// Ignore errors because gloo will still work with stray proxies.
 	proxyCleanup := func() {
@@ -1291,7 +1289,7 @@ func constructOpts(ctx context.Context, setup *bootstrap.SetupOpts, params const
 	} else {
 		gatewayMode = true
 	}
-	if !params.settings.GetGateway().GetPersistProxySpec().GetValue() {
+	if _, inMemory := proxyFactory.(*factory.MemoryResourceClientFactory); inMemory {
 		// Gloo still works with stray Proxies, so a failed delete is logged and setup continues.
 		if err := deleteUnreconciledMemoryProxies(ctx, proxyFactory, params.writeNamespace, gatewayMode); err != nil {
 			contextutils.LoggerFrom(ctx).Warnw("failed to delete in-memory Proxies left by a previous setup run", zap.Error(err))
