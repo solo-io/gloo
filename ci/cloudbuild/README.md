@@ -16,6 +16,8 @@ Run all tests which do not depend on Kubernetes
 
 Publishing a GitHub release starts [`release.yaml`](../../.github/workflows/release.yaml). It waits for approval in environment `release`, then submits [Publish Artifacts](publish-artifacts.yaml) as the release service account. Tag builds from build-bot no longer publish.
 
+The second-person rule depends on environment `release` settings: required reviewers (release-owners), "Prevent self-reviews" on, and "Allow administrators to bypass configured protection rules" off. With the bypass on, an admin can publish alone.
+
 Before approving, check that the tag's commit is on its `v1.<minor>.x` branch. The workflow file runs from the tagged commit, so its own checks are not a guarantee.
 
 To stop a mistaken release, cancel the Cloud Build: `gcloud builds cancel <id> --project solo-public`. The log of the "Submit and wait for Cloud Build" step prints the id and the command as soon as the build is submitted, so you can cancel it while it is queued; the run summary shows them only after the job ends. Cancelling the workflow run does not stop the build.
