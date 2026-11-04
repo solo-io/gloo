@@ -1,0 +1,58 @@
+# Relays /build-pr-images PR comments to the base branch's pr-images.yaml.
+# Holds no credentials; publishing still needs approval in environment "release" there.
+# Lives on main because GitHub runs issue_comment workflows from the default branch.
+name: PR images comment
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions: {}
+
+jobs:
+  dispatch:
+    name: Dispatch PR images
+    if: github.event.issue.pull_request && startsWith(github.event.comment.body, '/build-pr-images')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      actions: write
+      pull-requests: read
+    env:
+      PR: ${{ github.event.issue.number }}
+      COMMENTER: ${{ github.event.comment.user.login }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Check and dispatch
+        run: |
+          set -euo pipefail
+          # Release lines that carry pr-images.yaml; add a new line here.
+          supported="v1.19.x v1.20.x v1.21.x v1.22.x"
+
+          pr_json="$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR}")"
+          state="$(jq -r '.state' <<<"${pr_json}")"
+          base="$(jq -r '.base.ref' <<<"${pr_json}")"
+          head="$(jq -r '.head.sha' <<<"${pr_json}")"
+          author="$(jq -r '.user.login' <<<"${pr_json}")"
+          if [ "${state}" != "open" ]; then
+            echo "::error::PR #${PR} is not open."
+            exit 1
+          fi
+          if ! [[ " ${supported} " == *" ${base} "* ]]; then
+            echo "::error::PR #${PR} targets ${base}; PR images exist for: ${supported}."
+            exit 1
+          fi
+          if [ "${COMMENTER,,}" != "${author,,}" ]; then
+            permission="$(gh api "repos/${GITHUB_REPOSITORY}/collaborators/${COMMENTER}/permission" --jq .permission)"
+            if [ "${permission}" != "admin" ] && [ "${permission}" != "write" ]; then
+              echo "::error::${COMMENTER} is neither the PR author nor a writer."
+              exit 1
+            fi
+          fi
+
+          gh workflow run pr-images.yaml --repo "${GITHUB_REPOSITORY}" --ref "${base}" \
+            -f pr="${PR}" -f sha="${head}" -f requester="${COMMENTER}"
+          {
+            echo "Dispatched PR images for #${PR} at ${head} on ${base}, requested by ${COMMENTER}."
+            echo "It waits for approval in environment release: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/workflows/pr-images.yaml"
+          } >> "${GITHUB_STEP_SUMMARY}"
