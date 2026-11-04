@@ -16,7 +16,7 @@ Run all tests which do not depend on Kubernetes
 
 Publishing a GitHub release starts [`release.yaml`](../../.github/workflows/release.yaml). It waits for approval in environment `release`, then submits [Publish Artifacts](publish-artifacts.yaml) as the release service account. Tag builds from build-bot no longer publish.
 
-The second-person rule depends on environment `release` settings: required reviewers (release-owners), "Prevent self-reviews" on, and "Allow administrators to bypass configured protection rules" off. With the bypass on, an admin can publish alone.
+The second-person rule depends on environment `release` settings: required reviewers (release-owners), "Prevent self-reviews" on, and "Allow administrators to bypass configured protection rules" off. With the bypass on, an admin can publish alone. Prevent self-review blocks only whoever published the release, so a person must publish it: the workflow rejects releases published by an App, and no shared machine-user token may be able to create releases.
 
 Before approving, check that the tag's commit is on its `v1.<minor>.x` branch. The workflow file runs from the tagged commit, so its own checks are not a guarantee.
 
