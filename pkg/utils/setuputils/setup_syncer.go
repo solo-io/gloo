@@ -44,11 +44,20 @@ const (
 	defaultFirstSyncTimeout = 10 * time.Minute
 )
 
-func firstSyncTimeout() time.Duration {
-	if d, err := time.ParseDuration(os.Getenv(FirstSyncTimeoutEnv)); err == nil && d > 0 {
-		return d
+// firstSyncTimeout returns the duration in FirstSyncTimeoutEnv. An unset value is the default; a value
+// that does not parse or is not positive logs a warning and is also the default.
+func firstSyncTimeout(ctx context.Context) time.Duration {
+	value := os.Getenv(FirstSyncTimeoutEnv)
+	if value == "" {
+		return defaultFirstSyncTimeout
 	}
-	return defaultFirstSyncTimeout
+	d, err := time.ParseDuration(value)
+	if err != nil || d <= 0 {
+		contextutils.LoggerFrom(ctx).Warnw("ignoring first-sync timeout; expected a positive Go duration such as 10m",
+			zap.String("env", FirstSyncTimeoutEnv), zap.String("value", value), zap.Duration("default", defaultFirstSyncTimeout))
+		return defaultFirstSyncTimeout
+	}
+	return d
 }
 
 type firstSyncGateKey struct{}
@@ -73,7 +82,7 @@ func (g *firstSyncGate) wait(ctx context.Context) {
 		return
 	}
 	contextutils.LoggerFrom(ctx).Infow("holding setup restarts until the current setup has run its first sync")
-	timeout := firstSyncTimeout()
+	timeout := firstSyncTimeout(ctx)
 	timer := time.NewTimer(timeout)
 	defer timer.Stop()
 	select {
