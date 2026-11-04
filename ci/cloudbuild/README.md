@@ -26,7 +26,7 @@ For a new release line (for example `v1.23.x`), release-owners create the branch
 
 ## PR images
 
-To get images for a PR, comment `/build-pr-images` on it (the PR author or someone with write access), or run "PR images" from the Actions tab on the PR's base branch with the PR number, the head SHA and your login. [`pr-images.yaml`](../../.github/workflows/pr-images.yaml) checks that the PR is open, the branch is its base and the SHA is its head. It then waits for a second person to approve in environment `release` before it submits [Publish Artifacts](publish-artifacts.yaml) as the PR build service account. The requester and the PR author can't approve; the build fails if they do.
+To get images for a PR, comment `/build-pr-images` on it (the PR author or someone with write access), or run "PR images" from the Actions tab on the PR's base branch with the PR number, the head SHA and your login. [`pr-images.yaml`](../../.github/workflows/pr-images.yaml) checks that the PR is open, the branch is its base and the SHA is its head. It then waits for a second person to approve in environment `release` before it submits [Publish Artifacts](publish-artifacts.yaml) as the PR build service account. The requester and the PR author can't approve; the build fails if they do. After approval the build checks again that the PR is open and its head is still the requested commit, and fails otherwise. A direct dispatch leaves `comment_id` empty.
 
 The build runs the PR's code with the quay.io robot logged in, so approvers check the PR's Makefile, `ci/` and Dockerfile changes first. The run title shows the PR head commit; approve only if it is the commit you reviewed. Approvers must not have pushed commits to the PR.
 
