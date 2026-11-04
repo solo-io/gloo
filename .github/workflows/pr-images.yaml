@@ -1,32 +1,114 @@
-# Publishes PR images when a PR to a supported release branch has the label
-# publish-pr-images. Publishing runs only after approval in environment "release".
-# Only the PR author's label or push starts a run, so the author can't approve it.
-# The runner checks out the base commit only; the PR's code runs inside Cloud Build.
+# Publishes PR images. Dispatched by the PR author or a writer from the Actions
+# tab, or by a /build-pr-images comment on the PR through main's pr-images-comment.yaml.
+# Publishing runs only after a second person approves in environment "release".
+# The runner checks out the dispatched release branch only; the PR's code runs inside Cloud Build.
 # Repository variables: GLOO_RELEASE_WIF_PROVIDER (workload identity provider),
 # GLOO_PR_BUILD_SA (service account email in solo-public).
 name: PR images
-run-name: "PR images #${{ github.event.pull_request.number }} at ${{ github.event.pull_request.head.sha }}"
+run-name: "PR images #${{ inputs.pr }} at ${{ inputs.sha }} for ${{ inputs.requester }}"
 
 on:
-  pull_request_target:
-    types: [labeled, synchronize]
-    branches:
-      - v1.19.x
-      - v1.20.x
-      - v1.21.x
-      - v1.22.x
+  workflow_dispatch:
+    inputs:
+      pr:
+        description: PR number
+        required: true
+        type: string
+      sha:
+        description: PR head commit to build
+        required: true
+        type: string
+      requester:
+        description: GitHub login that asked for the build
+        required: true
+        type: string
 
 permissions: {}
 
 jobs:
+  validate:
+    name: Validate request
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      pull-requests: read
+    outputs:
+      author: ${{ steps.check.outputs.author }}
+    env:
+      PR: ${{ inputs.pr }}
+      SHA: ${{ inputs.sha }}
+      REQUESTER: ${{ inputs.requester }}
+      ACTOR: ${{ github.actor }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Check the request
+        id: check
+        run: |
+          set -euo pipefail
+          if ! [[ "${PR}" =~ ^[0-9]+$ ]]; then
+            echo "::error::pr must be a PR number, digits only."
+            exit 1
+          fi
+          if ! [[ "${SHA}" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error::sha must be the full 40-character lowercase head commit of the PR."
+            exit 1
+          fi
+          if ! [[ "${REQUESTER}" =~ ^[A-Za-z0-9](-?[A-Za-z0-9])*$ ]] || [ "${#REQUESTER}" -gt 39 ]; then
+            echo "::error::requester must be a GitHub login."
+            exit 1
+          fi
+          if [[ "${GITHUB_REF}" != refs/heads/* ]] || ! [[ "${GITHUB_REF_NAME}" =~ ^v1\.[0-9]+\.x$ ]]; then
+            echo "::error::Dispatch from a release branch (v1.<minor>.x), the base branch of the PR."
+            exit 1
+          fi
+
+          pr_json="$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR}")"
+          state="$(jq -r '.state' <<<"${pr_json}")"
+          base="$(jq -r '.base.ref' <<<"${pr_json}")"
+          head="$(jq -r '.head.sha' <<<"${pr_json}")"
+          author="$(jq -r '.user.login' <<<"${pr_json}")"
+          if [ "${state}" != "open" ]; then
+            echo "::error::PR #${PR} is not open."
+            exit 1
+          fi
+          if [ "${base}" != "${GITHUB_REF_NAME}" ]; then
+            echo "::error::PR #${PR} targets ${base}; dispatch from ${base}, the PR's base branch."
+            exit 1
+          fi
+          if [ "${head}" != "${SHA}" ]; then
+            echo "::error::sha is not the PR head; use the current head ${head}."
+            exit 1
+          fi
+
+          # When relayed from a comment the run's actor is github-actions[bot],
+          # so authorization uses requester, not github.actor.
+          if [ "${REQUESTER,,}" != "${author,,}" ]; then
+            permission="$(gh api "repos/${GITHUB_REPOSITORY}/collaborators/${REQUESTER}/permission" --jq .permission)"
+            if [ "${permission}" != "admin" ] && [ "${permission}" != "write" ]; then
+              echo "::error::${REQUESTER} is neither the PR author nor a writer; ask the author or someone with write access."
+              exit 1
+            fi
+          fi
+
+          # A direct dispatch must name the dispatcher, so a writer can't name someone else.
+          if [ "${ACTOR}" != "github-actions[bot]" ] && [ "${REQUESTER,,}" != "${ACTOR,,}" ]; then
+            echo "::error::requester must be your own login (${ACTOR}) when dispatching directly."
+            exit 1
+          fi
+
+          echo "author=${author}" >> "${GITHUB_OUTPUT}"
+          {
+            echo "- PR: #${PR}"
+            echo "- sha: ${SHA}"
+            echo "- requester: ${REQUESTER}"
+            echo "- author: ${author}"
+          } >> "${GITHUB_STEP_SUMMARY}"
+
   build:
     name: Build and publish PR images
-    if: >-
-      ((github.event.action == 'labeled' && github.event.label.name == 'publish-pr-images') ||
-      (github.event.action == 'synchronize' && contains(github.event.pull_request.labels.*.name, 'publish-pr-images'))) &&
-      github.triggering_actor == github.event.pull_request.user.login
+    needs: validate
     concurrency:
-      group: pr-images-${{ github.event.pull_request.number }}
+      group: pr-images-${{ inputs.pr }}
       cancel-in-progress: false
     runs-on: ubuntu-latest
     timeout-minutes: 135
@@ -34,15 +116,38 @@ jobs:
     permissions:
       id-token: write
       contents: read
+      actions: read
     env:
-      HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-      PR_NUM: ${{ github.event.pull_request.number }}
+      HEAD_SHA: ${{ inputs.sha }}
+      PR_NUM: ${{ inputs.pr }}
       GLOO_PR_BUILD_SA: ${{ vars.GLOO_PR_BUILD_SA }}
     steps:
-      - name: Checkout base
+      - name: Check the approver
+        env:
+          REQUESTER: ${{ inputs.requester }}
+          AUTHOR: ${{ needs.validate.outputs.author }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          # Prevent self-review only blocks the run's actor, which is github-actions[bot]
+          # for comment-relayed runs; this enforces that the approver is a second person.
+          approvals="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/approvals")"
+          approvers="$(jq -r '.[] | select(.state == "approved" and any(.environments[]; .name == "release")) | .user.login' <<<"${approvals}")"
+          if [ -z "${approvers}" ]; then
+            echo "::error::No approval in environment release found. Dispatch again and have someone else approve."
+            exit 1
+          fi
+          while IFS= read -r approver; do
+            if [ "${approver,,}" = "${REQUESTER,,}" ] || [ "${approver,,}" = "${AUTHOR,,}" ]; then
+              echo "::error::${approver} approved but is the requester or PR author. Dispatch again and have someone else approve."
+              exit 1
+            fi
+          done <<<"${approvers}"
+
+      - name: Checkout release branch
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
-          ref: ${{ github.event.pull_request.base.sha }}
+          ref: ${{ github.sha }}
           persist-credentials: false
 
       - name: Authenticate to Google Cloud
