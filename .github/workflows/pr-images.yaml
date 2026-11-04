@@ -119,7 +119,7 @@ jobs:
               echo "::error::Comment ${COMMENT_ID} is not on PR #${PR}."
               exit 1
             fi
-            if [[ "$(jq -r '.body' <<<"${comment_json}")" != "/build-pr-images"* ]]; then
+            if [[ "$(jq -r '.body | ascii_downcase' <<<"${comment_json}")" != "/build-pr-images"* ]]; then
               echo "::error::Comment ${COMMENT_ID} does not start with /build-pr-images."
               exit 1
             fi
