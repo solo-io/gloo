@@ -3,12 +3,28 @@ package proxy_syncer
 import (
 	"testing"
 
+	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"k8s.io/utils/ptr"
 	gwv1 "sigs.k8s.io/gateway-api/apis/v1"
 	gwxv1a1 "sigs.k8s.io/gateway-api/apisx/v1alpha1"
 
 	"github.com/solo-io/gloo/projects/gateway2/wellknown"
 )
+
+func TestProxyListEqualsDoesNotMutateInputs(t *testing.T) {
+	a := &gloov1.Proxy{Metadata: &core.Metadata{Namespace: "default", Name: "a"}}
+	b := &gloov1.Proxy{Metadata: &core.Metadata{Namespace: "default", Name: "b"}}
+	left := proxyList{list: gloov1.ProxyList{b, a}}
+	right := proxyList{list: gloov1.ProxyList{a, b}}
+
+	if !left.Equals(right) {
+		t.Fatal("lists with the same Proxies should be equal regardless of order")
+	}
+	if left.list[0] != b || left.list[1] != a || right.list[0] != a || right.list[1] != b {
+		t.Fatal("Equals changed the order of an input list")
+	}
+}
 
 func TestIsGatewayStatusEqual(t *testing.T) {
 	addrType := gwv1.HostnameAddressType
