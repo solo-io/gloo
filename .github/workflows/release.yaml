@@ -194,7 +194,7 @@ jobs:
       VERSION: ${{ needs.validate.outputs.version }}
       BUILD_TYPE: ${{ needs.validate.outputs.build_type }}
     steps:
-      - uses: solo-io/solo-tools/.github/actions/setup-security-scan-artifacts@2a6fe07c99986682062ca53375944d9982f31f8e # main
+      - uses: solo-io/solo-tools/.github/actions/setup-security-scan-artifacts@bb2f009552c04e7c3f8cdcdc49e46409ba80bea8 # release-v0.2.0
         with:
           gcp_creds: ${{ secrets.GLOO_VULN_REPORTER }}
 
