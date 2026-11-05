@@ -13,7 +13,6 @@ import (
 	ggv2setup "github.com/solo-io/gloo/projects/gateway2/setup"
 	ggv2utils "github.com/solo-io/gloo/projects/gateway2/utils"
 	"github.com/solo-io/gloo/projects/gloo/constants"
-	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/bootstrap"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/registry"
 	"github.com/solo-io/gloo/projects/gloo/pkg/syncer/setup"
@@ -41,10 +40,9 @@ func startSetupLoop(ctx context.Context) error {
 		uniqueClientCallbacks, builder = krtcollections.NewUniquelyConnectedClients()
 	}
 	setupOpts := bootstrap.NewSetupOpts(xds.NewAdsSnapshotCache(ctx), uniqueClientCallbacks)
-	// start gw if needed, get the proxy reconcile q
-	// pass that in to the setup func
+	// Keep the Gateway API controller's complete Proxy list across setup runs.
 	if k8sgw {
-		setupOpts.ProxyReconcileQueue = ggv2utils.NewAsyncQueue[gloov1.ProxyList]()
+		setupOpts.GatewayProxySnapshots = ggv2utils.NewGatewayProxySnapshotStore()
 		go ggv2setup.StartGGv2(ctx, setupOpts, builder, extensions.NewK8sGatewayExtensions, registry.GetPluginRegistryFactory)
 	}
 
