@@ -168,6 +168,9 @@ type setupSyncer struct {
 	validationServer         bootstrap.ValidationServer
 	proxyDebugServer         bootstrap.ProxyDebugServer
 	callbacks                xdsserver.Callbacks
+	// previousProxyCache is the in-memory Proxy cache of the most recent setup run. The next Setup copies
+	// its Edge Proxies into the new run's cache, then points this field at the new cache.
+	previousProxyCache memory.InMemoryResourceCache
 }
 
 func NewControlPlane(ctx context.Context, snapshotCache cache.SnapshotCache, grpcServer *grpc.Server, bindAddr net.Addr, kubeControlPlaneCfg bootstrap.KubernetesControlPlaneConfig,
@@ -332,6 +335,20 @@ func (s *setupSyncer) Setup(ctx context.Context, kubeCache kube.SharedCache, mem
 	)
 	if err != nil {
 		return err
+	}
+
+	// The gateway reconciler keeps a serving listener whose Gateway is newly rejected only when it can
+	// read the previous Proxy, so a fresh per-run store starts with the Edge Proxies the last run wrote.
+	// With the gateway controller disabled no Edge reconcile runs, so none are copied.
+	if mem, ok := opts.Proxies.(*factory.MemoryResourceClientFactory); ok {
+		if opts.GatewayControllerEnabled {
+			if err := copyEdgeProxies(ctx, s.previousProxyCache, mem.Cache, writeNamespace); err != nil {
+				contextutils.LoggerFrom(ctx).Warnw("could not carry Edge Proxies into the new setup run", zap.Error(err))
+			}
+		}
+		s.previousProxyCache = mem.Cache
+	} else {
+		s.previousProxyCache = nil
 	}
 
 	// get xds host/port to pass to ControlPlane below, only if we're running in k8s
@@ -697,6 +714,10 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 			}
 			logger.Panicw("failed warming up endpoints - consider adjusting endpointsWarmingTimeout", "warmTimeoutDuration", warmTimeoutDuration)
 		}
+	} else if len(opts.Settings.GetWatchNamespaceSelectors()) > 0 {
+		// Setup restarts are held only until the first sync, which may run before endpoints are discovered.
+		logger.Warnw("endpointsWarmingTimeout is 0s with watchNamespaceSelectors: a setup run's first sync can publish " +
+			"clusters with no endpoints, and if a namespace changed during setup, that sync is also the run's last")
 	}
 
 	// We are ready!
@@ -1371,6 +1392,39 @@ func constructIstioBootstrapOpts(settings *v1.Settings) bootstrap.IstioValues {
 	}
 
 	return istioValues
+}
+
+// copyEdgeProxies copies the Gloo Edge Proxies in writeNamespace from the previous run's Proxy cache
+// into the new run's cache, without their status. A nil previous cache copies nothing. Gateway API
+// Proxies are not copied; replayGatewayProxies seeds those from the controller's own store.
+func copyEdgeProxies(ctx context.Context, previous, next memory.InMemoryResourceCache, writeNamespace string) error {
+	if previous == nil {
+		return nil
+	}
+	src, err := gloov1.NewProxyClient(ctx, &factory.MemoryResourceClientFactory{Cache: previous})
+	if err != nil {
+		return err
+	}
+	dst, err := gloov1.NewProxyClient(ctx, &factory.MemoryResourceClientFactory{Cache: next})
+	if err != nil {
+		return err
+	}
+	proxies, err := src.List(writeNamespace, clients.ListOpts{
+		Ctx:      ctx,
+		Selector: map[string]string{utils.ProxyTypeKey: utils.GlooEdgeProxyValue},
+	})
+	if err != nil {
+		return err
+	}
+	for _, proxy := range proxies {
+		// The copy gives the reconciler the previous spec; the new run reports its own status. List
+		// returns clones, so clearing the status here does not change the previous cache.
+		proxy.NamespacedStatuses = nil
+		if _, err := dst.Write(proxy, clients.WriteOpts{Ctx: ctx}); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // replayGatewayProxies seeds a new run from the controller's complete desired
