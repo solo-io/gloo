@@ -1,13 +1,11 @@
 steps:
 
 - name: 'gcr.io/cloud-builders/gcloud'
+  entrypoint: 'bash'
   args:
-  - 'builds'
-  - 'submit'
-  - '--config'
-  - 'ci/cloudbuild/publish-artifacts.yaml'
-  - '--substitutions'
-  - 'COMMIT_SHA=$COMMIT_SHA,REPO_NAME=$REPO_NAME,TAG_NAME=$TAG_NAME,_PR_NUM=$_PR_NUM'
+  - '-c'
+  - |
+    echo "Tag builds publish from .github/workflows/release.yaml; PR images from .github/workflows/pr-images.yaml (/build-pr-images comment or dispatch, approval in environment release)."
   waitFor:
   - '-'
   id: 'publish-artifacts'
