@@ -121,6 +121,15 @@ steps:
   secretEnv:
     - 'JWT_PRIVATE_KEY'
 
+- name: 'gcr.io/$PROJECT_ID/go-mod-make:0.15.0'
+  id: 'build-glooctl'
+  dir: *dir
+  args:
+  - 'build-cli'
+  waitFor:
+  - 'prepare-workspace'
+  - 'untar-mod-cache'
+
 secrets:
 - kmsKeyName: 'projects/solo-public/locations/global/keyRings/build/cryptoKeys/build-key'
   secretEnv:
