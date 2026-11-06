@@ -2,8 +2,12 @@ package setuputils
 
 import (
 	"context"
+	"os"
 	"slices"
 	"strings"
+	"sync"
+	"sync/atomic"
+	"time"
 
 	"github.com/solo-io/gloo/pkg/bootstrap/leaderelector"
 	"github.com/solo-io/gloo/pkg/utils/statsutils"
@@ -33,6 +37,79 @@ type SetupFunc func(ctx context.Context,
 	settings *v1.Settings,
 	identity leaderelector.Identity) error
 
+const (
+	// FirstSyncTimeoutEnv is a Go duration ("10m") bounding how long a held restart waits for the first sync.
+	FirstSyncTimeoutEnv = "GLOO_SETUP_FIRST_SYNC_TIMEOUT"
+
+	defaultFirstSyncTimeout = 10 * time.Minute
+)
+
+// firstSyncTimeout returns the duration in FirstSyncTimeoutEnv. An unset value is the default; a value
+// that does not parse or is not positive logs a warning and is also the default.
+func firstSyncTimeout(ctx context.Context) time.Duration {
+	value := os.Getenv(FirstSyncTimeoutEnv)
+	if value == "" {
+		return defaultFirstSyncTimeout
+	}
+	d, err := time.ParseDuration(value)
+	if err != nil || d <= 0 {
+		contextutils.LoggerFrom(ctx).Warnw("ignoring first-sync timeout; expected a positive Go duration such as 10m",
+			zap.String("env", FirstSyncTimeoutEnv), zap.String("value", value), zap.Duration("default", defaultFirstSyncTimeout))
+		return defaultFirstSyncTimeout
+	}
+	return d
+}
+
+type firstSyncGateKey struct{}
+
+// firstSyncGate is placed on each setup run's ctx; a component arms it via HoldRestartsUntilFirstSync.
+type firstSyncGate struct {
+	held     atomic.Bool
+	released atomic.Bool
+	ready    chan struct{}
+	release  func()
+	timeout  time.Duration
+}
+
+func newFirstSyncGate(timeout time.Duration) *firstSyncGate {
+	gate := &firstSyncGate{ready: make(chan struct{}), timeout: timeout}
+	gate.release = sync.OnceFunc(func() {
+		gate.released.Store(true)
+		close(gate.ready)
+	})
+	return gate
+}
+
+// wait blocks until the gate is released, the first-sync timeout passes, or ctx ends. It returns at once
+// if nothing armed the gate.
+func (g *firstSyncGate) wait(ctx context.Context) {
+	if !g.held.Load() || g.released.Load() {
+		return
+	}
+	contextutils.LoggerFrom(ctx).Infow("holding setup restarts until the current setup has run its first sync")
+	timer := time.NewTimer(g.timeout)
+	defer timer.Stop()
+	select {
+	case <-g.ready:
+	case <-timer.C:
+		contextutils.LoggerFrom(ctx).Warnw("setup did not finish its first sync before the timeout; handling setup changes anyway",
+			zap.Duration("timeout", g.timeout))
+	case <-ctx.Done():
+	}
+}
+
+// HoldRestartsUntilFirstSync holds settings and namespace restarts of the setup run owning ctx until the
+// returned func is called. Callers in the same run share one release, so the first call frees the hold.
+// Outside a setup run it returns a no-op.
+func HoldRestartsUntilFirstSync(ctx context.Context) func() {
+	gate, ok := ctx.Value(firstSyncGateKey{}).(*firstSyncGate)
+	if !ok {
+		return func() {}
+	}
+	gate.held.Store(true)
+	return gate.release
+}
+
 type SetupSyncer struct {
 	settingsRef         *core.ResourceRef
 	setupFunc           SetupFunc
@@ -50,6 +127,10 @@ func NewSetupSyncer(settingsRef *core.ResourceRef, setupFunc SetupFunc, identity
 	}
 }
 
+// Sync runs the setup function. If a component in the run holds restarts (HoldRestartsUntilFirstSync),
+// Sync then waits for it to release them. The setup event loop reads no snapshots while Sync runs, and
+// the setup emitter re-sends a snapshot it could not deliver, so a settings or namespace change made
+// during the wait restarts setup once Sync returns.
 func (s *SetupSyncer) Sync(ctx context.Context, snap *v1.SetupSnapshot) error {
 	settings, err := snap.Settings.Find(s.settingsRef.Strings())
 	if err != nil {
@@ -78,12 +159,16 @@ func (s *SetupSyncer) Sync(ctx context.Context, snap *v1.SetupSnapshot) error {
 		mSetupsRun,
 	)
 
+	gate := newFirstSyncGate(firstSyncTimeout(ctx))
+	ctx = context.WithValue(ctx, firstSyncGateKey{}, gate)
+
 	err = s.setupFunc(ctx, kube.NewKubeCache(ctx), s.inMemoryCache, settings, s.identity)
 	if err != nil {
 		return err
 	}
 
 	s.currentSettingsHash = settings.MustHash()
+	gate.wait(ctx)
 	return nil
 }
 

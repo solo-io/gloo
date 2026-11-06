@@ -18,6 +18,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
 
 	"github.com/solo-io/gloo/pkg/bootstrap/leaderelector"
+	"github.com/solo-io/gloo/pkg/utils/setuputils"
 	gwsyncer "github.com/solo-io/gloo/projects/gateway/pkg/syncer"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	v1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
@@ -48,6 +49,8 @@ type translatorSyncer struct {
 	snapshotHistory iosnapshot.History
 
 	statusSyncer *statusSyncer
+	// firstSyncDone releases the setup loop's hold on restarts after the first Sync.
+	firstSyncDone func()
 }
 
 type statusSyncer struct {
@@ -97,6 +100,7 @@ func NewTranslatorSyncer(
 			reportsLock:         sync.RWMutex{},
 		},
 		snapshotHistory: snapshotHistory,
+		firstSyncDone:   setuputils.HoldRestartsUntilFirstSync(ctx),
 	}
 	if devMode {
 		// TODO(ilackarms): move this somewhere else?
@@ -110,15 +114,21 @@ func NewTranslatorSyncer(
 }
 
 func (s *translatorSyncer) Sync(ctx context.Context, snap *v1snap.ApiSnapshot) error {
+	defer s.firstSyncDone()
 	logger := contextutils.LoggerFrom(ctx)
 	var multiErr *multierror.Error
 
 	// If gateway controller is enabled, run the gateway translation to generate proxies.
 	// Use the ProxyClient interface to persist them either to an in-memory store or etcd as configured at startup.
+	// A failed reconcile may have written only some Proxies, or none. After a pod restart the in-memory
+	// store starts empty; after a setup re-run it holds the previous run's Edge Proxies. The listed Proxies
+	// are still translated and published, but no xDS snapshot is removed because its Proxy is missing from the list.
+	proxyListComplete := true
 	if s.gatewaySyncer != nil {
 		logger.Debugf("getting proxies from gateway translation")
 		if err := s.translateProxies(ctx, snap); err != nil {
 			multiErr = multierror.Append(multiErr, eris.Wrapf(err, "translating proxies"))
+			proxyListComplete = false
 		}
 	}
 
@@ -137,7 +147,10 @@ func (s *translatorSyncer) Sync(ctx context.Context, snap *v1snap.ApiSnapshot) e
 
 	// Execute the EnvoySyncer
 	// This will update the xDS SnapshotCache for each entry that corresponds to a non-kube gw Proxy in the API Snapshot
-	s.syncEnvoy(ctx, snap, reports)
+	s.syncEnvoy(ctx, snap, reports, proxyListComplete)
+	if !proxyListComplete {
+		logger.Warnw("proxy reconcile failed; skipping xDS garbage collection until a reconcile succeeds")
+	}
 
 	// Execute the SyncerExtensions
 	// Each of these are responsible for updating a single entry in the SnapshotCache
