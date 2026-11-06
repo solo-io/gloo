@@ -1,0 +1,30 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/solo-projects/issues/9126
+    resolvesIssue: false
+    description: >-
+      Replay the Gateway API controller’s latest complete Proxy list into each new setup run, preventing rate-limit rules from disappearing after a Settings or namespace change when Gateway API resources are unchanged.
+  - type: FIX
+    issueLink: https://github.com/solo-io/solo-projects/issues/9377
+    resolvesIssue: false
+    description: >-
+      Each gloo setup run again has its own in-memory Proxy store, instead of the process-level store
+      added in v1.20.29. When a namespace matching watchNamespaceSelectors re-runs setup, the new run's
+      store starts with the Gloo Edge Proxies the previous run wrote to the write namespace, so the
+      gateway reconciler still keeps the listener of a newly rejected Gateway. A setup run that is being
+      replaced can no longer write Proxies into the new run's store. No Edge Proxies are copied when the
+      gateway controller is disabled. persistProxySpec=true is unchanged.
+  - type: FIX
+    issueLink: https://github.com/solo-io/solo-projects/issues/9349
+    resolvesIssue: false
+    description: >-
+      When the gateway proxy reconcile fails, gloo runs the ext-auth and rate-limit syncs again, as it
+      did before v1.20.29. In v1.20.29 a failed reconcile skipped both until a reconcile succeeded, so
+      AuthConfig and Secret changes, including deleting an API key Secret, did not reach the ext-auth
+      server. xDS garbage collection is still skipped after a failed reconcile.
+  - type: FIX
+    issueLink: https://github.com/solo-io/solo-projects/issues/9349
+    resolvesIssue: false
+    description: >-
+      gloo logs a warning when GLOO_SETUP_FIRST_SYNC_TIMEOUT is set to a value that is not a positive
+      Go duration, and uses the 10m default. Previously the value was ignored with no log line.
