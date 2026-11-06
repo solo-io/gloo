@@ -206,7 +206,7 @@ func NewControllerBuilder(ctx context.Context, cfg StartConfig) (*ControllerBuil
 		cfg.SetupOpts.Cache,
 		cfg.SyncerExtensions,
 		cfg.GlooStatusReporter,
-		cfg.SetupOpts.ProxyReconcileQueue,
+		cfg.SetupOpts.GatewayProxySnapshots,
 		allowedGatewayClasses,
 	)
 	proxySyncer.Init(ctx, cfg.Debugger)

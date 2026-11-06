@@ -44,43 +44,56 @@ const (
 	defaultFirstSyncTimeout = 10 * time.Minute
 )
 
-func firstSyncTimeout() time.Duration {
-	if d, err := time.ParseDuration(os.Getenv(FirstSyncTimeoutEnv)); err == nil && d > 0 {
-		return d
+// firstSyncTimeout returns the duration in FirstSyncTimeoutEnv. An unset value is the default; a value
+// that does not parse or is not positive logs a warning and is also the default.
+func firstSyncTimeout(ctx context.Context) time.Duration {
+	value := os.Getenv(FirstSyncTimeoutEnv)
+	if value == "" {
+		return defaultFirstSyncTimeout
 	}
-	return defaultFirstSyncTimeout
+	d, err := time.ParseDuration(value)
+	if err != nil || d <= 0 {
+		contextutils.LoggerFrom(ctx).Warnw("ignoring first-sync timeout; expected a positive Go duration such as 10m",
+			zap.String("env", FirstSyncTimeoutEnv), zap.String("value", value), zap.Duration("default", defaultFirstSyncTimeout))
+		return defaultFirstSyncTimeout
+	}
+	return d
 }
 
 type firstSyncGateKey struct{}
 
 // firstSyncGate is placed on each setup run's ctx; a component arms it via HoldRestartsUntilFirstSync.
 type firstSyncGate struct {
-	held    atomic.Bool
-	ready   chan struct{}
-	release func()
+	held     atomic.Bool
+	released atomic.Bool
+	ready    chan struct{}
+	release  func()
+	timeout  time.Duration
 }
 
-func newFirstSyncGate() *firstSyncGate {
-	gate := &firstSyncGate{ready: make(chan struct{})}
-	gate.release = sync.OnceFunc(func() { close(gate.ready) })
+func newFirstSyncGate(timeout time.Duration) *firstSyncGate {
+	gate := &firstSyncGate{ready: make(chan struct{}), timeout: timeout}
+	gate.release = sync.OnceFunc(func() {
+		gate.released.Store(true)
+		close(gate.ready)
+	})
 	return gate
 }
 
 // wait blocks until the gate is released, the first-sync timeout passes, or ctx ends. It returns at once
 // if nothing armed the gate.
 func (g *firstSyncGate) wait(ctx context.Context) {
-	if !g.held.Load() {
+	if !g.held.Load() || g.released.Load() {
 		return
 	}
 	contextutils.LoggerFrom(ctx).Infow("holding setup restarts until the current setup has run its first sync")
-	timeout := firstSyncTimeout()
-	timer := time.NewTimer(timeout)
+	timer := time.NewTimer(g.timeout)
 	defer timer.Stop()
 	select {
 	case <-g.ready:
 	case <-timer.C:
 		contextutils.LoggerFrom(ctx).Warnw("setup did not finish its first sync before the timeout; handling setup changes anyway",
-			zap.Duration("timeout", timeout))
+			zap.Duration("timeout", g.timeout))
 	case <-ctx.Done():
 	}
 }
@@ -146,7 +159,7 @@ func (s *SetupSyncer) Sync(ctx context.Context, snap *v1.SetupSnapshot) error {
 		mSetupsRun,
 	)
 
-	gate := newFirstSyncGate()
+	gate := newFirstSyncGate(firstSyncTimeout(ctx))
 	ctx = context.WithValue(ctx, firstSyncGateKey{}, gate)
 
 	err = s.setupFunc(ctx, kube.NewKubeCache(ctx), s.inMemoryCache, settings, s.identity)
