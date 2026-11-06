@@ -50,14 +50,14 @@ var _ = Describe("Translator syncer after a failed proxy reconcile", func() {
 		return syncer.Sync(ctx, snap)
 	}
 
-	It("does not garbage collect xDS snapshots or run extension syncs", func() {
+	It("does not garbage collect xDS snapshots, but still runs extension syncs", func() {
 		reconcile.err = errors.New("validation process was killed")
 
 		err := sync()
 
 		Expect(err).To(MatchError(ContainSubstring("translating proxies")))
 		Expect(xdsCache.setKeys).NotTo(HaveKey("connected-node"), "a node missing from an incomplete Proxy list must keep its snapshot")
-		Expect(extension.called).To(BeFalse(), "extension config is built from the Proxy list and must not be rebuilt from an incomplete one")
+		Expect(extension.called).To(BeTrue(), "ext-auth config does not depend on the Proxy list, so AuthConfig and Secret changes must still be published")
 	})
 
 	It("garbage collects xDS snapshots and runs extension syncs when the reconcile succeeds (sanity check of this setup)", func() {
