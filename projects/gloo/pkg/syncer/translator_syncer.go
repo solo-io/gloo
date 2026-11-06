@@ -122,7 +122,7 @@ func (s *translatorSyncer) Sync(ctx context.Context, snap *v1snap.ApiSnapshot) e
 	// Use the ProxyClient interface to persist them either to an in-memory store or etcd as configured at startup.
 	// A failed reconcile may have written only some Proxies, or none. After a pod restart the in-memory
 	// store starts empty; after a setup re-run it holds the previous run's Edge Proxies. The listed Proxies
-	// are still translated and published, but nothing is removed or rebuilt because it is missing from the list.
+	// are still translated and published, but no xDS snapshot is removed because its Proxy is missing from the list.
 	proxyListComplete := true
 	if s.gatewaySyncer != nil {
 		logger.Debugf("getting proxies from gateway translation")
@@ -148,15 +148,13 @@ func (s *translatorSyncer) Sync(ctx context.Context, snap *v1snap.ApiSnapshot) e
 	// Execute the EnvoySyncer
 	// This will update the xDS SnapshotCache for each entry that corresponds to a non-kube gw Proxy in the API Snapshot
 	s.syncEnvoy(ctx, snap, reports, proxyListComplete)
+	if !proxyListComplete {
+		logger.Warnw("proxy reconcile failed; skipping xDS garbage collection until a reconcile succeeds")
+	}
 
 	// Execute the SyncerExtensions
 	// Each of these are responsible for updating a single entry in the SnapshotCache
-	// Their config is built from the listed Proxies, so they keep their last snapshot when the list may be incomplete.
-	if proxyListComplete {
-		s.syncExtensions(ctx, snap, reports)
-	} else {
-		logger.Warnw("proxy reconcile failed; skipping xDS garbage collection and extension syncs until a reconcile succeeds")
-	}
+	s.syncExtensions(ctx, snap, reports)
 
 	// reset the resource metrics before we write the new statuses, this ensures that
 	// deleted resources are removed from the metrics
