@@ -1,0 +1,31 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/solo-projects/issues/9349
+    resolvesIssue: false
+    description: >-
+      With watchNamespaceSelectors, a namespace or Settings change no longer restarts the
+      gloo setup loop before the running setup has attempted its first xDS sync. The restart
+      happens once that sync has run. GLOO_SETUP_FIRST_SYNC_TIMEOUT (default 10m) bounds the
+      wait if the first sync never returns. Other components that share the setup loop are not
+      affected. With endpointsWarmingTimeout set to 0s, gloo logs a warning at setup, since a
+      setup run's first sync can then publish clusters with no endpoints.
+  - type: FIX
+    issueLink: https://github.com/solo-io/solo-projects/issues/9349
+    resolvesIssue: false
+    description: >-
+      When the gateway proxy reconcile fails, gloo still publishes xDS for the Proxies it lists,
+      but no longer sends empty snapshots to connected Envoys whose Proxy is missing from that
+      list. After a gloo pod restart the in-memory Proxy store is empty, so a failed first
+      reconcile previously sent every connected Envoy an empty config. After an in-process setup
+      re-run the store holds the previous run's Edge Proxies (next entry), so a failed first
+      reconcile publishes those.
+  - type: FIX
+    issueLink: https://github.com/solo-io/solo-projects/issues/9168
+    resolvesIssue: false
+    description: >-
+      When a namespace matching watchNamespaceSelectors re-runs gloo setup, the new run's in-memory
+      Proxy store now starts with the Gloo Edge Proxies the previous run wrote to the write namespace.
+      The gateway reconciler keeps a previously written listener when its Gateway is newly rejected
+      only if it can read the previous Proxy; with an empty store, the first reconcile after a re-run
+      stripped the listener. No Edge Proxies are copied when the gateway controller is disabled.
+      persistProxySpec=true is unchanged.
