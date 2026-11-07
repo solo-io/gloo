@@ -119,7 +119,14 @@ func (s *testingSuite) AfterTest(suiteName, testName string) {
 	// Delete the resource created if it hasn't been already
 	if !s.resourceDeleted {
 		manifest := manifests[testName]
-		output, err := s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, manifest.filename, "-n", s.testInstallation.Metadata.InstallNamespace)
+		// The gloo pod is Ready once its xDS port accepts connections, which can be before the
+		// validation webhook is serving. Until it is, a webhook with failurePolicy: Fail refuses
+		// the delete with "failed calling webhook", so retry until the webhook answers.
+		var output string
+		s.testInstallation.Assertions.Gomega.Eventually(func(g gomega.Gomega) {
+			output, err = s.testInstallation.Actions.Kubectl().DeleteFileWithOutput(s.ctx, manifest.filename, "-n", s.testInstallation.Metadata.InstallNamespace)
+			g.Expect(output).NotTo(gomega.ContainSubstring("failed calling webhook"))
+		}).WithContext(s.ctx).WithTimeout(time.Minute).WithPolling(time.Second).Should(gomega.Succeed())
 		s.testInstallation.Assertions.ExpectObjectDeleted(manifest.filename, err, output)
 	}
 
