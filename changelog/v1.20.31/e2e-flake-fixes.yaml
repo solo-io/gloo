@@ -1,0 +1,38 @@
+changelog:
+  - type: NON_USER_FACING
+    resolvesIssue: false
+    description: >-
+      Reduce e2e and CI flakes. Retry `make mod-download` in CI when the Go module proxy
+      fails, and skip `golangci-lint config verify`, which fetches a schema over the network.
+      Wait for the headless_svc proxy pod and for in-progress Envoy rollouts before sending
+      traffic or port-forwarding. Raise the RouteOption and VirtualHostOption status timeouts
+      to one minute. After the ValidationSplitWebhook suite, upgrade gloo with the restored
+      values so the ValidatingWebhookConfiguration is re-rendered. Wait for each client_tls
+      VirtualService to leave Gloo's input snapshot before deleting its upstream.
+  - type: NON_USER_FACING
+    resolvesIssue: false
+    description: >-
+      Fix two flaky kube e2e tests. Run the ValidationSplitWebhook suite last, since it
+      cannot undo its changes to the ValidatingWebhookConfiguration (a helm hook resource
+      that `helm rollback` does not restore) and its matchConditions would otherwise
+      disable secret deletion validation for later suites. Retry the client_tls
+      VirtualService applies, which can be transiently rejected with a domain conflict
+      against a VirtualService that a prior test already deleted.
+  - type: NON_USER_FACING
+    resolvesIssue: false
+    description: >-
+      Fix a flake in the ValidationSplitWebhook e2e suite. After scaling gloo back up, AfterTest
+      deleted the test's leftover resource as soon as the gloo pod was Ready. Readiness only
+      checks the xDS port, so the validation webhook could still be down, and a webhook with
+      failurePolicy: Fail refused the delete with "connection refused". AfterTest now retries
+      the delete until the webhook answers.
+  - type: NON_USER_FACING
+    resolvesIssue: false
+    description: >-
+      Fix a goroutine leak in Consul EDS when `consulDiscovery.edsBlockingQueries` is
+      true. Each watched data center and service runs a goroutine that sends query
+      results and errors on unbuffered channels. When the watch was cancelled (the
+      service left the Consul catalog, or the EDS watch restarted) while that
+      goroutine was sending, the reader had already stopped, so the goroutine blocked
+      forever and kept the endpoint list it was sending. The sends now also return
+      when the watch is cancelled.

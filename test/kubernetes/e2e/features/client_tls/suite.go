@@ -2,11 +2,14 @@ package client_tls
 
 import (
 	"context"
+	"time"
 
 	"github.com/onsi/gomega"
 	"github.com/stretchr/testify/suite"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 
+	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gateway/pkg/defaults"
 	"github.com/solo-io/gloo/test/gomega/matchers"
 	testdefaults "github.com/solo-io/gloo/test/kubernetes/e2e/defaults"
@@ -68,6 +71,7 @@ func (s *clientTlsTestingSuite) TestRouteSecureRequestToUpstream() {
 		err := s.testInstallation.Actions.Kubectl().Delete(s.ctx, VSTargetingUpstreamYaml, "-n", ns)
 		s.NoError(err, "can delete vs targeting upstream manifest file")
 		s.testInstallation.AssertionsT(s.T()).EventuallyObjectsNotExist(s.ctx, vSTargetingUpstreamObject(ns))
+		s.eventuallyNotInSnapshot(gatewayv1.VirtualServiceGVK, vSTargetingUpstreamObject(ns).ObjectMeta)
 
 		err = s.testInstallation.Actions.Kubectl().Delete(s.ctx, NginxUpstreamsYaml)
 		s.NoError(err, "can delete upstream manifest file")
@@ -75,8 +79,7 @@ func (s *clientTlsTestingSuite) TestRouteSecureRequestToUpstream() {
 
 	err := s.testInstallation.Actions.Kubectl().Apply(s.ctx, NginxUpstreamsYaml)
 	s.NoError(err, "can apply upstream manifest file")
-	err = s.testInstallation.Actions.Kubectl().Apply(s.ctx, VSTargetingUpstreamYaml, "-n", ns)
-	s.NoError(err, "can apply vs targeting upstream manifest file")
+	s.eventuallyApply(VSTargetingUpstreamYaml, "can apply vs targeting upstream manifest file", "-n", ns)
 
 	s.assertEventualResponseForPath("nginx", expectedHealthyResponse)
 
@@ -99,6 +102,7 @@ func (s *clientTlsTestingSuite) TestRouteSecureRequestToAnnotatedService() {
 		err := s.testInstallation.Actions.Kubectl().Delete(s.ctx, VSTargetingKubeYaml, "-n", ns)
 		s.NoError(err, "can delete vs targeting services manifest file")
 		s.testInstallation.AssertionsT(s.T()).EventuallyObjectsNotExist(s.ctx, vSTargetingKubeObject(ns))
+		s.eventuallyNotInSnapshot(gatewayv1.VirtualServiceGVK, vSTargetingKubeObject(ns).ObjectMeta)
 
 		err = s.testInstallation.Actions.Kubectl().Delete(s.ctx, NginxAnnotatedServicesYaml)
 		s.NoError(err, "can delete services manifest file")
@@ -106,8 +110,7 @@ func (s *clientTlsTestingSuite) TestRouteSecureRequestToAnnotatedService() {
 
 	err := s.testInstallation.Actions.Kubectl().Apply(s.ctx, NginxAnnotatedServicesYaml)
 	s.NoError(err, "can apply services manifest file")
-	err = s.testInstallation.Actions.Kubectl().Apply(s.ctx, VSTargetingKubeYaml, "-n", ns)
-	s.NoError(err, "can apply vs targeting services manifest file")
+	s.eventuallyApply(VSTargetingKubeYaml, "can apply vs targeting services manifest file", "-n", ns)
 
 	s.assertEventualResponseForPath("nginx", expectedHealthyResponse)
 
@@ -133,6 +136,7 @@ func (s *clientTlsTestingSuite) TestOneWayTlsDoesNotRequestClientCertificate() {
 		err := s.testInstallation.Actions.Kubectl().Delete(s.ctx, VSOnewayDownstreamTlsYaml, "-n", ns)
 		s.NoError(err, "can delete vs oneway downstream tls manifest file")
 		s.testInstallation.AssertionsT(s.T()).EventuallyObjectsNotExist(s.ctx, vs)
+		s.eventuallyNotInSnapshot(gatewayv1.VirtualServiceGVK, vs.ObjectMeta)
 
 		err = s.testInstallation.Actions.Kubectl().Delete(s.ctx, NginxUpstreamsYaml)
 		s.NoError(err, "can delete upstream manifest file")
@@ -151,7 +155,7 @@ func (s *clientTlsTestingSuite) TestOneWayTlsDoesNotRequestClientCertificate() {
 	s.eventuallySecretInSnapshot(secret.ObjectMeta)
 
 	err = s.testInstallation.Actions.Kubectl().Apply(s.ctx, VSOnewayDownstreamTlsYaml, "-n", ns)
-	s.NoError(err, "can apply vs oneway downstream tls manifest file")
+	s.Require().NoError(err, "can apply vs oneway downstream tls manifest file")
 
 	// Use curl with verbose output to connect and verify that no certificate request is made
 	// When oneWayTls is true, Envoy should NOT request a client certificate during the TLS handshake.
@@ -188,6 +192,27 @@ func (s *clientTlsTestingSuite) TestOneWayTlsDoesNotRequestClientCertificate() {
 	}).WithContext(s.ctx).Should(gomega.Succeed())
 }
 
+// eventuallyApply applies a manifest, retrying for as long as the Edge validating admission
+// webhook rejects it.
+//
+// TestRouteSecureRequestToUpstream and TestRouteSecureRequestToAnnotatedService each create a
+// VirtualService that claims the nginx.example.com domain, and each deletes its VirtualService
+// during cleanup. Deleting a VirtualService removes it from the validator's in-memory snapshot,
+// but a snapshot that was already in flight when the delete happened can transiently re-add it
+// (see Sync in projects/gateway/pkg/validation/validator.go, which replaces latestSnapshot
+// wholesale). Until that settles, applying the other VirtualService is rejected with a domain
+// conflict against a VirtualService that no longer exists in the cluster.
+func (s *clientTlsTestingSuite) eventuallyApply(manifest []byte, description string, extraArgs ...string) {
+	s.testInstallation.AssertionsT(s.T()).Gomega.Eventually(func(g gomega.Gomega) {
+		err := s.testInstallation.Actions.Kubectl().Apply(s.ctx, manifest, extraArgs...)
+		g.Expect(err).NotTo(gomega.HaveOccurred(), description)
+	}).
+		WithContext(s.ctx).
+		WithTimeout(time.Minute).
+		WithPolling(time.Second).
+		Should(gomega.Succeed(), description)
+}
+
 func (s *clientTlsTestingSuite) assertEventualResponseForPath(path string, matcher *matchers.HttpResponse) {
 	s.testInstallation.AssertionsT(s.T()).AssertEventualCurlResponse(
 		s.ctx,
@@ -199,6 +224,20 @@ func (s *clientTlsTestingSuite) assertEventualResponseForPath(path string, match
 			curl.WithPath(path),
 		},
 		matcher)
+}
+
+// eventuallyNotInSnapshot waits until Gloo's input snapshot no longer contains the resource.
+// The VirtualServices in this suite share the same domain, so a VS that was deleted from the cluster but is still
+// present in the validation snapshot causes the next test's VS to be rejected with a domain conflict.
+func (s *clientTlsTestingSuite) eventuallyNotInSnapshot(gvk schema.GroupVersionKind, meta metav1.ObjectMeta) {
+	s.testInstallation.AssertionsT(s.T()).AssertGlooAdminApi(
+		s.ctx,
+		metav1.ObjectMeta{
+			Name:      kubeutils.GlooDeploymentName,
+			Namespace: s.testInstallation.Metadata.InstallNamespace,
+		},
+		s.testInstallation.AssertionsT(s.T()).InputSnapshotDoesNotContainElement(gvk, meta),
+	)
 }
 
 func (s *clientTlsTestingSuite) eventuallySecretInSnapshot(meta metav1.ObjectMeta) {
