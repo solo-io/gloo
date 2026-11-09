@@ -357,7 +357,11 @@ func (p *plugin) watchEndpointsInDataCenter(ctx context.Context, dataCenter, svc
 				}
 
 				if err != nil {
-					errsChan <- err
+					select {
+					case <-ctx.Done():
+						return
+					case errsChan <- err:
+					}
 					continue
 				}
 
@@ -382,7 +386,11 @@ func (p *plugin) watchEndpointsInDataCenter(ctx context.Context, dataCenter, svc
 					lastIndex = queryMeta.LastIndex
 				}
 
-				endpointsChan <- tuple
+				select {
+				case <-ctx.Done():
+					return
+				case endpointsChan <- tuple:
+				}
 			}
 		}
 	}(dataCenter)
