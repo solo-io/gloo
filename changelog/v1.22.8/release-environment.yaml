@@ -1,0 +1,8 @@
+changelog:
+  - type: NON_USER_FACING
+    resolvesIssue: false
+    description: >-
+      Publishes releases from a GitHub Actions workflow that needs approval in the
+      release environment. Tag builds in Cloud Build no longer publish artifacts.
+      PR builds push images only from the approved pr-images workflow, started by a
+      /build-pr-images comment or a dispatch from the Actions tab.
