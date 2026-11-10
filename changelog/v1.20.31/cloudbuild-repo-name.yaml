@@ -1,0 +1,7 @@
+changelog:
+  - type: NON_USER_FACING
+    resolvesIssue: false
+    description: >-
+      Pass REPO_NAME to Cloud Build as solo-io/gloo instead of gloo. The
+      prepare-go-workspace step needs owner/repo, so release and PR image
+      builds failed at the first step.
