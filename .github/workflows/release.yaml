@@ -11,9 +11,13 @@ on:
 
 permissions: {}
 
+# One release at a time per release line. The workflow runs from the tagged commit, which validate
+# requires to be on v1.21.x, so the line is this branch: change the group when cutting a new line.
+# queue: max keeps a release waiting behind one held for approval instead of replacing it.
 concurrency:
-  group: release-${{ github.event.release.tag_name }}
+  group: release-gloo-v1.21.x
   cancel-in-progress: false
+  queue: max
 
 jobs:
   validate:
