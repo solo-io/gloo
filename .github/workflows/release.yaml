@@ -150,7 +150,7 @@ jobs:
               --no-source \
               --config "${RUNNER_TEMP}/publish-artifacts.yaml" \
               --service-account "projects/solo-public/serviceAccounts/${GLOO_RELEASE_SA}" \
-              --substitutions "COMMIT_SHA=${SHA},REPO_NAME=gloo,TAG_NAME=${TAG},_PR_NUM=" \
+              --substitutions "COMMIT_SHA=${SHA},REPO_NAME=solo-io/gloo,TAG_NAME=${TAG},_PR_NUM=" \
               --async \
               --format='value(id)')"
           fi
