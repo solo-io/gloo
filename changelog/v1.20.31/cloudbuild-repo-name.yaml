@@ -5,3 +5,6 @@ changelog:
       Pass REPO_NAME to Cloud Build as solo-io/gloo instead of gloo. The
       prepare-go-workspace step needs owner/repo, so release and PR image
       builds failed at the first step.
+
+      skipCI-kube-tests:true
+      skipCI-docs-build:true
