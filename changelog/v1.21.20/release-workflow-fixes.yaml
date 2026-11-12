@@ -1,0 +1,16 @@
+changelog:
+  - type: NON_USER_FACING
+    resolvesIssue: false
+    description: >-
+      Loads the solo-tools release action from a checkout made with a read-only GitHub App token, so the release job can register CVEs again.
+
+      skipCI-kube-tests:true
+      skipCI-docs-build:true
+  - type: NON_USER_FACING
+    resolvesIssue: false
+    description: >-
+      Releases of one line run one at a time, and a release waiting for approval no longer holds the releases of other lines. Releases queue in order.
+  - type: NON_USER_FACING
+    resolvesIssue: false
+    description: >-
+      Passes the repository to Cloud Build as solo-io/gloo, the owner/name form prepare-go-workspace needs to clone the source for release and PR image builds.

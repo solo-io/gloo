@@ -1,9 +1,0 @@
-changelog:
-  - type: NON_USER_FACING
-    resolvesIssue: false
-    description: >-
-      Loads the solo-tools release action from a checkout made with a read-only
-      GitHub App token, so the release job can register CVEs again.
-
-      skipCI-kube-tests:true
-      skipCI-docs-build:true
