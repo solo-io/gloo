@@ -1,22 +1,11 @@
 ARG BASE_IMAGE
-# KUBECTL_VERSION is supplied by the Makefile (resolved from go.mod's
-# k8s.io/kubectl minor version to the latest published patch release).
-ARG KUBECTL_VERSION
 
-FROM alpine:3 as kubectl
-ARG TARGETARCH
-ARG KUBECTL_VERSION
-RUN apk add --no-cache curl \
-    && curl -fsSL "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/${TARGETARCH}/kubectl" -o /usr/local/bin/kubectl \
-    && curl -fsSL "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/${TARGETARCH}/kubectl.sha256" -o /usr/local/bin/kubectl.sha256 \
-    && echo "$(cat /usr/local/bin/kubectl.sha256)  /usr/local/bin/kubectl" | sha256sum -c - \
-    && rm /usr/local/bin/kubectl.sha256 \
-    && chmod +x /usr/local/bin/kubectl
+FROM cgr.dev/chainguard/kubectl:latest AS kubectl
 
 FROM $BASE_IMAGE
 
 RUN apk upgrade --update-cache
 
-COPY --from=kubectl /usr/local/bin/kubectl /usr/local/bin/
+COPY --from=kubectl /usr/bin/kubectl /usr/local/bin/kubectl
 
 USER 10101
