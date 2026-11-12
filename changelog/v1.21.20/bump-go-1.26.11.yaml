@@ -1,0 +1,40 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: golang
+    dependencyRepo: go
+    dependencyTag: v1.26.11
+    description: Bump Go to 1.26.11.
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: containerd
+    dependencyRepo: containerd
+    dependencyTag: v1.7.36
+    description: Bump containerd to v1.7.36 for GO-2026-6444, GO-2026-6597 and GO-2026-6796.
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: go-git
+    dependencyRepo: go-git
+    dependencyTag: v5.19.2
+    description: Bump go-git to v5.19.2 for GO-2026-5336, GO-2026-5496, GO-2026-5693, GO-2026-6213 and GO-2026-6214.
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: open-telemetry
+    dependencyRepo: opentelemetry-go
+    dependencyTag: v1.45.0
+    description: Bump go.opentelemetry.io/otel to v1.45.0 for GO-2026-6505.
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: klauspost
+    dependencyRepo: compress
+    dependencyTag: v1.20.2
+    description: Bump klauspost/compress to v1.20.2 for GO-2026-6865.
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: golang.org/x
+    dependencyRepo: net
+    dependencyTag: v0.62.0
+    description: Bump golang.org/x/net to v0.62.0 to fix CVE-2026-78661.
+  - type: NON_USER_FACING
+    description: Bump alpine to 3.24.4
+  - type: NON_USER_FACING
+    description: >-
+      Pass REPO_NAME to Cloud Build as solo-io/gloo instead of gloo. The
+      prepare-go-workspace step needs owner/repo, so release and PR image
+      builds failed at the first step.
+  - type: NON_USER_FACING
+    description: switched to pull from chainguard image for the kubectl image build 
