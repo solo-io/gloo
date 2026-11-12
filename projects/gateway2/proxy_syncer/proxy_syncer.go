@@ -8,6 +8,7 @@ import (
 	"maps"
 	"reflect"
 	"slices"
+	"sync"
 	"time"
 
 	"go.opencensus.io/tag"
@@ -46,6 +47,7 @@ import (
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/solo-io/gloo/pkg/utils/settingsutil"
 	"github.com/solo-io/gloo/pkg/utils/statsutils"
+	"github.com/solo-io/gloo/pkg/utils/translationretry"
 	"github.com/solo-io/gloo/projects/gateway2/extensions"
 	"github.com/solo-io/gloo/projects/gateway2/krtcollections"
 	"github.com/solo-io/gloo/projects/gateway2/reports"
@@ -99,6 +101,9 @@ type ProxySyncer struct {
 	perclientSnapCollection krt.Collection[XdsSnapWrapper]
 	proxiesToReconcile      krt.Singleton[proxyList]
 	proxyTrigger            *krt.RecomputeTrigger
+	xdsRetryMu              sync.Mutex
+	xdsRetryTriggers        map[string]*krt.RecomputeTrigger
+	translationRetry        *translationretry.Scheduler
 
 	destRules             DestinationRuleIndex
 	translator            setup.TranslatorFactory
@@ -420,8 +425,8 @@ func (s *ProxySyncer) Init(ctx context.Context, dbg *krt.DebugHandler) error {
 		proxy := s.buildProxy(proxyCtx, gw)
 		return proxy
 	}, withDebug, krt.WithName("GlooProxies"))
+	s.initTranslationRetries(ctx, glooProxies)
 	s.mostXdsSnapshots = krt.NewCollection(glooProxies, func(kctx krt.HandlerContext, proxy glooProxy) *XdsSnapWrapper {
-		// we are recomputing xds snapshots as proxies have changed, signal that we need to sync xds with these new snapshots
 		xdsSnap := s.translateProxy(
 			ctx,
 			kctx,
@@ -704,6 +709,38 @@ func (s *ProxySyncer) buildProxy(ctx context.Context, gw *gwv1.Gateway) *glooPro
 	}
 }
 
+// initTranslationRetries retries a proxy's xDS translation through a recompute trigger for that proxy.
+// Rebuilding an equal Gloo Proxy does not propagate through krt, so nothing else recomputes it.
+func (s *ProxySyncer) initTranslationRetries(ctx context.Context, glooProxies krt.Collection[glooProxy]) {
+	s.xdsRetryTriggers = make(map[string]*krt.RecomputeTrigger)
+	s.translationRetry = translationretry.New(ctx, func(key string) {
+		s.xdsRetryMu.Lock()
+		trigger := s.xdsRetryTriggers[key]
+		s.xdsRetryMu.Unlock()
+		if trigger == nil {
+			// The proxy was deleted after this retry was scheduled.
+			return
+		}
+		trigger.TriggerRecomputation()
+	})
+	glooProxies.Register(func(e krt.Event[glooProxy]) {
+		if e.Event == controllers.EventDelete {
+			key := e.Latest().ResourceName()
+			s.xdsRetryMu.Lock()
+			defer s.xdsRetryMu.Unlock()
+			// This subscriber can lag behind translation of a replacement with
+			// the same key. Keep its trigger and pending retry if it exists.
+			// Serialize the check and cleanup with trigger creation so a new
+			// translation cannot acquire a trigger that we are about to remove.
+			if glooProxies.GetKey(key) != nil {
+				return
+			}
+			s.translationRetry.Reset(key)
+			delete(s.xdsRetryTriggers, key)
+		}
+	})
+}
+
 func (s *ProxySyncer) translateProxy(
 	ctx context.Context,
 	kctx krt.HandlerContext,
@@ -716,6 +753,17 @@ func (s *ProxySyncer) translateProxy(
 	authConfigs krt.Collection[*extauthkubev1.AuthConfig],
 	rlConfigs krt.Collection[*rlkubev1a1.RateLimitConfig],
 ) *XdsSnapWrapper {
+	if s.translationRetry != nil {
+		key := proxy.ResourceName()
+		s.xdsRetryMu.Lock()
+		trigger := s.xdsRetryTriggers[key]
+		if trigger == nil {
+			trigger = krt.NewRecomputeTrigger(true, krt.WithStop(ctx.Done()))
+			s.xdsRetryTriggers[key] = trigger
+		}
+		s.xdsRetryMu.Unlock()
+		trigger.MarkDependant(kctx)
+	}
 	cfgmaps := krt.Fetch(kctx, kcm)
 	endpoints := krt.Fetch(kctx, kep)
 	secrets := krt.Fetch(kctx, ks)
@@ -785,14 +833,16 @@ func (s *ProxySyncer) translateProxy(
 			return nil
 		}
 
-		// The fork died with a live context, so the next recomputation may be interrupted again.
+		// The fork died with a live context. Retry even if no inputs change.
 		logger.Warnw("skipping xDS snapshot update for proxy: envoy config validation was interrupted",
 			zap.String("proxy", proxy.ResourceName()),
 			zap.Error(err))
 		statsutils.MeasureOne(ctx, syncerstats.InterruptedValidationSkips,
 			tag.Insert(syncerstats.ProxyNameKey, proxy.ResourceName()))
+		s.translationRetry.Schedule(proxy.ResourceName())
 		return nil
 	}
+	s.translationRetry.Reset(proxy.ResourceName())
 
 	// TODO(Law): now we not able to merge reports after translation!
 

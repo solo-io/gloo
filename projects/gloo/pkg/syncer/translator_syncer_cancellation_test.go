@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/solo-io/gloo/pkg/utils/statsutils/metrics"
 	"github.com/solo-io/gloo/projects/gloo/pkg/servers/iosnapshot"
@@ -23,9 +24,11 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	. "github.com/solo-io/gloo/projects/gloo/pkg/syncer"
 	glootranslator "github.com/solo-io/gloo/projects/gloo/pkg/translator"
+	"github.com/solo-io/gloo/projects/gloo/pkg/xds"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
 	envoycache "github.com/solo-io/solo-kit/pkg/api/v1/control-plane/cache"
+	"github.com/solo-io/solo-kit/pkg/api/v1/control-plane/types"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
 )
@@ -46,6 +49,9 @@ var _ = Describe("Translator syncer with a cancelled context", func() {
 
 	newSyncer := func(translator glootranslator.Translator, xdsCache envoycache.SnapshotCache) v1snap.ApiSyncer {
 		return newTestTranslatorSyncer(ctx, translator, xdsCache)
+	}
+	newRetryingSyncer := func(translator glootranslator.Translator, xdsCache envoycache.SnapshotCache, emit chan<- struct{}) v1snap.ApiSyncer {
+		return newTestTranslatorSyncerWithGateway(ctx, translator, xdsCache, nil, nil, emit)
 	}
 
 	BeforeEach(func() {
@@ -92,6 +98,54 @@ var _ = Describe("Translator syncer with a cancelled context", func() {
 		Expect(xdsCache.Called).To(BeTrue())
 	})
 
+	DescribeTable("retries interrupted translation without changing resources until it succeeds", func(existing bool) {
+		emit := make(chan struct{})
+		tx := &recoveringTranslator{remaining: 2}
+		xdsCache := xds.NewAdsSnapshotCache(ctx)
+		key := xds.SnapshotCacheKey(proxy)
+		old := &xds.EnvoySnapshot{Clusters: envoycache.Resources{Version: "last-good"}}
+		if existing {
+			xdsCache.SetSnapshot(key, old)
+		}
+		syncer := newRetryingSyncer(tx, xdsCache, emit)
+
+		// First Sync is interrupted: the last good snapshot is kept, or there is none.
+		Expect(syncer.Sync(ctx, snap)).To(Succeed())
+		current, err := xdsCache.GetSnapshot(key)
+		if existing {
+			Expect(err).NotTo(HaveOccurred())
+			Expect(current.GetResources(types.ClusterTypeV3).Version).To(Equal("last-good"))
+		} else {
+			Expect(err).To(HaveOccurred())
+		}
+
+		// Each retry request runs Sync again with unchanged inputs. The second retry succeeds.
+		for range 2 {
+			select {
+			case <-emit:
+				// Like the force-emitter path, use a fresh copy of the latest inputs.
+				latest := snap.Clone()
+				Expect(syncer.Sync(ctx, &latest)).To(Succeed())
+			case <-time.After(5 * time.Second):
+				Fail("interrupted proxy was never retried")
+			}
+		}
+
+		// The successful Sync publishes a new snapshot and requests no further retry.
+		current, err = xdsCache.GetSnapshot(key)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(current.GetResources(types.ClusterTypeV3).Version).NotTo(Equal("last-good"))
+		Consistently(emit, 1200*time.Millisecond).ShouldNot(Receive())
+	}, Entry("new proxy", false), Entry("existing snapshot is preserved until recovery", true))
+
+	It("cancels a pending retry when setup shuts down", func() {
+		emit := make(chan struct{}, 1)
+		syncer := newRetryingSyncer(&interruptingTranslator{}, &MockXdsCache{}, emit)
+		Expect(syncer.Sync(ctx, snap)).To(Succeed())
+		cancel()
+		Consistently(emit, 1200*time.Millisecond).ShouldNot(Receive())
+	})
+
 	// A fork killed from outside leaves the context live, so the ctx.Err() checks above do not apply.
 	It("does not set xDS snapshots for a translation whose envoy validation was interrupted, even with a live context", func() {
 		xdsCache := &MockXdsCache{}
@@ -110,7 +164,7 @@ const cancelTestNamespace = "cancel-ns"
 
 // newTestTranslatorSyncer builds a translator syncer on in-memory clients.
 func newTestTranslatorSyncer(ctx context.Context, translator glootranslator.Translator, xdsCache envoycache.SnapshotCache) v1snap.ApiSyncer {
-	return newTestTranslatorSyncerWithGateway(ctx, translator, xdsCache, nil, nil)
+	return newTestTranslatorSyncerWithGateway(ctx, translator, xdsCache, nil, nil, nil)
 }
 
 // testGateway is the gateway translation a test translator syncer runs before its own.
@@ -120,13 +174,15 @@ type testGateway struct {
 }
 
 // newTestTranslatorSyncerWithGateway builds a translator syncer on in-memory clients. With gw set, it
-// runs gateway translation first and lists Proxies from its in-memory store.
+// runs gateway translation first and lists Proxies from its in-memory store. With emit set, it
+// receives the syncer's retry requests.
 func newTestTranslatorSyncerWithGateway(
 	ctx context.Context,
 	translator glootranslator.Translator,
 	xdsCache envoycache.SnapshotCache,
 	gw *testGateway,
 	extensions []TranslatorSyncerExtension,
+	emit chan<- struct{},
 ) v1snap.ApiSyncer {
 	resourceClientFactory := &factory.MemoryResourceClientFactory{
 		Cache: memory.NewInMemoryResourceCache(),
@@ -153,7 +209,7 @@ func newTestTranslatorSyncerWithGateway(
 	}
 
 	return NewTranslatorSyncer(ctx, translator, xdsCache, &MockXdsSanitizer{}, rep, false, extensions, settings,
-		statusMetrics, gatewaySyncer, proxyClient, cancelTestNamespace, singlereplica.Identity(), history)
+		statusMetrics, gatewaySyncer, proxyClient, cancelTestNamespace, singlereplica.Identity(), history, emit)
 }
 
 // interruptedReason is the validator's wrap of runner.ErrValidationInterrupted as a string. The real
@@ -201,4 +257,15 @@ type staleKeyXdsCache struct {
 
 func (c *staleKeyXdsCache) GetStatusKeys() []string {
 	return []string{"stale-node"}
+}
+
+// Fail twice with unchanged inputs, then produce a usable snapshot.
+type recoveringTranslator struct{ remaining int }
+
+func (t *recoveringTranslator) Translate(params plugins.Params, proxy *v1.Proxy) (envoycache.Snapshot, reporter.ResourceReports, *validation.ProxyReport) {
+	if t.remaining > 0 {
+		t.remaining--
+		params.ValidationInterruptions.Add(runner.ErrValidationInterrupted)
+	}
+	return envoycache.NilSnapshot{}, reporter.ResourceReports{}, &validation.ProxyReport{}
 }

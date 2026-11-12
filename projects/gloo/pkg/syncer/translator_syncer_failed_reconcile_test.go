@@ -3,9 +3,12 @@ package syncer_test
 import (
 	"context"
 	"errors"
+	"fmt"
+	"time"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.com/solo-io/gloo/projects/envoyinit/pkg/runner"
 	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	gwreconciler "github.com/solo-io/gloo/projects/gateway/pkg/reconciler"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
@@ -15,6 +18,7 @@ import (
 	envoycache "github.com/solo-io/solo-kit/pkg/api/v1/control-plane/cache"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
+	skerrors "github.com/solo-io/solo-kit/pkg/errors"
 )
 
 // The store below starts empty and the stub reconciler writes nothing, so a reconcile that fails
@@ -27,10 +31,12 @@ var _ = Describe("Translator syncer after a failed proxy reconcile", func() {
 		extension *recordingExtension
 		reconcile *stubProxyReconciler
 		snap      *v1snap.ApiSnapshot
+		emit      chan struct{}
 	)
 
 	BeforeEach(func() {
 		ctx, cancel = context.WithCancel(context.Background())
+		emit = make(chan struct{}, 1)
 		xdsCache = &keyRecordingXdsCache{statusKeys: []string{"connected-node"}}
 		extension = &recordingExtension{}
 		reconcile = &stubProxyReconciler{}
@@ -46,7 +52,7 @@ var _ = Describe("Translator syncer after a failed proxy reconcile", func() {
 	sync := func() error {
 		syncer := newTestTranslatorSyncerWithGateway(ctx, &cancellingTranslator{}, xdsCache,
 			&testGateway{translator: &stubGatewayTranslator{}, reconciler: reconcile},
-			[]TranslatorSyncerExtension{extension})
+			[]TranslatorSyncerExtension{extension}, emit)
 		return syncer.Sync(ctx, snap)
 	}
 
@@ -58,6 +64,25 @@ var _ = Describe("Translator syncer after a failed proxy reconcile", func() {
 		Expect(err).To(MatchError(ContainSubstring("translating proxies")))
 		Expect(xdsCache.setKeys).NotTo(HaveKey("connected-node"), "a node missing from an incomplete Proxy list must keep its snapshot")
 		Expect(extension.called).To(BeTrue(), "ext-auth config does not depend on the Proxy list, so AuthConfig and Secret changes must still be published")
+	})
+
+	It("requests another sync without a resource change when envoy validation was interrupted", func() {
+		// Wrapped the way the gloo validator and the gateway proxy reconciler wrap it.
+		reconcile.err = skerrors.Wrapf(
+			fmt.Errorf("cannot validate proxy: envoy config validation was interrupted: %w", runner.ErrValidationInterrupted),
+			"failed to add proxy validation results to reports")
+
+		Expect(sync()).To(MatchError(ContainSubstring("translating proxies")))
+
+		Eventually(emit, 3*time.Second).Should(Receive())
+	})
+
+	It("does not request another sync for other reconcile errors", func() {
+		reconcile.err = errors.New("proxy write failed")
+
+		Expect(sync()).To(MatchError(ContainSubstring("translating proxies")))
+
+		Consistently(emit, 1500*time.Millisecond).ShouldNot(Receive())
 	})
 
 	It("garbage collects xDS snapshots and runs extension syncs when the reconcile succeeds (sanity check of this setup)", func() {
