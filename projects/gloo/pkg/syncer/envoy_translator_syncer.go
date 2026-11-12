@@ -79,7 +79,9 @@ func measureResource(ctx context.Context, resource string, length int) {
 // syncEnvoy will translate, sanitize, and set the xds snapshot for each of the proxies in the provided api snapshot.
 // Reports from translation attempts on every Proxy will be merged into allReports.
 // With collectGarbage false, cache entries for proxies missing from snap are left in place.
-func (s *translatorSyncer) syncEnvoy(ctx context.Context, snap *v1snap.ApiSnapshot, allReports reporter.ResourceReports, collectGarbage bool) {
+// It returns true if any proxy was skipped because its envoy validation was interrupted.
+func (s *translatorSyncer) syncEnvoy(ctx context.Context, snap *v1snap.ApiSnapshot, allReports reporter.ResourceReports, collectGarbage bool) bool {
+	proxiesSkipped := false
 	ctx, span := trace.StartSpan(ctx, "gloo.syncer.Sync")
 	defer span.End()
 	stopwatch := statsutils.NewTranslatorStopWatch("EnvoySyncer")
@@ -188,7 +190,7 @@ func (s *translatorSyncer) syncEnvoy(ctx context.Context, snap *v1snap.ApiSnapsh
 				zap.Any("proxy", proxy.GetMetadata().Ref()),
 				zap.Int("proxiesSkipped", len(nonKubeProxies)-i),
 				zap.Error(ctxErr))
-			return
+			return proxiesSkipped
 		}
 
 		// The fork died with a live context. Leave this proxy's current xDS snapshot in place and
@@ -200,6 +202,7 @@ func (s *translatorSyncer) syncEnvoy(ctx context.Context, snap *v1snap.ApiSnapsh
 				zap.Error(interrupted.Err()))
 			statsutils.MeasureOne(proxyCtx, syncerstats.InterruptedValidationSkips)
 			delete(allReports, proxy)
+			proxiesSkipped = true
 			continue
 		}
 
@@ -246,6 +249,7 @@ func (s *translatorSyncer) syncEnvoy(ctx context.Context, snap *v1snap.ApiSnapsh
 	}
 
 	logger.Debugf("gloo reports to be written: %v", allReports)
+	return proxiesSkipped
 }
 
 // ServeXdsSnapshots exposes Gloo configuration as an API when `devMode` in Settings is True.
