@@ -1,6 +1,0 @@
-changelog:
-  - type: NON_USER_FACING
-    resolvesIssue: false
-    description: >-
-      Releases of one line run one at a time, and a release waiting for approval no longer
-      holds the releases of other lines. Releases queue in order.
