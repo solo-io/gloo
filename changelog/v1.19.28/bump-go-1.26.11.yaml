@@ -41,3 +41,5 @@ changelog:
       Pass REPO_NAME to Cloud Build as solo-io/gloo instead of gloo. The
       prepare-go-workspace step needs owner/repo, so release and PR image
       builds failed at the first step.
+  - type: NON_USER_FACING
+    description: switched to pull from chainguard image for the kubectl image build 
