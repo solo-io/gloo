@@ -225,7 +225,7 @@ jobs:
             --no-source \
             --config "${RUNNER_TEMP}/publish-artifacts.yaml" \
             --service-account "projects/solo-public/serviceAccounts/${GLOO_PR_BUILD_SA}" \
-            --substitutions "COMMIT_SHA=${HEAD_SHA},REPO_NAME=gloo,TAG_NAME=,_PR_NUM=${PR_NUM}" \
+            --substitutions "COMMIT_SHA=${HEAD_SHA},REPO_NAME=solo-io/gloo,TAG_NAME=,_PR_NUM=${PR_NUM}" \
             --async \
             --format='value(id)')"
           echo "Cloud Build ${build_id}"
