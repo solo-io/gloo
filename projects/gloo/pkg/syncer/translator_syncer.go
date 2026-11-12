@@ -2,10 +2,13 @@ package syncer
 
 import (
 	"context"
+	"errors"
 	"sync"
 	"time"
 
 	"github.com/solo-io/gloo/pkg/utils/statsutils/metrics"
+	"github.com/solo-io/gloo/pkg/utils/translationretry"
+	"github.com/solo-io/gloo/projects/envoyinit/pkg/runner"
 	"github.com/solo-io/gloo/projects/gloo/pkg/servers/iosnapshot"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 
@@ -25,6 +28,10 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/syncer/sanitizer"
 	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
 )
+
+// apiSnapshotRetryKey is the translationRetry key for re-emitting the API snapshot. A retry re-runs
+// the whole Sync, so every retry shares this one key.
+const apiSnapshotRetryKey = "apiSnapshot"
 
 type translatorSyncer struct {
 	translator translator.Translator
@@ -50,7 +57,8 @@ type translatorSyncer struct {
 
 	statusSyncer *statusSyncer
 	// firstSyncDone releases the setup loop's hold on restarts after the first Sync.
-	firstSyncDone func()
+	firstSyncDone    func()
+	translationRetry *translationretry.Scheduler
 }
 
 type statusSyncer struct {
@@ -65,6 +73,8 @@ type statusSyncer struct {
 	latestReports       reporter.ResourceReports
 }
 
+// NewTranslatorSyncer uses retryEmit, if not nil, to force the API emitter to send a snapshot after
+// a Sync that left config unpublished, so the Sync is retried without a resource change.
 func NewTranslatorSyncer(
 	ctx context.Context,
 	translator translator.Translator,
@@ -80,6 +90,7 @@ func NewTranslatorSyncer(
 	writeNamespace string,
 	identity leaderelector.Identity,
 	snapshotHistory iosnapshot.History,
+	retryEmit chan<- struct{},
 ) v1snap.ApiSyncer {
 	s := &translatorSyncer{
 		translator:       translator,
@@ -102,6 +113,14 @@ func NewTranslatorSyncer(
 		snapshotHistory: snapshotHistory,
 		firstSyncDone:   setuputils.HoldRestartsUntilFirstSync(ctx),
 	}
+	if retryEmit != nil {
+		s.translationRetry = translationretry.New(ctx, func(string) {
+			select {
+			case retryEmit <- struct{}{}:
+			case <-ctx.Done():
+			}
+		})
+	}
 	if devMode {
 		// TODO(ilackarms): move this somewhere else?
 		go func() {
@@ -117,6 +136,20 @@ func (s *translatorSyncer) Sync(ctx context.Context, snap *v1snap.ApiSnapshot) e
 	defer s.firstSyncDone()
 	logger := contextutils.LoggerFrom(ctx)
 	var multiErr *multierror.Error
+	retryNeeded := false
+	defer func() {
+		// When ctx has ended, another Sync is already coming, so no retry is scheduled: the event loop
+		// cancels a Sync's ctx only when it delivers the next snapshot, and a setup restart starts its
+		// event loop with an initial snapshot.
+		if ctx.Err() != nil {
+			return
+		}
+		if retryNeeded {
+			s.translationRetry.Schedule(apiSnapshotRetryKey)
+		} else {
+			s.translationRetry.Reset(apiSnapshotRetryKey)
+		}
+	}()
 
 	// If gateway controller is enabled, run the gateway translation to generate proxies.
 	// Use the ProxyClient interface to persist them either to an in-memory store or etcd as configured at startup.
@@ -124,10 +157,11 @@ func (s *translatorSyncer) Sync(ctx context.Context, snap *v1snap.ApiSnapshot) e
 	// store starts empty; after a setup re-run it holds the previous run's Edge Proxies. The listed Proxies
 	// are still translated and published, but no xDS snapshot is removed because its Proxy is missing from the list.
 	proxyListComplete := true
+	var reconcileErr error
 	if s.gatewaySyncer != nil {
 		logger.Debugf("getting proxies from gateway translation")
-		if err := s.translateProxies(ctx, snap); err != nil {
-			multiErr = multierror.Append(multiErr, eris.Wrapf(err, "translating proxies"))
+		if reconcileErr = s.translateProxies(ctx, snap); reconcileErr != nil {
+			multiErr = multierror.Append(multiErr, eris.Wrapf(reconcileErr, "translating proxies"))
 			proxyListComplete = false
 		}
 	}
@@ -147,10 +181,15 @@ func (s *translatorSyncer) Sync(ctx context.Context, snap *v1snap.ApiSnapshot) e
 
 	// Execute the EnvoySyncer
 	// This will update the xDS SnapshotCache for each entry that corresponds to a non-kube gw Proxy in the API Snapshot
-	s.syncEnvoy(ctx, snap, reports, proxyListComplete)
+	proxiesSkipped := s.syncEnvoy(ctx, snap, reports, proxyListComplete)
 	if !proxyListComplete {
 		logger.Warnw("proxy reconcile failed; skipping xDS garbage collection until a reconcile succeeds")
 	}
+	// A reconcile whose envoy validation was interrupted left the Proxy store without the current
+	// Proxies, and a skipped proxy kept its previous xDS snapshot. Neither is retried by the emitter,
+	// which sends only changed snapshots. Other reconcile errors, such as Kubernetes API errors when
+	// Proxies are persisted, are not retried here.
+	retryNeeded = proxiesSkipped || errors.Is(reconcileErr, runner.ErrValidationInterrupted)
 
 	// Execute the SyncerExtensions
 	// Each of these are responsible for updating a single entry in the SnapshotCache
