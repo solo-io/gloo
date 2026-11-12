@@ -1,0 +1,9 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/solo-projects/issues/9168
+    resolvesIssue: false
+    description: >-
+      Retry proxy translation with capped exponential backoff, even when configuration does
+      not change, after envoy validation is interrupted during xDS translation or a Gloo Edge
+      proxy reconcile. Preserve the last good xDS snapshot until translation succeeds, and
+      stop retrying on shutdown or proxy deletion.
