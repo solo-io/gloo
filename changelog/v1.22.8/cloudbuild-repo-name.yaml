@@ -1,6 +1,0 @@
-changelog:
-  - type: NON_USER_FACING
-    resolvesIssue: false
-    description: >-
-      Passes the repository to Cloud Build as solo-io/gloo, the owner/name form
-      prepare-go-workspace needs to clone the source for release and PR image builds.
