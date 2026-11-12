@@ -11,9 +11,13 @@ on:
 
 permissions: {}
 
+# One release at a time per release line. The workflow runs from the tagged commit, which validate
+# requires to be on v1.22.x, so the line is this branch: change the group when cutting a new line.
+# queue: max keeps a release waiting behind one held for approval instead of replacing it.
 concurrency:
-  group: release-${{ github.event.release.tag_name }}
+  group: release-gloo-v1.22.x
   cancel-in-progress: false
+  queue: max
 
 jobs:
   validate:
@@ -194,7 +198,28 @@ jobs:
       VERSION: ${{ needs.validate.outputs.version }}
       BUILD_TYPE: ${{ needs.validate.outputs.build_type }}
     steps:
-      - uses: solo-io/solo-tools/.github/actions/setup-security-scan-artifacts@bb2f009552c04e7c3f8cdcdc49e46409ba80bea8 # release-v0.2.0
+      # gloo is public and solo-tools internal, so GitHub won't load solo-tools actions remotely:
+      # check solo-tools out with a read-only App token and run the action from the checkout.
+      - name: Create solo-tools read token
+        id: solo-tools-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ vars.PRIVATE_MODULES_CLIENT_ID }}
+          private-key: ${{ secrets.PRIVATE_MODULES_APP_PRIVATE_KEY }}
+          owner: solo-io
+          repositories: solo-tools
+          permission-contents: read
+
+      - name: Check out solo-tools
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          repository: solo-io/solo-tools
+          ref: bb2f009552c04e7c3f8cdcdc49e46409ba80bea8 # release-v0.2.0
+          token: ${{ steps.solo-tools-token.outputs.token }}
+          path: solo-tools
+          persist-credentials: false
+
+      - uses: ./solo-tools/.github/actions/setup-security-scan-artifacts
         with:
           gcp_creds: ${{ secrets.GLOO_VULN_REPORTER }}
 
