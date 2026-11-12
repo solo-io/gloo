@@ -51,7 +51,7 @@ Name|Version|License
 [sergi/go-diff](https://github.com/sergi/go-diff)|v1.3.2-0.20230802210424-5b0b94c5c0d3|MIT License
 [spf13/afero](https://github.com/spf13/afero)|v1.15.0|Apache License 2.0
 [spf13/cobra](https://github.com/spf13/cobra)|v1.9.1|Apache License 2.0
-[spf13/pflag](https://github.com/spf13/pflag)|v1.0.6|BSD 3-clause "New" or "Revised" License
+[spf13/pflag](https://github.com/spf13/pflag)|v1.0.7|BSD 3-clause "New" or "Revised" License
 [spf13/viper](https://github.com/spf13/viper)|v1.19.0|MIT License
 [stoewer/go-strcase](https://github.com/stoewer/go-strcase)|v1.3.0|MIT License
 [stretchr/testify](https://github.com/stretchr/testify)|v1.11.1|MIT License
@@ -70,7 +70,7 @@ Name|Version|License
 [google.golang.org/grpc](https://google.golang.org/grpc)|v1.83.2|Apache License 2.0
 [google.golang.org/protobuf](https://google.golang.org/protobuf)|v1.36.11|BSD 3-clause "New" or "Revised" License
 [AlecAivazis/survey.v1](https://gopkg.in/AlecAivazis/survey.v1)|v1.8.7|MIT License
-[helm/v3](https://helm.sh/helm/v3)|v3.18.4|Apache License 2.0
+[helm/v3](https://helm.sh/helm/v3)|v3.18.5|Apache License 2.0
 [istio.io/api](https://istio.io/api)|v1.25.2-0.20250410212420-84c271001f68|Apache License 2.0
 [istio.io/client-go](https://istio.io/client-go)|v1.25.2-0.20250410213018-e5f6074bc228|Apache License 2.0
 [istio.io/istio](https://istio.io/istio)|v0.0.0-20250411142419-0d83506c2883|Apache License 2.0
@@ -88,7 +88,7 @@ Name|Version|License
 [sigs.k8s.io/controller-tools](https://sigs.k8s.io/controller-tools)|v0.17.3|Apache License 2.0
 [sigs.k8s.io/gateway-api](https://sigs.k8s.io/gateway-api)|v1.3.0|Apache License 2.0
 [structured-merge-diff/v4](https://sigs.k8s.io/structured-merge-diff/v4)|v4.7.0|Apache License 2.0
-[sigs.k8s.io/yaml](https://sigs.k8s.io/yaml)|v1.4.0|MIT License
+[sigs.k8s.io/yaml](https://sigs.k8s.io/yaml)|v1.5.0|MIT License
 [cmd/goimports](https://golang.org/x/tools/cmd/goimports)|latest|MIT License
 [gogo/protobuf](https://github.com/gogo/protobuf)|latest|MIT License
 [envoyproxy/envoy](https://github.com/envoyproxy/envoy)|latest|Apache License 2.0
