@@ -963,13 +963,19 @@ endif # RELEASE exclusive make targets
 publish-docker: docker docker-push
 
 # create a new helm chart and publish it to $(HELM_BUCKET)
+# Charts are write-once: a re-run indexes the published chart.
 publish-helm-chart: generate-helm-files
 	@echo "Uploading helm chart to $(HELM_BUCKET) with name gloo-$(VERSION).tgz"
+	helm package --destination $(HELM_SYNC_DIR)/charts $(HELM_DIR) >> /dev/null
+	if gsutil -q stat $(HELM_BUCKET)/charts/gloo-$(VERSION).tgz; then \
+		echo "$(HELM_BUCKET)/charts/gloo-$(VERSION).tgz already exists; indexing it"; \
+		gsutil cp $(HELM_BUCKET)/charts/gloo-$(VERSION).tgz $(HELM_SYNC_DIR)/charts/gloo-$(VERSION).tgz; \
+	else \
+		gsutil -h x-goog-if-generation-match:0 cp $(HELM_SYNC_DIR)/charts/gloo-$(VERSION).tgz $(HELM_BUCKET)/charts/gloo-$(VERSION).tgz; \
+	fi
 	until $$(GENERATION=$$(gsutil ls -a $(HELM_BUCKET)/index.yaml | tail -1 | cut -f2 -d '#') && \
 					gsutil -h "Cache-Control:no-store,no-cache" cp -v $(HELM_BUCKET)/index.yaml $(HELM_SYNC_DIR)/index.yaml && \
-					helm package --destination $(HELM_SYNC_DIR)/charts $(HELM_DIR) >> /dev/null && \
 					helm repo index $(HELM_SYNC_DIR) --merge $(HELM_SYNC_DIR)/index.yaml && \
-					gsutil -m rsync $(HELM_SYNC_DIR)/charts $(HELM_BUCKET)/charts && \
 					gsutil -h "Cache-Control:no-store,no-cache" -h x-goog-if-generation-match:"$$GENERATION" cp $(HELM_SYNC_DIR)/index.yaml $(HELM_BUCKET)/index.yaml); do \
 		echo "Failed to upload new helm index (updated helm index since last download?). Trying again"; \
 		sleep 2; \
