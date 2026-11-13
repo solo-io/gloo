@@ -1,0 +1,8 @@
+changelog:
+  - type: NON_USER_FACING
+    resolvesIssue: false
+    description: >-
+      Uploads the release Helm chart once and never overwrites it, so a release whose index update loses a race with another line, or a re-run of a release, indexes the published chart instead of failing on the bucket's write-once policy.
+
+      skipCI-kube-tests:true
+      skipCI-docs-build:true
