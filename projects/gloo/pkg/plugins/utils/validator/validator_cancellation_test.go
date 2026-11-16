@@ -2,13 +2,18 @@ package validator
 
 import (
 	"context"
+	"errors"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
+	"testing"
+	"testing/synctest"
 	"time"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.com/solo-io/gloo/projects/envoyinit/pkg/runner"
 	"github.com/solo-io/gloo/projects/gloo/constants"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/transformation"
 )
@@ -163,3 +168,54 @@ var _ = Describe("Validator with a cancelled context", func() {
 			"healthy translation was served the cached cancellation error")
 	})
 })
+
+// TestValidatorCrash runs in a synctest bubble, where time.Sleep moves the clock forward without
+// waiting, so the crash result can expire.
+func TestValidatorCrash(t *testing.T) {
+	// New registers opencensus views, and opencensus's worker runs outside the bubble, so the
+	// validator is created before the bubble starts.
+	v := New("crash", "crash")
+
+	synctest.Test(t, func(t *testing.T) {
+		g := NewWithT(t)
+		validConfig := &transformation.TransformationStages{InheritTransformation: true}
+
+		// setEnvoy points the validator at a fake envoy that records each run and then runs script.
+		runsFile := filepath.Join(t.TempDir(), "runs")
+		setEnvoy := func(script string) {
+			path := filepath.Join(t.TempDir(), "envoy")
+			content := "#!/bin/sh\ncat >/dev/null\necho run >> " + runsFile + "\n" + script + "\n"
+			g.Expect(os.WriteFile(path, []byte(content), 0o755)).To(Succeed())
+			t.Setenv(constants.EnvoyBinaryEnv, path)
+		}
+		envoyRuns := func() int {
+			out, err := os.ReadFile(runsFile)
+			g.Expect(err).NotTo(HaveOccurred())
+			return strings.Count(string(out), "run")
+		}
+
+		// The crash is an interruption, so callers keep the config Envoy runs and retry, and the
+		// message tells an operator that.
+		setEnvoy("kill -SEGV $$")
+		err := v.ValidateConfig(context.Background(), validConfig)
+		g.Expect(err).To(MatchError(runner.ErrValidationCrashed))
+		g.Expect(errors.Is(err, runner.ErrValidationInterrupted)).To(BeTrue())
+		g.Expect(err.Error()).To(ContainSubstring("Envoy keeps the configuration it was last sent"))
+		g.Expect(envoyRuns()).To(Equal(1))
+
+		// Another use of the same config before the crash expires gets the cached crash.
+		time.Sleep(crashResultTTL - time.Second)
+		g.Expect(v.ValidateConfig(context.Background(), validConfig)).To(MatchError(runner.ErrValidationCrashed))
+		g.Expect(envoyRuns()).To(Equal(1), "the crash should be reused without starting envoy again")
+
+		// Once the crash expires, the config is validated again. Here envoy no longer crashes, as when
+		// the first crash came from the pod's environment rather than the config.
+		setEnvoy(`echo "configuration '/dev/fd/0' OK"`)
+		time.Sleep(time.Second)
+		g.Expect(v.ValidateConfig(context.Background(), validConfig)).To(Succeed())
+		g.Expect(envoyRuns()).To(Equal(2))
+
+		// The success is cached like any other result.
+		g.Expect(v.CacheLength()).To(Equal(1))
+	})
+}
