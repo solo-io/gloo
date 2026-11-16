@@ -138,9 +138,9 @@ func (s *translatorSyncer) Sync(ctx context.Context, snap *v1snap.ApiSnapshot) e
 	var multiErr *multierror.Error
 	retryNeeded := false
 	defer func() {
-		// When ctx has ended, another Sync is already coming, so no retry is scheduled: the event loop
-		// cancels a Sync's ctx only when it delivers the next snapshot, and a setup restart starts its
-		// event loop with an initial snapshot.
+		// The event loop runs Sync synchronously and never cancels a running Sync for a newer snapshot,
+		// so ctx ends only when this setup run ends. The next run starts its event loop with an initial
+		// snapshot, so no retry is scheduled here.
 		if ctx.Err() != nil {
 			return
 		}
