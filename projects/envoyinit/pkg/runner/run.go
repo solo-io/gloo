@@ -17,9 +17,19 @@ import (
 	"github.com/solo-io/go-utils/contextutils"
 )
 
-// ErrValidationInterrupted means the envoy validation process was killed by context cancellation or
-// an outside signal. It says nothing about the validity of the config.
+// ErrValidationInterrupted means the envoy validation process did not complete: it was killed by
+// context cancellation or an outside signal, such as SIGKILL from the kernel OOM killer, or it crashed
+// (ErrValidationCrashed). It says nothing about the validity of the config.
 var ErrValidationInterrupted = errors.New("envoy validation process was interrupted before it completed")
+
+// ErrValidationCrashed means envoy crashed while validating the config. A crash can come from the config
+// or from the pod's environment, so it wraps ErrValidationInterrupted: callers keep the config Envoy
+// runs and retry. Callers that cache results can keep a crash for a short time, so the retries do not
+// start envoy each time.
+var ErrValidationCrashed = fmt.Errorf("envoy crashed while validating this configuration: %w", ErrValidationInterrupted)
+
+// crashRetried tells an operator what happens after a crash.
+const crashRetried = "Envoy keeps the configuration it was last sent for this proxy, and gloo retries."
 
 const (
 	// Environment variable for the file that is used to inject input configuration used to bootstrap envoy
@@ -56,11 +66,17 @@ func RunEnvoyValidate(ctx context.Context, envoyExecutable, bootstrapConfig stri
 		}
 
 		// A kill from context cancellation or an outside signal (exit code -1) means validation did not complete.
+		// Consumers flatten these errors into report strings, so include the cause in the message.
+		if ctxErr := ctx.Err(); ctxErr != nil {
+			return fmt.Errorf("%w (ctxErr=%v): %v", ErrValidationInterrupted, ctxErr, err)
+		}
 		var exitErr *exec.ExitError
-		if ctx.Err() != nil || (errors.As(err, &exitErr) && exitErr.ExitCode() == -1) {
-			// Consumers flatten this error into report strings, so include the cause in the message.
-			if ctxErr := ctx.Err(); ctxErr != nil {
-				return fmt.Errorf("%w (ctxErr=%v): %v", ErrValidationInterrupted, ctxErr, err)
+		if errors.As(err, &exitErr) && exitErr.ExitCode() == -1 {
+			// envoy crashed. Its output is not logged because it can include secrets from the config.
+			if sig, ok := crashSignal(exitErr); ok {
+				logger.Errorw(fmt.Sprintf("%v. %s", ErrValidationCrashed, crashRetried),
+					"signal", sig.String(), "error", err.Error())
+				return fmt.Errorf("%w (%v). %s", ErrValidationCrashed, sig, crashRetried)
 			}
 			return fmt.Errorf("%w: %v", ErrValidationInterrupted, err)
 		}
@@ -135,4 +151,22 @@ func getAndTransformConfig(inputFile string) (string, error) {
 		return "", err
 	}
 	return buffer.String(), nil
+}
+
+// crashSignal reports whether the process died of a signal that envoy raises itself when it crashes
+// (a fault or an abort), as opposed to SIGKILL or SIGTERM, which come from outside the process. A
+// crash caused by the config recurs every time that config is validated. A crash can also come from
+// the pod's environment, such as an abort after a failed allocation under memory pressure, so it is
+// handled as an interruption.
+func crashSignal(exitErr *exec.ExitError) (syscall.Signal, bool) {
+	status, ok := exitErr.Sys().(syscall.WaitStatus)
+	if !ok || !status.Signaled() {
+		return 0, false
+	}
+	switch sig := status.Signal(); sig {
+	case syscall.SIGSEGV, syscall.SIGABRT, syscall.SIGBUS, syscall.SIGILL, syscall.SIGFPE, syscall.SIGTRAP:
+		return sig, true
+	default:
+		return sig, false
+	}
 }
