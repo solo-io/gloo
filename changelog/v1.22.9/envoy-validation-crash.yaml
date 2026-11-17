@@ -1,0 +1,8 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/solo-projects/issues/9168
+    resolvesIssue: false
+    description: >-
+      When envoy crashes validating a configuration, gloo logs and reports the crash signal, keeps the
+      configuration Envoy was last sent, and starts envoy for that configuration at most once a
+      minute while it retries.
