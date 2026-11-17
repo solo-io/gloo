@@ -13,6 +13,11 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+// defaultPodMatchTimeout is how long EventuallyPodsRunning and EventuallyPodsMatches wait when
+// the caller passes no timeout. A new pod's startup includes pulling its image, and test images
+// that are not preloaded into the kind cluster can take longer than the 20s curl default to pull.
+const defaultPodMatchTimeout = 2 * time.Minute
+
 // EventuallyPodsRunning asserts that the pod(s) are running and ready.
 func (p *Provider) EventuallyPodsRunning(
 	ctx context.Context,
@@ -23,7 +28,8 @@ func (p *Provider) EventuallyPodsRunning(
 	p.EventuallyPodsMatches(ctx, podNamespace, listOpt, matchers.PodMatches(matchers.ExpectedPod{Status: corev1.PodRunning, Ready: true}), timeout...)
 }
 
-// EventuallyPodsMatches asserts that the pod(s) in the given namespace matches the provided matcher
+// EventuallyPodsMatches asserts that the pod(s) in the given namespace matches the provided matcher.
+// Without a timeout argument, it waits up to defaultPodMatchTimeout.
 func (p *Provider) EventuallyPodsMatches(
 	ctx context.Context,
 	podNamespace string,
@@ -31,8 +37,13 @@ func (p *Provider) EventuallyPodsMatches(
 	matcher types.GomegaMatcher,
 	timeout ...time.Duration,
 ) {
+	// Use the pod default timeout unless the caller set one; polling keeps the shared default
+	if len(timeout) == 0 {
+		timeout = []time.Duration{defaultPodMatchTimeout}
+	}
 	currentTimeout, pollingInterval := helper.GetTimeouts(timeout...)
 
+	// Poll until every matching pod satisfies the matcher
 	p.Gomega.Eventually(func(g gomega.Gomega) {
 		pods, err := p.clusterContext.Clientset.CoreV1().Pods(podNamespace).List(ctx, listOpt)
 		g.Expect(err).NotTo(gomega.HaveOccurred(), "Failed to list pods")
