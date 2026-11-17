@@ -1,0 +1,9 @@
+changelog:
+  - type: NON_USER_FACING
+    resolvesIssue: false
+    description: >-
+      Fix kube e2e flakes where a test pod (such as nginx or the OpenTelemetry collector) was
+      still Pending when EventuallyPodsRunning gave up after 20 seconds. Pods for third-party
+      test images are not preloaded into the kind cluster, so their startup includes an image
+      pull. EventuallyPodsRunning and EventuallyPodsMatches now wait up to 2 minutes when the
+      caller passes no timeout.
