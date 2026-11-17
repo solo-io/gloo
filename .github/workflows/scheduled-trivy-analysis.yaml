@@ -42,10 +42,19 @@ jobs:
         uses: google-github-actions/setup-gcloud@v3
         with:
           project_id: solo-public
+      # The enterprise release lookup reads solo-projects releases; the solo-gloo-read App can
+      # read that repository and nothing else.
+      - name: Mint a solo-projects read token
+        id: releases-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ vars.PRIVATE_MODULES_CLIENT_ID }}
+          private-key: ${{ secrets.PRIVATE_MODULES_APP_PRIVATE_KEY }}
+          owner: solo-io
+          repositories: solo-projects
       - name: Run and Push Security Scan Files to Google Cloud Bucket
         env:
-          # The enterprise release lookup requires the existing cross-repository credential.
-          GITHUB_TOKEN: ${{ secrets.DOCS_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.releases-token.outputs.token }}
           SCAN_DIR: _output/scans
           IMAGE_REGISTRY: quay.io/solo-io
           # ON_LTS_UPDATE - bump lts version in the repo variables

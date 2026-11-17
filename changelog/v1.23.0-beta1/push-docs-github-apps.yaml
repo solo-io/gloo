@@ -1,0 +1,9 @@
+changelog:
+  - type: NON_USER_FACING
+    resolvesIssue: false
+    description: >-
+      push-docs and the scheduled Trivy scan no longer use the DOCS_TOKEN personal access token.
+      push-docs reads solo-io/docs with the solo-docs-read GitHub App, both read solo-projects
+      releases with the solo-gloo-read App, and push-docs opens its docs pull requests with a
+      solo-docs-release-pr App token that is minted immediately before the push step, so no
+      write credential exists while the docs are generated and the docs checkouts keep none.
