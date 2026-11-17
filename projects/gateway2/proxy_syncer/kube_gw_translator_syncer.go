@@ -70,8 +70,8 @@ func (s *ProxyTranslator) buildXdsSnapshot(
 
 	xdsSnapshot, reports, proxyReport := s.translator.NewTranslator(ctx, settings).Translate(params, proxy)
 
-	// Return an error so the caller discards this translation. The next recomputation re-runs the
-	// validation, which is never cached when interrupted.
+	// Return an error so the caller discards this translation. The next recomputation builds a new
+	// translator with new validators, so it runs the validation again.
 	if interrupted := params.ValidationInterruptions; interrupted.Any() {
 		return nil, nil, nil, eris.Wrapf(interrupted.Err(),
 			"envoy config validation was interrupted translating proxy %s (%d interruptions)",
