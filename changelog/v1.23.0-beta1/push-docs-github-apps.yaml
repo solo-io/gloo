@@ -7,3 +7,5 @@ changelog:
       releases with the solo-gloo-read App, and push-docs opens its docs pull requests with a
       solo-docs-release-pr App token that is minted immediately before the push step, so no
       write credential exists while the docs are generated and the docs checkouts keep none.
+      The enterprise copy can also be started by workflow_dispatch with glooe_lts and glooe_tag,
+      so a solo-projects release dispatcher needs only actions: write on this repo.

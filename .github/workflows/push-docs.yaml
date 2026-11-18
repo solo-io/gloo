@@ -16,7 +16,8 @@
 #     the version-conref and shared-file (changelog, security scans) writes only here, once, means
 #     the parallel per-line jobs can never race each other on those shared files.
 #
-# Enterprise (glooe) docs still arrive one release at a time via repository_dispatch and are
+# Enterprise (glooe) docs still arrive one release at a time, as a repository_dispatch or a
+# workflow_dispatch with `glooe_lts` and `glooe_tag` from the solo-projects release, and are
 # handled by `copy-docs-enterprise`, because enterprise versions are not derivable from gloo tags.
 #
 # Credentials: the jobs read docs with the solo-docs-read App and read solo-projects releases
@@ -44,6 +45,17 @@ on:
         description: 'Comma-separated gloo refs to regenerate (e.g. "v1.20.x,main"), or "all".'
         required: false
         default: 'all'
+      # The enterprise path. A solo-projects release dispatcher starts it with `gh workflow
+      # run`, which needs only actions: write on this repo, where a repository_dispatch needs
+      # contents: write. Both inputs empty is an OSS run.
+      glooe_lts:
+        description: 'Enterprise release only: its LTS branch (e.g. "v1.22.x"). Leave empty for an OSS run.'
+        required: false
+        default: ''
+      glooe_tag:
+        description: 'Enterprise release only: its tag (e.g. "v1.22.7"). Leave empty for an OSS run.'
+        required: false
+        default: ''
   # Enterprise release notification from the solo-projects repo.
   repository_dispatch:
     types: [glooe-release-created]
@@ -70,7 +82,7 @@ jobs:
   # refresh. Read-only - decides the plan, makes no changes to the docs repo.
   # ---------------------------------------------------------------------------
   prepare-oss:
-    if: ${{ github.event_name != 'repository_dispatch' }}
+    if: ${{ github.event_name != 'repository_dispatch' && inputs.glooe_tag == '' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -647,7 +659,7 @@ jobs:
   # ---------------------------------------------------------------------------
   notify-oss:
     needs: [prepare-oss, regen-oss, assemble-oss]
-    if: always() && github.event_name != 'repository_dispatch'
+    if: always() && github.event_name != 'repository_dispatch' && inputs.glooe_tag == ''
     runs-on: ubuntu-latest
     steps:
       - name: Notify in slack of success
@@ -712,13 +724,14 @@ jobs:
             }
 
   # ---------------------------------------------------------------------------
-  # Enterprise (glooe): one release at a time, via repository_dispatch. Enterprise
-  # versions arrive in the dispatch payload (which line, which tag) and cannot be
-  # derived from gloo tags, so they are not batched like the OSS lines. The minor,
-  # docs directory, and gloo ref are derived from the payload + git, not hardcoded.
+  # Enterprise (glooe): one release at a time, via repository_dispatch or a
+  # workflow_dispatch with the glooe_* inputs. Enterprise versions arrive in the
+  # payload or the inputs (which line, which tag) and cannot be derived from gloo
+  # tags, so they are not batched like the OSS lines. The minor, docs directory,
+  # and gloo ref are derived from those + git, not hardcoded.
   # ---------------------------------------------------------------------------
   copy-docs-enterprise:
-    if: ${{ github.event_name == 'repository_dispatch' }}
+    if: ${{ github.event_name == 'repository_dispatch' || inputs.glooe_tag != '' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -729,8 +742,8 @@ jobs:
     - name: Read dispatch payload
       id: lts-version
       run: |
-        echo "lts=${{ github.event.client_payload.lts }}" >> $GITHUB_OUTPUT
-        echo "tag=${{ github.event.client_payload.tag }}" >> $GITHUB_OUTPUT
+        echo "lts=${{ github.event.client_payload.lts || inputs.glooe_lts }}" >> $GITHUB_OUTPUT
+        echo "tag=${{ github.event.client_payload.tag || inputs.glooe_tag }}" >> $GITHUB_OUTPUT
     # Read-only: the App can only read docs, and the credential is not kept in the checkout.
     - name: Mint a docs read token
       id: docs-token
@@ -961,7 +974,7 @@ jobs:
 
   notify-enterprise:
     needs: copy-docs-enterprise
-    if: ${{ !cancelled() && github.event_name == 'repository_dispatch' }}
+    if: ${{ !cancelled() && (github.event_name == 'repository_dispatch' || inputs.glooe_tag != '') }}
     runs-on: ubuntu-latest
     steps:
     - name: Notify in slack of success
