@@ -16,8 +16,18 @@
 #     the version-conref and shared-file (changelog, security scans) writes only here, once, means
 #     the parallel per-line jobs can never race each other on those shared files.
 #
-# Enterprise (glooe) docs still arrive one release at a time via repository_dispatch and are
+# Enterprise (glooe) docs still arrive one release at a time, as a repository_dispatch or a
+# workflow_dispatch with `glooe_lts` and `glooe_tag` from the solo-projects release, and are
 # handled by `copy-docs-enterprise`, because enterprise versions are not derivable from gloo tags.
+#
+# Credentials: the jobs read docs with the solo-docs-read App and read solo-projects releases
+# (for the enterprise changelog `make site-common` builds) with the solo-gloo-read App. The pull
+# requests are pushed with a solo-docs-release-pr App token (contents and pull requests on docs
+# only, one-hour lifetime) that is minted immediately before the create-pull-request step, so no
+# other step runs with it present, and the docs checkouts never keep a credential. This repo is
+# public, so it cannot call solo-tools' internal publish-docs reusable workflow that the private
+# product repos use; this is the in-job equivalent. See
+# https://github.com/solo-io/solo-tools/blob/main/docs/publish-docs.md.
 name: push-docs
 
 on:
@@ -35,6 +45,17 @@ on:
         description: 'Comma-separated gloo refs to regenerate (e.g. "v1.20.x,main"), or "all".'
         required: false
         default: 'all'
+      # The enterprise path. A solo-projects release dispatcher starts it with `gh workflow
+      # run`, which needs only actions: write on this repo, where a repository_dispatch needs
+      # contents: write. Both inputs empty is an OSS run.
+      glooe_lts:
+        description: 'Enterprise release only: its LTS branch (e.g. "v1.22.x"). Leave empty for an OSS run.'
+        required: false
+        default: ''
+      glooe_tag:
+        description: 'Enterprise release only: its tag (e.g. "v1.22.7"). Leave empty for an OSS run.'
+        required: false
+        default: ''
   # Enterprise release notification from the solo-projects repo.
   repository_dispatch:
     types: [glooe-release-created]
@@ -53,31 +74,43 @@ env:
   # it is the only version value maintained by hand. ***
   MIN_MINOR: "1.19"
 
+permissions: {}
+
 jobs:
   # ---------------------------------------------------------------------------
   # OSS, step 1: figure out which lines exist and which of them need a docsgen
   # refresh. Read-only - decides the plan, makes no changes to the docs repo.
   # ---------------------------------------------------------------------------
   prepare-oss:
-    if: ${{ github.event_name != 'repository_dispatch' }}
+    if: ${{ github.event_name != 'repository_dispatch' && inputs.glooe_tag == '' }}
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     outputs:
       matrix: ${{ steps.plan.outputs.matrix }}
       has_matrix: ${{ steps.plan.outputs.has_matrix }}
       all_lines: ${{ steps.plan.outputs.all_lines }}
     steps:
+      # Read-only: the App can only read docs, and the credential is not kept in the checkout.
+      - name: Mint a docs read token
+        id: docs-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ vars.DOCS_READ_APP_CLIENT_ID }}
+          private-key: ${{ secrets.DOCS_READ_APP_PRIVATE_KEY }}
+          owner: solo-io
+          repositories: docs
       - name: Checkout docs repo
         uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
           repository: "solo-io/docs"
-          token: ${{ secrets.DOCS_TOKEN }}
+          token: ${{ steps.docs-token.outputs.token }}
+          persist-credentials: false
           path: docs
           fetch-depth: 1
       - name: Checkout gloo repo
         uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
-          repository: "solo-io/gloo"
-          token: ${{ secrets.DOCS_TOKEN }}
           path: gloo
           fetch-depth: 0
           fetch-tags: "true"
@@ -306,36 +339,55 @@ jobs:
     needs: prepare-oss
     if: needs.prepare-oss.result == 'success' && needs.prepare-oss.outputs.has_matrix == 'true'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     strategy:
       fail-fast: false
       matrix:
         include: ${{ fromJson(needs.prepare-oss.outputs.matrix) }}
     steps:
+      # Read-only: the App can only read docs, and the credential is not kept in the checkout.
+      - name: Mint a docs read token
+        id: docs-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ vars.DOCS_READ_APP_CLIENT_ID }}
+          private-key: ${{ secrets.DOCS_READ_APP_PRIVATE_KEY }}
+          owner: solo-io
+          repositories: docs
       - name: Checkout docs repo (read-only reference for seeding new version directories)
         uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
           repository: "solo-io/docs"
-          token: ${{ secrets.DOCS_TOKEN }}
+          token: ${{ steps.docs-token.outputs.token }}
+          persist-credentials: false
           path: docs
           fetch-depth: 1
       - name: Checkout gloo repo at this line's ref
         uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
-          repository: "solo-io/gloo"
-          token: ${{ secrets.DOCS_TOKEN }}
           path: gloo
           ref: ${{ matrix.ref }}
           fetch-depth: 1
+      # `make site-common` reads solo-projects releases for the enterprise changelog; the
+      # solo-gloo-read App can read that repository and nothing else.
+      - name: Mint a solo-projects read token
+        id: releases-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ vars.PRIVATE_MODULES_CLIENT_ID }}
+          private-key: ${{ secrets.PRIVATE_MODULES_APP_PRIVATE_KEY }}
+          owner: solo-io
+          repositories: solo-projects
       - name: Generate reference docs for this line
         env:
-          GITHUB_TOKEN: ${{ secrets.DOCS_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.releases-token.outputs.token }}
           MINOR: ${{ matrix.minor }}
           DIRECTORY: ${{ matrix.directory }}
           REF: ${{ matrix.ref }}
           IS_PRIMARY: ${{ matrix.is_primary }}
         run: |
           set -euo pipefail
-          git config --global url."https://github_runner_solo:${GITHUB_TOKEN}@github.com".insteadOf "https://github.com"
           die() { echo "::error::$*"; exit 1; }
 
           DOCS="$PWD/docs"
@@ -457,17 +509,28 @@ jobs:
     needs: [prepare-oss, regen-oss]
     if: always() && needs.prepare-oss.result == 'success' && (needs.regen-oss.result == 'success' || needs.regen-oss.result == 'skipped')
     runs-on: ubuntu-latest
+    permissions: {}
     outputs:
+      changed: ${{ steps.apply.outputs.changed }}
       pr_url: ${{ steps.cpr.outputs.pull-request-url }}
     steps:
+      # Read-only: the App can only read docs, and the credential is not kept in the checkout.
+      - name: Mint a docs read token
+        id: docs-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ vars.DOCS_READ_APP_CLIENT_ID }}
+          private-key: ${{ secrets.DOCS_READ_APP_PRIVATE_KEY }}
+          owner: solo-io
+          repositories: docs
       - name: Checkout docs repo
         uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
           repository: "solo-io/docs"
-          token: ${{ secrets.DOCS_TOKEN }}
+          token: ${{ steps.docs-token.outputs.token }}
+          persist-credentials: false
           path: docs
-          fetch-depth: 0
-          fetch-tags: "true"
+          fetch-depth: 1
       - name: Download per-line generated docs
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
@@ -503,6 +566,7 @@ jobs:
           shopt -u nullglob
 
           if [[ -n "$(git status --porcelain)" ]]; then
+            git add -A && git diff --cached --stat && git reset -q
             echo "changed=true" >> "$GITHUB_OUTPUT"
           else
             echo "changed=false" >> "$GITHUB_OUTPUT"
@@ -517,6 +581,17 @@ jobs:
             echo "$ALL_LINES" | jq -r '.[] | "- " + .minor + ".x → " + (if .new_version == "" then "(no release tag; unchanged)" else .new_version end) + (if .reason != "" then "\n  (" + .reason + ")" else "" end)'
             echo "DOCSGEN_EOF"
           } >> "$GITHUB_OUTPUT"
+      # The only write credential in the run: minted here, used by the next step, and gone with
+      # the job. Keep these two steps last so nothing else runs while it exists.
+      - name: Mint a docs write token
+        id: docs-write-token
+        if: steps.apply.outputs.changed == 'true'
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ vars.DOCS_RELEASE_PR_APP_CLIENT_ID }}
+          private-key: ${{ secrets.DOCS_RELEASE_PR_APP_PRIVATE_KEY }}
+          owner: solo-io
+          repositories: docs
       - name: Push and create the consolidated PR
         id: cpr
         if: steps.apply.outputs.changed == 'true'
@@ -526,7 +601,8 @@ jobs:
           path: docs
           branch: post-release-docs-copy
           delete-branch: true
-          committer: github-runner-solo <github-runner-solo@github.com>
+          author: solo-docs-release-pr[bot] <355060598+solo-docs-release-pr[bot]@users.noreply.github.com>
+          committer: solo-docs-release-pr[bot] <355060598+solo-docs-release-pr[bot]@users.noreply.github.com>
           commit-message: 'Copy auto-generated docs for all supported lines'
           title: '[Automated] Post-release docsgen (all supported lines)'
           body: |
@@ -535,7 +611,7 @@ jobs:
             Latest patch per line:
             ${{ steps.summary.outputs.versions }}
           team-reviewers: solo-io/solo-docs
-          token: ${{ secrets.DOCS_TOKEN }}
+          token: ${{ steps.docs-write-token.outputs.token }}
 
   # ---------------------------------------------------------------------------
   # OSS, step 4: one Slack notification for the whole run, regardless of which
@@ -543,7 +619,7 @@ jobs:
   # ---------------------------------------------------------------------------
   notify-oss:
     needs: [prepare-oss, regen-oss, assemble-oss]
-    if: always() && github.event_name != 'repository_dispatch'
+    if: always() && github.event_name != 'repository_dispatch' && inputs.glooe_tag == ''
     runs-on: ubuntu-latest
     steps:
       - name: Notify in slack of success
@@ -608,33 +684,46 @@ jobs:
             }
 
   # ---------------------------------------------------------------------------
-  # Enterprise (glooe): one release at a time, via repository_dispatch. Enterprise
-  # versions arrive in the dispatch payload (which line, which tag) and cannot be
-  # derived from gloo tags, so they are not batched like the OSS lines. The minor,
-  # docs directory, and gloo ref are derived from the payload + git, not hardcoded.
+  # Enterprise (glooe): one release at a time, via repository_dispatch or a
+  # workflow_dispatch with the glooe_* inputs. Enterprise versions arrive in the
+  # payload or the inputs (which line, which tag) and cannot be derived from gloo
+  # tags, so they are not batched like the OSS lines. The minor, docs directory,
+  # and gloo ref are derived from those + git, not hardcoded.
   # ---------------------------------------------------------------------------
   copy-docs-enterprise:
-    if: ${{ github.event_name == 'repository_dispatch' }}
+    if: ${{ github.event_name == 'repository_dispatch' || inputs.glooe_tag != '' }}
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      minor: ${{ steps.version-variables.outputs.minor }}
+      pr_url: ${{ steps.cpr.outputs.pull-request-url }}
     steps:
     - name: Read dispatch payload
       id: lts-version
       run: |
-        echo "lts=${{ github.event.client_payload.lts }}" >> $GITHUB_OUTPUT
-        echo "tag=${{ github.event.client_payload.tag }}" >> $GITHUB_OUTPUT
+        echo "lts=${{ github.event.client_payload.lts || inputs.glooe_lts }}" >> $GITHUB_OUTPUT
+        echo "tag=${{ github.event.client_payload.tag || inputs.glooe_tag }}" >> $GITHUB_OUTPUT
+    # Read-only: the App can only read docs, and the credential is not kept in the checkout.
+    - name: Mint a docs read token
+      id: docs-token
+      uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+      with:
+        client-id: ${{ vars.DOCS_READ_APP_CLIENT_ID }}
+        private-key: ${{ secrets.DOCS_READ_APP_PRIVATE_KEY }}
+        owner: solo-io
+        repositories: docs
     - name: Checkout docs repo
       uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
       with:
         repository: "solo-io/docs"
-        token: ${{ secrets.DOCS_TOKEN }}
+        token: ${{ steps.docs-token.outputs.token }}
+        persist-credentials: false
         path: docs
-        fetch-depth: 0
-        fetch-tags: "true"
+        fetch-depth: 1
     - name: Checkout gloo repo
       uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
       with:
-        repository: "solo-io/gloo"
-        token: ${{ secrets.DOCS_TOKEN }}
         path: gloo
         ref: main
         fetch-depth: 0
@@ -738,11 +827,20 @@ jobs:
         fi
 
         popd || exit 1
+    # `make site-common` reads solo-projects releases for the enterprise changelog; the
+    # solo-gloo-read App can read that repository and nothing else.
+    - name: Mint a solo-projects read token
+      id: releases-token
+      uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+      with:
+        client-id: ${{ vars.PRIVATE_MODULES_CLIENT_ID }}
+        private-key: ${{ secrets.PRIVATE_MODULES_APP_PRIVATE_KEY }}
+        owner: solo-io
+        repositories: solo-projects
     - name: Generate docs
       env:
-        GITHUB_TOKEN: ${{ secrets.DOCS_TOKEN }}
+        GITHUB_TOKEN: ${{ steps.releases-token.outputs.token }}
       run: |
-        git config --global url."https://github_runner_solo:${GITHUB_TOKEN}@github.com".insteadOf "https://github.com"
         pushd gloo || exit 1
         make site-common -C docs
         popd || exit 1
@@ -808,6 +906,16 @@ jobs:
         cp ../gloo/docs/content/reference/api/github.com/solo-io/gloo/projects/gateway2/api/v1alpha1/gateway_parameters.md assets/gateway-docs/pages/reference/gateway_parameters_${{ steps.version-variables.outputs.minor }}.md
         sed -i '1,2d' assets/gateway-docs/pages/reference/gateway_parameters_${{ steps.version-variables.outputs.minor }}.md
         popd || exit 1
+    # The only write credential in the run: minted here, used by the next step, and gone with
+    # the job. Keep these two steps last so nothing else runs while it exists.
+    - name: Mint a docs write token
+      id: docs-write-token
+      uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+      with:
+        client-id: ${{ vars.DOCS_RELEASE_PR_APP_CLIENT_ID }}
+        private-key: ${{ secrets.DOCS_RELEASE_PR_APP_PRIVATE_KEY }}
+        owner: solo-io
+        repositories: docs
     - name: Push and create PR
       id: cpr
       uses: peter-evans/create-pull-request@22a9089034f40e5a961c8808d113e2c98fb63676 # v7.0.11
@@ -816,34 +924,43 @@ jobs:
         body: 'Copy auto-generated enterprise docs from the gloo repo, post-release of Gloo Gateway Enterprise ${{ steps.version-variables.outputs.minor }}'
         branch: post-${{ steps.version-variables.outputs.minor }}-enterprise-docs-copy
         commit-message: 'Copy auto-generated enterprise docs from ${{ steps.version-variables.outputs.minor }}'
-        committer: github-runner-solo <github-runner-solo@github.com>
+        author: solo-docs-release-pr[bot] <355060598+solo-docs-release-pr[bot]@users.noreply.github.com>
+        committer: solo-docs-release-pr[bot] <355060598+solo-docs-release-pr[bot]@users.noreply.github.com>
         delete-branch: true
         path: docs
         team-reviewers: solo-io/solo-docs
         title: '[Automated] Post-release enterprise docsgen for ${{ steps.version-variables.outputs.minor }}'
-        token: ${{ secrets.DOCS_TOKEN }}
+        token: ${{ steps.docs-write-token.outputs.token }}
+
+  notify-enterprise:
+    needs: copy-docs-enterprise
+    if: ${{ !cancelled() && (github.event_name == 'repository_dispatch' || inputs.glooe_tag != '') }}
+    runs-on: ubuntu-latest
+    steps:
     - name: Notify in slack of success
-      if: success()
+      if: ${{ needs.copy-docs-enterprise.result == 'success' }}
       uses: slackapi/slack-github-action@45a88b9581bfab2566dc881e2cd66d334e621e2c # v3.0.3
+      env:
+        PR_URL: ${{ needs.copy-docs-enterprise.outputs.pr_url || 'https://github.com/solo-io/docs/pulls' }}
       with:
         method: chat.postMessage
         token: ${{ secrets.SLACK_BOT_TOKEN }}
         payload: |
           {
             "channel": "C04DYBSJK0R",
-            "text": "✅ *Success:* Automated copy of enterprise reference docs for ${{ steps.version-variables.outputs.minor }} was successful. <${{ steps.cpr.outputs.pull-request-url }}|Review the PR>",
+            "text": "✅ *Success:* Automated copy of enterprise reference docs for ${{ needs.copy-docs-enterprise.outputs.minor }} was successful. <${{ env.PR_URL }}|Review the PR>",
             "blocks": [
               {
                 "type": "section",
                 "text": {
                   "type": "mrkdwn",
-                  "text": "✅ *Success:* Automated copy of enterprise reference docs for ${{ steps.version-variables.outputs.minor }} was successful. <${{ steps.cpr.outputs.pull-request-url }}|Review the PR>"
+                  "text": "✅ *Success:* Automated copy of enterprise reference docs for ${{ needs.copy-docs-enterprise.outputs.minor }} was successful. <${{ env.PR_URL }}|Review the PR>"
                 }
               }
             ]
           }
     - name: Notify in slack of failure
-      if: failure()
+      if: ${{ needs.copy-docs-enterprise.result == 'failure' }}
       uses: slackapi/slack-github-action@45a88b9581bfab2566dc881e2cd66d334e621e2c # v3.0.3
       with:
         method: chat.postMessage
