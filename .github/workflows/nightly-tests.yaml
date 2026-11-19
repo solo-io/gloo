@@ -1,12 +1,16 @@
 name: Nightly
 
 env:
-  GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }} # necessary to pass upgrade tests
+  GITHUB_TOKEN: ${{ github.token }} # necessary to pass upgrade tests
   # https://github.com/solo-io/gloo/issues/10534
   # Performance tests have been disabled. See the above issue for context around it
   # To re-enable those tests (even temporarily) search for the usages of the env variable,
   # and it will direct you to the code that needs to be changed
   ENABLE_PERFORMANCE_TESTS: false
+
+permissions:
+  actions: write # prep-go-runner cancels older runs; upload-artifact reads this run's jobs
+  contents: read
 
 on:
   # https://pubs.opengroup.org/onlinepubs/9699919799/utilities/crontab.html#tag_20_25_07
