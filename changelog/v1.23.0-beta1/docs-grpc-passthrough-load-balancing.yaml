@@ -1,0 +1,6 @@
+changelog:
+  - type: NON_USER_FACING
+    resolvesIssue: false
+    description: >-
+      Documents how to spread gRPC passthrough auth checks across all passthrough service pods.
+      skipCI-kube-tests:true
