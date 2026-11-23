@@ -1,0 +1,6 @@
+changelog:
+  - type: NON_USER_FACING
+    resolvesIssue: false
+    description: >-
+      Stops the docs build and nightly tests workflows from using the org-wide personal access token: the docs build reads solo-projects with a short-lived GitHub App token, and the nightly tests use the workflow token.
+      skipCI-kube-tests:true
