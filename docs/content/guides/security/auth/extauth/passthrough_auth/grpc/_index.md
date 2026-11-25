@@ -247,7 +247,7 @@ spec:
 ## Scaling the passthrough service
 
 {{% notice note %}}
-Load balancing across passthrough service pods was introduced with **Gloo Gateway Enterprise**, release 1.X.Y. In earlier releases, each ExtAuth replica sends all checks to one passthrough pod.
+Load balancing across passthrough service pods was introduced with **Gloo Gateway Enterprise**, release 1.22.8. In earlier releases, each ExtAuth replica sends all checks to one passthrough pod.
 {{% /notice %}}
 
 The ExtAuth server keeps a long-lived gRPC connection to each address that the passthrough `address` resolves to, and sends checks to these addresses in round-robin order. With a regular ClusterIP Service, the address resolves to one IP address, so each ExtAuth replica sends all checks to one passthrough pod. To spread checks across all passthrough pods, use the following setup.
