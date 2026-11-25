@@ -1,0 +1,3 @@
+changelog:
+  - type: NON_USER_FACING
+    description: Update port_routing and client_tls e2e expectations for the Envoy 1.38 503 body, scope their assertions to the running test, and give the glooctl debug test 20s (backport of solo-io/solo-projects#9222).

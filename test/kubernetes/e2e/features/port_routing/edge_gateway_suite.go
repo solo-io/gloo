@@ -112,7 +112,7 @@ func (s *glooGatewayPortRoutingTestingSuite) AfterTest(suiteName, testName strin
 }
 
 func (s *glooGatewayPortRoutingTestingSuite) TestInvalidPortAndValidTargetport() {
-	s.testInstallation.Assertions.AssertEventualCurlResponse(
+	s.testInstallation.AssertionsT(s.T()).AssertEventualCurlResponse(
 		s.ctx,
 		curlPodExecOpt,
 		[]curl.Option{
@@ -125,7 +125,7 @@ func (s *glooGatewayPortRoutingTestingSuite) TestInvalidPortAndValidTargetport()
 }
 
 func (s *glooGatewayPortRoutingTestingSuite) TestMatchPortAndTargetport() {
-	s.testInstallation.Assertions.AssertEventualCurlResponse(
+	s.testInstallation.AssertionsT(s.T()).AssertEventualCurlResponse(
 		s.ctx,
 		curlPodExecOpt,
 		[]curl.Option{
@@ -138,7 +138,7 @@ func (s *glooGatewayPortRoutingTestingSuite) TestMatchPortAndTargetport() {
 }
 
 func (s *glooGatewayPortRoutingTestingSuite) TestMatchPodPortWithoutTargetport() {
-	s.testInstallation.Assertions.AssertEventualCurlResponse(
+	s.testInstallation.AssertionsT(s.T()).AssertEventualCurlResponse(
 		s.ctx,
 		curlPodExecOpt,
 		[]curl.Option{
@@ -151,7 +151,7 @@ func (s *glooGatewayPortRoutingTestingSuite) TestMatchPodPortWithoutTargetport()
 }
 
 func (s *glooGatewayPortRoutingTestingSuite) TestInvalidPortWithoutTargetport() {
-	s.testInstallation.Assertions.AssertEventualCurlResponse(
+	s.testInstallation.AssertionsT(s.T()).AssertEventualCurlResponse(
 		s.ctx,
 		curlPodExecOpt,
 		[]curl.Option{
@@ -164,7 +164,7 @@ func (s *glooGatewayPortRoutingTestingSuite) TestInvalidPortWithoutTargetport() 
 }
 
 func (s *glooGatewayPortRoutingTestingSuite) TestInvalidPortAndInvalidTargetportManifest() {
-	s.testInstallation.Assertions.AssertEventualCurlResponse(
+	s.testInstallation.AssertionsT(s.T()).AssertEventualCurlResponse(
 		s.ctx,
 		curlPodExecOpt,
 		[]curl.Option{

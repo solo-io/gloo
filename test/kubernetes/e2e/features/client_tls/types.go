@@ -62,9 +62,11 @@ var (
 		Body:       gomega.ContainSubstring("Welcome to nginx!"),
 	}
 
+	// Envoy 1.38 no longer reports the TLS failure reason in the 503 body; the healthy nginx-oneway
+	// request over the same upstream is what shows the SAN check is the only difference.
 	expectedCertVerifyFailedResponse = &matchers.HttpResponse{
 		StatusCode: http.StatusServiceUnavailable,
-		Body:       gomega.ContainSubstring("CERTIFICATE_VERIFY_FAILED"),
+		Body:       gomega.ContainSubstring("upstream connect error or disconnect/reset before headers. reset reason: remote connection failure"),
 	}
 
 	nginxTlsSecret = func(ns string) *corev1.Secret {
