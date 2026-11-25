@@ -244,6 +244,48 @@ spec:
 * **Passthrough service is unavailable during the initial connection**: When you configure your AuthConfig with a retry policy, auth requests are retried only after the initial connection between the Gloo auth server and passthrough service is established successfully. If establishing the initial connection fails, the ExtAuth server retries the connection up to the defined `connectionTimeout` in the AuthConfig. The settings in the retry policy are ignored and any auth requests that are sent to the ExtAuth server during that time fail immediately. Auth requests continue to fail when the `connectionTimeout` is reached, even if the passthrough service becomes available afterwards. To mitigate this issue, you can try increasing the `connectionTimeout` setting if you think that your passthrough service can recover and become available within the specified connection timeout.
 
 
+## Scaling the passthrough service
+
+{{% notice note %}}
+Load balancing across passthrough service pods was introduced with **Gloo Gateway Enterprise**, release 1.22.8. In earlier releases, each ExtAuth replica sends all checks to one passthrough pod.
+{{% /notice %}}
+
+The ExtAuth server keeps a long-lived gRPC connection to each address that the passthrough `address` resolves to, and sends checks to these addresses in round-robin order. With a regular ClusterIP Service, the address resolves to one IP address, so each ExtAuth replica sends all checks to one passthrough pod. To spread checks across all passthrough pods, use the following setup.
+
+1. Expose the passthrough service with a headless Service (`clusterIP: None`). DNS then returns the IP address of every ready pod. Because the ExtAuth server connects to the pods directly, set the port in `address` to the container port, not the Service port.
+
+   ```yaml
+   apiVersion: v1
+   kind: Service
+   metadata:
+     name: example-grpc-auth-service
+     labels:
+       app: grpc-extauth
+   spec:
+     clusterIP: None
+     ports:
+     - port: 9001
+       protocol: TCP
+     selector:
+       app: grpc-extauth
+   ```
+
+2. Set a maximum connection age on the passthrough service. The ExtAuth server resolves the address again only when a connection closes, and at most once every 30 seconds. Pods that you add later get no checks until then. A maximum connection age closes connections regularly, so that the ExtAuth server picks up new pods. In a Go gRPC server, set `MaxConnectionAge`.
+
+   ```go
+   // Close each connection after 1 minute, so that ExtAuth looks up the pods again.
+   srv := grpc.NewServer(grpc.KeepaliveParams(keepalive.ServerParameters{
+       MaxConnectionAge:      time.Minute,
+       MaxConnectionAgeGrace: 10 * time.Second,
+   }))
+   ```
+
+3. Shut down the passthrough service gracefully. When a pod stops, checks that are in progress on that pod fail. Unless you set `failureModeAllow`, the ExtAuth server denies these requests. Finish in-progress checks before the server exits, such as with `GracefulStop()` in Go when the pod receives `SIGTERM`.
+
+4. If the passthrough service uses TLS, make sure that the certificate on every pod is valid for the hostname in `address`.
+
+5. Plan for the number of connections. Each ExtAuth replica opens one connection per passthrough pod, for each passthrough config in your AuthConfigs. For example, 3 ExtAuth replicas, 2 passthrough configs, and 10 passthrough pods result in 60 connections.
+
 ## Sharing state with other auth steps
 
 A common requirement is to be able to share state between the passthrough service and other auth steps, such as built-in authentication. Gloo Gateway supports this requirement by leveraging request and response metadata.
