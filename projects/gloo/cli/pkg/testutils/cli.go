@@ -3,6 +3,7 @@ package testutils
 import (
 	"context"
 	"strings"
+	"time"
 
 	"github.com/spf13/cobra"
 
@@ -74,6 +75,8 @@ func (c *GlooCli) Debug(ctx context.Context, userConsent bool, errAssertions fun
 		"debug",
 	}, extraArgs...)
 
+	// glooctl debug collects a whole namespace and exceeds ExpectInteractive's 10s default.
+	timeout := 20 * time.Second
 	testutil.ExpectInteractive(func(c *testutil.Console) {
 		c.ExpectString("This command will overwrite")
 		c.SendLine(func() string {
@@ -86,7 +89,7 @@ func (c *GlooCli) Debug(ctx context.Context, userConsent bool, errAssertions fun
 	}, func() {
 		err := ExecuteCommandWithArgs(c.NewCommand(ctx), debugLogsArgs...)
 		errAssertions(err)
-	}, nil)
+	}, &timeout)
 }
 
 // IstioInject inject istio-proxy and sds
